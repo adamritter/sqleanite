@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 53,176 lines in 71 library modules, 1,321
-theorems/lemmas, 454 explicitly audited headline theorems, and 149 executable
+At this snapshot it contains 53,356 lines in 72 library modules, 1,329
+theorems/lemmas, 460 explicitly audited headline theorems, and 149 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`.
 
@@ -68,6 +68,8 @@ The CLI also exposes `--verified-wal-file` and
 - `scripts/`: audits, reproduction, benchmarks, and crash tests;
 - `docs/`: architecture, trust boundary, results, and case studies.
 
+Current comparative timings are in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
 `Engine.lean` remains a test-only broad SQL conformance fixture. It is not
 reachable from the shipped `sqleanite` binary. The live-path audit enforces
 that separation.
@@ -102,4 +104,3 @@ project. “SQLite” is used to describe file/protocol compatibility.
 ## License
 
 SQLeanite is dedicated to the public domain; see [LICENSE.md](LICENSE.md).
-

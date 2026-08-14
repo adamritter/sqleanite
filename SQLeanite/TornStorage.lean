@@ -11,7 +11,7 @@ structure SectorGeometry (pageSize : Nat) where
   sectorsTilePage : pageSize % sectorSize = 0
 
 def pageByte (page : Storage.Page pageSize) (offset : Fin pageSize) : UInt8 :=
-  page.bytes[offset.val]'(by simpa [page.sizeInvariant] using offset.isLt)
+  page.bytes[offset.val]'(by simp [page.sizeInvariant, offset.isLt])
 
 /-- A crash may independently retain the old or new contents of each sector.
 All bytes in one sector use the same choice, unlike an unconstrained byte-tear

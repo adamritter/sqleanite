@@ -675,7 +675,7 @@ theorem encodedCatalogKinds
   · intro entry member
     rcases List.mem_map.mp member with ⟨encoded, encodedMember, rfl⟩
     have kind := indexes encoded encodedMember
-    simpa [CatalogEntry.ofEncoded, kind]
+    simp [CatalogEntry.ofEncoded, kind]
 
 def CatalogTextRoundtrips (entry : CoreFile.CatalogEntry) : Prop :=
   CoreDecode.TextRoundtrips entry.kind ∧

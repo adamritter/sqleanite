@@ -614,7 +614,7 @@ private def storagePage? (bytes : List UInt8) :
   if exact : bytes.length = PhysicalCodec.pageSize then
     some {
       bytes := bytes.toArray
-      sizeInvariant := by simpa [exact] }
+      sizeInvariant := by simp [exact] }
   else none
 
 private def indexPageWrites (rootPage : Nat) :

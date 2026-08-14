@@ -1,4 +1,11 @@
-# SQLeanite vs C SQLite: measured timings
+# Historical SQLeanite benchmark notes
+
+This file preserves development-era measurements and bottleneck analysis. Many
+numbers below predate persistent page deltas and certified page-directed reads;
+they are not current performance claims. See [BENCHMARKS.md](BENCHMARKS.md) for
+a fresh standalone-repository run.
+
+## Earlier SQLeanite vs C SQLite timings
 
 Same machine, same SQL, same on-disk format. C SQLite is `/usr/bin/sqlite3`;
 SQLeanite is `--verified-file`. Times are wall clock for the whole process,

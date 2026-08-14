@@ -83,7 +83,7 @@ def trunkPage (start count : Nat) : CoreFile.Page := {
 /-- Emit pages in physical order. Each recursive segment starts with a trunk,
 followed by the zero-filled leaf pages named by that trunk. -/
 def freelistPages (start count : Nat) : List CoreFile.Page :=
-  if zero : count = 0 then []
+  if _zero : count = 0 then []
   else
       let chunk := chunkSize count
       trunkPage start count ::
@@ -91,7 +91,7 @@ def freelistPages (start count : Nat) : List CoreFile.Page :=
           freelistPages (start + chunk) (count - chunk)
 termination_by count
 decreasing_by
-  exact remaining_lt (Nat.zero_lt_of_ne_zero zero)
+  exact remaining_lt (Nat.zero_lt_of_ne_zero _zero)
 
 theorem freelistPages_length (start count : Nat) :
     (freelistPages start count).length = count := by

@@ -476,7 +476,7 @@ def tableInteriorPage? (firstLeaf : Nat) (leaves : List (List (List UInt8))) :
 
 /-- Pages for one table, in page-number order: root first, then leaves. -/
 def tablePages? (layout : TableLayout) : Option (List Page) :=
-  match hLeaves : layout.leaves with
+  match layout.leaves with
   | [] => do let page ← tableLeafPage? []; some [page]
   | [only] => do let page ← tableLeafPage? only; some [page]
   | _ => do

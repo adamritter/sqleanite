@@ -1101,7 +1101,7 @@ compared with the verified executor and rejected to the ordinary path on any
 disagreement. -/
 def executeUncertifiedQueryWithCandidates (state : State) (tableName : String)
     (query : Query) (candidates : List Row) : Except String (State × Result) :=
-  match found : state.database.findTable? tableName with
+  match state.database.findTable? tableName with
   | none => .error s!"no such table: {tableName}"
   | some table =>
       let optimized := query.optimize
