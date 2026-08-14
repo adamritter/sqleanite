@@ -500,6 +500,20 @@ theorem ValidatedOpenState.retarget?_indexImage
       CoreChunkPageDelta.indexImage delta.table.after.table :=
   delta.table.tablePagesSufficient_indexImage sufficient
 
+/-- A bounded direct page source over the file buffer.  Converting the
+entire database to a linked list and then splitting it into page lists made a
+validated write-open traverse every byte twice before decoding began. -/
+def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
+    CoreDecode.PageSource := {
+  pageCount
+  readPage := fun pageNumber =>
+    if pageNumber = 0 || pageCount < pageNumber then none
+    else
+      let start := (pageNumber - 1) * PhysicalCodec.pageSize
+      let stop := start + PhysicalCodec.pageSize
+      if stop ≤ input.size then some (input.extract start stop).toList
+      else none }
+
 /-- Read a supported physical image once and recover its logical database and
 persistent page identities together.  The returned capability records that
 the index images were validated by this same open. Returning `none` is an
@@ -507,15 +521,14 @@ optimization miss: callers retain the general compatibility path. -/
 def loadOpenState (paths : Paths) :
     IO (Option ValidatedOpenState) := do
   let input ← IO.FS.readBinFile paths.main
-  let bytes := input.data.toList
-  let some (header, _) := FileFormat.decodeDatabaseHeader bytes |
+  let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
+  let some (header, _) := FileFormat.decodeDatabaseHeader firstPageBytes |
     return none
   let count := header.databaseSizePages.val
   unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
       header.headerPrefix.reservedSpace = 0 && header.textEncoding.val = 1 &&
       input.size = count * PhysicalCodec.pageSize do return none
-  let pages := CoreDecode.pages count bytes
-  let source := CoreDecode.PageSource.ofList pages
+  let source := byteArrayPageSource input count
   let opened := match CorePageLoad.openGenerated? source with
     | some state => some state
     | none => CorePageLoad.open? source
@@ -681,17 +694,6 @@ def indexInteriorPageFromEntries? (entries : List (Nat × CoreDecode.IndexEntry)
     some (entry.1, cell)
   RecursivePageBTree.indexInteriorPage? children rightmost
 
-def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
-    CoreDecode.PageSource := {
-  pageCount
-  readPage := fun pageNumber =>
-    if pageNumber = 0 || pageCount < pageNumber then none
-    else
-      let start := (pageNumber - 1) * PhysicalCodec.pageSize
-      let stop := start + PhysicalCodec.pageSize
-      if stop ≤ input.size then some (input.extract start stop).toList
-      else none }
-
 structure IndexPageMutations where
   source : CoreDecode.PageSource
   changed : List (Nat × List UInt8) := []
@@ -721,21 +723,53 @@ def IndexPageMutations.writePage? (state : IndexPageMutations)
       changed := replaceChangedPage pageNumber page.bytes state.changed }
   else none
 
+/-- Split exactly `count` elements in one traversal, rejecting a short input. -/
+def takeExact : Nat → List α → Option (List α × List α)
+  | 0, input => some ([], input)
+  | _ + 1, [] => none
+  | count + 1, byte :: input => do
+      let (front, suffix) ← takeExact count input
+      some (byte :: front, suffix)
+
+theorem takeExact_spec {count : Nat} {input front suffix : List α}
+    (success : takeExact count input = some (front, suffix)) :
+    front.length = count ∧ front ++ suffix = input := by
+  induction count generalizing input front suffix with
+  | zero =>
+      simp only [takeExact, Option.some.injEq, Prod.mk.injEq] at success
+      rcases success with ⟨rfl, rfl⟩
+      simp
+  | succ count induction =>
+      cases input with
+      | nil => simp [takeExact] at success
+      | cons byte input =>
+          simp only [takeExact, Option.bind_eq_bind, Option.bind] at success
+          cases recursive : takeExact count input with
+          | none => simp [recursive] at success
+          | some result =>
+              rcases result with ⟨tail, rest⟩
+              simp only [recursive, Option.some.injEq, Prod.mk.injEq] at success
+              rcases success with ⟨rfl, rfl⟩
+              rcases induction recursive with ⟨length, reconstruct⟩
+              simp [length, reconstruct]
+
 def splitInlineIndexCells : Nat → List UInt8 →
     Option (List (List UInt8) × List UInt8)
   | 0, input => some ([], input)
   | count + 1, input => do
-      let (payloadSize, afterSize) ← FileFormat.decodeVarint input
+      let (payloadSize, _afterSize) ← FileFormat.decodeVarint input
       if _inline : payloadSize.val ≤
           FileFormat.indexMaxLocal PhysicalCodec.usablePageSize then
-        let prefixLength := input.length - afterSize.length
+        -- This path only accepts canonical packed generated pages.  Derive
+        -- the canonical varint width from its decoded value instead of
+        -- repeatedly traversing the shrinking page suffix twice per cell.
+        -- A non-minimal external varint therefore fails closed below when
+        -- its suffix does not line up with the declared cell count.
+        let prefixLength := FileFormat.sqliteVarintSize payloadSize.val
         let cellLength := prefixLength + payloadSize.val
-        if _bounded : cellLength ≤ input.length then
-          let cell := input.take cellLength
-          let rest := input.drop cellLength
-          let tail ← splitInlineIndexCells count rest
-          some (cell :: tail.1, tail.2)
-        else none
+        let (cell, rest) ← takeExact cellLength input
+        let tail ← splitInlineIndexCells count rest
+        some (cell :: tail.1, tail.2)
       else none
 
 def inlineIndexLeafCells? (page : List UInt8) :

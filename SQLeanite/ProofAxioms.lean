@@ -500,3 +500,4 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.lookupIndexRangeFrom_certified_exact
 #print axioms SQLeanite.CoreDecode.lookupIndexRangeFrom_all_matches
 #print axioms SQLeanite.Core.executeUncertifiedQueryWithCandidates_eq_execute
+#print axioms SQLeanite.CoreFileAdapter.takeExact_spec

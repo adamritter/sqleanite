@@ -113,18 +113,25 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
           let validation ← connection.validatedOpen.get
           let input ← IO.FS.readBinFile connection.paths.main
           let prepared := validation.bind fun validated =>
-            match CoreFileAdapter.prepareAppendedIndex? validated input delta with
-            | some appended => some appended
-            | none =>
-                match CoreFileAdapter.preparePageDirectedIndexInsert? validated
-                    input delta with
-                | some directed => some directed
-                | none =>
-                    match CoreFileAdapter.preparePageDirectedIndexDelete? validated
-                        input delta with
-                    | some directed => some directed
-                    | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
-                        input.data.toList delta
+            if delta.table.after.table.rows.length <
+                delta.table.before.table.rows.length then
+              -- The append and insertion preparations both reject a shrinking
+              -- table.  Dispatch directly instead of decoding the header and
+              -- catalog three times before reaching deletion.
+              match CoreFileAdapter.preparePageDirectedIndexDelete? validated
+                  input delta with
+              | some directed => some directed
+              | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
+                  input.data.toList delta
+            else
+              match CoreFileAdapter.prepareAppendedIndex? validated input delta with
+              | some appended => some appended
+              | none =>
+                  match CoreFileAdapter.preparePageDirectedIndexInsert? validated
+                      input delta with
+                  | some directed => some directed
+                  | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
+                      input.data.toList delta
           match prepared with
           | some prepared =>
               match ← CoreFileAdapter.commitLocalized connection.syncOps

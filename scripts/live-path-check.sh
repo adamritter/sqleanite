@@ -485,13 +485,25 @@ fi
 if grep -q 'preparePageDirectedIndexDelete? validated' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'deleteIndexEntriesBatch?' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'let (cell, rest) ← takeExact cellLength input' \
+     SQLeanite/CoreFileAdapter.lean &&
    grep -q 'certifyDecodedIndex? entry.rootPage' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'deletedRowsOrdered?_length' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreFileAdapter.takeExact_spec' SQLeanite/ProofAxioms.lean &&
    grep -q 'certifyDecodedIndex?_exact' SQLeanite/ProofAxioms.lean; then
   ok "indexed bulk DELETE carries an exact decoded post-state certificate"
 else
   fail "page-directed indexed DELETE detached from its physical certificate"
+fi
+
+if grep -q 'let source := byteArrayPageSource input count' \
+     SQLeanite/CoreFileAdapter.lean &&
+   ! sed -n '/def loadOpenState/,/structure CertifiedIndexEncoding/p' \
+      SQLeanite/CoreFileAdapter.lean | grep -q 'CoreDecode.pages'; then
+  ok "validated write-open reads pages directly from the file buffer"
+else
+  fail "validated write-open regressed to whole-file list pagination"
 fi
 
 if grep -q 'preparePageDirectedIndexInsert? validated' \
