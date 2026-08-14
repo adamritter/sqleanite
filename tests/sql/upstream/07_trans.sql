@@ -1,0 +1,12 @@
+-- Adapted from upstream test/trans.test: commit and rollback.
+CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
+INSERT INTO t1 VALUES(1,'one');
+BEGIN;
+INSERT INTO t1 VALUES(2,'two');
+SELECT a FROM t1 ORDER BY a;
+COMMIT;
+SELECT a FROM t1 ORDER BY a;
+BEGIN;
+INSERT INTO t1 VALUES(3,'three');
+ROLLBACK;
+SELECT a FROM t1 ORDER BY a;

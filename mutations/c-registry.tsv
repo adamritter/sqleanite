@@ -1,0 +1,11 @@
+id	property	patch	witness	bug_class
+c-p2-drop-first	P2	c-p2-drop-first.patch	c-p2-drop-first.sql	indexed path drops its first B-tree row
+c-p1-null-equal	P1	c-p1-null-equal.patch	c-p1-null-equal.sql	NULL compares equal to every value
+c-p1-like-prefix-only	P1	c-p1-like-prefix-only.patch	c-p1-like-prefix-only.sql	LIKE matches on first character only
+c-p1-affinity-skip	P1	c-p1-affinity-skip.patch	c-p1-affinity-skip.sql	CAST is skipped, affinity never applied
+c-p3-delete-skips-balance	P3	c-p3-delete-skips-balance.patch	c-p3-delete-skips-balance.sql	index delete silently does nothing
+c-p4-truncate-skip	P4	c-p4-truncate-skip.patch	c-p4-truncate-skip.sql	database file never shrinks on rollback/vacuum
+c-p1-add-subtract	P1	c-p1-add-subtract.patch	c-p1-add-subtract.sql	integer addition executes subtraction
+c-p1-and-as-or	P1	c-p1-and-as-or.patch	c-p1-and-as-or.sql	three-valued AND executes the OR truth table
+c-p1-not-identity	P1	c-p1-not-identity.patch	c-p1-not-identity.sql	NOT leaves non-NULL truth values unchanged
+c-p1-reverse-divide	P1	c-p1-reverse-divide.patch	c-p1-reverse-divide.sql	integer division reverses its operands

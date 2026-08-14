@@ -1,0 +1,6 @@
+-- Seed shared by the read/update workloads. @ROWS@ is substituted by
+-- tool/run-workload-benchmark.sh.
+CREATE TABLE orders(id INTEGER PRIMARY KEY, customer, sku, status);
+CREATE TABLE customers(id INTEGER PRIMARY KEY, name, region);
+@ROWS@
+CREATE INDEX orders_sku ON orders(sku);

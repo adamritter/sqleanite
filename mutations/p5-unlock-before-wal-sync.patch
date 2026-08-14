@@ -1,0 +1,12 @@
+diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
+--- a/SQLeanite/WALConcurrency.lean
++++ b/SQLeanite/WALConcurrency.lean
+@@ -173,7 +173,7 @@ theorem runWriterProtocol_preserves_safe {state final : WriterProtocolState}
+           exact induction (state.step_preserves_safe stepped) ran
+ 
+ def writerProtocol (next : Database) : List WriterEvent :=
+-  [.lock, .append next, .sync, .unlock]
++  [.lock, .append next, .unlock, .sync]
+ 
+ /-- The intended writer protocol completes with the lock released only after
+ the new database is durable and visible. -/

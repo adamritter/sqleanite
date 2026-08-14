@@ -1,0 +1,12 @@
+-- Adapted from upstream test/where.test: predicate forms.
+CREATE TABLE t1(w INTEGER PRIMARY KEY, x, y);
+INSERT INTO t1 VALUES(1,10,'a');
+INSERT INTO t1 VALUES(2,20,'b');
+INSERT INTO t1 VALUES(3,30,'c');
+INSERT INTO t1 VALUES(4,40,'d');
+SELECT w FROM t1 WHERE x=20;
+SELECT w FROM t1 WHERE x>20 AND y='d';
+SELECT w FROM t1 WHERE x<20 OR x>30;
+SELECT w FROM t1 WHERE NOT (x=20);
+SELECT w FROM t1 WHERE x>=20 AND x<=30;
+SELECT w FROM t1 WHERE y<>'a';

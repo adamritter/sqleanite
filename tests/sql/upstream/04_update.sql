@@ -1,0 +1,11 @@
+-- Adapted from upstream test/update.test.
+CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);
+INSERT INTO t1 VALUES(1,'one',10);
+INSERT INTO t1 VALUES(2,'two',20);
+INSERT INTO t1 VALUES(3,'three',30);
+UPDATE t1 SET b='ONE' WHERE a=1;
+SELECT a,b FROM t1 ORDER BY a;
+UPDATE t1 SET b='x', c=99 WHERE a>1;
+SELECT a,b,c FROM t1 ORDER BY a;
+UPDATE t1 SET c=NULL WHERE a=2;
+SELECT a,c FROM t1 ORDER BY a;

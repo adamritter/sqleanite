@@ -1,0 +1,15 @@
+diff --git a/src/vdbe.c b/src/vdbe.c
+index e6a01e7276..192a164b53 100644
+--- a/src/vdbe.c
++++ b/src/vdbe.c
+@@ -2194,7 +2194,9 @@ case OP_RealAffinity: {                  /* in1 */
+ **
+ ** A NULL value is not changed by this routine.  It remains NULL.
+ */
+-case OP_Cast: {                  /* in1 */
++case OP_Cast: {
++  /* MUT: skip the cast entirely. */
++  if( 1 ) break;                  /* in1 */
+   assert( pOp->p2>=SQLITE_AFF_BLOB && pOp->p2<=SQLITE_AFF_REAL );
+   testcase( pOp->p2==SQLITE_AFF_TEXT );
+   testcase( pOp->p2==SQLITE_AFF_BLOB );

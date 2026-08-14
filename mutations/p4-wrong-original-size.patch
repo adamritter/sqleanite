@@ -1,0 +1,10 @@
+diff --git a/SQLeanite/GrowableStorage.lean b/SQLeanite/GrowableStorage.lean
+--- a/SQLeanite/GrowableStorage.lean
++++ b/SQLeanite/GrowableStorage.lean
+@@ -96,7 +96,7 @@ def buildUndo (old : Image pageSize) :
+ 
+ def makeJournal (old : Image pageSize) (writes : List (PageWrite pageSize)) :
+     Journal pageSize := {
+-  originalPageCount := old.pageCount
++  originalPageCount := old.pageCount + 1
+   undo := buildUndo old writes }

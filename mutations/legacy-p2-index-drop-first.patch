@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/Engine.lean b/SQLeanite/Engine.lean
+--- a/SQLeanite/Engine.lean
++++ b/SQLeanite/Engine.lean
+@@ -2397,7 +2397,7 @@ def evalIndex (db : Database) (expressions : Array Expr)
+     (filtered : Array Env) : Except String (List Env) :=
+   match expressionIndexKeyRows db expressions filtered.toList with
+   | .error message => .error message
+-  | .ok keyed => .ok ((sortValueKeyed keyed.toArray).map (·.2)).toList
++  | .ok keyed => .ok ((sortValueKeyed keyed.toArray).map (·.2)).toList.tail
+ 
+ def evalScan (filtered : Array Env) : List Env := filtered.toList

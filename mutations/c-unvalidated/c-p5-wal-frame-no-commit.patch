@@ -1,0 +1,14 @@
+diff --git a/src/wal.c b/src/wal.c
+index 33fa038dba..a2cc6c21be 100644
+--- a/src/wal.c
++++ b/src/wal.c
+@@ -3970,7 +3970,8 @@ static int walWriteOneFrame(
+   void *pData;                    /* Data actually written */
+   u8 aFrame[WAL_FRAME_HDRSIZE];   /* Buffer to assemble frame-header in */
+   pData = pPage->pData;
+-  walEncodeFrame(p->pWal, pPage->pgno, nTruncate, pData, aFrame);
++  /* MUT: never mark a frame as the commit frame. */
++  walEncodeFrame(p->pWal, pPage->pgno, 0, pData, aFrame);
+   rc = walWriteToLog(p, aFrame, sizeof(aFrame), iOffset);
+   if( rc ) return rc;
+   /* Write the page data */

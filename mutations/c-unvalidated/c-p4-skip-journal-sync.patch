@@ -1,0 +1,17 @@
+diff --git a/src/pager.c b/src/pager.c
+index b52886e45e..4bf59eb84e 100644
+--- a/src/pager.c
++++ b/src/pager.c
+@@ -6663,9 +6663,9 @@ int sqlite3PagerCommitPhaseOne(
+       ** not the case. In this case it is likely enough that the redundant
+       ** xSync() call will be changed to a no-op by the OS anyhow.
+       */
+-      rc = syncJournal(pPager, 0);
+-      if( rc!=SQLITE_OK ) goto commit_phase_one_exit;
+-
++      /* MUTATION c-p4-skip-journal-sync: write database pages before the
++      ** rollback journal is durable. Correct on every non-crashing run; loses
++      ** the ability to roll back after a power failure at the wrong instant. */
+       pList = sqlite3PcacheDirtyList(pPager->pPCache);
+ #ifdef SQLITE_ENABLE_BATCH_ATOMIC_WRITE
+       if( bBatch ){

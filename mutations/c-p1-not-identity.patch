@@ -1,0 +1,13 @@
+diff --git a/src/vdbe.c b/src/vdbe.c
+--- a/src/vdbe.c
++++ b/src/vdbe.c
+@@ -2690,7 +2690,8 @@ case OP_Not: {                /* same as TK_NOT, in1, out2 */
+   pIn1 = &aMem[pOp->p1];
+   pOut = &aMem[pOp->p2];
+   if( (pIn1->flags & MEM_Null)==0 ){
+-    sqlite3VdbeMemSetInt64(pOut, !sqlite3VdbeBooleanValue(pIn1,0));
++    /* MUT: NOT is the identity on non-NULL truth values. */
++    sqlite3VdbeMemSetInt64(pOut, sqlite3VdbeBooleanValue(pIn1,0));
+   }else{
+     sqlite3VdbeMemSetNull(pOut);
+   }

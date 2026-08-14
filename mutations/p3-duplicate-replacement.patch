@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/PagedBTree.lean b/SQLeanite/PagedBTree.lean
+--- a/SQLeanite/PagedBTree.lean
++++ b/SQLeanite/PagedBTree.lean
+@@ -15,7 +15,7 @@ def orderedInsert (key : Nat) (value : Value) :
+   | entry :: entries =>
+       if key < entry.1 then (key, value) :: entry :: entries
+       else if entry.1 < key then entry :: orderedInsert key value entries
+-      else (key, value) :: entries
++      else (key, value) :: entry :: entries
+ 
+ theorem mem_orderedInsert {candidate : Entry Value} {entries : List (Entry Value)}

@@ -1,0 +1,11 @@
+CREATE TABLE items(id INTEGER PRIMARY KEY,first,second);
+INSERT INTO items VALUES(1,'old',NULL);
+BEGIN;
+UPDATE items SET first='rolled-back';
+INSERT INTO items VALUES(2,'temporary',NULL);
+ROLLBACK;
+BEGIN;
+UPDATE items SET second='committed' WHERE id=1;
+INSERT INTO items VALUES(3,'new',NULL);
+COMMIT;
+SELECT * FROM items ORDER BY id;

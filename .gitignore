@@ -1,0 +1,19 @@
+/.lake/
+/manifest.json
+
+# Generated mutation/build logs. Curated TSV summaries remain tracked.
+/mutations/logs/
+/mutations/c-logs/
+
+# Database and crash-test artifacts.
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.so
+*.o
+
+# Editor and platform noise.
+.DS_Store
+*~
+*.swp

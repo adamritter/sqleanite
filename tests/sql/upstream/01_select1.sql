@@ -1,0 +1,10 @@
+-- Adapted from upstream test/select1.test: basic SELECT forms.
+CREATE TABLE test1(f1 INTEGER PRIMARY KEY, f2);
+INSERT INTO test1 VALUES(11,22);
+INSERT INTO test1 VALUES(33,44);
+SELECT f1 FROM test1;
+SELECT f2 FROM test1;
+SELECT f1,f2 FROM test1;
+SELECT f2,f1 FROM test1;
+SELECT f1 FROM test1 WHERE f1<20;
+SELECT f1 FROM test1 WHERE f1>20;

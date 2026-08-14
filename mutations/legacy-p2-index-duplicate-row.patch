@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/Engine.lean b/SQLeanite/Engine.lean
+--- a/SQLeanite/Engine.lean
++++ b/SQLeanite/Engine.lean
+@@ -2365,7 +2365,7 @@ def expressionIndexKeyRows (db : Database) (expressions : Array Expr) :
+       | .ok keys =>
+           match expressionIndexKeyRows db expressions envs with
+           | .error message => .error message
+-          | .ok tail => .ok ((keys, env) :: tail)
++          | .ok tail => .ok ((keys, env) :: (keys, env) :: tail)
+ 
+ theorem expressionIndexKeyRows_preserves_rows

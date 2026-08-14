@@ -1,0 +1,15 @@
+diff --git a/src/vdbeaux.c b/src/vdbeaux.c
+index 60805d60b0..c311107216 100644
+--- a/src/vdbeaux.c
++++ b/src/vdbeaux.c
+@@ -4596,7 +4596,9 @@ int sqlite3MemCompare(const Mem *pMem1, const Mem *pMem2, const CollSeq *pColl){
+   ** are NULL, return 0.
+   */
+   if( combined_flags&MEM_Null ){
+-    return (f2&MEM_Null) - (f1&MEM_Null);
++    /* MUTATION c-p1-null-equal: treat NULL as equal to everything, the
++    ** classic two-valued-logic mistake. */
++    return 0;
+   }
+ 
+   /* At least one of the two values is a number

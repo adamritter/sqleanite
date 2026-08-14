@@ -1,0 +1,12 @@
+diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
+--- a/SQLeanite/WALConcurrency.lean
++++ b/SQLeanite/WALConcurrency.lean
+@@ -216,7 +216,8 @@ def result (schedule : Schedule) : Option Outcome :=
+           ∃ reader ∈ schedule.readers, reader.id = id ∧
+             database = if reader.lifetime.beginTick < writer.lifetime.endTick then
+-              schedule.initial.visible
++              { schedule.initial.visible with
++                foreignKeys := writer.next.foreignKeys }
+             else committed.visible }
+   | _ => none
+

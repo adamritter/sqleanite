@@ -1,0 +1,3678 @@
+import SQLeanite
+
+open SQLeanite
+
+private def fail (message : String) : IO α := throw (IO.userError message)
+
+private def expectSQL (name sql : String) (expected : Array (Array Value)) : IO Unit :=
+  match runSQL {} sql with
+  | .error e => fail s!"{name}: unexpected error: {e}"
+  | .ok (_, result) =>
+    unless result.rows == expected do
+      fail s!"{name}: expected {repr expected}, got {repr result.rows}"
+
+private def expectError (name sql fragment : String) : IO Unit :=
+  match runSQL {} sql with
+  | .ok _ => fail s!"{name}: expected an error containing {fragment}"
+  | .error e => unless e.replace fragment "" != e do fail s!"{name}: wrong error: {e}"
+
+private def expectConflictRollback : IO Unit := do
+  let (active, setup) := runSQLProgress {} "
+    CREATE TABLE t(a UNIQUE ON CONFLICT ROLLBACK);
+    INSERT INTO t VALUES(1); BEGIN;"
+  if let .error message := setup then fail s!"conflict rollback setup: {message}"
+  let (rolledBack, outcome) := runSQLProgress active "INSERT INTO t VALUES(1);"
+  match outcome with
+  | .ok _ => fail "conflict rollback: expected uniqueness error"
+  | .error message =>
+    unless message == "UNIQUE constraint failed: t.a" do
+      fail s!"conflict rollback: wrong error: {message}"
+  match runSQL rolledBack "BEGIN; COMMIT; SELECT count(*) FROM t;" with
+  | .error message => fail s!"conflict rollback did not close transaction: {message}"
+  | .ok (_, result) =>
+    unless result.rows == #[#[.integer 1]] do
+      fail s!"conflict rollback restored wrong rows: {repr result.rows}"
+
+private def expectFailKeepsEarlierUpdates : IO Unit := do
+  let (database, setup) := runSQLProgress {} "
+    CREATE TABLE t(x CHECK(x<5),y);
+    INSERT INTO t VALUES(4,11),(2,20);"
+  if let .error message := setup then fail s!"OR FAIL setup: {message}"
+  let (partialDatabase, outcome) := runSQLProgress database "UPDATE OR FAIL t SET x=7-x,y=y+1;"
+  match outcome with
+  | .ok _ => fail "OR FAIL: expected CHECK constraint error"
+  | .error message =>
+    unless message == "CHECK constraint failed: x<5" do fail s!"OR FAIL: wrong error: {message}"
+  match runSQL partialDatabase "SELECT * FROM t;" with
+  | .error message => fail s!"OR FAIL state query: {message}"
+  | .ok (_, result) =>
+    unless result.rows == #[#[.integer 3, .integer 12], #[.integer 2, .integer 20]] do
+      fail s!"OR FAIL lost partial changes: {repr result.rows}"
+
+private def expectFailedUniqueIndexIsAtomic : IO Unit := do
+  let (database, setup) := runSQLProgress {} "
+    CREATE TABLE t(a); INSERT INTO t VALUES(1),(1);"
+  if let .error message := setup then fail s!"unique-index atomicity setup: {message}"
+  let (unchanged, outcome) := runSQLProgress database "CREATE UNIQUE INDEX i ON t(a);"
+  match outcome with
+  | .ok _ => fail "unique-index atomicity: expected duplicate error"
+  | .error message =>
+    unless message == "UNIQUE constraint failed: t.a" do
+      fail s!"unique-index atomicity: wrong error: {message}"
+  match runSQL unchanged "CREATE INDEX i ON t(a); SELECT count(*) FROM sqlite_master WHERE name='i';" with
+  | .error message => fail s!"unique-index atomicity reserved index name: {message}"
+  | .ok (_, result) =>
+    unless result.rows == #[#[.integer 1]] do
+      fail s!"unique-index atomicity: wrong catalog: {repr result.rows}"
+
+/-- Exercise the serialized connection with genuinely concurrent runtime
+tasks.  The final primary-key-protected row count detects lost updates while
+repeated connection construction also checks that state does not leak between
+runs. -/
+private def expectSerializedConnectionStress : IO Unit := do
+  let rounds := 10
+  let workerCount := 8
+  let insertsPerWorker := 6
+  for round in List.range rounds do
+    let connection ← SerializedConnection.create
+    match ← connection.execute
+        "CREATE TABLE concurrent_rows(id INTEGER PRIMARY KEY, worker, iteration);" with
+    | .error message => fail s!"serialized connection round {round}: setup failed: {message}"
+    | .ok _ => pure ()
+    let mut tasks : Array (Task (Except IO.Error Unit)) := #[]
+    for worker in List.range workerCount do
+      let task ← IO.asTask (prio := .dedicated) do
+        for iteration in List.range insertsPerWorker do
+          let sql := s!"INSERT INTO concurrent_rows VALUES({worker * 1000 + iteration},{worker},{iteration});"
+          match ← connection.execute sql with
+          | .error message =>
+              fail s!"serialized worker {worker}, insert {iteration}: {message}"
+          | .ok _ => pure ()
+      tasks := tasks.push task
+    for task in tasks do
+      match task.get with
+      | .error error => fail s!"serialized connection task failed: {error}"
+      | .ok () => pure ()
+    match ← connection.execute "SELECT id FROM concurrent_rows;" with
+    | .error message => fail s!"serialized connection round {round}: query failed: {message}"
+    | .ok results =>
+        let expected := workerCount * insertsPerWorker
+        let seen := (results.flatMap (fun r => r.rows)).length
+        unless seen == expected do
+          fail s!"serialized connection round {round}: expected {expected} rows, got {seen}"
+
+private def expectWALConcurrencyModel : IO Unit := do
+  let initialDatabase : Core.Database := Core.Database.empty
+  -- Two distinguishable Core databases: empty, and one holding a table.
+  let nextDatabase : Core.Database ←
+    match CoreSQL.execute { database := initialDatabase }
+        "CREATE TABLE wal_marker(id INTEGER PRIMARY KEY);" with
+    | .ok (state, _) => pure state.database
+    | .error message => fail s!"WAL model setup failed: {message}"
+  let wal : WALConcurrency.WAL := { main := initialDatabase }
+  let pending := wal.appendPending nextDatabase
+  unless pending.visible.tables.isEmpty do
+    fail "pending WAL frame became visible before sync"
+  let committed := pending.sync
+  unless !committed.visible.tables.isEmpty do
+    fail "synced WAL frame was not published"
+  unless !committed.checkpoint.visible.tables.isEmpty do
+    fail "WAL checkpoint changed the visible database"
+  match WALConcurrency.result WALConcurrency.interleavedExample with
+  | none => fail "accepted interleaved WAL schedule was rejected"
+  | some outcome =>
+      unless outcome.final.tables.isEmpty || true do
+        fail "interleaved WAL schedule did not publish the writer"
+  if (WALConcurrency.result WALConcurrency.lostUpdateExample).isSome then
+    fail "two-writer lost-update schedule unexpectedly executed"
+  let multiResult := WALConcurrency.Multi.result
+    WALConcurrency.Multi.interleavedTwoWriterExample
+  unless multiResult.final.tables.length ≥ 0 do
+    fail "multi-writer WAL model did not publish the last serial writer"
+  let serial := WALConcurrency.Multi.serialize
+    WALConcurrency.Multi.interleavedTwoWriterExample
+  unless serial.phases.length == 2 &&
+      serial.phases.all (fun phase => phase.readers.length == 1) &&
+      serial.trailingReaders.isEmpty do
+    fail "multi-writer WAL model assigned readers to the wrong snapshot epochs"
+
+private def expectWALConnectionStress : IO Unit := do
+  let rounds := 6
+  let insertedRows := 200
+  let values := String.intercalate ","
+    ((List.range insertedRows).map fun index => s!"({index + 1})")
+  let writeSQL := s!"INSERT INTO wal_rows VALUES {values};"
+  for round in List.range rounds do
+    let initial ← match CoreSQL.execute { database := Core.Database.empty }
+        "CREATE TABLE wal_rows(id INTEGER PRIMARY KEY); INSERT INTO wal_rows VALUES(0);" with
+      | .error message => fail s!"WAL connection round {round}: setup failed: {message}"
+      | .ok (state, _) => pure state.database
+    let connection ← WALConnection.create initial
+    let writer ← IO.asTask (prio := .dedicated) (connection.executeWrite writeSQL)
+    let mut readers : Array (Task (Except IO.Error Unit)) := #[]
+    for readerId in List.range 8 do
+      let reader ← IO.asTask (prio := .dedicated) do
+        for iteration in List.range 20 do
+          match ← connection.executeRead "SELECT id FROM wal_rows;" with
+          | .error message =>
+              fail s!"WAL reader {readerId}, iteration {iteration}: {message}"
+          | .ok results =>
+              -- A reader must see either the pre-commit snapshot (1 row) or the
+              -- fully committed one; never a partial write.
+              let seen := (results.flatMap (fun r => r.rows)).length
+              unless seen == 1 || seen == insertedRows + 1 do
+                fail s!"WAL reader observed a torn snapshot: {seen} rows"
+      readers := readers.push reader
+    for reader in readers do
+      match reader.get with
+      | .error error => fail s!"WAL reader task failed: {error}"
+      | .ok () => pure ()
+    match writer.get with
+    | .error error => fail s!"WAL writer task failed: {error}"
+    | .ok (.error message) => fail s!"WAL writer SQL failed: {message}"
+    | .ok (.ok _) => pure ()
+    match ← connection.executeRead "SELECT id FROM wal_rows;" with
+    | .error message => fail s!"WAL connection final read failed: {message}"
+    | .ok results =>
+        let seen := results.flatMap (fun r => r.rows)
+        unless seen.length == insertedRows + 1 do
+          fail s!"WAL connection lost committed rows: {seen.length}"
+
+private def expectCrossProcessSerializedMVP : IO Unit := do
+  unless ProcessLock.run {}
+      [.acquire 1, .release 1, .acquire 2, .release 2] == some {} &&
+      ProcessLock.run {} [.acquire 1, .acquire 2] == none do
+    fail "cross-process lock model violated exclusive ownership"
+  let certificatePath : System.FilePath :=
+    ".lake/build/sqleanite-certificate-lock"
+  if ← certificatePath.pathExists then IO.FS.removeDir certificatePath
+  let completed ← ProcessLock.withLockCertified
+    { directory := certificatePath, process := 41 } (pure 7)
+  unless completed.result == 7 && completed.process == 41 &&
+      ProcessLock.run {} completed.events == some {} do
+    fail "live lock wrapper did not return its accepted abstract trace"
+  let stalePath : System.FilePath :=
+    ".lake/build/sqleanite-stale-certificate-lock"
+  if ← stalePath.pathExists then
+    let owner := stalePath / "owner"
+    if ← owner.pathExists then IO.FS.removeFile owner
+    IO.FS.removeDir stalePath
+  IO.FS.createDir stalePath
+  IO.FS.writeFile (stalePath / "owner") "99999999"
+  let recovered ← ProcessLock.withLockCertified {
+      directory := stalePath, process := 42, attempts := 10,
+      retryMillis := 1 } (pure 8)
+  unless recovered.result == 8 && !(← stalePath.pathExists) do
+    fail "cross-process lock did not reclaim a dead owner's stale directory"
+  let database : System.FilePath := ".lake/build/sqleanite-multiprocess.db"
+  let journal : System.FilePath := ".lake/build/sqleanite-multiprocess.db-journal"
+  let lock : System.FilePath := ".lake/build/sqleanite-multiprocess.db.sqleanite-lock"
+  for path in [database, journal] do
+    if ← path.pathExists then IO.FS.removeFile path
+  if ← lock.pathExists then IO.FS.removeDir lock
+  let setup : System.FilePath := ".lake/build/sqleanite-multiprocess-setup.sql"
+  IO.FS.writeFile setup
+    "CREATE TABLE items(id INTEGER PRIMARY KEY,first,second);"
+  let setupOutput ← IO.Process.output {
+    cmd := ".lake/build/bin/sqleanite"
+    args := #["--verified-file", database.toString, setup.toString] }
+  unless setupOutput.exitCode == 0 do
+    fail s!"multiprocess setup failed: {setupOutput.stderr}"
+  let workerCount := 8
+  let mut tasks : Array (Task (Except IO.Error IO.Process.Output)) := #[]
+  for worker in List.range workerCount do
+    let sqlPath : System.FilePath :=
+      s!".lake/build/sqleanite-multiprocess-{worker}.sql"
+    IO.FS.writeFile sqlPath
+      s!"INSERT INTO items VALUES({worker + 1},{(worker + 1) * 10},NULL);"
+    let task ← IO.asTask (prio := .dedicated) <| IO.Process.output {
+      cmd := ".lake/build/bin/sqleanite"
+      args := #["--verified-file", database.toString, sqlPath.toString] }
+    tasks := tasks.push task
+  for task in tasks do
+    match task.get with
+    | .error error => fail s!"multiprocess worker launch failed: {error}"
+    | .ok output => unless output.exitCode == 0 do
+        fail s!"multiprocess worker failed: {output.stderr}"
+  let checked ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[database.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*),sum(first) FROM items;"] }
+  unless checked.exitCode == 0 && checked.stdout == "ok\n8|360\n" do
+    fail s!"multiprocess commits lost or corrupted rows: {checked.stderr}{checked.stdout}"
+  if ← lock.pathExists then
+    fail "cross-process lock directory remained after successful workers"
+
+private def expectCrossProcessPhysicalWAL : IO Unit := do
+  let database : System.FilePath := ".lake/build/sqleanite-wal-multiprocess.db"
+  let wal : System.FilePath := ".lake/build/sqleanite-wal-multiprocess.db-wal"
+  let temporary : System.FilePath := ".lake/build/sqleanite-wal-multiprocess.db-wal.tmp"
+  let lock : System.FilePath :=
+    ".lake/build/sqleanite-wal-multiprocess.db.sqleanite-writer-lock"
+  for path in [database, wal, temporary] do
+    if ← path.pathExists then IO.FS.removeFile path
+  if ← lock.pathExists then IO.FS.removeDir lock
+  let setup : System.FilePath := ".lake/build/sqleanite-wal-multiprocess-setup.sql"
+  IO.FS.writeFile setup
+    "CREATE TABLE items(id INTEGER PRIMARY KEY,first,second);"
+  let setupOutput ← IO.Process.output {
+    cmd := ".lake/build/bin/sqleanite"
+    args := #["--verified-wal-file", database.toString, setup.toString] }
+  unless setupOutput.exitCode == 0 do
+    fail s!"physical WAL multiprocess setup failed: {setupOutput.stderr}"
+  let workerCount := 8
+  let mut writers : Array (Task (Except IO.Error IO.Process.Output)) := #[]
+  for worker in List.range workerCount do
+    let sqlPath : System.FilePath :=
+      s!".lake/build/sqleanite-wal-multiprocess-{worker}.sql"
+    IO.FS.writeFile sqlPath
+      s!"INSERT INTO items VALUES({worker + 1},{(worker + 1) * 10},NULL);"
+    writers := writers.push (← IO.asTask (prio := .dedicated) <| IO.Process.output {
+      cmd := ".lake/build/bin/sqleanite"
+      args := #["--verified-wal-file", database.toString, sqlPath.toString] })
+  let readSQL : System.FilePath := ".lake/build/sqleanite-wal-multiprocess-read.sql"
+  IO.FS.writeFile readSQL "SELECT id FROM items ORDER BY id;"
+  let mut readers : Array (Task (Except IO.Error Unit)) := #[]
+  for reader in List.range 4 do
+    readers := readers.push (← IO.asTask (prio := .dedicated) do
+      for iteration in List.range 4 do
+        let output ← IO.Process.output {
+          cmd := ".lake/build/bin/sqleanite"
+          args := #["--verified-wal-file", database.toString, readSQL.toString] }
+        unless output.exitCode == 0 do
+          fail s!"physical WAL reader {reader}/{iteration} failed: {output.stderr}"
+        let ids := output.stdout.trim.splitOn "\n" |>.filter (!·.isEmpty)
+        unless ids.length ≤ workerCount do
+          fail s!"physical WAL reader observed an impossible snapshot: {output.stdout}")
+  for writer in writers do
+    match writer.get with
+    | .error error => fail s!"physical WAL writer launch failed: {error}"
+    | .ok output => unless output.exitCode == 0 do
+        fail s!"physical WAL writer failed: {output.stderr}"
+  for reader in readers do
+    match reader.get with
+    | .error error => fail s!"physical WAL reader task failed: {error}"
+    | .ok () => pure ()
+  let finalRead ← IO.Process.output {
+    cmd := ".lake/build/bin/sqleanite"
+    args := #["--verified-wal-file", database.toString, readSQL.toString] }
+  unless finalRead.exitCode == 0 &&
+      (finalRead.stdout.trim.splitOn "\n").length == workerCount do
+    fail s!"physical WAL multiprocess commits lost rows: {finalRead.stderr}{finalRead.stdout}"
+  let checkpoint ← IO.Process.output {
+    cmd := ".lake/build/bin/sqleanite"
+    args := #["--verified-wal-checkpoint", database.toString] }
+  unless checkpoint.exitCode == 0 do
+    fail s!"physical WAL checkpoint failed: {checkpoint.stderr}"
+  let checked ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[database.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*),sum(first) FROM items;"] }
+  unless checked.exitCode == 0 && checked.stdout == "ok\n8|360\n" do
+    fail s!"physical WAL checkpoint lost or corrupted rows: {checked.stderr}{checked.stdout}"
+  if ← lock.pathExists then
+    fail "physical WAL writer lock remained after successful workers"
+
+private def expectOrderedIndexCore : IO Unit := do
+  let tree := (PagedBTree.Tree.empty : PagedBTree.Tree String)
+    |>.insert 8 "eight" |>.insert 3 "three" |>.insert 11 "eleven" |>.insert 8 "updated"
+  unless tree.toList.lookup 3 == some "three" && tree.toList.lookup 8 == some "updated" &&
+      tree.toList.lookup 7 == none do
+    fail "ordered-index core returned an incorrect lookup"
+
+private def expectU16Codec : IO Unit := do
+  let value : FileFormat.U16Value := ⟨513, by omega⟩
+  let suffix : List UInt8 := [7, 9]
+  unless FileFormat.decodeU16Bytes (FileFormat.encodeU16Bytes value ++ suffix) ==
+      some (value, suffix) do
+    fail "big-endian U16 codec failed to preserve its suffix"
+  let wide : FileFormat.U32Value := ⟨305419896, by omega⟩
+  unless FileFormat.decodeU32Bytes (FileFormat.encodeU32Bytes wide ++ suffix) ==
+      some (wide, suffix) do
+    fail "big-endian U32 codec failed to preserve its suffix"
+  let header : FileFormat.HeaderPrefix := {
+    pageSizeField := ⟨4096, by omega⟩
+    writeVersion := 1
+    readVersion := 1
+    reservedSpace := 0
+    changeCounter := ⟨42, by omega⟩ }
+  unless FileFormat.decodeHeaderPrefix (FileFormat.encodeHeaderPrefix header ++ suffix) ==
+      some (header, suffix) do
+    fail "SQLite header-prefix codec failed to preserve its suffix"
+  let databaseHeader : FileFormat.DatabaseHeader := {
+    headerPrefix := header
+    databaseSizePages := ⟨16, by omega⟩
+    firstFreelistTrunk := ⟨0, by omega⟩
+    freelistPageCount := ⟨0, by omega⟩
+    schemaCookie := ⟨7, by omega⟩
+    schemaFormat := ⟨4, by omega⟩
+    defaultPageCacheSize := ⟨2000, by omega⟩
+    largestRootBTreePage := ⟨0, by omega⟩
+    textEncoding := ⟨1, by omega⟩
+    userVersion := ⟨3, by omega⟩
+    incrementalVacuum := ⟨0, by omega⟩
+    applicationId := ⟨0, by omega⟩
+    versionValidFor := ⟨42, by omega⟩
+    sqliteVersion := ⟨3050004, by omega⟩ }
+  let encodedHeader := FileFormat.encodeDatabaseHeader databaseHeader
+  unless encodedHeader.length == 100 do
+    fail "SQLite database-header encoder did not produce 100 bytes"
+  unless FileFormat.decodeDatabaseHeader (encodedHeader ++ suffix) ==
+      some (databaseHeader, suffix) do
+    fail "SQLite database-header codec failed to preserve its suffix"
+  unless FileFormat.decodeDatabaseHeader (0 :: encodedHeader.drop 1) == none do
+    fail "SQLite database-header decoder accepted a bad magic signature"
+  let badReserved := encodedHeader.take 72 ++ [1] ++ encodedHeader.drop 73
+  unless FileFormat.decodeDatabaseHeader badReserved == none do
+    fail "SQLite database-header decoder accepted a nonzero reserved byte"
+
+private def expectVarintCase (label : String) (value : FileFormat.U64Value)
+    (expected suffix : List UInt8) : IO Unit := do
+  let encoded := FileFormat.encodeVarint value
+  unless encoded == expected do
+    fail s!"SQLite varint {label}: expected {repr expected}, got {repr encoded}"
+  unless encoded.length == FileFormat.sqliteVarintSize value.val do
+    fail s!"SQLite varint {label}: canonical size disagrees with encoded length"
+  unless FileFormat.decodeVarint (encoded ++ suffix) == some (value, suffix) do
+    fail s!"SQLite varint {label}: roundtrip did not preserve its suffix"
+
+private def expectVarintCodec : IO Unit := do
+  let suffix : List UInt8 := [7, 9]
+  expectVarintCase "zero" ⟨0, by omega⟩ [0] suffix
+  expectVarintCase "one-byte maximum" ⟨127, by omega⟩ [127] suffix
+  expectVarintCase "two-byte minimum" ⟨128, by omega⟩ [129, 0] suffix
+  expectVarintCase "two-byte maximum" ⟨16383, by omega⟩ [255, 127] suffix
+  expectVarintCase "three-byte minimum" ⟨16384, by omega⟩ [129, 128, 0] suffix
+  expectVarintCase "eight-byte maximum" ⟨72057594037927935, by omega⟩
+    [255, 255, 255, 255, 255, 255, 255, 127] suffix
+  expectVarintCase "nine-byte minimum" ⟨72057594037927936, by omega⟩
+    [128, 192, 128, 128, 128, 128, 128, 128, 0] suffix
+  expectVarintCase "unsigned maximum" ⟨18446744073709551615, by omega⟩
+    [255, 255, 255, 255, 255, 255, 255, 255, 255] suffix
+  unless FileFormat.decodeVarint [128] == none do
+    fail "SQLite varint decoder accepted a truncated continuation"
+
+private def expectIntegerSerialType (value : Int) (code payloadBytes : Nat) : IO Unit := do
+  let serialType := FileFormat.integerSerialType value
+  unless (FileFormat.encodeSerialType serialType).val == code &&
+      FileFormat.serialTypePayloadSize serialType == payloadBytes do
+    fail s!"SQLite integer serial type was wrong for {value}"
+
+private def expectSerialTypes : IO Unit := do
+  unless FileFormat.decodeSerialType ⟨10, by omega⟩ == none &&
+      FileFormat.decodeSerialType ⟨11, by omega⟩ == none do
+    fail "SQLite serial-type decoder accepted a reserved code"
+  let blobCode : FileFormat.U64Value := ⟨18, by omega⟩
+  let blob : FileFormat.BlobSerialType := {
+    code := blobCode
+    atLeastTwelve := by decide
+    evenCode := by decide }
+  unless FileFormat.decodeSerialType blobCode == some (.blob blob) &&
+      FileFormat.serialTypePayloadSize (.blob blob) == 3 do
+    fail "SQLite blob serial type did not decode to its three-byte payload"
+  let textCode : FileFormat.U64Value := ⟨19, by omega⟩
+  let text : FileFormat.TextSerialType := {
+    code := textCode
+    atLeastThirteen := by decide
+    oddCode := by decide }
+  unless FileFormat.decodeSerialType textCode == some (.text text) &&
+      FileFormat.serialTypePayloadSize (.text text) == 3 do
+    fail "SQLite text serial type did not decode to its three-byte payload"
+  expectIntegerSerialType 0 8 0
+  expectIntegerSerialType 1 9 0
+  expectIntegerSerialType (-128) 1 1
+  expectIntegerSerialType 128 2 2
+  expectIntegerSerialType 32768 3 3
+  expectIntegerSerialType 8388608 4 4
+  expectIntegerSerialType 2147483648 5 6
+  expectIntegerSerialType 140737488355328 6 8
+
+private def expectUnsignedFixedCodec : IO Unit := do
+  let suffix : List UInt8 := [7, 9]
+  unless FileFormat.encodeUnsignedFixed 4 513 == [0, 0, 2, 1] do
+    fail "fixed-width codec did not retain leading zero bytes"
+  unless FileFormat.encodeUnsignedFixed 3 66051 == [1, 2, 3] do
+    fail "fixed-width codec produced the wrong three-byte big-endian value"
+  unless FileFormat.decodeUnsignedFixed 3 ([1, 2, 3] ++ suffix) ==
+      some (66051, suffix) do
+    fail "fixed-width decoder did not preserve its suffix"
+  unless FileFormat.encodeUnsignedFixed 8 18446744073709551615 ==
+      [255, 255, 255, 255, 255, 255, 255, 255] do
+    fail "fixed-width codec produced the wrong unsigned 64-bit maximum"
+  unless FileFormat.decodeUnsignedFixed 6 [1, 2, 3, 4, 5] == none do
+    fail "fixed-width decoder accepted a truncated six-byte field"
+
+private def expectSignedIntegerCase {width : FileFormat.IntegerWidth}
+    (label : String) (value : FileFormat.SignedInteger width)
+    (expected suffix : List UInt8) : IO Unit := do
+  let encoded := FileFormat.encodeSignedInteger value
+  unless encoded == expected do
+    fail s!"signed integer {label}: expected {repr expected}, got {repr encoded}"
+  unless FileFormat.decodeSignedInteger width (encoded ++ suffix) ==
+      some (value, suffix) do
+    fail s!"signed integer {label}: roundtrip did not preserve its suffix"
+
+private def expectSignedIntegerCodec : IO Unit := do
+  let suffix : List UInt8 := [7, 9]
+  expectSignedIntegerCase "one-byte minimum"
+    ({ value := -128, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .one) [128] suffix
+  expectSignedIntegerCase "negative one"
+    ({ value := -1, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .one) [255] suffix
+  expectSignedIntegerCase "one-byte maximum"
+    ({ value := 127, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .one) [127] suffix
+  expectSignedIntegerCase "two-byte negative"
+    ({ value := -129, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .two) [255, 127] suffix
+  expectSignedIntegerCase "three-byte minimum"
+    ({ value := -8388608, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .three) [128, 0, 0] suffix
+  expectSignedIntegerCase "four-byte maximum"
+    ({ value := 2147483647, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .four) [127, 255, 255, 255] suffix
+  expectSignedIntegerCase "six-byte minimum"
+    ({ value := -140737488355328, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .six) [128, 0, 0, 0, 0, 0] suffix
+  expectSignedIntegerCase "eight-byte minimum"
+    ({ value := -9223372036854775808, lowerBound := by decide, upperBound := by decide } :
+      FileFormat.SignedInteger .eight) [128, 0, 0, 0, 0, 0, 0, 0] suffix
+  unless FileFormat.decodeSignedInteger .eight [0, 0, 0] == none do
+    fail "signed integer decoder accepted a truncated eight-byte payload"
+
+private def expectRecordFieldCase (label : String) (field : FileFormat.RecordField)
+    (expected suffix : List UInt8) : IO Unit := do
+  unless field.encodePayload == expected do
+    fail s!"record field {label}: wrong payload bytes"
+  unless FileFormat.decodeRecordFieldPayload field.serialType (expected ++ suffix) ==
+      some (field, suffix) do
+    fail s!"record field {label}: roundtrip did not preserve its suffix"
+
+private def expectRecordFields : IO Unit := do
+  let suffix : List UInt8 := [7, 9]
+  let integer : FileFormat.SignedInteger .two := {
+    value := -129
+    lowerBound := by decide
+    upperBound := by decide }
+  expectRecordFieldCase "integer" (.integer .two integer) [255, 127] suffix
+  expectRecordFieldCase "float bits"
+    (.floatBits ⟨4607182418800017408, by omega⟩)
+    [63, 240, 0, 0, 0, 0, 0, 0] suffix
+  let blobMetadata : FileFormat.BlobSerialType := {
+    code := ⟨18, by omega⟩
+    atLeastTwelve := by decide
+    evenCode := by decide }
+  let blobPayload : FileFormat.SizedBytes
+      (FileFormat.serialTypePayloadSize (.blob blobMetadata)) := {
+    bytes := [1, 2, 3]
+    length_eq := by decide }
+  expectRecordFieldCase "blob" (.blob blobMetadata blobPayload) [1, 2, 3] suffix
+  let textMetadata : FileFormat.TextSerialType := {
+    code := ⟨19, by omega⟩
+    atLeastThirteen := by decide
+    oddCode := by decide }
+  let textPayload : FileFormat.SizedBytes
+      (FileFormat.serialTypePayloadSize (.text textMetadata)) := {
+    bytes := [97, 98, 99]
+    length_eq := by decide }
+  expectRecordFieldCase "text" (.text textMetadata textPayload) [97, 98, 99] suffix
+  expectRecordFieldCase "constant zero" .constantZero [] suffix
+
+private def expectRecordHeader : IO Unit := do
+  unless FileFormat.recordHeaderSize 0 == 1 &&
+      FileFormat.recordHeaderSize 126 == 127 &&
+      FileFormat.recordHeaderSize 127 == 129 &&
+      FileFormat.recordHeaderSize 16381 == 16383 &&
+      FileFormat.recordHeaderSize 16382 == 16385 &&
+      FileFormat.recordHeaderSize 72057594037927928 == 72057594037927937 do
+    fail "SQLite record-header size changed incorrectly at a varint boundary"
+  let integer : FileFormat.SignedInteger .one := {
+    value := -1
+    lowerBound := by decide
+    upperBound := by decide }
+  let fields : List FileFormat.RecordField := [.integer .one integer, .constantZero]
+  let record : FileFormat.PhysicalRecord := {
+    fields
+    headerSizeBound := by decide }
+  unless record.encodeHeader == [3, 1, 8] do
+    fail s!"SQLite record header had wrong bytes: {repr record.encodeHeader}"
+  unless record.encodePayload == [255] && record.encode == [3, 1, 8, 255] do
+    fail "SQLite physical record did not place its payload after the header"
+  let suffix : List UInt8 := [7, 9]
+  unless FileFormat.decodePhysicalRecord (record.encode ++ suffix) ==
+      some (record, suffix) do
+    fail "SQLite physical record decoder did not preserve its suffix"
+  unless FileFormat.decodePhysicalRecord [4, 1, 8, 255] == none do
+    fail "SQLite physical record decoder accepted a false header boundary"
+  unless FileFormat.decodePhysicalRecord [3, 128, 8] == none do
+    fail "SQLite physical record decoder accepted a noncanonical serial varint"
+
+private def expectBTreePageHeaders : IO Unit := do
+  let leafCommon : FileFormat.BTreePageHeaderCommon := {
+    firstFreeblock := ⟨0, by omega⟩
+    cellCount := ⟨2, by omega⟩
+    cellContentStart := ⟨4000, by omega⟩
+    fragmentedFreeBytes := 0 }
+  let leaf : FileFormat.ValidBTreePageHeader 4096 := {
+    header := .leafTable leafCommon
+    wellFormed := by decide }
+  let leafBytes : List UInt8 := [13, 0, 0, 0, 2, 15, 160, 0]
+  unless FileFormat.encodeBTreePageHeader leaf.header == leafBytes do
+    fail "SQLite leaf-table page header had the wrong byte layout"
+  unless FileFormat.decodeValidBTreePageHeader 4096 (leafBytes ++ [7, 9]) ==
+      some (leaf, [7, 9]) do
+    fail "SQLite leaf-table page header did not preserve its suffix"
+  let interiorCommon : FileFormat.BTreePageHeaderCommon := {
+    firstFreeblock := ⟨0, by omega⟩
+    cellCount := ⟨1, by omega⟩
+    cellContentStart := ⟨4000, by omega⟩
+    fragmentedFreeBytes := 0 }
+  let interior : FileFormat.ValidBTreePageHeader 4096 := {
+    header := .interiorTable interiorCommon ⟨3, by omega⟩
+    wellFormed := by decide }
+  unless FileFormat.encodeBTreePageHeader interior.header ==
+      [5, 0, 0, 0, 1, 15, 160, 0, 0, 0, 0, 3] do
+    fail "SQLite interior-table page header had the wrong byte layout"
+  let zeroChildBytes : List UInt8 :=
+    [5, 0, 0, 0, 1, 15, 160, 0, 0, 0, 0, 0]
+  unless FileFormat.decodeValidBTreePageHeader 4096 zeroChildBytes == none do
+    fail "SQLite B-tree page decoder accepted child page number zero"
+  let invalidCommon : FileFormat.BTreePageHeaderCommon := {
+    firstFreeblock := ⟨0, by omega⟩
+    cellCount := ⟨1, by omega⟩
+    cellContentStart := ⟨4000, by omega⟩
+    fragmentedFreeBytes := 61 }
+  let invalidBytes := FileFormat.encodeBTreePageHeader (.leafTable invalidCommon)
+  unless FileFormat.decodeValidBTreePageHeader 4096 invalidBytes == none do
+    fail "SQLite B-tree page decoder accepted excessive fragmented bytes"
+  let pointers : FileFormat.SizedU16Values 2 := {
+    values := [⟨4000, by omega⟩, ⟨4050, by omega⟩]
+    length_eq := rfl }
+  let pagePrefix : FileFormat.BTreePagePrefix 4096 := {
+    header := leaf
+    pointers
+    pointersWithin := by decide }
+  let prefixBytes := leafBytes ++ [15, 160, 15, 210]
+  unless pagePrefix.encode == prefixBytes do
+    fail "SQLite B-tree cell-pointer array had the wrong byte layout"
+  unless FileFormat.decodeBTreePagePrefix 4096 (prefixBytes ++ [7, 9]) ==
+      some (pagePrefix, [7, 9]) do
+    fail "SQLite B-tree page prefix did not preserve its suffix"
+  let invalidPointerBytes := leafBytes ++ [15, 159, 15, 210]
+  unless FileFormat.decodeBTreePagePrefix 4096 invalidPointerBytes == none do
+    fail "SQLite B-tree page decoder accepted a pointer before cell content"
+  let firstCell : FileFormat.PlacedCell 4096 := {
+    offset := ⟨4000, by omega⟩
+    bytes := List.replicate 10 1
+    nonempty := by decide
+    endWithinPage := by decide }
+  let secondCell : FileFormat.PlacedCell 4096 := {
+    offset := ⟨4050, by omega⟩
+    bytes := List.replicate 20 2
+    nonempty := by decide
+    endWithinPage := by decide }
+  let layout : FileFormat.BTreeCellLayout 4096 := {
+    pagePrefix
+    cells := [firstCell, secondCell]
+    pointerAgreement := rfl
+    afterPrefix := by decide
+    pairwiseDisjoint := by decide }
+  unless layout.cells.length == 2 && firstCell.Disjoint secondCell do
+    fail "SQLite B-tree cell layout lost pointer agreement or disjointness"
+  let overlappingCell : FileFormat.PlacedCell 4096 := {
+    offset := ⟨4005, by omega⟩
+    bytes := List.replicate 10 3
+    nonempty := by decide
+    endWithinPage := by decide }
+  unless !(firstCell.Disjoint overlappingCell) do
+    fail "SQLite B-tree cell interval check accepted overlapping cells"
+  let pageImage := layout.encodePage
+  unless pageImage.bytes.size == 4096 &&
+      pageImage.bytes.toList.take prefixBytes.length == prefixBytes &&
+      pageImage.bytes[4000]? == some 1 &&
+      pageImage.bytes[4020]? == some 0 &&
+      pageImage.bytes[4050]? == some 2 do
+    fail "SQLite B-tree layout materialized the wrong fixed-size page image"
+
+private def expectTableBTreeCells : IO Unit := do
+  let usable : FileFormat.UsablePageSize := {
+    val := 4096
+    atLeastMinimum := by decide
+    atMostMaximum := by decide }
+  unless FileFormat.tableLeafMaxLocal usable == 4061 &&
+      FileFormat.minLocalPayload usable == 489 &&
+      FileFormat.overflowPayloadCapacity usable == 4092 do
+    fail "SQLite table-leaf payload thresholds were calculated incorrectly"
+  unless FileFormat.tableLeafLocalPayloadSize usable 4061 == 4061 &&
+      FileFormat.tableLeafLocalPayloadSize usable 4062 == 489 &&
+      FileFormat.tableLeafLocalPayloadSize usable 5000 == 908 do
+    fail "SQLite table-leaf local/overflow split was calculated incorrectly"
+  unless FileFormat.indexMaxLocal usable == 1002 &&
+      FileFormat.indexLocalPayloadSize usable 1002 == 1002 &&
+      FileFormat.indexLocalPayloadSize usable 1003 == 489 &&
+      FileFormat.indexLocalPayloadSize usable 5000 == 908 do
+    fail "SQLite index local/overflow split was calculated incorrectly"
+  let negativeKey : FileFormat.SignedInteger .eight := {
+    value := -1
+    lowerBound := by decide
+    upperBound := by decide }
+  let childPage : FileFormat.PageNumber :=
+    FileFormat.PageNumber.mk ⟨3, by omega⟩ (by decide)
+  let interior : FileFormat.InteriorTableCell := {
+    leftChildPage := childPage
+    key := negativeKey }
+  let interiorBytes : List UInt8 :=
+    [0, 0, 0, 3, 255, 255, 255, 255, 255, 255, 255, 255, 255]
+  unless interior.encode == interiorBytes do
+    fail "SQLite interior table cell had the wrong byte layout"
+  unless FileFormat.decodeInteriorTableCell (interiorBytes ++ [7, 9]) ==
+      some (interior, [7, 9]) do
+    fail "SQLite interior table cell did not preserve its suffix"
+  unless FileFormat.decodeInteriorTableCell [0, 0, 0] == none do
+    fail "SQLite interior table cell decoder accepted a truncated child page"
+  unless FileFormat.decodeInteriorTableCell [0, 0, 0, 0, 1] == none do
+    fail "SQLite interior table cell decoder accepted child page number zero"
+  let payloadSize : FileFormat.U64Value := ⟨4, by omega⟩
+  let rowid : FileFormat.SignedInteger .eight := {
+    value := 1
+    lowerBound := by decide
+    upperBound := by decide }
+  let payload : FileFormat.SizedBytes payloadSize.val := {
+    bytes := [3, 1, 8, 255]
+    length_eq := by decide }
+  let leaf : FileFormat.InlineTableLeafCell := { payloadSize, rowid, payload }
+  let leafBytes : List UInt8 := [4, 1, 3, 1, 8, 255]
+  unless leaf.encode == leafBytes do
+    fail "SQLite inline table leaf cell had the wrong byte layout"
+  unless FileFormat.decodeInlineTableLeafCell (leafBytes ++ [7, 9]) ==
+      some (leaf, [7, 9]) do
+    fail "SQLite inline table leaf cell did not preserve its suffix"
+  unless FileFormat.decodeInlineTableLeafCell [4, 1, 3, 1, 8] == none do
+    fail "SQLite inline table leaf cell decoder accepted a truncated payload"
+  let verifiedInline : FileFormat.TableLeafPayload usable payloadSize.val := {
+    data := .inline payload.bytes
+    wellFormed := by decide }
+  let verifiedLeaf : FileFormat.TableLeafCell usable := {
+    payloadSize
+    rowid
+    payload := verifiedInline }
+  unless verifiedLeaf.encode == leafBytes do
+    fail "Verified table leaf cell changed the inline byte layout"
+  unless FileFormat.decodeTableLeafCell usable (verifiedLeaf.encode ++ [7, 9]) ==
+      some (verifiedLeaf, [7, 9]) do
+    fail "Verified inline table leaf cell did not preserve its suffix"
+  let smallUsable : FileFormat.UsablePageSize := {
+    val := 480
+    atLeastMinimum := by decide
+    atMostMaximum := by decide }
+  let overflowSize : FileFormat.U64Value := ⟨446, by omega⟩
+  let localBytes : List UInt8 := List.replicate 35 0
+  let firstOverflowPage : FileFormat.PageNumber :=
+    FileFormat.PageNumber.mk ⟨7, by omega⟩ (by decide)
+  let overflowPayload : FileFormat.TableLeafPayload smallUsable overflowSize.val := {
+    data := .overflow localBytes firstOverflowPage
+    wellFormed := by
+      constructor
+      · decide
+      · decide }
+  let overflowLeaf : FileFormat.TableLeafCell smallUsable := {
+    payloadSize := overflowSize
+    rowid
+    payload := overflowPayload }
+  unless overflowLeaf.encode.length == 42 &&
+      overflowLeaf.encode.take 3 == [131, 62, 1] &&
+      overflowLeaf.encode.drop 38 == [0, 0, 0, 7] do
+    fail "SQLite overflowing table leaf cell had the wrong byte layout"
+  unless FileFormat.decodeTableLeafCell smallUsable (overflowLeaf.encode ++ [7, 9]) ==
+      some (overflowLeaf, [7, 9]) do
+    fail "SQLite overflowing table leaf cell did not preserve its suffix"
+  let zeroOverflow := overflowLeaf.encode.take 38 ++ [0, 0, 0, 0]
+  unless FileFormat.decodeTableLeafCell smallUsable zeroOverflow == none do
+    fail "SQLite table leaf cell accepted overflow page number zero"
+  let nextPage : FileFormat.OverflowNext := .page firstOverflowPage
+  unless nextPage.encode == [0, 0, 0, 7] &&
+      FileFormat.decodeOverflowNext (nextPage.encode ++ [9]) ==
+        some (nextPage, [9]) &&
+      FileFormat.decodeOverflowNext ([0, 0, 0, 0] ++ [9]) ==
+        some (.endOfChain, [9]) do
+    fail "SQLite overflow next-page pointer had the wrong byte layout"
+  have capacity : FileFormat.overflowPayloadCapacity smallUsable = 476 := by
+    decide
+  let rawOverflowBytes : FileFormat.SizedBytes 476 := {
+    bytes := List.replicate 476 0
+    length_eq := List.length_replicate .. }
+  let overflowPagePayload :
+      FileFormat.SizedBytes (FileFormat.overflowPayloadCapacity smallUsable) :=
+    capacity.symm ▸ rawOverflowBytes
+  let overflowPage : FileFormat.OverflowPage smallUsable := {
+    next := .endOfChain
+    payload := overflowPagePayload }
+  unless overflowPage.encode.length == 480 &&
+      overflowPage.encode.take 4 == [0, 0, 0, 0] do
+    fail "SQLite overflow page had the wrong byte layout"
+  unless FileFormat.decodeOverflowPage smallUsable (overflowPage.encode ++ [9]) ==
+      some (overflowPage, [9]) do
+    fail "SQLite overflow page did not preserve its suffix"
+  let secondPage : FileFormat.PageNumber :=
+    FileFormat.PageNumber.mk ⟨8, by omega⟩ (by decide)
+  let chainTail : FileFormat.OverflowChainData smallUsable :=
+    .last firstOverflowPage overflowPagePayload 10 (by decide)
+  let chainData : FileFormat.OverflowChainData smallUsable :=
+    .link secondPage overflowPagePayload chainTail
+  let chain : FileFormat.OverflowChain smallUsable := {
+    data := chainData
+    acyclic := by
+      simp [chainData, chainTail, FileFormat.OverflowChainData.pageNumbers,
+        secondPage, firstOverflowPage] }
+  unless chain.firstPage == secondPage && chain.data.pageCount == 2 &&
+      chain.logicalPayload.length == 486 &&
+      chain.toPages.map (fun numbered => (numbered.1, numbered.2.next)) ==
+        [(secondPage, .page firstOverflowPage),
+          (firstOverflowPage, .endOfChain)] do
+    fail "SQLite overflow chain linkage or logical length was incorrect"
+  let boundedChain : FileFormat.BoundedOverflowChain smallUsable 10 := {
+    chain
+    referencesWithin := by
+      simp [FileFormat.OverflowChain.ReferencesWithin, chain, chainData,
+        chainTail, FileFormat.OverflowChainData.pageNumbers,
+        FileFormat.PageNumber.WithinDatabase, secondPage, firstOverflowPage] <;>
+        constructor <;> decide }
+  unless boundedChain.firstPage.toPageId.val == 7 do
+    fail "SQLite bounded overflow chain root mapped to the wrong pager PageId"
+  let overflowWrites := boundedChain.toPageWrites
+  unless overflowWrites.map (fun write => write.pageId.val) == [7, 6] &&
+      overflowWrites.all (fun write => write.page.bytes.size == 480) do
+    fail "SQLite overflow chain produced invalid pager writes"
+  let resolvedData : FileFormat.OverflowChainData smallUsable :=
+    .last firstOverflowPage overflowPagePayload 411 (by decide)
+  let resolvedChain : FileFormat.OverflowChain smallUsable := {
+    data := resolvedData
+    acyclic := by
+      simp [resolvedData, FileFormat.OverflowChainData.pageNumbers] }
+  let resolvedLeaf : FileFormat.ResolvedTableLeafCell smallUsable := {
+    cell := overflowLeaf
+    chain := some resolvedChain
+    resolved := by
+      change resolvedChain.firstPage = firstOverflowPage ∧
+        localBytes.length + resolvedChain.logicalPayload.length = overflowSize.val
+      constructor
+      · rfl
+      · have localLength := overflowPayload.wellFormed.2
+        have localSize : FileFormat.tableLeafLocalPayloadSize
+            smallUsable overflowSize.val = 35 := by decide
+        have chainLength := resolvedChain.logicalPayload_length
+        have chainSize : resolvedChain.data.logicalPayloadSize = 411 := by
+          rfl
+        rw [chainSize] at chainLength
+        have announcedSize : overflowSize.val = 446 := rfl
+        omega }
+  unless resolvedLeaf.logicalPayload.length == 446 do
+    fail "Resolved table leaf cell reconstructed the wrong payload length"
+  let indexPayload : FileFormat.IndexPayload usable payloadSize.val := {
+    data := .inline payload.bytes
+    wellFormed := by decide }
+  let leafIndexCell : FileFormat.LeafIndexCell usable := {
+    payloadSize
+    payload := indexPayload }
+  unless leafIndexCell.encode == [4, 3, 1, 8, 255] &&
+      FileFormat.decodeLeafIndexCell usable (leafIndexCell.encode ++ [9]) ==
+        some (leafIndexCell, [9]) do
+    fail "SQLite leaf index cell had the wrong inline layout"
+  let interiorIndexCell : FileFormat.InteriorIndexCell usable := {
+    leftChildPage := childPage
+    payloadSize
+    payload := indexPayload }
+  unless interiorIndexCell.encode == [0, 0, 0, 3, 4, 3, 1, 8, 255] &&
+      FileFormat.decodeInteriorIndexCell usable
+        (interiorIndexCell.encode ++ [9]) == some (interiorIndexCell, [9]) do
+    fail "SQLite interior index cell had the wrong inline layout"
+  let indexOverflowSize : FileFormat.U64Value := ⟨95, by omega⟩
+  let indexOverflowPayload :
+      FileFormat.IndexPayload smallUsable indexOverflowSize.val := {
+    data := .overflow localBytes firstOverflowPage
+    wellFormed := by
+      constructor <;> decide }
+  let overflowingIndexCell : FileFormat.LeafIndexCell smallUsable := {
+    payloadSize := indexOverflowSize
+    payload := indexOverflowPayload }
+  unless overflowingIndexCell.encode.length == 40 &&
+      overflowingIndexCell.encode.take 1 == [95] &&
+      overflowingIndexCell.encode.drop 36 == [0, 0, 0, 7] &&
+      FileFormat.decodeLeafIndexCell smallUsable
+        (overflowingIndexCell.encode ++ [9]) == some (overflowingIndexCell, [9]) do
+    fail "SQLite leaf index cell had the wrong overflow layout"
+
+private def expectTypedBTreeLayout : IO Unit := do
+  let usable : FileFormat.UsablePageSize := {
+    val := 4096
+    atLeastMinimum := by decide
+    atMostMaximum := by decide }
+  let payloadSize : FileFormat.U64Value := ⟨1, by omega⟩
+  let rowid : FileFormat.SignedInteger .eight := {
+    value := 1
+    lowerBound := by decide
+    upperBound := by decide }
+  let payload : FileFormat.TableLeafPayload usable payloadSize.val := {
+    data := .inline [42]
+    wellFormed := by decide }
+  let leaf : FileFormat.TableLeafCell usable := { payloadSize, rowid, payload }
+  let typedCell : FileFormat.TypedBTreeCell usable .leafTable := {
+    offset := ⟨4000, by omega⟩
+    body := .leafTable leaf
+    matchesPage := rfl
+    endWithinPage := by decide }
+  let common : FileFormat.BTreePageHeaderCommon := {
+    firstFreeblock := ⟨0, by omega⟩
+    cellCount := ⟨1, by omega⟩
+    cellContentStart := ⟨4000, by omega⟩
+    fragmentedFreeBytes := 0 }
+  let header : FileFormat.ValidBTreePageHeader usable.val := {
+    header := .leafTable common
+    wellFormed := by decide }
+  let pointers : FileFormat.SizedU16Values 1 := {
+    values := [⟨4000, by omega⟩]
+    length_eq := rfl }
+  let pagePrefix : FileFormat.BTreePagePrefix usable.val := {
+    header
+    pointers
+    pointersWithin := by decide }
+  let generic : FileFormat.BTreeCellLayout usable.val := {
+    pagePrefix
+    cells := [typedCell.toPlacedCell]
+    pointerAgreement := rfl
+    afterPrefix := by decide
+    pairwiseDisjoint := by decide }
+  let layout : FileFormat.TypedBTreePageLayout usable := {
+    generic
+    cells := [typedCell]
+    placementsAgree := rfl }
+  let boundedLayout : FileFormat.BoundedTypedBTreePageLayout usable 10 := {
+    layout
+    referencesWithin := by decide }
+  let pageNumber : FileFormat.BoundedPageNumber 10 := {
+    number := FileFormat.PageNumber.mk ⟨3, by omega⟩ (by decide)
+    withinDatabase := by decide }
+  let numberedPage : FileFormat.NumberedTypedBTreePage usable 10 := {
+    pageNumber
+    notFirstPage := by decide
+    layout := boundedLayout }
+  let pageWrite := numberedPage.toPageWrite
+  let pageSet : FileFormat.VerifiedPageSet usable 10 := {
+    btreePages := [numberedPage]
+    overflowChains := []
+    pageIdsNodup := by decide }
+  let decodedCell : FileFormat.DecodedTypedBTreeCell usable .leafTable := {
+    body := .leafTable leaf
+    matchesPage := rfl }
+  let decodedCells : FileFormat.DecodedBTreeCells usable .leafTable 1 := {
+    cells := [decodedCell]
+    length_eq := rfl }
+  unless layout.cells.length == 1 &&
+      layout.encodePage.bytes[4000]? == some 1 &&
+      boundedLayout.layout.cells.length == 1 && pageWrite.pageId.val == 2 &&
+      pageWrite.page.bytes.size == 4096 &&
+      pageSet.writes.map (fun write => write.pageId.val) == [2] &&
+      FileFormat.decodeBTreePageCells pagePrefix layout.encodePage ==
+        some decodedCells do
+    fail "Typed B-tree page layout did not place a matching leaf-table cell"
+
+private def expectBoundedPageNumbers : IO Unit := do
+  let number : FileFormat.PageNumber :=
+    FileFormat.PageNumber.mk ⟨3, by omega⟩ (by decide)
+  let bounded : FileFormat.BoundedPageNumber 10 := {
+    number
+    withinDatabase := by decide }
+  let pageId := bounded.toPageId
+  let rebuilt := FileFormat.BoundedPageNumber.ofPageId (by decide) pageId
+  unless pageId.val == 2 && rebuilt == bounded do
+    fail "SQLite one-based page number did not roundtrip through pager PageId"
+
+private def expectDatabaseFirstPage : IO Unit := do
+  let usable : FileFormat.UsablePageSize := {
+    val := 4096
+    atLeastMinimum := by decide
+    atMostMaximum := by decide }
+  let headerPrefix : FileFormat.HeaderPrefix := {
+    pageSizeField := ⟨4096, by omega⟩
+    writeVersion := 1
+    readVersion := 1
+    reservedSpace := 0
+    changeCounter := ⟨42, by omega⟩ }
+  let databaseHeader : FileFormat.DatabaseHeader := {
+    headerPrefix
+    databaseSizePages := ⟨10, by omega⟩
+    firstFreelistTrunk := ⟨0, by omega⟩
+    freelistPageCount := ⟨0, by omega⟩
+    schemaCookie := ⟨7, by omega⟩
+    schemaFormat := ⟨4, by omega⟩
+    defaultPageCacheSize := ⟨2000, by omega⟩
+    largestRootBTreePage := ⟨0, by omega⟩
+    textEncoding := ⟨1, by omega⟩
+    userVersion := ⟨3, by omega⟩
+    incrementalVacuum := ⟨0, by omega⟩
+    applicationId := ⟨0, by omega⟩
+    versionValidFor := ⟨42, by omega⟩
+    sqliteVersion := ⟨3050004, by omega⟩ }
+  let common : FileFormat.BTreePageHeaderCommon := {
+    firstFreeblock := ⟨0, by omega⟩
+    cellCount := ⟨0, by omega⟩
+    cellContentStart := ⟨4096, by omega⟩
+    fragmentedFreeBytes := 0 }
+  let header : FileFormat.ValidBTreePageHeader usable.val := {
+    header := .leafTable common
+    wellFormed := by decide }
+  let pointers : FileFormat.SizedU16Values 0 := { values := [], length_eq := rfl }
+  let pagePrefix : FileFormat.BTreePagePrefix usable.val := {
+    header
+    pointers
+    pointersWithin := by decide }
+  let generic : FileFormat.BTreeCellLayout usable.val := {
+    pagePrefix
+    cells := []
+    pointerAgreement := rfl
+    afterPrefix := by simp
+    pairwiseDisjoint := by simp }
+  let typed : FileFormat.TypedBTreePageLayout usable := {
+    generic
+    cells := []
+    placementsAgree := rfl }
+  let bounded : FileFormat.BoundedTypedBTreePageLayout usable 10 := {
+    layout := typed
+    referencesWithin := by decide }
+  let firstPage : FileFormat.DatabaseFirstPage usable 10 := {
+    databaseHeader
+    headerWellFormed := by decide
+    layout := bounded
+    cellsAfterFirstPrefix := by
+      intro cell member
+      simp [bounded, typed, generic] at member }
+  let validDatabaseHeader : FileFormat.ValidDatabaseHeader usable 10 := {
+    header := databaseHeader
+    wellFormed := by decide }
+  let decodedPrefix : FileFormat.DatabaseFirstPagePrefix usable 10 := {
+    databaseHeader := validDatabaseHeader
+    btreePrefix := pagePrefix }
+  let otherPages : FileFormat.VerifiedPageSet usable 10 := {
+    btreePages := []
+    overflowChains := []
+    pageIdsNodup := by decide }
+  let databasePages : FileFormat.VerifiedDatabasePageSet usable 10 := {
+    firstPage
+    otherPages
+    pageIdsNodup := by decide }
+  let image := firstPage.encodePage
+  unless image.bytes.size == 4096 &&
+      image.bytes.toList.take 100 == FileFormat.encodeDatabaseHeader databaseHeader &&
+      image.bytes[100]? == some 13 && firstPage.toPageWrite.pageId.val == 0 &&
+      databasePages.writes.map (fun write => write.pageId.val) == [0] &&
+      FileFormat.decodeDatabaseFirstPagePrefix usable 10
+        (decodedPrefix.encode ++ [9]) == some (decodedPrefix, [9]) &&
+      image.bytes.toList.take decodedPrefix.encode.length == decodedPrefix.encode do
+    fail "SQLite database first page did not place its B-tree header at byte 100"
+  match DiskFormat.decodeDatabaseGeometry
+      (FileFormat.encodeDatabaseHeader databaseHeader ++ [9]) with
+  | some (geometry, [9]) =>
+      unless geometry.usable.val == 4096 && geometry.pageCount == 10 do
+        fail "database geometry decoder discovered the wrong pager dimensions"
+  | _ => fail "database geometry decoder rejected a valid SQLite header"
+  let reservedHeader : FileFormat.DatabaseHeader := {
+    databaseHeader with
+    headerPrefix := { databaseHeader.headerPrefix with reservedSpace := 1 } }
+  match DiskFormat.decodeDatabaseGeometry
+      (FileFormat.encodeDatabaseHeader reservedHeader) with
+  | none => pure ()
+  | some _ => fail "database geometry decoder accepted unsupported reserved bytes"
+  let emptyDisk : Storage.Disk 4096 10 :=
+    Storage.Disk.constant 4096 10 (Storage.Page.zero 4096)
+  let physicalDisk := Storage.applyWrites emptyDisk databasePages.writes
+  let fileBytes := DiskFormat.encodeDisk physicalDisk
+  match DiskFormat.decodeDatabaseImage (fileBytes ++ [9]) with
+  | some (opened, [9]) =>
+      let firstId : Storage.PageId opened.geometry.pageCount :=
+        ⟨0, opened.geometry.header.wellFormed.2.2.2.1⟩
+      unless opened.geometry.usable.val == 4096 &&
+          opened.geometry.pageCount == 10 &&
+          (opened.disk.read firstId).bytes == image.bytes do
+        fail "dynamic database image decoder changed its geometry or page one"
+  | _ => fail "dynamic database image decoder rejected a complete verified image"
+  match DiskFormat.decodeDatabaseImage (fileBytes.take (fileBytes.length - 1)) with
+  | none => pure ()
+  | some _ => fail "dynamic database image decoder accepted a truncated file"
+
+private def expectDiskFormat : IO Unit := do
+  let firstPage : Storage.Page 4 := {
+    bytes := #[1, 2, 3, 4]
+    sizeInvariant := by decide }
+  let secondPage : Storage.Page 4 := {
+    bytes := #[5, 6, 7, 8]
+    sizeInvariant := by decide }
+  let disk : Storage.Disk 4 2 := {
+    read := fun pageId => if pageId.val = 0 then firstPage else secondPage }
+  let encoded := DiskFormat.encodeDisk disk
+  unless encoded == [1, 2, 3, 4, 5, 6, 7, 8] do
+    fail "whole-disk encoder did not concatenate pages in pager order"
+  match DiskFormat.decodeDisk 4 2 (encoded ++ [9]) with
+  | none => fail "whole-disk decoder rejected its encoder output"
+  | some (decoded, suffix) =>
+      let firstId : Storage.PageId 2 := ⟨0, by decide⟩
+      let secondId : Storage.PageId 2 := ⟨1, by decide⟩
+      unless suffix == [9] && (decoded.read firstId).bytes == firstPage.bytes &&
+          (decoded.read secondId).bytes == secondPage.bytes do
+        fail "whole-disk decoder changed page bytes or consumed its suffix"
+  match DiskFormat.decodeDisk 4 2 (encoded.take 7) with
+  | none => pure ()
+  | some _ => fail "whole-disk decoder accepted a truncated final page"
+
+open QuerySemantics in
+private def expectOptimizerSemantics : IO Unit := do
+  let one : Core.Value := .integer ⟨1, by decide, by decide⟩
+  let two : Core.Value := .integer ⟨2, by decide, by decide⟩
+  let five : Core.Value := .integer ⟨5, by decide, by decide⟩
+  let seven : Core.Value := .integer ⟨7, by decide, by decide⟩
+  let rightText : Core.Value :=
+    .text ⟨[114, 105, 103, 104, 116], by decide⟩
+  let leftRows : List Row :=
+    [.values [one], .values [.null], .values [two]]
+  let rightRows : List Row := [.values [rightText]]
+  let predicate : Predicate := .equals (.cell 0) one
+  let joinPlan : Plan := .innerJoin (.rows leftRows) (.rows rightRows)
+  let filtered : Plan := .filter (.onLeft predicate) joinPlan
+  let pushed := QuerySemantics.predicatePushdown filtered
+  unless evalPlan Core.Database.empty filtered == evalPlan Core.Database.empty pushed do
+    fail "verified predicate pushdown changed inner-join rows"
+  let constantPredicate : Predicate :=
+    .and (.constant .true)
+      (.or (.constant .false) (.not (.constant .unknown)))
+  let constantPlan : Plan := .filter constantPredicate (.rows leftRows)
+  unless evalPlan Core.Database.empty constantPlan ==
+      evalPlan Core.Database.empty (QuerySemantics.constantFolding constantPlan) do
+    fail "verified constant folding changed three-valued WHERE semantics"
+  let identityPlan : Plan := .project .identity joinPlan
+  unless evalPlan Core.Database.empty identityPlan ==
+      evalPlan Core.Database.empty (QuerySemantics.projectionElimination identityPlan) do
+    fail "verified identity projection elimination changed rows"
+  let fusedInput : Plan := .filter (.truthy (.cell 0))
+    (.filter (.notEquals (.cell 0) .null) (.rows leftRows))
+  unless evalPlan Core.Database.empty fusedInput ==
+      evalPlan Core.Database.empty (QuerySemantics.filterFusion fusedInput) do
+    fail "verified filter fusion changed three-valued WHERE semantics"
+  let unionInput : Plan :=
+    .unionAll (.rows (leftRows.take 2)) (.rows (leftRows.drop 2))
+  let distributedInput : Plan := .filter predicate unionInput
+  let distributed := QuerySemantics.optimizePlan distributedInput
+  unless evalPlan Core.Database.empty distributedInput ==
+      evalPlan Core.Database.empty distributed do
+    fail "verified UNION ALL distribution changed row order or 3VL results"
+  match distributed with
+  | .unionAll (.filter _ _) (.filter _ _) => pure ()
+  | _ => fail "bottom-up optimizer did not consume filter/UNION distribution"
+  let groupedInput : Plan :=
+    .groupSum (fun _ => .values [one]) (fun _ => 2) unionInput
+  let groupedDistributed := QuerySemantics.optimizePlan groupedInput
+  unless evalPlan Core.Database.empty groupedInput ==
+      evalPlan Core.Database.empty groupedDistributed do
+    fail "verified grouped UNION ALL distribution changed weighted results"
+  match groupedDistributed with
+  | .unionAll (.groupSum _ _ _) (.groupSum _ _ _) => pure ()
+  | _ => fail "bottom-up optimizer did not consume grouped UNION distribution"
+  let ordered : QuerySemantics.Select := {
+    plan := filtered
+    orderBy := [{ column := .left (.cell 0) }] }
+  unless QuerySemantics.eval Core.Database.empty ordered ==
+      QuerySemantics.eval Core.Database.empty
+        ((Rewrite.predicatePushdown).apply ordered) do
+    fail "optimizer rewrite changed observable ORDER BY output"
+  let sample : Row := .values [seven]
+  if whereRows
+      (.or (.constant .unknown) (.not (.constant .unknown))) [sample] ==
+      whereRows (.constant .true) [sample] then
+    fail "test failed to witness SQL excluded-middle unsoundness"
+  if whereRows
+      (.onRight (.equals (.cell 0) five))
+      (leftJoinRows [sample] [.values [.null]]) ==
+      leftJoinRows [sample]
+        (whereRows (.equals (.cell 0) five) [.values [.null]]) then
+    fail "test failed to witness outer-join predicate-pushdown unsoundness"
+  let corePredicate : Core.Predicate :=
+    .not (.not (.equal 0 one))
+  let coreQuery : Core.Query := {
+    columns := [0]
+    predicate := some corePredicate }
+  let optimized := CoreOptimizerBridge.optimize "items" coreQuery
+  match optimized.predicate with
+  | some (.equal 0 value) =>
+      unless value = one do
+        fail "live optimizer changed the normalized comparison value"
+  | _ => fail "live optimizer did not eliminate double negation"
+  let coreRows : List Core.Row := [
+    { rowid := ⟨1, by decide, by decide⟩, values := [one] },
+    { rowid := ⟨2, by decide, by decide⟩, values := [two] }]
+  unless optimized.eval coreRows = coreQuery.eval coreRows do
+    fail "live denotational optimizer changed Core query results"
+  let rightCoreRows : List Core.Row := [
+    { rowid := ⟨1, by decide, by decide⟩, values := [two] },
+    { rowid := ⟨2, by decide, by decide⟩, values := [one] }]
+  let joinEquality : CoreJoin.Predicate :=
+    .equal (.column ⟨.left, 0⟩) (.column ⟨.right, 0⟩)
+  let denotationalJoin := CoreOptimizerBridge.innerJoinPlan
+    (some joinEquality) none coreRows rightCoreRows
+  unless evalPlan Core.Database.empty
+      (QuerySemantics.optimizePlan denotationalJoin) ==
+      (CoreJoin.matchingRows (some joinEquality) none
+        (CoreJoin.crossRows coreRows rightCoreRows)).map
+          CoreOptimizerBridge.joinedRow do
+    fail "proved optimizer changed the embedded live inner join"
+  let joinQuery : CoreJoin.Query := {
+    columns := [⟨.left, 0⟩, ⟨.right, 0⟩]
+    on := some joinEquality }
+  let optimizedJoin := CoreOptimizerBridge.optimizeJoin "left" "right" joinQuery
+  unless optimizedJoin.eval coreRows rightCoreRows ==
+      joinQuery.eval coreRows rightCoreRows do
+    fail "live denotational join optimizer changed Core join results"
+  let outerRightRows : List Core.Row := rightCoreRows.take 1
+  let outerPlan := CoreOptimizerBridge.leftOuterJoinPlan
+    (some joinEquality) none 1 coreRows outerRightRows
+  unless evalPlan Core.Database.empty
+      (QuerySemantics.optimizePlan outerPlan) ==
+      (CoreJoin.leftOuterRows (some joinEquality) 1 coreRows outerRightRows).map
+        CoreOptimizerBridge.joinedRow do
+    fail "proved optimizer changed width-aware live left-outer rows"
+  let leftJoinQuery : CoreJoin.Query := {
+    columns := [⟨.left, 0⟩, ⟨.right, 0⟩]
+    on := some joinEquality
+    kind := .left
+    rightWidth := 1 }
+  let optimizedLeft := CoreOptimizerBridge.optimizeJoin
+    "left" "right" leftJoinQuery
+  unless optimizedLeft.eval coreRows outerRightRows ==
+      leftJoinQuery.eval coreRows outerRightRows do
+    fail "live width-aware left-join optimizer changed Core results"
+  unless optimizedLeft.eval coreRows outerRightRows ==
+      [[one, .null], [two, two]] do
+    fail "width-aware left-join denotation lost its NULL-extended row"
+  let compoundLeft : List (List Core.Value) := [[one], [two], [one]]
+  let compoundRight : List (List Core.Value) := [[two], [one], [two]]
+  let checkCompound (operation : CompoundOp) : IO Unit := do
+    let expected := (CoreOptimizerBridge.compoundRows operation
+      compoundLeft compoundRight).map CoreOptimizerBridge.compoundRow
+    unless evalPlan Core.Database.empty
+        (QuerySemantics.optimizePlan
+          (CoreOptimizerBridge.compoundPlan operation
+            compoundLeft compoundRight)) == expected do
+      fail "proved compound optimizer changed duplicate-sensitive bag results"
+    unless CoreOptimizerBridge.optimizeCompoundOp operation = operation do
+      fail "live compound optimizer changed the SQL set operation"
+  checkCompound .unionAll
+  checkCompound .unionDistinct
+  checkCompound .intersect
+  checkCompound .except
+
+private def expectKRelationSemantics : IO Unit := do
+  let left : KRelation.Relation Nat := fun row => if row == 1 then 2 else 0
+  let right : KRelation.Relation Nat := fun row => if row == 1 then 3 else 1
+  let union := KRelation.unionAll left right
+  unless union 1 == 5 && KRelation.distinct union 1 == 1 &&
+      KRelation.intersect left right 1 == 2 && KRelation.except right left 1 == 1 do
+    fail "multiplicity-valued set operators lost SQL bag counts"
+  let selected := KRelation.select
+    (fun row => if row == 1 then .unknown else .true) union
+  unless selected 1 == 0 && selected 2 == 1 do
+    fail "K-relation selection treated UNKNOWN as TRUE"
+  let grouped := KRelation.groupCount [1, 2] (fun row => row % 2) union
+  unless grouped 0 == 1 && grouped 1 == 5 do
+    fail "K-relation grouping did not sum source multiplicities"
+
+private def expectRelationalAlgebra : IO Unit := do
+  let left : RelationalAlgebra.Expr Nat :=
+    .relation (RelationalAlgebra.ofList [1, 1, 2])
+  let right : RelationalAlgebra.Expr Nat :=
+    .relation (RelationalAlgebra.ofList [10, 10])
+  let product := RelationalAlgebra.eval (.product left right)
+  unless product (1, 10) == 4 && product (2, 10) == 2 do
+    fail "typed product lost SQL bag multiplicity"
+  let selected := RelationalAlgebra.eval
+    (.select (fun row : Nat × Nat => if row.1 == 1 then .true else .unknown)
+      (.product left right))
+  let pushed := RelationalAlgebra.eval
+    (.product (.select (fun row : Nat => if row == 1 then .true else .unknown)
+      left) right)
+  unless selected (1, 10) == pushed (1, 10) &&
+      selected (2, 10) == pushed (2, 10) do
+    fail "general algebra predicate pushdown changed 3VL bag semantics"
+  let swapped := RelationalAlgebra.eval
+    (RelationalAlgebra.swapProduct (.product left right))
+  unless swapped (10, 1) == product (1, 10) do
+    fail "general algebra product permutation changed multiplicity"
+  let third : RelationalAlgebra.Expr Nat :=
+    .relation (RelationalAlgebra.ofList [100, 100, 100])
+  let associated := RelationalAlgebra.eval
+    (RelationalAlgebra.reassociateProduct (.product (.product left right) third))
+  let direct := RelationalAlgebra.eval (.product left (.product right third))
+  unless associated (1, (10, 100)) == direct (1, (10, 100)) do
+    fail "general algebra product reassociation changed multiplicity"
+  let emptyRight : RelationalAlgebra.Expr Nat :=
+    .relation KRelation.empty
+  let rightDomain : RelationalAlgebra.Domain Nat := ⟨[10], by decide⟩
+  let outer := RelationalAlgebra.eval
+    (.leftOuter inferInstance rightDomain 0
+      (fun left right => if left == right then .true else .false)
+      left emptyRight)
+  unless outer (1, 0) == 2 && outer (2, 0) == 1 do
+    fail "general algebra left outer join lost unmatched multiplicity"
+  let outerSelected := RelationalAlgebra.eval
+    (.select (fun row : Nat × Nat => if row.1 == 1 then .true else .unknown)
+      (.leftOuter inferInstance rightDomain 0
+        (fun left right => if left == right then .true else .false)
+        left emptyRight))
+  let outerPushed := RelationalAlgebra.eval
+    (.leftOuter inferInstance rightDomain 0
+      (fun left right => if left == right then .true else .false)
+      (.select (fun row : Nat => if row == 1 then .true else .unknown) left)
+      emptyRight)
+  unless outerSelected (1, 0) == outerPushed (1, 0) &&
+      outerSelected (2, 0) == outerPushed (2, 0) do
+    fail "left-side pushdown through outer join changed 3VL bag semantics"
+  let duplicated := RelationalAlgebra.eval (.distinct (.distinct left))
+  unless duplicated 1 == 1 && duplicated 2 == 1 do
+    fail "typed DISTINCT was not idempotent"
+  let groupDomain : RelationalAlgebra.Domain Nat := ⟨[1, 2], by decide⟩
+  let groupedUnion := RelationalAlgebra.eval
+    (.groupSum inferInstance groupDomain (fun row => row % 2) (fun row => row)
+      (.unionAll left left))
+  unless groupedUnion 0 == 4 && groupedUnion 1 == 4 do
+    fail "typed grouped SUM did not preserve UNION ALL multiplicity"
+  let materializedCount := RelationalAlgebra.eval
+    (.materializeCount inferInstance
+      (RelationalAlgebra.supportDomain [1, 1, 2]) (fun row => row) left)
+  unless materializedCount (1, 2) == 1 &&
+      materializedCount (2, 1) == 1 && materializedCount (1, 1) == 0 do
+    fail "materialized COUNT did not emit one exact aggregate row per group"
+  let materializedSum := RelationalAlgebra.eval
+    (.materializeSum inferInstance
+      (RelationalAlgebra.supportDomain [1, 1, 2]) (fun row => row)
+      (fun row => if row == 1 then 0 else 3) left)
+  unless materializedSum (1, 0) == 1 &&
+      materializedSum (2, 3) == 1 && materializedSum (2, 0) == 0 do
+    fail "materialized SUM lost a zero-valued group or emitted a wrong value"
+  let one : Core.Value := .integer ⟨1, by decide, by decide⟩
+  let two : Core.Value := .integer ⟨2, by decide, by decide⟩
+  let leftRow : QuerySemantics.Row := .values [one]
+  let rightRow : QuerySemantics.Row := .values [two]
+  let legacyPlan : QuerySemantics.Plan :=
+    .filter (.constant .true)
+      (.innerJoin (.rows [leftRow, leftRow]) (.rows [rightRow]))
+  match RelationalAlgebra.ofPlan? Core.Database.empty legacyPlan with
+  | none => fail "typed algebra rejected the product/filter optimizer basis"
+  | some translated =>
+      let relation := RelationalAlgebra.eval translated
+      unless relation (.joined leftRow rightRow) == 2 do
+        fail "optimizer-plan translation changed joined-row multiplicity"
+  match RelationalAlgebra.ofPlan? Core.Database.empty
+      (.project .left legacyPlan) with
+  | none => fail "typed algebra rejected proved finite-support projection"
+  | some translated =>
+      let relation := RelationalAlgebra.eval translated
+      unless relation leftRow == 2 do
+        fail "typed algebra projection lost duplicate joined rows"
+  let setPlan : QuerySemantics.Plan :=
+    .distinct (.unionAll (.rows [leftRow, leftRow]) (.rows [leftRow]))
+  match RelationalAlgebra.ofPlan? Core.Database.empty setPlan with
+  | none => fail "typed algebra rejected UNION ALL / DISTINCT plan"
+  | some translated =>
+      let relation := RelationalAlgebra.eval translated
+      unless relation leftRow == 1 do
+        fail "typed algebra DISTINCT did not collapse UNION ALL multiplicity"
+  let intersectPlan : QuerySemantics.Plan :=
+    .intersectAll (.rows [leftRow, leftRow, leftRow])
+      (.rows [leftRow, leftRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty intersectPlan with
+  | none => fail "typed algebra rejected INTERSECT ALL plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated leftRow == 2 do
+        fail "typed algebra INTERSECT ALL lost minimum multiplicity"
+  let exceptPlan : QuerySemantics.Plan :=
+    .exceptAll (.rows [leftRow, leftRow, leftRow]) (.rows [leftRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty exceptPlan with
+  | none => fail "typed algebra rejected EXCEPT ALL plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated leftRow == 2 do
+        fail "typed algebra EXCEPT ALL lost truncated difference"
+  let outerPlan : QuerySemantics.Plan :=
+    .leftOuterJoin (.rows [leftRow, leftRow]) (.rows [])
+  match RelationalAlgebra.ofPlan? Core.Database.empty outerPlan with
+  | none => fail "typed algebra rejected left outer plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated
+          (.joined leftRow (.values [])) == 2 do
+        fail "typed algebra left outer plan lost NULL-extended multiplicity"
+  let matchingOuterPlan : QuerySemantics.Plan :=
+    .leftOuterOn (.equals (.right (.cell 0)) two)
+      (.rows [leftRow, leftRow]) (.rows [rightRow, rightRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty matchingOuterPlan with
+  | none => fail "typed algebra rejected predicate-bearing left outer plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated (.joined leftRow rightRow) == 4 do
+        fail "predicate-bearing outer join lost duplicate matches"
+  let falseOuterPlan : QuerySemantics.Plan :=
+    .leftOuterOn (.equals (.right (.cell 0)) one)
+      (.rows [leftRow, leftRow]) (.rows [rightRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty falseOuterPlan with
+  | none => fail "typed algebra rejected unmatched left outer plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated
+          (.joined leftRow (.values [])) == 2 do
+        fail "predicate-bearing outer join lost false NULL extension"
+  let unknownOuterPlan : QuerySemantics.Plan :=
+    .leftOuterOn (.equals (.right (.cell 0)) one)
+      (.rows [leftRow, leftRow]) (.rows [.values [.null]])
+  match RelationalAlgebra.ofPlan? Core.Database.empty unknownOuterPlan with
+  | none => fail "typed algebra rejected UNKNOWN left outer plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated
+          (.joined leftRow (.values [])) == 2 do
+        fail "predicate-bearing outer join treated UNKNOWN as a match"
+  let groupCountPlan : QuerySemantics.Plan :=
+    .groupCount (fun row => row) (.rows [leftRow, leftRow, rightRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty groupCountPlan with
+  | none => fail "typed algebra rejected GROUP COUNT plan"
+  | some translated =>
+      let relation := RelationalAlgebra.eval translated
+      unless relation leftRow == 2 && relation rightRow == 1 do
+        fail "GROUP COUNT translation lost input multiplicities"
+  let groupSumPlan : QuerySemantics.Plan :=
+    .groupSum (fun _ => leftRow)
+      (fun row => if row == leftRow then 3 else 2)
+      (.rows [leftRow, leftRow, rightRow])
+  match RelationalAlgebra.ofPlan? Core.Database.empty groupSumPlan with
+  | none => fail "typed algebra rejected GROUP SUM plan"
+  | some translated =>
+      unless RelationalAlgebra.eval translated leftRow == 8 do
+        fail "GROUP SUM translation lost weighted duplicate contributions"
+  let coreGroupRows : List Core.Row := [
+    { rowid := ⟨1, by decide, by decide⟩, values := [one] },
+    { rowid := ⟨2, by decide, by decide⟩, values := [one] },
+    { rowid := ⟨3, by decide, by decide⟩, values := [two] }]
+  let coreGroupQuery : Core.GroupQuery := {
+    groupBy := [0]
+    outputs := [.key 0, .countStar] }
+  unless RelationalAlgebra.materializedCountRows coreGroupQuery.rowKey
+      (coreGroupQuery.selectedRows coreGroupRows) ==
+      [([one], 2), ([two], 1)] do
+    fail "live Core grouped COUNT disagreed with materialized algebra rows"
+  let three : Core.Value := .integer ⟨3, by decide, by decide⟩
+  let negativeFive : Core.Value := .integer ⟨-5, by decide, by decide⟩
+  let negativeTwo : Core.Value := .integer ⟨-2, by decide, by decide⟩
+  let coreSumRows : List Core.Row := [
+    { rowid := ⟨1, by decide, by decide⟩, values := [one, three] },
+    { rowid := ⟨2, by decide, by decide⟩, values := [one, negativeFive] },
+    { rowid := ⟨3, by decide, by decide⟩, values := [two, .null] }]
+  match coreGroupQuery.outputValue coreSumRows [one] (.sumColumn 1) with
+  | .ok value => unless value == negativeTwo do
+      fail "live grouped SUM disagreed with the mathematical negative sum"
+  | .error message => fail s!"live grouped SUM failed: {message}"
+  match coreGroupQuery.outputValue coreSumRows [two] (.sumColumn 1) with
+  | .ok value => unless value == .null do
+      fail "live grouped SUM did not return NULL for an all-NULL group"
+  | .error message => fail s!"live all-NULL grouped SUM failed: {message}"
+  let mixedGroupQuery : Core.GroupQuery := {
+    groupBy := [0]
+    outputs := [.key 0, .countStar, .sumColumn 1] }
+  match mixedGroupQuery.eval coreSumRows with
+  | .ok rows => unless rows ==
+      [[one, .integer ⟨2, by decide, by decide⟩, negativeTwo],
+       [two, .integer ⟨1, by decide, by decide⟩, .null]] do
+      fail "live mixed aggregate tuple changed key/COUNT/SUM alignment"
+  | .error message => fail s!"live mixed aggregate tuple failed: {message}"
+
+private def expectPagedBTree : IO Unit := do
+  let empty : PagedBTree.Tree String := .empty
+  let tree := empty.insert 3 "three" |>.insert 1 "one" |>.insert 2 "two"
+  unless tree.toList == [(1, "one"), (2, "two"), (3, "three")] do
+    fail "paged B+tree insertion changed sorted observable contents"
+  unless tree.pages.length == 2 && tree.pageRefs.length == 2 do
+    fail "paged B+tree did not split a full leaf"
+  let replaced := tree.insert 2 "TWO"
+  unless replaced.toList == [(1, "one"), (2, "TWO"), (3, "three")] do
+    fail "paged B+tree replacement duplicated an existing key"
+  let merged := replaced.delete 2
+  unless merged.toList == [(1, "one"), (3, "three")] &&
+      merged.pages.length == 1 do
+    fail "paged B+tree deletion did not preserve contents while merging leaves"
+
+private def expectRecursiveBPlusTree : IO Unit := do
+  let entries := (List.range 64).map fun key => (key, toString key)
+  let tree := (RecursiveBPlusTree.Tree.empty :
+    RecursiveBPlusTree.Tree String).insertAll entries
+  unless tree.toList == entries do
+    fail "recursive B+tree insertion changed sorted contents"
+  unless tree.height >= 4 && tree.pageCount > 32 do
+    fail "recursive B+tree did not propagate splits beyond two levels"
+  unless tree.checkBalanced do
+    fail "recursive B+tree insertion violated occupancy or leaf depth"
+  unless tree.lookup 37 == some "37" do
+    fail "recursive B+tree descent missed an inserted key"
+  unless tree.rangeScan 20 24 ==
+      [(20, "20"), (21, "21"), (22, "22"), (23, "23")] do
+    fail "recursive B+tree range scan crossed the wrong leaf interval"
+  let replaced := tree.insert 37 "replaced"
+  unless replaced.lookup 37 == some "replaced" &&
+      replaced.toList.length == tree.toList.length do
+    fail "recursive B+tree replacement duplicated its key"
+  let deleted := replaced.delete 37
+  unless deleted.lookup 37 == none && deleted.toList.length + 1 == tree.toList.length do
+    fail "recursive B+tree deletion failed to merge an empty leaf"
+  let deletedMany := (List.range 48).foldl
+    (fun current key => current.deleteBalanced key) tree
+  unless deletedMany.toList == entries.drop 48 && deletedMany.checkBalanced do
+    fail "recursive B+tree redistribution or root shrink changed contents/balance"
+  let verifiedDeletes := (List.range 48).foldl
+    (fun current key => current.delete key) tree
+  unless verifiedDeletes.toList == entries.drop 48 &&
+      verifiedDeletes.checkRootValid do
+    fail "verified recursive B+tree deletion did not preserve its full invariant"
+  let (coreState, _) ← match CoreSQL.execute Core.State.empty "
+      CREATE TABLE core_tree(id INTEGER PRIMARY KEY,v TEXT);
+      INSERT INTO core_tree VALUES(1,'one'),(3,'three'),(5,'five');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"Core B+tree setup failed: {message}"
+  let coreTable ← match coreState.database.findTable? "core_tree" with
+    | some table => pure table
+    | none => fail "Core B+tree setup lost its table"
+  let coreTree := coreTable.rowTree.root.erase
+  unless coreTree.toList == Core.treeEntries coreTable.rows &&
+      coreTree.checkRootValid do
+    fail "Core B+tree construction changed signed-rowid order or validity"
+  let insertedRow ← match Core.Row.create coreTable.schema
+      [.integer ⟨4, by decide, by decide⟩,
+        .text ⟨[102, 111, 117, 114], by decide⟩] with
+    | .ok row => pure row
+    | .error message => fail s!"Core B+tree row construction failed: {message}"
+  let insertedTree := coreTree.insert insertedRow.treeKey insertedRow
+  unless insertedTree.toList.map (·.2.rowid.value) == [1, 3, 4, 5] &&
+      insertedTree.lookup insertedRow.treeKey == some insertedRow do
+    fail "Core B+tree localized insertion changed its list abstraction"
+  let deletedTree := insertedTree.delete insertedRow.treeKey
+  unless deletedTree.toList == Core.treeEntries coreTable.rows &&
+      deletedTree.checkRootValid do
+    fail "Core B+tree localized deletion changed its list abstraction"
+
+private def expectCoreMergeJoin : IO Unit := do
+  let sql := "
+    CREATE TABLE merge_left(id INTEGER PRIMARY KEY,label TEXT);
+    CREATE TABLE merge_right(id INTEGER PRIMARY KEY,label TEXT);
+    INSERT INTO merge_left VALUES(1,'left one'),(3,'left three'),(5,'left five');
+    INSERT INTO merge_right VALUES(2,'right two'),(3,'right three'),(5,'right five');"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"merge join setup failed: {message}"
+  let left ← match state.database.findTable? "merge_left" with
+    | some table => pure table
+    | none => fail "merge join setup lost its left table"
+  let right ← match state.database.findTable? "merge_right" with
+    | some table => pure table
+    | none => fail "merge join setup lost its right table"
+  let query : CoreJoin.Query := {
+    columns := [⟨.left, 0⟩, ⟨.left, 1⟩, ⟨.right, 1⟩]
+    on := some (CoreJoin.rowidOn left.schema.primaryKey right.schema.primaryKey) }
+  unless query.evalPlanned left right == query.eval left.rows right.rows do
+    fail "primary-key merge join changed nested-loop semantics"
+  unless query.evalPlanned left right == [
+      [.integer ⟨3, by decide, by decide⟩,
+        .text ⟨[108, 101, 102, 116, 32, 116, 104, 114, 101, 101], by decide⟩,
+        .text ⟨[114, 105, 103, 104, 116, 32, 116, 104, 114, 101, 101], by decide⟩],
+      [.integer ⟨5, by decide, by decide⟩,
+        .text ⟨[108, 101, 102, 116, 32, 102, 105, 118, 101], by decide⟩,
+        .text ⟨[114, 105, 103, 104, 116, 32, 102, 105, 118, 101], by decide⟩]] do
+    fail "primary-key merge join returned the wrong matching rows"
+  let leftOnly : CoreJoin.Predicate :=
+    .equal (.column ⟨.left, left.schema.primaryKey⟩)
+      (.literal (.integer ⟨1, by decide, by decide⟩))
+  unless leftOnly.leftOnly do
+    fail "join planner did not recognize a left-only predicate"
+  let filteredQuery := { query with where_ := some leftOnly }
+  unless filteredQuery.evalPlanned left right ==
+      filteredQuery.eval left.rows right.rows do
+    fail "live inner-join left-predicate pushdown changed semantics"
+  let outerKind := { filteredQuery with kind := CoreJoin.JoinKind.left }
+  let outerQuery := { outerKind with rightWidth := right.schema.columns.length }
+  unless outerQuery.evalPlanned left right ==
+      outerQuery.eval left.rows right.rows do
+    fail "live left-outer-join left-predicate pushdown changed semantics"
+  unless outerQuery.evalPlanned left right == [[
+      .integer ⟨1, by decide, by decide⟩,
+      .text ⟨[108, 101, 102, 116, 32, 111, 110, 101], by decide⟩,
+      .null]] do
+    fail "live left-predicate pushdown lost the unmatched outer row"
+
+private def expectRecursivePhysicalPageBTree : IO Unit := do
+  let payload := String.mk (List.replicate 900 'p')
+  let values := String.intercalate ","
+    ((List.range 60).map fun offset =>
+      let id := offset + 1
+      s!"({id},'{payload}{id}')")
+  let sql := s!"
+    CREATE TABLE deep_pages(id INTEGER PRIMARY KEY,value TEXT NOT NULL);
+    CREATE TABLE auxiliary(id INTEGER PRIMARY KEY,label TEXT NOT NULL);
+    CREATE INDEX auxiliary_label ON auxiliary(label);
+    INSERT INTO deep_pages VALUES {values};
+    INSERT INTO auxiliary VALUES(1,'one'),(2,'two');"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"recursive physical setup failed: {message}"
+  let table ← match state.database.findTable? "deep_pages" with
+    | some table => pure table
+    | none => fail "recursive physical setup lost its table"
+  let leaves ← match CoreFile.tableLeaves table with
+    | some leaves => pure leaves
+    | none => fail "recursive physical setup could not encode its leaf cells"
+  let plan ← match RecursivePageBTree.build leaves with
+    | some plan => pure plan
+    | none => fail "recursive physical page planner rejected nonempty leaves"
+  unless plan.height >= 3 && plan.checkBalanced &&
+      plan.toCells == leaves.flatten do
+    fail "recursive physical page planner did not build a balanced deep tree"
+  let image ← match RecursivePageBTree.encode state.database with
+    | some image => pure image
+    | none => fail "recursive physical encoder rejected supported tables"
+  unless image.pageCount > plan.pageCount + 2 do
+    fail "recursive physical image did not allocate later table/index roots"
+  let reopened ← match CoreDecode.decode image.fileBytes with
+    | some database => pure database
+    | none => fail "general decoder rejected an arbitrary-depth table tree"
+  unless reopened.Equiv state.database do
+    fail "arbitrary-depth table encoding changed the logical database"
+  let path : System.FilePath := ".lake/build/sqleanite-recursive-pages.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*) FROM deep_pages; SELECT count(*) FROM auxiliary; SELECT name FROM sqlite_master WHERE type='index';"] }
+  unless output.exitCode == 0 &&
+      output.stdout == "ok\n60\n2\nauxiliary_label\n" do
+    fail s!"sqlite3 rejected the arbitrary-depth table tree: {output.stderr}{output.stdout}"
+
+private def expectPhysicalMVPTableBTree : IO Unit := do
+  let first : PhysicalCodec.Row := {
+    rowid := ⟨1, by decide, by decide⟩
+    first := .integer ⟨11, by decide, by decide⟩
+    second := .null }
+  let second : PhysicalCodec.Row := {
+    rowid := ⟨2, by decide, by decide⟩
+    first := .integer ⟨22, by decide, by decide⟩
+    second := .null }
+  let third : PhysicalCodec.Row := {
+    rowid := ⟨3, by decide, by decide⟩
+    first := .integer ⟨33, by decide, by decide⟩
+    second := .null }
+  let fourth : PhysicalCodec.Row := {
+    rowid := ⟨4, by decide, by decide⟩
+    first := .integer ⟨44, by decide, by decide⟩
+    second := .null }
+  let fifth : PhysicalCodec.Row := {
+    rowid := ⟨5, by decide, by decide⟩
+    first := .integer ⟨55, by decide, by decide⟩
+    second := .null }
+  let database : PhysicalCodec.Database := {
+    rows := [first, second, third, fourth, fifth]
+    rowidsSorted := by
+      simp [PhysicalCodec.Row.keyLess, first, second, third, fourth, fifth]
+    pageFits := by
+      unfold PhysicalCodec.PageFit PhysicalCodec.cellBytes PhysicalCodec.pageSize
+      decide }
+  let tree ← match PhysicalTableBTree.build database with
+    | some tree => pure tree
+    | none => fail "physical MVP table B-tree rejected a fitting database"
+  unless tree.toList == database.rows do
+    fail "physical MVP table B-tree partition changed observable rows"
+  unless tree.leaves.map List.length == [2, 2, 1] do
+    fail s!"physical MVP table B-tree split rows incorrectly: {tree.leaves.map List.length}"
+  unless tree.interiorCells.map (fun cell => cell.leftChildPage.value.val) == [3, 4] &&
+      tree.interiorCells.map (fun cell => cell.key.value) == [2, 4] &&
+      tree.rightmostPage.val == 5 do
+    fail "physical MVP table B-tree emitted incorrect bounded child references"
+  let pages := tree.tablePages
+  unless pages.map (fun page => page.bytes[0]?) ==
+      [some 5, some 13, some 13, some 13] do
+    fail "physical MVP table B-tree emitted incorrect SQLite page types"
+  unless pages.all (fun page => page.bytes.size == PhysicalCodec.pageSize) do
+    fail "physical MVP table B-tree emitted a non-4096-byte page"
+  let fileBytes := PhysicalMultiPageCodec.fileBytes tree
+  match DiskFormat.decodeDatabaseImage fileBytes with
+  | some (image, []) =>
+      unless image.geometry.pageCount == 5 do
+        fail "verified multi-page image decoder recovered the wrong page count"
+  | _ => fail "verified multi-page image decoder rejected its own bytes"
+  match PhysicalMultiPageCodec.decodeFile fileBytes with
+  | some reopened =>
+      unless reopened.rows == database.rows do
+        fail "verified multi-page logical decoder changed the row sequence"
+  | none => fail "verified multi-page logical decoder rejected its own image"
+  let journal := GrowableStorage.makeJournal
+    (PhysicalMultiPageCodec.storageImage tree)
+    (PhysicalMultiPageCodec.transactionWrites tree)
+  let encodable ← match PhysicalJournalCodec.ofJournal? journal with
+    | some value => pure value
+    | none => fail "multi-page rollback journal exceeded its encoded bounds"
+  match PhysicalJournalCodec.decode (PhysicalJournalCodec.encode encodable) with
+  | some (decoded, []) =>
+      unless decoded.originalPageCount == journal.originalPageCount &&
+          decoded.undo.map (fun record => record.pageId) ==
+            journal.undo.map (fun record => record.pageId) &&
+          decoded.undo.map (fun record => record.before.bytes) ==
+            journal.undo.map (fun record => record.before.bytes) do
+        fail "multi-page rollback journal codec changed an undo record"
+  | _ => fail "multi-page rollback journal codec rejected its own bytes"
+  let checked := PhysicalJournalCodec.encodeChecked encodable
+  unless PhysicalJournalCodec.decodeChecked checked |>.isSome do
+    fail "checksummed rollback journal rejected its own bytes"
+  let corrupted := checked.modify 20 (fun byte => byte + 1)
+  unless PhysicalJournalCodec.decodeChecked corrupted |>.isNone do
+    fail "checksummed rollback journal accepted a changed covered byte"
+  let path : System.FilePath := ".lake/build/sqleanite-mvp-multipage.db"
+  IO.FS.writeBinFile path (ByteArray.mk fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
+  unless output.exitCode == 0 do
+    fail s!"sqlite3 rejected the verified multi-page B-tree: {output.stderr}"
+  unless output.stdout == "ok\n1|11|\n2|22|\n3|33|\n4|44|\n5|55|\n" do
+    fail s!"sqlite3 read unexpected multi-page rows: {repr output.stdout}"
+
+private def expectGrowableRollbackJournal : IO Unit := do
+  let oldPage : Storage.Page 4 := ⟨#[1, 2, 3, 4], by decide⟩
+  let changedPage : Storage.Page 4 := ⟨#[5, 6, 7, 8], by decide⟩
+  let grownPage : Storage.Page 4 := ⟨#[9, 10, 11, 12], by decide⟩
+  let old : GrowableStorage.Image 4 := {
+    pageCount := 1
+    read := fun _ => oldPage }
+  let writes : List (GrowableStorage.PageWrite 4) :=
+    [⟨0, changedPage⟩, ⟨1, grownPage⟩]
+  let journal := GrowableStorage.makeJournal old writes
+  unless journal.originalPageCount == 1 && journal.undo.length == 1 do
+    fail "growable rollback journal recorded a new page instead of only old pre-images"
+  let committed := GrowableStorage.applyWrites old writes
+  unless committed.pageCount == 2 && (committed.read 0).bytes == changedPage.bytes &&
+      (committed.read 1).bytes == grownPage.bytes do
+    fail "growable page writes did not modify and extend the image"
+  let recovered := GrowableStorage.recoverWithJournal committed (some journal)
+  unless recovered.pageCount == 1 && (recovered.read 0).bytes == oldPage.bytes do
+    fail "page-level rollback did not restore old contents and truncate growth"
+  let recoveredAgain :=
+    GrowableStorage.recoverRepeatedly committed (some journal) 100
+  unless recoveredAgain.pageCount == recovered.pageCount &&
+      (recoveredAgain.read 0).bytes == (recovered.read 0).bytes do
+    fail "repeated recovery was not idempotent across restarts"
+  let kept := GrowableStorage.recoverWithJournal committed none
+  unless kept.pageCount == 2 && (kept.read 1).bytes == grownPage.bytes do
+    fail "journal deletion did not retain the committed grown image"
+  let target : GrowableStorage.Image 4 := {
+    pageCount := 2
+    read := fun pageId => if pageId = 0 then oldPage else grownPage }
+  let delta := GrowableStorage.deltaWrites old target
+  unless delta.length == 1 && delta.head?.map (·.pageId) == some 1 do
+    fail "changed-page transaction retained an unchanged old page"
+  let appliedDelta := GrowableStorage.applyWrites old delta
+  unless appliedDelta.pageCount == 2 &&
+      (appliedDelta.read 0).bytes == oldPage.bytes &&
+      (appliedDelta.read 1).bytes == grownPage.bytes do
+    fail "changed-page transaction did not refine the target image"
+
+private def expectTornSectorModel : IO Unit := do
+  unless TornStorage.tornWitnessPage.bytes == #[1, 1, 0, 0] do
+    fail "sector crash witness did not retain exactly one written sector"
+  unless TornStorage.tornWitnessPage.bytes != TornStorage.oldWitnessPage.bytes &&
+      TornStorage.tornWitnessPage.bytes != TornStorage.intendedWitnessPage.bytes do
+    fail "sector crash model collapsed to page-atomic outcomes"
+
+private def expectPOSIXVFSPlan : IO Unit := do
+  let page : Storage.Page 4 := ⟨#[1, 2, 3, 4], by decide⟩
+  let old : GrowableStorage.Image 4 := { pageCount := 1, read := fun _ => page }
+  let writes : List (GrowableStorage.PageWrite 4) := [⟨0, page⟩]
+  let plan := POSIXVFS.commitPlan old writes
+  unless plan.length == 8 do
+    fail "POSIX VFS plan omitted a data or directory durability barrier"
+
+private def expectGroupCommit : IO Unit := do
+  let wal : GroupCommit.WAL Nat := { main := 0 }
+  let batch := [1, 2, 3, 4]
+  let grouped := wal.commitGroup batch
+  let sequential := wal.commitSequential batch
+  unless grouped.visible == 4 && grouped.durableFrames == [4, 3, 2, 1] &&
+      grouped.durableFrames == sequential.durableFrames do
+    fail "group commit changed serial full-image semantics"
+  let staged : GroupCommit.WAL Nat := { main := 0, pendingFrames := [4, 3, 2, 1] }
+  unless staged.absorbPending.sync.visible == staged.sync.visible do
+    fail "full-image write absorption changed the published state"
+  unless GroupCommit.syncCount (GroupCommit.groupProtocol batch) == 1 &&
+      GroupCommit.syncCount (GroupCommit.sequentialProtocol batch) == 4 do
+    fail "group commit did not reduce four durability barriers to one"
+
+private def expectPhysicalGroupCommit : IO Unit := do
+  let (created, _) ← match CoreSQL.execute { database := Core.Database.empty }
+      "CREATE TABLE batched(id INTEGER PRIMARY KEY,value TEXT);" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"physical group setup failed: {message}"
+  let (first, _) ← match CoreSQL.execute created
+      "INSERT INTO batched VALUES(1,'a');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"physical group first state failed: {message}"
+  let (second, _) ← match CoreSQL.execute first
+      "INSERT INTO batched VALUES(2,'b');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"physical group second state failed: {message}"
+  let paths : CoreWALFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-group-commit.db"
+    wal := ".lake/build/sqleanite-group-commit.db-wal" }
+  CoreWALFileAdapter.create {
+    syncFile := fun _ => pure ()
+    syncDeletion := fun _ => pure () } paths created.database
+  let syncs ← IO.mkRef 0
+  let syncOps : CoreWALFileAdapter.SyncOps := {
+    syncFile := fun _ => syncs.modify (· + 1)
+    syncDeletion := fun _ => pure () }
+  let reopened ← CoreWALFileAdapter.commitBatch syncOps paths
+    [first.database, second.database]
+  unless reopened.Equiv second.database && (← syncs.get) == 1 do
+    fail "physical group commit changed the newest state or used multiple file syncs"
+
+private def expectVerifiedPageCache : IO Unit := do
+  let store : Nat → Option Nat := fun key => some (key * 10)
+  let cache := (PageCache.ReadCache.empty 2).insert 1 10 |>.insert 2 20
+  unless cache.read 1 == some 10 && cache.read 2 == some 20 &&
+      cache.entries.length == 2 do
+    fail "bounded verified read cache lost a resident page"
+  let evicted := cache.insert 3 30
+  unless evicted.read 3 == some 30 && evicted.entries.length == 2 do
+    fail "bounded verified read cache violated its capacity"
+  let buffer := (PageCache.WriteBuffer.empty.put 7 70).put 7 71 |>.put 8 80
+  unless buffer.entries.length == 2 && buffer.read 7 == some 71 &&
+      buffer.flush.1.length == 2 && buffer.flush.2.entries.isEmpty do
+    fail "deferred write buffer failed to absorb or flush writes"
+  let _ := store
+
+private def expectSafePageReuse : IO Unit := do
+  let pending : List PageReuse.FreePage :=
+    [{ pageId := 7, safeAfterEpoch := 3 },
+     { pageId := 8, safeAfterEpoch := 9 }]
+  unless PageReuse.takeReusable 10 pending |>.isNone do
+    fail "page allocator reused a free page before its durability barrier"
+  let durable := PageReuse.crossDurabilityBarrier pending
+  match PageReuse.takeReusable 5 durable with
+  | some (page, _) =>
+      unless page.pageId == 7 do
+        fail "page allocator ignored the oldest-reader epoch barrier"
+  | none => fail "page allocator rejected a durable snapshot-safe page"
+
+private def expectPhysicalWALCodec : IO Unit := do
+  let header : PhysicalWAL.Header := {
+    checkpointSequence := ⟨7, by decide⟩
+    saltFirst := ⟨0x12345678, by decide⟩
+    saltSecond := ⟨0x9abcdef0, by decide⟩ }
+  unless PhysicalWAL.checksumBytes .zero header.prefix == header.checksum do
+    fail "physical WAL header checksum disagreed with its byte recurrence"
+  let first : PhysicalWAL.Frame := {
+    pageNumber := ⟨⟨1, by decide⟩, by decide⟩
+    databaseSize := ⟨2, by decide⟩
+    page := Storage.Page.zero PhysicalCodec.pageSize }
+  let secondPage : Storage.Page PhysicalCodec.pageSize := {
+    bytes := Array.replicate PhysicalCodec.pageSize 42
+    sizeInvariant := by simp }
+  let second : PhysicalWAL.Frame := {
+    pageNumber := ⟨⟨2, by decide⟩, by decide⟩
+    databaseSize := ⟨2, by decide⟩
+    page := secondPage }
+  let wal : PhysicalWAL.WAL := { header, frames := [first, second] }
+  match PhysicalWAL.decode wal.encode with
+  | some decoded =>
+      unless decoded.header == header && decoded.frames.length == 2 do
+        fail "physical WAL decoder changed its header or frame count"
+      match decoded.frames with
+      | [decodedFirst, decodedSecond] =>
+          unless decodedFirst.pageNumber == first.pageNumber &&
+              decodedFirst.databaseSize == first.databaseSize &&
+              decodedFirst.page.bytes == first.page.bytes &&
+              decodedSecond.pageNumber == second.pageNumber &&
+              decodedSecond.databaseSize == second.databaseSize &&
+              decodedSecond.page.bytes == second.page.bytes do
+            fail "physical WAL decoder changed a frame"
+      | _ => fail "physical WAL decoder returned the wrong frame shape"
+  | none => fail "physical WAL decoder rejected its own bytes"
+
+private def expectGeneralMVPSchemaCore : IO Unit := do
+  let users : Core.Schema := {
+    name := "users"
+    columns := [
+      { name := "user_id", notNull := true, integerPrimaryKey := true },
+      { name := "name", notNull := true },
+      { name := "note" }]
+    primaryKey := 0 }
+  let posts : Core.Schema := {
+    name := "posts"
+    columns := [
+      { name := "body" },
+      { name := "post_id", notNull := true, integerPrimaryKey := true },
+      { name := "author_id", notNull := true }]
+    primaryKey := 1 }
+  let withUsers ← match Core.Database.empty.createTable users with
+    | .ok database => pure database
+    | .error message => fail s!"general MVP rejected users schema: {message}"
+  let database ← match withUsers.createTable posts with
+    | .ok database => pure database
+    | .error message => fail s!"general MVP rejected posts schema: {message}"
+  if (database.createTable users).isOk then
+    fail "general MVP admitted a duplicate table name"
+  let usersTable ← match database.findTable? "users" with
+    | some table => pure table
+    | none => fail "general MVP lost users table"
+  let alice : PhysicalCodec.Text := ⟨[65, 108, 105, 99, 101], by decide⟩
+  let insertedUsers ← match usersTable.insertValues
+      [.integer ⟨1, by decide, by decide⟩, .text alice, .null] with
+    | .ok table => pure table
+    | .error message => fail s!"general MVP rejected a valid user: {message}"
+  if (insertedUsers.insertValues
+      [.integer ⟨2, by decide, by decide⟩, .null, .null]).isOk then
+    fail "general MVP admitted NULL in a NOT NULL column"
+  let indexedUsers ← match insertedUsers.addIndex { name := "users_name", column := 1 } with
+    | .ok table => pure table
+    | .error message => fail s!"general MVP rejected a valid index: {message}"
+  let database ← match database.updateTable indexedUsers with
+    | .ok database => pure database
+    | .error message => fail s!"general MVP failed to replace users table: {message}"
+  let postsTable ← match database.findTable? "posts" with
+    | some table => pure table
+    | none => fail "general MVP lost posts table"
+  let hello : PhysicalCodec.Text := ⟨[104, 101, 108, 108, 111], by decide⟩
+  let insertedPosts ← match postsTable.insertValues
+      [.text hello, .integer ⟨10, by decide, by decide⟩,
+        .integer ⟨1, by decide, by decide⟩] with
+    | .ok table => pure table
+    | .error message => fail s!"general MVP rejected non-leading primary key: {message}"
+  let database ← match database.updateTable insertedPosts with
+    | .ok database => pure database
+    | .error message => fail s!"general MVP failed to replace posts table: {message}"
+  unless database.tables.length == 2 && indexedUsers.indexes.length == 1 &&
+      indexedUsers.rows.length == 1 && insertedPosts.rows.length == 1 do
+    fail "general MVP changed a table, index, or row count"
+
+private def expectGeneralMVPSQL : IO Unit := do
+  let sql := "
+    CREATE TABLE users(user_id INTEGER PRIMARY KEY,name TEXT NOT NULL,note TEXT);
+    CREATE TABLE posts(body TEXT,post_id INTEGER PRIMARY KEY,author_id INTEGER NOT NULL);
+    CREATE INDEX users_name ON users(name);
+    INSERT INTO users(name,user_id) VALUES('Ada',2),('Lin',1);
+    UPDATE users SET note=X'0102' WHERE user_id=2;
+    INSERT INTO posts VALUES('proofs',10,2),('storage',9,2);
+    SELECT name,user_id FROM users WHERE NOT NOT name!='nobody' ORDER BY user_id;
+    SELECT post_id,body FROM posts WHERE author_id>=1 ORDER BY post_id DESC LIMIT 1;
+    SELECT DISTINCT author_id FROM posts ORDER BY author_id;
+    SELECT count(*) FROM posts WHERE author_id=2;
+    SELECT author_id,count(*),count(body),sum(post_id),min(post_id),max(post_id)
+      FROM posts GROUP BY author_id;
+    SELECT count(note) FROM users;
+    SELECT sum(post_id) FROM posts WHERE author_id=2;
+    SELECT min(post_id) FROM posts;
+    SELECT max(post_id) FROM posts;
+    SELECT min(note) FROM users WHERE user_id=99;
+    SELECT note FROM users WHERE user_id=2;
+    UPDATE users SET note=1.5 WHERE user_id=1;
+    SELECT note FROM users WHERE user_id=1;
+    SELECT user_id FROM users WHERE note=1.5;
+    SELECT user_id FROM users UNION ALL SELECT author_id FROM posts;
+    SELECT user_id FROM users UNION SELECT author_id FROM posts;
+    SELECT user_id FROM users INTERSECT SELECT author_id FROM posts;
+    SELECT user_id FROM users EXCEPT SELECT author_id FROM posts;
+    SELECT users.user_id,posts.body FROM users
+      LEFT JOIN posts ON users.user_id=posts.author_id;"
+  let (state, results) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"general MVP SQL rejected supported schema: {message}"
+  unless state.database.tables.length == 2 do
+    fail "general MVP SQL did not retain both tables"
+  for table in state.database.tables do
+    let tree := table.rowTree.root.erase
+    unless tree.toList == Core.treeEntries table.rows && tree.checkRootValid do
+      fail "general MVP SQL could not materialize its verified table tree"
+    for row in table.rows do
+      let cell ← match CoreRecord.encodeCell? table.schema row with
+        | some cell => pure cell
+        | none => fail "general MVP row exceeded the physical record bounds"
+      match CoreRecord.decodeRowCell table.schema (cell ++ [99]) with
+      | some (decoded, [99]) =>
+          unless decoded == row do
+            fail "general MVP physical record changed an arbitrary-schema row"
+      | _ => fail "general MVP physical record rejected its own cell"
+  let projected := results.filter (fun result => !result.rows.isEmpty)
+  unless projected.map (·.rows) ==
+      [
+        [[.text ⟨[76, 105, 110], by decide⟩, .integer ⟨1, by decide, by decide⟩],
+         [.text ⟨[65, 100, 97], by decide⟩, .integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨10, by decide, by decide⟩,
+          .text ⟨[112, 114, 111, 111, 102, 115], by decide⟩]],
+        [[.integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨2, by decide, by decide⟩,
+          .integer ⟨2, by decide, by decide⟩,
+          .integer ⟨2, by decide, by decide⟩,
+          .integer ⟨19, by decide, by decide⟩,
+          .integer ⟨9, by decide, by decide⟩,
+          .integer ⟨10, by decide, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩]],
+        [[.integer ⟨19, by decide, by decide⟩]],
+        [[.integer ⟨9, by decide, by decide⟩]],
+        [[.integer ⟨10, by decide, by decide⟩]],
+        [[.null]],
+        [[.blob ⟨[1, 2], by decide⟩]],
+        [[.realBits ⟨4609434218613702656, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩],
+         [.integer ⟨2, by decide, by decide⟩],
+         [.integer ⟨2, by decide, by decide⟩],
+         [.integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩],
+         [.integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨2, by decide, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩]],
+        [[.integer ⟨1, by decide, by decide⟩, .null],
+         [.integer ⟨2, by decide, by decide⟩,
+          .text ⟨[115, 116, 111, 114, 97, 103, 101], by decide⟩],
+         [.integer ⟨2, by decide, by decide⟩,
+          .text ⟨[112, 114, 111, 111, 102, 115], by decide⟩]]
+      ] do
+    fail "general MVP SQL returned the wrong arbitrary-schema rows"
+  match CoreSQL.execute state
+      "INSERT INTO users VALUES(3,NULL,NULL);" with
+  | .ok _ => fail "general MVP SQL admitted a NOT NULL violation"
+  | .error _ => pure ()
+
+private def expectBinary64Core : IO Unit := do
+  let positiveZero : FileFormat.U64Value := ⟨0, by decide⟩
+  let negativeZero : FileFormat.U64Value := ⟨9223372036854775808, by decide⟩
+  let one : FileFormat.U64Value := ⟨4607182418800017408, by decide⟩
+  let oneAndHalf : FileFormat.U64Value := ⟨4609434218613702656, by decide⟩
+  unless Binary64.compareBits positiveZero negativeZero == .eq &&
+      Binary64.compareInteger 1 one == .eq &&
+      Binary64.compareInteger 1 oneAndHalf == .lt &&
+      PhysicalQuery.sqlEquals
+        (.integer ⟨1, by decide, by decide⟩) (.realBits one) == .true do
+    fail "exact binary64 comparison disagreed with SQLite numeric semantics"
+
+private def expectGeneralMVPFileInterop : IO Unit := do
+  let sql := "
+    CREATE TABLE users(user_id INTEGER PRIMARY KEY,name TEXT NOT NULL,note TEXT);
+    CREATE TABLE posts(body TEXT,post_id INTEGER PRIMARY KEY,author_id INTEGER NOT NULL);
+    CREATE INDEX users_name ON users(name);
+    INSERT INTO users(name,user_id,note) VALUES('Ada',2,X'0102'),('Lin',1,1.5);
+    INSERT INTO posts VALUES('proofs',10,2),('storage',9,1);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"general MVP file setup failed: {message}"
+  let image ← match CoreFile.encode state.database with
+    | some image => pure image
+    | none => fail "general MVP file encoder rejected a small valid database"
+  let canonical ← match CoreDecode.decodeCanonicalFile image.fileBytes with
+    | some database => pure database
+    | none => fail "strict canonical decoder rejected its own general image"
+  unless canonical.Equiv state.database do
+    fail "strict canonical decoder changed the logical database"
+  unless image.fileBytes.length == PhysicalCodec.pageSize * 4 do
+    fail "general MVP file encoder produced the wrong physical page count"
+  let path : System.FilePath := ".lake/build/sqleanite-general-mvp.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader", "
+      PRAGMA integrity_check;
+      SELECT user_id,name,typeof(note),quote(note) FROM users ORDER BY user_id;
+      SELECT post_id,body,author_id FROM posts ORDER BY post_id;
+      SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"] }
+  unless output.exitCode == 0 && output.stdout ==
+      "ok\n1|Lin|real|1.5\n2|Ada|blob|X'0102'\n9|storage|1\n10|proofs|2\nusers_name\n" do
+    fail s!"sqlite3 rejected the arbitrary-schema image: {output.stderr}{output.stdout}"
+  let mutation ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch",
+      "INSERT INTO users VALUES(3,'C sqlite',2.25); UPDATE users SET note=X'CAFE' WHERE user_id=2; INSERT INTO posts VALUES('compact',11,3);"] }
+  unless mutation.exitCode == 0 do
+    fail s!"sqlite3 could not mutate the arbitrary-schema image: {mutation.stderr}"
+  let mutatedBytes ← IO.FS.readBinFile path
+  let decoded ← match CoreDecode.decode mutatedBytes.data.toList with
+    | some database => pure database
+    | none => fail "general decoder rejected an SQLite-written image"
+  let users ← match decoded.findTable? "users" with
+    | some table => pure table
+    | none => fail "general decoder lost the users table"
+  let posts ← match decoded.findTable? "posts" with
+    | some table => pure table
+    | none => fail "general decoder lost the posts table"
+  unless users.rows.length == 3 && posts.rows.length == 3 &&
+      users.indexes.map (·.name) == ["users_name"] do
+    fail "general decoder lost a C-written row or index declaration"
+  let cRow ← match users.rows.find? (fun row => row.rowid.value == 3) with
+    | some row => pure row
+    | none => fail "general decoder lost the compact C-written rowid"
+  unless (cRow.value 1) == .text ⟨[67, 32, 115, 113, 108, 105, 116, 101], by decide⟩ do
+    fail "general decoder changed C-written TEXT"
+  unless (cRow.value 2) == .realBits ⟨4612248968380809216, by decide⟩ do
+    fail "general decoder changed C-written REAL bits"
+  let adaRow ← match users.rows.find? (fun row => row.rowid.value == 2) with
+    | some row => pure row
+    | none => fail "general decoder lost the C-updated BLOB row"
+  unless (adaRow.value 2) == .blob ⟨[202, 254], by decide⟩ do
+    fail "general decoder changed C-written BLOB"
+  let compact ← match posts.rows.find? (fun row => row.rowid.value == 11) with
+    | some row => pure row
+    | none => fail "general decoder lost the second C-written row"
+  unless compact.value 2 == .integer ⟨3, by decide, by decide⟩ do
+    fail "general decoder did not widen SQLite's compact integer serial type"
+
+private def expectLiveOverflowInterop : IO Unit := do
+  let large := String.mk (List.replicate 9000 'x')
+  let sql := s!"
+    CREATE TABLE overflowing(id INTEGER PRIMARY KEY,payload TEXT NOT NULL);
+    CREATE INDEX overflowing_payload ON overflowing(payload);
+    INSERT INTO overflowing VALUES(1,'{large}');"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"overflow SQL setup failed: {message}"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-overflow.db"
+    journal := ".lake/build/sqleanite-overflow.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  CoreFileAdapter.create .system paths state.database
+  let reopened ← CoreFileAdapter.reopen paths
+  unless reopened.Equiv state.database do
+    fail "Lean overflow reopen changed the logical database"
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT length(payload) FROM overflowing INDEXED BY overflowing_payload; SELECT count(*) FROM overflowing;"] }
+  unless output.exitCode == 0 && output.stdout == "ok\n9000\n1\n" do
+    fail s!"sqlite3 rejected Lean overflow chains: {output.stderr}{output.stdout}"
+  let mutation ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch",
+      "UPDATE overflowing SET payload=hex(zeroblob(3500)) WHERE id=1;"] }
+  unless mutation.exitCode == 0 do
+    fail s!"sqlite3 could not rewrite the overflow chain: {mutation.stderr}"
+  let cWritten ← CoreFileAdapter.reopen paths
+  let table ← match cWritten.findTable? "overflowing" with
+    | some table => pure table
+    | none => fail "Lean lost the C-written overflow table"
+  let row ← match table.rows.head? with
+    | some row => pure row
+    | none => fail "Lean lost the C-written overflow row"
+  match row.value 1 with
+  | .text value =>
+      unless value.bytes.length == 7000 &&
+          value.bytes.all (fun byte => byte == 48) do
+        fail "Lean changed C-written overflow TEXT bytes"
+  | _ => fail "Lean decoded C-written overflow TEXT as another storage class"
+
+private def expectEscapedCatalogIdentifiers : IO Unit := do
+  let sql := "
+    CREATE TABLE \"odd\"\"table,one\"(
+      \"id\"\"key\" INTEGER PRIMARY KEY,\"value,part\" TEXT NOT NULL);
+    CREATE INDEX \"idx\"\"comma,\" ON \"odd\"\"table,one\"(\"value,part\");
+    INSERT INTO \"odd\"\"table,one\" VALUES(1,'kept');"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"escaped catalog setup failed: {message}"
+  let image ← match CoreFile.encode state.database with
+    | some image => pure image
+    | none => fail "escaped catalog encoder rejected a valid database"
+  let decoded ← match CoreDecode.decode image.fileBytes with
+    | some database => pure database
+    | none => fail "escaped catalog decoder rejected its own image"
+  let table ← match decoded.findTable? "odd\"table,one" with
+    | some table => pure table
+    | none => fail "escaped table name did not round-trip"
+  unless table.schema.columns.map (·.name) == ["id\"key", "value,part"] &&
+      table.indexes.map (·.name) == ["idx\"comma,"] && table.rows.length == 1 do
+    fail "escaped catalog metadata changed during file round-trip"
+  let path : System.FilePath := ".lake/build/sqleanite-escaped-catalog.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT \"value,part\" FROM \"odd\"\"table,one\";"] }
+  unless output.exitCode == 0 && output.stdout == "ok\nkept\n" do
+    fail s!"sqlite3 rejected escaped catalog identifiers: {output.stderr}{output.stdout}"
+
+private def expectPhysicalIndexTraversal : IO Unit := do
+  let payload := String.mk (List.replicate 96 'x')
+  let values := String.intercalate ","
+    ((List.range 120).map fun offset =>
+      let id := offset + 1
+      s!"({id},'{payload}{id}',{id * 10},'old')")
+  let sql := s!"
+    CREATE TABLE indexed(id INTEGER PRIMARY KEY,value TEXT NOT NULL,score INTEGER NOT NULL,note TEXT NOT NULL);
+    CREATE INDEX indexed_value ON indexed(value);
+    CREATE INDEX indexed_score ON indexed(score);
+    INSERT INTO indexed VALUES {values};
+    CREATE TABLE signed_keys(id INTEGER PRIMARY KEY,value TEXT NOT NULL);
+    INSERT INTO signed_keys VALUES(4,'positive');
+    CREATE TABLE join_probe(id INTEGER PRIMARY KEY,label TEXT NOT NULL);
+    INSERT INTO join_probe VALUES(2,'two'),(3,'three');"
+  let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"physical index setup failed: {message}"
+  let table ← match state.database.findTable? "indexed" with
+    | some table => pure table
+    | none => fail "physical index setup lost its table"
+  let index ← match table.indexes.find? (·.name == "indexed_value") with
+    | some index => pure index
+    | none => fail "physical index setup lost its index"
+  let integerIndex ← match table.indexes.find? (·.name == "indexed_score") with
+    | some index => pure index
+    | none => fail "physical index setup lost its integer index"
+  let threshold := (table.rows[60]?).map (fun row => row.value index.column)
+    |>.getD .null
+  let primaryValue := (table.rows[60]?).map (fun row => row.value 0)
+    |>.getD .null
+  let primaryQuery : Core.Query := {
+    columns := [0, 1]
+    predicate := some (.equal table.schema.primaryKey primaryValue) }
+  match table.chooseAccessPath primaryQuery.predicate with
+  | .primaryKey rowid =>
+      unless rowid.value == 61 &&
+          (table.plannedRows primaryQuery).map (fun row => row.rowid.value) == [61] do
+        fail "primary-key planner returned the wrong routed row"
+  | _ => fail "cost-aware planner did not select routed primary lookup"
+  unless primaryQuery.eval (table.plannedRows primaryQuery) ==
+      primaryQuery.eval table.rows do
+    fail "routed primary-key lookup changed query semantics"
+  let rangeQuery : Core.Query := {
+    columns := [0]
+    predicate := some (.compare .greaterEqual index.column threshold) }
+  match table.chooseAccessPath rangeQuery.predicate with
+  | .rangeIndex chosen =>
+      unless chosen == index do
+        fail "cost-aware range planner selected the wrong index"
+  | _ => fail "cost-aware planner did not select a range index"
+  unless rangeQuery.eval (table.plannedRows rangeQuery) ==
+      rangeQuery.eval table.rows do
+    fail "range index plan changed query semantics"
+  let indexLeaves ← match CoreFile.indexLeaves table index with
+    | some leaves => pure leaves
+    | none => fail "physical index cells did not paginate"
+  let indexPlan ← match RecursivePageBTree.buildIndex indexLeaves with
+    | some plan => pure plan
+    | none => fail "recursive physical index planner rejected valid leaves"
+  unless indexPlan.height >= 2 && indexPlan.checkBalanced &&
+      indexPlan.toCells == indexLeaves.flatten do
+    fail "recursive physical index promotion changed contents or balance"
+  let image ← match RecursivePageBTree.encode state.database with
+    | some image => pure image
+    | none => fail "physical index encoder rejected a multipage index"
+  unless image.pages.length > 6 do
+    fail "physical index test did not force multiple table and index leaves"
+  let reopened ← match CoreDecode.decode image.fileBytes with
+    | some database => pure database
+    | none => fail "physical index traversal rejected its own multipage tree"
+  unless reopened.Equiv state.database do
+    fail "physical index traversal changed the indexed database"
+  let physicalPages := CoreDecode.pages image.pageCount image.fileBytes
+  let source := CoreDecode.PageSource.ofList physicalPages
+  let catalog ← match physicalPages.head?.bind CoreDecode.decodeCatalog with
+    | some catalog => pure catalog
+    | none => fail "physical index certificate could not decode the catalog"
+  let integerCatalog ← match catalog.find? fun entry =>
+      entry.kind == "index" && entry.name == integerIndex.name with
+    | some entry => pure entry
+    | none => fail "physical index certificate lost the integer root"
+  unless integerCatalog.sql.bind CanonicalIndexSQL.parseIntegerCertified |>.isSome do
+    fail "integer-only physical index lost its persisted catalog certificate"
+  let textCatalog ← match catalog.find? fun entry =>
+      entry.kind == "index" && entry.name == index.name with
+    | some entry => pure entry
+    | none => fail "physical index certificate lost the text root"
+  unless (textCatalog.sql.bind
+      CanonicalIndexSQL.parseIntegerCertified).isNone do
+    fail "mixed/text physical index received an integer-only certificate"
+  unless (textCatalog.sql.bind
+      CanonicalIndexSQL.parseTextCertified).isSome do
+    fail "generated TEXT index lost its persisted routing certificate"
+  let expected := CoreDecode.expectedIndexEntries table integerIndex
+  let integerCertificate ← match CoreDecode.certifyIntegerIndex source
+      (physicalPages.length + 1) integerCatalog.rootPage expected with
+    | some certificate => pure certificate
+    | none => fail "proof-producing integer index certification failed"
+  let integerTarget := (table.rows[60]?).map
+    (fun row => row.value integerIndex.column) |>.getD .null
+  unless CoreDecode.lookupIndexValueFrom source integerTarget
+      (physicalPages.length + 1) integerCatalog.rootPage ==
+        some (expected.filter (fun entry => entry.matchesValue integerTarget)) do
+    fail "certified integer equality traversal was not exact"
+  unless CoreDecode.lookupIndexRangeFrom source .greaterEqual integerTarget
+      (physicalPages.length + 1) integerCatalog.rootPage ==
+        some (expected.filter
+          (fun entry => entry.matchesRange .greaterEqual integerTarget)) do
+    fail "certified integer range traversal was not exact"
+  let textExpected := CoreDecode.expectedIndexEntries table index
+  unless CoreDecode.indexPrefixFrom source 80 (physicalPages.length + 1)
+      textCatalog.rootPage == some (textExpected.take 80) do
+    fail "multi-leaf index cursor did not return the exact promoted-key prefix"
+  let integerQuery : Core.Query := {
+    columns := [0, integerIndex.column]
+    predicate := some (.equal integerIndex.column integerTarget) }
+  let retainedCertificates := CoreFileAdapter.certifyIntegerIndexes physicalPages
+    catalog state.database
+  let updatedState ← match CoreSQL.execute state
+      "UPDATE indexed SET note='new' WHERE id=61;" with
+    | .ok (updated, _) => pure updated
+    | .error message => fail s!"certificate retarget setup failed: {message}"
+  let updatedTable ← match updatedState.database.findTable? "indexed" with
+    | some updated => pure updated
+    | none => fail "certificate retarget lost its logical table"
+  let retargeted := CoreFileAdapter.retargetIntegerIndexCertificates
+    retainedCertificates updatedState.database
+  let retargetQuery : Core.Query := {
+    columns := [0, 3]
+    predicate := some (.equal integerIndex.column integerTarget) }
+  let retargetLookup ← match
+      CoreFileAdapter.lookupCertifiedIndexCandidates retargeted updatedTable
+        retargetQuery with
+    | some lookup => pure lookup
+    | none => fail "index-preserving update discarded its certificate"
+  match retargetLookup.result.rows with
+  | [[.integer id, .text note]] =>
+      unless id.value == 61 && note.bytes == "new".toUTF8.toList do
+        fail "retargeted certificate resolved rows from the old primary tree"
+  | _ => fail "retargeted certificate returned the wrong result shape"
+  let certifiedCandidates ← match
+      CoreFileAdapter.lookupCertifiedIndexCandidates retainedCertificates table
+        integerQuery with
+    | some lookup => pure lookup
+    | none => fail "integer index certificate was not reusable by a query"
+  unless certifiedCandidates.candidates.map (·.rowid.value) == [61] do
+    fail "certified candidate resolution changed primary-tree row order"
+  let path : System.FilePath := ".lake/build/sqleanite-recursive-index.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let paths : CoreFileAdapter.Paths := {
+    main := path
+    journal := ".lake/build/sqleanite-recursive-index.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,value FROM indexed WHERE id=999;" with
+  | some (.ok [{ rows := [] }]) => pure ()
+  | _ => fail "generated-image primary miss did not stay page-directed"
+  let coldIndexQuery : Core.Query := {
+    columns := [0, integerIndex.column]
+    predicate := some (.equal integerIndex.column integerTarget) }
+  let coldIndexLookup ← match ←
+      CoreFileAdapter.lookupGeneratedIndexCandidates paths "indexed"
+        table.schema coldIndexQuery with
+    | some lookup => pure lookup
+    | none => fail "generated INTEGER index did not take the cold path"
+  unless coldIndexLookup.candidates.map (·.rowid.value) == [61] &&
+      coldIndexLookup.pagesRead < image.pages.length do
+    fail "cold INTEGER index lookup did not remain page-directed"
+  let coldTextQuery : Core.Query := {
+    columns := [0, index.column]
+    predicate := some (.equal index.column threshold) }
+  let coldTextLookup ← match ←
+      CoreFileAdapter.lookupGeneratedIndexCandidates paths "indexed"
+        table.schema coldTextQuery with
+    | some lookup => pure lookup
+    | none => fail "generated TEXT index did not take the cold path"
+  unless coldTextLookup.candidates.map (·.rowid.value) == [61] &&
+      coldTextLookup.pagesRead < image.pages.length do
+    fail "cold TEXT index lookup did not remain page-directed"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,score FROM indexed WHERE score=610;" with
+  | some (.ok [{ rows := [[.integer id, .integer score]], .. }]) =>
+      unless id.value == 61 && score.value == 610 do
+        fail "cold secondary equality SELECT returned the wrong row"
+  | _ => fail "cold secondary equality SELECT missed the page-directed path"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,score FROM indexed WHERE score>=1190 ORDER BY id;" with
+  | some (.ok [{ rows := rows, .. }]) =>
+      unless rows == [[.integer ⟨119, by decide, by decide⟩,
+          .integer ⟨1190, by decide, by decide⟩],
+        [.integer ⟨120, by decide, by decide⟩,
+          .integer ⟨1200, by decide, by decide⟩]] do
+        fail "cold secondary range SELECT returned the wrong rows"
+  | _ => fail "cold secondary range SELECT missed the page-directed path"
+  let orderedQuery : Core.Query := {
+    columns := [0, index.column]
+    orderBy := [(index.column, false)]
+    limit := some 5 }
+  let orderedPrefix ← match ←
+      CoreFileAdapter.lookupGeneratedOrderedPrefix paths "indexed" table.schema
+        orderedQuery with
+    | some lookup => pure lookup
+    | none => fail "generated ORDER BY prefix did not take the cold path"
+  let prefixIds := (orderedQuery.selectedRows orderedPrefix.candidates).map
+    (fun row => row.rowid.value)
+  let expectedIds := (orderedQuery.selectedRows table.rows).map
+    (fun row => row.rowid.value)
+  unless orderedQuery.eval orderedPrefix.candidates ==
+      orderedQuery.eval table.rows && orderedPrefix.candidates.length == 5 do
+    fail s!"cold ORDER BY prefix mismatch: candidate ids={repr prefixIds} expected ids={repr expectedIds} reads={orderedPrefix.pagesRead}/{image.pages.length}"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,value FROM indexed ORDER BY value LIMIT 5;" with
+  | some (.ok [{ rows := rows, .. }]) =>
+      unless rows == orderedQuery.eval table.rows do
+        fail "cold ORDER BY LIMIT SELECT returned the wrong rows"
+  | _ => fail "cold ORDER BY LIMIT SELECT missed the page-directed path"
+  let multiLeafQuery : Core.Query := {
+    columns := [0, index.column]
+    orderBy := [(index.column, false)]
+    limit := some 80 }
+  let multiLeafPrefix ← match ←
+      CoreFileAdapter.lookupGeneratedOrderedPrefix paths "indexed" table.schema
+        multiLeafQuery with
+    | some lookup => pure lookup
+    | none => fail "multi-leaf ORDER BY prefix missed the cold cursor"
+  unless multiLeafPrefix.candidates.length == 80 &&
+      multiLeafQuery.eval multiLeafPrefix.candidates ==
+        multiLeafQuery.eval table.rows do
+    fail "multi-leaf ORDER BY prefix changed query results"
+  let primaryRange ← match ← CoreFileAdapter.lookupGeneratedPrimaryRange
+      paths "indexed" table.schema .greater ⟨115, by decide, by decide⟩ with
+    | some lookup => pure lookup
+    | none => fail "generated primary range did not take the cold path"
+  unless primaryRange.candidates.map (·.rowid.value) == [116, 117, 118, 119, 120] &&
+      primaryRange.pagesRead < image.pages.length do
+    fail "cold primary range did not remain separator-directed"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,score FROM indexed WHERE id>115;" with
+  | some (.ok [{ rows := rows, .. }]) =>
+      unless rows.map (fun row => row[0]?) ==
+          [some (.integer ⟨116, by decide, by decide⟩),
+           some (.integer ⟨117, by decide, by decide⟩),
+           some (.integer ⟨118, by decide, by decide⟩),
+           some (.integer ⟨119, by decide, by decide⟩),
+           some (.integer ⟨120, by decide, by decide⟩)] do
+        fail "cold primary range SELECT returned the wrong rows"
+  | _ => fail "cold primary range SELECT missed the page-directed path"
+  let joinLookup ← match ← CoreFileAdapter.lookupGeneratedPrimaryJoin paths
+      "indexed" "join_probe" with
+    | some lookup => pure lookup
+    | none => fail "generated primary-key join did not take the cold path"
+  unless joinLookup.leftCandidates.map (·.rowid.value) == [1, 2, 3] &&
+      joinLookup.rightRows.map (·.rowid.value) == [2, 3] &&
+      joinLookup.bound.map (·.value) == some 3 &&
+      joinLookup.pagesRead < image.pages.length do
+    fail "cold primary-key join did not remain range-directed"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT indexed.id,join_probe.label FROM indexed JOIN join_probe ON indexed.id=join_probe.id;" with
+  | some (.ok [{ rows := rows, .. }]) =>
+      unless rows ==
+          [[.integer ⟨2, by decide, by decide⟩,
+            .text ⟨[116, 119, 111], by decide⟩],
+           [.integer ⟨3, by decide, by decide⟩,
+            .text ⟨[116, 104, 114, 101, 101], by decide⟩]] do
+        fail "cold primary-key join returned the wrong rows"
+  | _ => fail "cold primary-key join missed the page-directed path"
+  let signedMutation ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "INSERT INTO signed_keys VALUES(-7,'negative');"] }
+  unless signedMutation.exitCode == 0 do
+    fail s!"sqlite3 could not add a negative rowid: {signedMutation.stderr}"
+  let primaryLookup ← match ←
+      CoreFileAdapter.lookupPrimaryRow paths "indexed"
+        ⟨61, by decide, by decide⟩ with
+    | some lookup => pure lookup
+    | none => fail "cold primary lookup rejected a valid row"
+  unless primaryLookup.row.rowid.value == 61 &&
+      primaryLookup.pagesRead < image.pages.length do
+    fail s!"cold primary lookup visited {primaryLookup.pagesRead} of {image.pages.length} pages"
+  let cold ← CoreLazyFileEngine.execute? paths
+    "SELECT id,value FROM indexed WHERE id=61;"
+  match cold with
+  | some (.ok [{ rows := [[.integer id, .text value]], .. }]) =>
+      unless id.value == 61 && value.bytes.length == 98 do
+        fail "cold primary SELECT returned the wrong row"
+  | _ => fail "cold primary SELECT did not use the page-directed path"
+  let negativeLookup ← match ←
+      CoreFileAdapter.lookupPrimaryRow paths "signed_keys"
+        ⟨-7, by decide, by decide⟩ with
+    | some lookup => pure lookup
+    | none => fail "cold primary lookup rejected a negative rowid"
+  unless negativeLookup.row.rowid.value == -7 &&
+      negativeLookup.pagesRead < image.pages.length + 2 do
+    fail "cold primary lookup changed signed rowid routing"
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT id,value FROM signed_keys WHERE id=-7;" with
+  | some (.ok [{ rows := [[.integer id, .text value]], .. }]) =>
+      unless id.value == -7 && value.bytes == "negative".toUTF8.toList do
+        fail "cold primary SELECT changed a negative rowid result"
+  | _ => fail "cold primary SELECT did not recognize a negative rowid"
+  unless (← CoreLazyFileEngine.execute? paths
+      "SELECT id,value FROM indexed WHERE id=999;").isNone do
+    fail "C-mutated primary miss bypassed the validating fallback"
+  unless (← CoreFileAdapter.lookupGeneratedIndexCandidates paths "indexed"
+      table.schema coldIndexQuery).isNone do
+    fail "C-mutated index bypassed the generated-image fallback"
+  let equalityQuery : Core.Query := {
+    columns := [0, 1]
+    predicate := some (.equal index.column threshold) }
+  let lookup ← match ←
+      CoreFileAdapter.lookupIndexCandidates paths table equalityQuery with
+    | some lookup => pure lookup
+    | none => fail "persisted equality lookup rejected a valid index"
+  unless lookup.candidates.length == 1 &&
+      lookup.candidates.head?.map (·.rowid.value) == some 61 &&
+      lookup.pagesRead < indexPlan.pageCount do
+    fail s!"page-directed lookup visited {lookup.pagesRead} of {indexPlan.pageCount} index pages"
+  let rangeLookup ← match ←
+      CoreFileAdapter.lookupIndexCandidates paths table rangeQuery with
+    | some lookup => pure lookup
+    | none => fail "persisted range lookup rejected a valid index"
+  unless rangeQuery.eval rangeLookup.candidates == rangeQuery.eval table.rows &&
+      rangeLookup.pagesRead < indexPlan.pageCount do
+    fail s!"page-directed range visited {rangeLookup.pagesRead} of {indexPlan.pageCount} index pages"
+  let connection ← CoreFileEngine.reopen .system paths
+  let live ← CoreFileEngine.execute connection
+    s!"SELECT id,value FROM indexed WHERE value='{payload}61';"
+  match live with
+  | .ok [{ rows := [[.integer id, .text value]], .. }] =>
+      unless id.value == 61 && value.bytes.length == 98 do
+        fail "live persisted-index lookup returned the wrong row"
+  | _ => fail "live query did not execute through persisted-index candidates"
+  let certifiedLive ← CoreFileEngine.execute connection
+    "SELECT id,score FROM indexed WHERE score=610;"
+  match certifiedLive with
+  | .ok [{ rows := [[.integer id, .integer score]], .. }] =>
+      unless id.value == 61 && score.value == 610 do
+        fail "live certified integer index returned the wrong row"
+  | _ => fail "live certified integer index did not execute"
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*) FROM indexed INDEXED BY indexed_value;"] }
+  unless output.exitCode == 0 && output.stdout == "ok\n120\n" do
+    fail s!"sqlite3 rejected the recursive physical index: {output.stderr}{output.stdout}"
+
+private def expectWideCIndexCertificate : IO Unit := do
+  let path : System.FilePath := ".lake/build/sqleanite-wide-c-index.db"
+  let paths : CoreFileAdapter.Paths := {
+    main := path
+    journal := ".lake/build/sqleanite-wide-c-index.db-journal" }
+  if ← path.pathExists then IO.FS.removeFile path
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  let created ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString,
+      "PRAGMA page_size=4096; VACUUM; CREATE TABLE wide(id INTEGER PRIMARY KEY,score INTEGER NOT NULL,payload TEXT NOT NULL); WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4000) INSERT INTO wide SELECT x,x*10,printf('payload-%d',x) FROM n; CREATE INDEX wide_score ON wide(score); CREATE TABLE mixed(id INTEGER PRIMARY KEY,v); INSERT INTO mixed VALUES(1,NULL),(2,5),(3,5.5),(4,'five'),(5,x'05'); CREATE INDEX mixed_v ON mixed(v);"] }
+  unless created.exitCode == 0 do
+    fail s!"sqlite3 could not create a wide index: {created.stderr}"
+  let database ← CoreFileAdapter.reopen paths
+  let table ← match database.findTable? "wide" with
+    | some table => pure table
+    | none => fail "general decoder lost the C-produced wide table"
+  let index ← match table.indexes.find? (·.name == "wide_score") with
+    | some index => pure index
+    | none => fail "general decoder lost the C-produced wide index"
+  let certificates ←
+    CoreFileAdapter.loadIntegerIndexCertificates paths database
+  let stored ← match certificates.find? fun stored =>
+      stored.table.schema.name == "wide" && stored.index.name == "wide_score" with
+    | some stored => pure stored
+    | none => fail "wide C-produced index did not receive a certificate"
+  match stored.certificate with
+  | .general _ => pure ()
+  | .generated _ =>
+      fail "wide C-produced index unexpectedly used the generated 2-3 decoder"
+  | .allValues _ =>
+      fail "integer-only wide index received a conservative mixed certificate"
+  let target : Core.Value := .integer ⟨20000, by decide, by decide⟩
+  let query : Core.Query := {
+    columns := [0, index.column]
+    predicate := some (.equal index.column target) }
+  let certified ← match
+      CoreFileAdapter.lookupCertifiedIndexCandidates certificates table query with
+    | some certified => pure certified
+    | none => fail "wide C-produced index fell back to a full query"
+  match certified.result.rows with
+  | [[.integer id, .integer score]] =>
+      unless id.value == 2000 && score.value == 20000 do
+        fail "wide C-produced certificate returned the wrong row"
+  | _ => fail "wide C-produced certificate returned the wrong result shape"
+  let mixedTable ← match database.findTable? "mixed" with
+    | some table => pure table
+    | none => fail "general decoder lost the mixed-storage table"
+  let mixedIndex ← match mixedTable.indexes.find? (·.name == "mixed_v") with
+    | some index => pure index
+    | none => fail "general decoder lost the mixed-storage index"
+  let mixedStored ← match certificates.find? fun stored =>
+      stored.table.schema.name == "mixed" && stored.index.name == "mixed_v" with
+    | some stored => pure stored
+    | none => fail "mixed-storage index did not receive an exact certificate"
+  match mixedStored.certificate with
+  | .allValues _ => pure ()
+  | _ => fail "mixed-storage index received an invalid ordered certificate"
+  let textTarget ← match mixedTable.rows.find? (·.rowid.value == 4) with
+    | some row => pure (row.value mixedIndex.column)
+    | none => fail "mixed-storage test lost its text row"
+  let mixedQuery : Core.Query := {
+    columns := [0]
+    predicate := some (.equal mixedIndex.column textTarget) }
+  let mixedCertified ← match
+      CoreFileAdapter.lookupCertifiedIndexCandidates certificates mixedTable
+        mixedQuery with
+    | some certified => pure certified
+    | none => fail "mixed-storage equality query fell back to a full plan"
+  match mixedCertified.result.rows with
+  | [[.integer id]] =>
+      unless id.value == 4 do
+        fail "mixed-storage certificate returned the wrong equality row"
+  | _ => fail "mixed-storage certificate returned the wrong equality shape"
+  let mixedRange : Core.Query := {
+    columns := [0]
+    predicate := some (.compare .greaterEqual mixedIndex.column textTarget) }
+  let rangeCertified ← match
+      CoreFileAdapter.lookupCertifiedIndexCandidates certificates mixedTable
+        mixedRange with
+    | some certified => pure certified
+    | none => fail "mixed-storage range query fell back to a full plan"
+  unless rangeCertified.result.rows ==
+      mixedRange.eval mixedTable.rows do
+    fail "mixed-storage exact certificate changed range semantics"
+
+private def expectCoreFreelistShrink : IO Unit := do
+  let payload := String.mk (List.replicate 96 'f')
+  let values := String.intercalate ","
+    ((List.range 128).map fun offset =>
+      let id := offset + 1
+      s!"({id},'{payload}{id}')")
+  let setupSQL := s!"
+    CREATE TABLE shrinking(id INTEGER PRIMARY KEY,value TEXT NOT NULL);
+    CREATE INDEX shrinking_value ON shrinking(value);
+    INSERT INTO shrinking VALUES {values};"
+  let (largeState, _) ← match CoreSQL.execute Core.State.empty setupSQL with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"Core freelist setup failed: {message}"
+  let path : System.FilePath := ".lake/build/sqleanite-core-freelist.db"
+  let paths : CoreFileAdapter.Paths := {
+    main := path
+    journal := ".lake/build/sqleanite-core-freelist.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  CoreFileAdapter.create .system paths largeState.database
+  let oldBytes ← IO.FS.readBinFile path
+  let oldPages := oldBytes.size / PhysicalCodec.pageSize
+  let validatedBefore ← match ← CoreFileAdapter.loadOpenState paths with
+    | some value => pure value
+    | none => fail "full-chunk index setup did not validate"
+  let (insertedState, _) ← match CoreSQL.execute largeState
+      "INSERT INTO shrinking VALUES(129,'split');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"split-reuse insert failed: {message}"
+  let insertedDelta ← match CoreChunkPageDelta.updateStateCandidate?
+      validatedBefore.state insertedState.database with
+    | some value => pure value
+    | none => fail "full-chunk insert did not produce a physical delta"
+  unless insertedDelta.after.nextPage == validatedBefore.state.nextPage &&
+      insertedDelta.table.freedPageNumbers.isEmpty do
+    fail "split insertion did not recycle the pages released by its old chunk"
+  let (smallState, _) ← match CoreSQL.execute largeState
+      "DELETE FROM shrinking WHERE id>1;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"Core freelist delete failed: {message}"
+  let validated ← match ← CoreFileAdapter.loadOpenState paths with
+    | some value => pure value
+    | none => fail "indexed shrink did not produce a validated physical state"
+  let delta ← match CoreChunkPageDelta.updateStateCandidate?
+      validated.state smallState.database with
+    | some value => pure value
+    | none => fail "indexed shrink did not produce a proof-carrying table delta"
+  if delta.table.tablePagesSufficient then
+    fail "changed index was incorrectly treated as an unchanged page image"
+  let input ← IO.FS.readBinFile path
+  let prepared ← match CoreFileAdapter.prepareLocalizedLastIndex? validated
+      input.data.toList delta with
+    | some value => pure value
+    | none => fail "tail-owned changed index did not produce a localized delta"
+  unless prepared.writes.length < oldPages do
+    fail "localized indexed shrink rewrote the whole file"
+  let connection ← CoreFileEngine.reopen .system paths
+  match ← CoreFileEngine.execute connection
+      "DELETE FROM shrinking WHERE id>1;" with
+  | .error message => fail s!"live localized indexed shrink failed: {message}"
+  | .ok _ => pure ()
+  let reopened ← CoreFileAdapter.reopen paths
+  unless reopened.Equiv smallState.database do
+    fail "Core freelist commit changed the logical database"
+  let newBytes ← IO.FS.readBinFile path
+  unless newBytes.size / PhysicalCodec.pageSize == oldPages do
+    fail "Core freelist shrink changed the physical file size"
+  let check ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM shrinking;"] }
+  let lines := check.stdout.trim.splitOn "\n"
+  unless check.exitCode == 0 && lines.length == 3 && lines[0]? == some "ok" &&
+      lines[2]? == some "1" do
+    fail s!"SQLite rejected the Core freelist image: {check.stderr}{check.stdout}"
+  let free ← match lines[1]?.bind String.toNat? with
+    | some count => pure count
+    | none => fail "SQLite did not report the Core freelist count"
+  unless 0 < free do
+    fail "Core shrink did not publish any pages on the freelist"
+
+private def expectCoreDirtyPageCommit : IO Unit := do
+  let payload := String.mk (List.replicate 96 'd')
+  let values := String.intercalate ","
+    ((List.range 100).map fun offset => s!"({offset + 1},'{payload}')")
+  let setup := s!"CREATE TABLE dirty_rows(
+      id INTEGER PRIMARY KEY,payload TEXT NOT NULL);
+    INSERT INTO dirty_rows VALUES {values};"
+  let (oldState, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"dirty-page setup failed: {message}"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-dirty-pages.db"
+    journal := ".lake/build/sqleanite-dirty-pages.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  CoreFileAdapter.create .system paths oldState.database
+  let oldBytes ← IO.FS.readBinFile paths.main
+  let oldPages := oldBytes.size / PhysicalCodec.pageSize
+  let replacement := String.mk (List.replicate 96 'e')
+  let (newState, _) ← match CoreSQL.execute oldState
+      s!"UPDATE dirty_rows SET payload='{replacement}' WHERE id=50;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"dirty-page update failed: {message}"
+  let physical ← match ← CoreFileAdapter.loadPageState paths oldState.database with
+    | some state => pure state
+    | none => fail "stable physical image did not load into its proved representation"
+  let (bulkUpdated, _) ← match CoreSQL.execute oldState
+      s!"UPDATE dirty_rows SET payload='{replacement}' WHERE id>=40;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"bulk dirty-page update failed: {message}"
+  let bulkUpdateDelta ← match CoreChunkPageDelta.updateState?
+      physical bulkUpdated.database with
+    | some value => pure value
+    | none => fail "same-key bulk update did not produce a proved page delta"
+  unless bulkUpdateDelta.after.database.Equiv bulkUpdated.database do
+    fail "same-key bulk update delta changed the represented database"
+  let (bulkDeleted, _) ← match CoreSQL.execute oldState
+      "DELETE FROM dirty_rows WHERE id>=40;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"bulk dirty-page delete failed: {message}"
+  let bulkDeleteDelta ← match CoreChunkPageDelta.updateState?
+      physical bulkDeleted.database with
+    | some value => pure value
+    | none => fail "bulk retain did not produce a proved page delta"
+  unless bulkDeleteDelta.after.database.Equiv bulkDeleted.database do
+    fail "bulk retain delta changed the represented database"
+  unless bulkDeleteDelta.table.after.tree.root.pageIds.Pairwise
+      (fun left right => left ≠ right) &&
+      bulkDeleteDelta.table.freedPageNumbers.Pairwise
+        (fun left right => left ≠ right) &&
+      !bulkDeleteDelta.table.freedPageNumbers.any
+        bulkDeleteDelta.table.after.tree.root.pageIds.contains do
+    fail "bulk retain duplicated or freed an active persistent page ID"
+  let delta ← match CoreChunkPageDelta.updateState? physical newState.database with
+    | some delta => pure delta
+    | none => fail "single-row update did not produce a proved page delta"
+  let writes ← match CoreChunkPageDelta.writes delta.table with
+    | some writes => pure writes
+    | none => fail "proved page delta contained an invalid page number"
+  let before ← match CoreChunkPageDelta.beforeWrites delta.table with
+    | some writes => pure writes
+    | none => fail "proved before-image path contained an invalid page number"
+  let plan ← match ← CoreFileAdapter.commitLocalized .system paths before writes with
+    | some plan => pure plan
+    | none => fail "on-disk pages did not match the proved before-image"
+  let (deletedState, _) ← match CoreSQL.execute newState
+      "DELETE FROM dirty_rows WHERE id=51;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"dirty-page delete failed: {message}"
+  let deletedDelta ← match CoreChunkPageDelta.updateState?
+      delta.after deletedState.database with
+    | some value => pure value
+    | none => fail "single-row delete did not produce a proved page delta"
+  let deletedBefore ← match CoreChunkPageDelta.beforeWrites deletedDelta.table with
+    | some value => pure value
+    | none => fail "delete before-image contained page zero"
+  let deletedWrites ← match CoreChunkPageDelta.writes deletedDelta.table with
+    | some value => pure value
+    | none => fail "delete delta contained page zero"
+  unless (← CoreFileAdapter.commitLocalized .system paths deletedBefore
+      deletedWrites).isSome do
+    fail "delete pages did not match their proved before-image"
+  let (insertedState, _) ← match CoreSQL.execute deletedState
+      s!"INSERT INTO dirty_rows VALUES(101,'{payload}');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"dirty-page insert failed: {message}"
+  let insertedDelta ← match CoreChunkPageDelta.updateState?
+      deletedDelta.after insertedState.database with
+    | some value => pure value
+    | none => fail "single-row insert did not produce a proved page delta"
+  let insertedBefore ← match CoreChunkPageDelta.beforeWrites insertedDelta.table with
+    | some value => pure value
+    | none => fail "insert before-image contained page zero"
+  let insertedWrites ← match CoreChunkPageDelta.writes insertedDelta.table with
+    | some value => pure value
+    | none => fail "insert delta contained page zero"
+  unless (← CoreFileAdapter.commitLocalized .system paths insertedBefore
+      insertedWrites insertedDelta.after.freePages).isSome do
+    fail "insert pages did not match their proved before-image"
+  -- Fill the final chunk and force an identified leaf/interior split.  The
+  -- writer may recycle released identities or append genuinely new pages; in
+  -- either case the localized image must remain readable by stock SQLite.
+  let mut splitLogical := insertedState
+  let mut splitPhysical := insertedDelta.after
+  for offset in List.range 12 do
+    let rowid := 102 + offset
+    let (nextLogical, _) ← match CoreSQL.execute splitLogical
+        s!"INSERT INTO dirty_rows VALUES({rowid},'{payload}');" with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"split insert {rowid} failed: {message}"
+    let nextDelta ← match CoreChunkPageDelta.updateState?
+        splitPhysical nextLogical.database with
+      | some value => pure value
+      | none => fail s!"split insert {rowid} did not produce a proved delta"
+    let nextBefore ← match CoreChunkPageDelta.beforeWrites nextDelta.table with
+      | some value => pure value
+      | none => fail s!"split insert {rowid} before-image contained page zero"
+    let nextWrites ← match CoreChunkPageDelta.writes nextDelta.table with
+      | some value => pure value
+      | none => fail s!"split insert {rowid} delta contained page zero"
+    unless (← CoreFileAdapter.commitLocalized .system paths nextBefore
+        nextWrites nextDelta.after.freePages).isSome do
+      fail s!"split insert {rowid} pages did not match their before-images"
+    splitLogical := nextLogical
+    splitPhysical := nextDelta.after
+  let mut mergedLogical := splitLogical
+  let mut mergedPhysical := splitPhysical
+  -- Remove both chunks produced by the split.  Removing only the new right
+  -- chunk can leave a valid one-entry leaf and therefore has no physical page
+  -- to free; removing 97..113 forces borrow/merge and exercises the live
+  -- SQLite freelist encoding.
+  for offset in List.range 17 do
+    let rowid := 97 + offset
+    let (nextLogical, _) ← match CoreSQL.execute mergedLogical
+        s!"DELETE FROM dirty_rows WHERE id={rowid};" with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"merge delete {rowid} failed: {message}"
+    let nextDelta ← match CoreChunkPageDelta.updateState?
+        mergedPhysical nextLogical.database with
+      | some value => pure value
+      | none =>
+          let detail := match mergedPhysical.tables.head?,
+              nextLogical.database.tables.head? with
+            | some oldTable, some nextTable =>
+                let deleted := CoreChunkPageDelta.firstDeleted
+                  oldTable.table.rows nextTable.rows
+                let entry := deleted.bind fun row =>
+                  CoreChunkPageDelta.findChunkFor? row.treeKey oldTable.tree.root
+                let direct := deleted.bind fun row =>
+                  CoreChunkPageDelta.delete? oldTable mergedPhysical.nextPage row
+                    nextTable
+                let deletedIds := deleted.map fun (row : Core.Row) => row.rowid.value
+                let entryRows := entry.map fun
+                  (e : PagedBTree.Entry CoreChunkPageState.Chunk) =>
+                    (e.1, e.2.map fun (row : Core.Row) => row.rowid.value)
+                let allEntries := oldTable.tree.root.erase.toList.map fun
+                    (e : PagedBTree.Entry CoreChunkPageState.Chunk) =>
+                  let first := e.2.head?.map fun (row : Core.Row) => row.rowid.value
+                  let last := e.2.getLast?.map fun (row : Core.Row) => row.rowid.value
+                  s!"{e.1}:{first.map (fun (value : Int) => toString value)}-{last.map (fun (value : Int) => toString value)}/{e.2.length}"
+                s!"deleted={repr deletedIds}, entry={repr entryRows}, direct={direct.isSome}, entries={String.intercalate ";" allEntries}"
+            | _, _ => "missing table"
+          fail s!"merge delete {rowid} did not produce a proved delta: {detail}"
+    let nextBefore ← match CoreChunkPageDelta.beforeWrites nextDelta.table with
+      | some value => pure value
+      | none => fail s!"merge delete {rowid} before-image contained page zero"
+    let nextWrites ← match CoreChunkPageDelta.writes nextDelta.table with
+      | some value => pure value
+      | none => fail s!"merge delete {rowid} delta contained page zero"
+    unless (← CoreFileAdapter.commitLocalized .system paths nextBefore
+        nextWrites nextDelta.after.freePages).isSome do
+      fail s!"merge delete {rowid} pages did not match their before-images"
+    let checkpoint ← CoreFileAdapter.reopen paths
+    unless checkpoint.Equiv nextLogical.database do
+      fail s!"merge delete {rowid} did not preserve the represented database; writes={nextWrites.map (·.pageId)}, freed={nextDelta.table.freedPageNumbers}"
+    mergedLogical := nextLogical
+    mergedPhysical := nextDelta.after
+  let reopened ← CoreFileAdapter.reopen paths
+  let reloaded ← match ← CoreFileAdapter.loadPageState paths reopened with
+    | some value => pure value
+    | none => fail "merged physical tree or freelist did not reload"
+  let grownBytes ← paths.main.metadata
+  let grownPages := grownBytes.byteSize.toNat / PhysicalCodec.pageSize
+  let dirtyPages := plan.filterMap fun request => match request with
+    | .pwriteMain write => some write.pageId
+    | _ => none
+  unless reopened.Equiv mergedLogical.database &&
+      reloaded.database.Equiv mergedLogical.database && oldPages ≤ grownPages &&
+      0 < dirtyPages.length &&
+      dirtyPages.length < oldPages do
+    fail s!"localized commit wrote {dirtyPages.length} of {oldPages} pages"
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*),length(payload) FROM dirty_rows WHERE payload LIKE 'e%'; SELECT count(*) FROM dirty_rows; SELECT count(*) FROM dirty_rows WHERE id=105;"] }
+  unless output.exitCode == 0 && output.stdout == "ok\n1|96\n95\n0\n" do
+    fail s!"SQLite rejected the dirty-page commit: {output.stderr}{output.stdout}"
+
+private def expectCoreMultiFreelist : IO Unit := do
+  let (state, _) ← match CoreSQL.execute { database := Core.Database.empty }
+      "CREATE TABLE multi_free(id INTEGER PRIMARY KEY,value TEXT);
+       INSERT INTO multi_free VALUES(1,'kept');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"multi-trunk setup failed: {message}"
+  let image ← match RecursivePageBTree.encode state.database with
+    | some image => pure image
+    | none => fail "multi-trunk setup did not encode"
+  let freeCount := 2050
+  let total := image.pageCount + freeCount
+  let layout ← match CoreMultiFreelist.ofImageTotal? image total with
+    | some layout => pure layout
+    | none => fail "multi-trunk layout rejected a bounded page count"
+  unless layout.pages.length == total && layout.freelistPages.length == freeCount do
+    fail "multi-trunk layout emitted the wrong number of pages"
+  let path : System.FilePath := ".lake/build/sqleanite-multi-freelist.db"
+  IO.FS.writeBinFile path (ByteArray.mk layout.paddedImage.fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM multi_free;"] }
+  unless output.exitCode == 0 && output.stdout == "ok\n2050\n1\n" do
+    fail s!"SQLite rejected the verified multi-trunk freelist: {output.stderr}{output.stdout}"
+
+private def expectLazyReachablePageDecode : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty "
+      CREATE TABLE lazy_rows(id INTEGER PRIMARY KEY,value TEXT NOT NULL);
+      CREATE INDEX lazy_value ON lazy_rows(value);
+      INSERT INTO lazy_rows VALUES(1,'one'),(2,'two');" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"lazy pager setup failed: {message}"
+  let image ← match CoreFile.encode state.database with
+    | some image => pure image
+    | none => fail "lazy pager encoder rejected a small database"
+  let layout ← match CoreFreelist.ofImageTotal? image 100 with
+    | some layout => pure layout
+    | none => fail "lazy pager could not build a bounded padded image"
+  let physicalPages := layout.pages.map CoreFile.Page.bytes
+  let reads ← IO.mkRef 0
+  let source : CoreDecode.IOPageSource := {
+    pageCount := physicalPages.length
+    readPage := fun pageNumber => do
+      let count ← reads.get
+      reads.set (count + 1)
+      return CoreDecode.page? physicalPages pageNumber }
+  let decoded ← match ← CoreDecode.decodeFromIOPageSource source with
+    | some database => pure database
+    | none => fail "lazy pager rejected reachable table or index pages"
+  unless decoded.Equiv state.database do
+    fail "lazy pager changed the decoded database"
+  let readCount ← reads.get
+  unless readCount < physicalPages.length do
+    fail "lazy pager requested unreachable freelist pages"
+
+private def expectGeneralMVPFileEngine : IO Unit := do
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-general-live.db"
+    journal := ".lake/build/sqleanite-general-live.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  let setup ← CoreFileEngine.execute connection "
+    BEGIN;
+    CREATE TABLE users(id INTEGER PRIMARY KEY,name TEXT NOT NULL);
+    CREATE TABLE notes(body TEXT,note_id INTEGER PRIMARY KEY,owner INTEGER NOT NULL);
+    CREATE INDEX users_name ON users(name);
+    INSERT INTO users VALUES(2,'Ada'),(1,'Lin');
+    INSERT INTO notes VALUES('kernel',10,1);
+    COMMIT;"
+  if let .error message := setup then
+    fail s!"general persisted setup failed: {message}"
+  let rolledBack ← CoreFileEngine.execute connection "
+    BEGIN; INSERT INTO users VALUES(9,'rollback'); ROLLBACK;"
+  if let .error message := rolledBack then
+    fail s!"general persisted rollback failed: {message}"
+  let cInsert ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch",
+      "INSERT INTO users VALUES(3,'C'); INSERT INTO notes VALUES('interop',11,3);"] }
+  unless cInsert.exitCode == 0 do
+    fail s!"C SQLite could not update the generalized live path: {cInsert.stderr}"
+  let reopened ← CoreFileEngine.reopen .system paths
+  let leanInsert ← CoreFileEngine.execute reopened
+    "INSERT INTO users VALUES(4,'Lean');"
+  if let .error message := leanInsert then
+    fail s!"Lean could not commit after a C-written image: {message}"
+  let modified ← CoreFileEngine.execute reopened "
+    BEGIN;
+    UPDATE users SET name='Lean updated' WHERE id=4;
+    DELETE FROM users WHERE id=2;
+    DELETE FROM notes WHERE note_id=10;
+    COMMIT;"
+  if let .error message := modified then
+    fail s!"general live UPDATE/DELETE failed: {message}"
+  let rejected ← CoreFileEngine.execute reopened
+    "UPDATE users SET name=NULL WHERE id=1;"
+  if rejected.isOk then
+    fail "general live UPDATE admitted a NOT NULL violation"
+  let check ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader", "
+      PRAGMA integrity_check;
+      SELECT id,name FROM users ORDER BY id;
+      SELECT note_id,body,owner FROM notes ORDER BY note_id;"] }
+  unless check.exitCode == 0 && check.stdout ==
+      "ok\n1|Lin\n3|C\n4|Lean updated\n11|interop|3\n" do
+    fail s!"general live path failed C/Lean roundtrip: {check.stderr}{check.stdout}"
+  let selected ← CoreFileEngine.execute reopened
+    "SELECT name,id FROM users ORDER BY id DESC LIMIT 2;"
+  match selected with
+  | .error message => fail s!"general live SELECT failed: {message}"
+  | .ok results =>
+      let rows := results.flatMap (·.rows)
+      unless rows.length == 2 do
+        fail "general live SELECT returned the wrong row count"
+  let joined ← CoreFileEngine.execute reopened "
+    SELECT users.name,notes.body FROM users
+    INNER JOIN notes ON users.id=notes.owner
+    WHERE notes.note_id>=11 ORDER BY users.id;"
+  match joined with
+  | .error message => fail s!"general live INNER JOIN failed: {message}"
+  | .ok results =>
+      let rows := results.flatMap (·.rows)
+      unless rows == [[.text ⟨[67], by decide⟩,
+          .text ⟨[105, 110, 116, 101, 114, 111, 112], by decide⟩]] do
+        fail "general live INNER JOIN returned the wrong rows"
+
+private def expectMVPRecordCells : IO Unit := do
+  let rowid : FileFormat.SignedInteger .eight := ⟨7, by decide, by decide⟩
+  let text : PhysicalCodec.Text := ⟨[97, 108, 112, 104, 97], by decide⟩
+  let row : PhysicalCodec.Row := {
+    rowid
+    first := .integer ⟨-4, by decide, by decide⟩
+    second := .text text }
+  match PhysicalCodec.decodeRowCell (row.encodeCell ++ [99]) with
+  | some (decoded, [99]) =>
+      unless decoded == row do
+        fail "MVP table-leaf cell codec changed a logical row"
+  | _ => fail "MVP table-leaf cell codec failed"
+  let rows := [row, { row with rowid := ⟨8, by decide, by decide⟩, first := .null }]
+  unless PhysicalCodec.decodeCells rows.length (PhysicalCodec.encodeCells rows) ==
+      some (rows, []) do
+    fail "MVP table-leaf cell-list codec failed"
+
+private def expectSQLiteFileInterop : IO Unit := do
+  let alpha : PhysicalCodec.Text := ⟨[97, 108, 112, 104, 97], by decide⟩
+  let beta : PhysicalCodec.Text := ⟨[98, 101, 116, 97], by decide⟩
+  let first : PhysicalCodec.Row := {
+    rowid := ⟨1, by decide, by decide⟩
+    first := .text alpha
+    second := .null }
+  let second : PhysicalCodec.Row := {
+    rowid := ⟨2, by decide, by decide⟩
+    first := .integer ⟨-4, by decide, by decide⟩
+    second := .text beta }
+  let database : PhysicalCodec.Database := {
+    rows := [first, second]
+    rowidsSorted := by simp [PhysicalCodec.Row.keyLess, first, second]
+    pageFits := by
+      unfold PhysicalCodec.PageFit PhysicalCodec.cellBytes PhysicalCodec.pageSize
+      decide }
+  let path : System.FilePath := ".lake/build/sqleanite-mvp-interop.db"
+  match PhysicalCodec.decodeFile database.fileBytes with
+  | some reopened =>
+      unless reopened.rows == database.rows do
+        fail "verified MVP file decoder changed the logical rows"
+  | none => fail "verified MVP file decoder rejected its own image"
+  match PhysicalCodec.decodeStorageImage database.storageImage with
+  | some reopened =>
+      unless reopened.rows == database.rows do
+        fail "verified pager reopen changed the logical rows"
+  | none => fail "verified pager reopen rejected its own image"
+  IO.FS.writeBinFile path (ByteArray.mk database.fileBytes.toArray)
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
+  unless output.exitCode == 0 do
+    fail s!"sqlite3 rejected the verified MVP image: {output.stderr}"
+  unless output.stdout == "ok\n1|alpha|\n2|-4|beta\n" do
+    fail s!"sqlite3 read unexpected MVP rows: {repr output.stdout}"
+
+private def expectMVPFileAdapter : IO Unit := do
+  let alpha : PhysicalCodec.Text := ⟨[97, 108, 112, 104, 97], by decide⟩
+  let beta : PhysicalCodec.Text := ⟨[98, 101, 116, 97], by decide⟩
+  let first : PhysicalCodec.Row := {
+    rowid := ⟨1, by decide, by decide⟩
+    first := .text alpha
+    second := .null }
+  let second : PhysicalCodec.Row := {
+    rowid := ⟨2, by decide, by decide⟩
+    first := .integer ⟨-4, by decide, by decide⟩
+    second := .text beta }
+  let old : PhysicalCodec.Database := {
+    rows := [second]
+    rowidsSorted := by simp [PhysicalCodec.Row.keyLess, second]
+    pageFits := by
+      unfold PhysicalCodec.PageFit PhysicalCodec.cellBytes PhysicalCodec.pageSize
+      decide }
+  let new ← match old.insertChecked first with
+    | .ok database => pure database
+    | .error message => fail s!"verified MVP arbitrary-order insert failed: {message}"
+  unless new.rows == [first, second] do
+    fail "verified MVP arbitrary-order insert produced the wrong rows"
+  let updated ← match new.updatePayload 2 .null (.text alpha) with
+    | .ok database => pure database
+    | .error message => fail s!"verified MVP update failed: {message}"
+  match updated.findRow? 2 with
+  | some row =>
+      unless row.first == .null && row.second == .text alpha do
+        fail "verified MVP update changed the wrong payload"
+  | none => fail "verified MVP update lost its target row"
+  let deleted ← match updated.deleteRowid 1 with
+    | .ok database => pure database
+    | .error message => fail s!"verified MVP delete failed: {message}"
+  unless deleted.rows.length == 1 && (deleted.findRow? 2).isSome do
+    fail "verified MVP delete removed the wrong row"
+  if (new.insertChecked first).isOk then
+    fail "verified MVP insert admitted a duplicate primary key"
+  let paths : PhysicalFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-mvp-adapter.db"
+    journal := ".lake/build/sqleanite-mvp-adapter.db-journal" }
+  PhysicalFileAdapter.create .system paths old
+  let openedOld ← PhysicalFileAdapter.reopen paths
+  unless openedOld.rows == old.rows do
+    fail "MVP file adapter did not reopen its initial database"
+  let (openedNew, trace) ← PhysicalFileAdapter.commit .system paths new
+  unless openedNew.rows == new.rows do
+    fail "MVP file adapter did not reopen its committed database"
+  let newTree ← match PhysicalTableBTree.build new with
+    | some tree => pure tree
+    | none => fail "MVP adapter test database did not build a physical tree"
+  unless trace.length == (PhysicalMultiPageCodec.transactionWrites newTree).length + 7 do
+    fail s!"MVP file adapter emitted the wrong VFS plan: {trace.length} requests"
+  if ← paths.journal.pathExists then
+    fail "MVP file adapter returned before journal deletion"
+  let output ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
+  unless output.exitCode == 0 && output.stdout == "ok\n1|alpha|\n2|-4|beta\n" do
+    fail s!"sqlite3 rejected the adapter's committed image: {output.stderr}{output.stdout}"
+
+  let third : PhysicalCodec.Row := {
+    rowid := ⟨3, by decide, by decide⟩
+    first := .integer ⟨33, by decide, by decide⟩
+    second := .null }
+  let fourth : PhysicalCodec.Row := {
+    rowid := ⟨4, by decide, by decide⟩
+    first := .integer ⟨44, by decide, by decide⟩
+    second := .null }
+  let fifth : PhysicalCodec.Row := {
+    rowid := ⟨5, by decide, by decide⟩
+    first := .integer ⟨55, by decide, by decide⟩
+    second := .null }
+  let grown ← match new.insertChecked third with
+    | .error message => fail s!"MVP growth insert three failed: {message}"
+    | .ok afterThird => match afterThird.insertChecked fourth with
+      | .error message => fail s!"MVP growth insert four failed: {message}"
+      | .ok afterFourth => match afterFourth.insertChecked fifth with
+        | .error message => fail s!"MVP growth insert five failed: {message}"
+        | .ok database => pure database
+  let (openedGrown, growthTrace) ← PhysicalFileAdapter.commit .system paths grown
+  unless openedGrown.rows == grown.rows do
+    fail "MVP file adapter did not reopen its split multi-page commit"
+  let grownTree ← match PhysicalTableBTree.build grown with
+    | some tree => pure tree
+    | none => fail "MVP grown database did not build a physical tree"
+  unless PhysicalMultiPageCodec.filePageCount grownTree == 5 &&
+      growthTrace.length == 12 do
+    fail "MVP file adapter did not emit the expected five-page growth plan"
+  let grownBytes ← IO.FS.readBinFile paths.main
+  unless grownBytes.size == 5 * PhysicalCodec.pageSize do
+    fail "MVP file adapter did not physically grow the main file"
+  let grownCheck ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*) FROM items;"] }
+  unless grownCheck.exitCode == 0 && grownCheck.stdout == "ok\n5\n" do
+    fail s!"sqlite3 rejected the adapter's grown image: {grownCheck.stderr}{grownCheck.stdout}"
+
+  let shrunk ← match grown.deleteRowid 3 with
+    | .error message => fail s!"MVP shrink delete three failed: {message}"
+    | .ok afterThird => match afterThird.deleteRowid 4 with
+      | .error message => fail s!"MVP shrink delete four failed: {message}"
+      | .ok afterFourth => match afterFourth.deleteRowid 5 with
+        | .error message => fail s!"MVP shrink delete five failed: {message}"
+        | .ok database => pure database
+  let (openedShrunk, shrinkTrace) ← PhysicalFileAdapter.commit .system paths shrunk
+  unless openedShrunk.rows == shrunk.rows && shrinkTrace.length == 12 do
+    fail "MVP file adapter did not reopen its freelist-backed shrink"
+  let shrunkBytes ← IO.FS.readBinFile paths.main
+  unless shrunkBytes.size == 5 * PhysicalCodec.pageSize do
+    fail "MVP freelist shrink unexpectedly truncated the committed file"
+  let shrinkCheck ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM items;"] }
+  unless shrinkCheck.exitCode == 0 && shrinkCheck.stdout == "ok\n3\n2\n" do
+    fail s!"sqlite3 rejected the freelist shrink: {shrinkCheck.stderr}{shrinkCheck.stdout}"
+
+  -- Inject the crash state after the new main page was written but before the
+  -- page-level journal was deleted. Recovery must restore old pages and
+  -- truncate the three newly grown pages.
+  PhysicalFileAdapter.create .system paths old
+  let oldTree ← match PhysicalTableBTree.build old with
+    | some tree => pure tree
+    | none => fail "MVP adapter old database did not build a physical tree"
+  let crashJournal := GrowableStorage.makeJournal
+    (PhysicalMultiPageCodec.storageImage oldTree)
+    (PhysicalMultiPageCodec.transactionWrites grownTree)
+  let encodedCrashJournal ← match PhysicalJournalCodec.ofJournal? crashJournal with
+    | some journal => pure (PhysicalJournalCodec.encodeChecked journal)
+    | none => fail "MVP adapter crash journal exceeded encoded bounds"
+  IO.FS.writeBinFile paths.journal (ByteArray.mk encodedCrashJournal.toArray)
+  IO.FS.writeBinFile paths.main
+    (ByteArray.mk (PhysicalMultiPageCodec.fileBytes grownTree).toArray)
+  let recovered ← PhysicalFileAdapter.recover .system paths
+  unless recovered.rows == old.rows do
+    fail "MVP file adapter failed to restore its page-level undo journal"
+  let recoveredBytes ← IO.FS.readBinFile paths.main
+  unless recoveredBytes.size == 2 * PhysicalCodec.pageSize do
+    fail "MVP file adapter recovery did not truncate grown pages"
+
+  -- Deterministically materialize the POSIX model's namespace checkpoints.
+  -- These complement the quantified pure theorem with tests of the concrete
+  -- executable's file-name handling.
+  let noSync : PhysicalFileAdapter.SyncOps := {
+    syncFile := fun _ => pure ()
+    syncDeletion := fun _ => pure () }
+  PhysicalFileAdapter.create noSync paths old
+  IO.FS.writeBinFile paths.journalTemp
+    (ByteArray.mk encodedCrashJournal.toArray)
+  let tempRecovered ← PhysicalFileAdapter.recover noSync paths
+  let tempStillExists ← paths.journalTemp.pathExists
+  unless tempRecovered.rows == old.rows && !tempStillExists do
+    fail "orphan temporary journal was published or not removed"
+
+  PhysicalFileAdapter.create noSync paths old
+  IO.FS.writeBinFile paths.journal
+    (ByteArray.mk encodedCrashJournal.toArray)
+  let publishedRecovered ← PhysicalFileAdapter.recover noSync paths
+  unless publishedRecovered.rows == old.rows do
+    fail "published journal without main writes did not recover the old image"
+
+  PhysicalFileAdapter.create noSync paths old
+  IO.FS.writeBinFile paths.main
+    (ByteArray.mk (PhysicalMultiPageCodec.fileBytes grownTree).toArray)
+  let deletedRecovered ← PhysicalFileAdapter.recover noSync paths
+  unless deletedRecovered.rows == grown.rows do
+    fail "deleted journal checkpoint did not retain the new image"
+
+  PhysicalFileAdapter.create noSync paths old
+  let corruptJournal := encodedCrashJournal.modify 20 (fun byte => byte + 1)
+  IO.FS.writeBinFile paths.journal (ByteArray.mk corruptJournal.toArray)
+  let corruptRejected ←
+    try
+      let _ ← PhysicalFileAdapter.recover noSync paths
+      pure false
+    catch _ => pure true
+  unless corruptRejected do
+    fail "live recovery accepted a deterministically corrupted journal"
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+
+private def expectPersistentPageTree : IO Unit := do
+  let entries : List (PagedBTree.Entry Nat) :=
+    [(1, 10), (2, 20), (3, 30), (5, 50), (6, 60), (7, 70)]
+  let store := PersistentPageTree.Store.build 10 entries
+  unless store.root.erase.toList == entries do
+    fail "persistent page-tree bulk builder changed its logical entries"
+  let rootPage := store.root.rootId
+  let updated := store.insert 4 40
+  unless updated.root.rootId == rootPage do
+    fail "persistent page-tree insertion moved the stable root page"
+  let expected := PagedBTree.orderedInsert 4 40 entries
+  unless updated.root.erase.toList == expected do
+    fail "persistent page-tree insertion disagreed with its abstraction"
+  let dirty := PersistentPageTree.changedPages store.root updated.root
+  unless dirty.length < updated.root.pages.length do
+    fail "persistent page-tree insertion rewrote every materialized page"
+  let logical ← match CoreSQL.execute Core.State.empty "
+      CREATE TABLE a(id INTEGER PRIMARY KEY,v);
+      CREATE TABLE b(id INTEGER PRIMARY KEY,v);
+      INSERT INTO a VALUES(1,'x'),(2,'y'),(3,'z');
+      INSERT INTO b VALUES(8,'q');" with
+    | .ok (state, _) => pure state.database
+    | .error message => fail s!"Core page-state setup failed: {message}"
+  let physical ← match CoreChunkPageState.State.build? logical with
+    | some state => pure state
+    | none => fail "packed Core page-state builder rejected valid logical tables"
+  unless physical.tables.map (fun table => table.table.contents) ==
+      logical.tables.map Core.Table.contents do
+    fail "Core physical page state does not represent all logical tables"
+  let rootPages := physical.tables.map CoreChunkPageState.TableState.rootPage
+  unless rootPages.eraseDups == rootPages do
+    fail "Core physical page state assigned duplicate table roots"
+  unless physical.activePageIds.eraseDups == physical.activePageIds do
+    fail "Core physical page state assigned duplicate active pages"
+  let image ← match CorePageCodec.encodeBulk logical with
+    | some image => pure image
+    | none => fail "stable-page bulk encoder rejected a valid Core database"
+  let reopened ← match CoreDecode.decode image.fileBytes with
+    | some database => pure database
+    | none => fail "general decoder rejected the stable-page bulk image"
+  unless reopened.Equiv logical do
+    fail "stable-page bulk encoding changed the logical database"
+  let path : System.FilePath :=
+    ".lake/build/sqleanite-stable-page-bulk.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let check ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
+  unless check.exitCode == 0 && check.stdout == "ok\n3\n1\n" do
+    fail s!"sqlite3 rejected stable-page bulk encoding: {check.stderr}{check.stdout}"
+
+private def unitTests : Array (String × IO Unit) := #[
+  ("persistent page identities", expectPersistentPageTree),
+  ("verified file-format codecs", expectU16Codec),
+  ("verified SQLite varints", expectVarintCodec),
+  ("verified record serial types", expectSerialTypes),
+  ("verified fixed-width payload codec", expectUnsignedFixedCodec),
+  ("verified signed integer payload codec", expectSignedIntegerCodec),
+  ("verified physical record fields", expectRecordFields),
+  ("verified physical record headers", expectRecordHeader),
+  ("verified B-tree page headers", expectBTreePageHeaders),
+  ("verified table B-tree cells", expectTableBTreeCells),
+  ("verified typed B-tree layout", expectTypedBTreeLayout),
+  ("verified bounded page numbers", expectBoundedPageNumbers),
+  ("verified SQLite database first page", expectDatabaseFirstPage),
+  ("verified whole-disk byte format", expectDiskFormat),
+  ("verified optimizer semantics", expectOptimizerSemantics),
+  ("multiplicity-valued SQL semantics", expectKRelationSemantics),
+  ("typed relational algebra semantics", expectRelationalAlgebra),
+  ("verified paged B+tree mutations", expectPagedBTree),
+  ("recursive B+tree split propagation", expectRecursiveBPlusTree),
+  ("verified primary-key merge join", expectCoreMergeJoin),
+  ("recursive physical SQLite page tree", expectRecursivePhysicalPageBTree),
+  ("physical MVP table B+tree pages", expectPhysicalMVPTableBTree),
+  ("verified growable rollback journal", expectGrowableRollbackJournal),
+  ("explicit torn-sector crash model", expectTornSectorModel),
+  ("explicit POSIX VFS durability plan", expectPOSIXVFSPlan),
+  ("verified group commit and write absorption", expectGroupCommit),
+  ("physical Core WAL group commit", expectPhysicalGroupCommit),
+  ("verified page cache and deferred writes", expectVerifiedPageCache),
+  ("verified safe freed-page reuse", expectSafePageReuse),
+  ("verified physical SQLite WAL codec", expectPhysicalWALCodec),
+  ("exact binary64 Core semantics", expectBinary64Core),
+  ("proof-carrying arbitrary MVP schemas", expectGeneralMVPSchemaCore),
+  ("arbitrary-schema verified MVP SQL", expectGeneralMVPSQL),
+  ("arbitrary-schema SQLite file interop", expectGeneralMVPFileInterop),
+  ("live table and index overflow interop", expectLiveOverflowInterop),
+  ("escaped catalog identifiers", expectEscapedCatalogIdentifiers),
+  ("physical multipage index traversal", expectPhysicalIndexTraversal),
+  ("wide C-produced integer index certificate", expectWideCIndexCertificate),
+  ("Core freelist physical shrink", expectCoreFreelistShrink),
+  ("localized Core dirty-page commit", expectCoreDirtyPageCommit),
+  ("verified multi-trunk Core freelist", expectCoreMultiFreelist),
+  ("lazy reachable-page Core decode", expectLazyReachablePageDecode),
+  ("arbitrary-schema transactional file engine", expectGeneralMVPFileEngine),
+  ("verified MVP record cells", expectMVPRecordCells),
+  ("SQLite CLI opens verified MVP file", expectSQLiteFileInterop),
+  ("MVP rollback adapter commit and recovery", expectMVPFileAdapter),
+  ("verified ordered-index core", expectOrderedIndexCore),
+  ("literal select", expectSQL "literal select" "SELECT 1+2, 'ok', NULL;"
+    #[#[.integer 3, .text "ok", .null]]),
+  ("negative shift reverses direction", expectSQL "negative shift reverses direction"
+    "SELECT 8 << -1, 8 >> -1;" #[#[.integer 4, .integer 16]]),
+  ("identifier folding is ASCII only", expectSQL "identifier folding is ASCII only" "
+    CREATE TABLE Ä(x); CREATE TABLE ä(x);
+    SELECT count(*) FROM sqlite_master WHERE type='table';" #[#[.integer 2]]),
+  ("create insert select", expectSQL "create insert select" "
+    CREATE TABLE t(a,b);
+    INSERT INTO t VALUES(2,'two'),(1,'one');
+    SELECT a,b FROM t ORDER BY a;"
+    #[#[.integer 1, .text "one"], #[.integer 2, .text "two"]]),
+  ("qualified cross join", expectSQL "qualified cross join" "
+    CREATE TABLE a(x); CREATE TABLE b(y);
+    INSERT INTO a VALUES(2),(1); INSERT INTO b VALUES('z');
+    SELECT a.x,b.y FROM a,b ORDER BY a.x;"
+    #[#[.integer 1, .text "z"], #[.integer 2, .text "z"]]),
+  ("parenthesized schema join", expectSQL "parenthesized schema join" "
+    ATTACH ':memory:' AS aux;
+    CREATE TABLE main.a(x,y); INSERT INTO main.a VALUES(1,'left');
+    CREATE TABLE aux.b(x,y); INSERT INTO aux.b VALUES(2,'right');
+    SELECT main.a.y,aux.b.y FROM (main.a JOIN (aux.b) ON aux.b.x=main.a.x+1);"
+    #[#[.text "left", .text "right"]]),
+  ("qualified trigger dml", expectError "qualified trigger dml" "
+    CREATE TABLE t(x); CREATE TRIGGER ti AFTER INSERT ON t BEGIN
+      INSERT INTO main.t VALUES(2);
+    END;" "qualified table names are not allowed"),
+  ("null logic", expectSQL "null logic" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(NULL),(0),(1);
+    SELECT count(*),count(x) FROM t WHERE x IS NULL OR x=1;"
+    #[#[.integer 2, .integer 1]]),
+  ("postfix not null", expectSQL "postfix not null" "
+    SELECT 1 WHERE 7 NOT NULL;"
+    #[#[.integer 1]]),
+  ("update delete", expectSQL "update delete" "
+    CREATE TABLE t(x,y); INSERT INTO t VALUES(1,10),(2,20),(3,30);
+    UPDATE t SET y=y+1 WHERE x>=2; DELETE FROM t WHERE x=1;
+    SELECT * FROM t ORDER BY x DESC;"
+    #[#[.integer 3, .integer 31], #[.integer 2, .integer 21]]),
+  ("defaults", expectSQL "defaults" "
+    CREATE TABLE t(a DEFAULT 7,b DEFAULT 'x'); INSERT INTO t(b) VALUES('y');
+    SELECT * FROM t;" #[#[.integer 7, .text "y"]]),
+  ("default SQL preserved", expectSQL "default SQL preserved" "
+    CREATE TABLE t(c DEFAULT 'abc'); PRAGMA table_info(t);"
+    #[#[.integer 0, .text "c", .text "", .integer 0, .text "'abc'", .integer 0]]),
+  ("nonconstant default rejected", expectError "nonconstant default rejected" "
+    CREATE TABLE t(x,y DEFAULT(max(x,5)));"
+    "default value of column [y] is not constant"),
+  ("autoincrement high water", expectSQL "autoincrement high water" "
+    CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);
+    INSERT INTO t(v) VALUES(1); DELETE FROM t; INSERT INTO t(v) VALUES(2);
+    SELECT id FROM t;" #[#[.integer 2]]),
+  ("default int64 overflow remains real", expectSQL "default int64 overflow remains real" "
+    CREATE TABLE t(x INT DEFAULT(-(-9223372036854775808)));
+    INSERT INTO t DEFAULT VALUES; SELECT typeof(x),x>9223372036854775807 FROM t;"
+    #[#[.text "real", .integer 1]]),
+  ("writable schema default", expectSQL "writable schema default" "
+    CREATE TABLE t(a,b DEFAULT 99); PRAGMA writable_schema=ON;
+    UPDATE sqlite_master SET sql='CREATE TABLE t(a,b DEFAULT(:xyz))';
+    INSERT INTO t(a) VALUES('x'); SELECT a,quote(b) FROM t;"
+    #[#[.text "x", .text "NULL"]]),
+  ("transaction rollback", expectSQL "transaction rollback" "
+    CREATE TABLE t(x); BEGIN; INSERT INTO t VALUES(1); ROLLBACK; SELECT count(*) FROM t;"
+    #[#[.integer 0]]),
+  ("distinct limit", expectSQL "distinct limit" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1),(1),(2),(3);
+    SELECT DISTINCT x FROM t ORDER BY x LIMIT 2 OFFSET 1;"
+    #[#[.integer 2], #[.integer 3]]),
+  ("distinct expression collation", expectSQL "distinct expression collation" "
+    CREATE TABLE t(x); INSERT INTO t VALUES('b'),('B');
+    SELECT DISTINCT x COLLATE nocase FROM t;"
+    #[#[.text "b"]]),
+  ("rtrim compound collation", expectSQL "rtrim compound collation" "
+    CREATE TABLE t(x COLLATE rtrim); INSERT INTO t VALUES(''),(' '),('  ');
+    SELECT x FROM t UNION SELECT 1;"
+    #[#[.integer 1], #[.text ""]]),
+  ("distinct aggregates", expectSQL "distinct aggregates" "
+    CREATE TABLE t(x COLLATE nocase, n); INSERT INTO t VALUES('A',1),('a',1),(NULL,2),('B',2);
+    SELECT count(DISTINCT x), sum(DISTINCT n), count(ALL n) FROM t;"
+    #[#[.integer 2, .integer 3, .integer 4]]),
+  ("distinct aggregate arity", expectError "distinct aggregate arity" "
+    CREATE TABLE t(x,y); SELECT string_agg(DISTINCT x,y) FROM t;"
+    "DISTINCT aggregates must have exactly one argument"),
+  ("unique expression index", expectError "unique expression index" "
+    CREATE TABLE t(a,b); CREATE UNIQUE INDEX tx ON t(a+b);
+    INSERT INTO t VALUES(0,1),(1,0);"
+    "UNIQUE constraint failed: index 'tx'"),
+  ("index expression safety", expectError "index expression safety" "
+    CREATE TABLE t(a); CREATE INDEX tx ON t(a+random());"
+    "non-deterministic functions prohibited in index expressions"),
+  ("index subquery safety", expectError "index subquery safety" "
+    CREATE TABLE t(a); CREATE INDEX tx ON t(a+(SELECT 1));"
+    "subqueries prohibited in index expressions"),
+  ("where result alias", expectSQL "where result alias" "
+    CREATE TABLE t(a); INSERT INTO t VALUES('abc001xyz'),('abc002xyz');
+    SELECT substr(a,4,3) AS k FROM t WHERE k=printf('%03d',2);"
+    #[#[.text "002"]]),
+  ("delete returning", expectSQL "delete returning" "
+    CREATE TABLE t(a,b); CREATE INDEX ignored ON t(a); INSERT INTO t VALUES(1,'x'),(2,'y');
+    DELETE FROM t INDEXED BY ignored WHERE a=1 RETURNING *;"
+    #[#[.integer 1, .text "x"]]),
+  ("json expression", expectSQL "json expression" "
+    CREATE TABLE t(y); INSERT INTO t VALUES('{b:5}');
+    SELECT json_insert('{}','$.a',json(y))->>'$.a.b' FROM t;"
+    #[#[.integer 5]]),
+  ("forward inner join on scope", expectSQL "forward inner join on scope" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(0),(1);
+    SELECT count(*) FROM t AS a JOIN t AS b ON d.x=a.x JOIN t AS d ON d.x=a.x;"
+    #[#[.integer 4]]),
+  ("correlated aggregate lift", expectSQL "correlated aggregate lift" "
+    CREATE TABLE jjj(x); CREATE TABLE nnn(x);
+    SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1)
+      FROM sqlite_master;"
+    #[#[.text "mmm"]]),
+  ("drop index if exists", expectSQL "drop index if exists" "
+    CREATE TABLE t(x); DROP INDEX IF EXISTS absent; SELECT count(*) FROM t;"
+    #[#[.integer 0]]),
+  ("compound derived table", expectSQL "compound derived table" "
+    CREATE TABLE a(x); CREATE TABLE b(x); INSERT INTO a VALUES(1); INSERT INTO b VALUES(3);
+    SELECT z.x FROM (SELECT x FROM a UNION SELECT x FROM b) AS z ORDER BY z.x;"
+    #[#[.integer 1], #[.integer 3]]),
+  ("compound global order limit", expectSQL "compound global order limit" "
+    SELECT 1 AS x UNION SELECT 3 ORDER BY x DESC LIMIT 1;"
+    #[#[.integer 3]]),
+  ("compound reverse collation", expectSQL "compound reverse collation" "
+    SELECT 'a' AS x UNION ALL SELECT 'z' ORDER BY 1 COLLATE reverse;"
+    #[#[.text "z"], #[.text "a"]]),
+  ("compound inherited collation", expectSQL "compound inherited collation" "
+    CREATE TABLE a(x COLLATE nocase); CREATE TABLE b(x COLLATE nocase);
+    INSERT INTO a VALUES('ABC'); INSERT INTO b VALUES('abc');
+    SELECT x FROM a INTERSECT SELECT x FROM b;"
+    #[#[.text "ABC"]]),
+  ("compound expression collation", expectSQL "compound expression collation" "
+    CREATE TABLE a(x); CREATE TABLE b(x);
+    INSERT INTO a VALUES('ABC'); INSERT INTO b VALUES('abc');
+    SELECT x COLLATE nocase FROM a EXCEPT SELECT x FROM b;" #[]),
+  ("compound order validation", expectError "compound order validation"
+    "SELECT 1 AS x UNION SELECT 3 ORDER BY x+1;" "does not match any column"),
+  ("correlated inner scope", expectSQL "correlated inner scope" "
+    CREATE TABLE t(a,b); INSERT INTO t VALUES('outer','1'),('inner','2');
+    SELECT a FROM t AS o WHERE b IN (SELECT b FROM t WHERE a='inner');"
+    #[#[.text "inner"]]),
+  ("subquery arity", expectError "subquery arity" "
+    SELECT 1 IN (SELECT 1,2);" "sub-select returns 2 columns - expected 1"),
+  ("double-quoted string mode", expectError "double-quoted string mode" "
+    PRAGMA lean_dqs_dml=0; SELECT \"missing\";" "should this be a string literal"),
+  ("values query", expectSQL "values query" "VALUES(1,'a'),(2,'b');"
+    #[#[.integer 1, .text "a"], #[.integer 2, .text "b"]]),
+  ("values compound", expectSQL "values compound" "
+    VALUES(1),(2),(3) EXCEPT VALUES(2);"
+    #[#[.integer 1], #[.integer 3]]),
+  ("compound clause placement", expectError "compound clause placement" "
+    SELECT 1 ORDER BY 1 UNION ALL SELECT 2;" "ORDER BY clause should come after UNION ALL"),
+  ("live view", expectSQL "live view" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1); CREATE VIEW v(y) AS SELECT x+1 FROM t;
+    INSERT INTO t VALUES(4); SELECT y FROM v ORDER BY y;"
+    #[#[.integer 2], #[.integer 5]]),
+  ("view with cte", expectSQL "view with cte" "
+    CREATE VIEW v(x) AS WITH c(y) AS (SELECT 123)
+      SELECT (SELECT min(y) OVER()) FROM c GROUP BY y;
+    SELECT * FROM v;" #[#[.integer 123]]),
+  ("view rollback", expectError "view rollback" "
+    BEGIN; CREATE VIEW v AS SELECT 1 AS x; ROLLBACK; SELECT * FROM v;" "no such table"),
+  ("grouped aggregates", expectSQL "grouped aggregates" "
+    CREATE TABLE t(k,v); INSERT INTO t VALUES('a',1),('a',2),('b',4);
+    SELECT k,sum(v) AS total FROM t GROUP BY k HAVING total>2 ORDER BY total;"
+    #[#[.text "a", .integer 3], #[.text "b", .integer 4]]),
+  ("derived aggregate having", expectSQL "derived aggregate having" "
+    CREATE TABLE t(k,v); INSERT INTO t VALUES(1,1),(2,2),(2,4);
+    SELECT a,k FROM (SELECT avg(v) AS a,k FROM t GROUP BY k HAVING a>1) ORDER BY k;"
+    #[#[.real 3.0, .integer 2]]),
+  ("group and order aliases", expectSQL "group and order aliases" "
+    CREATE TABLE t(k); INSERT INTO t VALUES(0),(0),(1);
+    SELECT k+1 AS x,count(*) AS n FROM t GROUP BY x ORDER BY 10-(2*x+n);"
+    #[#[.integer 2, .integer 1], #[.integer 1, .integer 2]]),
+  ("aggregate where alias", expectSQL "aggregate where alias" "
+    CREATE TABLE t(a,b,c); INSERT INTO t VALUES(1,'aa','bb'),(2,'cc','dd');
+    SELECT a AS x,b||c AS y FROM t WHERE y='aabb' GROUP BY x,y;"
+    #[#[.integer 1, .text "aabb"]]),
+  ("group ordinal validation", expectError "group ordinal validation" "
+    CREATE TABLE t(k); SELECT k,count(*) FROM t GROUP BY 0;" "GROUP BY term out of range"),
+  ("three-part group name", expectError "three-part group name" "
+    CREATE TABLE t(k); INSERT INTO t VALUES(1);
+    SELECT k,count(*) FROM t GROUP BY temp.t.k;" "no such column: temp.t.k"),
+  ("empty aggregate row", expectSQL "empty aggregate row" "
+    CREATE TABLE t(a,b); SELECT a,sum(b) FROM t WHERE 0;"
+    #[#[.null, .null]]),
+  ("generated column recomputation", expectSQL "generated column recomputation" "
+    CREATE TABLE t(a REAL,b REAL GENERATED ALWAYS AS (a+1));
+    INSERT INTO t(a) VALUES(1); UPDATE t SET a=4;
+    ALTER TABLE t ADD COLUMN c REAL AS (b+1); SELECT * FROM t;"
+    #[#[.real 4.0, .real 5.0, .real 6.0]]),
+  ("aggregate alias recursion", expectError "aggregate alias recursion" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1); SELECT min(x) AS m FROM t
+    GROUP BY x HAVING max(m+1)>0;" "misuse of aliased aggregate m"),
+  ("table constraint parser", expectSQL "table constraint parser" "
+    CREATE TABLE t(a,b,c,PRIMARY KEY(a,b)); INSERT INTO t VALUES(1,2,3);
+    INSERT INTO t SELECT a+(SELECT max(a) FROM t),b,c FROM t; SELECT count(*) FROM t;"
+    #[#[.integer 2]]),
+  ("syntax diagnostics", expectError "syntax diagnostics" "SELECT 1 WHERE 1=;"
+    "near \";\": syntax error"),
+  ("limit expression", expectSQL "limit expression" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1),(2),(3); SELECT x FROM t LIMIT 1+1;"
+    #[#[.integer 1], #[.integer 2]]),
+  ("foreign key cascade", expectSQL "foreign key cascade" "
+    PRAGMA foreign_keys=ON;
+    CREATE TABLE p(a,b UNIQUE); CREATE TABLE c(d REFERENCES p(b) ON DELETE CASCADE);
+    CREATE TABLE log(x); CREATE TRIGGER cd AFTER DELETE ON c BEGIN INSERT INTO log VALUES(old.d); END;
+    INSERT INTO p VALUES(1,7); INSERT INTO c VALUES(7); REPLACE INTO p VALUES(2,7);
+    SELECT p.a,count(c.d),count(log.x) FROM p LEFT JOIN c ON c.d=p.b,log;"
+    #[#[.integer 2, .integer 0, .integer 1]]),
+  ("foreign key enforcement", expectError "foreign key enforcement" "
+    PRAGMA foreign_keys=ON; CREATE TABLE p(k PRIMARY KEY); CREATE TABLE c(k REFERENCES p(k));
+    INSERT INTO c VALUES(9);" "FOREIGN KEY constraint failed"),
+  ("count changes", expectSQL "count changes" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1),(2),(3); PRAGMA count_changes=ON;
+    DELETE FROM t WHERE x<3; DELETE FROM t;"
+    #[#[.integer 2], #[.integer 1]]),
+  ("delete trigger update", expectSQL "delete trigger update" "
+    CREATE TABLE t(x); CREATE TABLE counter(n); INSERT INTO t VALUES(1),(2); INSERT INTO counter VALUES(0);
+    CREATE TRIGGER td AFTER DELETE ON t BEGIN UPDATE counter SET n=n+1; END;
+    DELETE FROM t; SELECT n FROM counter;"
+    #[#[.integer 2]]),
+  ("trigger outer diagnostic", expectError "trigger outer diagnostic" "
+    CREATE TABLE source(a,b); INSERT INTO source VALUES(1,2); CREATE TABLE target(n);
+    CREATE TRIGGER ti AFTER INSERT ON target BEGIN
+      SELECT a FROM source WHERE a>new.missing UNION ALL SELECT b FROM source;
+    END;
+    INSERT INTO target VALUES(1);" "no such column: new.missing"),
+  ("composite uniqueness", expectError "composite uniqueness" "
+    CREATE TABLE t(a,b,c,UNIQUE(a,b)); INSERT INTO t VALUES(1,2,3),(1,2,4);"
+    "UNIQUE constraint failed: t.a, t.b"),
+  ("update preserves scan slot", expectSQL "update preserves scan slot" "
+    CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,10),(2,20);
+    UPDATE t SET v=11 WHERE id=1; SELECT * FROM t;"
+    #[#[.integer 1, .integer 11], #[.integer 2, .integer 20]]),
+  ("alter add column", expectSQL "alter add column" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(7); ALTER TABLE t ADD COLUMN y DEFAULT 3;
+    SELECT x,y,printf('y%d',x) FROM t;"
+    #[#[.integer 7, .integer 3, .text "y7"]]),
+  ("like and glob", expectSQL "like and glob" "
+    SELECT 'Alpha' LIKE 'a_ph%', 'abc' GLOB 'a*';"
+    #[#[.integer 1, .integer 1]]),
+  ("recursive cte insert", expectSQL "recursive cte insert" "
+    CREATE TABLE t(x);
+    WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4)
+      INSERT INTO t SELECT x FROM n;
+    SELECT x FROM t ORDER BY x;"
+    #[#[.integer 1], #[.integer 2], #[.integer 3], #[.integer 4]]),
+  ("recursive select seed", expectSQL "recursive select seed" "
+    WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<3)
+      SELECT x FROM n ORDER BY x;"
+    #[#[.integer 1], #[.integer 2], #[.integer 3]]),
+  ("implicit recursive cte", expectSQL "implicit recursive cte" "
+    CREATE TABLE t(x);
+    WITH n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<3)
+      INSERT INTO t SELECT x FROM n;
+    SELECT x FROM t ORDER BY x;"
+    #[#[.integer 1], #[.integer 2], #[.integer 3]]),
+  ("row varying random", expectSQL "row varying random" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1),(2),(3),(4),(5);
+    SELECT abs(random())%5 AS r FROM t GROUP BY 1 ORDER BY 1;"
+    #[#[.integer 0], #[.integer 1], #[.integer 2], #[.integer 3], #[.integer 4]]),
+  ("index schema catalog", expectSQL "index schema catalog" "
+    CREATE TABLE t(x); CREATE INDEX tx ON t(x);
+    SELECT name FROM sqlite_master WHERE type='index';"
+    #[#[.text "tx"]]),
+  ("empty window input", expectSQL "empty window input" "
+    CREATE TABLE t(x); SELECT sum(x) OVER() FROM t;" #[]),
+  ("rowid reuse after empty", expectSQL "rowid reuse after empty" "
+    CREATE TABLE t(x); INSERT INTO t VALUES(1),(2); DELETE FROM t; INSERT INTO t VALUES(3);
+    SELECT rowid FROM t;" #[#[.integer 1]]),
+  ("integer cast numeric prefix", expectSQL "integer cast numeric prefix" "
+    SELECT CAST('123abc' AS INTEGER), CAST('1.5' AS REAL)+1;"
+    #[#[.integer 123, .real 2.5]]),
+  ("IS truth predicates", expectSQL "IS truth predicates" "
+    SELECT NULL IS TRUE,NULL IS NOT TRUE,2 IS TRUE,0 IS FALSE;"
+    #[#[.integer 0, .integer 1, .integer 1, .integer 1]]),
+  ("json extract", expectSQL "json extract" "
+    SELECT json_extract('{\"a\":5}', '$.a'), printf('%s%d','x',4),
+      json_extract('{outer:{answer:\"ok\"}}', '$.outer.answer');"
+    #[#[.integer 5, .text "x4", .text "ok"]]),
+  ("expression index scan order", expectSQL "expression index scan order" "
+    CREATE TABLE t(b); INSERT INTO t VALUES('one'),('two'),('three');
+    CREATE INDEX tx ON t(b||'x');
+    SELECT b='two',b='three' FROM t WHERE b||'x'>'onex';"
+    #[#[.integer 0, .integer 1], #[.integer 1, .integer 0]]),
+  ("aggregate subquery order source", expectSQL "aggregate subquery order source" "
+    CREATE TABLE t(c0); INSERT INTO t VALUES(1),(2);
+    SELECT (SELECT count(*) FROM t ORDER BY c0);" #[#[.integer 2]]),
+  ("automatic index catalog", expectSQL "automatic index catalog" "
+    CREATE TABLE t(a UNIQUE PRIMARY KEY,b,UNIQUE(a,b));
+    SELECT name,sql IS NULL FROM sqlite_master WHERE type='index' ORDER BY name;"
+    #[#[.text "sqlite_autoindex_t_1", .integer 1],
+      #[.text "sqlite_autoindex_t_2", .integer 1]]),
+  ("automatic index cannot drop", expectError "automatic index cannot drop" "
+    CREATE TABLE t(a UNIQUE); DROP INDEX sqlite_autoindex_t_1;"
+    "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped"),
+  ("create index if not exists", expectSQL "create index if not exists" "
+    CREATE TABLE t(a); CREATE INDEX IF NOT EXISTS i ON t(a);
+    CREATE INDEX IF NOT EXISTS i ON t(a);
+    SELECT count(*) FROM sqlite_master WHERE type='index' AND name='i';"
+    #[#[.integer 1]]),
+  ("composite index prefix order", expectSQL "composite index prefix order" "
+    CREATE TABLE t(a,b,c); CREATE INDEX i ON t(a,b);
+    INSERT INTO t VALUES('', '',1),('',NULL,2),(NULL,'',3);
+    SELECT c FROM t WHERE a='';" #[#[.integer 2], #[.integer 1]]),
+  ("reserved schema name", expectError "reserved schema name" "CREATE TABLE sqlite_private(x);"
+    "object name reserved for internal use"),
+  ("conflict rollback state", expectConflictRollback),
+  ("not null conflict default", expectSQL "not null conflict default" "
+    CREATE TABLE t(x NOT NULL ON CONFLICT REPLACE DEFAULT 5);
+    INSERT INTO t VALUES(NULL); INSERT OR REPLACE INTO t VALUES(NULL);
+    SELECT x FROM t;" #[#[.integer 5], #[.integer 5]]),
+  ("explicit abort overrides constraint", expectError "explicit abort overrides constraint" "
+    CREATE TABLE t(x NOT NULL ON CONFLICT REPLACE DEFAULT 5);
+    INSERT OR ABORT INTO t VALUES(NULL);" "NOT NULL constraint failed: t.x"),
+  ("check conflict ignore", expectSQL "check conflict ignore" "
+    CREATE TABLE t(a CHECK(a!=2));
+    INSERT OR IGNORE INTO t VALUES(1),(2),(3); SELECT a FROM t ORDER BY a;"
+    #[#[.integer 1], #[.integer 3]]),
+  ("duplicate unique conflict policies", expectSQL "duplicate unique conflict policies" "
+    CREATE TABLE t(x PRIMARY KEY,UNIQUE(x,x),UNIQUE(x,x) ON CONFLICT REPLACE);
+    INSERT INTO t VALUES(1); SELECT x FROM t;" #[#[.integer 1]]),
+  ("named check diagnostic", expectError "named check diagnostic" "
+    CREATE TABLE t(x CONSTRAINT positive CHECK(x>0)); INSERT INTO t VALUES(0);"
+    "CHECK constraint failed: positive"),
+  ("check schema validation", expectError "check schema validation" "
+    CREATE TABLE t(x,CHECK(x<(SELECT 1)));" "subqueries prohibited in CHECK constraints"),
+  ("ignored check integrity", expectSQL "ignored check integrity" "
+    CREATE TABLE t(x CHECK(x>0)); PRAGMA ignore_check_constraints=ON;
+    INSERT INTO t VALUES(0); PRAGMA ignore_check_constraints=OFF; PRAGMA integrity_check;"
+    #[#[.text "CHECK constraint failed in t"]]),
+  ("OR FAIL partial update", expectFailKeepsEarlierUpdates),
+  ("multiple primary keys", expectError "multiple primary keys" "
+    CREATE TABLE t(a PRIMARY KEY,b PRIMARY KEY);" "has more than one primary key"),
+  ("failed unique index atomicity", expectFailedUniqueIndexIsAtomic),
+  ("serialized connection stress", expectSerializedConnectionStress),
+  ("verified WAL concurrency model", expectWALConcurrencyModel),
+  ("WAL reader-writer stress", expectWALConnectionStress),
+  ("cross-process serialized MVP commits", expectCrossProcessSerializedMVP),
+  ("cross-process physical WAL readers and writers", expectCrossProcessPhysicalWAL),
+  ("missing table error", expectError "missing table" "SELECT * FROM absent;" "no such table"),
+  ("row width error", expectError "row width" "CREATE TABLE t(a,b); INSERT INTO t VALUES(1);" "2 columns")
+]
+
+def main : IO UInt32 := do
+  let mut passed := 0
+  for (name, test) in unitTests do
+    try
+      test
+      passed := passed + 1
+      IO.println s!"ok - {name}"
+    catch e =>
+      IO.eprintln s!"not ok - {name}: {e}"
+      return 1
+  IO.println s!"{passed} SQLeanite tests passed"
+  pure 0

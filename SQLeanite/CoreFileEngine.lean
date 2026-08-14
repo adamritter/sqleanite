@@ -1,0 +1,221 @@
+import SQLeanite.CoreFileAdapter
+import SQLeanite.CoreOptimizerBridge
+import Std.Sync.Mutex
+
+namespace SQLeanite
+namespace CoreFileEngine
+
+inductive FileProvenance where
+  | generated
+  | foreign
+  deriving DecidableEq
+
+structure Connection where
+  paths : CoreFileAdapter.Paths
+  syncOps : CoreFileAdapter.SyncOps
+  private state : Std.Mutex Core.State
+  private pageState : IO.Ref (Option CoreChunkPageState.State)
+  private validatedOpen : IO.Ref (Option CoreFileAdapter.ValidatedOpenState)
+  private indexCertificates : IO.Ref (List CoreFileAdapter.StoredIntegerIndex)
+  private provenance : IO.Ref FileProvenance
+
+def databaseContents (database : Core.Database) :=
+  database.contents
+
+def reopen (syncOps : CoreFileAdapter.SyncOps)
+    (paths : CoreFileAdapter.Paths) : IO Connection := do
+  CoreFileAdapter.recoverInPlace syncOps paths
+  -- Supported physical trees are decoded once into both the logical database
+  -- and their persistent page identities.  Wider external SQLite trees retain
+  -- the general compatibility decoder and independent validating loader.
+  let opened ← CoreFileAdapter.loadOpenState paths
+  let generated ← CoreFileAdapter.generatedImageStamp paths
+  let (database, pageState) ← match opened with
+    | some validated => pure (validated.state.database, some validated.state)
+    | none => do
+        let database ← CoreFileAdapter.reopen paths
+        let pageState ← CoreFileAdapter.loadPageState paths database
+        pure (database, pageState)
+  return {
+    paths
+    syncOps
+    state := ← Std.Mutex.new { database := database }
+    pageState := ← IO.mkRef pageState
+    validatedOpen := ← IO.mkRef opened
+    -- Index certificates are needed only by secondary-index SELECTs. Loading
+    -- them here made every write-only connection decode every index twice.
+    indexCertificates := ← IO.mkRef []
+    provenance := ← IO.mkRef (if generated then .generated else .foreign) }
+
+def create (syncOps : CoreFileAdapter.SyncOps)
+    (paths : CoreFileAdapter.Paths) : IO Connection := do
+  CoreFileAdapter.create syncOps paths Core.Database.empty
+  reopen syncOps paths
+
+def statementWrites : Statement → Bool
+  | .createTable .. | .createIndex .. | .insert .. | .delete .. | .update .. => true
+  | _ => false
+
+def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
+  match statement with
+  | .commit => state.transactionSnapshot.isSome
+  | _ => statementWrites statement && state.transactionSnapshot.isNone
+
+theorem requiresPersistence_write_in_transaction (state : Core.State)
+    (statement : Statement) (writes : statementWrites statement = true)
+    (active : state.transactionSnapshot.isSome = true) :
+    requiresPersistence state statement = false := by
+  have inactiveFalse : state.transactionSnapshot.isNone = false := by
+    cases snapshot : state.transactionSnapshot <;> simp_all
+  cases statement <;> simp_all [requiresPersistence, statementWrites]
+
+private def commitFull (connection : Connection) (next : Core.State) :
+    IO Core.State := do
+  let (validated, _) ← CoreFileAdapter.commit connection.syncOps
+    connection.paths next.database
+  let reopened := validated.state.database
+  unless databaseContents reopened == databaseContents next.database do
+    throw (IO.userError "general MVP commit reopened different logical contents")
+  connection.pageState.set (some validated.state)
+  connection.validatedOpen.set (some validated)
+  connection.indexCertificates.set []
+  connection.provenance.set .generated
+  return { next with database := reopened }
+
+private def persistIfNeeded (connection : Connection) (current next : Core.State)
+    (statement : Statement) : IO Core.State := do
+  if requiresPersistence current statement then
+    let physical ← connection.pageState.get
+    let localized := physical.bind fun state =>
+      CoreChunkPageDelta.updateStateCandidate? state next.database
+    match localized with
+    | some delta =>
+        if sufficient : delta.table.tablePagesSufficient then
+          let validated := (← connection.validatedOpen.get).bind fun current =>
+            current.retarget? delta sufficient
+          match CoreChunkPageDelta.beforeWrites delta.table,
+              CoreChunkPageDelta.writes delta.table with
+          | some expectedBefore, some writes =>
+              match ← CoreFileAdapter.commitLocalized connection.syncOps
+                  connection.paths expectedBefore writes delta.after.freePages with
+              | some _ =>
+                  connection.pageState.set (some delta.after)
+                  connection.validatedOpen.set validated
+                  let certificates ← connection.indexCertificates.get
+                  connection.indexCertificates.set
+                    (CoreFileAdapter.retargetIntegerIndexCertificates certificates
+                      next.database)
+                  return next
+              | none => commitFull connection next
+          | _, _ =>
+              throw (IO.userError "proved page delta contained page zero")
+        else
+          let validation ← connection.validatedOpen.get
+          let input ← IO.FS.readBinFile connection.paths.main
+          let prepared := validation.bind fun validated =>
+            match CoreFileAdapter.prepareAppendedIndex? validated input delta with
+            | some appended => some appended
+            | none =>
+                match CoreFileAdapter.preparePageDirectedIndexInsert? validated
+                    input delta with
+                | some directed => some directed
+                | none =>
+                    match CoreFileAdapter.preparePageDirectedIndexDelete? validated
+                        input delta with
+                    | some directed => some directed
+                    | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
+                        input.data.toList delta
+          match prepared with
+          | some prepared =>
+              match ← CoreFileAdapter.commitLocalized connection.syncOps
+                  connection.paths prepared.expectedBefore prepared.writes
+                    prepared.state.freePages with
+              | some _ =>
+                  connection.pageState.set (some prepared.state)
+                  connection.validatedOpen.set (some prepared.validated)
+                  -- This path changes the physical index image, so retained
+                  -- certificates must be rebuilt on the next indexed read.
+                  connection.indexCertificates.set []
+                  return next
+              | none => commitFull connection next
+          | none => commitFull connection next
+    | none => commitFull connection next
+  else return next
+
+private def executeStatement (connection : Connection) (state : Core.State)
+    (statement : Statement) : IO (Except String (Core.State × List Core.Result)) := do
+  match statement with
+  | .select select =>
+      match CoreSQL.simpleQuery? state select with
+      | some (tableName, query) =>
+          match state.database.findTable? tableName with
+          | some table =>
+              let optimized := CoreOptimizerBridge.optimize tableName query
+              let certificates ← match table.chooseAccessPath optimized.predicate with
+                | .equalityIndex _ | .rangeIndex _ => do
+                    let retained ← connection.indexCertificates.get
+                    if retained.isEmpty then
+                      let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
+                        connection.paths state.database
+                      connection.indexCertificates.set loaded
+                      pure loaded
+                    else pure retained
+                | _ => connection.indexCertificates.get
+              match CoreFileAdapter.lookupCertifiedIndexCandidates certificates
+                  table optimized with
+              | some lookup =>
+                  return .ok (state, [lookup.result])
+              | none =>
+                  match ← CoreFileAdapter.lookupIndexCandidates
+                      connection.paths table optimized with
+                  | some lookup =>
+                      match ← connection.provenance.get with
+                      | .generated =>
+                          -- Generated images are connected to the encoder
+                          -- refinement. A certificate miss is only an
+                          -- optimization miss, so execute the verified plan
+                          -- directly without the foreign-byte comparison.
+                          return (Core.execute state (.query tableName optimized)).map
+                            fun result => (result.1, [result.2])
+                      | .foreign =>
+                          -- This is the sole validating comparison boundary:
+                          -- arbitrary external bytes carry no encoder witness.
+                          return (Core.executeUncertifiedQueryWithCandidates state
+                            tableName optimized lookup.candidates).map fun result =>
+                              (result.1, [result.2])
+                  | none =>
+                      return (Core.execute state (.query tableName optimized)).map
+                        fun result => (result.1, [result.2])
+          | none => return CoreSQL.executeStatement state statement
+      | none => return CoreSQL.executeStatement state statement
+  | _ => return CoreSQL.executeStatement state statement
+
+private def runStatements (connection : Connection) : Core.State →
+    List Statement → IO (Core.State × Except String (List Core.Result))
+  | state, [] => pure (state, .ok [])
+  | state, statement :: statements => do
+      match ← executeStatement connection state statement with
+      | .error message => pure (state, .error message)
+      | .ok (next, results) => do
+          let persisted ← persistIfNeeded connection state next statement
+          let (finalState, tail) ← runStatements connection persisted statements
+          match tail with
+          | .error message => pure (finalState, .error message)
+          | .ok remaining => pure (finalState, .ok (results ++ remaining))
+
+def execute (connection : Connection) (sql : String) :
+    IO (Except String (List Core.Result)) :=
+  connection.state.atomically do
+    let current ← get
+    match parse sql with
+    | .error message => return .error message
+    | .ok statements =>
+        let (finalState, result) ← runStatements connection current statements.toList
+        set finalState
+        return result
+
+def snapshot (connection : Connection) : IO Core.State :=
+  connection.state.atomically get
+
+end CoreFileEngine
+end SQLeanite

@@ -1,0 +1,14 @@
+diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
+--- a/SQLeanite/WALConcurrency.lean
++++ b/SQLeanite/WALConcurrency.lean
+@@ -183,7 +183,9 @@ structure Schedule where
+ /-- Accepted Tier 2 histories have zero or one writer, valid transaction
+ intervals, and globally unique transaction ids. -/
+ def Accepts (schedule : Schedule) : Prop :=
+-  (schedule.writers = [] ∨ ∃ writer, schedule.writers = [writer]) ∧
++  (schedule.writers = [] ∨
++    (∃ writer, schedule.writers = [writer]) ∨
++    (∃ first second, schedule.writers = [first, second])) ∧
+   (∀ writer ∈ schedule.writers, writer.lifetime.Valid) ∧
+   (∀ reader ∈ schedule.readers, reader.lifetime.Valid) ∧
+   (schedule.writers.map WriterTxn.id ++ schedule.readers.map ReaderTxn.id).Nodup

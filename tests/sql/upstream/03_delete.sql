@@ -1,0 +1,11 @@
+-- Adapted from upstream test/delete.test.
+CREATE TABLE table1(f1 INTEGER PRIMARY KEY, f2);
+INSERT INTO table1 VALUES(1,'a');
+INSERT INTO table1 VALUES(2,'b');
+INSERT INTO table1 VALUES(3,'c');
+DELETE FROM table1 WHERE f1=2;
+SELECT f1 FROM table1 ORDER BY f1;
+DELETE FROM table1 WHERE f1>10;
+SELECT f1 FROM table1 ORDER BY f1;
+DELETE FROM table1;
+SELECT f1 FROM table1;

@@ -1,0 +1,13 @@
+diff --git a/src/vdbe.c b/src/vdbe.c
+--- a/src/vdbe.c
++++ b/src/vdbe.c
+@@ -1945,7 +1945,8 @@ int_math:
+     iA = pIn1->u.i;
+     iB = pIn2->u.i;
+     switch( pOp->opcode ){
+-      case OP_Add:       if( sqlite3AddInt64(&iB,iA) ) goto fp_math;  break;
++      /* MUT: integer addition executes subtraction. */
++      case OP_Add:       if( sqlite3SubInt64(&iB,iA) ) goto fp_math;  break;
+       case OP_Subtract:  if( sqlite3SubInt64(&iB,iA) ) goto fp_math;  break;
+       case OP_Multiply:  if( sqlite3MulInt64(&iB,iA) ) goto fp_math;  break;
+       case OP_Divide: {

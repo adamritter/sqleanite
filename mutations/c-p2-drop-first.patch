@@ -1,0 +1,18 @@
+diff --git a/src/btree.c b/src/btree.c
+--- a/src/btree.c
++++ b/src/btree.c
+@@ -5734,6 +5734,14 @@ int sqlite3BtreeFirst(BtCursor *pCur, int *pRes){
+     *pRes = 1;
+     rc = SQLITE_OK;
+   }
++  /* MUTATION c-p2-drop-first: silently advance past the first row. */
++  if( rc==SQLITE_OK && *pRes==0 && !pCur->pPage->intKey ){
++    rc = sqlite3BtreeNext(pCur, 0);
++    if( rc==SQLITE_DONE ){
++      *pRes = 1;
++      rc = SQLITE_OK;
++    }
++  }
+   return rc;
+ }
+ 

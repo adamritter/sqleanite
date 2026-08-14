@@ -1,0 +1,5 @@
+SELECT id FROM orders WHERE id=3;
+UPDATE orders SET status='x' WHERE id=3;
+SELECT id,sku FROM orders WHERE id>@MIXED_RANGE_START@;
+INSERT INTO orders VALUES(900001,'c','sku-1','open');
+SELECT status FROM orders WHERE id=3;

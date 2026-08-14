@@ -1,0 +1,13 @@
+diff --git a/SQLeanite/CoreEngine.lean b/SQLeanite/CoreEngine.lean
+index 6e1e573707..67b940dc00 100644
+--- a/SQLeanite/CoreEngine.lean
++++ b/SQLeanite/CoreEngine.lean
+@@ -85,7 +85,7 @@ theorem Query.eval_width (query : Query) (rows : List Row)
+ /-- Does this row agree with the sought value on the indexed column, under the
+ same equality the predicate applies? -/
+ def indexColumnMatches (column : Nat) (value : Value) (row : Row) : Bool :=
+-  PhysicalQuery.sqlEquals (row.value column) value = .true
++  PhysicalQuery.sqlEquals (row.value (column + 1)) value = .true
+ 
+ /-- Rows an equality index lookup would visit. For any other predicate shape the
+ index does not apply and the caller must scan. -/

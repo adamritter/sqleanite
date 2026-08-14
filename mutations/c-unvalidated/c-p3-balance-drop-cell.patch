@@ -1,0 +1,13 @@
+diff --git a/src/btree.c b/src/btree.c
+index 21aecc5efb..6a39dc7726 100644
+--- a/src/btree.c
++++ b/src/btree.c
+@@ -8588,6 +8588,8 @@ static int balance_nonroot(
+       szNew[i] += 2 + p->xCellSize(p, p->apOvfl[j]);
+     }
+     cntNew[i] = cntOld[i];
++    /* MUT: shift one cell across the split boundary. */
++    if( i+1<nOld && cntNew[i]>0 ) cntNew[i]--;
+   }
+   k = nOld;
+   for(i=0; i<k; i++){

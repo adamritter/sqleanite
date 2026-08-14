@@ -1,0 +1,2 @@
+UPDATE orders SET status='closed' WHERE id>@UPDATE_START@;
+SELECT id FROM orders WHERE id>@UPDATE_START@;

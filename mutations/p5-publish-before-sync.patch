@@ -1,0 +1,13 @@
+diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
+--- a/SQLeanite/WALConcurrency.lean
++++ b/SQLeanite/WALConcurrency.lean
+@@ -26,7 +26,8 @@ structure WAL where
+ 
+ /-- Readers use only durable frames.  A pending frame is never visible. -/
+ def WAL.visible (wal : WAL) : Database :=
+-  wal.durableFrames.head?.getD wal.main
++  wal.pendingFrame.getD
++    (wal.durableFrames.head?.getD wal.main)
+ 
+ /-- Stage a writer's new immutable database without publishing it. -/
+ def WAL.appendPending (wal : WAL) (next : Database) : WAL :=

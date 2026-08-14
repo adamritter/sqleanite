@@ -1,0 +1,3 @@
+-- Row-at-a-time inserts with no explicit transaction.
+CREATE TABLE t(id INTEGER PRIMARY KEY, v);
+@ROWS@

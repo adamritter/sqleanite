@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/GrowableStorage.lean b/SQLeanite/GrowableStorage.lean
+--- a/SQLeanite/GrowableStorage.lean
++++ b/SQLeanite/GrowableStorage.lean
+@@ -161,7 +161,7 @@ def recoverWithJournal (recoveredMain : Image pageSize)
+   match recoveredJournal with
+   | none => recoveredMain
+   | some journal => {
+-      pageCount := journal.originalPageCount
++      pageCount := recoveredMain.pageCount
+       read := fun pageId =>
+         (undoLookup pageId journal.undo).getD (recoveredMain.read pageId) }

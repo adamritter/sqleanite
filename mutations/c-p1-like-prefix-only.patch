@@ -1,0 +1,18 @@
+diff --git a/src/func.c b/src/func.c
+index 689c462034..92e683dda8 100644
+--- a/src/func.c
++++ b/src/func.c
+@@ -740,6 +740,13 @@ static const struct compareInfo likeInfoAlt = { '%', '_',   0, 0 };
+ ** This routine is usually quick, but can be N**2 in the worst case.
+ */
+ static int patternCompare(
++  const u8 *zP, const u8 *zS, const struct compareInfo *pI, u32 mo);
++/* MUT: LIKE matches on first character only. */
++static int patternCompareMut(const u8 *zP,const u8 *zS,const struct compareInfo *pI,u32 mo){
++  (void)pI;(void)mo; return zP[0]==0 || zP[0]=='%' || zP[0]==zS[0];
++}
++#define patternCompare(a,b,c,d) patternCompareMut(a,b,c,d)
++static int patternCompareReal(
+   const u8 *zPattern,              /* The glob pattern */
+   const u8 *zString,               /* The string to compare against the glob */
+   const struct compareInfo *pInfo, /* Information about how to do the compare */

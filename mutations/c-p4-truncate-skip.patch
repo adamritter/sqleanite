@@ -1,0 +1,13 @@
+diff --git a/src/pager.c b/src/pager.c
+index b52886e45e..5fcdb8557f 100644
+--- a/src/pager.c
++++ b/src/pager.c
+@@ -2724,6 +2724,8 @@ delsuper_out:
+ ** the database file, return the error code to the caller.
+ */
+ static int pager_truncate(Pager *pPager, Pgno nPage){
++  /* MUT: never shrink the database file on rollback. */
++  if( 1 ) return SQLITE_OK;
+   int rc = SQLITE_OK;
+   assert( pPager->eState!=PAGER_ERROR );
+   assert( pPager->eState!=PAGER_READER );

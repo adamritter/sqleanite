@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/PagedBTree.lean b/SQLeanite/PagedBTree.lean
+--- a/SQLeanite/PagedBTree.lean
++++ b/SQLeanite/PagedBTree.lean
+@@ -229,7 +229,7 @@ theorem OverflowLeafPage.split_preserves_toList
+   simp [OverflowLeafPage.split, flattenPages]
+ 
+ def mergeAdjacent (left right : LeafPage Value) : List (LeafPage Value) :=
+-  paginate (left.entries ++ right.entries)
++  paginate (right.entries ++ left.entries)
+ 
+ theorem mergeAdjacent_preserves_toList (left right : LeafPage Value) :

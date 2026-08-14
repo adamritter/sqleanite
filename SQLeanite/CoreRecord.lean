@@ -1,0 +1,147 @@
+import SQLeanite.Core
+
+namespace SQLeanite
+namespace CoreRecord
+
+open FileFormat
+def encodeFields : Nat → List Core.Value → List RecordField
+  | _, [] => []
+  | 0, _ :: values => .null :: values.map PhysicalCodec.Value.recordField
+  | primaryKey + 1, value :: values =>
+      PhysicalCodec.Value.recordField value :: encodeFields primaryKey values
+
+def decodeFields : List RecordField → Option (List Core.Value)
+  | [] => some []
+  | field :: fields => do
+      let value ← PhysicalCodec.decodeValueField field
+      let values ← decodeFields fields
+      some (value :: values)
+
+theorem decodeFields_encode (values : List Core.Value) :
+    decodeFields (values.map PhysicalCodec.Value.recordField) = some values := by
+  induction values with
+  | nil => rfl
+  | cons value values induction =>
+      simp only [List.map_cons, decodeFields]
+      rw [PhysicalCodec.decodeValueField_recordField]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [induction]
+
+def decodeRowValues (rowid : Core.Integer) : Nat → List RecordField →
+    Option (List Core.Value)
+  | _, [] => none
+  | 0, .null :: fields => do
+      let values ← decodeFields fields
+      some (PhysicalCodec.Value.integer rowid :: values)
+  | 0, _ :: _ => none
+  | primaryKey + 1, field :: fields => do
+      let value ← PhysicalCodec.decodeValueField field
+      let values ← decodeRowValues rowid primaryKey fields
+      some (value :: values)
+
+theorem decodeRowValues_encode (rowid : Core.Integer) :
+    ∀ (primaryKey : Nat) (values : List Core.Value),
+      values[primaryKey]? = some (PhysicalCodec.Value.integer rowid) →
+      decodeRowValues rowid primaryKey (encodeFields primaryKey values) =
+        some values
+  | _, [], present => by simp at present
+  | 0, value :: values, present => by
+      change some value = some (PhysicalCodec.Value.integer rowid) at present
+      injection present with present
+      subst value
+      simp only [encodeFields, decodeRowValues]
+      rw [decodeFields_encode]
+      rfl
+  | primaryKey + 1, value :: values, present => by
+      change values[primaryKey]? = some (PhysicalCodec.Value.integer rowid) at present
+      simp only [encodeFields, decodeRowValues]
+      rw [PhysicalCodec.decodeValueField_recordField]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [decodeRowValues_encode rowid primaryKey values present]
+
+def rowRecordFields (schema : Core.Schema) (row : Core.Row) :
+    List RecordField :=
+  encodeFields schema.primaryKey row.values
+
+def rowRecord? (schema : Core.Schema) (row : Core.Row) :
+    Option PhysicalRecord :=
+  let fields := rowRecordFields schema row
+  if bound : recordHeaderSize (encodeRecordSerialTypes fields).length < 2 ^ 64 then
+    some ⟨fields, by simpa using bound⟩
+  else none
+
+theorem rowRecord_fields {schema : Core.Schema} {row : Core.Row}
+    {record : PhysicalRecord} (encoded : rowRecord? schema row = some record) :
+    record.fields = rowRecordFields schema row := by
+  unfold rowRecord? at encoded
+  dsimp only at encoded
+  split at encoded
+  next bound => exact congrArg PhysicalRecord.fields (Option.some.inj encoded.symm)
+  next unbounded => contradiction
+
+def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
+    (fields : List RecordField) : Option Core.Row := do
+  let values ← decodeRowValues rowid schema.primaryKey fields
+  match Core.Row.create schema values with
+  | .ok row => some row
+  | .error _ => none
+
+theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
+    (valid : row.WellFormed schema) :
+    decodeRowFields schema row.rowid (rowRecordFields schema row) = some row := by
+  unfold decodeRowFields rowRecordFields
+  rw [decodeRowValues_encode row.rowid schema.primaryKey row.values valid.2.1]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [Core.Row.create_self schema row valid]
+
+def encodeCell? (schema : Core.Schema) (row : Core.Row) :
+    Option (List UInt8) := do
+  let record ← rowRecord? schema row
+  if bound : record.encode.length < 2 ^ 64 then
+    let payloadSize : U64Value := ⟨record.encode.length, by simpa using bound⟩
+    some (encodeVarint payloadSize ++
+      encodeVarint (signedInteger64Bits row.rowid) ++ record.encode)
+  else none
+
+def decodeRowCell (schema : Core.Schema) (input : List UInt8) :
+    Option (Core.Row × List UInt8) := do
+  let (payloadSize, afterSize) ← decodeVarint input
+  let (rowidBits, afterRowid) ← decodeVarint afterSize
+  let (record, suffix) ← decodePhysicalRecord afterRowid
+  if _sizeMatches : record.encode.length = payloadSize.val then
+    let rowid := signedIntegerFromUnsigned .eight rowidBits
+    let row ← decodeRowFields schema rowid record.fields
+    some (row, suffix)
+  else none
+
+theorem decodeRowCell_encode {schema : Core.Schema} {row : Core.Row}
+    {cell : List UInt8} (valid : row.WellFormed schema)
+    (encoded : encodeCell? schema row = some cell)
+    (suffix : List UInt8) :
+    decodeRowCell schema (cell ++ suffix) = some (row, suffix) := by
+  unfold encodeCell? at encoded
+  cases recordResult : rowRecord? schema row with
+  | none => simp [recordResult] at encoded
+  | some record =>
+      simp only [recordResult, Option.bind_eq_bind, Option.bind] at encoded
+      split at encoded
+      next payloadBound =>
+        injection encoded with cellEqual
+        subst cell
+        unfold decodeRowCell
+        simp only [List.append_assoc]
+        rw [decodeVarint_encode]
+        simp only [Option.bind_eq_bind, Option.bind]
+        rw [decodeVarint_encode]
+        simp only [Option.bind_eq_bind, Option.bind]
+        rw [decodePhysicalRecord_encode]
+        simp only [Option.bind_eq_bind, Option.bind]
+        simp only [dif_pos True.intro]
+        rw [signedIntegerFromBits_toBits]
+        rw [show record.fields = rowRecordFields schema row from
+          rowRecord_fields recordResult]
+        rw [decodeRowFields_record valid]
+      next payloadUnbounded => contradiction
+
+end CoreRecord
+end SQLeanite

@@ -1,0 +1,13 @@
+diff --git a/src/btree.c b/src/btree.c
+index 21aecc5efb..301e95f6ff 100644
+--- a/src/btree.c
++++ b/src/btree.c
+@@ -9871,6 +9871,8 @@ int sqlite3BtreeTransferRow(BtCursor *pDest, BtCursor *pSrc, i64 iKey){
+ ** but which might be used by alternative storage engines.
+ */
+ int sqlite3BtreeDelete(BtCursor *pCur, u8 flags){
++  /* MUT: pretend an index delete succeeded without doing it. */
++  if( pCur->pPage && !pCur->pPage->intKey ) return SQLITE_OK;
+   Btree *p = pCur->pBtree;
+   BtShared *pBt = p->pBt;             
+   int rc;                    /* Return code */

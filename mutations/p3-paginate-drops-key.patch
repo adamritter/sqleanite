@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/PagedBTree.lean b/SQLeanite/PagedBTree.lean
+--- a/SQLeanite/PagedBTree.lean
++++ b/SQLeanite/PagedBTree.lean
+@@ -92,7 +92,7 @@ def paginate : List (Entry Value) → List (LeafPage Value)
+   | [] => []
+   | [entry] => [⟨[entry]⟩]
+   | first :: second :: entries =>
+-      ⟨[first, second]⟩ :: paginate entries
++      ⟨[first]⟩ :: paginate entries
+ 
+ def flattenPages (pages : List (LeafPage Value)) : List (Entry Value) :=

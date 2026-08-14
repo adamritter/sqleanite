@@ -1,0 +1,13 @@
+diff --git a/src/vdbe.c b/src/vdbe.c
+--- a/src/vdbe.c
++++ b/src/vdbe.c
+@@ -1952,7 +1952,8 @@ int_math:
+       case OP_Divide: {
+         if( iA==0 ) goto arithmetic_result_is_null;
+         if( iA==-1 && iB==SMALLEST_INT64 ) goto fp_math;
+-        iB /= iA;
++        /* MUT: reverse integer division operands. */
++        iB = iA / iB;
+         break;
+       }
+       default: {

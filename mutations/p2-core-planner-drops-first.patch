@@ -1,0 +1,13 @@
+diff --git a/SQLeanite/CoreEngine.lean b/SQLeanite/CoreEngine.lean
+index 6e1e573707..5c65924aef 100644
+--- a/SQLeanite/CoreEngine.lean
++++ b/SQLeanite/CoreEngine.lean
+@@ -92,7 +92,7 @@ index does not apply and the caller must scan. -/
+ def indexedCandidates (index : Index) : Option Predicate → List Row → Option (List Row)
+   | some (.equal column value), rows =>
+       if column = index.column then
+-        some (rows.filter (indexColumnMatches column value))
++        some ((rows.filter (indexColumnMatches column value)).tail)
+       else none
+   | _, _ => none
+ 

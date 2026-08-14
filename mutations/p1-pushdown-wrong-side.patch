@@ -1,0 +1,12 @@
+diff --git a/SQLeanite/Optimizer.lean b/SQLeanite/Optimizer.lean
+--- a/SQLeanite/Optimizer.lean
++++ b/SQLeanite/Optimizer.lean
+@@ -93,7 +93,7 @@ theorem whereRows_onLeft_joinRows (predicate : Predicate)
+ 
+ def predicatePushdown : Plan → Plan
+   | .filter (.onLeft predicate) (.innerJoin left right) =>
+-      .innerJoin (.filter predicate left) right
++      .innerJoin left (.filter predicate right)
+   | plan => plan
+ 
+ theorem predicatePushdown_eval (database : Database) (plan : Plan) :

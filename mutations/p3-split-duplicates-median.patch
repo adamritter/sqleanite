@@ -1,0 +1,11 @@
+diff --git a/SQLeanite/PagedBTree.lean b/SQLeanite/PagedBTree.lean
+--- a/SQLeanite/PagedBTree.lean
++++ b/SQLeanite/PagedBTree.lean
+@@ -221,7 +221,7 @@ structure OverflowLeafPage (Value : Type) where
+ 
+ def OverflowLeafPage.split (page : OverflowLeafPage Value) :
+     List (LeafPage Value) :=
+-  [⟨page.entries.take 2⟩, ⟨page.entries.drop 2⟩]
++  [⟨page.entries.take 2⟩, ⟨page.entries.drop 1⟩]
+ 
+ theorem OverflowLeafPage.split_preserves_toList

@@ -1,0 +1,7 @@
+CREATE TABLE t(a INTEGER PRIMARY KEY, b);
+INSERT INTO t VALUES(1,'x'),(2,'y'),(3,'z');
+CREATE INDEX tb ON t(b);
+DELETE FROM t WHERE b='y';
+SELECT count(*) FROM t;
+SELECT b FROM t ORDER BY b;
+PRAGMA integrity_check;

@@ -1,0 +1,13 @@
+diff --git a/src/pager.c b/src/pager.c
+index b52886e45e..93eb6cbf26 100644
+--- a/src/pager.c
++++ b/src/pager.c
+@@ -1484,6 +1484,8 @@ static int zeroJournalHdr(Pager *pPager, int doTruncate){
+ ** Followed by (JOURNAL_HDR_SZ - 28) bytes of unused space.
+ */
+ static int writeJournalHdr(Pager *pPager){
++  /* MUT: record the wrong original database size in the journal header. */
++  pPager->dbOrigSize++;
+   int rc = SQLITE_OK;                 /* Return code */
+   char *zHeader = pPager->pTmpSpace;  /* Temporary space used to build header */
+   u32 nHeader = (u32)pPager->pageSize;/* Size of buffer pointed to by zHeader */

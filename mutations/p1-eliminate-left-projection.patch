@@ -1,0 +1,12 @@
+diff --git a/SQLeanite/Optimizer.lean b/SQLeanite/Optimizer.lean
+--- a/SQLeanite/Optimizer.lean
++++ b/SQLeanite/Optimizer.lean
+@@ -119,7 +119,7 @@ theorem constantFolding_eval (database : Database) (plan : Plan) :
+     exact whereRows_foldConstants predicate (evalPlan database input)
+ 
+ def projectionElimination : Plan → Plan
+-  | .project .identity input => input
++  | .project .left input => input
+   | plan => plan
+ 
+ theorem projectionElimination_eval (database : Database) (plan : Plan) :

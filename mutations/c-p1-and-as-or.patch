@@ -1,0 +1,13 @@
+diff --git a/src/vdbe.c b/src/vdbe.c
+--- a/src/vdbe.c
++++ b/src/vdbe.c
+@@ -2635,7 +2635,8 @@ case OP_Or: {             /* same as TK_OR, in1, in2, out3 */
+ 
+   v1 = sqlite3VdbeBooleanValue(&aMem[pOp->p1], 2);
+   v2 = sqlite3VdbeBooleanValue(&aMem[pOp->p2], 2);
+-  if( pOp->opcode==OP_And ){
++  /* MUT: AND takes the OR truth table. */
++  if( 0 && pOp->opcode==OP_And ){
+     static const unsigned char and_logic[] = { 0, 0, 0, 0, 1, 2, 0, 2, 2 };
+     v1 = and_logic[v1*3+v2];
+   }else{

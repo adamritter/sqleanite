@@ -1,0 +1,14 @@
+diff --git a/src/wal.c b/src/wal.c
+index 33fa038dba..40173baf2a 100644
+--- a/src/wal.c
++++ b/src/wal.c
+@@ -982,7 +982,8 @@ static void walEncodeFrame(
+     memcpy(&aFrame[8], pWal->hdr.aSalt, 8);
+ 
+     nativeCksum = (pWal->hdr.bigEndCksum==SQLITE_BIGENDIAN);
+-    walChecksumBytes(nativeCksum, aFrame, 8, aCksum, aCksum);
++    /* MUT: checksum only half the frame header. */
++  walChecksumBytes(nativeCksum, aFrame, 4, aCksum, aCksum);
+     walChecksumBytes(nativeCksum, aData, pWal->szPage, aCksum, aCksum);
+ 
+     sqlite3Put4byte(&aFrame[16], aCksum[0]);
