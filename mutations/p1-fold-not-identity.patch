@@ -4,7 +4,7 @@ diff --git a/SQLeanite/Optimizer.lean b/SQLeanite/Optimizer.lean
 @@ -4,7 +4,7 @@ namespace SQLeanite
  namespace QuerySemantics
  
- private def foldNot : Predicate → Predicate
+ def foldNot : Predicate → Predicate
 -  | .constant truth => .constant truth.not
 +  | .constant truth => .constant truth
    | predicate => .not predicate

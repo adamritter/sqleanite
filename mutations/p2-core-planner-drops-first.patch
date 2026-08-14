@@ -1,13 +1,11 @@
 diff --git a/SQLeanite/CoreEngine.lean b/SQLeanite/CoreEngine.lean
-index 6e1e573707..5c65924aef 100644
 --- a/SQLeanite/CoreEngine.lean
 +++ b/SQLeanite/CoreEngine.lean
-@@ -92,7 +92,7 @@ index does not apply and the caller must scan. -/
+@@ -308,7 +308,7 @@ in-memory Core uses the same predicate to model the physical index interval;
  def indexedCandidates (index : Index) : Option Predicate → List Row → Option (List Row)
-   | some (.equal column value), rows =>
+   | some predicate@(.equal column _), rows =>
        if column = index.column then
--        some (rows.filter (indexColumnMatches column value))
-+        some ((rows.filter (indexColumnMatches column value)).tail)
+-        some (rows.filter (selects (some predicate)))
++        some ((rows.filter (selects (some predicate))).tail)
        else none
-   | _, _ => none
- 
+   | some predicate@(.compare _ column _), rows =>

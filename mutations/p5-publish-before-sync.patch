@@ -1,10 +1,10 @@
 diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
 --- a/SQLeanite/WALConcurrency.lean
 +++ b/SQLeanite/WALConcurrency.lean
-@@ -26,7 +26,8 @@ structure WAL where
+@@ -25,7 +25,8 @@ structure WAL where
  
  /-- Readers use only durable frames.  A pending frame is never visible. -/
- def WAL.visible (wal : WAL) : Database :=
+ def WAL.visible (wal : WAL) : Core.Database :=
 -  wal.durableFrames.head?.getD wal.main
 +  wal.pendingFrame.getD
 +    (wal.durableFrames.head?.getD wal.main)

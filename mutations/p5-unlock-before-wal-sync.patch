@@ -1,10 +1,10 @@
 diff --git a/SQLeanite/WALConcurrency.lean b/SQLeanite/WALConcurrency.lean
 --- a/SQLeanite/WALConcurrency.lean
 +++ b/SQLeanite/WALConcurrency.lean
-@@ -173,7 +173,7 @@ theorem runWriterProtocol_preserves_safe {state final : WriterProtocolState}
+@@ -157,7 +157,7 @@ theorem runWriterProtocol_preserves_safe {state final : WriterProtocolState}
            exact induction (state.step_preserves_safe stepped) ran
  
- def writerProtocol (next : Database) : List WriterEvent :=
+ def writerProtocol (next : Core.Database) : List WriterEvent :=
 -  [.lock, .append next, .sync, .unlock]
 +  [.lock, .append next, .unlock, .sync]
  
