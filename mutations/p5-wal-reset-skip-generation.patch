@@ -1,0 +1,19 @@
+diff --git a/SQLeanite/WALResetProtocol.lean b/SQLeanite/WALResetProtocol.lean
+--- a/SQLeanite/WALResetProtocol.lean
++++ b/SQLeanite/WALResetProtocol.lean
+@@ -85,14 +85,14 @@ structure CopyPlan {snapshot : Snapshot} (view : LockedView snapshot) where
+ /-- The fixed protocol rechecks the live generation after acquiring the lock.
+ The writer invariant turns that equality into the required frame bound. -/
+ def checkpointPlan? (snapshot : Snapshot) (view : LockedView snapshot) :
+     Option (CopyPlan view) :=
+-  if generation : snapshot.generation = view.generation then
++  if _staleBackfill : unsafeAdmits snapshot view then
+     some {
+       upperFrame := snapshot.mxFrame
+-      withinLiveWAL := view.sameGenerationMonotone generation
++      withinLiveWAL := view.sameGenerationMonotone (by omega)
+     }
+   else
+     none
+
+ /-- One-based WAL frame numbers requested by a checked plan. -/

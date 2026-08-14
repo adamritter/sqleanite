@@ -18,5 +18,6 @@ p5-admit-two-writers	P5	WAL model	p5-admit-two-writers.patch	the concurrency pro
 p5-torn-reader-snapshot	P5	WAL model	p5-torn-reader-snapshot.patch	a pre-commit reader mixes an old database with a field from the pending writer	reader observations must be exactly the old or new immutable database
 p5-unlock-before-wal-sync	P5	WAL model	p5-unlock-before-wal-sync.patch	the writer releases its lock before crossing the WAL sync barrier	writerProtocol must complete with sync protected by the lock
 p5-publish-before-sync	P5	WAL model	p5-publish-before-sync.patch	readers treat the pending WAL frame as visible before sync	WAL.pending_is_invisible
+p5-wal-reset-skip-generation	P5	WAL reset model	p5-wal-reset-skip-generation.patch	checkpoint admission uses stale nBackfill without validating the live WAL generation	CopyPlan.withinLiveWAL cannot be constructed for the reset race
 p2-core-planner-drops-first	P2	live Core planner	p2-core-planner-drops-first.patch	live Core planner drops the first index candidate
 p2-core-planner-wrong-column	P2	live Core planner	p2-core-planner-wrong-column.patch	live Core planner matches the wrong column
