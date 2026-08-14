@@ -1,0 +1,114 @@
+import SQLeanite.CoreSQLGrammar
+
+namespace SQLeanite
+namespace CoreSQL
+
+/-!
+# Text-to-Core boundary
+
+`CoreStatementForm` is the top-level grammar admitted by the verified Core.
+The expression-level subgrammars live in `CoreSQLGrammar`.  `ParsedSupportedText`
+keeps the parser equation explicit instead of defining support to mean that
+execution happened to succeed; this distinction is needed by the later parser
+correctness theorem.
+-/
+
+inductive CoreStatementForm : Statement → Prop where
+  | createTable (name columns constraints ifNotExists) :
+      CoreStatementForm (.createTable name columns constraints ifNotExists)
+  | createIndex (name table expressions unique where_ ifNotExists) :
+      CoreStatementForm
+        (.createIndex name table expressions unique where_ ifNotExists)
+  | insert (table columns rows conflict) :
+      CoreStatementForm (.insert table columns rows conflict)
+  | delete (table alias where_ returning) :
+      CoreStatementForm (.delete table alias where_ returning)
+  | update (table alias assignments where_ conflict) :
+      CoreStatementForm (.update table alias assignments where_ conflict)
+  | select (query) : CoreStatementForm (.select query)
+  | begin : CoreStatementForm .begin
+  | commit : CoreStatementForm .commit
+  | rollback : CoreStatementForm .rollback
+
+def CoreStatementListForm (statements : List Statement) : Prop :=
+  ∀ statement ∈ statements, CoreStatementForm statement
+
+theorem statementForm_of_execute_success {state next : Core.State}
+    {statement : Statement} {results : List Core.Result}
+    (success : executeStatement state statement = .ok (next, results)) :
+    CoreStatementForm statement := by
+  cases statement with
+  | createTable name columns constraints ifNotExists => exact .createTable ..
+  | createIndex name table expressions unique where_ ifNotExists =>
+      exact .createIndex ..
+  | insert table columns rows conflict => exact .insert ..
+  | delete table alias where_ returning => exact .delete ..
+  | update table alias assignments where_ conflict => exact .update ..
+  | select query => exact .select query
+  | begin => exact .begin
+  | commit => exact .commit
+  | rollback => exact .rollback
+  | createTableAs | createView | dropTable | dropView | dropIndex |
+      createTrigger | dropTrigger | alterAddColumn | alterRenameColumn |
+      insertSelect | withRecursive | withCte | values | reindex | pragma =>
+      simp [executeStatement, unsupported] at success
+
+theorem statementListForm_of_run_success (state : Core.State) :
+    ∀ {statements : List Statement} {next : Core.State}
+      {results : List Core.Result},
+      runStatements state statements = .ok (next, results) →
+      CoreStatementListForm statements
+  | [], _, _, _ => by simp [CoreStatementListForm]
+  | statement :: statements, next, results, success => by
+      unfold runStatements at success
+      cases head : executeStatement state statement with
+      | error message => simp [head] at success
+      | ok outcome =>
+          rcases outcome with ⟨middle, headResults⟩
+          cases tail : runStatements middle statements with
+          | error message => simp [head, tail] at success
+          | ok outcome =>
+              intro candidate member
+              simp only [List.mem_cons] at member
+              rcases member with rfl | member
+              · exact statementForm_of_execute_success head
+              · exact statementListForm_of_run_success middle tail candidate member
+
+/-- A successful parse whose AST lies in the Core top-level grammar.  The
+parser equation is evidence, not a definition by execution success. -/
+def ParsedSupportedText (text : String) (statements : Array Statement) : Prop :=
+  parse text = .ok statements ∧ CoreStatementListForm statements.toList
+
+theorem execute_eq_runStatements_of_parsed {state : Core.State} {text : String}
+    {statements : Array Statement}
+    (supported : ParsedSupportedText text statements) :
+    execute state text = runStatements state statements.toList := by
+  simp [ParsedSupportedText] at supported
+  simp [execute, supported.1, Except.instMonad, Except.bind]
+
+/-- Every text accepted all the way through the live Core has a parser witness
+and contains no legacy-only top-level statement. -/
+theorem parsedSupportedText_of_execute_success {state next : Core.State}
+    {text : String} {results : List Core.Result}
+    (success : execute state text = .ok (next, results)) :
+    ∃ statements, ParsedSupportedText text statements := by
+  cases parsed : parse text with
+  | error message =>
+      simp [execute, parsed, Except.instMonad, Except.bind] at success
+  | ok statements =>
+      refine ⟨statements, parsed, ?_⟩
+      exact statementListForm_of_run_success state
+        (by simpa [execute, parsed, Except.instMonad, Except.bind] using success)
+
+theorem parsedSupportedText_execute_exact {state next : Core.State}
+    {text : String} {statements : Array Statement}
+    {results : List Core.Result}
+    (supported : ParsedSupportedText text statements)
+    (success : runStatements state statements.toList =
+      .ok (next, results)) :
+    execute state text = .ok (next, results) := by
+  rw [execute_eq_runStatements_of_parsed supported]
+  exact success
+
+end CoreSQL
+end SQLeanite

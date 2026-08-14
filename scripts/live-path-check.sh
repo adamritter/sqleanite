@@ -109,10 +109,29 @@ fi
 
 if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
    grep -q 'literalSyntax_of_success' SQLeanite/ProofAxioms.lean &&
-   grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean; then
-  ok "live Core predicate translation carries a declarative grammar proof"
+   grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&
+   grep -q 'groupOutputSyntax_of_success' SQLeanite/ProofAxioms.lean &&
+   grep -q 'joinPredicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&
+   grep -q 'parsedSupportedText_of_execute_success' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
+  ok "live Core translation carries structural grammar and text-boundary proofs"
 else
-  fail "Core predicate translation detached from its grammar certificate"
+  fail "Core SQL translation detached from its grammar or text certificate"
+fi
+
+if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
+   grep -q 'rollbackCommit_core_returned_recovers_new' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'rollbackCommit_core_repeated_recovery_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreFileAdapter.commit_crash_atomic' \
+     SQLeanite/CoreDurability.lean &&
+   grep -q 'CorePageCodec.decode_encodeBulk' \
+     SQLeanite/CoreDurability.lean; then
+  ok "rollback crash atomicity reaches concrete Core SQLite bytes"
+else
+  fail "Core database durability detached from the codec or journal theorem"
 fi
 
 if grep -q '| .primaryKey rowid => table.primaryKeyRows rowid' \

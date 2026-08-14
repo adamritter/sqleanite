@@ -34,6 +34,7 @@ import SQLeanite.Core
 import SQLeanite.CoreJoin
 import SQLeanite.CoreSQL
 import SQLeanite.CoreSQLGrammar
+import SQLeanite.CoreSQLText
 import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.RuntimeRefinement
 import SQLeanite.CoreWAL
@@ -367,6 +368,14 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.projectionSyntax_of_success
 #print axioms SQLeanite.CoreSQL.orderingSyntax_of_success
 #print axioms SQLeanite.CoreSQL.groupingSyntax_of_success
+#print axioms SQLeanite.CoreSQL.groupOutputSyntax_of_success
+#print axioms SQLeanite.CoreSQL.joinOperandSyntax_of_success
+#print axioms SQLeanite.CoreSQL.joinPredicateSyntax_of_success
+#print axioms SQLeanite.CoreSQL.statementForm_of_execute_success
+#print axioms SQLeanite.CoreSQL.statementListForm_of_run_success
+#print axioms SQLeanite.CoreSQL.execute_eq_runStatements_of_parsed
+#print axioms SQLeanite.CoreSQL.parsedSupportedText_of_execute_success
+#print axioms SQLeanite.CoreSQL.parsedSupportedText_execute_exact
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.build?_cells
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_pageCount
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_represents

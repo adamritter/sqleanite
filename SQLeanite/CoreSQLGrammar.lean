@@ -301,13 +301,218 @@ theorem groupingSyntax_of_success (schema : Core.Schema) :
 inductive GroupOutputSyntax : ResultColumn → Prop where
   | key (qualifier name alias sourceSql) :
       GroupOutputSyntax ⟨.column qualifier name, alias, sourceSql⟩
-  | countStar (name alias sourceSql) : canonical name = "count" →
-      GroupOutputSyntax ⟨.call name #[] true, alias, sourceSql⟩
-  | aggregate (name qualifier columnName alias sourceSql) :
+  | countStar (name arguments alias sourceSql) : canonical name = "count" →
+      arguments.isEmpty →
+      GroupOutputSyntax ⟨.call name arguments true, alias, sourceSql⟩
+  | aggregate (name arguments qualifier columnName alias sourceSql) :
+      arguments.toList = [.column qualifier columnName] →
       (canonical name = "count" ∨ canonical name = "sum" ∨
         canonical name = "min" ∨ canonical name = "max") →
       GroupOutputSyntax
-        ⟨.call name #[.column qualifier columnName] false, alias, sourceSql⟩
+        ⟨.call name arguments false, alias, sourceSql⟩
+
+theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
+    {input : ResultColumn} {output : Core.GroupOutput}
+    (success : groupOutput schema groups input = .ok output) :
+    GroupOutputSyntax input := by
+  rcases input with ⟨expression, alias, sourceSql⟩
+  cases expression with
+  | column qualifier name => exact .key qualifier name alias sourceSql
+  | call name arguments star =>
+      cases star with
+      | true =>
+          by_cases count : canonical name = "count"
+          · by_cases empty : arguments.isEmpty
+            · exact .countStar name arguments alias sourceSql count empty
+            · simp [groupOutput, count, empty, unsupported] at success
+          · simp [groupOutput, count, unsupported] at success
+      | false =>
+          cases listShape : arguments.toList with
+          | nil => simp [groupOutput, listShape, unsupported] at success
+          | cons first rest =>
+              cases rest with
+              | nil =>
+                  cases first with
+                  | column qualifier columnName =>
+                      by_cases count : canonical name = "count"
+                      · exact .aggregate name arguments qualifier columnName alias
+                          sourceSql listShape (Or.inl count)
+                      · by_cases sum : canonical name = "sum"
+                        · exact .aggregate name arguments qualifier columnName alias
+                            sourceSql listShape (Or.inr (Or.inl sum))
+                        · by_cases minimum : canonical name = "min"
+                          · exact .aggregate name arguments qualifier columnName alias
+                              sourceSql listShape (Or.inr (Or.inr (Or.inl minimum)))
+                          · by_cases maximum : canonical name = "max"
+                            · exact .aggregate name arguments qualifier columnName alias
+                                sourceSql listShape (Or.inr (Or.inr (Or.inr maximum)))
+                            · simp [groupOutput, listShape, count, sum, minimum,
+                                maximum, unsupported] at success
+                  | literal | star | unary | binary | call | isNull | inList |
+                      collate | case_ | scalarSubquery | inSubquery |
+                      existsSubquery =>
+                      simp [groupOutput, listShape, unsupported] at success
+              | cons second tail =>
+                  simp [groupOutput, listShape, unsupported] at success
+  | literal | star | unary | binary | isNull | inList | collate | case_ |
+      scalarSubquery | inSubquery | existsSubquery =>
+      simp [groupOutput, unsupported] at success
+
+inductive JoinOperandSyntax : Expr → Prop where
+  | column (qualifier name) :
+      JoinOperandSyntax (.column qualifier name)
+  | literal {expression : Expr} : LiteralSyntax expression →
+      JoinOperandSyntax expression
+
+theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
+    {operand : CoreJoin.Operand}
+    (success : joinOperand context expression = .ok operand) :
+    JoinOperandSyntax expression := by
+  cases expression with
+  | column qualifier name => exact .column qualifier name
+  | literal value => exact .literal (.literal value)
+  | unary operation argument =>
+      cases decoded : literal (.unary operation argument) with
+      | error message =>
+          rw [show joinOperand context (.unary operation argument) =
+            CoreJoin.Operand.literal <$> literal (.unary operation argument) by
+              rfl, decoded] at success
+          change Except.error message = Except.ok operand at success
+          contradiction
+      | ok value => exact .literal (literalSyntax_of_success decoded)
+  | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
+      inSubquery | existsSubquery =>
+      all_goals
+        simp only [joinOperand, literal, SQLSurface.literal,
+          SQLSurface.unsupported] at success
+        change Except.error _ = Except.ok operand at success
+        contradiction
+
+inductive JoinPredicateSyntax : Expr → Prop where
+  | comparison (operation : BinaryOp)
+      (allowed : operation = .eq ∨ operation = .ne ∨ operation = .lt ∨
+        operation = .le ∨ operation = .gt ∨ operation = .ge)
+      {left right : Expr} : JoinOperandSyntax left → JoinOperandSyntax right →
+      JoinPredicateSyntax (.binary operation left right)
+  | isNull {operand : Expr} (negated : Bool) : JoinOperandSyntax operand →
+      JoinPredicateSyntax (.isNull operand negated)
+  | not {expression : Expr} : JoinPredicateSyntax expression →
+      JoinPredicateSyntax (.unary .not expression)
+  | and {left right : Expr} : JoinPredicateSyntax left →
+      JoinPredicateSyntax right → JoinPredicateSyntax (.binary .and left right)
+  | or {left right : Expr} : JoinPredicateSyntax left →
+      JoinPredicateSyntax right → JoinPredicateSyntax (.binary .or left right)
+
+private theorem joinComparisonOperands_of_success {context : JoinContext}
+    {operation : BinaryOp}
+    (allowed : operation = .eq ∨ operation = .ne ∨ operation = .lt ∨
+      operation = .le ∨ operation = .gt ∨ operation = .ge)
+    (constructor : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)
+    {left right : Expr} {predicate : CoreJoin.Predicate}
+    (success : constructor <$> joinOperand context left <*>
+      joinOperand context right = .ok predicate) :
+    JoinPredicateSyntax (.binary operation left right) := by
+  cases leftResult : joinOperand context left with
+  | error message =>
+      simp [leftResult, Except.instMonad, Except.bind, Except.map] at success
+  | ok leftOperand =>
+      cases rightResult : joinOperand context right with
+      | error message =>
+          simp [leftResult, rightResult, Except.instMonad, Except.bind,
+            Except.map] at success
+      | ok rightOperand =>
+          exact .comparison operation allowed
+            (joinOperandSyntax_of_success leftResult)
+            (joinOperandSyntax_of_success rightResult)
+
+theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Expr}
+    {predicate : CoreJoin.Predicate}
+    (success : joinPredicate context expression = .ok predicate) :
+    JoinPredicateSyntax expression := by
+  cases expression with
+  | binary operation left right =>
+      cases operation with
+      | eq => exact joinComparisonOperands_of_success (by simp) _ success
+      | ne => exact joinComparisonOperands_of_success (by simp) _ success
+      | lt => exact joinComparisonOperands_of_success (by simp) _ success
+      | le => exact joinComparisonOperands_of_success (by simp) _ success
+      | gt => exact joinComparisonOperands_of_success (by simp) _ success
+      | ge => exact joinComparisonOperands_of_success (by simp) _ success
+      | and =>
+          change CoreJoin.Predicate.and <$> joinPredicate context left <*>
+            joinPredicate context right = Except.ok predicate at success
+          cases leftResult : joinPredicate context left with
+          | error message =>
+              rw [leftResult] at success
+              change Except.error message = Except.ok predicate at success
+              contradiction
+          | ok leftPredicate =>
+              cases rightResult : joinPredicate context right with
+              | error message =>
+                  rw [leftResult, rightResult] at success
+                  change Except.error message = Except.ok predicate at success
+                  contradiction
+              | ok rightPredicate =>
+                  exact .and (joinPredicateSyntax_of_success leftResult)
+                    (joinPredicateSyntax_of_success rightResult)
+      | or =>
+          change CoreJoin.Predicate.or <$> joinPredicate context left <*>
+            joinPredicate context right = Except.ok predicate at success
+          cases leftResult : joinPredicate context left with
+          | error message =>
+              rw [leftResult] at success
+              change Except.error message = Except.ok predicate at success
+              contradiction
+          | ok leftPredicate =>
+              cases rightResult : joinPredicate context right with
+              | error message =>
+                  rw [leftResult, rightResult] at success
+                  change Except.error message = Except.ok predicate at success
+                  contradiction
+              | ok rightPredicate =>
+                  exact .or (joinPredicateSyntax_of_success leftResult)
+                    (joinPredicateSyntax_of_success rightResult)
+      | add | sub | mul | div | mod | is | isNot | like | glob | «match» |
+          concat | bitAnd | bitOr | shiftLeft | shiftRight | arrow | arrowText =>
+          simp [joinPredicate, unsupported] at success
+  | isNull operand negated =>
+      cases negated with
+      | false =>
+        change CoreJoin.Predicate.isNull <$> joinOperand context operand =
+          Except.ok predicate at success
+        cases operandResult : joinOperand context operand with
+        | error message =>
+            rw [operandResult] at success
+            change Except.error message = Except.ok predicate at success
+            contradiction
+        | ok translated =>
+            exact .isNull false (joinOperandSyntax_of_success operandResult)
+      | true =>
+        change CoreJoin.Predicate.not <$> (CoreJoin.Predicate.isNull <$>
+          joinOperand context operand) = Except.ok predicate at success
+        cases operandResult : joinOperand context operand with
+        | error message =>
+            rw [operandResult] at success
+            change Except.error message = Except.ok predicate at success
+            contradiction
+        | ok translated =>
+            exact .isNull true (joinOperandSyntax_of_success operandResult)
+  | unary operation argument =>
+      cases operation with
+      | not =>
+          change CoreJoin.Predicate.not <$> joinPredicate context argument =
+            Except.ok predicate at success
+          cases translated : joinPredicate context argument with
+          | error message =>
+              rw [translated] at success
+              change Except.error message = Except.ok predicate at success
+              contradiction
+          | ok nested => exact .not (joinPredicateSyntax_of_success translated)
+      | plus | neg | bitNot => simp [joinPredicate, unsupported] at success
+  | literal | column | star | call | inList | collate | case_ | scalarSubquery |
+      inSubquery | existsSubquery => simp [joinPredicate, unsupported] at success
+termination_by expression.height
+decreasing_by all_goals simp_all [Expr.height] <;> omega
 
 end CoreSQL
 end SQLeanite

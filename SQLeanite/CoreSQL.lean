@@ -168,16 +168,19 @@ def groupOutput (schema : Core.Schema) (groups : List Nat) :
   | { expr := .call name arguments true, .. } =>
       if canonical name == "count" && arguments.isEmpty then .ok .countStar
       else unsupported "aggregate expression"
-  | { expr := .call name #[.column _ columnName] false, .. } =>
-      if canonical name == "count" then
-        .countColumn <$> column schema columnName
-      else if canonical name == "sum" then
-        .sumColumn <$> column schema columnName
-      else if canonical name == "min" then
-        .minColumn <$> column schema columnName
-      else if canonical name == "max" then
-        .maxColumn <$> column schema columnName
-      else unsupported "aggregate expression"
+  | { expr := .call name arguments false, .. } =>
+      match arguments.toList with
+      | [.column _ columnName] =>
+          if canonical name == "count" then
+            .countColumn <$> column schema columnName
+          else if canonical name == "sum" then
+            .sumColumn <$> column schema columnName
+          else if canonical name == "min" then
+            .minColumn <$> column schema columnName
+          else if canonical name == "max" then
+            .maxColumn <$> column schema columnName
+          else unsupported "aggregate expression"
+      | _ => unsupported "group projection expression"
   | _ => unsupported "group projection expression"
 
 def groupOutputs (schema : Core.Schema) (groups : List Nat) :

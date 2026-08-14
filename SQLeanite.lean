@@ -53,6 +53,7 @@ import SQLeanite.CoreJoin
 import SQLeanite.CoreEngine
 import SQLeanite.CoreSQL
 import SQLeanite.CoreSQLGrammar
+import SQLeanite.CoreSQLText
 import SQLeanite.CoreRecord
 import SQLeanite.CellPagination
 import SQLeanite.CoreFile
