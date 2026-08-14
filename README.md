@@ -6,7 +6,7 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 53,183 lines in 71 library modules, 1,321
+At this snapshot it contains 53,176 lines in 71 library modules, 1,321
 theorems/lemmas, 454 explicitly audited headline theorems, and 149 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`.
