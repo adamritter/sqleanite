@@ -188,5 +188,126 @@ theorem predicateSyntax_of_success {schema : Core.Schema} {expression : Expr}
 termination_by expression.height
 decreasing_by all_goals simp_all [Expr.height] <;> omega
 
+inductive ProjectionColumnSyntax : ResultColumn → Prop where
+  | star (alias sourceSql) :
+      ProjectionColumnSyntax ⟨.star none, alias, sourceSql⟩
+  | column (qualifier name alias sourceSql) :
+      ProjectionColumnSyntax ⟨.column qualifier name, alias, sourceSql⟩
+
+def ProjectionSyntax (columns : List ResultColumn) : Prop :=
+  ∀ column ∈ columns, ProjectionColumnSyntax column
+
+theorem projectionColumnSyntax_of_success {schema : Core.Schema}
+    {input : ResultColumn} {columns : List Nat}
+    (success : projectionColumn schema input = .ok columns) :
+    ProjectionColumnSyntax input := by
+  rcases input with ⟨expression, alias, sourceSql⟩
+  cases expression with
+  | star qualifier =>
+      cases qualifier with
+      | none => exact .star alias sourceSql
+      | some qualifier => simp [projectionColumn, unsupported] at success
+  | column qualifier name => exact .column qualifier name alias sourceSql
+  | literal | unary | binary | call | isNull | inList | collate | case_ |
+      scalarSubquery | inSubquery | existsSubquery =>
+      simp [projectionColumn, unsupported] at success
+
+theorem projectionSyntax_of_success (schema : Core.Schema) :
+    ∀ {inputs : List ResultColumn} {columns : List Nat},
+      projection schema inputs = .ok columns → ProjectionSyntax inputs
+  | [], _, _ => by simp [ProjectionSyntax]
+  | input :: inputs, columns, success => by
+      unfold projection at success
+      cases head : projectionColumn schema input with
+      | error message =>
+          simp [head, Except.instMonad, Except.bind, Except.map] at success
+      | ok first =>
+          cases tail : projection schema inputs with
+          | error message =>
+              simp [head, tail, Except.instMonad, Except.bind, Except.map] at success
+          | ok remaining =>
+              intro candidate member
+              simp only [List.mem_cons] at member
+              rcases member with rfl | member
+              · exact projectionColumnSyntax_of_success head
+              · exact projectionSyntax_of_success schema tail candidate member
+
+inductive OrderTermSyntax : OrderTerm → Prop where
+  | column (qualifier name descending) :
+      OrderTermSyntax ⟨.column qualifier name, descending⟩
+
+def OrderingSyntax (terms : List OrderTerm) : Prop :=
+  ∀ term ∈ terms, OrderTermSyntax term
+
+theorem orderingSyntax_of_success (schema : Core.Schema) :
+    ∀ {inputs : List OrderTerm} {ordering : List (Nat × Bool)},
+      orderBy schema inputs = .ok ordering → OrderingSyntax inputs
+  | [], _, _ => by simp [OrderingSyntax]
+  | term :: terms, ordering, success => by
+      rcases term with ⟨expression, descending⟩
+      cases expression with
+      | column qualifier name =>
+          unfold orderBy at success
+          cases first : column schema name with
+          | error message =>
+              simp [first, Except.instMonad, Except.bind, Except.map] at success
+          | ok index =>
+              cases rest : orderBy schema terms with
+              | error message =>
+                  simp [first, rest, Except.instMonad, Except.bind,
+                    Except.map] at success
+              | ok tail =>
+                  intro candidate member
+                  simp only [List.mem_cons] at member
+                  rcases member with rfl | member
+                  · exact .column qualifier name descending
+                  · exact orderingSyntax_of_success schema rest candidate member
+      | literal | star | unary | binary | call | isNull | inList | collate |
+          case_ | scalarSubquery | inSubquery | existsSubquery =>
+          simp [orderBy, unsupported] at success
+
+inductive GroupColumnSyntax : Expr → Prop where
+  | column (qualifier name) : GroupColumnSyntax (.column qualifier name)
+
+def GroupingSyntax (expressions : List Expr) : Prop :=
+  ∀ expression ∈ expressions, GroupColumnSyntax expression
+
+theorem groupingSyntax_of_success (schema : Core.Schema) :
+    ∀ {inputs : List Expr} {groups : List Nat},
+      groupColumns schema inputs = .ok groups → GroupingSyntax inputs
+  | [], _, _ => by simp [GroupingSyntax]
+  | expression :: expressions, groups, success => by
+      cases expression with
+      | column qualifier name =>
+          unfold groupColumns at success
+          cases first : column schema name with
+          | error message =>
+              simp [first, Except.instMonad, Except.bind, Except.map] at success
+          | ok index =>
+              cases rest : groupColumns schema expressions with
+              | error message =>
+                  simp [first, rest, Except.instMonad, Except.bind,
+                    Except.map] at success
+              | ok tail =>
+                  intro candidate member
+                  simp only [List.mem_cons] at member
+                  rcases member with rfl | member
+                  · exact .column qualifier name
+                  · exact groupingSyntax_of_success schema rest candidate member
+      | literal | star | unary | binary | call | isNull | inList | collate |
+          case_ | scalarSubquery | inSubquery | existsSubquery =>
+          simp [groupColumns, unsupported] at success
+
+inductive GroupOutputSyntax : ResultColumn → Prop where
+  | key (qualifier name alias sourceSql) :
+      GroupOutputSyntax ⟨.column qualifier name, alias, sourceSql⟩
+  | countStar (name alias sourceSql) : canonical name = "count" →
+      GroupOutputSyntax ⟨.call name #[] true, alias, sourceSql⟩
+  | aggregate (name qualifier columnName alias sourceSql) :
+      (canonical name = "count" ∨ canonical name = "sum" ∨
+        canonical name = "min" ∨ canonical name = "max") →
+      GroupOutputSyntax
+        ⟨.call name #[.column qualifier columnName] false, alias, sourceSql⟩
+
 end CoreSQL
 end SQLeanite

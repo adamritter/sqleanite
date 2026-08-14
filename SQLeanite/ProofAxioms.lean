@@ -363,6 +363,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.columnRef?_eq_some_iff
 #print axioms SQLeanite.CoreSQL.literalSyntax_of_success
 #print axioms SQLeanite.CoreSQL.predicateSyntax_of_success
+#print axioms SQLeanite.CoreSQL.projectionSyntax_of_success
+#print axioms SQLeanite.CoreSQL.orderingSyntax_of_success
+#print axioms SQLeanite.CoreSQL.groupingSyntax_of_success
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.build?_cells
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_pageCount
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_represents
