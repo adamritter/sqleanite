@@ -107,6 +107,14 @@ else
   fail "a live write command detached from its execute-level theorem"
 fi
 
+if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
+   grep -q 'literalSyntax_of_success' SQLeanite/ProofAxioms.lean &&
+   grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean; then
+  ok "live Core predicate translation carries a declarative grammar proof"
+else
+  fail "Core predicate translation detached from its grammar certificate"
+fi
+
 if grep -q '| .primaryKey rowid => table.primaryKeyRows rowid' \
      SQLeanite/CoreEngine.lean &&
    grep -q 'exact Query.eval_primaryKey table query rowid' \

@@ -33,6 +33,7 @@ import SQLeanite.PhysicalWALRecovery
 import SQLeanite.Core
 import SQLeanite.CoreJoin
 import SQLeanite.CoreSQL
+import SQLeanite.CoreSQLGrammar
 import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.RuntimeRefinement
 import SQLeanite.CoreWAL
@@ -359,6 +360,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.mem_combineRows
 #print axioms SQLeanite.CoreSQL.combineRows_nodup
 #print axioms SQLeanite.CoreSQL.combineRows_width
+#print axioms SQLeanite.CoreSQL.columnRef?_eq_some_iff
+#print axioms SQLeanite.CoreSQL.literalSyntax_of_success
+#print axioms SQLeanite.CoreSQL.predicateSyntax_of_success
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.build?_cells
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_pageCount
 #print axioms SQLeanite.RecursivePageBTree.IndexStore.retarget?_represents

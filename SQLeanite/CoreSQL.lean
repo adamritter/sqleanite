@@ -5,7 +5,7 @@ import SQLeanite.SQLSurface
 namespace SQLeanite
 namespace CoreSQL
 
-private def unsupported (feature : String) : Except String α :=
+def unsupported (feature : String) : Except String α :=
   .error s!"unsupported general verified-MVP SQL: {feature}"
 
 def canonical (name : String) : String := name.toLower
@@ -50,36 +50,48 @@ def column (schema : Core.Schema) (name : String) : Except String Nat :=
   | some index => .ok index
   | none => .error s!"no such column: {name}"
 
+def columnRef? : Expr → Option (Option String × String)
+  | .column qualifier name => some (qualifier, name)
+  | _ => none
+
+theorem columnRef?_eq_some_iff {expression : Expr}
+    {qualifier : Option String} {name : String} :
+    columnRef? expression = some (qualifier, name) ↔
+      expression = .column qualifier name := by
+  cases expression <;> simp [columnRef?]
+
+/-- One proof-friendly implementation of the symmetric SQL comparison shape.
+The left column keeps priority when both operands are columns, matching the
+previous pattern order and producing the same rejection at `literal right`. -/
+def comparisonPredicate (schema : Core.Schema)
+    (forward reverse : Nat → Core.Value → Core.Predicate)
+    (left right : Expr) : Except String Core.Predicate :=
+  match columnRef? left with
+  | some (_, name) => forward <$> column schema name <*> literal right
+  | none => match columnRef? right with
+    | some (_, name) => reverse <$> column schema name <*> literal left
+    | none => unsupported "predicate expression"
+
 def indexColumnName? : Expr → Option String
   | .column _ name => some name
   | .call "lean_dqs" #[.literal (.text name)] false => some name
   | _ => none
 
 def predicate (schema : Core.Schema) : Expr → Except String Core.Predicate
-  | .binary .eq (.column _ name) right =>
-      .equal <$> column schema name <*> literal right
-  | .binary .eq left (.column _ name) =>
-      .equal <$> column schema name <*> literal left
-  | .binary .ne (.column _ name) right =>
-      .notEqual <$> column schema name <*> literal right
-  | .binary .ne left (.column _ name) =>
-      .notEqual <$> column schema name <*> literal left
-  | .binary .lt (.column _ name) right =>
-      .compare .less <$> column schema name <*> literal right
-  | .binary .lt left (.column _ name) =>
-      .compare .greater <$> column schema name <*> literal left
-  | .binary .le (.column _ name) right =>
-      .compare .lessEqual <$> column schema name <*> literal right
-  | .binary .le left (.column _ name) =>
-      .compare .greaterEqual <$> column schema name <*> literal left
-  | .binary .gt (.column _ name) right =>
-      .compare .greater <$> column schema name <*> literal right
-  | .binary .gt left (.column _ name) =>
-      .compare .less <$> column schema name <*> literal left
-  | .binary .ge (.column _ name) right =>
-      .compare .greaterEqual <$> column schema name <*> literal right
-  | .binary .ge left (.column _ name) =>
-      .compare .lessEqual <$> column schema name <*> literal left
+  | .binary .eq left right =>
+      comparisonPredicate schema .equal .equal left right
+  | .binary .ne left right =>
+      comparisonPredicate schema .notEqual .notEqual left right
+  | .binary .lt left right =>
+      comparisonPredicate schema (.compare .less) (.compare .greater) left right
+  | .binary .le left right =>
+      comparisonPredicate schema (.compare .lessEqual) (.compare .greaterEqual)
+        left right
+  | .binary .gt left right =>
+      comparisonPredicate schema (.compare .greater) (.compare .less) left right
+  | .binary .ge left right =>
+      comparisonPredicate schema (.compare .greaterEqual) (.compare .lessEqual)
+        left right
   | .isNull (.column _ name) false => .isNull <$> column schema name
   | .isNull (.column _ name) true => .not <$> (.isNull <$> column schema name)
   | .unary .not expression => .not <$> predicate schema expression
