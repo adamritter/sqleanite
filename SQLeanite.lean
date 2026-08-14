@@ -61,6 +61,7 @@ import SQLeanite.CoreFreelist
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
+import SQLeanite.CoreDurability
 import SQLeanite.CoreWAL
 import SQLeanite.CoreFileEngine
 import SQLeanite.PhysicalFileAdapter

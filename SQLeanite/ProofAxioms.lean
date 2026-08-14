@@ -44,6 +44,7 @@ import SQLeanite.CoreFile
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
+import SQLeanite.CoreDurability
 import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.QuerySemantics.predicatePushdown_eval
@@ -389,6 +390,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.pages_length
 #print axioms SQLeanite.CoreFileAdapter.run_commitPlan
 #print axioms SQLeanite.CoreFileAdapter.commit_crash_atomic
+#print axioms SQLeanite.CoreDurability.imageBytes_storageImage
+#print axioms SQLeanite.CoreDurability.decode_imageBytes_encodeBulk
+#print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
+#print axioms SQLeanite.CoreDurability.rollbackCommit_core_returned_recovers_new
+#print axioms SQLeanite.CoreDurability.rollbackCommit_core_repeated_recovery_atomic
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedIndexEntries
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedValue_exact
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedRange_exact
