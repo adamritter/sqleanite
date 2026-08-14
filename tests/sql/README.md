@@ -6,7 +6,7 @@ temporary working directory so generated `test.db` connection labels do not
 touch files in the checkout:
 
 ```sh
-scripts/run-focused-upstream.sh select1 insert
+SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-focused-upstream.sh select1 insert
 ```
 
 With no arguments, the script runs those two bounded samples. On 2026-08-11:
@@ -21,7 +21,7 @@ against the Lean implementation.
 The restricted persisted route has its own deterministic comparison corpus:
 
 ```sh
-scripts/run-mvp-differential-smoke.sh
+scripts/run-core-differential-smoke.sh
 ```
 
 It compares seven SQL files byte-for-byte against C SQLite using separate real

@@ -1,0 +1,105 @@
+# SQLeanite
+
+SQLeanite ("sequel-lean-ite") is a research implementation of a
+SQLite-compatible database core in Lean 4. Its storage algorithms, executable
+semantics, and proofs live in the same codebase; the command-line program uses
+the proof-carrying `Core` path rather than a shadow specification.
+
+The project currently builds with Lean 4.19.0 and has no Lake dependencies.
+At this snapshot it contains 53,176 lines in 71 library modules, 1,321
+theorems/lemmas, 454 explicitly audited headline theorems, and 149 executable
+tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
+`unsafe`, or project-local `partial def`.
+
+SQLeanite is not a drop-in replacement for SQLite and is not production-ready.
+It deliberately implements a bounded SQL/storage subset so that its claims can
+remain precise. See [Trust and scope](docs/TRUST.md) before relying on a result.
+
+## What is verified
+
+- proof-carrying ordered table storage and recursive B+ tree operations;
+- SQLite record, page, varint, freelist, rollback-journal, and WAL codecs;
+- crash-atomic rollback-journal and abstract concurrency protocols;
+- table/index mutation invariants and statement-level refinements;
+- three-valued SQL and bag semantics for the supported query algebra;
+- sound optimizer rewrites and exact primary/secondary index routing;
+- live-path checks that tie the audited theorems to the shipped executable.
+
+The executable can read and write real SQLite-format files within its supported
+subset. Tables require exactly one `INTEGER PRIMARY KEY`; values include
+`NULL`, signed 64-bit `INTEGER`, bounded `TEXT`/`BLOB`, and finite `REAL`.
+Single-column indexes, transactions, common predicates, ordering, grouping,
+aggregates, and a bounded join subset are supported. Unsupported SQL is
+rejected instead of silently falling back to C SQLite.
+
+## Build and run
+
+Install [elan](https://github.com/leanprover/elan), a C compiler, and
+`ripgrep`. The pinned toolchain is selected automatically.
+
+```sh
+lake build
+lake exe sqleanite_tests
+scripts/lean-verification-audit.sh
+scripts/live-path-check.sh
+```
+
+Create a database using the rollback-journal path:
+
+```sh
+printf '%s\n' \
+  'CREATE TABLE items(id INTEGER PRIMARY KEY, value TEXT NOT NULL);' \
+  "INSERT INTO items VALUES(1, 'hello');" \
+  'SELECT * FROM items;' > demo.sql
+.lake/build/bin/sqleanite --verified-file demo.db demo.sql
+```
+
+The CLI also exposes `--verified-wal-file` and
+`--verified-wal-checkpoint`; run it with `--help` for the exact syntax.
+
+## Repository map
+
+- `SQLeanite/`: implementation, specifications, and proofs;
+- `Main.lean`: small file/CLI boundary for the verified core;
+- `Tests.lean`: executable regression and interoperability tests;
+- `native/`: seven narrow syscall bindings plus a test-only fault VFS;
+- `tests/sql/`: differential, workload, and upstream-adapter inputs;
+- `mutations/`: proof and C-SQLite mutation experiments;
+- `scripts/`: audits, reproduction, benchmarks, and crash tests;
+- `docs/`: architecture, trust boundary, results, and case studies.
+
+`Engine.lean` remains a test-only broad SQL conformance fixture. It is not
+reachable from the shipped `sqleanite` binary. The live-path audit enforces
+that separation.
+
+## Verification and experiments
+
+`scripts/reproduce-all.sh` runs the full public reproduction pipeline.
+`QUICK=1` skips the slower mutation and crash sweeps. Comparative C mutation
+and focused upstream Tcl runs require a separate clean SQLite checkout:
+
+```sh
+SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-c-mutation-pilot.sh
+SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-focused-upstream.sh select1 insert
+```
+
+The [WAL reset case study](docs/WAL_RESET_CASE_STUDY.md) models the race fixed
+by SQLite in 2026 and shows how a generation-indexed checkpoint plan makes the
+bad interleaving fail verification. It is an abstract protocol example, not a
+claim that SQLeanite implements SQLite's exact wal-index algorithm.
+
+## Status and non-claims
+
+The strongest remaining gaps are parser correctness from arbitrary SQL text,
+an unconditional refinement from the real OS/filesystem to the modeled VFS,
+and complete SQLite SQL/file-format coverage. Proofs establish conditional
+properties under the documented host contracts; they do not prove Linux,
+storage hardware, the Lean compiler/runtime, or the C syscall shim.
+
+SQLeanite is independent research and is not affiliated with the SQLite
+project. “SQLite” is used to describe file/protocol compatibility.
+
+## License
+
+SQLeanite is dedicated to the public domain; see [LICENSE.md](LICENSE.md).
+

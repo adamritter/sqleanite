@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system tools
+        run: sudo apt-get update && sudo apt-get install -y gcc ripgrep sqlite3 tcl
+      - name: Install pinned Lean toolchain and build
+        uses: leanprover/lean-action@v1
+      - name: Executable tests
+        run: lake exe sqleanite_tests
+      - name: Proof hygiene
+        run: scripts/lean-verification-audit.sh
+      - name: Live proof path
+        run: scripts/live-path-check.sh
+      - name: SQLite differential corpus
+        run: scripts/run-core-differential-smoke.sh
+      - name: Upstream-adapted corpus
+        run: scripts/run-upstream-adapted.sh

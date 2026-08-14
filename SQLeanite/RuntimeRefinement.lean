@@ -17,7 +17,7 @@ premise the serializability theorem needs.
 
 What is still trusted: that atomic directory creation really implements
 `ProcessLock.State.step`. That is an OS refinement obligation, recorded in
-`TCB.md`, not something proved here.
+`docs/TRUST.md`, not something proved here.
 -/
 
 namespace SQLeanite.RuntimeRefinement

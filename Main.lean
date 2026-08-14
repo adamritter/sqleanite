@@ -6,7 +6,7 @@ open SQLeanite
 
 Written with `IO.iterate` rather than `partial def` so the project keeps zero
 local partial definitions; `IO.iterate` is itself an opaque runtime primitive
-and is accounted for in `TCB.md` as part of the executable I/O boundary. -/
+and is accounted for in `docs/TRUST.md` as part of the executable I/O boundary. -/
 private def readStreamToEnd (stream : IO.FS.Stream) : IO String := do
   let acc ← IO.iterate ByteArray.empty fun acc => do
     let chunk ← stream.read 4096

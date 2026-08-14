@@ -40,7 +40,11 @@ if [ "${QUICK:-0}" = "1" ]; then
 fi
 
 step "C mutation arm"
-scripts/run-c-mutation-pilot.sh | tail -8
+if [ -n "${SQLITE_SOURCE_DIR:-}" ]; then
+  scripts/run-c-mutation-pilot.sh | tail -8
+else
+  printf 'skipped: set SQLITE_SOURCE_DIR to a clean SQLite checkout\n'
+fi
 
 step "crash fault injection (control: stock SQLite must survive)"
 scripts/run-crash-injection.sh /usr/bin/sqlite3 25 | tail -4
@@ -49,7 +53,11 @@ step "power-loss injection (stock old-or-new control)"
 scripts/run-powerloss-injection.sh /usr/bin/sqlite3 20 | tail -5
 
 step "power-loss mutation (missing journal sync must tear)"
-scripts/run-powerloss-mutation.sh 20 | tail -6
+if [ -n "${SQLITE_SOURCE_DIR:-}" ]; then
+  scripts/run-powerloss-mutation.sh 20 | tail -6
+else
+  printf 'skipped: set SQLITE_SOURCE_DIR to a clean SQLite checkout\n'
+fi
 
 step "workload benchmark (outputs verified per case)"
 ROWS=${ROWS:-2000} scripts/run-workload-benchmark.sh

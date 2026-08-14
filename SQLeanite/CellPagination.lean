@@ -16,7 +16,7 @@ cell would not fit. Two facts are proved:
 * `paginateCells_fits` -- every emitted leaf satisfies `PageFit`, provided each
   individual cell fits a page on its own. Without overflow pages that proviso is
   a real restriction, and it is exactly the "a row must fit in one page" limit
-  documented in `TCB.md`.
+  documented in `docs/TRUST.md`.
 -/
 
 namespace SQLeanite.CellPagination

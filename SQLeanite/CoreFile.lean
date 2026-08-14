@@ -562,7 +562,7 @@ responsible for. The remaining gap is the catalog's SQL text: `decode` recovers
 a schema by running the real parser over the `CREATE TABLE` string that
 `encode` printed, so closing the full round trip needs
 `parseTableSchema (tableSQL s) = some s`, a parser-correctness result that is
-tracked separately in `TCB.md`. -/
+tracked separately in `docs/TRUST.md`. -/
 theorem tableLeaves_storedCells (table : Core.Table)
     {leaves : List (List (List UInt8))} {cells : List (List UInt8)}
     (encoded : tableCells table = some cells)

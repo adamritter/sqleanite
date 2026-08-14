@@ -2,16 +2,25 @@
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$root"
+sqlite_source=${SQLITE_SOURCE_DIR:-}
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  printf '%s\n' 'C mutation pilot requires a clean tracked worktree' >&2
+if [ -z "$sqlite_source" ] || [ ! -d "$sqlite_source/.git" ] || \
+   [ ! -f "$sqlite_source/src/sqliteInt.h" ]; then
+  printf '%s\n' \
+    'set SQLITE_SOURCE_DIR to a clean SQLite source checkout' >&2
+  exit 2
+fi
+sqlite_source=$(CDPATH= cd -- "$sqlite_source" && pwd)
+
+if ! git -C "$sqlite_source" diff --quiet || \
+   ! git -C "$sqlite_source" diff --cached --quiet; then
+  printf '%s\n' 'C mutation pilot requires a clean SQLite worktree' >&2
   exit 2
 fi
 
-registry=mutations/c-registry.tsv
-results=mutations/c-results.tsv
-logs=mutations/c-logs
+registry=$root/mutations/c-registry.tsv
+results=$root/mutations/c-results.tsv
+logs=$root/mutations/c-logs
 sqlite_reference=${SQLITE3_BIN:-/usr/bin/sqlite3}
 mkdir -p "$logs"
 temporary=$(mktemp)
@@ -25,7 +34,7 @@ restore_patch() {
   files=$(sed -n 's|^+++ b/||p' "$1")
   if [ -n "$files" ]; then
     # shellcheck disable=SC2086
-    git checkout -- $files
+    git -C "$sqlite_source" checkout -- $files
   fi
 }
 
@@ -45,8 +54,8 @@ while IFS="$(printf '\t')" read -r id property patch_name witness_name bug_class
     first_row=false
     continue
   fi
-  patch_path=mutations/$patch_name
-  witness_path=mutations/$witness_name
+  patch_path=$root/mutations/$patch_name
+  witness_path=$root/mutations/$witness_name
   log_path=$logs/$id.log
   reference_out=$run_tmp/$id.reference
   mutant_out=$run_tmp/$id.mutant
@@ -60,17 +69,19 @@ while IFS="$(printf '\t')" read -r id property patch_name witness_name bug_class
   printf 'PRAGMA integrity_check;\n' | "$sqlite_reference" -batch -noheader "$ref_db" \
     >> "$reference_out" 2>&1 || true
   ls -l "$ref_db" | awk '{print "dbsize", $5}' >> "$reference_out"
-  patch --dry-run --silent -p1 < "$patch_path"
-  patch --silent --batch --forward --no-backup-if-mismatch -p1 < "$patch_path"
+  patch --dry-run --silent -d "$sqlite_source" -p1 < "$patch_path"
+  patch --silent --batch --forward --no-backup-if-mismatch \
+    -d "$sqlite_source" -p1 < "$patch_path"
   active_patch=$patch_path
   start=$(date +%s%N)
-  if make -f Makefile.linux-generic -j2 sqlite3 SHELL_OPT= \
+  if make -C "$sqlite_source" -f Makefile.linux-generic -j2 sqlite3 SHELL_OPT= \
       LDFLAGS.readline= > "$log_path" 2>&1; then
     compile_status=passed
     mut_db=$run_tmp/$id.mut.db
     rm -f "$mut_db" "$mut_db-journal" "$mut_db-wal"
-    ./sqlite3 -batch -noheader "$mut_db" < "$witness_path" > "$mutant_out" 2>> "$log_path" || true
-    printf 'PRAGMA integrity_check;\n' | ./sqlite3 -batch -noheader "$mut_db" \
+    "$sqlite_source/sqlite3" -batch -noheader "$mut_db" < "$witness_path" \
+      > "$mutant_out" 2>> "$log_path" || true
+    printf 'PRAGMA integrity_check;\n' | "$sqlite_source/sqlite3" -batch -noheader "$mut_db" \
       >> "$mutant_out" 2>&1 || true
     ls -l "$mut_db" 2>/dev/null | awk '{print "dbsize", $5}' >> "$mutant_out"
     if cmp -s "$reference_out" "$mutant_out"; then
@@ -92,7 +103,8 @@ while IFS="$(printf '\t')" read -r id property patch_name witness_name bug_class
   # Only the patched sources must be back at the index. The build regenerates
   # tracked artifacts (sqlite3.c, tsrc/, the sqlite3 binary), which is expected.
   # shellcheck disable=SC2046
-  if ! git diff --quiet -- $(sed -n 's|^+++ b/||p' "$patch_path"); then
+  if ! git -C "$sqlite_source" diff --quiet -- \
+      $(sed -n 's|^+++ b/||p' "$patch_path"); then
     printf 'C mutation %s did not restore cleanly; aborting\n' "$id" >&2
     exit 3
   fi

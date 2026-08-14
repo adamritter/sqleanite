@@ -18,7 +18,12 @@ work=$(mktemp -d)
 trap 'rm -r -- "$work"' EXIT HUP INT TERM
 
 extension=$work/powerloss-vfs.so
-"$compiler" -O2 -fPIC -shared -I. native/powerloss-vfs.c -o "$extension"
+if [ -n "${SQLITE_INCLUDE_DIR:-}" ]; then
+  "$compiler" -O2 -fPIC -shared -I"$SQLITE_INCLUDE_DIR" \
+    native/powerloss-vfs.c -o "$extension"
+else
+  "$compiler" -O2 -fPIC -shared native/powerloss-vfs.c -o "$extension"
+fi
 
 old_or_new=0
 partial=0
