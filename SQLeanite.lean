@@ -39,7 +39,6 @@ import SQLeanite.Durability
 import SQLeanite.SerializedConnection
 import SQLeanite.WALConnection
 import SQLeanite.WALConcurrency
-import SQLeanite.WALResetProtocol
 import SQLeanite.WALMultiWriter
 import SQLeanite.GroupCommit
 import SQLeanite.PageCache

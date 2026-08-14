@@ -18,7 +18,6 @@ import SQLeanite.PhysicalStore
 import SQLeanite.PhysicalQuery
 import SQLeanite.SerializedConnection
 import SQLeanite.WALConcurrency
-import SQLeanite.WALResetProtocol
 import SQLeanite.WALMultiWriter
 import SQLeanite.GroupCommit
 import SQLeanite.PageCache
@@ -501,9 +500,3 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.lookupIndexRangeFrom_certified_exact
 #print axioms SQLeanite.CoreDecode.lookupIndexRangeFrom_all_matches
 #print axioms SQLeanite.Core.executeUncertifiedQueryWithCandidates_eq_execute
-#print axioms SQLeanite.WALResetProtocol.CopyPlan.frames_within_live
-#print axioms SQLeanite.WALResetProtocol.checkpointFrames?_safe
-#print axioms SQLeanite.WALResetProtocol.checkpointPlan?_reset_eq_none
-#print axioms SQLeanite.WALResetProtocol.reported_race_passes_unsafe_test
-#print axioms SQLeanite.WALResetProtocol.reported_race_requests_missing_frames
-#print axioms SQLeanite.WALResetProtocol.reported_race_rejected

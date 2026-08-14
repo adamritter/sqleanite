@@ -18,6 +18,5 @@ p5-admit-two-writers	P5	failed	955	mutations/logs/p5-admit-two-writers.log
 p5-torn-reader-snapshot	P5	failed	953	mutations/logs/p5-torn-reader-snapshot.log
 p5-unlock-before-wal-sync	P5	failed	954	mutations/logs/p5-unlock-before-wal-sync.log
 p5-publish-before-sync	P5	failed	955	mutations/logs/p5-publish-before-sync.log
-p5-wal-reset-skip-generation	P5	failed	652	mutations/logs/p5-wal-reset-skip-generation.log
 p2-core-planner-drops-first	P2	failed	2955	mutations/logs/p2-core-planner-drops-first.log
 p2-core-planner-wrong-column	P2	failed	2954	mutations/logs/p2-core-planner-wrong-column.log

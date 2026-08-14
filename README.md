@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 53,356 lines in 72 library modules, 1,329
-theorems/lemmas, 460 explicitly audited headline theorems, and 149 executable
+At this snapshot it contains 53,183 lines in 71 library modules, 1,321
+theorems/lemmas, 454 explicitly audited headline theorems, and 149 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`.
 
@@ -84,11 +84,6 @@ and focused upstream Tcl runs require a separate clean SQLite checkout:
 SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-c-mutation-pilot.sh
 SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-focused-upstream.sh select1 insert
 ```
-
-The [WAL reset case study](docs/WAL_RESET_CASE_STUDY.md) models the race fixed
-by SQLite in 2026 and shows how a generation-indexed checkpoint plan makes the
-bad interleaving fail verification. It is an abstract protocol example, not a
-claim that SQLeanite implements SQLite's exact wal-index algorithm.
 
 ## Status and non-claims
 

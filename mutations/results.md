@@ -15,20 +15,15 @@ ignored; `results.tsv` is the machine-readable summary.
 
 | Metric | Result |
 |---|---:|
-| Registered Lean mutations | 22 |
-| Rejected by build/proof checking | 22/22 |
+| Registered Lean mutations | 21 |
+| Rejected by build/proof checking | 21/21 |
 | Queries executed before detection | 0 |
 | Median mutation-to-detection | 1,555 ms |
-| Mean mutation-to-detection | 3,029 ms |
+| Mean mutation-to-detection | 3,142 ms |
 
 The suite covers optimizer and three-valued logic rewrites, live index
 planning, B+ tree split/merge/order defects, rollback-journal ordering and
-recovery, WAL publication/locking, and the WAL-reset generation race.
-
-The WAL-reset mutation replaces the post-lock generation comparison with the
-historically insufficient `nBackfill` test. It fails in 652 ms because Lean can
-no longer construct `CopyPlan.withinLiveWAL`. No injected schedule or query is
-needed to discover the omission.
+recovery, and WAL publication/locking.
 
 ## Interpretation
 
