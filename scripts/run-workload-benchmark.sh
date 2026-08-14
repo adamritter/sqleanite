@@ -1,9 +1,8 @@
 #!/bin/sh
 # Twelve realistic workloads timed on SQLeanite and C SQLite.
 #
-# Every workload is expressible in both engines: the Core subset has no
-# aggregates, no subqueries and no multi-column indexes, so the SQL below stays
-# inside what both can run. Outputs are compared, and a timing is only reported
+# Every workload is expressible in both engines and deliberately stays inside
+# the supported Core subset. Outputs are compared, and a timing is only reported
 # when both engines produced identical results -- otherwise the comparison is
 # meaningless.
 #
@@ -15,6 +14,11 @@ cd "$root"
 lean=${SQLEANITE_BIN:-$root/.lake/build/bin/sqleanite}
 csql=${SQLITE3_BIN:-/usr/bin/sqlite3}
 rows=${ROWS:-2000}
+results_tsv=${RESULTS_TSV:-}
+cases=${CASES:-}
+if [ "${FAST:-0}" = 1 ] && [ -z "$cases" ]; then
+  cases=01,03,04,07,08,09
+fi
 case $rows in *[!0-9]*|'') printf 'ROWS must be an integer\n' >&2; exit 2;; esac
 if [ "$rows" -lt 2000 ]; then
   printf 'ROWS must be at least 2000\n' >&2
@@ -22,6 +26,10 @@ if [ "$rows" -lt 2000 ]; then
 fi
 work=$(mktemp -d)
 trap 'rm -r -- "$work"' EXIT
+
+if [ -n "$results_tsv" ]; then
+  printf 'id\tname\tlean_ms\tsqlite_ms\tratio\toutputs\n' > "$results_tsv"
+fi
 
 timed() { # $1 = status file, remaining arguments = command
   status_file=$1; shift
@@ -122,37 +130,51 @@ run_case() { # $1 name  $2 sql-file  $3 needs-seed
   fi
   if [ "$ct" -eq 0 ]; then ratio="-"; else ratio=$(awk -v a="$lt" -v b="$ct" 'BEGIN{printf "%.1fx", a/b}'); fi
   printf '%-34s %10s %10s %8s %s\n' "$name" "$lt" "$ct" "$ratio" "$match"
+  if [ -n "$results_tsv" ]; then
+    id=${name%% *}
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$id" "$name" "$lt" "$ct" "${ratio%x}" "$match" >> "$results_tsv"
+  fi
+}
+
+wanted() { # $1 = stable two-digit workload id
+  [ -z "$cases" ] || case ",$cases," in *,"$1",*) true;; *) false;; esac
+}
+
+run_selected() { # $1 id  $2 name  $3 sql-file  $4 needs-seed
+  id=$1; shift
+  if wanted "$id"; then run_case "$@"; fi
 }
 
 # 1. Bulk load inside one transaction (ETL / import).
 cp "$seed" "$work/w01.sql"
-run_case "01 bulk load ($rows rows, 1 txn)" "$work/w01.sql" n
+run_selected 01 "01 bulk load ($rows rows, 1 txn)" "$work/w01.sql" n
 
 # 2. Row-at-a-time inserts in autocommit (naive application loop).
 { k=1; while [ "$k" -le 100 ]; do echo "INSERT INTO t VALUES($k,'v-$k');"; k=$((k+1)); done
 } > "$work/rows02.sql"
 awk -v f="$work/rows02.sql" '{ if ($0 == "@ROWS@") { while ((getline l < f) > 0) print l } else print }' \
   "$corpus/02_autocommit_inserts.sql.in" > "$work/w02.sql"
-run_case "02 autocommit inserts (100)" "$work/w02.sql" n
+run_selected 02 "02 autocommit inserts (100)" "$work/w02.sql" n
 
-run_case "03 point lookup by PK" "$work/03_point_lookup.sql" y
+run_selected 03 "03 point lookup by PK" "$work/03_point_lookup.sql" y
 
-run_case "04 indexed lookup (secondary)" "$corpus/04_indexed_lookup.sql" y
+run_selected 04 "04 indexed lookup (secondary)" "$corpus/04_indexed_lookup.sql" y
 
-run_case "05 range scan + predicate" "$work/05_range_scan.sql" y
+run_selected 05 "05 range scan + predicate" "$work/05_range_scan.sql" y
 
-run_case "06 ORDER BY + LIMIT 20" "$corpus/06_order_by_limit.sql" y
+run_selected 06 "06 ORDER BY + LIMIT 20" "$corpus/06_order_by_limit.sql" y
 
-run_case "07 bulk UPDATE by predicate" "$work/07_bulk_update.sql" y
+run_selected 07 "07 bulk UPDATE by predicate" "$work/07_bulk_update.sql" y
 
-run_case "08 bulk DELETE by predicate" "$work/08_bulk_delete.sql" y
+run_selected 08 "08 bulk DELETE by predicate" "$work/08_bulk_delete.sql" y
 
-run_case "09 inner join (2 tables)" "$corpus/09_inner_join.sql" y
+run_selected 09 "09 inner join (2 tables)" "$corpus/09_inner_join.sql" y
 
-run_case "10 read-modify-write txn" "$corpus/10_read_modify_write.sql" y
+run_selected 10 "10 read-modify-write txn" "$corpus/10_read_modify_write.sql" y
 
-run_case "11 cold open + 1 read" "$corpus/11_cold_open_read.sql" y
+run_selected 11 "11 cold open + 1 read" "$corpus/11_cold_open_read.sql" y
 
-run_case "12 mixed read/write session" "$work/12_mixed_session.sql" y
+run_selected 12 "12 mixed read/write session" "$work/12_mixed_session.sql" y
 
 printf '\nrows=%s   lean=%s   sqlite=%s\n' "$rows" "$lean" "$csql"

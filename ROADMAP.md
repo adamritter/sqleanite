@@ -1,5 +1,10 @@
 # Roadmap
 
+The paper-oriented compositional program is specified in
+[`PAPER_PLAN.md`](PAPER_PLAN.md).  It targets POPL'10 verified-RDBMS parity plus
+FSCQ-style durability while preserving the current proof and performance
+floors.
+
 The near-term objective is to strengthen the existing verified vertical slice,
 not to grow SQL breadth indiscriminately.
 

@@ -9,6 +9,10 @@ as an order-of-magnitude snapshot rather than a cross-machine record.
 ROWS=2000 scripts/run-workload-benchmark.sh
 ```
 
+The checked-in regression floor is `scripts/performance-baseline.tsv`.
+`scripts/run-benchmark-regression.sh` compares three-run medians against it;
+`FAST=1 RUNS=1` selects six representative workloads for routine commits.
+
 | Workload | SQLeanite | C SQLite | Ratio |
 |---|---:|---:|---:|
 | Bulk load, one transaction | 296 ms | 62 ms | 4.8× |
