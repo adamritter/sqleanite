@@ -593,6 +593,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageSource.readPage_write_same
 #print axioms SQLeanite.CorePageSource.readPage_write_other
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_applyWrites
+#print axioms SQLeanite.CoreLocalizedRepresentation.readsPagesFrom_applyWrites_of_covered
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.consEncoded
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.validateForTable
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsDecode.validate

@@ -265,6 +265,54 @@ theorem pageSourceContains_applyWrites_of_covered
   rw [CorePageSource.readPage_applyWrites_of_mem image distinct writeMember]
   exact congrArg some bytes
 
+/-- A contiguous encoded page run is readable from the post-write source when
+every byte page in the run is supplied by its exact numbered write.  This is
+the physical bridge used by rebuilt index and overflow runs. -/
+theorem readsPagesFrom_applyWrites_of_covered
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (start : Nat) (pages : List CoreFile.Page)
+    (covered : ∀ (offset : Nat) (inBounds : offset < pages.length),
+      ∃ write ∈ writes,
+        write.pageId + 1 = start + offset ∧
+        write.page.bytes.toList =
+          (pages.get ⟨offset, inBounds⟩).bytes) :
+    CoreDecode.ReadsPagesFrom
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) start pages := by
+  intro offset inBounds
+  rcases covered offset inBounds with
+    ⟨write, writeMember, pageNumber, bytes⟩
+  rw [← pageNumber]
+  rw [CorePageSource.readPage_applyWrites_of_mem image distinct writeMember]
+  exact congrArg some bytes
+
+/-- A successfully encoded index run plus exact post-write page reads gives
+the physical index premise consumed by `IndexGroupsDecode`. -/
+theorem IndexesDecode.consEncoded
+    {source : CoreDecode.PageSource} {table : Core.Table}
+    {entry : CoreDecode.CatalogEntry}
+    {entries : List CoreDecode.CatalogEntry} {index : Core.Index}
+    {rootPage : Nat} {encoding : CoreOverflow.IndexEncoding}
+    (sameTable : entry.table = table.schema.name)
+    (sameRoot : entry.rootPage = rootPage)
+    (metadata : CoreDecode.decodeCanonicalIndex table.schema
+      table.schema.name entry = some index)
+    (encoded : CoreOverflow.encodeIndex rootPage table index = some encoding)
+    (reads : CoreDecode.ReadsPagesFrom source rootPage encoding.pages)
+    (rootPositive : 0 < rootPage)
+    (pageBound : rootPage + encoding.pages.length < 2 ^ 32)
+    (withinSource : rootPage + encoding.pages.length ≤ source.pageCount + 1)
+    (tail : IndexesDecode source table entries) :
+    IndexesDecode source table (entry :: entries) := by
+  refine IndexesDecode.cons sameTable metadata ?_ tail
+  rw [sameRoot]
+  simpa only [CoreDecode.expectedIndexEntries] using
+    CoreDecode.decodeIndexSubtreeFrom_encodeIndex source encoded reads
+      rootPositive pageBound withinSource
+
 /-- The write list emitted by `TableDelta.writes` immediately establishes the
 decoder containment invariant for every page selected by that delta. -/
 theorem pageSourceContains_tableDeltaPages
