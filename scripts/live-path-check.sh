@@ -206,6 +206,10 @@ fi
 
 if grep -q 'CoreSQLTraceText.executeText_commit_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQLTraceText.executeText_localized_commit_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'LocalizedRepresentation.representsDatabase' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'runStatements_eq_commands' SQLeanite/CoreSQLTraceText.lean &&
    grep -q '| begin : TranslatedBlock' SQLeanite/CoreSQLTraceText.lean &&
    grep -q '| rollback : TranslatedBlock' SQLeanite/CoreSQLTraceText.lean; then

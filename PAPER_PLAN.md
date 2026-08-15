@@ -133,8 +133,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   page, and active post-tree page identities are unique.  These facts now
   yield `pageSourceContains_updateStateTree`, a direct represented-old-image
   to represented-new-table-tree theorem with no runtime validation. Catalog,
-  overflow, freelist, and changed-index components must still be composed into
-  the complete localized database representation witness.
+  overflow, freelist, and changed-index components must still be discharged.
+  `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
+  index equations and header framing as one erased certificate, and
+  `executeText_localized_commit_crash_atomic` derives the public whole-byte
+  crash theorem from it rather than assuming an opaque post-image decoder
+  equation.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact

@@ -456,6 +456,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.storageImage_encodeBulk_represents
 #print axioms SQLeanite.CoreDurability.storageImage_padded_represents
 #print axioms SQLeanite.CoreDurability.pageSourceRepresents_storageImage
+#print axioms SQLeanite.CoreDurability.LocalizedRepresentation.representsDatabase
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
@@ -478,6 +479,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLTraceText.runStatements_eq_commands
 #print axioms SQLeanite.CoreSQLTraceText.executeCommands_exact
 #print axioms SQLeanite.CoreSQLTraceText.executeText_commit_crash_atomic
+#print axioms SQLeanite.CoreSQLTraceText.executeText_localized_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_returned_recovers_new
 #print axioms SQLeanite.CoreSQLTraceText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core

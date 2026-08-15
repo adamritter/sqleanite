@@ -102,6 +102,61 @@ theorem pageSourceRepresents_storageImage
   rw [dif_pos fileLength, CorePageSource.pages_imageBytes]
   exact represents.decode
 
+/-- The exact page source produced by a localized write list.  Naming it once
+keeps catalog, table, index, and header certificates definitionally aligned. -/
+def localizedSource
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    CoreDecode.PageSource :=
+  CorePageSource.ofStorageImage (GrowableStorage.applyWrites oldImage writes)
+
+/-- Component-wise certificate for a live localized commit.  This is stronger
+and more informative than assuming `RepresentsDatabase` for the post-image:
+it exposes the exact catalog read, all table decodes, index reconstruction,
+and SQLite header framing that must be established by the delta builder.
+
+The fields are propositions and erase at runtime.  In particular, carrying
+this certificate cannot add the former decode-and-compare validation pass. -/
+structure LocalizedRepresentation
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database) where
+  header : SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes)
+  catalog : List CoreDecode.CatalogEntry
+  catalogRead :
+    (localizedSource oldImage writes).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog
+  tablesRead :
+    (catalog.filter (fun entry => entry.kind == "table")).mapM
+        (CoreDecode.decodeTableFrom (localizedSource oldImage writes)) =
+      some (database.tables.map Core.Table.withoutIndexes)
+  indexesRead :
+    CoreDecode.applyIndexesForOpen (localizedSource oldImage writes)
+        database.withoutIndexes
+        (catalog.filter (fun entry => entry.kind == "index")) =
+      some database.canonicalize
+
+theorem LocalizedRepresentation.pageSourceRepresents
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    {database : Core.Database}
+    (certificate : LocalizedRepresentation oldImage writes database) :
+    CoreDecode.PageSourceRepresents
+      (localizedSource oldImage writes) database := by
+  exact .intro certificate.catalog certificate.catalogRead
+    certificate.tablesRead certificate.indexesRead
+
+/-- Component proofs close the public whole-byte representation theorem. -/
+theorem LocalizedRepresentation.representsDatabase
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    {database : Core.Database}
+    (certificate : LocalizedRepresentation oldImage writes database) :
+    RepresentsDatabase (GrowableStorage.applyWrites oldImage writes)
+      database := by
+  apply pageSourceRepresents_storageImage certificate.header
+  simpa [localizedSource] using certificate.pageSourceRepresents
+
 theorem storageImage_encodeBulk_represents
     (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)

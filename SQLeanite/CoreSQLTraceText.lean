@@ -251,6 +251,37 @@ theorem executeText_commit_crash_atomic
       state.database next.database oldImage writes oldRepresents newRepresents
       phase recoveredMain recoveredJournal outcome⟩
 
+/-- Stronger localized form of the headline write theorem.  The post-image is
+not admitted as one opaque decoder equation: catalog, table, index, and header
+facts are supplied separately and composed by the storage refinement. -/
+theorem executeText_localized_commit_crash_atomic
+    (text : String) (commands : List TraceCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (localized : CoreDurability.LocalizedRepresentation oldImage writes
+      next.database)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain recoveredJournal) :
+    TraceEffects commands state next results ∧
+      (CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+          some state.database.canonicalize ∨
+        CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+          some next.database.canonicalize) := by
+  exact executeText_commit_crash_atomic text commands state next results
+    oldImage writes supported success oldRepresents localized.representsDatabase
+    phase recoveredMain recoveredJournal outcome
+
 theorem executeText_returned_recovers_new
     (text : String) (commands : List TraceCommand)
     (state next : Core.State) (results : List Core.Result)
