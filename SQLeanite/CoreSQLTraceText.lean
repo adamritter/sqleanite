@@ -285,6 +285,76 @@ theorem executeText_localized_commit_crash_atomic
     oldImage writes supported success oldRepresents (.components localized)
     phase recoveredMain recoveredJournal outcome
 
+/-- End-to-end localized point-update theorem over the exact value returned by
+the live rollback writer.  The SQL trace, logical state transition, physical
+table/index delta, post-image certificate, crash outcome, and POSIX request
+list all share `committed.prepared.writes`; no caller-selected replacement
+write list appears in the conclusion. -/
+theorem executeText_committedLocalizedIndexedSingle_crash_atomic
+    (text : String) (commands : List TraceCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (chunkState : CoreChunkPageState.State)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta
+      chunkState next.database delta)
+    (committed : CoreFileAdapter.CommittedLocalizedDelta
+      delta.after.freePages prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (supported : SupportedText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : chunkState.tables = [delta.table.before])
+    (noFree : delta.after.freePages = [])
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) chunkState)
+    (onImage : committed.prepared.OnImage oldImage)
+    (oldHeader : CoreDurability.SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = [])
+    (journalExact : committed.journal =
+      GrowableStorage.makeJournal oldImage committed.prepared.writes)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        committed.prepared.writes phase) recoveredMain recoveredJournal) :
+    TraceEffects commands state next results ∧
+      ((CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some state.database.canonicalize ∨
+        CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some next.database.canonicalize) ∧
+       committed.requests =
+         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+  have postImage : CoreDurability.PostImageCertificate oldImage
+      committed.prepared.writes next.database := by
+    have certificate :=
+      CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingle
+        prepared indexed single noFree committed oldImage physical onImage
+        oldHeader emptyFreelist beforeInline afterEncoding afterEncoded
+        afterInline
+    have endpoints := CoreChunkPageDelta.updateState?_endpoints prepared.updated
+    simpa [endpoints.2] using certificate
+  have atomic := executeText_commit_crash_atomic text commands state next
+    results oldImage committed.prepared.writes supported success oldRepresents
+    postImage phase recoveredMain recoveredJournal outcome
+  exact ⟨atomic.1, atomic.2,
+    committed.trace_eq_commitPlan oldImage journalExact⟩
+
 theorem executeText_returned_recovers_new
     (text : String) (commands : List TraceCommand)
     (state next : Core.State) (results : List Core.Result)

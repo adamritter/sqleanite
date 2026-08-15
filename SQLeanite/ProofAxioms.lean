@@ -522,6 +522,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLTraceText.executeCommands_exact
 #print axioms SQLeanite.CoreSQLTraceText.executeText_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_localized_commit_crash_atomic
+#print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingle_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_returned_recovers_new
 #print axioms SQLeanite.CoreSQLTraceText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
