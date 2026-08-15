@@ -650,6 +650,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.restate
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateState
+#print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateStateIndexless
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_databaseOnSource
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexCertificates_encodeIndexes
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexGroupCertificates_encodeIndexTableGroups
@@ -661,8 +662,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsDecode.validate
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.retargetSchema
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.entries_nil
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.rebuild
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.retarget
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.entries_nil_of_indexless
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_indexGroups
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages

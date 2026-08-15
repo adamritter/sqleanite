@@ -745,6 +745,36 @@ theorem IndexMetadataGroups.retarget :
               exact boundary entry member (same.trans nameEq.symm))
             (IndexMetadataGroups.retarget aligned tail)
 
+theorem IndexMetadataDecode.entries_nil
+    {table : Core.Table} {entries : List CoreDecode.CatalogEntry}
+    (decoded : IndexMetadataDecode table entries []) : entries = [] := by
+  cases decoded
+  rfl
+
+theorem IndexMetadataGroups.entries_nil_of_indexless :
+    ∀ {tables : List Core.Table} {entries : List CoreDecode.CatalogEntry},
+      (∀ table ∈ tables, table.indexes = []) →
+      IndexMetadataGroups tables entries → entries = []
+  | [], entries, indexless, decoded => by
+      cases decoded
+      rfl
+  | table :: tables, entries, indexless, decoded => by
+      cases decoded with
+      | cons current boundary tail =>
+          have indexesEmpty := indexless table (by simp)
+          rw [indexesEmpty] at current
+          have entriesEmpty := current.entries_nil
+          have tailEmpty := entries_nil_of_indexless
+            (fun candidate member => indexless candidate (by simp [member])) tail
+          simp [entriesEmpty, tailEmpty]
+
+/-- An indexless logical database has the unique empty physical index run on
+every page source. -/
+def IndexGroupsDecode.indexless (source : CoreDecode.PageSource) :
+    ∀ tables : List Core.Table, IndexGroupsDecode source tables []
+  | [] => .nil
+  | table :: tables => .cons .nil (by simp) (indexless source tables)
+
 /-- One encoded index run establishes both its physical decoder equations and
 its catalog-metadata reconstruction.  Keeping the pair together prevents the
 two certificates from drifting to different index orders. -/
@@ -1067,6 +1097,7 @@ def DatabaseOnSource.updateState
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after)
     (indexesPreserved : ∀ entries,
+      IndexMetadataGroups state.database.tables entries →
       IndexGroupsDecode oldSource
           (state.database.tables.map Core.Table.withoutIndexes) entries →
         IndexGroupsDecode newSource
@@ -1100,8 +1131,40 @@ def DatabaseOnSource.updateState
   refine ⟨⟨catalog, tableEntries, indexEntries,
     catalogPreserved catalog catalogRead, tableFilter, indexFilter, newTables,
     ?_, ?_⟩⟩
-  · simpa [endpoints.2] using indexesPreserved indexEntries indexes
+  · simpa [endpoints.2] using
+      indexesPreserved indexEntries metadata indexes
   · simpa [endpoints.2] using newMetadata
+
+/-- Complete ordinary-delta preservation for databases with no declared
+secondary/implicit indexes.  Here the physical-index callback disappears:
+catalog metadata proves the index-entry partition is empty, so no page can be
+silently treated as an index. -/
+def DatabaseOnSource.updateStateIndexless
+    {oldSource newSource : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (physical : DatabaseOnSource oldSource state)
+    (allocation : state.AllocationWellFormed)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (indexless : ∀ table ∈ database.tables, table.indexes = [])
+    (catalogPreserved : ∀ catalog,
+      (oldSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog) →
+      (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
+    (retained : ∀ (old : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      TableOnSource oldSource old →
+        TableOnSource newSource (old.retarget table equivalent))
+    (changed : TableOnSource newSource delta.table.after) :
+    DatabaseOnSource newSource delta.after := by
+  apply physical.updateState allocation updated catalogPreserved retained changed
+  intro entries metadata indexes
+  have metadataAlignment := CoreChunkPageDelta.updateState?_metadataAligned updated
+  rw [state.tables_eq] at metadataAlignment
+  have newMetadata := metadata.retarget metadataAlignment
+  have entriesEmpty := newMetadata.entries_nil_of_indexless indexless
+  subst entries
+  exact IndexGroupsDecode.indexless newSource
+    (database.tables.map Core.Table.withoutIndexes)
 
 /-- The canonical bulk encoder establishes the complete physical state
 invariant over any source which contains its emitted tail and reads its schema

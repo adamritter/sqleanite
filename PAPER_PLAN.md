@@ -220,6 +220,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   Its one isolated callback is physical preservation of unchanged index pages;
   closing that ownership/disjointness fact is the remaining ordinary-path M3
   obligation rather than another logical or codec premise.
+  The indexless case is closed completely by
+  `DatabaseOnSource.updateStateIndexless`: metadata proves that the catalog's
+  index partition is empty, eliminating the physical-index callback rather
+  than satisfying it vacuously. Indexed databases still require the explicit
+  page-ownership/disjointness theorem above.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
