@@ -691,32 +691,56 @@ again as each item lands rather than treated as an independent task. Report the
 largest configuration that completes, with the memory cap applied, and say
 plainly where it stopped.
 
-### Read-path cost structure (measured 2026-08-14)
+### Read-path cost structure (measured 2026-08-15, supersedes the 2026-08-14 entry)
 
-Workload C, 1000 records, 512-byte field, 100 reads. C SQLite: 8 ms. Us: 651 ms.
+The earlier version of this section was wrong in two ways and is corrected here,
+because it was pointing the work at the wrong things.
 
-| Component | Cost | Order |
-|---|---:|---|
-| Full-file decode on open | ~92 ms | O(database) |
-| Index-certificate load, once | ~213 ms | O(database) |
-| Certified lookup's table re-comparison | ~3.9 ms per read | **O(database) per read** |
+**Reads do not pay the full-file open.** One indexed read costs 10--11 ms flat
+across an 8x file-size range (1.3 MB to 10.9 MB). An empty script over the same
+files costs 48/90/175/344 ms, i.e. about 32 ms/MB. That linear cost is real but
+lives on `CoreFileEngine.reopen`, which a read batch never takes:
+`CoreLazyFileEngine` serves reads page-directed. Lazy open therefore matters for
+cold non-read entry points, not for read throughput.
 
-The third is the important one. `lookupCertifiedIndexCandidates` requires
-`stored.table.rows = table.rows`, a structural comparison of every row, on every
-read. An indexed point lookup is therefore asymptotically no better than a scan:
-**deleting the index makes the same 100 reads run 116 ms instead of 651 ms.**
+**The certified-lookup table re-comparison is gated, not the current cost.**
+`certifiedLookupWorthAttempting` skips the O(table) check above 256 rows, and the
+deletion condition is recorded on that function. It remains a correctness-shaped
+cleanup, not a performance item.
 
-This is the plan's own "proof debt paid as runtime cost" pattern in its purest
-form -- the cached certificate cannot prove it still matches the live table, so
-it re-verifies by brute force. Fixing it is a proof task, not an optimisation:
-the check must become local (validate the candidate index entry and the fetched
-row) rather than global, so it stays provable without trusting IO state.
+**What reads actually cost: decoding every cell of every index page visited.**
+Per-read cost falls as the index key gets wider, which is the signature:
 
-A second, smaller defect in the same path: `CoreFileEngine.lean:164` caches with
-`if retained.isEmpty then <load>`, so a legitimately empty certificate list
-never caches and the whole file is re-read *per query*. That needs a loaded flag.
-**Fixed** -- the cache is now `Option (List _)`, so loaded-and-empty is distinct
-from unloaded.
+| index key width | ms per read |
+|---|---:|
+| 8 bytes | 4.15 |
+| 32 bytes | 3.29 |
+| 128 bytes | 3.00 |
+
+Wider keys mean *fewer entries per page* and therefore a *deeper* tree, yet reads
+get faster. So the dominant term is per-page work proportional to entries per
+page, not tree depth. `decodeIndexInteriorIOFrom` and `decodeIndexLeafIOFrom`
+decode a page's entire cell array into `IndexEntry` values -- each allocating a
+`Core.Value`, and for TEXT a `List UInt8` -- before the traversal chooses one
+branch. A binary search inside the page would touch O(log cells) entries instead
+of all of them.
+
+Two contributing factors, both in the decode layer:
+
+1. **Whole-page decode where a search would do.** This is the algorithmic half
+   and the larger one.
+2. **Pages arrive as `List UInt8`.** Every parse walks a linked list, and
+   `preadPageSource` converts a 4096-byte page into 4096 cons cells per read.
+
+Measured per-read totals for context: `CoreLazyFileEngine` batch 3.23 ms per read;
+`CoreFileEngine` on one connection 1.92 ms p50, 2.05 ms p99. C SQLite is below its
+own timer resolution, about 0.08 ms from batch measurements. So reads are roughly
+25--40x C, and closing that is a decode-layer change, not caching.
+
+**Two things already ruled out, recorded so they are not retried.** Caching table
+schemas across a read batch changed 1000 reads from 3305 ms to 3225 ms -- inside
+noise -- and was reverted. Caching page-zero geometry per connection was a 4%
+win. Reading and decoding page zero is cheap; the cost is in the index pages.
 
 ### Write-path cost structure, and the one remaining quadratic
 
