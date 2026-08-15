@@ -391,19 +391,14 @@ theorem imageBytes_eq_firstPage_append
       rw [List.range_succ_eq_map]
       simp [DiskFormat.encodePages]
 
-/-- A validated growable-image header yields the exact canonical first-page
-prefix consumed by the localized header frame theorem. -/
-theorem SQLiteHeaderMatches.firstPage
-    {image : GrowableStorage.Image PhysicalCodec.pageSize}
-    (validHeader : SQLiteHeaderMatches image) (positive : 0 < image.pageCount) :
-    ∃ (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8),
-      (image.read 0).bytes.toList =
-        FileFormat.encodeDatabaseHeader header ++ pageSuffix ∧
-      header.databaseSizePages.val = image.pageCount ∧
-      header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize ∧
-      header.headerPrefix.reservedSpace = 0 ∧ header.textEncoding.val = 1 := by
-  rcases validHeader with
-    ⟨header, suffix, decoded, pageCount, pageSize, reserved, utf8⟩
+private theorem firstPage_of_decodedHeader
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (header : FileFormat.DatabaseHeader) (suffix : List UInt8)
+    (decoded : FileFormat.decodeDatabaseHeader
+      (PhysicalJournalRecovery.imageBytes image) = some (header, suffix))
+    (positive : 0 < image.pageCount) :
+    ∃ pageSuffix, (image.read 0).bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix := by
   have exactBytes := FileFormat.decodeDatabaseHeader_sound decoded
   rcases imageBytes_eq_firstPage_append image positive with
     ⟨imageSuffix, imageBytes⟩
@@ -425,8 +420,7 @@ theorem SQLiteHeaderMatches.firstPage
       List.take_append_of_le_length (by omega :
         100 ≤ (FileFormat.encodeDatabaseHeader header).length)] at taken
     simpa [encodedLength] using taken
-  refine ⟨header, (image.read 0).bytes.toList.drop 100, ?_, pageCount,
-    pageSize, reserved, utf8⟩
+  refine ⟨(image.read 0).bytes.toList.drop 100, ?_⟩
   calc
     (image.read 0).bytes.toList =
         (image.read 0).bytes.toList.take 100 ++
@@ -434,6 +428,63 @@ theorem SQLiteHeaderMatches.firstPage
       (List.take_append_drop 100 (image.read 0).bytes.toList).symm
     _ = FileFormat.encodeDatabaseHeader header ++
           (image.read 0).bytes.toList.drop 100 := by rw [firstPrefix]
+
+/-- A validated growable-image header yields the exact canonical first-page
+prefix consumed by the localized header frame theorem. -/
+theorem SQLiteHeaderMatches.firstPage
+    {image : GrowableStorage.Image PhysicalCodec.pageSize}
+    (validHeader : SQLiteHeaderMatches image) (positive : 0 < image.pageCount) :
+    ∃ (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8),
+      (image.read 0).bytes.toList =
+        FileFormat.encodeDatabaseHeader header ++ pageSuffix ∧
+      header.databaseSizePages.val = image.pageCount ∧
+      header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize ∧
+      header.headerPrefix.reservedSpace = 0 ∧ header.textEncoding.val = 1 := by
+  rcases validHeader with
+    ⟨header, suffix, decoded, pageCount, pageSize, reserved, utf8⟩
+  rcases firstPage_of_decodedHeader image header suffix decoded positive with
+    ⟨pageSuffix, bytes⟩
+  exact ⟨header, pageSuffix, bytes, pageCount, pageSize, reserved, utf8⟩
+
+/-- The generated/YCSB point-update case has no physical freelist.  Keeping
+this as a property of the validated header ties the planner's empty logical
+freelist to the two corresponding SQLite header fields. -/
+def SQLiteHeaderMatches.FreelistEmpty
+    {image : GrowableStorage.Image PhysicalCodec.pageSize}
+    (_validHeader : SQLiteHeaderMatches image) : Prop :=
+  ∃ header suffix,
+    FileFormat.decodeDatabaseHeader (PhysicalJournalRecovery.imageBytes image) =
+      some (header, suffix) ∧
+    header.firstFreelistTrunk.val = 0 ∧
+    header.freelistPageCount.val = 0
+
+/-- Exact first-page decomposition including the empty-freelist fields. -/
+theorem SQLiteHeaderMatches.firstPage_of_freelistEmpty
+    {image : GrowableStorage.Image PhysicalCodec.pageSize}
+    (validHeader : SQLiteHeaderMatches image)
+    (empty : validHeader.FreelistEmpty) (positive : 0 < image.pageCount) :
+    ∃ (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8),
+      (image.read 0).bytes.toList =
+        FileFormat.encodeDatabaseHeader header ++ pageSuffix ∧
+      header.databaseSizePages.val = image.pageCount ∧
+      header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize ∧
+      header.headerPrefix.reservedSpace = 0 ∧
+      header.textEncoding.val = 1 ∧
+      header.firstFreelistTrunk.val = 0 ∧
+      header.freelistPageCount.val = 0 := by
+  rcases validHeader with
+    ⟨header, suffix, decoded, pageCount, pageSize, reserved, utf8⟩
+  rcases empty with
+    ⟨emptyHeader, emptySuffix, emptyDecoded, emptyFirst, emptyCount⟩
+  rw [decoded] at emptyDecoded
+  have pairEq := Option.some.inj emptyDecoded
+  injection pairEq with headerEq suffixEq
+  subst emptyHeader
+  subst emptySuffix
+  rcases firstPage_of_decodedHeader image header suffix decoded positive with
+    ⟨pageSuffix, bytes⟩
+  exact ⟨header, pageSuffix, bytes, pageCount, pageSize, reserved, utf8,
+    emptyFirst, emptyCount⟩
 
 /-- An exact page-zero write establishes the SQLite framing part of a
 localized representation certificate.  This theorem is the pure refinement
@@ -895,6 +946,63 @@ theorem
     rw [noFree] at member
     simp at member
 
+/-- Indexed localized base writes cannot target page zero: every emitted page
+belongs to the selected post-tree, whose stable page identity is an active
+pre-state page strictly after the SQLite catalog page. -/
+theorem CoreFileAdapter.PreparedOrdinaryDelta.baseWrites_pageId_pos_of_indexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = []) :
+    ∀ write ∈ prepared.writes, 0 < write.pageId := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have afterEncoded' : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding := by
+    simpa [before, selected] using afterEncoded
+  have afterTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterEncoding.treePages :=
+    CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow afterEncoding afterEncoded' afterInline
+  have activeIds := CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed
+    prepared.updated indexed
+  intro write writeMember
+  rcases CoreChunkPageDelta.writes_sources_pages prepared.writesEq write
+      writeMember with ⟨page, pageMember, pageNumber, pageBytes⟩
+  have selectedPage := CoreChunkPageDelta.updateState?_treePagesSelected
+    prepared.updated afterEncoding.treePages afterTree page pageMember
+  have pageIdMember : page.pageNumber ∈
+      delta.table.after.tree.root.pageIds := by
+    rw [← CorePageCodec.encodeChunkNode_pageNumbers
+      delta.table.after.table.schema delta.table.after.tree.root
+        afterEncoding.treePages afterTree]
+    exact List.mem_map_of_mem selectedPage
+  have afterActive : page.pageNumber ∈ delta.after.activePageIds := by
+    unfold CoreChunkPageState.State.activePageIds
+      CoreChunkPageState.tablePageIds
+    exact List.mem_flatMap.mpr ⟨delta.table.after, selected.2,
+      by simpa [CoreChunkPageState.TableState.pageIds] using pageIdMember⟩
+  have beforeActive : page.pageNumber ∈ state.activePageIds := by
+    rw [← activeIds]
+    exact afterActive
+  have afterCatalog := prepared.allocation.active_after_catalog
+    page.pageNumber beforeActive
+  omega
+
 /-- Complete the table/index part of a one-table indexed commit over the
 planner's exact final write list.  The no-freelist premise is the ordinary
 point-update/YCSB case: every non-delta write is then page zero, whose page
@@ -984,9 +1092,9 @@ noncomputable def
     changedInline
 
 /-- Package the exact one-table indexed final-write proof as the public
-localized post-image certificate.  Page-zero omission transports the catalog
-directly; the supplied header fact is now the only remaining file-framing
-obligation outside the prepared table/index delta. -/
+localized post-image certificate.  Page-zero omission is derived from the
+planner equation and the validated empty-freelist header, rather than supplied
+as an independent premise. -/
 noncomputable def
     CoreFileAdapter.PreparedOrdinaryDelta.localizedOnFinalWritesIndexedSingle
     {state : CoreChunkPageState.State} {database : Core.Database}
@@ -1000,8 +1108,10 @@ noncomputable def
     (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
     (physical : CoreLocalizedRepresentation.DatabaseOnSource
       (CorePageSource.ofStorageImage oldImage) state)
-    (notWritten : ∀ write ∈ final.writes, 0 ≠ write.pageId)
+    (currentCount : final.currentPageCount = oldImage.pageCount)
+    (firstPage : final.firstPage = (oldImage.read 0).bytes.toList)
     (oldHeader : SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
     (beforeInline :
       (Classical.choose (physical.exists_table delta.table.before
         (CoreChunkPageDelta.updateState?_selected_mem
@@ -1021,6 +1131,34 @@ noncomputable def
     SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.finalWrites_pageId_lt_of_indexed
       prepared indexed final noFree oldImage physical beforeInline
         afterEncoding afterEncoded afterInline
+  have baseBound : ∀ write ∈ prepared.writes,
+      write.pageId < final.currentPageCount := by
+    intro write member
+    rw [currentCount]
+    exact bounded write (final.base_mem write member)
+  have basePositive :=
+    SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.baseWrites_pageId_pos_of_indexed
+      prepared indexed oldImage physical afterEncoding afterEncoded afterInline
+  have baseNoZero : ∀ write ∈ prepared.writes, 0 ≠ write.pageId := by
+    intro write member equal
+    have positiveWrite := basePositive write member
+    omega
+  rcases oldHeader.firstPage_of_freelistEmpty emptyFreelist positive with
+    ⟨decodedHeader, pageSuffix, pageBytes, headerCount, _, _, _, firstFree,
+      freeCount⟩
+  have decodedFirst : FileFormat.decodeDatabaseHeader final.firstPage =
+      some (decodedHeader, pageSuffix) := by
+    rw [firstPage, pageBytes]
+    exact FileFormat.decodeDatabaseHeader_encode decodedHeader pageSuffix
+  have canonicalFirst : final.firstPage =
+      FileFormat.encodeDatabaseHeader decodedHeader ++ pageSuffix := by
+    rw [firstPage]
+    exact pageBytes
+  have countMatches : decodedHeader.databaseSizePages.val =
+      final.currentPageCount := headerCount.trans currentCount.symm
+  have notWritten := final.pageZero_not_mem_of_stable noFree baseBound
+    baseNoZero decodedHeader pageSuffix decodedFirst canonicalFirst countMatches
+      firstFree freeCount
   have stableCount := GrowableStorage.applyWrites_pageCount_eq_of_forall_lt
     oldImage final.writes bounded
   have header := oldHeader.applyWritesOfUnchangedPageZero final.writes positive

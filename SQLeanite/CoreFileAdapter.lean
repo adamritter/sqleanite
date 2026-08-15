@@ -229,6 +229,20 @@ private def targetPageCount (current : Nat)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : Nat :=
   writes.foldl (fun count write => max count (write.pageId + 1)) current
 
+private theorem targetPageCount_eq_of_forall_lt (current : Nat) :
+    ∀ writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize),
+      (∀ write ∈ writes, write.pageId < current) →
+      targetPageCount current writes = current
+  | [], _ => rfl
+  | head :: tail, bounded => by
+      unfold targetPageCount
+      simp only [List.foldl_cons]
+      have headBound := bounded head (by simp)
+      have first : max current (head.pageId + 1) = current := by omega
+      rw [first]
+      exact targetPageCount_eq_of_forall_lt current tail
+        (by intro write member; exact bounded write (by simp [member]))
+
 /-- Add the one-trunk SQLite freelist image without removing any logical page
 write. Bounds on the trunk and leaves are checked by the enclosing planner. -/
 def addFreelistWrite? (freePages : List Nat)
@@ -514,6 +528,102 @@ theorem PreparedLocalizedWrites.added_pageZero_of_noFreePages
   · rcases trunk with ⟨trunk, member, equal⟩
     rw [noFree] at member
     simp at member
+
+set_option maxRecDepth 10000 in
+/-- Stable point-update planning emits no page-zero write.  The proof unfolds
+the actual planner: an empty freelist and bounded base writes preserve the
+header's size/freelist fields, so the canonical patched header is byte-equal
+to the page already on disk. -/
+theorem PreparedLocalizedWrites.pageZero_not_mem_of_stable
+    {freePages : List Nat} {baseWrites : List
+      (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites freePages baseWrites)
+    (noFree : freePages = [])
+    (baseBound : ∀ write ∈ baseWrites,
+      write.pageId < prepared.currentPageCount)
+    (baseNoZero : ∀ write ∈ baseWrites, 0 ≠ write.pageId)
+    (header : FileFormat.DatabaseHeader) (suffix : List UInt8)
+    (decoded : FileFormat.decodeDatabaseHeader prepared.firstPage =
+      some (header, suffix))
+    (canonical : prepared.firstPage =
+      FileFormat.encodeDatabaseHeader header ++ suffix)
+    (pageCount : header.databaseSizePages.val = prepared.currentPageCount)
+    (firstFree : header.firstFreelistTrunk.val = 0)
+    (freeCount : header.freelistPageCount.val = 0) :
+    ∀ write ∈ prepared.writes, 0 ≠ write.pageId := by
+  subst freePages
+  have target := targetPageCount_eq_of_forall_lt
+    prepared.currentPageCount baseWrites baseBound
+  have planned := prepared.planned
+  unfold planLocalizedWrites? at planned
+  rw [decoded] at planned
+  simp only [List.length_nil] at planned
+  split at planned
+  next bounds =>
+    let count : FileFormat.U32Value :=
+      ⟨targetPageCount prepared.currentPageCount baseWrites, bounds.1⟩
+    let zeroCount : FileFormat.U32Value := ⟨0, by omega⟩
+    have countEq : count = header.databaseSizePages := by
+      apply Fin.ext
+      exact target.trans pageCount.symm
+    have firstFreeEq : zeroCount = header.firstFreelistTrunk := by
+      apply Fin.ext
+      exact firstFree.symm
+    have freeCountEq : zeroCount = header.freelistPageCount := by
+      apply Fin.ext
+      exact freeCount.symm
+    have updatedHeaderEq :
+        ({ header with
+          databaseSizePages := count
+          firstFreelistTrunk := zeroCount
+          freelistPageCount := zeroCount } : FileFormat.DatabaseHeader) =
+          header := by
+      cases header
+      simp only at countEq firstFreeEq freeCountEq ⊢
+      congr
+    change
+      (do
+        let (headerPage, headerRest) ←
+          DiskFormat.decodeStoragePage PhysicalCodec.pageSize
+            (FileFormat.encodeDatabaseHeader
+              ({ header with
+                databaseSizePages := count
+                firstFreelistTrunk := zeroCount
+                freelistPageCount := zeroCount } :
+                FileFormat.DatabaseHeader) ++ suffix)
+        if _headerExact : headerRest = [] then
+          let writes ← addFreelistWrite? [] baseWrites
+          some (addLocalizedHeaderWrite prepared.firstPage headerPage writes)
+        else none) = some prepared.writes at planned
+    rw [updatedHeaderEq] at planned
+    rcases Option.bind_eq_some.mp planned with
+      ⟨pageAndRest, pageResult, planned⟩
+    rcases pageAndRest with ⟨headerPage, headerRest⟩
+    split at planned
+    next pairExact =>
+      cases pairExact
+      split at planned
+      next headerExact =>
+        have pageBytes := DiskFormat.decodeStoragePage_sound pageResult
+        rw [headerExact, List.append_nil] at pageBytes
+        simp only [addFreelistWrite?, Option.bind_eq_bind, Option.bind] at planned
+        have headerSame :
+            (headerPage.bytes.toList == prepared.firstPage) = true := by
+          simp [canonical, ← pageBytes]
+        unfold addLocalizedHeaderWrite at planned
+        rw [if_neg (by
+          simp only [List.any_eq_true]
+          rintro ⟨witness, member, equal⟩
+          have pageZero : witness.pageId = 0 := of_decide_eq_true equal
+          exact baseNoZero witness member pageZero.symm)] at planned
+        rw [if_pos headerSame] at planned
+        injection planned with finalEq
+        intro write member
+        apply baseNoZero write
+        rw [finalEq]
+        exact member
+      next => contradiction
+  next => contradiction
 
 /-- Header/freelist framing added after the logical delta cannot alias any
 table-tree page owned by the allocator state. This closes the table-page part
