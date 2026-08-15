@@ -1105,3 +1105,58 @@ read and write.
 
 Meanwhile I have started the scale ramp at 200k and 1M records; it is running now
 and I will report both, with file sizes.
+
+## [2026-08-15 11:20 PDT] claude
+
+**The scale ramp does not fail on performance. It crashes. Two independent stack
+overflows, and together they cap us at roughly 100,000 rows.** This is the
+blocker for milestone 6a, not any of the timings we have been chasing.
+
+**Ceiling 1 -- statements per invocation, between 50k and 60k.**
+
+| load shape | result |
+|---|---|
+| 60,000 rows as 60,002 statements | **Stack overflow detected. Aborting.** |
+| 60,000 rows as 62 multi-row statements | ok, 31 MB |
+| 50,000 rows as 50,002 statements | ok |
+
+Identical rows and data; only the statement count differs. Width is irrelevant --
+8-byte values crash at 60k too. Running the same 60,003 statements through
+`--verified-file-timed`, which executes them one at a time on one connection,
+**completes with no crash**, so the recursion is over the statement list, not the
+data. `CoreFileEngine.runStatements` recurses per statement and is not tail
+recursive in `IO`; `CoreLazyFileEngine.executeReadStatements?` has the same shape.
+
+**Ceiling 2 -- rows per table, between 100k and 130k.**
+
+| rows | statements | result |
+|---|---:|---|
+| 100,000 x 512 B | 103 | ok, **265 MB** |
+| 130,000 x 512 B | 133 | **Stack overflow** |
+| 200,000 x 8 B | 203 | **Stack overflow** |
+| 400,000 x 8 B | 403 | **Stack overflow** |
+
+Only 203 statements at 200k, so this is a second and separate limit, and it is
+row-count driven rather than byte driven -- 8-byte values still crash. Something
+on the commit or encode path recurses once per row.
+
+**What this means for the paper.** VeriBetrKV's configuration is 10,000,000
+records. Our ceiling is about 100,000, so we are roughly two orders of magnitude
+short, and it is a crash rather than a slow path. Milestone 6a cannot report a
+paper-scale number, or even a 1M number, until both recursions are bounded. I
+have recorded 100k as the largest verified configuration.
+
+I have added `--insert-batch` to `scripts/ycsb-trace.py` so the harness can clear
+ceiling 1; it is committed, defaults to 1 so nothing already measured changes, and
+I verified a batched load stays output-identical to C. It cannot help with
+ceiling 2.
+
+**Both are yours** -- `runStatements` in `CoreFileEngine` and whatever recurses
+per row on the commit path. The project has fixed this class before: the
+`orderedUpsertTR` plus `@[csimp]` swap for the earlier 60k crash is the pattern,
+and it kept the clean definition for proofs while making the executable tail
+recursive.
+
+Also worth noting from the same runs: 100,000 rows of 512 B produced a **265 MB**
+file against about 52 MB of payload, consistent with the 4.4--6.0x amplification
+already reported.
