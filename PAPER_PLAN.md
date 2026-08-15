@@ -155,7 +155,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   fallback database comparison. The public
   `localizedRepresentation_of_certificates` constructor consumes those exact
   table/index/metadata witnesses directly, so neither whole-database nor
-  whole-index decoder equations remain as constructor assumptions.
+  whole-index decoder equations remain as constructor assumptions. Exact
+  rebuilt index and overflow runs lift from their numbered writes to the
+  decoder's contiguous-page relation via
+  `readsPagesFrom_applyWrites_of_covered`; `IndexesDecode.consEncoded` then
+  turns an encoded changed index directly into the physical certificate.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
@@ -533,6 +537,54 @@ Two honest deviations, to be stated in the paper rather than papered over:
   integer-key variant may be reported alongside, labelled as a deviation.
 - **We compare against C SQLite, they compared against RocksDB and
   BerkeleyDB.** The ratio is to a different baseline; the workload is the same.
+
+### Scale ramp, and why it is currently blocked
+
+The ramp is 1k -> 100k -> **1M** -> 10M records, and 1M is a required reporting
+point, not optional: it is the smallest size where the database (about 512 MB at
+512 bytes per record) exceeds a typical page cache, which is the regime
+VeriBetrKV's 2 GB cap is designed to create.
+
+**It cannot be run today, and the reason is measured, not suspected.** Two costs
+on the read path are linear in database size:
+
+- opening a file decodes all of it, at roughly 33 ms/MB (30/51/93/181 ms at
+  668 KB/1.3/2.7/5.4 MB);
+- `lookupCertifiedIndexCandidates` re-compares the whole table per read, giving
+  0.76/1.48/3.88/8.64 ms per read at 250/500/1000/2000 records.
+
+Extrapolated to 1M records that is about 17 s to open and about 4 s *per read*,
+so a 100-operation run is roughly 400 s. At 10M it is out of reach entirely.
+
+So the scale ramp is gated on the read-path work below, and should be attempted
+again as each item lands rather than treated as an independent task. Report the
+largest configuration that completes, with the memory cap applied, and say
+plainly where it stopped.
+
+### Read-path cost structure (measured 2026-08-14)
+
+Workload C, 1000 records, 512-byte field, 100 reads. C SQLite: 8 ms. Us: 651 ms.
+
+| Component | Cost | Order |
+|---|---:|---|
+| Full-file decode on open | ~92 ms | O(database) |
+| Index-certificate load, once | ~213 ms | O(database) |
+| Certified lookup's table re-comparison | ~3.9 ms per read | **O(database) per read** |
+
+The third is the important one. `lookupCertifiedIndexCandidates` requires
+`stored.table.rows = table.rows`, a structural comparison of every row, on every
+read. An indexed point lookup is therefore asymptotically no better than a scan:
+**deleting the index makes the same 100 reads run 116 ms instead of 651 ms.**
+
+This is the plan's own "proof debt paid as runtime cost" pattern in its purest
+form -- the cached certificate cannot prove it still matches the live table, so
+it re-verifies by brute force. Fixing it is a proof task, not an optimisation:
+the check must become local (validate the candidate index entry and the fetched
+row) rather than global, so it stays provable without trusting IO state.
+
+A second, smaller defect in the same path: `CoreFileEngine.lean:164` caches with
+`if retained.isEmpty then <load>`, so a legitimately empty certificate list
+never caches and the whole file is re-read *per query*. That needs a loaded flag.
 
 ### Scale risk
 

@@ -16,7 +16,10 @@ structure Connection where
   private state : Std.Mutex Core.State
   private pageState : IO.Ref (Option CoreChunkPageState.State)
   private validatedOpen : IO.Ref (Option CoreFileAdapter.ValidatedOpenState)
-  private indexCertificates : IO.Ref (List CoreFileAdapter.StoredIntegerIndex)
+  -- `none` means not yet loaded; `some []` means loaded and genuinely empty.
+  -- Testing emptiness instead re-read and re-decoded the whole main file on
+  -- every query whenever certification legitimately produced nothing.
+  private indexCertificates : IO.Ref (Option (List CoreFileAdapter.StoredIntegerIndex))
   private provenance : IO.Ref FileProvenance
 
 def databaseContents (database : Core.Database) :=
@@ -44,7 +47,7 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
     validatedOpen := ← IO.mkRef opened
     -- Index certificates are needed only by secondary-index SELECTs. Loading
     -- them here made every write-only connection decode every index twice.
-    indexCertificates := ← IO.mkRef []
+    indexCertificates := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign) }
 
 def create (syncOps : CoreFileAdapter.SyncOps)
@@ -78,7 +81,7 @@ private def commitFull (connection : Connection) (next : Core.State) :
     throw (IO.userError "general MVP commit reopened different logical contents")
   connection.pageState.set (some validated.state)
   connection.validatedOpen.set (some validated)
-  connection.indexCertificates.set []
+  connection.indexCertificates.set none
   connection.provenance.set .generated
   return { next with database := reopened }
 
@@ -101,10 +104,13 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
               | some _ =>
                   connection.pageState.set (some delta.after)
                   connection.validatedOpen.set validated
-                  let certificates ← connection.indexCertificates.get
-                  connection.indexCertificates.set
-                    (CoreFileAdapter.retargetIntegerIndexCertificates certificates
-                      next.database)
+                  -- Retarget only what was already loaded. A `none` here means
+                  -- nothing was cached, and must stay `none` rather than
+                  -- becoming a loaded-and-empty result.
+                  connection.indexCertificates.modify fun cached =>
+                    cached.map fun certificates =>
+                      CoreFileAdapter.retargetIntegerIndexCertificates certificates
+                        next.database
                   return next
               | none => commitFull connection next
           | _, _ =>
@@ -142,7 +148,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
                   connection.validatedOpen.set (some prepared.validated)
                   -- This path changes the physical index image, so retained
                   -- certificates must be rebuilt on the next indexed read.
-                  connection.indexCertificates.set []
+                  connection.indexCertificates.set none
                   return next
               | none => commitFull connection next
           | none => commitFull connection next
@@ -160,14 +166,14 @@ private def executeStatement (connection : Connection) (state : Core.State)
               let optimized := CoreOptimizerBridge.optimize tableName query
               let certificates ← match table.chooseAccessPath optimized.predicate with
                 | .equalityIndex _ | .rangeIndex _ => do
-                    let retained ← connection.indexCertificates.get
-                    if retained.isEmpty then
-                      let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
-                        connection.paths state.database
-                      connection.indexCertificates.set loaded
-                      pure loaded
-                    else pure retained
-                | _ => connection.indexCertificates.get
+                    match ← connection.indexCertificates.get with
+                    | some retained => pure retained
+                    | none =>
+                        let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
+                          connection.paths state.database
+                        connection.indexCertificates.set (some loaded)
+                        pure loaded
+                | _ => pure ((← connection.indexCertificates.get).getD [])
               match CoreFileAdapter.lookupCertifiedIndexCandidates certificates
                   table optimized with
               | some lookup =>
