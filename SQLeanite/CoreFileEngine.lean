@@ -246,20 +246,26 @@ private def executeStatement (connection : Connection) (live : LiveState)
       | none => return (live, CoreSQL.executeStatement state statement)
   | _ => return (live, CoreSQL.executeStatement state statement)
 
-private def runStatements (connection : Connection) : LiveState →
-    List Statement → IO (LiveState × Except String (List Core.Result))
-  | live, [] => pure (live, .ok [])
-  | live, statement :: statements => do
+private def runStatementsGo (connection : Connection) : LiveState →
+    List Statement → List Core.Result →
+      IO (LiveState × Except String (List Core.Result))
+  | live, [], reversed => pure (live, .ok reversed.reverse)
+  | live, statement :: statements, reversed => do
       let (cached, execution) ← executeStatement connection live statement
       match execution with
       | .error message => pure (cached, .error message)
       | .ok (next, results) => do
           let persisted ← persistIfNeeded connection live.state next statement
           let advanced := cached.retarget persisted
-          let (finalState, tail) ← runStatements connection advanced statements
-          match tail with
-          | .error message => pure (finalState, .error message)
-          | .ok remaining => pure (finalState, .ok (results ++ remaining))
+          runStatementsGo connection advanced statements
+            (results.foldl (fun acc result => result :: acc) reversed)
+
+/-- Stack-safe execution of a statement batch.  `runStatementsGo` accumulates
+results in reverse order, so it does no work after its recursive IO call. -/
+private def runStatements (connection : Connection) (live : LiveState)
+    (statements : List Statement) :
+    IO (LiveState × Except String (List Core.Result)) :=
+  runStatementsGo connection live statements []
 
 def execute (connection : Connection) (sql : String) :
     IO (Except String (List Core.Result)) :=

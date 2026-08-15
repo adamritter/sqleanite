@@ -43,11 +43,11 @@ theorem needsWriter_false_member (statements : List Statement)
   | false => rfl
   | true => exact False.elim (readOnly statement member writes)
 
-private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
+private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) : Core.State → List Statement →
-      IO (Core.State × Except String (List Core.Result))
-  | state, [] => pure (state, .ok [])
-  | state, statement :: statements =>
+      List Core.Result → IO (Core.State × Except String (List Core.Result))
+  | state, [], reversed => pure (state, .ok reversed.reverse)
+  | state, statement :: statements, reversed =>
       match executeStatement state statement with
       | .error message => pure (state, .error message)
       | .ok (next, results) => do
@@ -59,10 +59,15 @@ private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
                 throw (IO.userError "WAL commit reopened different logical contents")
               pure { next with database := reopened }
             else pure next
-          let (finalState, tail) ← runStatements syncOps paths persisted statements
-          match tail with
-          | .error message => pure (finalState, .error message)
-          | .ok remaining => pure (finalState, .ok (results ++ remaining))
+          runStatementsGo syncOps paths persisted statements
+            (results.foldl (fun acc result => result :: acc) reversed)
+
+/-- Stack-safe execution of a WAL statement batch. -/
+private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
+    (paths : CoreWALFileAdapter.Paths) (state : Core.State)
+    (statements : List Statement) :
+    IO (Core.State × Except String (List Core.Result)) :=
+  runStatementsGo syncOps paths state statements []
 
 /-- Execute SQL against one immutable WAL snapshot. -/
 def execute (syncOps : CoreWALFileAdapter.SyncOps)

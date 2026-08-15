@@ -103,14 +103,18 @@ private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
       return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | _ => return none
 
-private def executeReadStatements? (paths : CoreFileAdapter.Paths) :
-    List Statement → IO (Option (List Core.Result))
-  | [] => pure (some [])
-  | .select select :: statements => do
+private def executeReadStatementsGo? (paths : CoreFileAdapter.Paths) :
+    List Statement → List Core.Result → IO (Option (List Core.Result))
+  | [], reversed => pure (some reversed.reverse)
+  | .select select :: statements, reversed => do
       let some result ← executeSelect? paths select | return none
-      let some results ← executeReadStatements? paths statements | return none
-      return some (result :: results)
-  | _ => pure none
+      executeReadStatementsGo? paths statements (result :: reversed)
+  | _, _ => pure none
+
+/-- Stack-safe execution of a page-directed read batch. -/
+private def executeReadStatements? (paths : CoreFileAdapter.Paths)
+    (statements : List Statement) : IO (Option (List Core.Result)) :=
+  executeReadStatementsGo? paths statements []
 
 /-- `some result` means the cold path handled the complete SQL input. `none`
 is an optimization miss and must be followed by ordinary execution.  A batch
