@@ -135,6 +135,8 @@ else
 fi
 
 if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
+   grep -q 'rollbackCommit_represents_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'rollbackCommit_core_returned_recovers_new' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'rollbackCommit_core_repeated_recovery_atomic' \

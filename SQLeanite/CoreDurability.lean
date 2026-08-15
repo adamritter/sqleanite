@@ -45,6 +45,62 @@ theorem decode_imageBytes_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
   rw [imageBytes_storageImage]
   exact CorePageCodec.decode_encodeBulk utf8 database image encoded
 
+/-- A physical page image represents a Core database when the actual bytes
+read by recovery decode to that database.  Keeping this relation independent
+of a particular encoder is what lets the same crash theorem cover canonical
+bulk images, freelist-padded images, and page-local updates. -/
+def RepresentsDatabase
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) : Prop :=
+  CoreDecode.decode (PhysicalJournalRecovery.imageBytes image) =
+    some database.canonicalize
+
+theorem storageImage_encodeBulk_represents
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image) :
+    RepresentsDatabase (CoreFileAdapter.storageImage image) database :=
+  decode_imageBytes_encodeBulk utf8 database image encoded
+
+/-- Representation-parametric crash atomicity.  This is the reusable FSCQ
+lifting theorem: the storage protocol supplies old-or-new page equivalence;
+the two representation premises say what those byte images mean. -/
+theorem rollbackCommit_represents_crash_atomic
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (newImage : CoreFile.Image)
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newRepresents : RepresentsDatabase
+      (CoreFileAdapter.storageImage newImage) newDatabase)
+    (doesNotShrink :
+      oldImage.pageCount ≤ (CoreFileAdapter.storageImage newImage).pageCount)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage newImage) phase)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some newDatabase.canonicalize := by
+  rcases CoreFileAdapter.commit_crash_atomic oldImage newImage doesNotShrink
+      phase recoveredMain recoveredJournal outcome with restored | committed
+  · left
+    have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv restored
+    unfold PhysicalJournalRecovery.recoverBytes
+    rw [bytes]
+    exact oldRepresents
+  · right
+    have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv committed
+    unfold PhysicalJournalRecovery.recoverBytes
+    rw [bytes]
+    exact newRepresents
+
 /-- A crash at every rollback-journal checkpoint decodes to the old or new
 Core database, not merely an equivalent abstract page image. -/
 theorem rollbackCommit_core_crash_atomic
@@ -72,19 +128,11 @@ theorem rollbackCommit_core_crash_atomic
       CoreDecode.decode
         (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
         some newDatabase.canonicalize := by
-  rcases CoreFileAdapter.commit_crash_atomic
-      (CoreFileAdapter.storageImage oldImage) newImage doesNotShrink phase
-      recoveredMain recoveredJournal outcome with restored | committed
-  · left
-    have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv restored
-    unfold PhysicalJournalRecovery.recoverBytes
-    rw [bytes]
-    exact decode_imageBytes_encodeBulk utf8 oldDatabase oldImage oldEncoded
-  · right
-    have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv committed
-    unfold PhysicalJournalRecovery.recoverBytes
-    rw [bytes]
-    exact decode_imageBytes_encodeBulk utf8 newDatabase newImage newEncoded
+  exact rollbackCommit_represents_crash_atomic oldDatabase newDatabase
+    (CoreFileAdapter.storageImage oldImage) newImage
+    (storageImage_encodeBulk_represents utf8 oldDatabase oldImage oldEncoded)
+    (storageImage_encodeBulk_represents utf8 newDatabase newImage newEncoded)
+    doesNotShrink phase recoveredMain recoveredJournal outcome
 
 /-- After the commit protocol has returned, the old disjunct is impossible:
 every permitted crash image decodes to the committed Core database. -/

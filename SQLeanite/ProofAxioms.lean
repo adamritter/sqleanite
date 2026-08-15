@@ -410,6 +410,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.commit_crash_atomic
 #print axioms SQLeanite.CoreDurability.imageBytes_storageImage
 #print axioms SQLeanite.CoreDurability.decode_imageBytes_encodeBulk
+#print axioms SQLeanite.CoreDurability.storageImage_encodeBulk_represents
+#print axioms SQLeanite.CoreDurability.rollbackCommit_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_repeated_recovery_atomic
