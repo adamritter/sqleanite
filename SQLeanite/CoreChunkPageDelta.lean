@@ -258,8 +258,12 @@ def replace? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     let updatedTree := allocating.insert entry.1 updatedChunk
     if _noAllocation : updatedTree.nextPage = nextPage then
       if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-        let after : CoreChunkPageState.TableState :=
-          ⟨replacement, updatedTree, represents⟩
+        let after : CoreChunkPageState.TableState := {
+          table := replacement
+          tree := updatedTree
+          represents
+          capacity := state.capacity
+          capacity_pos := state.capacity_pos }
         let pages ← CorePageCodec.encodeChunkPath replacement.schema
           entry.1 updatedTree.root
         some ⟨state, after, entry.1, pages, none, []⟩
@@ -271,15 +275,19 @@ def insert? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     (row : Core.Row) (replacement : Core.Table) : Option TableDelta := do
   let entry ← findChunkFor? row.treeKey state.tree.root
   if _fresh : !entry.2.any (fun old => old.rowid = row.rowid) then
-    if _room : entry.2.length < CoreChunkPageState.chunkCapacity then
+    if _room : entry.2.length < state.capacity then
       let updatedChunk := Core.orderedUpsert row entry.2
       let allocating : PersistentPageTree.Store CoreChunkPageState.Chunk :=
         { state.tree with nextPage }
       let updatedTree := allocating.insert entry.1 updatedChunk
       if _noAllocation : updatedTree.nextPage = nextPage then
         if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-          let after : CoreChunkPageState.TableState :=
-            ⟨replacement, updatedTree, represents⟩
+          let after : CoreChunkPageState.TableState := {
+            table := replacement
+            tree := updatedTree
+            represents
+            capacity := state.capacity
+            capacity_pos := state.capacity_pos }
           let pages ← CorePageCodec.encodeChunkPath replacement.schema
             entry.1 updatedTree.root
           some ⟨state, after, entry.1, pages, none, []⟩
@@ -296,7 +304,7 @@ def splitInsert? (state : CoreChunkPageState.TableState) (nextPage : Nat)
   let entry ← findChunkFor? row.treeKey state.tree.root
   if _fresh : !entry.2.any (fun old => old.rowid = row.rowid) then
     let updated := Core.orderedUpsert row entry.2
-    if _full : CoreChunkPageState.chunkCapacity < updated.length then
+    if _full : state.capacity < updated.length then
       let splitAt := updated.length / 2
       let left := updated.take splitAt
       let right := updated.drop splitAt
@@ -331,8 +339,12 @@ def splitInsert? (state : CoreChunkPageState.TableState) (nextPage : Nat)
           state.tree.root
         let pages ← changedPhysical.mapM
           (CorePageCodec.encodePhysicalChunkPage replacement.schema)
-        let after : CoreChunkPageState.TableState :=
-          ⟨replacement, updatedTree, represents⟩
+        let after : CoreChunkPageState.TableState := {
+          table := replacement
+          tree := updatedTree
+          represents
+          capacity := state.capacity
+          capacity_pos := state.capacity_pos }
         some ⟨state, after, entry.1, pages, some beforePages, reused.2⟩
       else none
     else none
@@ -349,8 +361,12 @@ def delete? (state : CoreChunkPageState.TableState) (nextPage : Nat)
       let updatedTree := allocating.insert entry.1 updatedChunk
       if _noAllocation : updatedTree.nextPage = nextPage then
         if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-          let after : CoreChunkPageState.TableState :=
-            ⟨replacement, updatedTree, represents⟩
+          let after : CoreChunkPageState.TableState := {
+            table := replacement
+            tree := updatedTree
+            represents
+            capacity := state.capacity
+            capacity_pos := state.capacity_pos }
           let pages ← CorePageCodec.encodeChunkPath replacement.schema
             entry.1 updatedTree.root
           some ⟨state, after, entry.1, pages, none, []⟩
@@ -386,8 +402,12 @@ def mergeDelete? (state : CoreChunkPageState.TableState) (nextPage : Nat)
           state.tree.root
         let pages ← changedPhysical.mapM
           (CorePageCodec.encodePhysicalChunkPage replacement.schema)
-        let after : CoreChunkPageState.TableState :=
-          ⟨replacement, updatedTree, represents⟩
+        let after : CoreChunkPageState.TableState := {
+          table := replacement
+          tree := updatedTree
+          represents
+          capacity := state.capacity
+          capacity_pos := state.capacity_pos }
         some ⟨state, after, entry.1, pages, some beforePages, deleted.2⟩
       else none
     else none
@@ -530,8 +550,12 @@ def replaceMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
           state.tree.root
         let pages ← changedPhysical.mapM
           (CorePageCodec.encodePhysicalChunkPage replacement.schema)
-        let after : CoreChunkPageState.TableState :=
-          ⟨replacement, updatedTree, represents⟩
+        let after : CoreChunkPageState.TableState := {
+          table := replacement
+          tree := updatedTree
+          represents
+          capacity := state.capacity
+          capacity_pos := state.capacity_pos }
         some ⟨state, after, row.treeKey, pages, some beforePages, []⟩
       else none
     else none
@@ -789,8 +813,12 @@ def retainMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
         state.tree.root
       let pages ← changedPhysical.mapM
         (CorePageCodec.encodePhysicalChunkPage replacement.schema)
-      let after : CoreChunkPageState.TableState :=
-        ⟨replacement, updatedTree, represents⟩
+      let after : CoreChunkPageState.TableState := {
+        table := replacement
+        tree := updatedTree
+        represents
+        capacity := state.capacity
+        capacity_pos := state.capacity_pos }
       some ⟨state, after, row.treeKey, pages, some beforePages,
         updated.2.2⟩
     else none

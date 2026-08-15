@@ -10,10 +10,10 @@ namespace CoreChunkPageState
 The generic verified 2-3 tree stores *page chunks*, not individual rows.  This
 keeps its small, fully proved branching algorithm while making physical page
 count proportional to SQLite leaf capacity rather than row count.  A chunk is
-bounded at `chunkCapacityFor`, which is sixteen rows for ordinary records and
-smaller for wide ones, so a tree leaf's two chunks always fit one SQLite leaf
-page.  A fixed sixteen made the codec reject wide tables outright rather than
-falling back, which is what `chunkCapacityFor` documents and fixes.
+bounded at the byte-aware `chunkCapacityFor`, so a tree leaf's two chunks fit
+one SQLite leaf page.  The selected positive capacity is retained in each
+proof-carrying `TableState`; bulk construction and later local splits therefore
+use one policy rather than silently reverting to a fixed row count.
 -/
 
 abbrev Chunk := List Core.Row
@@ -57,24 +57,16 @@ returns `none`, `encodeBulk` propagates it, and the CLI reports "general MVP
 database exceeds the physical subset". A table of 512-byte rows was therefore
 unloadable, and so was a table of 130-byte rows at exactly 32, 48 or 64 rows --
 the counts that give some leaf a full sixteen-row pair. Narrow rows keep the
-sixteen-row cap, so existing page layout and the twelve public workloads are
-unchanged. -/
+sixteen-row cap also left narrow-row pages mostly empty.  Capacity is now
+limited only by the proved byte bound. -/
 def chunkCapacityFor (rows : List Core.Row) : Nat :=
   let widest := rows.foldl (fun bound row => max bound (rowCellBound row)) 0
-  min chunkCapacity (max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2))))
+  max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2)))
 
 theorem chunkCapacityFor_pos (rows : List Core.Row) :
     0 < chunkCapacityFor rows := by
   simp only [chunkCapacityFor, chunkCapacity]
-  rw [Nat.lt_min]
-  constructor
-  · omega
-  · omega
-
-theorem chunkCapacityFor_le (rows : List Core.Row) :
-    chunkCapacityFor rows ≤ chunkCapacity := by
-  unfold chunkCapacityFor chunkCapacity
-  exact Nat.min_le_left _ _
+  omega
 
 def chunks : Nat → List α → List (List α)
   | 0, values => if values.isEmpty then [] else [values]
@@ -262,6 +254,8 @@ structure TableState where
   table : Core.Table
   tree : PersistentPageTree.Store Chunk
   represents : Store.rows tree = table.rows
+  capacity : Nat
+  capacity_pos : 0 < capacity
 
 /-- Change only the logical witness attached to a physical table.  This is the
 critical abstraction seam for persistent topology: equal logical contents do
@@ -270,7 +264,9 @@ def TableState.retarget (state : TableState) (table : Core.Table)
     (equivalent : state.table.Equiv table) : TableState :=
   { table
     tree := state.tree
-    represents := state.represents.trans equivalent.rows_eq }
+    represents := state.represents.trans equivalent.rows_eq
+    capacity := state.capacity
+    capacity_pos := state.capacity_pos }
 
 /-- Table-page topology depends on the schema and ordered rows, but not on
 secondary-index metadata.  A validating open first reconstructs table pages
@@ -306,7 +302,9 @@ def TableState.retargetData (state : TableState) (table : Core.Table)
     (equivalent : TableState.DataEquiv state.table table) : TableState :=
   { table
     tree := state.tree
-    represents := state.represents.trans equivalent.2 }
+    represents := state.represents.trans equivalent.2
+    capacity := state.capacity
+    capacity_pos := state.capacity_pos }
 
 @[simp] theorem TableState.retargetData_table (state : TableState)
     (table : Core.Table) (equivalent : TableState.DataEquiv state.table table) :
@@ -352,7 +350,8 @@ theorem buildTree_rows (capacity : Nat) (rootPage : Nat) (table : Core.Table)
 
 def TableState.build? (rootPage : Nat) (table : Core.Table) :
     Option TableState :=
-  let rowChunks := chunks (chunkCapacityFor table.rows) table.rows
+  let capacity := chunkCapacityFor table.rows
+  let rowChunks := chunks capacity table.rows
   match result : entries? rowChunks with
   | none => none
   | some entries =>
@@ -361,7 +360,8 @@ def TableState.build? (rootPage : Nat) (table : Core.Table) :
       -- a forward cursor. Later mutations preserve these identities locally.
       let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
         built.rootValid
-      some ⟨table, tree, buildTree_rows _ rootPage table result⟩
+      some ⟨table, tree, buildTree_rows _ rootPage table result, capacity,
+        chunkCapacityFor_pos table.rows⟩
 
 def buildTables? : Nat → List Core.Table →
     Option (List TableState × Nat)

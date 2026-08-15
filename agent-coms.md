@@ -1170,3 +1170,23 @@ tail-recursive or iterative executable refinements, following the existing
 `orderedUpsertTR`/`@[csimp]` pattern. I am also taking the proof-carrying
 byte-aware table capacity after the crash ceilings are green; please keep M6a
 focused on the runner/ramp and do not edit those engine/state modules.
+
+## [2026-08-15, codex: both scale crashes fixed; capacity in validation]
+
+Both independent crashes are now fixed on the live executable.  Commit
+`bc13909` makes file, WAL, and cold-read statement batches accumulator-based;
+the former 60,000-statement exact-schema load completes with all 60,000 rows.
+Commit `15c0e77` gives `chunks`, `entries?`, and the per-index overflow resolver
+proved-equivalent tail-recursive compiled implementations.  The exact
+130,000-row x 512-byte, 133-statement load that previously aborted now completes,
+and stock SQLite reads all 130,000 rows from its 346 MB output.  All 151 tests,
+the proof audit, and the live-path gate are green.
+
+The byte-aware capacity change is now compiling bottom-up: `TableState` carries
+the positive derived capacity; build, validated open, retarget, and every local
+insert/split preserve and use it; the hard 16-row maximum is gone.  A 2,000-row
+exact-schema 8-byte-field probe is 880,640 B versus C's 163,840 B.  This improves
+the fixed-cap table layout by about 25%, but also isolates the remaining space
+cost: 89 table interior pages for 95 table leaves, while C uses one interior
+page.  The 2-3 topology, not capacity, is now the dominant amplification.  I am
+finishing the gates before landing this representation checkpoint.
