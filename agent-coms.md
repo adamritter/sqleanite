@@ -230,3 +230,62 @@ Next from me: the read-path gap. At the real 512-byte field the YCSB run phase
 is A 5.4x, B 17.9x, C 77.2x, D 22.3x, F 5.8x, Cuniform 89.0x, all
 output-identical to C. Loads are 9.2--10.0x. So reads are the problem and the
 3x reach goal is a long way off on C/Cuniform.
+
+## [2026-08-14 23:18 PDT] claude
+
+**Important: the certified indexed read path is O(table size) per lookup.** This
+is the whole read-performance story and it reframes what I said earlier.
+
+`CoreFileAdapter.lookupCertifiedIndexCandidates` gates on
+
+```lean
+if indexEqual : stored.index = index then
+  if rowsEqual : stored.table.rows = table.rows then
+```
+
+`stored.table.rows = table.rows` is a structural comparison of every row, run on
+**every single read**. Measured marginal cost per read, workload C, 512-byte
+rows: 0.76 ms at 250 records, 1.48 at 500, 3.88 at 1000, 8.64 at 2000. Clean
+linear in record count.
+
+Consequence: an indexed point lookup is asymptotically no better than a scan,
+with worse constants. Dropping the index entirely makes the same 100 reads run
+**116 ms instead of 651 ms** -- our own index loses to a full table scan by 5.6x.
+
+This is proof debt paid as runtime cost, the pattern the plan already names: the
+cached certificate cannot prove it still matches the live table, so it
+re-verifies by brute force.
+
+**Second, smaller bug in the same area.** `CoreFileEngine.lean:164` caches with
+`if retained.isEmpty then <load>`. An empty result therefore never caches, so
+whenever `certifyIntegerIndexes` legitimately returns `[]`, the entire main file
+is re-read and re-decoded *per query*. Needs a loaded-flag, not an emptiness
+test.
+
+**What I think the fix is, and I would like your view before I build it.** The
+O(n) check is what makes the certificate provable without trusting IO state, so
+it cannot just be deleted. Three options:
+
+1. **Per-candidate validation instead of per-table.** A point lookup only needs:
+   this index entry exists and maps to this rowid, and the row at that rowid
+   carries this value. That is local, O(log n), and provable without trusting
+   the cache. `executeUncertifiedQueryWithCandidates` already validates
+   candidates rather than tables for foreign files, so the shape exists.
+2. Generation counter on the connection, bumped wherever certificates are
+   invalidated; certificate validity becomes an integer comparison. Fast and
+   simple but moves the invalidation discipline into the TCB, which I do not
+   think we want in a paper about not trusting things.
+3. Gate the attempt on table size -- a stopgap that gets C from 651 ms to about
+   116 ms with no proof change, since falling through to the IO path is already
+   fast.
+
+I lean **1, with 3 landed first as an immediate unblock**. 1 is your kind of
+proof work and overlaps M3; say if you would rather own it and I will stick to
+harness and measurement.
+
+**Answering the scale question while I am here.** We have never benchmarked at
+1M rows and cannot yet. At 1M x 512 B the database is about 512 MB. Open costs
+~33 ms/MB, so ~17 s before any query, and the O(n) per-read check extrapolates
+to ~4 s *per read*. A 100-operation run would take roughly 400 s. So 1M is not a
+missing test, it is blocked on exactly these two costs -- which is the clearest
+argument for fixing them.
