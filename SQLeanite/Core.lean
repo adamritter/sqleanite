@@ -550,6 +550,36 @@ def Table.canonicalize (table : Table) : Table := {
     table.canonicalize.rows = table.rows := by
   exact buildRowTree_rows table.rowsWellFormed.2
 
+/-- Canonical rebuilding is a projection, not merely a logical equivalence.
+This exact fixed-point fact lets a validating physical open expose the
+component-wise decoder invariant required by later page-local writes. -/
+@[simp] theorem Table.canonicalize_idempotent (table : Table) :
+    table.canonicalize.canonicalize = table.canonicalize := by
+  cases table with
+  | mk schema indexes rowTree rowTreeWellKeyed declaredKeyMap
+      declaredKeyMapRepresents schemaWellFormed indexesWellFormed
+      rowsWellFormed =>
+    simp only [Table.canonicalize, Table.rows]
+    simp only [buildRowTree_rows rowsWellFormed.2]
+
+/-- Every table constructed by the checked rebuilder is already an exact
+fixed point of canonicalization.  This is stronger than merely having the
+same logical rows and is useful at serialization boundaries. -/
+theorem Table.rebuild_canonicalize_fixed {schema : Schema}
+    {indexes : List Index} {rows : List Row} {table : Table}
+    (success : Table.rebuild schema indexes rows = .ok table) :
+    table.canonicalize = table := by
+  unfold Table.rebuild at success
+  split at success <;> try contradiction
+  split at success <;> try contradiction
+  split at success
+  next rowsWF =>
+    injection success with equal
+    subst table
+    simp only [Table.canonicalize, Table.rows]
+    simp only [buildRowTree_rows rowsWF.2]
+  next => contradiction
+
 theorem Table.rebuild_self (table : Table) :
     Table.rebuild table.schema table.indexes table.rows =
       .ok table.canonicalize := by
@@ -1411,6 +1441,12 @@ theorem Database.canonicalize_contents (database : Database) :
 theorem Database.canonicalize_equiv (database : Database) :
     database.canonicalize.Equiv database :=
   database.canonicalize_contents
+
+/-- Database canonicalization inherits the exact projection law tablewise. -/
+@[simp] theorem Database.canonicalize_idempotent (database : Database) :
+    database.canonicalize.canonicalize = database.canonicalize := by
+  cases database
+  simp [Database.canonicalize, Table.canonicalize_idempotent]
 
 def Database.rebuild (tables : List Table) : Except String Database :=
   if valid : TablesWellFormed tables then .ok ⟨tables, valid⟩

@@ -565,6 +565,120 @@ theorem open?_decode {source : CoreDecode.PageSource}
                   rw [baseResult]
                   exact databaseResult
 
+/-- The validating loader exposes the same catalog/table/index equations used
+by the executable decoder.  This is the initial component certificate that a
+localized writer can preserve one table and index run at a time. -/
+theorem open?_pageSourceDecodes {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State}
+    (opened : open? source = some state) :
+    CoreDecode.PageSourceDecodes source state.database := by
+  unfold open? at opened
+  cases firstResult : source.readPage 1 with
+  | none => simp [firstResult] at opened
+  | some firstPage =>
+    simp only [firstResult, Option.bind_eq_bind, Option.bind] at opened
+    cases headerResult : FileFormat.decodeDatabaseHeader firstPage with
+    | none => simp [headerResult] at opened
+    | some headerAndSuffix =>
+      rcases headerAndSuffix with ⟨header, headerSuffix⟩
+      simp only [headerResult] at opened
+      cases catalogResult : CoreDecode.decodeCatalogForOpen firstPage with
+      | none => simp [catalogResult] at opened
+      | some catalog =>
+        simp only [catalogResult] at opened
+        let tableEntries := catalog.filter (fun entry => entry.kind == "table")
+        let indexEntries := catalog.filter (fun entry => entry.kind == "index")
+        cases tablesResult : loadOpenTables? source tableEntries with
+        | none => simp [tableEntries, tablesResult] at opened
+        | some initialStates =>
+          simp only [tableEntries, tablesResult] at opened
+          cases baseResult : (Core.Database.rebuild
+              (initialStates.map (fun state => state.table))).toOption with
+          | none => simp [baseResult] at opened
+          | some base =>
+            simp only [baseResult] at opened
+            cases databaseResult : CoreDecode.applyIndexesForOpen source base
+                indexEntries with
+            | none => simp [indexEntries, databaseResult] at opened
+            | some database =>
+              simp only [indexEntries, databaseResult] at opened
+              cases statesResult : retargetOpenTables? initialStates
+                  database.tables with
+              | none => simp [statesResult] at opened
+              | some states =>
+                simp only [statesResult] at opened
+                cases freeResult : loadFreelist source (source.pageCount + 1)
+                    header.freelistPageCount.val
+                    header.firstFreelistTrunk.val with
+                | none => simp [freeResult] at opened
+                | some freePages =>
+                  simp only [freeResult, Option.some.injEq] at opened
+                  subst state
+                  have decodedTables := loadOpenTables?_decode source tablesResult
+                  have initialWithout :=
+                    loadOpenTables?_withoutIndexes source tablesResult
+                  have retargetedWithout :=
+                    retargetOpenTables?_withoutIndexes statesResult
+                  have targetTables :
+                      database.tables.map Core.Table.withoutIndexes =
+                        initialStates.map (fun state => state.table) := by
+                    calc
+                      database.tables.map Core.Table.withoutIndexes =
+                          (states.val.map (fun state => state.table)).map
+                            Core.Table.withoutIndexes :=
+                        congrArg (List.map Core.Table.withoutIndexes)
+                          states.property.symm
+                      _ =
+                          states.val.map
+                            (fun state => state.table.withoutIndexes) := by
+                        rw [List.map_map]
+                        rfl
+                      _ = initialStates.map
+                          (fun state => state.table.withoutIndexes) :=
+                        retargetedWithout
+                      _ = initialStates.map (fun state => state.table) :=
+                        initialWithout
+                  have baseTables : base.tables =
+                      initialStates.map (fun state => state.table) := by
+                    unfold Except.toOption at baseResult
+                    split at baseResult
+                    next value rebuilt =>
+                      injection baseResult with equal
+                      subst base
+                      exact Core.Database.rebuild_tables rebuilt
+                    next => contradiction
+                  have baseExact : base = database.withoutIndexes := by
+                    cases base with
+                    | mk baseTableList baseWellFormed =>
+                      cases database with
+                      | mk databaseTableList databaseWellFormed =>
+                        simp only [Core.Database.withoutIndexes]
+                          at targetTables ⊢
+                        simp only at baseTables
+                        have tablesEqual : baseTableList =
+                            databaseTableList.map Core.Table.withoutIndexes :=
+                          baseTables.trans targetTables.symm
+                        cases tablesEqual
+                        rfl
+                  exact .intro catalog (by
+                    simp only [firstResult, Option.bind_eq_bind, Option.bind]
+                    exact catalogResult) (by
+                    change tableEntries.mapM
+                        (CoreDecode.decodeTableFrom source) = _
+                    rw [targetTables]
+                    exact decodedTables) (by
+                    change CoreDecode.applyIndexesForOpen source
+                        database.withoutIndexes indexEntries = _
+                    rw [← baseExact]
+                    exact databaseResult)
+
+theorem open?_pageSourceRepresents {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State}
+    (opened : open? source = some state)
+    (fixed : state.database.canonicalize = state.database) :
+    CoreDecode.PageSourceRepresents source state.database :=
+  (open?_pageSourceDecodes opened).represents fixed
+
 theorem open?_represents {source : CoreDecode.PageSource}
     {state : CoreChunkPageState.State}
     (_opened : open? source = some state) :

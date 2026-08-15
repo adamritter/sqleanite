@@ -154,7 +154,14 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   physical delta or proved byte-for-byte equal to its validated old page.
   Thus both routed and rebuilt changed-index preparations are connected to the
   actual post-write storage image; complete database-certificate assembly
-  remains the M3 integration obligation.
+  remains the M3 integration obligation. The validating loader now exposes
+  its exact catalog/table/index equations as
+  `CoreDecode.PageSourceDecodes`, and a proved conversion produces
+  `PageSourceRepresents` when the decoded database is a canonicalization
+  fixed point. Canonicalization is proved idempotent, and the canonical
+  catalog rebuilder is proved to return such a fixed point; this makes the
+  remaining localized-preservation obligation explicit rather than hiding it
+  behind a whole-decoder premise.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

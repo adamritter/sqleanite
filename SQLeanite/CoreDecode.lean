@@ -1260,6 +1260,114 @@ def rebuildCanonicalDatabase (tables : List Core.Table)
     (Core.Database.rebuild restored).toOption
   else none
 
+/-- Every table returned by the canonical metadata rebuilder is an exact
+canonicalization fixed point.  The proof follows the executable recursion and
+uses the checked `Table.rebuild` result at each table. -/
+theorem restoreCanonicalIndexes_fixed :
+    ∀ (tables : List Core.Table) (entries restored : List CatalogEntry)
+      (resultTables : List Core.Table),
+      restoreCanonicalIndexes tables entries =
+        some (resultTables, restored) →
+      ∀ table ∈ resultTables, table.canonicalize = table
+  | [], entries, restored, resultTables, success => by
+      simp only [restoreCanonicalIndexes, Option.some.injEq] at success
+      injection success with tablesEqual
+      subst resultTables
+      simp
+  | input :: inputs, entries, restored, resultTables, success => by
+      simp only [restoreCanonicalIndexes, Option.bind_eq_bind, Option.bind]
+        at success
+      cases metadataResult : decodeCanonicalIndexesForTable input.schema
+          input.schema.name entries with
+      | none => simp [metadataResult] at success
+      | some metadata =>
+          rcases metadata with ⟨indexes, remaining⟩
+          simp only [metadataResult] at success
+          cases rebuiltResult :
+              (Core.Table.rebuild input.schema indexes input.rows).toOption with
+          | none => simp [rebuiltResult] at success
+          | some table =>
+              simp only [rebuiltResult] at success
+              cases tailResult : restoreCanonicalIndexes inputs remaining with
+              | none => simp [tailResult] at success
+              | some tail =>
+                  rcases tail with ⟨tailTables, suffix⟩
+                  simp only [tailResult, Option.some.injEq] at success
+                  injection success with tablesEqual suffixEqual
+                  subst resultTables
+                  subst restored
+                  intro candidate member
+                  simp only [List.mem_cons] at member
+                  cases member with
+                  | inl equal =>
+                      subst candidate
+                      cases rebuild : Core.Table.rebuild input.schema indexes
+                          input.rows with
+                      | error message =>
+                          rw [rebuild] at rebuiltResult
+                          exact Option.noConfusion rebuiltResult
+                      | ok value =>
+                          rw [rebuild] at rebuiltResult
+                          have valueEqual : value = table := by
+                            simpa only [Except.toOption,
+                              Option.some.injEq] using rebuiltResult
+                          subst table
+                          exact Core.Table.rebuild_canonicalize_fixed rebuild
+                  | inr tailMember =>
+                      exact restoreCanonicalIndexes_fixed inputs remaining
+                        suffix tailTables tailResult candidate tailMember
+
+private theorem map_canonicalize_eq_self (tables : List Core.Table)
+    (fixed : ∀ table ∈ tables, table.canonicalize = table) :
+    tables.map Core.Table.canonicalize = tables := by
+  induction tables with
+  | nil => rfl
+  | cons table tail induction =>
+      simp only [List.map_cons, List.cons.injEq]
+      exact ⟨fixed table (by simp), induction (fun candidate member =>
+        fixed candidate (by simp [member]))⟩
+
+/-- `rebuildCanonicalDatabase` deserves its name extensionally as well as
+logically: every successful result is already a fixed point of the public
+canonicalization operation. -/
+theorem rebuildCanonicalDatabase_fixed
+    {tables : List Core.Table} {entries : List CatalogEntry}
+    {database : Core.Database}
+    (success : rebuildCanonicalDatabase tables entries = some database) :
+    database.canonicalize = database := by
+  unfold rebuildCanonicalDatabase at success
+  cases restoredResult : restoreCanonicalIndexes tables entries with
+  | none => simp [restoredResult] at success
+  | some restored =>
+      rcases restored with ⟨resultTables, suffix⟩
+      simp only [restoredResult, Option.bind_eq_bind, Option.bind] at success
+      split at success
+      next consumed =>
+        cases rebuilt : Core.Database.rebuild resultTables with
+        | error message =>
+          rw [rebuilt] at success
+          exact Option.noConfusion success
+        | ok value =>
+          rw [rebuilt] at success
+          have equal : value = database := by
+            simpa only [Except.toOption, Option.some.injEq] using success
+          subst database
+          have tablesEqual : value.tables = resultTables :=
+            Core.Database.rebuild_tables rebuilt
+          cases value with
+          | mk valueTables valueWellFormed =>
+              simp only [Core.Database.canonicalize]
+              congr 1
+              have fixed : ∀ table ∈ valueTables,
+                  table.canonicalize = table := by
+                intro table member
+                exact restoreCanonicalIndexes_fixed tables entries suffix
+                  resultTables restoredResult table (by
+                    rw [← tablesEqual]
+                    exact member)
+              exact map_canonicalize_eq_self valueTables fixed
+      next => contradiction
+
 theorem decodeCanonicalIndexesForTable_encodeIndexes (table : Core.Table) :
     ∀ (nextPage : Nat) (indexes : List Core.Index)
       (encodings : List CoreFile.IndexEncoding) (suffix : List CatalogEntry),
@@ -9330,6 +9438,39 @@ def decodeFromPageSource (source : PageSource) : Option Core.Database := do
   let database ← (Core.Database.rebuild tables).toOption
   applyIndexesForOpen source database indexEntries
 
+/-- Exact component-wise account of a validating open.  Unlike
+`PageSourceRepresents`, this relation does not quotient the in-memory row-tree
+topology through canonicalization: it records exactly what the executable
+decoder returned. -/
+inductive PageSourceDecodes (source : PageSource)
+    (database : Core.Database) : Prop where
+  | intro (catalog : List CatalogEntry)
+      (catalogRead :
+        source.readPage 1 >>= decodeCatalogForOpen = some catalog)
+      (tablesRead :
+        (catalog.filter (fun entry => entry.kind == "table")).mapM
+          (decodeTableFrom source) =
+            some (database.tables.map Core.Table.withoutIndexes))
+      (indexesRead :
+        applyIndexesForOpen source database.withoutIndexes
+          (catalog.filter (fun entry => entry.kind == "index")) =
+            some database) :
+      PageSourceDecodes source database
+
+theorem PageSourceDecodes.decode
+    {source : PageSource} {database : Core.Database}
+    (decodes : PageSourceDecodes source database) :
+    decodeFromPageSource source = some database := by
+  rcases decodes with ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+  unfold decodeFromPageSource
+  rw [← bind_assoc, catalogRead]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [tablesRead]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [Core.Database.rebuild_withoutIndexes]
+  simp only [Except.toOption, Option.bind_eq_bind, Option.bind]
+  exact indexesRead
+
 /-- Compositional physical representation invariant.  Unlike the single
 equation `decodeFromPageSource source = ...`, this records the exact catalog,
 table, and index obligations separately so a page-local mutation can preserve
@@ -9362,6 +9503,16 @@ theorem PageSourceRepresents.decode
   rw [Core.Database.rebuild_withoutIndexes]
   simp only [Except.toOption, Option.bind_eq_bind, Option.bind]
   exact indexesRead
+
+/-- Exact validating-open components become the topology-quotiented storage
+invariant once the returned database is known to be canonical. -/
+theorem PageSourceDecodes.represents
+    {source : PageSource} {database : Core.Database}
+    (decodes : PageSourceDecodes source database)
+    (fixed : database.canonicalize = database) :
+    PageSourceRepresents source database := by
+  rcases decodes with ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+  exact .intro catalog catalogRead tablesRead (by simpa [fixed] using indexesRead)
 
 def pages : Nat → List UInt8 → List (List UInt8)
   | 0, _ => []

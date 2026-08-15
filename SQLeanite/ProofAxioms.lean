@@ -606,6 +606,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.decodeCanonicalFile_encode
 #print axioms SQLeanite.CoreDecode.decodeCatalogForOpen_schemaPageForEntries
 #print axioms SQLeanite.CoreDecode.PageSourceRepresents.decode
+#print axioms SQLeanite.CoreDecode.PageSourceDecodes.decode
+#print axioms SQLeanite.CoreDecode.PageSourceDecodes.represents
+#print axioms SQLeanite.CoreDecode.rebuildCanonicalDatabase_fixed
+#print axioms SQLeanite.CorePageLoad.open?_pageSourceDecodes
+#print axioms SQLeanite.CorePageLoad.open?_pageSourceRepresents
 #print axioms SQLeanite.CorePageSource.readPage_applyWrites_of_not_written
 #print axioms SQLeanite.CorePageSource.readPage_applyWrites_of_mem
 #print axioms SQLeanite.CorePageSource.readPage_write_same
