@@ -245,6 +245,15 @@ theorem Node.PathAgrees.pageIds_eq {key : Nat} {before after : Node Value}
     after.pageIds = before.pageIds := by
   induction agrees <;> simp_all [Node.pageIds]
 
+/-- A no-allocation path update preserves tree height as well as page
+identity.  This lets decoder fuel bounds transport from the validated old
+tree without recounting the post-state tree. -/
+theorem Node.PathAgrees.height_eq {key : Nat} {before after : Node Value}
+    (agrees : Node.PathAgrees key before after) :
+    after.erase.height = before.erase.height := by
+  induction agrees <;>
+    simp_all [Node.erase, RecursiveBPlusTree.Node.height]
+
 /-- Allocation is monotone: insertion never moves the high-water mark
 backwards. -/
 theorem Node.insertStep_nextPage_le (node : Node Value)
@@ -682,6 +691,13 @@ def Store.insert (store : Store Value) (key : Nat) (value : Value) : Store Value
     rootValid := by
       rw [store.root.insert_erases store.nextPage key value]
       exact store.root.erase.insert_rootValid store.rootValid key value }
+
+theorem Store.insert_height_of_noAllocation (store : Store Value)
+    (key : Nat) (value : Value)
+    (noAllocation : (store.insert key value).nextPage = store.nextPage) :
+    (store.insert key value).root.erase.height = store.root.erase.height := by
+  exact (store.root.insert_pathAgrees_of_noAllocation store.nextPage key value
+    (by simpa [Store.insert] using noAllocation)).height_eq
 
 @[simp] theorem Store.insert_rootId (store : Store Value) (key : Nat)
     (value : Value) :

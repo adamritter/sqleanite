@@ -452,6 +452,71 @@ theorem resolvePlans_noOverflow : ∀ {next : Nat} {plans : List CellPlan}
             · rw [tail.2, emptyParts.1]
               rfl
 
+/-- A cell that can be encoded without an overflow pointer has no overflow
+suffix.  This is the converse fact needed to lift the inline page encoder into
+the general overflow-aware encoder. -/
+theorem CellPlan.overflowBytes_eq_nil_of_cellBytes_none
+    {plan : CellPlan} {cell : List UInt8}
+    (built : plan.cellBytes? none = some cell) :
+    plan.overflowBytes = [] := by
+  unfold CellPlan.cellBytes? at built
+  split at built
+  next fits =>
+    unfold CellPlan.overflowBytes
+    cases kind : plan.kind with
+    | table =>
+        simp only [localSize]
+        rw [tableLeafLocalPayloadSize_eq_payload_of_fits
+          PhysicalCodec.usablePageSize plan.payload.length (by
+            simpa [maxLocal, kind] using fits)]
+        exact List.drop_length
+    | index =>
+        simp only [localSize]
+        rw [indexLocalPayloadSize_eq_payload_of_fits
+          PhysicalCodec.usablePageSize plan.payload.length (by
+            simpa [maxLocal, kind] using fits)]
+        exact List.drop_length
+  next => contradiction
+
+/-- Pointwise no-pointer cell encodings resolve to exactly the same cells,
+allocate no overflow pages, and preserve the allocation cursor. -/
+theorem resolvePlans_of_cellBytes_none : ∀ (next : Nat)
+    (plans : List CellPlan) (cells : List (List UInt8)),
+    plans.mapM (fun plan => plan.cellBytes? none) = some cells →
+    resolvePlans next plans = some ⟨cells, [], next⟩
+  | _, [], cells, built => by
+      change some [] = some cells at built
+      have equal : cells = [] := (Option.some.inj built).symm
+      subst cells
+      rfl
+  | next, plan :: plans, cells, built => by
+      simp only [List.mapM_cons] at built
+      cases cellResult : plan.cellBytes? none with
+      | none => simp [cellResult] at built
+      | some cell =>
+          simp only [cellResult, Option.bind_eq_bind, Option.bind] at built
+          cases tailResult : plans.mapM (fun candidate =>
+              candidate.cellBytes? none) with
+          | none => simp [tailResult] at built
+          | some tail =>
+              simp only [tailResult, Option.some.injEq] at built
+              have cellsEqual : cells = cell :: tail :=
+                (Option.some.inj built).symm
+              subst cells
+              have noOverflow :=
+                plan.overflowBytes_eq_nil_of_cellBytes_none cellResult
+              have countZero : overflowPageCount plan.overflowBytes = 0 :=
+                (overflowPageCount_eq_zero_iff plan.overflowBytes).2 noOverflow
+              have tailResolved := resolvePlans_of_cellBytes_none next plans
+                tail tailResult
+              simp only [resolvePlans, countZero, if_pos, cellResult,
+                Option.bind_eq_bind, Option.bind]
+              rw [makeOverflowPages?_eq, noOverflow]
+              simp only [overflowPageCount, List.isEmpty_nil, if_pos,
+                List.range_zero, List.map_nil, List.length_nil, Nat.add_zero,
+                List.nil_append]
+              rw [tailResolved]
+
 def tableCellPlan? (schema : Core.Schema) (row : Core.Row) : Option CellPlan := do
   let record ← CoreRecord.rowRecord? schema row
   if bounded : record.encode.length < 2 ^ 64 then

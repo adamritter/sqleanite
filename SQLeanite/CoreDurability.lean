@@ -718,15 +718,25 @@ noncomputable def
       (Classical.choose (physical.exists_table delta.table.before
         (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
         some afterEncoding)
-    (afterInline : afterEncoding.overflowPages = [])
-    (heightBound : delta.table.after.tree.root.erase.height <
-      (CorePageSource.ofStorageImage
-        (GrowableStorage.applyWrites oldImage final.writes)).pageCount + 1) :
+    (afterInline : afterEncoding.overflowPages = []) :
     CoreLocalizedRepresentation.TableOnSource
       (CorePageSource.ofStorageImage
         (GrowableStorage.applyWrites oldImage final.writes))
-      delta.table.after :=
-  CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites prepared
+      delta.table.after := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have sameHeight :=
+    CoreChunkPageDelta.updateState?_selectedHeight_eq_of_indexed
+      prepared.updated indexed
+  have growth := CorePageSource.applyWrites_pageCount_ge oldImage final.writes
+  have heightBound : delta.table.after.tree.root.erase.height <
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes)).pageCount + 1 := by
+    rw [sameHeight]
+    exact Nat.lt_of_lt_of_le before.heightBound
+      (by simpa using Nat.add_le_add_right growth 1)
+  exact CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites prepared
     final oldImage physical
     (CoreChunkPageDelta.updateState?_allocationWellFormed_of_indexed
       prepared.allocation prepared.updated indexed)

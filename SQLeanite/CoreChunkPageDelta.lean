@@ -433,6 +433,39 @@ theorem replaceManyFold_pageIds_of_noAllocation :
             (store.insert_pageIds_of_noAllocation entry.1 resolved.1
               stepNoAllocation)
 
+/-- The same no-allocation replacement loop preserves the recursive decoder
+height.  This is stronger than merely retaining the page-ID set and lets the
+validated pre-state fuel bound frame the post-state directly. -/
+theorem replaceManyFold_height_of_noAllocation :
+    ∀ {entries : List (PagedBTree.Entry CoreChunkPageState.Chunk)}
+      {store updated : PersistentPageTree.Store CoreChunkPageState.Chunk}
+      {rows remaining : List Core.Row},
+      replaceManyFold entries (store, rows) = some (updated, remaining) →
+      updated.nextPage = store.nextPage →
+      updated.root.erase.height = store.root.erase.height
+  | [], store, updated, rows, remaining, success, noAllocation => by
+      simp only [replaceManyFold, Option.some.injEq, Prod.mk.injEq] at success
+      exact congrArg (fun tree => tree.root.erase.height) success.1.symm
+  | entry :: entries, store, updated, rows, remaining, success,
+      noAllocation => by
+      unfold replaceManyFold at success
+      rcases Option.bind_eq_some.mp success with
+        ⟨resolved, resolvedResult, success⟩
+      split at success
+      next => exact replaceManyFold_height_of_noAllocation success noAllocation
+      next =>
+        let inserted := store.insert entry.1 resolved.1
+        have stepBound : store.nextPage ≤ inserted.nextPage :=
+          store.nextPage_le_insert entry.1 resolved.1
+        have tailBound : inserted.nextPage ≤ updated.nextPage :=
+          replaceManyFold_nextPage_le success
+        have stepNoAllocation : inserted.nextPage = store.nextPage := by omega
+        have tailNoAllocation : updated.nextPage = inserted.nextPage := by omega
+        exact (replaceManyFold_height_of_noAllocation success
+          tailNoAllocation).trans
+            (store.insert_height_of_noAllocation entry.1 resolved.1
+              stepNoAllocation)
+
 /-- Update all changed chunks without rebuilding table topology.  Stable page
 identity selects the exact before/after paths for the rollback journal.  The
 final representation equality is retained as the proof field of `TableState`,
@@ -2291,6 +2324,30 @@ private theorem replace?_pageIds {state : CoreChunkPageState.TableState}
     next => contradiction
   next => contradiction
 
+private theorem replace?_height {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : replace? state nextPage row replacement = some delta) :
+    delta.after.tree.root.erase.height = state.tree.root.erase.height := by
+  unfold replace? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next noAllocation =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        exact PersistentPageTree.Store.insert_height_of_noAllocation
+          { state.tree with nextPage } entry.1 (replaceRow row entry.2)
+          noAllocation
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
 private theorem insert?_rootId {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
     {delta : TableDelta}
@@ -2422,6 +2479,36 @@ private theorem replaceMany?_pageIds
         injection success with equal
         subst delta
         exact pageIds
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem replaceMany?_height
+    {state : CoreChunkPageState.TableState} {nextPage : Nat}
+    {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceMany? state nextPage replacement = some delta) :
+    delta.after.tree.root.erase.height = state.tree.root.erase.height := by
+  unfold replaceMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with
+    ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next noAllocation =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        have height : updated.1.root.erase.height =
+            state.tree.root.erase.height := by
+          have preserved := replaceManyFold_height_of_noAllocation
+            updatedResult (by simpa using noAllocation)
+          simpa using preserved
+        injection success with equal
+        subst delta
+        exact height
       next => contradiction
     next => contradiction
   next => contradiction
@@ -2633,6 +2720,38 @@ theorem replaceBetween?_pageIds_of_length_eq
           | none =>
               rw [replacementResult] at success
               exact replaceMany?_pageIds success
+
+/-- Equal-cardinality replacement also preserves the recursive tree height,
+so a validated decoder fuel bound remains valid after the local mutation. -/
+theorem replaceBetween?_height_of_length_eq
+    {state : CoreChunkPageState.TableState} {nextPage : Nat}
+    {replacement : Core.Table} {delta : TableDelta}
+    (sameLength : replacement.rows.length = state.table.rows.length)
+    (success : replaceBetween? state nextPage replacement = some delta) :
+    delta.after.tree.root.erase.height = state.tree.root.erase.height := by
+  unfold replaceBetween? at success
+  split at success
+  next => injection success with equal; subst delta; rfl
+  next =>
+    split at success
+    next inserted => omega
+    next =>
+      split at success
+      next deleted => omega
+      next =>
+        split at success
+        next retained => omega
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          cases replacementResult : replace? state nextPage row replacement with
+          | some candidate =>
+              rw [replacementResult] at success
+              injection success with equal
+              subst candidate
+              exact replace?_height replacementResult
+          | none =>
+              rw [replacementResult] at success
+              exact replaceMany?_height success
 
 /-- Equal-cardinality replacement is an in-place update: neither point nor
 bulk replacement releases a page to the SQLite freelist. -/
@@ -2978,6 +3097,62 @@ theorem alignTables?_selectedPageIds_of_indexed :
                   (delta := delta) sameLength headResult
                 rw [replaceBetween?_before headResult]
                 exact pages
+              next => contradiction
+
+/-- The selected indexed table keeps the same balanced-tree height for the
+same equal-cardinality reason that preserves all of its page identities. -/
+theorem alignTables?_selectedHeight_of_indexed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      delta.before.table.indexes ≠ [] →
+      delta.after.tree.root.erase.height =
+        delta.before.tree.root.erase.height
+  | _, [], target, aligned, delta, success, selected, sufficient,
+      indexed => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected,
+      sufficient, indexed => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+        unfold alignTables? at success
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          exact alignTables?_selectedHeight_of_indexed tailResult selected
+            sufficient indexed
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                have headEqual : head = delta := Option.some.inj selected
+                subst head
+                have sameLength :=
+                  delta.tablePagesSufficient_rowsLength_of_indexed sufficient
+                    indexed
+                rw [replaceBetween?_before headResult,
+                  replaceBetween?_table headResult] at sameLength
+                have height := replaceBetween?_height_of_length_eq
+                  (state := old) (replacement := replacement)
+                  (delta := delta) sameLength headResult
+                rw [replaceBetween?_before headResult]
+                exact height
               next => contradiction
 
 /-- The same indexed equal-cardinality alignment cannot release a table page.
@@ -3530,6 +3705,18 @@ theorem updateState?_selectedPageIds_of_indexed
   rcases updateState?_alignment updated with
     ⟨aligned, alignment, _, selected⟩
   exact alignTables?_selectedPageIds_of_indexed alignment selected
+    (updateState?_tablePagesSufficient updated) indexed
+
+theorem updateState?_selectedHeight_eq_of_indexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (updated : updateState? state database = some delta)
+    (indexed : delta.table.before.table.indexes ≠ []) :
+    delta.table.after.tree.root.erase.height =
+      delta.table.before.tree.root.erase.height := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, _, selected⟩
+  exact alignTables?_selectedHeight_of_indexed alignment selected
     (updateState?_tablePagesSufficient updated) indexed
 
 theorem updateState?_activePageIds_eq_of_indexed
