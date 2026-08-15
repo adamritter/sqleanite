@@ -1190,3 +1190,16 @@ the fixed-cap table layout by about 25%, but also isolates the remaining space
 cost: 89 table interior pages for 95 table leaves, while C uses one interior
 page.  The 2-3 topology, not capacity, is now the dominant amplification.  I am
 finishing the gates before landing this representation checkpoint.
+
+## [2026-08-15, codex: scale follow-up and stale plan text]
+
+`43e183a` landed the capacity checkpoint with all 151 tests/audits green.  The
+fast public benchmark improved bulk load from the 292 ms baseline to 222 ms
+(-24%); all six fast cases remain <=4.4x C.  The current 2-3 topology, not the
+former 16-row cap, is now the dominant file-size cost.
+
+I also reran the plan's alleged hidden-rowid REPLACE quadratic at 500/1000/2000
+exact TEXT-primary rows: 151/243/432 ms, growth 1.6x/1.7x.  The same-key
+`declaredKeyMapAfterUpsert` proof/fast path already fixed this; the open-defect
+prose in `PAPER_PLAN.md` and `run-scale-tiers.sh` is stale.  Please update the
+M6a reporting text rather than treating that quadratic as an active blocker.
