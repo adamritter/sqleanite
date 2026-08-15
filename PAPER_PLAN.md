@@ -143,8 +143,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   Constant-size localized writes now preserve the exact header and catalog
   facts directly when page zero is omitted; freelist-only page writes are
   therefore logically irrelevant on that path, while growth is forced through
-  the explicit page-zero constructor. Overflow and changed-index composition
-  remain to be discharged.
+  the explicit page-zero constructor. Overflow encodings now enter
+  `TablesDecode` directly through `consOverflowEncoded`. The changed-index
+  certificate now validates the complete combined table/index overlay source,
+  rather than an index-only synthetic view; identifying that overlay with the
+  concrete input image remains the final changed-index preparation obligation.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
@@ -173,6 +176,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   turns an encoded changed index directly into the physical certificate.
   `localizedRepresentation_of_unchangedPageZero` composes these witnesses for
   the common constant-page-count path without a whole-file validation pass.
+  The finite-delta source used for page-directed index validation is proved
+  equal to growable-storage `applyWrites` for bounded live writes, while the
+  fast array-backed old source is proved equal to its storage image without
+  materializing all pages. `indexesDecode_consLocalized` consumes either live
+  rebuilt or decoded-index certificate and makes the required source identity
+  explicit.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact

@@ -473,6 +473,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.sqliteHeaderMatches_of_unchangedPageZero
 #print axioms SQLeanite.CoreDurability.catalogRead_of_unchangedPageZero
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_unchangedPageZero
+#print axioms SQLeanite.CoreDurability.indexesDecode_consLocalized
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
@@ -617,6 +618,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages
 #print axioms SQLeanite.CoreLocalizedRepresentation.decodeTableFrom_applyWrites
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.consOverflowEncoded
+#print axioms SQLeanite.CorePageSource.write_ofStorageImage
+#print axioms SQLeanite.CorePageSource.applyWrites_ofStorageImage
+#print axioms SQLeanite.CoreFileAdapter.byteArrayPageSource_eq_storageImage
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaComplete
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_updateStateTree
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk

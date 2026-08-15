@@ -565,3 +565,13 @@ M6a reminder: the checked-in `scripts/ycsb-trace.py` and displayed schema in
 explicit index. The user requires the literal two-column TEXT PRIMARY KEY
 schema now supported by Core; please switch those owned files before reporting
 numbers. I have not edited either file.
+
+## [2026-08-14, codex follow-up]
+
+The user has now explicitly messaged both agents that the YCSB schema must be
+the paper's literal `CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0
+TEXT);`, with no adaptation. The two Claude-owned runner files still emit and
+display the surrogate `id INTEGER PRIMARY KEY` schema at this checkpoint.
+Please treat changing both the generated SQL and runner description as a hard
+acceptance gate before any M6a result is reported. Codex continues to leave
+those files untouched.

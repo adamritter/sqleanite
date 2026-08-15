@@ -19,6 +19,33 @@ def ofStorageImage
   .ofList ((PhysicalJournalRecovery.imagePages image).map
     (fun page => page.bytes.toList))
 
+/-- Apply one zero-based storage write directly to a one-based decoder source.
+This is the fast, finite-delta view used to validate changed indexes before
+publishing their bytes. -/
+def write (source : CoreDecode.PageSource)
+    (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize) :
+    CoreDecode.PageSource := {
+  pageCount := max source.pageCount (pageWrite.pageId + 1)
+  readPage := fun pageNumber =>
+    if pageNumber = 0 ||
+        max source.pageCount (pageWrite.pageId + 1) < pageNumber then none
+    else if pageNumber = pageWrite.pageId + 1 then
+      some pageWrite.page.bytes.toList
+    else source.readPage pageNumber }
+
+/-- Overlay a finite write delta without materializing the complete file. -/
+def applyWrites (source : CoreDecode.PageSource)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    CoreDecode.PageSource :=
+  writes.foldl write source
+
+theorem pageSource_ext {left right : CoreDecode.PageSource}
+    (pageCount : left.pageCount = right.pageCount)
+    (readPage : left.readPage = right.readPage) : left = right := by
+  cases left
+  cases right
+  simp_all
+
 theorem imageBytes_eq_flatten
     (image : GrowableStorage.Image PhysicalCodec.pageSize) :
     PhysicalJournalRecovery.imageBytes image =
@@ -65,6 +92,13 @@ theorem readPage_zero
     (image : GrowableStorage.Image PhysicalCodec.pageSize) :
     (ofStorageImage image).readPage 0 = none := by
   simp [ofStorageImage, CoreDecode.PageSource.ofList, CoreDecode.page?]
+
+theorem readPage_out_of_bounds
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (pageNumber : Nat) (outOfBounds : image.pageCount < pageNumber) :
+    (ofStorageImage image).readPage pageNumber = none := by
+  simp [ofStorageImage, CoreDecode.PageSource.ofList, CoreDecode.page?,
+    PhysicalJournalRecovery.imagePages_length, outOfBounds] <;> omega
 
 theorem applyWrites_pageCount_ge
     (image : GrowableStorage.Image PhysicalCodec.pageSize) :
@@ -167,6 +201,64 @@ theorem readPage_write_other
   · rw [GrowableStorage.Image.read_write_other image write pageId different]
   · simp only [GrowableStorage.Image.write]
     omega
+
+/-- Decoder-source overlay agrees exactly with a bounded growable-storage
+write.  The bound rules out sparse growth; every live page-directed mutation
+writes an existing page and satisfies this premise. -/
+theorem write_ofStorageImage
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (bound : pageWrite.pageId < image.pageCount) :
+    write (ofStorageImage image) pageWrite =
+      ofStorageImage (image.write pageWrite) := by
+  apply pageSource_ext
+  · simp only [write, ofStorageImage_pageCount, GrowableStorage.Image.write]
+  · funext pageNumber
+    by_cases zero : pageNumber = 0
+    · subst pageNumber
+      simp [write, readPage_zero]
+    by_cases high : image.pageCount < pageNumber
+    · have highWritten :
+          max image.pageCount (pageWrite.pageId + 1) < pageNumber := by
+        omega
+      have newHigh : (image.write pageWrite).pageCount < pageNumber := by
+        simp only [GrowableStorage.Image.write]
+        omega
+      rw [readPage_out_of_bounds _ _ newHigh]
+      simp [write, zero, highWritten]
+    · have pageIdBound : pageNumber - 1 < image.pageCount := by omega
+      have pageNumberEq : pageNumber - 1 + 1 = pageNumber := by omega
+      by_cases same : pageNumber = pageWrite.pageId + 1
+      · subst pageNumber
+        have maxBound : ¬ max image.pageCount (pageWrite.pageId + 1) <
+            pageWrite.pageId + 1 := by omega
+        simp [write, maxBound, readPage_write_same]
+      · have different : pageNumber - 1 ≠ pageWrite.pageId := by omega
+        have maxBound : ¬ max image.pageCount (pageWrite.pageId + 1) <
+            pageNumber := by omega
+        simp [write, zero, maxBound, same]
+        rw [← pageNumberEq,
+          readPage_write_other image pageWrite (pageNumber - 1)
+            pageIdBound different]
+
+/-- A list of writes which all stay inside the original image has the same
+finite-delta source as applying those writes to storage. -/
+theorem applyWrites_ofStorageImage
+    (image : GrowableStorage.Image PhysicalCodec.pageSize) :
+    ∀ (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)),
+      (∀ write ∈ writes, write.pageId < image.pageCount) →
+      applyWrites (ofStorageImage image) writes =
+        ofStorageImage (GrowableStorage.applyWrites image writes)
+  | [], _ => rfl
+  | pageWrite :: writes, bounded => by
+      unfold applyWrites GrowableStorage.applyWrites
+      simp only [List.foldl_cons]
+      rw [write_ofStorageImage image pageWrite (bounded pageWrite (by simp))]
+      apply applyWrites_ofStorageImage (image.write pageWrite) writes
+      intro later member
+      have laterBound := bounded later (by simp [member])
+      simp only [GrowableStorage.Image.write]
+      omega
 
 end CorePageSource
 end SQLeanite

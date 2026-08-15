@@ -111,6 +111,56 @@ def localizedSource
     CoreDecode.PageSource :=
   CorePageSource.ofStorageImage (GrowableStorage.applyWrites oldImage writes)
 
+/-- Physical interpretation of the two changed-index certificates emitted by
+the live adapter.  Rebuilt indexes carry encoder/read-coverage facts; routed
+leaf mutations carry a decoder equation over the exact post-write source.
+Keeping the cases in a proposition erases all of this evidence at runtime. -/
+inductive LocalizedIndexReadable (source : CoreDecode.PageSource)
+    {rootPage : Nat} {table : Core.Table} {index : Core.Index} :
+    CoreFileAdapter.LocalizedIndexCertificate rootPage table index → Prop where
+  | encoded (certificate : CoreFileAdapter.CertifiedIndexEncoding
+      rootPage table index)
+      (reads : CoreDecode.ReadsPagesFrom source rootPage certificate.value.pages)
+      (rootPositive : 0 < rootPage)
+      (pageBound : rootPage + certificate.value.pages.length < 2 ^ 32)
+      (withinSource : rootPage + certificate.value.pages.length ≤
+        source.pageCount + 1) :
+      LocalizedIndexReadable source (.encoded certificate)
+  | decoded (certificate : CoreFileAdapter.DecodedIndexCertificate
+      rootPage table index)
+      (sourceExact : certificate.source = source) :
+      LocalizedIndexReadable source (.decoded certificate)
+
+/-- Either live changed-index certificate supplies exactly the physical head
+of an `IndexesDecode` run.  In particular, the decoded fast path is accepted
+only after its synthetic mutation source is identified with the actual
+post-write source; this names the last nontrivial adapter obligation instead
+of silently trusting that construction. -/
+theorem indexesDecode_consLocalized
+    {source : CoreDecode.PageSource} {table : Core.Table}
+    {entry : CoreDecode.CatalogEntry}
+    {entries : List CoreDecode.CatalogEntry} {index : Core.Index}
+    {rootPage : Nat}
+    {certificate : CoreFileAdapter.LocalizedIndexCertificate
+      rootPage table index}
+    (sameTable : entry.table = table.schema.name)
+    (sameRoot : entry.rootPage = rootPage)
+    (metadata : CoreDecode.decodeCanonicalIndex table.schema
+      table.schema.name entry = some index)
+    (readable : LocalizedIndexReadable source certificate)
+    (tail : CoreLocalizedRepresentation.IndexesDecode source table entries) :
+    CoreLocalizedRepresentation.IndexesDecode source table
+      (entry :: entries) := by
+  cases readable with
+  | encoded certified reads rootPositive pageBound withinSource =>
+      exact CoreLocalizedRepresentation.IndexesDecode.consEncoded
+        sameTable sameRoot metadata certified.encoded reads rootPositive
+        pageBound withinSource tail
+  | decoded certified sourceExact =>
+      refine .cons sameTable metadata ?_ tail
+      rw [sameRoot, ← sourceExact]
+      exact certified.exact
+
 /-- A nonempty growable image starts with the bytes returned by page zero.
 The suffix is intentionally abstract: SQLite header decoding consumes exactly
 the first 100 bytes and does not need to inspect the remaining pages. -/

@@ -4,6 +4,7 @@ import SQLeanite.CoreMultiFreelist
 import SQLeanite.CoreOverflow
 import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad
+import SQLeanite.CorePageSource
 import SQLeanite.PhysicalFileAdapter
 
 namespace SQLeanite
@@ -511,8 +512,65 @@ def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
     else
       let start := (pageNumber - 1) * PhysicalCodec.pageSize
       let stop := start + PhysicalCodec.pageSize
-      if stop ≤ input.size then some (input.extract start stop).toList
+      if stop ≤ input.size then some (input.data.extract start stop).toList
       else none }
+
+/-- The growable-storage image denoted by one exact in-memory file buffer.
+Unlike `physicalImage?`, this representation keeps positional reads over the
+array and therefore does not materialize a list of every page. -/
+def byteArrayStorageImage (input : ByteArray) (pageCount : Nat)
+    (exactSize : input.size = pageCount * PhysicalCodec.pageSize) :
+    GrowableStorage.Image PhysicalCodec.pageSize := {
+  pageCount
+  read := fun pageId =>
+    if bound : pageId < pageCount then
+      let start := pageId * PhysicalCodec.pageSize
+      let stop := start + PhysicalCodec.pageSize
+      {
+        bytes := input.data.extract start stop
+        sizeInvariant := by
+          simp only [Array.size_extract]
+          change min stop input.size - start = PhysicalCodec.pageSize
+          rw [exactSize]
+          have stopBound : stop ≤ pageCount * PhysicalCodec.pageSize := by
+            have countBound : pageId + 1 ≤ pageCount := by omega
+            have scaled := Nat.mul_le_mul_right PhysicalCodec.pageSize countBound
+            simpa [stop, start, Nat.add_mul] using scaled
+          rw [Nat.min_eq_left stopBound]
+          simp only [stop, start, Nat.add_sub_cancel_left] }
+    else Storage.Page.zero PhysicalCodec.pageSize }
+
+/-- The fast array-backed decoder source and the growable-storage view read
+the same page bytes.  The equality is proof-only: live opens retain O(1)
+array slicing and never build the range/list used by `ofStorageImage`. -/
+theorem byteArrayPageSource_eq_storageImage
+    (input : ByteArray) (pageCount : Nat)
+    (exactSize : input.size = pageCount * PhysicalCodec.pageSize) :
+    byteArrayPageSource input pageCount =
+      CorePageSource.ofStorageImage
+        (byteArrayStorageImage input pageCount exactSize) := by
+  apply CorePageSource.pageSource_ext
+  · simp [byteArrayPageSource, byteArrayStorageImage]
+  · funext pageNumber
+    by_cases zero : pageNumber = 0
+    · subst pageNumber
+      simp [byteArrayPageSource, CorePageSource.readPage_zero]
+    by_cases high : pageCount < pageNumber
+    · rw [CorePageSource.readPage_out_of_bounds _ _ high]
+      simp [byteArrayPageSource, zero, high]
+    · have bound : pageNumber - 1 < pageCount := by omega
+      have pageNumberEq : pageNumber - 1 + 1 = pageNumber := by omega
+      have stopBound : (pageNumber - 1) * PhysicalCodec.pageSize +
+          PhysicalCodec.pageSize ≤ input.size := by
+        rw [exactSize]
+        have pageWithin : pageNumber - 1 + 1 ≤ pageCount := by omega
+        have scaled := Nat.mul_le_mul_right PhysicalCodec.pageSize pageWithin
+        simpa [Nat.add_mul] using scaled
+      have pageWithin : pageNumber - 1 + 1 ≤ pageCount := by omega
+      rw [← pageNumberEq,
+        CorePageSource.readPage_ofStorageImage _ (pageNumber - 1) bound]
+      simp [byteArrayPageSource, byteArrayStorageImage, zero, high, bound,
+        stopBound, pageWithin]
 
 /-- Read a supported physical image once and recover its logical database and
 persistent page identities together.  The returned capability records that
@@ -1115,14 +1173,14 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                             entry.rootPage ≤ count then
                           let mutated ← insertIndexRowIntoPages?
                             entry.rootPage index row source
-                          let certificate ← certifyDecodedIndex? entry.rootPage
-                            after index mutated.pageSource
                           let indexDelta ← mutationPageWrites? mutated
                           let tableBefore ←
                             CoreChunkPageDelta.beforeWrites delta.table
                           let tableWrites ← CoreChunkPageDelta.writes delta.table
                           let expectedBefore := tableBefore ++ indexDelta.1
                           let writes := tableWrites ++ indexDelta.2
+                          let certificate ← certifyDecodedIndex? entry.rootPage
+                            after index (CorePageSource.applyWrites source writes)
                           if _tableBeforeIndex :
                                 delta.table.before.tree.root.pageIds.all
                                     (fun pageId => pageId < entry.rootPage) &&
@@ -1192,14 +1250,14 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                         let removed ← deletedRows? before after
                         let mutated ← deleteIndexRowsFromPages?
                           entry.rootPage index removed source
-                        let certificate ← certifyDecodedIndex? entry.rootPage
-                          after index mutated.pageSource
                         let indexDelta ← mutationPageWrites? mutated
                         let tableBefore ←
                           CoreChunkPageDelta.beforeWrites delta.table
                         let tableWrites ← CoreChunkPageDelta.writes delta.table
                         let expectedBefore := tableBefore ++ indexDelta.1
                         let writes := tableWrites ++ indexDelta.2
+                        let certificate ← certifyDecodedIndex? entry.rootPage
+                          after index (CorePageSource.applyWrites source writes)
                         if _tableBeforeIndex :
                               delta.table.before.tree.root.pageIds.all
                                   (fun pageId => pageId < entry.rootPage) &&
