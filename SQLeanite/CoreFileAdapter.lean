@@ -553,6 +553,39 @@ theorem PreparedLocalizedWrites.added_disjoint_table_tree
   exact prepared.added_disjoint_active allocation writeMember notBase
     numbered.pageNumber active
 
+/-- Representation-independent form of `added_disjoint_table_tree`.  It is
+used while constructing the changed-table representation itself, where an
+already-built `TableOnSource` witness for the post-state would be circular.
+The successful tree encoding identifies each numbered page with the live
+allocator's active page-ID set. -/
+theorem PreparedLocalizedWrites.added_disjoint_encoded_table_tree
+    {state : CoreChunkPageState.State}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites state.freePages baseWrites)
+    (allocation : state.AllocationWellFormed)
+    {table : CoreChunkPageState.TableState}
+    (tableMember : table ∈ state.tables)
+    {pages : List CorePageCodec.NumberedPage}
+    (encoded : CorePageCodec.encodeChunkNode table.table.schema
+      table.tree.root = some pages)
+    {write : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (writeMember : write ∈ prepared.writes)
+    (notBase : write ∉ baseWrites)
+    {numbered : CorePageCodec.NumberedPage}
+    (pageMember : numbered ∈ pages) :
+    write.pageId + 1 ≠ numbered.pageNumber := by
+  have pageNumberMember : numbered.pageNumber ∈ table.tree.root.pageIds := by
+    rw [← CorePageCodec.encodeChunkNode_pageNumbers
+      table.table.schema table.tree.root pages encoded]
+    exact List.mem_map_of_mem pageMember
+  have active : numbered.pageNumber ∈ state.activePageIds := by
+    unfold CoreChunkPageState.State.activePageIds
+      CoreChunkPageState.tablePageIds
+    exact List.mem_flatMap.mpr ⟨table, tableMember, by
+      simpa [CoreChunkPageState.TableState.pageIds] using pageNumberMember⟩
+  exact prepared.added_disjoint_active allocation writeMember notBase
+    numbered.pageNumber active
+
 private def certifyLocalizedWrites?
     (current : Nat) (firstPage : List UInt8) (freePages : List Nat)
     (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :

@@ -2237,6 +2237,64 @@ theorem pageSourceContains_tableDeltaComplete
       sourceAfter pageMember (sourcePage.symm.trans samePage)
     exact selectedMember (equal ▸ sourceMember)
 
+/-- Frame `pageSourceContains_tableDeltaComplete` across the header/freelist
+augmentation performed immediately before the live syscall trace.  The base
+delta still supplies every changed table page, while the final write set is
+allowed to contain additional pages provided those additions cannot alias a
+post-state table page.
+
+This is deliberately phrased over membership rather than list concatenation:
+the live planner may prepend page zero and a freelist trunk, and the exact
+ordering of the final distinct writes is irrelevant to the represented table
+bytes. -/
+theorem pageSourceContains_tableDeltaComplete_extension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (delta : CoreChunkPageDelta.TableDelta)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (beforePages afterPages : List CorePageCodec.NumberedPage)
+    (converted : CoreChunkPageDelta.writes delta = some baseWrites)
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (baseMember : ∀ write ∈ baseWrites, write ∈ finalWrites)
+    (addedUntouched : ∀ write ∈ finalWrites, write ∉ baseWrites →
+      ∀ page ∈ afterPages, write.pageId + 1 ≠ page.pageNumber)
+    (accounted : ∀ page ∈ afterPages,
+      page ∈ delta.pages ∨ page ∈ beforePages)
+    (selected : ∀ page ∈ delta.pages, page ∈ afterPages)
+    (unique : (afterPages.map
+      CorePageCodec.NumberedPage.pageNumber).Nodup)
+    (oldContains : CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage image) beforePages)
+    (oldBounds : ∀ page ∈ beforePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount) :
+    CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) afterPages := by
+  apply pageSourceContains_applyWrites image finalWrites distinct afterPages
+  intro page pageMember
+  by_cases selectedMember : page ∈ delta.pages
+  · left
+    rcases CoreChunkPageDelta.writes_covers_pages converted page selectedMember
+        with ⟨write, writeMember, pageNumber, bytes⟩
+    exact ⟨write, baseMember write writeMember, pageNumber, bytes⟩
+  · right
+    have oldMember : page ∈ beforePages := by
+      rcases accounted page pageMember with changed | unchanged
+      · exact False.elim (selectedMember changed)
+      · exact unchanged
+    refine ⟨(oldBounds page oldMember).1, (oldBounds page oldMember).2,
+      oldContains page oldMember, ?_⟩
+    intro write writeMember samePage
+    by_cases baseWrite : write ∈ baseWrites
+    · rcases CoreChunkPageDelta.writes_sources_pages converted write baseWrite
+          with ⟨source, sourceMember, sourcePage, sourceBytes⟩
+      have sourceAfter := selected source sourceMember
+      have equal : source = page := numberedPage_eq_of_pageNumber_eq unique
+        sourceAfter pageMember (sourcePage.symm.trans samePage)
+      exact selectedMember (equal ▸ sourceMember)
+    · exact addedUntouched write writeMember baseWrite page pageMember samePage
+
 /-- Live-state specialization.  The delta builder itself supplies accounting,
 post-state selection, and active-page identity uniqueness; callers need only
 provide the represented old bytes and the successful deterministic encodings.
@@ -2275,6 +2333,50 @@ theorem pageSourceContains_updateStateTree
   · exact oldContains
   · exact oldBounds
 
+/-- Live-state specialization for the exact final write list selected by the
+header/freelist planner.  Unlike `pageSourceContains_updateStateTree`, the
+table conversion equation names only `baseWrites`; proof-carrying membership
+and noninterference facts connect it to `finalWrites`, which is the list the
+journal and main-file writer actually consume. -/
+theorem pageSourceContains_updateStateTree_extension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (beforePages afterPages : List CorePageCodec.NumberedPage)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (converted : CoreChunkPageDelta.writes delta.table = some baseWrites)
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (baseMember : ∀ write ∈ baseWrites, write ∈ finalWrites)
+    (addedUntouched : ∀ write ∈ finalWrites, write ∉ baseWrites →
+      ∀ page ∈ afterPages, write.pageId + 1 ≠ page.pageNumber)
+    (beforeEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.before.tree.root =
+        some beforePages)
+    (afterEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterPages)
+    (oldContains : CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage image) beforePages)
+    (oldBounds : ∀ page ∈ beforePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount) :
+    CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) afterPages := by
+  apply pageSourceContains_tableDeltaComplete_extension image delta.table
+    baseWrites finalWrites beforePages afterPages converted distinct baseMember
+    addedUntouched
+  · exact CoreChunkPageDelta.updateState?_treePagesAccounted updated
+      beforePages afterPages beforeEncoded afterEncoded
+  · exact CoreChunkPageDelta.updateState?_treePagesSelected updated afterPages
+      afterEncoded
+  · rw [CorePageCodec.encodeChunkNode_pageNumbers _ _ _ afterEncoded]
+    exact (CoreChunkPageDelta.updateState?_identityWellFormed updated).1
+  · exact oldContains
+  · exact oldBounds
+
 /-- Changed-index writers use the candidate before the unchanged-index check;
 its table delta has the same exact page-accounting guarantees. -/
 theorem pageSourceContains_updateStateCandidateTree
@@ -2303,6 +2405,48 @@ theorem pageSourceContains_updateStateCandidateTree
         (GrowableStorage.applyWrites image writes)) afterPages := by
   apply pageSourceContains_tableDeltaComplete image delta.table writes
     beforePages afterPages converted distinct
+  · exact CoreChunkPageDelta.updateStateCandidate?_treePagesAccounted updated
+      beforePages afterPages beforeEncoded afterEncoded
+  · exact CoreChunkPageDelta.updateStateCandidate?_treePagesSelected updated
+      afterPages afterEncoded
+  · rw [CorePageCodec.encodeChunkNode_pageNumbers _ _ _ afterEncoded]
+    exact (CoreChunkPageDelta.updateStateCandidate?_identityWellFormed updated).1
+  · exact oldContains
+  · exact oldBounds
+
+/-- Changed-index counterpart of
+`pageSourceContains_updateStateTree_extension`. -/
+theorem pageSourceContains_updateStateCandidateTree_extension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (beforePages afterPages : List CorePageCodec.NumberedPage)
+    (updated : CoreChunkPageDelta.updateStateCandidate? state database =
+      some delta)
+    (converted : CoreChunkPageDelta.writes delta.table = some baseWrites)
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (baseMember : ∀ write ∈ baseWrites, write ∈ finalWrites)
+    (addedUntouched : ∀ write ∈ finalWrites, write ∉ baseWrites →
+      ∀ page ∈ afterPages, write.pageId + 1 ≠ page.pageNumber)
+    (beforeEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.before.tree.root =
+        some beforePages)
+    (afterEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterPages)
+    (oldContains : CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage image) beforePages)
+    (oldBounds : ∀ page ∈ beforePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount) :
+    CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) afterPages := by
+  apply pageSourceContains_tableDeltaComplete_extension image delta.table
+    baseWrites finalWrites beforePages afterPages converted distinct baseMember
+    addedUntouched
   · exact CoreChunkPageDelta.updateStateCandidate?_treePagesAccounted updated
       beforePages afterPages beforeEncoded afterEncoded
   · exact CoreChunkPageDelta.updateStateCandidate?_treePagesSelected updated
@@ -2373,6 +2517,73 @@ def TableOnSource.updateStateInline
   · rw [afterInline]
     simp
 
+/-- Final-write variant of `TableOnSource.updateStateInline`.  It constructs
+the changed-table certificate directly over the header/freelist-augmented
+write list used by the live journal, instead of first proving a certificate
+for a smaller logical delta and transporting it afterward. -/
+def TableOnSource.updateStateInlineExtension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (converted : CoreChunkPageDelta.writes delta.table = some baseWrites)
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (baseMember : ∀ write ∈ baseWrites, write ∈ finalWrites)
+    (schemaSame : delta.table.before.table.schema =
+      delta.table.after.table.schema)
+    (before : TableOnSource (CorePageSource.ofStorageImage image)
+      delta.table.before)
+    (beforeInline : before.encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding)
+    (addedUntouched : ∀ write ∈ finalWrites, write ∉ baseWrites →
+      ∀ page ∈ afterEncoding.treePages,
+        write.pageId + 1 ≠ page.pageNumber)
+    (afterInline : afterEncoding.overflowPages = [])
+    (oldBounds : ∀ page ∈ before.encoding.treePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount)
+    (heightBound : delta.table.after.tree.root.erase.height <
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)).pageCount + 1) :
+    TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) delta.table.after := by
+  have beforeTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.before.tree.root =
+        some before.encoding.treePages := by
+    simpa [schemaSame] using before.inlineEncoded beforeInline
+  have afterTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterEncoding.treePages :=
+    CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow afterEncoding afterEncoded afterInline
+  have treeContains := pageSourceContains_updateStateTree_extension image state
+    database delta baseWrites finalWrites before.encoding.treePages
+    afterEncoding.treePages updated converted distinct baseMember addedUntouched
+    beforeTree afterTree before.treeContains oldBounds
+  refine {
+    nextOverflow := before.nextOverflow
+    encoding := afterEncoding
+    encoded := afterEncoded
+    treeContains
+    overflowContains := ?_
+    heightBound
+    nextPositive := before.nextPositive
+    pageBound := ?_
+    fuelBound := ?_ }
+  · intro offset inBounds
+    simp [afterInline] at inBounds
+  · rw [afterInline]
+    simpa [beforeInline] using before.pageBound
+  · rw [afterInline]
+    simp
+
 /-- Changed-index counterpart of `updateStateInline`, using the exact candidate
 consumed by the live index preparation paths. -/
 def TableOnSource.updateStateCandidateInline
@@ -2416,6 +2627,72 @@ def TableOnSource.updateStateCandidateInline
   have treeContains := pageSourceContains_updateStateCandidateTree image state
     database delta writes before.encoding.treePages afterEncoding.treePages
     updated converted distinct beforeTree afterTree before.treeContains oldBounds
+  refine {
+    nextOverflow := before.nextOverflow
+    encoding := afterEncoding
+    encoded := afterEncoded
+    treeContains
+    overflowContains := ?_
+    heightBound
+    nextPositive := before.nextPositive
+    pageBound := ?_
+    fuelBound := ?_ }
+  · intro offset inBounds
+    simp [afterInline] at inBounds
+  · rw [afterInline]
+    simpa [beforeInline] using before.pageBound
+  · rw [afterInline]
+    simp
+
+/-- Final-write changed-index counterpart of
+`TableOnSource.updateStateInlineExtension`. -/
+def TableOnSource.updateStateCandidateInlineExtension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (updated : CoreChunkPageDelta.updateStateCandidate? state database =
+      some delta)
+    (converted : CoreChunkPageDelta.writes delta.table = some baseWrites)
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (baseMember : ∀ write ∈ baseWrites, write ∈ finalWrites)
+    (schemaSame : delta.table.before.table.schema =
+      delta.table.after.table.schema)
+    (before : TableOnSource (CorePageSource.ofStorageImage image)
+      delta.table.before)
+    (beforeInline : before.encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding)
+    (addedUntouched : ∀ write ∈ finalWrites, write ∉ baseWrites →
+      ∀ page ∈ afterEncoding.treePages,
+        write.pageId + 1 ≠ page.pageNumber)
+    (afterInline : afterEncoding.overflowPages = [])
+    (oldBounds : ∀ page ∈ before.encoding.treePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount)
+    (heightBound : delta.table.after.tree.root.erase.height <
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)).pageCount + 1) :
+    TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) delta.table.after := by
+  have beforeTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.before.tree.root =
+        some before.encoding.treePages := by
+    simpa [schemaSame] using before.inlineEncoded beforeInline
+  have afterTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterEncoding.treePages :=
+    CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow afterEncoding afterEncoded afterInline
+  have treeContains := pageSourceContains_updateStateCandidateTree_extension
+    image state database delta baseWrites finalWrites before.encoding.treePages
+    afterEncoding.treePages updated converted distinct baseMember addedUntouched
+    beforeTree afterTree before.treeContains oldBounds
   refine {
     nextOverflow := before.nextOverflow
     encoding := afterEncoding
