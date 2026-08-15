@@ -474,6 +474,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFile.textIndexRowLe_trans
 #print axioms SQLeanite.CoreFile.textIndexRowLe_total
 #print axioms SQLeanite.CorePageLoad.open?_represents
+#print axioms SQLeanite.CorePageLoad.loadNode_decodes
+#print axioms SQLeanite.CorePageLoad.loadOpenTable?_decode
+#print axioms SQLeanite.CorePageLoad.open?_decode
 #print axioms SQLeanite.CorePageLoad.openGenerated?_represents
 #print axioms SQLeanite.CoreDecode.rebuildCanonicalDatabase_overflowEncoded
 #print axioms SQLeanite.CoreFileAdapter.certifyIndexEncoding?_exact

@@ -942,6 +942,12 @@ including SQLite's special header value for 65536. The runtime size is carried
 as `UsablePageSize`, whose bounds are proved at header validation; table,
 index, interior, and overflow decoding all consume that same value. The proved
 writer and generated-image fast paths deliberately remain fixed at 4096 bytes.
+`CorePageLoad.loadNode_decodes` proves, by induction over the fuel-bounded
+tree, that the persistent write-open loader and the public logical decoder
+recover the same ordered rows.  `open?_decode` lifts that result through all
+tables, index application, and database rebuilding: a validating open now
+carries a theorem about the bytes it read rather than an unrelated shadow
+tree.
 Forward reads
 discard skipped bytes; backward reads rewind; no resident whole-file byte array
 is constructed.  The decoder requests only catalog-reachable table and index

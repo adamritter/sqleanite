@@ -147,6 +147,25 @@ def TableState.DataEquiv (left right : Core.Table) : Prop :=
 instance (left right : Core.Table) : Decidable (TableState.DataEquiv left right) :=
   inferInstanceAs (Decidable (left.schema = right.schema ∧ left.rows = right.rows))
 
+theorem TableState.DataEquiv.withoutIndexes_eq {left right : Core.Table}
+    (equivalent : TableState.DataEquiv left right) :
+    left.withoutIndexes = right.withoutIndexes := by
+  have rebuilt := Core.Table.rebuild_withoutIndexes left
+  rw [equivalent.1, equivalent.2,
+    Core.Table.rebuild_withoutIndexes right] at rebuilt
+  injection rebuilt with equal
+  exact equal.symm
+
+theorem table_withoutIndexes_eq_self_of_rebuild
+    {schema : Core.Schema} {rows : List Core.Row} {table : Core.Table}
+    (rebuilt : Core.Table.rebuild schema [] rows = .ok table) :
+    table.withoutIndexes = table := by
+  have rebuiltWithout := Core.Table.rebuild_withoutIndexes table
+  have exact := Core.Table.rebuild_exact rebuilt
+  rw [exact.1, exact.2.2, rebuilt] at rebuiltWithout
+  injection rebuiltWithout with equal
+  exact equal.symm
+
 def TableState.retargetData (state : TableState) (table : Core.Table)
     (equivalent : TableState.DataEquiv state.table table) : TableState :=
   { table
