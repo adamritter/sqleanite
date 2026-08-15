@@ -737,8 +737,8 @@ structure LocalizedLastIndexDelta
 prepared delta.  This is used only for catalog identity, never to validate a
 table or index by re-running its logical operation. -/
 private def decideProof? (proposition : Prop) [Decidable proposition] :
-    Option proposition :=
-  if proof : proposition then some proof else none
+    Option (PLift proposition) :=
+  if proof : proposition then some ⟨proof⟩ else none
 
 private def storagePage? (bytes : List UInt8) :
     Option (Storage.Page PhysicalCodec.pageSize) :=
@@ -1471,9 +1471,9 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                                     index
                                     rootPage := entry.rootPage
                                     entry
-                                    entryTable
+                                    entryTable := entryTable.down
                                     entryRoot := rfl
-                                    entryMetadata
+                                    entryMetadata := entryMetadata.down
                                     certificate := .decoded certified.certificate
                                     expectedBefore
                                     writes
@@ -1574,9 +1574,9 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                                   index
                                   rootPage := entry.rootPage
                                   entry
-                                  entryTable
+                                  entryTable := entryTable.down
                                   entryRoot := rfl
-                                  entryMetadata
+                                  entryMetadata := entryMetadata.down
                                   certificate := .decoded certified.certificate
                                   expectedBefore
                                   writes
@@ -1706,9 +1706,9 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                                   index
                                   rootPage := entry.rootPage
                                   entry
-                                  entryTable
+                                  entryTable := entryTable.down
                                   entryRoot := rfl
-                                  entryMetadata
+                                  entryMetadata := entryMetadata.down
                                   certificate := .encoded certified
                                   expectedBefore
                                   writes

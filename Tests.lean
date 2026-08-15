@@ -2150,6 +2150,35 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
   | .error message =>
       unless message == "UNIQUE constraint failed: PRIMARY KEY" do
         fail s!"TEXT PRIMARY KEY returned the wrong duplicate error: {message}"
+  -- Exercise the exact file-backed statement shapes used by VeriBetrKV's
+  -- YCSB A/B/C/D/F runs.  This deliberately uses the paper schema verbatim:
+  -- there is no surrogate integer key or separately declared index.
+  let connection ← CoreFileEngine.reopen .system paths
+  let workload ← CoreFileEngine.execute connection "
+    BEGIN;
+    SELECT field0 FROM usertable WHERE ycsb_key='user1';
+    UPDATE usertable SET field0='updated1' WHERE ycsb_key='user1';
+    INSERT INTO usertable VALUES('user3','value3');
+    SELECT field0 FROM usertable WHERE ycsb_key='user2';
+    UPDATE usertable SET field0='updated2' WHERE ycsb_key='user2';
+    COMMIT;"
+  match workload with
+  | .error message =>
+      fail s!"file-backed TEXT PRIMARY KEY YCSB shapes failed: {message}"
+  | .ok results =>
+      let rows := results.flatMap (·.rows)
+      unless rows == [
+          [.text ⟨[118, 97, 108, 117, 101, 49], by decide⟩],
+          [.text ⟨[118, 97, 108, 117, 101, 50], by decide⟩]] do
+        fail "file-backed TEXT PRIMARY KEY reads returned wrong YCSB values"
+  let workloadCheck ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader", "
+      PRAGMA integrity_check;
+      SELECT ycsb_key,field0 FROM usertable ORDER BY ycsb_key;"] }
+  unless workloadCheck.exitCode == 0 && workloadCheck.stdout ==
+      "ok\nuser1|updated1\nuser2|updated2\nuser3|value3\n" do
+    fail s!"SQLite rejected the file-backed TEXT PRIMARY KEY workload: {workloadCheck.stderr}{workloadCheck.stdout}"
 
 private def expectLiveOverflowInterop : IO Unit := do
   let large := String.mk (List.replicate 9000 'x')
