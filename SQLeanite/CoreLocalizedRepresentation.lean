@@ -289,6 +289,51 @@ theorem readsPagesFrom_applyWrites_of_covered
   rw [CorePageSource.readPage_applyWrites_of_mem image distinct writeMember]
   exact congrArg some bytes
 
+/-- A contiguous encoded run may mix freshly written pages with exact old
+pages omitted from the delta.  This is the index/overflow analogue of
+`pageSourceContains_applyWrites`. -/
+theorem readsPagesFrom_applyWrites
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (start : Nat) (pages : List CoreFile.Page)
+    (accounted : ∀ (offset : Nat) (inBounds : offset < pages.length),
+      (∃ write ∈ writes,
+        write.pageId + 1 = start + offset ∧
+        write.page.bytes.toList =
+          (pages.get ⟨offset, inBounds⟩).bytes) ∨
+      (0 < start + offset ∧ start + offset ≤ image.pageCount ∧
+        (CorePageSource.ofStorageImage image).readPage (start + offset) =
+          some (pages.get ⟨offset, inBounds⟩).bytes ∧
+        ∀ write ∈ writes, write.pageId + 1 ≠ start + offset)) :
+    CoreDecode.ReadsPagesFrom
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) start pages := by
+  intro offset inBounds
+  rcases accounted offset inBounds with written | unchanged
+  · rcases written with ⟨write, member, pageNumber, bytes⟩
+    rw [← pageNumber]
+    rw [CorePageSource.readPage_applyWrites_of_mem image distinct member]
+    exact congrArg some bytes
+  · let pageId := start + offset - 1
+    have pageNumber : pageId + 1 = start + offset := by
+      simp only [pageId]
+      omega
+    have oldBound : pageId < image.pageCount := by
+      simp only [pageId]
+      omega
+    have newBound :
+        pageId < (GrowableStorage.applyWrites image writes).pageCount := by
+      have growth := CorePageSource.applyWrites_pageCount_ge image writes
+      omega
+    rw [← pageNumber]
+    rw [CorePageSource.readPage_applyWrites_of_not_written image writes pageId
+      newBound oldBound]
+    · simpa [pageNumber] using unchanged.2.2.1
+    · intro write member equal
+      exact unchanged.2.2.2 write member (by omega)
+
 /-- A successfully encoded index run plus exact post-write page reads gives
 the physical index premise consumed by `IndexGroupsDecode`. -/
 theorem IndexesDecode.consEncoded

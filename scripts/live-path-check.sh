@@ -690,8 +690,10 @@ if grep -q 'preparePageDirectedIndexDelete? validated' \
    grep -q 'deleteIndexEntriesBatch?' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'let (cell, rest) ← takeExact cellLength input' \
      SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'certifyDecodedIndex? entry.rootPage' \
+   grep -q 'let certified ← certifyDecodedIndexAt? entry.rootPage' \
      SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'localizedIndexReadable_of_onStorage' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'deletedRowsOrdered?_length' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreFileAdapter.takeExact_spec' SQLeanite/ProofAxioms.lean &&
    grep -q 'certifyDecodedIndex?_exact' SQLeanite/ProofAxioms.lean; then
@@ -712,8 +714,10 @@ fi
 if grep -q 'preparePageDirectedIndexInsert? validated' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'insertIndexEntryNoSplit?' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'let certificate ← certifyDecodedIndex? entry.rootPage' \
+   grep -q 'let certified ← certifyDecodedIndexAt? entry.rootPage' \
      SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'localizedIndexReadable_of_onStorage' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'firstInserted_mem_after' SQLeanite/ProofAxioms.lean &&
    grep -q 'certifyDecodedIndex?_exact' SQLeanite/ProofAxioms.lean; then
   ok "single-row indexed INSERT carries an exact decoded post-state certificate"

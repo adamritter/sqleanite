@@ -475,6 +475,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_unchangedPageZero
 #print axioms SQLeanite.CoreDurability.indexesDecode_consLocalized
 #print axioms SQLeanite.CoreDurability.localizedIndexReadable_of_onStorage
+#print axioms SQLeanite.CoreDurability.localizedIndexReadable_of_encodedOnStorage
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
@@ -582,6 +583,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.retainGeneratedState?_allocationWellFormed
 #print axioms SQLeanite.CoreFileAdapter.changedPageWrites_sublist
 #print axioms SQLeanite.CoreFileAdapter.omitted_changedPageWrites_matches
+#print axioms SQLeanite.CoreFileAdapter.indexPageWrites_covers
+#print axioms SQLeanite.CoreFileAdapter.indexPageWrites_eq_of_pageId_eq
 #print axioms SQLeanite.CoreFileAdapter.deletedRowsOrdered?_length
 #print axioms SQLeanite.CoreFileAdapter.certifyDecodedIndex?_source
 #print axioms SQLeanite.CoreFileAdapter.certifyDecodedIndex?_exact
@@ -609,6 +612,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageSource.readPage_write_other
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_applyWrites
 #print axioms SQLeanite.CoreLocalizedRepresentation.readsPagesFrom_applyWrites_of_covered
+#print axioms SQLeanite.CoreLocalizedRepresentation.readsPagesFrom_applyWrites
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.consEncoded
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.validateForTable

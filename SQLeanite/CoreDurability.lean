@@ -176,6 +176,24 @@ theorem localizedIndexReadable_of_onStorage
   refine ⟨oldImage, .decoded certificate ?_⟩
   simpa [localizedSource] using exactSource
 
+/-- The storage witness carried by a rebuilt-index delta supplies the encoded
+case of the same physical readability contract.  Unlike the historical
+encode/decode validation pass, this proof permits unchanged pages to be
+omitted from the write set: their exact old bytes are part of `OnStorage`. -/
+theorem localizedIndexReadable_of_encodedOnStorage
+    {rootPage : Nat} {table : Core.Table} {index : Core.Index}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (certificate : CoreFileAdapter.CertifiedIndexEncoding
+      rootPage table index)
+    (onStorage : certificate.OnStorage writes) :
+    ∃ oldImage : GrowableStorage.Image PhysicalCodec.pageSize,
+      LocalizedIndexReadable (localizedSource oldImage writes)
+        (.encoded certificate) := by
+  rcases onStorage with
+    ⟨oldImage, reads, rootPositive, pageBound, withinSource⟩
+  refine ⟨oldImage, .encoded certificate reads rootPositive pageBound ?_⟩
+  simpa [localizedSource] using withinSource
+
 /-- A nonempty growable image starts with the bytes returned by page zero.
 The suffix is intentionally abstract: SQLite header decoding consumes exactly
 the first 100 bytes and does not need to inspect the remaining pages. -/

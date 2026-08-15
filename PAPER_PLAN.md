@@ -149,8 +149,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   rather than an index-only synthetic view. Page-directed insert/delete
   preparations carry an erased `OnStorage` witness identifying that overlay
   with the post-write image of the exact input buffer; the bounded-write check
-  is over the delta only, not the database. Rebuilt-index coverage remains the
-  final changed-index preparation obligation.
+  is over the delta only, not the database. Rebuilt indexes now carry an
+  `OnStorage` witness too: every encoded page is either present in the exact
+  physical delta or proved byte-for-byte equal to its validated old page.
+  Thus both routed and rebuilt changed-index preparations are connected to the
+  actual post-write storage image; complete database-certificate assembly
+  remains the M3 integration obligation.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

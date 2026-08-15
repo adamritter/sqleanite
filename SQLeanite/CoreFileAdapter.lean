@@ -5,6 +5,7 @@ import SQLeanite.CoreOverflow
 import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad
 import SQLeanite.CorePageSource
+import SQLeanite.CoreLocalizedRepresentation
 import SQLeanite.PhysicalFileAdapter
 
 namespace SQLeanite
@@ -693,6 +694,20 @@ def DecodedIndexCertificate.OnStorage
     certificate.source = CorePageSource.ofStorageImage
       (GrowableStorage.applyWrites oldImage writes)
 
+def CertifiedIndexEncoding.OnStorage
+    {rootPage : Nat} {table : Core.Table} {index : Core.Index}
+    (certificate : CertifiedIndexEncoding rootPage table index)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : Prop :=
+  ∃ oldImage : GrowableStorage.Image PhysicalCodec.pageSize,
+    CoreDecode.ReadsPagesFrom
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage writes))
+      rootPage certificate.value.pages ∧
+    0 < rootPage ∧
+    rootPage + certificate.value.pages.length < 2 ^ 32 ∧
+    rootPage + certificate.value.pages.length ≤
+      (GrowableStorage.applyWrites oldImage writes).pageCount + 1
+
 structure LocalizedLastIndexDelta
     (delta : CoreChunkPageDelta.StateDelta) where
   state : CoreChunkPageState.State
@@ -702,8 +717,8 @@ structure LocalizedLastIndexDelta
   writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   certificate : LocalizedIndexCertificate rootPage
     delta.table.after.table index
-  decodedStorage : match certificate with
-    | .encoded _ => True
+  storage : match certificate with
+    | .encoded encoded => encoded.OnStorage writes
     | .decoded decoded => decoded.OnStorage writes
   writesDistinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
   allocation : state.AllocationWellFormed
@@ -716,6 +731,76 @@ private def storagePage? (bytes : List UInt8) :
       bytes := bytes.toArray
       sizeInvariant := by simp [exact] }
   else none
+
+private theorem storagePage?_bytes {bytes : List UInt8}
+    {page : Storage.Page PhysicalCodec.pageSize}
+    (success : storagePage? bytes = some page) :
+    page.bytes.toList = bytes := by
+  unfold storagePage? at success
+  split at success
+  next =>
+    injection success with equal
+    subst page
+    simp
+  next => contradiction
+
+/-- Read one exact contiguous pre-image run.  The recursive form retains a
+simple kernel proof that every returned page really came from its numbered
+source read. -/
+private def readPageWrites? (source : CoreDecode.PageSource) :
+    Nat → Nat → Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+  | _, 0 => some []
+  | pageNumber, count + 1 => do
+      let bytes ← source.readPage pageNumber
+      let page ← storagePage? bytes
+      let tail ← readPageWrites? source (pageNumber + 1) count
+      some (⟨pageNumber - 1, page⟩ :: tail)
+
+private structure ReadPageWritesResult (source : CoreDecode.PageSource)
+    (start count : Nat) where
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  exact : readPageWrites? source start count = some writes
+
+private def readPageWritesCertified? (source : CoreDecode.PageSource)
+    (start count : Nat) : Option (ReadPageWritesResult source start count) :=
+  match success : readPageWrites? source start count with
+  | none => none
+  | some writes => some ⟨writes, success⟩
+
+private theorem readPageWrites?_reads
+    (source : CoreDecode.PageSource) :
+    ∀ {start count : Nat}
+      {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)},
+      0 < start →
+      readPageWrites? source start count = some writes →
+      ∀ write ∈ writes,
+        source.readPage (write.pageId + 1) = some write.page.bytes.toList
+  | _, 0, writes, _, success => by
+      simp only [readPageWrites?, Option.some.injEq] at success
+      subst writes
+      simp
+  | start, count + 1, writes, positive, success => by
+      simp only [readPageWrites?, Option.bind_eq_bind, Option.bind] at success
+      cases readResult : source.readPage start with
+      | none => simp [readResult] at success
+      | some bytes =>
+          simp only [readResult] at success
+          cases pageResult : storagePage? bytes with
+          | none => simp [pageResult] at success
+          | some page =>
+              simp only [pageResult] at success
+              cases tailResult : readPageWrites? source (start + 1) count with
+              | none => simp [tailResult] at success
+              | some tail =>
+                  simp only [tailResult, Option.some.injEq] at success
+                  subst writes
+                  intro write member
+                  simp only [List.mem_cons] at member
+                  rcases member with rfl | member
+                  · have pageNumber : start - 1 + 1 = start := by omega
+                    rw [pageNumber, readResult, storagePage?_bytes pageResult]
+                  · exact readPageWrites?_reads source (by omega) tailResult
+                      write member
 
 private def indexPageWrites (rootPage : Nat) :
     List CoreFile.Page →
@@ -730,6 +815,69 @@ theorem indexPageWrites_length (rootPage : Nat) (pages : List CoreFile.Page) :
   | nil => rfl
   | cons page pages induction =>
       simp only [indexPageWrites, List.length_cons, induction]
+
+theorem indexPageWrites_covers (rootPage : Nat) (pages : List CoreFile.Page)
+    (positive : 0 < rootPage) :
+    ∀ (offset : Nat) (inBounds : offset < pages.length),
+      ∃ write ∈ indexPageWrites rootPage pages,
+        write.pageId + 1 = rootPage + offset ∧
+        write.page.bytes.toList = (pages.get ⟨offset, inBounds⟩).bytes := by
+  induction pages generalizing rootPage with
+  | nil => simp
+  | cons page pages induction =>
+      intro offset inBounds
+      cases offset with
+      | zero =>
+          refine ⟨⟨rootPage - 1, page.storage⟩, by simp [indexPageWrites], ?_, ?_⟩
+          · change rootPage - 1 + 1 = rootPage
+            omega
+          · simp [CoreFile.Page.storage]
+      | succ offset =>
+          have tailBound : offset < pages.length := by
+            simpa using inBounds
+          rcases induction (rootPage := rootPage + 1) (by omega) offset tailBound
+            with ⟨write, member, pageNumber, bytes⟩
+          refine ⟨write, by simp [indexPageWrites, member], ?_, ?_⟩
+          · omega
+          · simpa using bytes
+
+theorem indexPageWrites_member_exact (rootPage : Nat)
+    (pages : List CoreFile.Page) :
+    ∀ {write : GrowableStorage.PageWrite PhysicalCodec.pageSize},
+      write ∈ indexPageWrites rootPage pages →
+      ∃ (offset : Nat) (inBounds : offset < pages.length),
+        write = ⟨rootPage + offset - 1,
+          (pages.get ⟨offset, inBounds⟩).storage⟩ := by
+  induction pages generalizing rootPage with
+  | nil => simp [indexPageWrites]
+  | cons page pages induction =>
+      intro write member
+      simp only [indexPageWrites, List.mem_cons] at member
+      rcases member with rfl | member
+      · exact ⟨0, by simp, by simp⟩
+      · rcases induction (rootPage := rootPage + 1) member with
+          ⟨offset, inBounds, exactWrite⟩
+        refine ⟨offset + 1, by simpa, ?_⟩
+        rw [exactWrite]
+        congr 1 <;> omega
+
+theorem indexPageWrites_eq_of_pageId_eq (rootPage : Nat)
+    (pages : List CoreFile.Page)
+    (positive : 0 < rootPage)
+    {left right : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (leftMember : left ∈ indexPageWrites rootPage pages)
+    (rightMember : right ∈ indexPageWrites rootPage pages)
+    (samePage : left.pageId = right.pageId) : left = right := by
+  rcases indexPageWrites_member_exact rootPage pages leftMember with
+    ⟨leftOffset, leftBound, leftExact⟩
+  rcases indexPageWrites_member_exact rootPage pages rightMember with
+    ⟨rightOffset, rightBound, rightExact⟩
+  subst left
+  subst right
+  simp only [GrowableStorage.PageWrite.pageId] at samePage
+  have offsets : leftOffset = rightOffset := by omega
+  subst rightOffset
+  rfl
 
 /-- Drop a proposed write only when the validated old tail already contains
 the exact same page ID and bytes.  This scopes both journal pre-images and main
@@ -1141,17 +1289,48 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                         if distinct : writes.Pairwise
                             (fun left right => left.pageId ≠ right.pageId) then
                           if allocation : state.AllocationWellFormed then
-                            some {
-                              state
-                              index
-                              rootPage
-                              certificate := .encoded certified
-                              expectedBefore := [⟨0, oldPage⟩]
-                              writes
-                              decodedStorage := True.intro
-                              writesDistinct := distinct
-                              allocation
-                              validated := ⟨state, ()⟩ }
+                            if decodeBound :
+                                rootPage + encoding.pages.length < 2 ^ 32 then
+                              some {
+                                state
+                                index
+                                rootPage
+                                certificate := .encoded certified
+                                expectedBefore := [⟨0, oldPage⟩]
+                                writes
+                                storage := by
+                                  let oldImage := byteArrayStorageImage input
+                                    count _length
+                                  refine ⟨oldImage, ?_, by omega, decodeBound, ?_⟩
+                                  · exact CoreLocalizedRepresentation.readsPagesFrom_applyWrites_of_covered
+                                      oldImage writes distinct rootPage encoding.pages
+                                      (by
+                                        intro offset inBounds
+                                        rcases indexPageWrites_covers rootPage
+                                            encoding.pages (by omega) offset
+                                            inBounds with
+                                          ⟨write, member, pageNumber, bytes⟩
+                                        exact ⟨write, by simp [writes, member],
+                                          pageNumber, bytes⟩)
+                                  · have lastBound :
+                                        encoding.pages.length - 1 <
+                                          encoding.pages.length := by omega
+                                    rcases indexPageWrites_covers rootPage
+                                        encoding.pages (by omega)
+                                        (encoding.pages.length - 1) lastBound with
+                                      ⟨write, member, pageNumber, _⟩
+                                    have present : write ∈ writes := by
+                                      simp [writes, member]
+                                    have writeBound :=
+                                      CorePageSource.pageId_lt_applyWrites_of_mem
+                                        oldImage present
+                                    change rootPage + encoding.pages.length ≤
+                                      (GrowableStorage.applyWrites oldImage writes).pageCount + 1
+                                    omega
+                                writesDistinct := distinct
+                                allocation
+                                validated := ⟨state, ()⟩ }
+                            else none
                           else none
                         else none
                       else none
@@ -1228,7 +1407,7 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                                     certificate := .decoded certified.certificate
                                     expectedBefore
                                     writes
-                                    decodedStorage := by
+                                    storage := by
                                       let oldImage := byteArrayStorageImage input
                                         count _length
                                       refine ⟨oldImage,
@@ -1320,7 +1499,7 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                                   certificate := .decoded certified.certificate
                                   expectedBefore
                                   writes
-                                  decodedStorage := by
+                                  storage := by
                                     let oldImage := byteArrayStorageImage input
                                       count _length
                                     refine ⟨oldImage,
@@ -1366,8 +1545,11 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
   if _generated : CoreFile.hasGeneratedImageStamp header then
     if _noExistingFree : header.freelistPageCount.val = 0 then
       if _length : input.length = count * PhysicalCodec.pageSize then
-        let physicalPages := CoreDecode.pages count input
-        let source := CoreDecode.PageSource.ofList physicalPages
+        let inputBytes := ByteArray.mk input.toArray
+        have inputBytesSize : inputBytes.size =
+            count * PhysicalCodec.pageSize := by
+          simpa [inputBytes] using _length
+        let source := byteArrayPageSource inputBytes count
         let firstPage ← source.readPage 1
         let catalog ← CoreDecode.decodeCatalogForOpen firstPage
         let before := delta.table.before.table
@@ -1411,36 +1593,97 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                               CoreChunkPageDelta.beforeWrites delta.table
                           let tableWrites ←
                               CoreChunkPageDelta.writes delta.table
-                          let oldTail ←
-                              (List.range' entry.rootPage oldCount).mapM
-                                fun pageNumber => do
-                                  let bytes ← source.readPage pageNumber
-                                  let page ← storagePage? bytes
-                                  some ⟨pageNumber - 1, page⟩
-                          let indexWrites := changedPageWrites oldTail
-                              (indexPageWrites entry.rootPage encoding.pages)
-                          let writes := tableWrites ++ indexWrites
-                          let expectedBefore := tableBefore ++ oldTail
-                          let released := List.range'
-                              (entry.rootPage + encoding.pages.length)
-                              (oldCount - encoding.pages.length)
-                          let freePages := CoreChunkPageDelta.addFreePages
-                              delta.after.freePages released
-                          let state := { delta.after with freePages }
-                          if distinct : writes.Pairwise
-                                (fun left right => left.pageId ≠ right.pageId) then
-                            if allocation : state.AllocationWellFormed then
-                              some {
+                          if tableWritesBounded : ∀ write ∈ tableWrites,
+                              write.pageId + 1 < entry.rootPage then
+                            let oldTailRun ← readPageWritesCertified? source
+                              entry.rootPage oldCount
+                            let oldTail := oldTailRun.writes
+                            let indexWrites := changedPageWrites oldTail
+                                (indexPageWrites entry.rootPage encoding.pages)
+                            let writes := tableWrites ++ indexWrites
+                            let expectedBefore := tableBefore ++ oldTail
+                            let released := List.range'
+                                (entry.rootPage + encoding.pages.length)
+                                (oldCount - encoding.pages.length)
+                            let freePages := CoreChunkPageDelta.addFreePages
+                                delta.after.freePages released
+                            let state := { delta.after with freePages }
+                            if decodeBound : entry.rootPage +
+                                encoding.pages.length < 2 ^ 32 then
+                              if distinct : writes.Pairwise
+                                  (fun left right => left.pageId ≠ right.pageId) then
+                                if allocation : state.AllocationWellFormed then
+                                  some {
                                   state
                                   index
                                   rootPage := entry.rootPage
                                   certificate := .encoded certified
                                   expectedBefore
                                   writes
-                                  decodedStorage := True.intro
+                                  storage := by
+                                    let oldImage := byteArrayStorageImage inputBytes
+                                      count inputBytesSize
+                                    refine ⟨oldImage, ?_, by omega, decodeBound, ?_⟩
+                                    · apply CoreLocalizedRepresentation.readsPagesFrom_applyWrites
+                                        oldImage writes distinct entry.rootPage
+                                        encoding.pages
+                                      intro offset inBounds
+                                      rcases indexPageWrites_covers entry.rootPage
+                                          encoding.pages (by omega) offset inBounds with
+                                        ⟨candidate, candidateMember, candidatePage,
+                                          candidateBytes⟩
+                                      by_cases changed : candidate ∈ indexWrites
+                                      · exact .inl ⟨candidate, by simp [writes, changed],
+                                          candidatePage, candidateBytes⟩
+                                      · rcases omitted_changedPageWrites_matches
+                                            candidateMember changed with
+                                          ⟨old, oldMember, oldSameId, oldSamePage⟩
+                                        refine .inr ⟨by omega, ?_, ?_, ?_⟩
+                                        · change entry.rootPage + offset ≤ count
+                                          omega
+                                        · have oldRead := readPageWrites?_reads source
+                                              (by omega) oldTailRun.exact old oldMember
+                                          have sourceRead : source.readPage
+                                              (entry.rootPage + offset) =
+                                                some (encoding.pages.get
+                                                  ⟨offset, inBounds⟩).bytes := by
+                                            rw [← candidatePage, ← oldSameId, oldRead,
+                                              oldSamePage, candidateBytes]
+                                          rw [← byteArrayPageSource_eq_storageImage
+                                            inputBytes count inputBytesSize]
+                                          exact sourceRead
+                                        · intro write writeMember samePage
+                                          rcases List.mem_append.mp writeMember with
+                                            tableMember | indexMember
+                                          · have beforeRoot := tableWritesBounded write
+                                                tableMember
+                                            omega
+                                          · have fullMember : write ∈
+                                                indexPageWrites entry.rootPage
+                                                  encoding.pages :=
+                                              (changedPageWrites_sublist oldTail
+                                                (indexPageWrites entry.rootPage
+                                                  encoding.pages)).subset indexMember
+                                            have sameId : write.pageId =
+                                                candidate.pageId := by omega
+                                            have equal := indexPageWrites_eq_of_pageId_eq
+                                              entry.rootPage encoding.pages
+                                                (by omega) fullMember
+                                                candidateMember sameId
+                                            exact changed (by simpa [equal] using indexMember)
+                                    · have growth :=
+                                          CorePageSource.applyWrites_pageCount_ge
+                                            oldImage writes
+                                      have oldCountExact : oldImage.pageCount = count := rfl
+                                      rw [oldCountExact] at growth
+                                      change entry.rootPage + encoding.pages.length ≤
+                                        (GrowableStorage.applyWrites oldImage writes).pageCount + 1
+                                      omega
                                   writesDistinct := distinct
                                   allocation
                                   validated := ⟨state, ()⟩ }
+                                else none
+                              else none
                             else none
                           else none
                         else none
