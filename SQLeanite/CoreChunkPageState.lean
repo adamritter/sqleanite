@@ -374,6 +374,33 @@ def buildTables? : Nat → List Core.Table →
 def tablePageIds (tables : List TableState) : List Nat :=
   tables.flatMap TableState.pageIds
 
+/-- Global page-ID uniqueness implies pairwise separation between the page
+sets owned by two different tables.  Localized commits use this to transport
+an unchanged table without inspecting its bytes: a write selected from the
+changed table cannot name one of the unchanged table's tree pages. -/
+theorem pageIds_disjoint_of_nodup
+    {tables : List TableState} (unique : (tablePageIds tables).Nodup) :
+    ∀ left ∈ tables, ∀ right ∈ tables, left ≠ right →
+      ∀ pageId, pageId ∈ left.pageIds → pageId ∉ right.pageIds := by
+  induction tables with
+  | nil => simp
+  | cons head tail induction =>
+      unfold tablePageIds at unique
+      simp only [List.flatMap_cons] at unique
+      have separated := List.pairwise_append.mp unique
+      intro left leftMember right rightMember different pageId leftPage rightPage
+      simp only [List.mem_cons] at leftMember rightMember
+      rcases leftMember with rfl | leftTail
+      · rcases rightMember with rfl | rightTail
+        · exact different rfl
+        · exact separated.2.2 pageId leftPage pageId
+            (List.mem_flatMap.mpr ⟨right, rightTail, rightPage⟩) rfl
+      · rcases rightMember with rfl | rightTail
+        · exact separated.2.2 pageId rightPage pageId
+            (List.mem_flatMap.mpr ⟨left, leftTail, leftPage⟩) rfl
+        · exact induction separated.2.1 left leftTail right rightTail
+            different pageId leftPage rightPage
+
 theorem TableState.pageIds_length_le_tablePageIds {table : TableState} :
     ∀ {tables : List TableState}, table ∈ tables →
       table.pageIds.length ≤ (tablePageIds tables).length

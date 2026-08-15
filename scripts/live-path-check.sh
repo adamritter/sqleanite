@@ -230,6 +230,8 @@ if grep -q 'CoreSQLTraceText.executeText_commit_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_committedLocalizedIndexedInlineTables_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic' \
