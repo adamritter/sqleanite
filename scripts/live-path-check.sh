@@ -331,6 +331,8 @@ fi
 
 if grep -q 'prepareOrdinaryDelta? state next.database' \
      SQLeanite/CoreFileEngine.lean &&
+   grep -q 'commitLocalizedCertified connection.syncOps' \
+     SQLeanite/CoreFileEngine.lean &&
    grep -q 'connection.paths prepared.expectedBefore prepared.writes' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'PreparedOrdinaryDelta.ordinaryLocalizedCommit' \
@@ -338,6 +340,16 @@ if grep -q 'prepareOrdinaryDelta? state next.database' \
   ok "ordinary localized commits consume one proof-carrying preparation"
 else
   fail "ordinary localized syscall inputs detached from durability preparation"
+fi
+
+if grep -q 'structure PreparedLocalizedWrites' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'preparedCommitPlan journal prepared.writes' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'requestsEq' SQLeanite/CoreFileAdapter.lean; then
+  ok "header/freelist planning is tied to the exact localized syscall trace"
+else
+  fail "localized syscall trace detached from header/freelist preparation"
 fi
 
 if grep -q 'canonicalCandidate' SQLeanite/CoreFileEngine.lean &&

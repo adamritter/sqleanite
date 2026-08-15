@@ -116,7 +116,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
             | some prepared =>
               let validated := (← connection.validatedOpen.get).bind fun current =>
                 current.retarget? delta sufficient
-              match ← CoreFileAdapter.commitLocalized connection.syncOps
+              match ← CoreFileAdapter.commitLocalizedCertified connection.syncOps
                   connection.paths prepared.expectedBefore prepared.writes
                     delta.after.freePages with
               | some _ =>
@@ -166,7 +166,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
                       input.data.toList delta canonicalCandidate
           match prepared with
           | some prepared =>
-              match ← CoreFileAdapter.commitLocalized connection.syncOps
+              match ← CoreFileAdapter.commitLocalizedCertified connection.syncOps
                   connection.paths prepared.expectedBefore prepared.writes
                     prepared.state.freePages with
               | some _ =>

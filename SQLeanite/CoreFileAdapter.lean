@@ -229,87 +229,107 @@ private def targetPageCount (current : Nat)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : Nat :=
   writes.foldl (fun count write => max count (write.pageId + 1)) current
 
-/-- Add a write only when its intended bytes differ from the current page.
-This keeps an unchanged freelist trunk out of later transactions. -/
-private def prependChangedWrite (path : System.FilePath)
-    (write : GrowableStorage.PageWrite PhysicalCodec.pageSize)
-    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
-    IO (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) := do
-  let current ← SyscallVFS.preadBytes path.toString
-    (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
-    (USize.ofNat PhysicalCodec.pageSize)
-  if current.size = PhysicalCodec.pageSize &&
-      current.toList == write.page.bytes.toList then
-    return writes
-  else return write :: writes
-
-/-- Growth and page release both mutate SQLite page zero.  Released page
-numbers are encoded as one ordinary SQLite freelist trunk plus leaf pointers;
-the catalog body and every active root remain byte-for-byte stable. -/
-private def addHeaderAndFreelistWrites (path : System.FilePath)
+/-- Pure header/freelist augmentation for a localized delta.  Keeping this
+planner outside `IO` is important: the exact list returned here is retained in
+`PreparedLocalizedWrites` and is also the exact list journaled and written by
+the live commit protocol. -/
+def planLocalizedWrites? (current : Nat) (firstPage : List UInt8)
     (freePages : List Nat)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
-    IO (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) := do
-  IO.FS.withFile path .read fun handle => do
-    let current ← readPageCount handle path
-    let target := targetPageCount current writes
-    if bounds : target < 2 ^ 32 ∧ freePages.length < 2 ^ 32 ∧
-        freePages.Nodup ∧
-        ∀ page ∈ freePages, 1 < page ∧ page ≤ target ∧ page < 2 ^ 32 then
-      let first ← SyscallVFS.preadBytes path.toString 0
-        (USize.ofNat PhysicalCodec.pageSize)
-      unless first.size = PhysicalCodec.pageSize do
-        throw (IO.userError "short read while updating the SQLite header")
-      let (header, suffix) ← match FileFormat.decodeDatabaseHeader first.toList with
-        | some decoded => pure decoded
-        | none => throw (IO.userError "invalid SQLite header during page delta")
-      let count : FileFormat.U32Value := ⟨target, bounds.1⟩
-      let freeCount : FileFormat.U32Value := ⟨freePages.length, bounds.2.1⟩
-      let firstFree : FileFormat.U32Value := match firstResult : freePages with
-        | [] => ⟨0, by omega⟩
-        | page :: _ => ⟨page, (bounds.2.2.2 page (by simp [firstResult])).2.2⟩
-      let updatedHeader : FileFormat.DatabaseHeader := {
-        headerPrefix := header.headerPrefix
-        databaseSizePages := count
-        firstFreelistTrunk := firstFree
-        freelistPageCount := freeCount
-        schemaCookie := header.schemaCookie
-        schemaFormat := header.schemaFormat
-        defaultPageCacheSize := header.defaultPageCacheSize
-        largestRootBTreePage := header.largestRootBTreePage
-        textEncoding := header.textEncoding
-        userVersion := header.userVersion
-        incrementalVacuum := header.incrementalVacuum
-        applicationId := header.applicationId
-        versionValidFor := header.versionValidFor
-        sqliteVersion := header.sqliteVersion }
-      let patched := FileFormat.encodeDatabaseHeader updatedHeader ++ suffix
-      let headerPage ← match DiskFormat.decodeStoragePage
-          PhysicalCodec.pageSize patched with
-        | some (page, []) => pure page
-        | _ => throw (IO.userError "updated SQLite header changed page size")
+    Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) := do
+  let target := targetPageCount current writes
+  if bounds : target < 2 ^ 32 ∧ freePages.length < 2 ^ 32 ∧
+      freePages.Nodup ∧
+      ∀ page ∈ freePages, 1 < page ∧ page ≤ target ∧ page < 2 ^ 32 then
+    let (header, suffix) ← FileFormat.decodeDatabaseHeader firstPage
+    let count : FileFormat.U32Value := ⟨target, bounds.1⟩
+    let freeCount : FileFormat.U32Value := ⟨freePages.length, bounds.2.1⟩
+    let firstFree : FileFormat.U32Value := match firstResult : freePages with
+      | [] => ⟨0, by omega⟩
+      | page :: _ => ⟨page, (bounds.2.2.2 page (by simp [firstResult])).2.2⟩
+    let updatedHeader : FileFormat.DatabaseHeader := {
+      headerPrefix := header.headerPrefix
+      databaseSizePages := count
+      firstFreelistTrunk := firstFree
+      freelistPageCount := freeCount
+      schemaCookie := header.schemaCookie
+      schemaFormat := header.schemaFormat
+      defaultPageCacheSize := header.defaultPageCacheSize
+      largestRootBTreePage := header.largestRootBTreePage
+      textEncoding := header.textEncoding
+      userVersion := header.userVersion
+      incrementalVacuum := header.incrementalVacuum
+      applicationId := header.applicationId
+      versionValidFor := header.versionValidFor
+      sqliteVersion := header.sqliteVersion }
+    let patched := FileFormat.encodeDatabaseHeader updatedHeader ++ suffix
+    let (headerPage, headerRest) ←
+      DiskFormat.decodeStoragePage PhysicalCodec.pageSize patched
+    if _headerExact : headerRest = [] then
       let writes ← match freePages with
-        | [] => pure writes
+        | [] => some writes
         | trunk :: leaves => do
             let trunkPrefix := FileFormat.encodeUnsignedFixed 4 0 ++
               FileFormat.encodeUnsignedFixed 4 leaves.length ++
                 CoreFreelist.encodePageNumbers leaves
-            if fits : trunkPrefix.length ≤ PhysicalCodec.pageSize then
+            if _fits : trunkPrefix.length ≤ PhysicalCodec.pageSize then
               let trunkBytes := trunkPrefix ++
                 List.replicate (PhysicalCodec.pageSize - trunkPrefix.length) 0
-              let trunkPage ← match DiskFormat.decodeStoragePage
-                  PhysicalCodec.pageSize trunkBytes with
-                | some (page, []) => pure page
-                | _ => throw (IO.userError "freelist trunk changed page size")
-              prependChangedWrite path ⟨trunk - 1, trunkPage⟩ writes
-            else
-              throw (IO.userError "localized freelist exceeds one trunk page")
+              let (trunkPage, trunkRest) ←
+                DiskFormat.decodeStoragePage PhysicalCodec.pageSize trunkBytes
+              if _trunkExact : trunkRest = [] then
+                some (⟨trunk - 1, trunkPage⟩ :: writes)
+              else none
+            else none
       if writes.any (fun write => write.pageId = 0) then
-        pure writes
-      else prependChangedWrite path ⟨0, headerPage⟩ writes
-    else
-      throw (IO.userError
-        "localized allocation or freelist exceeds SQLite bounds")
+        some writes
+      else if headerPage.bytes.toList == firstPage then
+        some writes
+      else some (⟨0, headerPage⟩ :: writes)
+    else none
+  else none
+
+/-- The exact final write set selected before the journal protocol begins.
+`planned` is proof-only, while `writes` is the executable value consumed by
+the journal, main-file writer, read-back verifier, and crash-trace builder. -/
+structure PreparedLocalizedWrites
+    (freePages : List Nat)
+    (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) where
+  currentPageCount : Nat
+  firstPage : List UInt8
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  planned : planLocalizedWrites? currentPageCount firstPage freePages
+    baseWrites = some writes
+  distinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
+
+private def certifyLocalizedWrites?
+    (current : Nat) (firstPage : List UInt8) (freePages : List Nat)
+    (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    Option (PreparedLocalizedWrites freePages baseWrites) :=
+  match planned : planLocalizedWrites? current firstPage freePages baseWrites with
+  | none => none
+  | some writes =>
+      if distinct : writes.Pairwise
+          (fun left right => left.pageId ≠ right.pageId) then
+        some { currentPageCount := current, firstPage, writes, planned, distinct }
+      else none
+
+/-- Read only the current page count and page zero, then run the pure planner.
+This function performs no journal or main-file mutation. -/
+private def prepareLocalizedWrites (path : System.FilePath)
+    (freePages : List Nat)
+    (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    IO (PreparedLocalizedWrites freePages baseWrites) := do
+  IO.FS.withFile path .read fun handle => do
+    let current ← readPageCount handle path
+    let first ← SyscallVFS.preadBytes path.toString 0
+      (USize.ofNat PhysicalCodec.pageSize)
+    unless first.size = PhysicalCodec.pageSize do
+      throw (IO.userError "short read while updating the SQLite header")
+    match certifyLocalizedWrites? current first.toList freePages baseWrites with
+    | some prepared => pure prepared
+    | none => throw (IO.userError
+        "localized allocation, freelist, or write identity is invalid")
 
 private def journalFromFile (path : System.FilePath)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
@@ -2952,20 +2972,35 @@ def recover (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   recoverInPlace syncOps paths
   reopen paths
 
-/-- Commit an already proved page delta.  Only the pages in `writes` are read
-for journal pre-images, written, and read back.  No whole-file encode, diff, or
-reopen occurs on this path.  The exact same write list feeds the journal and
-the main-file protocol, preserving the hypotheses of the generic crash theorem. -/
-def commitLocalized (syncOps : SyncOps) (paths : Paths)
-    (expectedBefore writes :
+/-- Successful live publication retains the pure final-write preparation and
+the equation tying the returned abstract syscall trace to that exact list. -/
+structure CommittedLocalizedDelta
+    (freePages : List Nat)
+    (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) where
+  prepared : PreparedLocalizedWrites freePages baseWrites
+  journal : GrowableStorage.Journal PhysicalCodec.pageSize
+  requests : List (POSIXVFS.Request PhysicalCodec.pageSize)
+  requestsEq : requests = preparedCommitPlan journal prepared.writes
+
+theorem CommittedLocalizedDelta.trace_eq
+    {freePages : List Nat}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (committed : CommittedLocalizedDelta freePages baseWrites) :
+    committed.requests =
+      preparedCommitPlan committed.journal committed.prepared.writes :=
+  committed.requestsEq
+
+/-- Commit an already proved page delta. Only the final pages selected by the
+pure preparation are read for journal pre-images, written, and read back. No
+whole-file encode, diff, or reopen occurs on this path. -/
+def commitLocalizedCertified (syncOps : SyncOps) (paths : Paths)
+    (expectedBefore baseWrites :
       List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
     (freePages : List Nat := []) :
-    IO (Option (List (POSIXVFS.Request PhysicalCodec.pageSize))) := do
+    IO (Option (CommittedLocalizedDelta freePages baseWrites)) := do
   recoverInPlace syncOps paths
-  let writes ← addHeaderAndFreelistWrites paths.main freePages writes
-  unless writes.Pairwise (fun left right => left.pageId ≠ right.pageId) do
-    throw (IO.userError s!"localized delta contains duplicate page IDs: \
-      {writes.map (fun write => write.pageId)}")
+  let prepared ← prepareLocalizedWrites paths.main freePages baseWrites
+  let writes := prepared.writes
   let journal ← journalFromFile paths.main writes
   -- `expectedBefore` is deliberately a safe superset: a structural operation
   -- includes absorbed pages even when only one of them becomes the freelist
@@ -2989,7 +3024,19 @@ def commitLocalized (syncOps : SyncOps) (paths : Paths)
   verifyWrittenPages paths.main writes
   SyscallVFS.unlinkPath paths.journal.toString
   syncOps.syncDeletion paths.main
-  return some (preparedCommitPlan journal writes)
+  let requests := preparedCommitPlan journal writes
+  return some { prepared, journal, requests, requestsEq := rfl }
+
+/-- Compatibility projection for direct adapter tests. The live engine uses
+`commitLocalizedCertified` so the proof-carrying final list cannot be erased
+before its syscall trace is selected. -/
+def commitLocalized (syncOps : SyncOps) (paths : Paths)
+    (expectedBefore writes :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (freePages : List Nat := []) :
+    IO (Option (List (POSIXVFS.Request PhysicalCodec.pageSize))) := do
+  return (← commitLocalizedCertified syncOps paths expectedBefore writes
+    freePages).map (fun committed => committed.requests)
 
 def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do

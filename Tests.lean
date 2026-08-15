@@ -2859,9 +2859,14 @@ private def expectCoreDirtyPageCommit : IO Unit := do
   let before ← match CoreChunkPageDelta.beforeWrites delta.table with
     | some writes => pure writes
     | none => fail "proved before-image path contained an invalid page number"
-  let plan ← match ← CoreFileAdapter.commitLocalized .system paths before writes with
-    | some plan => pure plan
+  let committed ← match ← CoreFileAdapter.commitLocalizedCertified
+      .system paths before writes with
+    | some committed => pure committed
     | none => fail "on-disk pages did not match the proved before-image"
+  have _traceExact : committed.requests =
+      CoreFileAdapter.preparedCommitPlan committed.journal
+        committed.prepared.writes := committed.trace_eq
+  let plan := committed.requests
   let (deletedState, _) ← match CoreSQL.execute newState
       "DELETE FROM dirty_rows WHERE id=51;" with
     | .ok outcome => pure outcome

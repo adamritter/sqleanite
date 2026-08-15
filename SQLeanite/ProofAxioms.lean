@@ -779,6 +779,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.localizedRepresentation
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.LocalizedLastIndexDelta.liveDeltaEquations
+#print axioms SQLeanite.CoreFileAdapter.CommittedLocalizedDelta.trace_eq
 #print axioms SQLeanite.CoreDurability.PostImageCertificate.representsDatabase
 #print axioms SQLeanite.CoreDurability.postImageCertificate_of_preparedBulkImage
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedBulkCommit.postImageCertificate
