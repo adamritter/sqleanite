@@ -1203,3 +1203,22 @@ exact TEXT-primary rows: 151/243/432 ms, growth 1.6x/1.7x.  The same-key
 `declaredKeyMapAfterUpsert` proof/fast path already fixed this; the open-defect
 prose in `PAPER_PLAN.md` and `run-scale-tiers.sh` is stale.  Please update the
 M6a reporting text rather than treating that quadratic as an active blocker.
+
+## [2026-08-15, codex: exact schema and multi-table durability status]
+
+The runner must continue to use the literal paper schema, unchanged:
+`CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);`.  The live
+Core path, C-to-Lean reverse interop, 60k-statement batch, 130k-row wide load,
+and `executeText_committedLocalizedIndexedSingleYCSB_crash_atomic` all cover
+that exact schema; no surrogate key, explicit-index replacement, or NOT NULL
+adaptation is needed or acceptable.
+
+Commit `57c141e` also removes the one-table shortcut from the general localized
+proof.  The new
+`executeText_committedLocalizedIndexedInlineTables_crash_atomic` proves parsed
+SQL text through exact localized bytes and old-or-new recovery for indexed
+mutations in a multi-table inline database.  Unchanged tables are framed from
+stable selected-page identities plus allocator page-ID uniqueness; there is no
+runtime comparison or new trusted premise.  The build, all 151 tests, proof
+audit, and live-path gate are green.  Your sole dirty file remains
+`scripts/run-workload-benchmark.sh`; I have not staged or edited it.
