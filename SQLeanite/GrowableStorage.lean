@@ -444,6 +444,60 @@ theorem recoverWithJournal_idempotent (recoveredMain : Image pageSize)
       funext pageId
       cases undoLookup pageId journal.undo <;> rfl
 
+/-- The concrete page writes performed while replaying a rollback journal. -/
+def recoveryWrites (journal : Journal pageSize) : List (PageWrite pageSize) :=
+  journal.undo.map fun record => ⟨record.pageId, record.before⟩
+
+private theorem undoLookup_none_excludes_record (pageId : Nat)
+    (records : List (UndoRecord pageSize))
+    (missing : undoLookup pageId records = none) :
+    ∀ record ∈ records, record.pageId ≠ pageId := by
+  induction records with
+  | nil => simp
+  | cons head records induction =>
+      unfold undoLookup at missing
+      split at missing
+      next same => contradiction
+      next different =>
+        intro record member
+        simp only [List.mem_cons] at member
+        rcases member with equal | tail
+        · subst record
+          exact different
+        · exact induction missing record tail
+
+private theorem recoveryWrites_not_page_of_lookup_none
+    (journal : Journal pageSize) (pageId : Nat)
+    (missing : undoLookup pageId journal.undo = none) :
+    ∀ write ∈ recoveryWrites journal, pageId ≠ write.pageId := by
+  intro write member
+  simp only [recoveryWrites, List.mem_map] at member
+  rcases member with ⟨record, inJournal, equal⟩
+  subst write
+  exact (undoLookup_none_excludes_record pageId journal.undo missing
+    record inJournal).symm
+
+/-- Copying any subset of authentic journal records cannot change the result
+of a subsequent complete recovery.  This is the page-by-page recovery
+invariant: pages already copied are simply copied to the same value again. -/
+theorem recoverWithJournal_apply_recovery_subset
+    (recoveredMain : Image pageSize) (journal : Journal pageSize)
+    (copied : List (PageWrite pageSize))
+    (fromJournal : ∀ write ∈ copied, write ∈ recoveryWrites journal) :
+    recoverWithJournal (applyWrites recoveredMain copied) (some journal) =
+      recoverWithJournal recoveredMain (some journal) := by
+  simp only [recoverWithJournal]
+  congr
+  funext pageId
+  cases lookup : undoLookup pageId journal.undo with
+  | none =>
+      simp only [Option.getD_none]
+      exact applyWrites_read_of_not_written recoveredMain copied pageId
+        (fun write member =>
+          recoveryWrites_not_page_of_lookup_none journal pageId lookup write
+            (fromJournal write member))
+  | some before => simp
+
 /-- The result after the first recovery attempt and any finite number of
 subsequent restarts which find the same journal.  `restartCount = 0` still
 performs the initial recovery. -/
@@ -525,6 +579,46 @@ def CrashOutcome.allPending (cache : Cache pageSize) :
     CrashOutcome cache (applyWrites cache.durable cache.pending) := by
   exact ⟨cache.pending, List.Perm.refl _, cache.pending,
     List.Sublist.refl _, rfl⟩
+
+/-- A crash while copying rollback-journal pages.  The ordinary cache crash
+model supplies the important adversarial behavior: any subset and permutation
+of the unsynced preimage writes may reach the main file. -/
+def RecoveryCrashOutcome (recoveredMain : Image pageSize)
+    (journal : Journal pageSize) (crashedMain : Image pageSize) : Type :=
+  CrashOutcome ⟨recoveredMain, recoveryWrites journal⟩ crashedMain
+
+/-- A finite sequence of recovery attempts, each of which may itself crash
+after an arbitrary allowed collection of page copies. -/
+inductive RecoveryCrashTrace (journal : Journal pageSize) :
+    Image pageSize → Image pageSize → Prop where
+  | nil (main : Image pageSize) : RecoveryCrashTrace journal main main
+  | cons {start after finish : Image pageSize}
+      (crash : RecoveryCrashOutcome start journal after)
+      (tail : RecoveryCrashTrace journal after finish) :
+      RecoveryCrashTrace journal start finish
+
+theorem recoverWithJournal_after_recovery_crash
+    (recoveredMain crashedMain : Image pageSize)
+    (journal : Journal pageSize)
+    (outcome : RecoveryCrashOutcome recoveredMain journal crashedMain) :
+    recoverWithJournal crashedMain (some journal) =
+      recoverWithJournal recoveredMain (some journal) := by
+  rcases outcome with ⟨reordered, permutation, survived, sublist, recoveredEq⟩
+  subst crashedMain
+  apply recoverWithJournal_apply_recovery_subset
+  intro write member
+  exact permutation.mem_iff.mp (sublist.subset member)
+
+theorem recoverWithJournal_after_recovery_trace
+    (journal : Journal pageSize) (start finish : Image pageSize)
+    (trace : RecoveryCrashTrace journal start finish) :
+    recoverWithJournal finish (some journal) =
+      recoverWithJournal start (some journal) := by
+  induction trace with
+  | nil => rfl
+  | cons crash tail induction =>
+      exact induction.trans
+        (recoverWithJournal_after_recovery_crash _ _ journal crash)
 
 private theorem CrashOutcome.noPending_unique (cache : Cache pageSize)
     (recovered : Image pageSize) (empty : cache.pending = [])
@@ -797,6 +891,27 @@ theorem rollbackCommit_repeated_recovery_crash_atomic (old : Image pageSize)
   rw [recoverRepeatedly_eq_recover]
   exact rollbackCommit_crash_atomic old writes phase recoveredMain
     recoveredJournal outcome
+
+/-- Full FSCQ-style recovery-crash closure.  After a transaction crash leaves
+a valid journal, recovery itself may crash any finite number of times.  Each
+attempt may persist any subset/permutation of the page preimages it tried to
+copy.  A final restart still observes only the transaction's old or new
+image. -/
+theorem rollbackCommit_recovery_crash_trace_atomic (old : Image pageSize)
+    (writes : List (PageWrite pageSize)) (phase : CommitPhase)
+    (recoveredMain finalMain : Image pageSize)
+    (journal : Journal pageSize)
+    (outcome : JournaledCrashOutcome (rollbackCommitState old writes phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : RecoveryCrashTrace journal recoveredMain finalMain) :
+    (recoverWithJournal finalMain (some journal)).Equiv old ∨
+      (recoverWithJournal finalMain (some journal)).Equiv
+        (applyWrites old writes) := by
+  have stable := recoverWithJournal_after_recovery_trace journal recoveredMain
+    finalMain recoveryCrashes
+  rw [stable]
+  exact rollbackCommit_crash_atomic old writes phase recoveredMain
+    (some journal) outcome
 
 /-- Once commit has returned, recovery must yield the new image. The more
 general atomicity theorem intentionally allows old or new at earlier phases. -/

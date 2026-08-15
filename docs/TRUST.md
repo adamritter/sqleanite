@@ -433,11 +433,14 @@ after commit returns, every crash outcome recovers the new image rather than
 merely one of old or new. Recovery replay is proved idempotent, and
 `rollbackCommit_repeated_recovery_crash_atomic` proves the same old-or-new
 result after an arbitrary finite number of recovery-process restarts which see
-the surviving journal. This covers a recovery crash after page restoration but
-before journal removal. The model still assumes atomic whole-page writes and an
-atomic abstract journal value; its theorem does not yet lift journal-record
-byte tearing or sector outcomes into the protocol, nor crashes at intermediate
-writes inside the page-copy loop of a real VFS.
+the surviving journal. More strongly, `RecoveryCrashTrace` exposes crashes at
+intermediate writes inside the page-copy loop: at each recovery attempt, any
+subset and permutation of unsynced authenticated preimage copies may survive.
+`rollbackCommit_recovery_crash_trace_atomic` proves an arbitrary finite trace
+of those interruptions still recovers to the same old-or-new result. The model
+still assumes atomic whole-page writes and an atomic abstract journal value;
+its theorem does not yet lift journal-record byte tearing or sector outcomes
+into the protocol.
 
 `Storage.VFSContract` is the formal boundary for the legacy fixed-geometry
 platform adapter. An adapter

@@ -1708,6 +1708,13 @@ private def expectGrowableRollbackJournal : IO Unit := do
   unless recoveredAgain.pageCount == recovered.pageCount &&
       (recoveredAgain.read 0).bytes == (recovered.read 0).bytes do
     fail "repeated recovery was not idempotent across restarts"
+  let interruptedMain := GrowableStorage.applyWrites committed
+    (GrowableStorage.recoveryWrites journal)
+  let recoveredAfterCopyCrash :=
+    GrowableStorage.recoverWithJournal interruptedMain (some journal)
+  unless recoveredAfterCopyCrash.pageCount == recovered.pageCount &&
+      (recoveredAfterCopyCrash.read 0).bytes == (recovered.read 0).bytes do
+    fail "recovery restart changed the result after page preimages were copied"
   let kept := GrowableStorage.recoverWithJournal committed none
   unless kept.pageCount == 2 && (kept.read 1).bytes == grownPage.bytes do
     fail "journal deletion did not retain the committed grown image"

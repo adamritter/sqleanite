@@ -134,6 +134,38 @@ theorem rollbackCommit_core_crash_atomic
     (storageImage_encodeBulk_represents utf8 newDatabase newImage newEncoded)
     doesNotShrink phase recoveredMain recoveredJournal outcome
 
+/-- Representation-parametric returned-commit theorem.  Unlike the canonical
+bulk corollary below, this applies directly to any localized or padded target
+image once its decoder representation theorem is available. -/
+theorem rollbackCommit_represents_returned_recovers_new
+    (newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (newImage : CoreFile.Image)
+    (newRepresents : RepresentsDatabase
+      (CoreFileAdapter.storageImage newImage) newDatabase)
+    (doesNotShrink :
+      oldImage.pageCount ≤ (CoreFileAdapter.storageImage newImage).pageCount)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage newImage) .committed)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+      some newDatabase.canonicalize := by
+  have recovered := GrowableStorage.rollbackCommit_committed_recovers_new
+    oldImage (CoreFileAdapter.transactionWrites oldImage newImage)
+    recoveredMain recoveredJournal outcome
+  have target := GrowableStorage.apply_deltaWrites_equiv oldImage
+    (CoreFileAdapter.storageImage newImage) doesNotShrink
+  have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv
+    (recovered.trans target)
+  unfold PhysicalJournalRecovery.recoverBytes
+  rw [bytes]
+  exact newRepresents
+
 /-- After the commit protocol has returned, the old disjunct is impossible:
 every permitted crash image decodes to the committed Core database. -/
 theorem rollbackCommit_core_returned_recovers_new
@@ -154,21 +186,12 @@ theorem rollbackCommit_core_returned_recovers_new
           (CoreFileAdapter.storageImage oldImage) newImage) .committed)
       recoveredMain recoveredJournal) :
     CoreDecode.decode
-        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+      (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
       some newDatabase.canonicalize := by
-  have recovered := GrowableStorage.rollbackCommit_committed_recovers_new
-    (CoreFileAdapter.storageImage oldImage)
-    (CoreFileAdapter.transactionWrites
-      (CoreFileAdapter.storageImage oldImage) newImage)
-    recoveredMain recoveredJournal outcome
-  have target := GrowableStorage.apply_deltaWrites_equiv
-    (CoreFileAdapter.storageImage oldImage)
-    (CoreFileAdapter.storageImage newImage) doesNotShrink
-  have bytes := PhysicalJournalRecovery.imageBytes_eq_of_equiv
-    (recovered.trans target)
-  unfold PhysicalJournalRecovery.recoverBytes
-  rw [bytes]
-  exact decode_imageBytes_encodeBulk utf8 newDatabase newImage newEncoded
+  exact rollbackCommit_represents_returned_recovers_new newDatabase
+    (CoreFileAdapter.storageImage oldImage) newImage
+    (storageImage_encodeBulk_represents utf8 newDatabase newImage newEncoded)
+    doesNotShrink recoveredMain recoveredJournal outcome
 
 def recoverRepeatedBytes
     (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
@@ -177,6 +200,71 @@ def recoverRepeatedBytes
     (restartCount : Nat) : List UInt8 :=
   PhysicalJournalRecovery.imageBytes
     (GrowableStorage.recoverRepeatedly recoveredMain recoveredJournal restartCount)
+
+theorem rollbackCommit_represents_repeated_recovery_atomic
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (newImage : CoreFile.Image)
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newRepresents : RepresentsDatabase
+      (CoreFileAdapter.storageImage newImage) newDatabase)
+    (doesNotShrink :
+      oldImage.pageCount ≤ (CoreFileAdapter.storageImage newImage).pageCount)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage newImage) phase)
+      recoveredMain recoveredJournal)
+    (restartCount : Nat) :
+    CoreDecode.decode
+        (recoverRepeatedBytes recoveredMain recoveredJournal restartCount) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (recoverRepeatedBytes recoveredMain recoveredJournal restartCount) =
+        some newDatabase.canonicalize := by
+  rw [recoverRepeatedBytes, GrowableStorage.recoverRepeatedly_eq_recover]
+  exact rollbackCommit_represents_crash_atomic oldDatabase newDatabase oldImage
+    newImage oldRepresents newRepresents doesNotShrink phase recoveredMain
+    recoveredJournal outcome
+
+/-- Concrete database-level closure under crashes *inside* recovery.  Every
+step in `recoveryCrashes` may persist an arbitrary subset/permutation of the
+authenticated journal page copies; the final bytes still decode to the old or
+new Core database. -/
+theorem rollbackCommit_represents_recovery_crash_trace_atomic
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (newImage : CoreFile.Image)
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newRepresents : RepresentsDatabase
+      (CoreFileAdapter.storageImage newImage) newDatabase)
+    (doesNotShrink :
+      oldImage.pageCount ≤ (CoreFileAdapter.storageImage newImage).pageCount)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain finalMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage newImage) phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : GrowableStorage.RecoveryCrashTrace journal
+      recoveredMain finalMain) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some newDatabase.canonicalize := by
+  have stable := GrowableStorage.recoverWithJournal_after_recovery_trace
+    journal recoveredMain finalMain recoveryCrashes
+  unfold PhysicalJournalRecovery.recoverBytes
+  rw [stable]
+  exact rollbackCommit_represents_crash_atomic oldDatabase newDatabase oldImage
+    newImage oldRepresents newRepresents doesNotShrink phase recoveredMain
+    (some journal) outcome
 
 /-- Crashing and restarting the recovery process any finite number of times
 does not enlarge the set of database outcomes. -/
@@ -206,10 +294,11 @@ theorem rollbackCommit_core_repeated_recovery_atomic
       CoreDecode.decode
         (recoverRepeatedBytes recoveredMain recoveredJournal restartCount) =
         some newDatabase.canonicalize := by
-  rw [recoverRepeatedBytes, GrowableStorage.recoverRepeatedly_eq_recover]
-  exact rollbackCommit_core_crash_atomic utf8 oldDatabase newDatabase
-    oldImage newImage oldEncoded newEncoded doesNotShrink phase recoveredMain
-    recoveredJournal outcome
+  exact rollbackCommit_represents_repeated_recovery_atomic oldDatabase
+    newDatabase (CoreFileAdapter.storageImage oldImage) newImage
+    (storageImage_encodeBulk_represents utf8 oldDatabase oldImage oldEncoded)
+    (storageImage_encodeBulk_represents utf8 newDatabase newImage newEncoded)
+    doesNotShrink phase recoveredMain recoveredJournal outcome restartCount
 
 end CoreDurability
 end SQLeanite
