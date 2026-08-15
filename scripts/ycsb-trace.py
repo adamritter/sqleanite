@@ -111,7 +111,7 @@ WORKLOADS = {
     "Cuniform": (1.0, 0.0, 0.0, 0.0, 0.0, "uniform"),
 }
 
-FIELD_LENGTH = 512
+FIELD_LENGTH = 512  # VeriBetrKV fieldlength; --field-length overrides for triage
 MAX_SCAN_LENGTH = 100
 
 
@@ -120,11 +120,11 @@ def keyname(index):
     return "user%d" % fnvhash64(index)
 
 
-def fieldvalue(rng):
+def fieldvalue(rng, length=FIELD_LENGTH):
     # YCSB fills fields with random printable bytes. A single repeated
     # character would compress the page cache in a way real data does not,
     # so use varied ASCII, seeded.
-    return "".join(chr(rng.randrange(97, 123)) for _ in range(FIELD_LENGTH))
+    return "".join(chr(rng.randrange(97, 123)) for _ in range(length))
 
 
 def quote(text):
@@ -138,6 +138,9 @@ def main():
     parser.add_argument("--ops", type=int, required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--seed", type=int, default=20260814)
+    parser.add_argument("--field-length", type=int, default=FIELD_LENGTH,
+                        help="512 matches VeriBetrKV; lower values are a "
+                             "reduced-fidelity triage mode, not paper numbers")
     args = parser.parse_args()
 
     if args.records < 1:
@@ -167,7 +170,7 @@ def main():
         for i in range(args.records):
             out.write(
                 "INSERT INTO usertable VALUES(%d,%s,%s);\n"
-                % (i + 1, quote(keyname(i)), quote(fieldvalue(rng)))
+                % (i + 1, quote(keyname(i)), quote(fieldvalue(rng, args.field_length)))
             )
         out.write("COMMIT;\n")
 
@@ -206,7 +209,7 @@ def main():
             if op == "insert":
                 out.write(
                     "INSERT INTO usertable VALUES(%d,%s,%s);\n"
-                    % (next_key + 1, quote(keyname(next_key)), quote(fieldvalue(rng)))
+                    % (next_key + 1, quote(keyname(next_key)), quote(fieldvalue(rng, args.field_length)))
                 )
                 next_key += 1
                 continue
@@ -225,7 +228,7 @@ def main():
             elif op == "update":
                 out.write(
                     "UPDATE usertable SET field0=%s WHERE ycsb_key = %s;\n"
-                    % (quote(fieldvalue(rng)), key)
+                    % (quote(fieldvalue(rng, args.field_length)), key)
                 )
             elif op == "rmw":
                 # YCSB's read-modify-write reads a key then writes it back. A
@@ -239,7 +242,7 @@ def main():
                 )
                 out.write(
                     "UPDATE usertable SET field0=%s WHERE ycsb_key = %s;\n"
-                    % (quote(fieldvalue(rng)), key)
+                    % (quote(fieldvalue(rng, args.field_length)), key)
                 )
             elif op == "scan":
                 length = rng.randrange(1, MAX_SCAN_LENGTH + 1)

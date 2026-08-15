@@ -25,6 +25,8 @@ seed=${SEED:-20260814}
 runs=${RUNS:-3}
 workloads=${WORKLOADS:-A,B,C,D,F,Cuniform}
 keep=${KEEP_TRACES:-0}
+# 512 matches VeriBetrKV. Lower values are reduced-fidelity triage only.
+field=${FIELD_LENGTH:-512}
 
 for value in "$records" "$ops" "$runs"; do
   case $value in *[!0-9]*|'') printf 'RECORDS, OPS and RUNS must be integers\n' >&2; exit 2;; esac
@@ -58,7 +60,11 @@ median() { # median of stdin integers
 
 printf 'YCSB-style: records=%s ops=%s runs=%s seed=%s\n' "$records" "$ops" "$runs" "$seed"
 printf 'schema: usertable(id INTEGER PRIMARY KEY, ycsb_key TEXT NOT NULL, field0 TEXT NOT NULL) + INDEX(ycsb_key)\n'
-printf 'field length 512 (VeriBetrKV fieldcount=1 fieldlength=512)\n\n'
+if [ "$field" = 512 ]; then
+  printf 'field length 512 (matches VeriBetrKV fieldcount=1 fieldlength=512)\n\n'
+else
+  printf 'field length %s -- REDUCED FIDELITY, not comparable to published numbers\n\n' "$field"
+fi
 printf '%-10s %9s %9s %7s   %9s %9s %7s  %s\n' \
   workload load_lean load_c ratio run_lean run_c ratio outputs
 printf '%s\n' "---------------------------------------------------------------------------------------"
@@ -70,7 +76,7 @@ for workload in $workloads; do
   IFS=$oldifs
   trace=$work/$workload
   python3 scripts/ycsb-trace.py --workload "$workload" --records "$records" \
-    --ops "$ops" --out "$trace" --seed "$seed" >/dev/null
+    --ops "$ops" --out "$trace" --seed "$seed" --field-length "$field" >/dev/null
 
   load_l_samples=$work/ll; load_c_samples=$work/lc
   run_l_samples=$work/rl; run_c_samples=$work/rc
