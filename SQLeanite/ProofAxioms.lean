@@ -504,10 +504,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RuntimeRefinement.LiveHistory.serializable
 #print axioms SQLeanite.CoreDecode.decodeCanonicalFile_encode
 #print axioms SQLeanite.CoreDecode.decodeCatalogForOpen_schemaPageForEntries
+#print axioms SQLeanite.CoreDecode.PageSourceRepresents.decode
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk_in
+#print axioms SQLeanite.CorePageCodec.pageSourceRepresents_encodeBulk_in
 #print axioms SQLeanite.CorePageCodec.decode_encodeBulk
 #print axioms SQLeanite.CoreFreelistCodec.decodeFromPageSource_padded
+#print axioms SQLeanite.CoreFreelistCodec.pageSourceRepresents_padded
 #print axioms SQLeanite.CoreFreelistCodec.decode_paddedImage
 #print axioms SQLeanite.CoreWriteBytes.decode_encoded_database
 #print axioms SQLeanite.CoreWriteBytes.execute_createTable_to_bytes

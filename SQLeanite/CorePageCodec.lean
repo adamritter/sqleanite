@@ -4080,7 +4080,8 @@ theorem decodeCatalogForOpen_encodeBulk_replaceHeader
 decoder, up to the intentional canonical rebuilding of proof-carrying row
 trees.  Every table and promoted index entry is decoded from its actual page
 interval; no re-encoding comparison appears in the statement or proof. -/
-theorem decodeFromPageSource_encodeBulk_in (utf8 : CoreDecode.UTF8Roundtrips)
+theorem pageSourceRepresents_encodeBulk_in
+    (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)
     (encoded : encodeBulk database = some image)
     (source : CoreDecode.PageSource)
@@ -4091,7 +4092,7 @@ theorem decodeFromPageSource_encodeBulk_in (utf8 : CoreDecode.UTF8Roundtrips)
             CoreDecode.decodeCatalogForOpen)
     (activeTailReads : CoreDecode.ReadsPagesFrom source 2 image.pages.tail)
     (enoughPages : image.pageCount ≤ source.pageCount) :
-    CoreDecode.decodeFromPageSource source = some database.canonicalize := by
+    CoreDecode.PageSourceRepresents source database := by
   unfold encodeBulk encodeBulkFromState at encoded
   cases stateResult : CoreChunkPageState.State.build? database with
   | none => simp [stateResult] at encoded
@@ -4340,23 +4341,36 @@ theorem decodeFromPageSource_encodeBulk_in (utf8 : CoreDecode.UTF8Roundtrips)
                       some database.canonicalize := by
                 simpa [indexEntries, CoreOverflow.indexEntriesOf,
                   List.map_map, Function.comp_def] using indexesApplied
-              unfold CoreDecode.decodeFromPageSource
-              rw [← bind_assoc, catalogRead]
               have canonicalFirstRead :
                   (CoreDecode.PageSource.ofList
                     ((schemaPage :: remaining).map CoreFile.Page.bytes)).readPage
                       1 = some schemaPage.bytes := by
                 simp [CoreDecode.PageSource.ofList, CoreDecode.page?]
-              rw [canonicalFirstRead]
-              simp only [Option.bind_eq_bind, Option.bind]
-              rw [catalogDecoded]
-              simp only [Option.bind_eq_bind, Option.bind]
-              rw [tableFilter, indexFilter, tablesDecoded']
-              simp only [Option.bind_eq_bind, Option.bind]
-              rw [Core.Database.rebuild_withoutIndexes]
-              simp only [Except.toOption]
-              exact indexesApplied'
+              refine .intro (entries.map CoreDecode.CatalogEntry.ofEncoded)
+                ?_ ?_ ?_
+              · rw [catalogRead, canonicalFirstRead]
+                simp only [Option.bind_eq_bind, Option.bind]
+                exact catalogDecoded
+              · rw [tableFilter]
+                exact tablesDecoded'
+              · rw [indexFilter]
+                exact indexesApplied'
           next => contradiction
+
+theorem decodeFromPageSource_encodeBulk_in (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : encodeBulk database = some image)
+    (source : CoreDecode.PageSource)
+    (catalogRead :
+      source.readPage 1 >>= CoreDecode.decodeCatalogForOpen =
+        (CoreDecode.PageSource.ofList
+          (image.pages.map CoreFile.Page.bytes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen)
+    (activeTailReads : CoreDecode.ReadsPagesFrom source 2 image.pages.tail)
+    (enoughPages : image.pageCount ≤ source.pageCount) :
+    CoreDecode.decodeFromPageSource source = some database.canonicalize :=
+  (pageSourceRepresents_encodeBulk_in utf8 database image encoded source
+    catalogRead activeTailReads enoughPages).decode
 
 theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)

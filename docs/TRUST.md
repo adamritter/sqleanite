@@ -723,6 +723,12 @@ reopens the result. The overflow-aware recursive encoder now has a
 compositional whole-image inverse. `decodeFromPageSource_encodeBulk` combines
 catalog, persistent table, overflow-chain, promoted-index and metadata
 reconstruction refinements over the actual emitted page intervals.
+The stronger `PageSourceRepresents` proposition retains those catalog, table,
+and index components as separate proof fields.  Both
+`pageSourceRepresents_encodeBulk_in` and the freelist-padded specialization
+establish it, while its `decode` theorem recovers the public whole-image
+inverse.  This decomposition is the representation invariant used by
+localized-write preservation proofs; it carries no runtime validation data.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer
@@ -908,7 +914,9 @@ live rollback-journal adapter commits that padded image and reopens its
 logical database. `CoreFreelistCodec.decode_paddedImage` now proves that the
 actual whole-file bytes—including the rewritten header, any number of freelist
 trunks, and unreachable free-page tail—decode to exactly the canonical Core
-database. The representation-parametric crash, returned-commit, and
+database. `pageSourceRepresents_padded` additionally preserves the component
+catalog/table/index witnesses needed for local mutation. The
+representation-parametric crash, returned-commit, and
 recovery-crash-trace theorems are specialized to this padded image, closing
 the former logical gap for shrinking bulk commits. A fast end-to-end test
 collapses a multipage table and

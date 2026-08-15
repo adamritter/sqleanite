@@ -7,16 +7,15 @@ namespace CoreFreelistCodec
 /-- Extending a canonical bulk image with a verified SQLite freelist preserves
 the logical database seen by the page-source decoder.  Active table and index
 pages remain a prefix; only the database header and unreachable tail change. -/
-theorem decodeFromPageSource_padded
+theorem pageSourceRepresents_padded
     (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (layout : CoreMultiFreelist.Layout)
     (encoded : CorePageCodec.encodeBulk database = some layout.image) :
-    CoreDecode.decodeFromPageSource
-      (.ofList (layout.paddedImage.pages.map CoreFile.Page.bytes)) =
-        some database.canonicalize := by
+    CoreDecode.PageSourceRepresents
+      (.ofList (layout.paddedImage.pages.map CoreFile.Page.bytes)) database := by
   let source : CoreDecode.PageSource :=
     .ofList (layout.paddedImage.pages.map CoreFile.Page.bytes)
-  apply CorePageCodec.decodeFromPageSource_encodeBulk_in utf8 database
+  apply CorePageCodec.pageSourceRepresents_encodeBulk_in utf8 database
     layout.image encoded source
   · have catalogSame :=
       CorePageCodec.decodeCatalogForOpen_encodeBulk_replaceHeader utf8
@@ -50,6 +49,15 @@ theorem decodeFromPageSource_padded
     change layout.image.pageCount ≤ layout.pages.length
     rw [CoreMultiFreelist.Layout.pages_length]
     exact layout.active_le_total
+
+theorem decodeFromPageSource_padded
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (layout : CoreMultiFreelist.Layout)
+    (encoded : CorePageCodec.encodeBulk database = some layout.image) :
+    CoreDecode.decodeFromPageSource
+      (.ofList (layout.paddedImage.pages.map CoreFile.Page.bytes)) =
+        some database.canonicalize :=
+  (pageSourceRepresents_padded utf8 database layout encoded).decode
 
 /-- Whole-file inverse for a freelist-padded live image.  This closes the
 decoder gap on shrinking commits: the extra pages are valid freelist space,

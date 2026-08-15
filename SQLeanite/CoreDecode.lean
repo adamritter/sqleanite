@@ -9238,6 +9238,39 @@ def decodeFromPageSource (source : PageSource) : Option Core.Database := do
   let database ← (Core.Database.rebuild tables).toOption
   applyIndexesForOpen source database indexEntries
 
+/-- Compositional physical representation invariant.  Unlike the single
+equation `decodeFromPageSource source = ...`, this records the exact catalog,
+table, and index obligations separately so a page-local mutation can preserve
+unchanged components and re-prove only the component it touched. -/
+inductive PageSourceRepresents (source : PageSource)
+    (database : Core.Database) : Prop where
+  | intro (catalog : List CatalogEntry)
+      (catalogRead :
+        source.readPage 1 >>= decodeCatalogForOpen = some catalog)
+      (tablesRead :
+        (catalog.filter (fun entry => entry.kind == "table")).mapM
+          (decodeTableFrom source) =
+            some (database.tables.map Core.Table.withoutIndexes))
+      (indexesRead :
+        applyIndexesForOpen source database.withoutIndexes
+          (catalog.filter (fun entry => entry.kind == "index")) =
+            some database.canonicalize) :
+      PageSourceRepresents source database
+
+theorem PageSourceRepresents.decode
+    {source : PageSource} {database : Core.Database}
+    (represents : PageSourceRepresents source database) :
+    decodeFromPageSource source = some database.canonicalize := by
+  rcases represents with ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+  unfold decodeFromPageSource
+  rw [← bind_assoc, catalogRead]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [tablesRead]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [Core.Database.rebuild_withoutIndexes]
+  simp only [Except.toOption, Option.bind_eq_bind, Option.bind]
+  exact indexesRead
+
 def pages : Nat → List UInt8 → List (List UInt8)
   | 0, _ => []
   | count + 1, input =>
