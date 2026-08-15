@@ -466,6 +466,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLWriteText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
 #print axioms SQLeanite.CoreSQLReadText.execute_eq_core
+#print axioms SQLeanite.CoreSQLReadText.executeSelectBase_eq_core
+#print axioms SQLeanite.CoreSQLReadText.core_read_refines
+#print axioms SQLeanite.CoreSQLReadText.executeStatement_binary_eq_core
+#print axioms SQLeanite.CoreSQLReadText.executeText_binary_refines
 #print axioms SQLeanite.CoreSQLReadText.executeText_read_refines
 #print axioms SQLeanite.CoreSQLReadText.executeText_count_refines
 #print axioms SQLeanite.CoreSQLReadText.executeText_sum_refines

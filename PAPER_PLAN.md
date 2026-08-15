@@ -40,6 +40,10 @@ Performance gates:
 5. a regression accepted temporarily must have a named deletion condition and
    may not survive the milestone that introduced it.
 
+Gates 1 and 2 are stated over the twelve public workloads. The YCSB-style suite
+added in milestone 6a is reported, not gated, until it has a recorded baseline;
+its 3x target is a reach goal, not an exit condition.
+
 ## Final claims
 
 ### Read theorem
@@ -96,10 +100,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   proves that it reaches the corresponding live Core command.
   `CoreSQLReadText.TranslatedRead` now does the same for simple single-table
   SELECT, COUNT, SUM, MIN/MAX, grouped aggregation, and two-table inner/left
-  joins.  Each form reaches its independent bag/three-valued denotation from
-  an actual SQL string.  An independent token grammar with lexer/parser
-  correctness, compound SELECT, multi-row INSERT, and statement-list traces
-  remain open.
+  joins, and binary UNION ALL/UNION/INTERSECT/EXCEPT.  Each form reaches its
+  independent bag/three-valued denotation from an actual SQL string.  The
+  compound theorem retains both arm denotations, explicit empty-result width,
+  and the duplicate-sensitive bag operator.  An independent token grammar
+  with lexer/parser correctness, arbitrarily nested compound chains,
+  multi-row INSERT, and statement-list traces remain open.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -134,9 +140,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   The `CoreSQLReadText.executeText_*_refines` family likewise begins at an
   actual SQL string, proves reads leave the state unchanged, and reaches the
   independent bag denotation for simple queries, scalar/grouped aggregates,
-  and joins. Compound reads, statement-list/parser parity, and construction of
-  the localized database representation premise still depend on milestones 1
-  and 3; those links are not hidden as trusted assumptions.
+  joins, and binary compound reads. Arbitrarily nested compounds,
+  statement-list/parser parity, and construction of the localized database
+  representation premise still depend on milestones 1 and 3; those links are
+  not hidden as trusted assumptions.
 
 The latest three-run 2,000-row medians after the SQL-text read refinements are
 294/9/19/76/100/11 ms for bulk load, primary lookup, secondary lookup, bulk
@@ -307,61 +314,112 @@ to a database. FSCQ parity is therefore about the *durability theorem*
 (milestone 4), and YCSB is about *performance comparability*. They are separate
 goals and the plan should not conflate them.
 
-### Schema and records
+### The exact configuration VeriBetrKV used
 
-Follow YCSB's own relational binding rather than inventing one, so the numbers
-mean what readers expect:
+Taken from their OSDI'20 artifact
+(`secure-foundations/veribetrkv-osdi2020`,
+`src/veribetrkv-dynamic-frames/ycsb/*.spec`), not from the standard YCSB
+distribution. Their specs differ from stock YCSB in ways that matter, so copy
+theirs:
+
+| Spec | Name | read | update | scan | insert | RMW | distribution |
+|---|---|---:|---:|---:|---:|---:|---|
+| `workloada-onefield` | A | 0.5 | 0.5 | 0 | 0 | -- | zipfian |
+| `workloadb-onefield` | B | 0.95 | 0.05 | 0 | 0 | -- | zipfian |
+| `workloadc-onefield` | C | 1.0 | 0 | 0 | 0 | -- | zipfian |
+| `workloadd-onefield` | D | 0.95 | 0 | 0 | 0.05 | -- | **latest** |
+| `workloadf-onefield` | F | 0.5 | 0 | 0 | 0 | 0.5 | zipfian |
+| `workloadc-uniform` | Cuniform | 1.0 | 0 | 0 | 0 | -- | **uniform** |
+| `workloade-onefield` | E | 0 | 0 | 0.95 | 0.05 | -- | zipfian, `maxscanlength=100`, `scanlengthdistribution=uniform` |
+
+All of them: `recordcount=10000000`, `operationcount=10000`,
+`readallfields=true`, `writeallfields=true`, `fieldcount=1`,
+`fieldlength=512`. No `syncinterval` on A--F.
+
+Four consequences that a stock-YCSB reading would get wrong:
+
+1. **One 512-byte field, not ten 100-byte fields.** Hence the `-onefield`
+   filenames; their driver asserts `values->size() == 1`. The record is ~512 B,
+   not the stock ~1 KB.
+2. **`operationcount` is only 10,000 against `recordcount` 10,000,000.** The
+   load phase dominates; the run phase is a short, cache-hostile probe.
+3. **The dataset is deliberately larger than RAM.** Their harness runs the
+   container with `--memory=2g` while 10M x 512 B is roughly 5 GB. Every A--F
+   number is therefore an out-of-cache, I/O-bound measurement. Running these
+   in-cache would produce numbers that are not comparable to theirs.
+4. **E and the `writes`/`wka-*` specs exist but are not in the paper's data
+   target.** The Makefile's `build/VeribetrfsYcsb.data` runs exactly:
+   A, A, B, C, D, F, Cuniform -- A twice, the first as warm-up. Report the same
+   set; E is optional and must be labelled as an addition if included.
+
+They also ship `workload{a,b,c,d,e,f}-small.spec` with
+`recordcount=100, operationcount=10`. Use those for CI.
+
+Separately from A--F, the insertion microbenchmark their abstract leads with
+(24x BerkeleyDB, 8x slower than RocksDB) is the **load phase** itself, timed
+independently -- their driver records `load_duration_ms` and `run_duration_ms`
+separately, with HDR latency histograms and CCDF percentiles per operation
+type. Matching them means reporting load and run separately, and reporting p50
+and p99 latency rather than throughput alone.
+
+### Schema and the two adaptations we must declare
+
+YCSB keys are strings (`NextSequenceKey` on load, `NextTransactionKey` on
+transactions), and values are one 512-byte field:
 
 ```sql
-CREATE TABLE usertable (ycsb_key INTEGER PRIMARY KEY, field0 TEXT, ..., field9 TEXT);
+CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);
 ```
 
-Ten text fields of 100 bytes each, giving the standard ~1 KB record. At a 4096
-page size that keeps records on leaf pages without overflow, so the suite
-measures B+ tree and commit behaviour rather than the overflow path — the
-overflow path is already covered by the 9 KB row differential case.
+Two honest deviations, to be stated in the paper rather than papered over:
 
-### The six core workloads
+- **A TEXT primary key is not `INTEGER PRIMARY KEY`.** In SQLite this is a
+  rowid table with a unique index on `ycsb_key`, so the reads go through the
+  secondary-index path, not the rowid path. That is the correct translation of
+  a KV store's byte-string keys and it exercises the certified TEXT index, but
+  it means our numbers are not directly comparable to our own workload 03. An
+  integer-key variant may be reported alongside, labelled as a deviation.
+- **We compare against C SQLite, they compared against RocksDB and
+  BerkeleyDB.** The ratio is to a different baseline; the workload is the same.
 
-Standard YCSB definitions (Cooper et al., SoCC 2010), unchanged:
+### Scale risk
 
-| Workload | Mix | Key distribution |
-|---|---|---|
-| A | 50% read, 50% update | Zipfian |
-| B | 95% read, 5% update | Zipfian |
-| C | 100% read | Zipfian |
-| D | 95% read, 5% insert | latest |
-| E | 95% short range scan, 5% insert | Zipfian, scan length uniform 1--100 |
-| F | 100% read-modify-write | Zipfian |
-
-Plus the insertion microbenchmark VeriBetrKV leads with: bulk load of the record
-set in pseudo-random key order, which is the write-optimized case a B+ tree is
-worst at and therefore the honest one to report.
+10M rows x 512 B is a ~5 GB database. The largest measured SQLeanite
+configuration to date is 200k rows. Reaching the paper configuration may expose
+tree, cache, or commit behaviour that no current test covers, and it is the one
+part of this milestone that is not merely scripting. Plan for a staged ramp
+(100 -> 100k -> 1M -> 10M), record where it stops if it stops, and report the
+largest configuration that runs with the memory cap applied rather than quietly
+shrinking the dataset.
 
 ### Why this fits the frozen surface
 
-Every workload above is expressible in the existing SQL subset: primary-key
-point reads, single-row `UPDATE ... WHERE ycsb_key = ?`, `INSERT`, and
-`SELECT ... WHERE ycsb_key >= ? ORDER BY ycsb_key LIMIT n` for the E scans. No
-aggregates, no subqueries, no multi-column indexes, no column-to-column
-predicates. **The suite requires no new SQL surface** — it is purely an
-evaluation addition, which is why it belongs in milestone 6 and not earlier.
+Every workload is expressible in the existing SQL subset: point reads by key,
+single-row `UPDATE ... WHERE ycsb_key = ?`, `INSERT`, read-modify-write for F,
+and `WHERE ycsb_key >= ? ORDER BY ycsb_key LIMIT n` for the E scans if E is
+run. No aggregates, no subqueries, no multi-column indexes, no
+column-to-column predicates. **The suite requires no new SQL surface** -- it is
+purely an evaluation addition, which is why it belongs in milestone 6 and not
+earlier.
 
 ### Runner
 
 `scripts/run-ycsb-benchmark.sh`, matching the conventions of
-`run-workload-benchmark.sh`: generate the operation trace once, replay the
-identical trace against SQLeanite and C SQLite, verify outputs agree before
-reporting any timing, and emit three-run medians. Record counts and operation
-counts are parameters with a small default so the suite runs in CI, and a
-paper-scale default recorded in the artifact.
+`run-workload-benchmark.sh`: generate the operation trace once from a seeded
+generator, replay the identical trace against SQLeanite and C SQLite, verify
+outputs agree before reporting any timing, and emit three-run medians. The
+`-small` record/operation counts are the CI default; the 10M configuration is
+the artifact default. Apply the same memory cap they did when reporting
+paper-scale numbers, and say so in the table caption.
 
-Zipfian and latest generators must be deterministic and seeded, so the trace is
-reproducible and the two engines provably see the same operations.
+The zipfian and latest generators must be deterministic and seeded so the trace
+is reproducible and both engines provably see the same operations. Port the
+distribution from their vendored `YCSB-C` (`vendor/YCSB-C`) rather than
+reimplementing it, so the key-selection skew matches.
 
-Exit gate: all six workloads plus the insertion microbenchmark report
-output-verified three-run medians for both engines, and the trace generator is
-seeded and checked in.
+Exit gate: A, B, C, D, F and Cuniform report output-verified three-run medians
+for both engines, with load and run phases timed separately and p50/p99
+latencies recorded, and the trace generator is seeded and checked in.
 
 ## Reach goals
 
@@ -374,9 +432,12 @@ Not required for the paper; recorded so they are not silently dropped.
   performance "similar to unverified databases", and FSCQ reports about 2x
   ext4. A verified SQL engine within 3x of C SQLite on YCSB would be at the
   strong end of the published range for verified storage, and read-side
-  workloads (B, C, and much of D) are already inside it on the public
-  workloads. Workload A and the insertion microbenchmark are the ones expected
-  to resist, for the same reason bulk DELETE does today.
+  workloads (B, C and Cuniform) are the plausible ones to reach it first.
+  Workload A and the load phase are the ones expected to resist, for the same
+  reason bulk DELETE does today. Because A--F are I/O-bound by construction at
+  the paper scale, the ratio there is dominated by page-access count rather
+  than by CPU work, which is a different optimisation target from the current
+  write-path work -- do not assume progress on one transfers to the other.
 - Everything already marked reach elsewhere: general parser correctness beyond
   the supported grammar, `WITHOUT ROWID`, and exotic file-format variants.
 
