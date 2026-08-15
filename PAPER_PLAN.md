@@ -336,6 +336,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   has no full-tree or general-encoder premise at all. Its remaining physical
   inputs are the old represented image/header, semantic inline row bounds,
   and the explicit VFS read/refinement facts.
+  The exact benchmark specialization is
+  `executeText_committedLocalizedIndexedSingleYCSB_crash_atomic`: it fixes the
+  literal `usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT)` logical layout,
+  proves `user` plus a 64-bit hash and one 512-byte value are inline, and
+  derives the recursive pre/post tree invariants from those row shapes.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk
@@ -695,6 +700,43 @@ Two honest deviations, to be stated in the paper rather than papered over:
   integer-key variant may be reported alongside, labelled as a deviation.
 - **We compare against C SQLite, they compared against RocksDB and
   BerkeleyDB.** The ratio is to a different baseline; the workload is the same.
+
+### Scale ceiling: two stack overflows near 100,000 rows (measured 2026-08-15)
+
+**The ramp does not fail on performance. It crashes.** Superseding the earlier
+"blocked on open cost and O(n) reads" framing -- both of those were fixed, and
+what remains is two independent recursion-depth limits.
+
+**Statements per invocation, between 50k and 60k.** 60,000 rows as 60,002
+statements overflows; the same 60,000 rows as 62 multi-row statements loads fine
+in 31 MB; 50,000 statements are fine. Value width is irrelevant. Running the same
+60,003 statements through `--verified-file-timed`, one statement at a time on one
+connection, completes -- so the recursion is over the statement list.
+`CoreFileEngine.runStatements` recurses per statement and is not tail recursive
+in `IO`, and `CoreLazyFileEngine.executeReadStatements?` has the same shape.
+
+**Rows per table, between 100k and 130k.** 100,000 rows of 512 B loads in 103
+statements and 265 MB; 130,000 fails; 200,000 rows of 8 B fails in 203
+statements. Row-count driven, not byte driven, so something on the commit or
+encode path recurses once per row.
+
+**Consequence.** VeriBetrKV's configuration is 10,000,000 records, so the engine
+is about two orders of magnitude short of the published comparison, and it is a
+hard crash rather than a slow path. **Milestone 6a cannot report a 1M number,
+let alone 10M, until both recursions are bounded.** The largest verified
+configuration is 100,000 rows.
+
+The project has fixed this class before: `orderedUpsertTR` with a `@[csimp]` swap
+for the earlier 60k crash kept the clean definition for proofs while making the
+executable tail recursive. That is the pattern to reuse for both sites.
+
+*Acceptance:* a 1,000,000-row load completes, and `scripts/run-scale-tiers.sh`
+extends to a tier above 200,000 rows without a crash.
+
+**Harness mitigation, already landed.** `scripts/ycsb-trace.py --insert-batch N`
+emits multi-row INSERTs and clears the statement ceiling. It defaults to 1 so
+nothing already measured changes, and a batched load was verified
+output-identical to C. It cannot help with the per-row ceiling.
 
 ### Scale ramp, and why it is currently blocked
 
