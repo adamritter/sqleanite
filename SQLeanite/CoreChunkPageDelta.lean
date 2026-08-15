@@ -1119,9 +1119,75 @@ def numberedWrite? (page : CorePageCodec.NumberedPage) :
     some ⟨page.pageNumber - 1, page.page.storage⟩
   else none
 
+theorem numberedWrite?_spec
+    {page : CorePageCodec.NumberedPage}
+    {write : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (converted : numberedWrite? page = some write) :
+    write.pageId + 1 = page.pageNumber ∧
+      write.page.bytes.toList = page.page.bytes := by
+  unfold numberedWrite? at converted
+  split at converted
+  next positive =>
+    have equal :
+        (⟨page.pageNumber - 1, page.page.storage⟩ :
+          GrowableStorage.PageWrite PhysicalCodec.pageSize) = write :=
+      Option.some.inj converted
+    subst write
+    constructor
+    · change (page.pageNumber - 1) + 1 = page.pageNumber
+      exact Nat.sub_add_cancel positive
+    · simp [CoreFile.Page.storage]
+  next => contradiction
+
+theorem mapM_numberedWrite?_covers :
+    ∀ {pages : List CorePageCodec.NumberedPage}
+      {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)},
+      pages.mapM numberedWrite? = some writes →
+      ∀ page ∈ pages,
+        ∃ write ∈ writes,
+          write.pageId + 1 = page.pageNumber ∧
+          write.page.bytes.toList = page.page.bytes
+  | [], writes, converted => by
+      simp only [List.mapM_nil, pure, Option.pure_def,
+        Option.some.injEq] at converted
+      subst writes
+      simp
+  | page :: pages, writes, converted => by
+      simp only [List.mapM_cons] at converted
+      cases headResult : numberedWrite? page with
+      | none => simp [headResult] at converted
+      | some write =>
+        simp only [headResult, Option.bind_eq_bind, Option.bind] at converted
+        cases tailResult : pages.mapM numberedWrite? with
+        | none => simp [tailResult] at converted
+        | some remaining =>
+          simp only [tailResult, Option.some.injEq] at converted
+          have equal : write :: remaining = writes := by simpa using converted
+          subst writes
+          intro candidate member
+          simp only [List.mem_cons] at member
+          rcases member with equal | later
+          · subst candidate
+            exact ⟨write, by simp, numberedWrite?_spec headResult⟩
+          · rcases mapM_numberedWrite?_covers tailResult candidate later with
+              ⟨covered, coveredMember, specification⟩
+            exact ⟨covered, by simp [coveredMember], specification⟩
+
 def writes (delta : TableDelta) :
     Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :=
   delta.pages.mapM numberedWrite?
+
+/-- Every numbered page selected by a table delta is present byte-for-byte in
+its physical write list.  This is the changed-page half of the localized
+decoder representation proof. -/
+theorem writes_covers_pages {delta : TableDelta}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (converted : CoreChunkPageDelta.writes delta = some writes) :
+    ∀ page ∈ delta.pages,
+      ∃ write ∈ writes,
+        write.pageId + 1 = page.pageNumber ∧
+        write.page.bytes.toList = page.page.bytes := by
+  exact mapM_numberedWrite?_covers converted
 
 def beforeWrites (delta : TableDelta) :
     Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) := do

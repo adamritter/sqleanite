@@ -9,6 +9,7 @@ import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
 import SQLeanite.CorePageCodec
 import SQLeanite.CorePageSource
+import SQLeanite.CoreLocalizedRepresentation
 import SQLeanite.CoreWriteBytes
 import SQLeanite.CoreChunkPageState
 import SQLeanite.CoreChunkPageDelta
@@ -467,6 +468,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_identityWellFormed
 #print axioms SQLeanite.CoreChunkPageDelta.firstInserted_mem_after
 #print axioms SQLeanite.CoreChunkPageDelta.firstDeleted_mem_before
+#print axioms SQLeanite.CoreChunkPageDelta.writes_covers_pages
 
 #print axioms SQLeanite.Core.indexedCandidates_filter_eq_scan
 #print axioms SQLeanite.Core.Query.eval_indexed
@@ -522,6 +524,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageSource.readPage_applyWrites_of_mem
 #print axioms SQLeanite.CorePageSource.readPage_write_same
 #print axioms SQLeanite.CorePageSource.readPage_write_other
+#print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_applyWrites
+#print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages
+#print axioms SQLeanite.CoreLocalizedRepresentation.decodeTableFrom_applyWrites
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk_in
 #print axioms SQLeanite.CorePageCodec.pageSourceRepresents_encodeBulk_in

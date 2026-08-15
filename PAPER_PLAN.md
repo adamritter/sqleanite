@@ -86,6 +86,30 @@ and performance deltas against this baseline.
 The gate is `scripts/check-paper-floor.sh`; full three-run medians use
 `scripts/run-benchmark-regression.sh`.
 
+## Progress snapshot (2026-08-14)
+
+- Milestone 1 is partial.  The live total parser is connected to an explicit
+  AST grammar and successful execution exposes its parse equation, but an
+  independent text grammar with lexer/parser correctness is still open.
+- Milestone 2's read constructors, bag/three-valued denotations, optimizer
+  bridge, and cost-safe rewrite set are present and on both live file paths.
+- Milestone 3's seven bulk command-to-byte theorems are complete.  The
+  localized proof now has a component-wise representation invariant, exact
+  storage-image read-after-write lemmas, a recursive validating-open
+  refinement, and direct table-decoder refinement from mixed changed/unchanged
+  pages.  Proving that the live persistent-tree changed-page selector accounts
+  for every page of the post-state is the remaining table-local obligation;
+  catalog and changed-index composition follow it.
+- Milestone 4's growable page-level rollback protocol, concrete journal codec,
+  returned-commit result, finite recovery-crash trace, and conditional syscall
+  contract are present.  Crash atomicity now lifts over an arbitrary exact
+  page-write list, so it does not require the bulk encoder.
+- Milestone 5 has an intermediate parsed-command theorem:
+  `CoreEndToEnd.executeCommand_commit_crash_atomic` retains the exact logical
+  effect of all seven persisted commands and composes it with arbitrary-delta
+  recovery.  The final SQL-text theorem still depends on completing milestones
+  1 and 3; those links are not hidden as trusted assumptions.
+
 ## Milestone 1: verified SQL text front end
 
 Define `CoreSQL.SupportedText text statements` as a transparent relation for

@@ -754,6 +754,16 @@ recovery-crash traces.  This chain starts at a parsed Core command.  It is not
 yet the final SQL-text theorem: independent lexer/parser correctness and
 construction of the live localized representation witness remain explicit
 open links.
+`CoreLocalizedRepresentation` proves the physical read-after-write layer used
+to discharge that remaining premise.  Every numbered page selected by
+`CoreChunkPageDelta.writes` is present byte-for-byte in the resulting storage
+page source; pages omitted from a distinct write set are preserved from the
+old image.  A recursive table-decoder theorem consumes a mixed
+changed/unchanged containment certificate (including overflow pages) and
+returns exactly the proof-carrying logical table.  The still-open theorem is
+that the live persistent-tree changed-page selector supplies this accounting
+certificate for the complete post-state, followed by catalog and changed-index
+composition.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer
