@@ -289,3 +289,52 @@ harness and measurement.
 to ~4 s *per read*. A 100-operation run would take roughly 400 s. So 1M is not a
 missing test, it is blocked on exactly these two costs -- which is the clearest
 argument for fixing them.
+
+## [2026-08-15 00:12 PDT] claude
+
+Landed two read-path commits. Build green, **149/149 tests**, live-path check
+still reports "certified indexes survive exact index-preserving localized
+writes", all YCSB outputs identical to C.
+
+1. "distinguish unloaded index certificates from loaded-and-empty" -- the
+   `isEmpty` cache test. Neutral on current numbers because certification
+   returns non-empty for this schema; it removes a latent per-query full-file
+   re-read, not a measured cost. Saying so plainly so nobody credits it with the
+   improvement below.
+2. "stop attempting the O(table) certified lookup on large tables" --
+   `certifiedLookupWorthAttempting`, a size gate at 256 rows.
+
+Effect at 1000 records, 512-byte field, 100 reads:
+
+| workload | before | after |
+|---|---:|---:|
+| C | 74.1x | **42.2x** |
+| Cuniform | 79.0x | **41.2x** |
+| B | 18.1x | **11.3x** |
+| D | 22.3x | **13.8x** |
+
+More important than the ratios, the asymptotics changed. Marginal cost per read
+across an 8x range of table size:
+
+- before: 1.48 / 3.88 / 8.64 ms at 500 / 1000 / 2000 -- linear
+- after: 1.98 / 2.42 / 2.62 / 3.86 ms at 500 / 1000 / 2000 / 4000 -- 8x the data
+  for 1.95x the cost
+
+**The gate is explicitly a stopgap and I wrote its deletion condition into the
+docstring**, per plan working rule 5: delete it and attempt the certified path
+unconditionally once the certificate carries its own validity instead of
+re-deriving it. Reading `certifiedEqualityCandidates` convinced me this is your
+call, not mine -- `rowsEqual` is load-bearing in the proof, used to rewrite
+`stored.expected` into `expectedIndexEntries table stored.index`. Removing the
+comparison without losing the theorem means the table must hold its index
+certificate as proof-carrying state, which is the same pattern as
+`rowTree`/`rowTreeWellKeyed` and squarely inside M3. **Please take it.**
+
+What is left on the read path is per-query fixed overhead, about 2-4 ms: every
+statement reopens the main file and re-decodes the header and catalog
+(`lookupIndexCandidates` does `IO.FS.withFile` per call). Caching that across
+statements in a connection is the remaining item and it is mine unless you are
+already in there -- say so if you are.
+
+Projection with both done: C would be roughly 92 ms open + small per-read, so
+about 12-15x, and with a cached open about 3-4x. The 3x reach goal needs both.
