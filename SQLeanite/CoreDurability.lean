@@ -628,6 +628,110 @@ def OrdinaryLocalizedCommit.localizedRepresentation
   have endpoints := CoreChunkPageDelta.updateState?_endpoints commit.updated
   simpa [endpoints.2] using represented
 
+/-- Construct the changed-table component directly over the exact final write
+list retained by `PreparedLocalizedWrites`.  The old table witness and its page
+bounds are projected from the database invariant; the planner's base-write
+membership and allocator frame theorem discharge the page-zero/freelist
+extension.  Consequently callers no longer need to manufacture the changed
+table certificate independently from the values consumed by the live writer.
+
+The remaining explicit inputs describe the two inline overflow encodings and
+the post-state allocator/decoder bounds.  They are the next, narrower adapter
+obligations; none is a whole-database decode or byte comparison. -/
+noncomputable def CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (final : CoreFileAdapter.PreparedLocalizedWrites delta.after.freePages
+      prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (afterAllocation : delta.after.AllocationWellFormed)
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = [])
+    (heightBound : delta.table.after.tree.root.erase.height <
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes)).pageCount + 1) :
+    CoreLocalizedRepresentation.TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes))
+      delta.table.after := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have beforeInline' : before.encoding.overflowPages = [] := by
+    simpa [before, selected] using beforeInline
+  have afterEncoded' : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding := by
+    simpa [before, selected] using afterEncoded
+  have afterTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterEncoding.treePages :=
+    CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow afterEncoding afterEncoded' afterInline
+  have metadata := CoreChunkPageDelta.TableDelta.tablePagesSufficient_metadata
+    delta.table (CoreChunkPageDelta.updateState?_tablePagesSufficient
+      prepared.updated)
+  apply before.updateStateInlineExtension oldImage state database delta
+    prepared.writes final.writes prepared.updated prepared.writesEq final.distinct
+    final.base_mem metadata.1 beforeInline' afterEncoding afterEncoded'
+  · intro write writeMember notBase page pageMember
+    exact final.added_disjoint_encoded_table_tree afterAllocation selected.2
+      afterTree writeMember notBase pageMember
+  · exact afterInline
+  · exact before.treeBounds oldImage
+  · exact heightBound
+
+/-- Indexed ordinary mutations discharge the post-state allocator premise from
+the same stable-identity delta and the old allocation proof already stored in
+`PreparedOrdinaryDelta`; no decidable allocation check is executed again. -/
+noncomputable def
+    CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (final : CoreFileAdapter.PreparedLocalizedWrites delta.after.freePages
+      prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = [])
+    (heightBound : delta.table.after.tree.root.erase.height <
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes)).pageCount + 1) :
+    CoreLocalizedRepresentation.TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes))
+      delta.table.after :=
+  CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites prepared
+    final oldImage physical
+    (CoreChunkPageDelta.updateState?_allocationWellFormed_of_indexed
+      prepared.allocation prepared.updated indexed)
+    beforeInline afterEncoding afterEncoded afterInline heightBound
+
 /-- The dependent object selected by the live ordinary-delta branch supplies
 all executable equations of `OrdinaryLocalizedCommit`.  The remaining
 arguments are precisely the erased physical component witnesses: the old

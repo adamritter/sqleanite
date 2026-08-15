@@ -59,6 +59,29 @@ theorem TableOnSource.inlineEncoded
     state.tree.root physical.nextOverflow physical.encoding physical.encoded
     inline
 
+/-- Exact containment implies the ordinary one-based SQLite page bounds for
+every represented tree page.  Keeping this derived avoids asking localized
+commit callers to repeat bounds already encoded by the page source. -/
+theorem TableOnSource.treeBounds
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    {state : CoreChunkPageState.TableState}
+    (physical : TableOnSource (CorePageSource.ofStorageImage image) state) :
+    ∀ page ∈ physical.encoding.treePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount := by
+  intro page member
+  have contained := physical.treeContains page member
+  constructor
+  · cases number : page.pageNumber with
+    | zero =>
+        rw [number, CorePageSource.readPage_zero image] at contained
+        contradiction
+    | succ value => omega
+  · by_cases high : image.pageCount < page.pageNumber
+    · rw [CorePageSource.readPage_out_of_bounds image page.pageNumber high]
+        at contained
+      contradiction
+    · omega
+
 /-- Preserve a table certificate across a source change after separately
 re-establishing its exact tree and overflow bytes.  Page-count growth is the
 only numeric fact needed to transport both recursive decoder bounds. -/
@@ -137,6 +160,23 @@ theorem TablesOnSource.entries_eq
   | cons entryExact head tail induction =>
       simp only [List.map_cons, List.cons.injEq]
       exact ⟨entryExact, induction⟩
+
+/-- Recover the exact per-table physical witness for any state in an aligned
+`TablesOnSource` list.  This is proof-only list lookup; no page is read and no
+logical database is compared. -/
+theorem TablesOnSource.exists_table
+    {source : CoreDecode.PageSource} {entries : List CoreDecode.CatalogEntry}
+    {states : List CoreChunkPageState.TableState}
+    (physical : TablesOnSource source entries states) :
+    ∀ state ∈ states, ∃ _witness : TableOnSource source state, True := by
+  induction physical with
+  | nil => simp
+  | cons entryExact head tail induction =>
+      intro state member
+      simp only [List.mem_cons] at member
+      rcases member with rfl | member
+      · exact ⟨head, True.intro⟩
+      · exact induction state member
 
 /-- If alignment reports no changed table, every result is a byte-preserving
 retarget of its corresponding input state.  The caller supplies only the
@@ -1372,6 +1412,18 @@ structure DatabaseOnSource (source : CoreDecode.PageSource)
       state.database.tables indexEntries ∧
     IndexMetadataGroups state.database.tables indexEntries ∧
     TablePagesBeforeIndexRoots state.tables indexEntries
+
+/-- Project the strong database invariant to the exact physical witness for
+any allocator-owned table state. -/
+theorem DatabaseOnSource.exists_table
+    {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State}
+    (physical : DatabaseOnSource source state) :
+    ∀ table ∈ state.tables, ∃ _witness : TableOnSource source table, True := by
+  rcases physical.components with
+    ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
+      indexFilter, tables, indexes, metadata, separation⟩
+  exact tables.exists_table
 
 theorem DatabaseOnSource.pageSourceRepresents
     {source : CoreDecode.PageSource}
