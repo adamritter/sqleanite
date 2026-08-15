@@ -1424,6 +1424,59 @@ noncomputable def
       onImage oldHeader emptyFreelist beforeInline afterEncoding afterEncoded
       afterInline)
 
+/-- Semantic-row variant of the live one-table certificate.  The two overflow
+equations are derived from the pre/post tree invariants, so callers cannot
+claim the localized path merely because a separately supplied encoder result
+happened to contain no overflow pages. -/
+noncomputable def
+    CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingleOfRowsInline
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : state.tables = [delta.table.before])
+    (noFree : delta.after.freePages = [])
+    (committed : CoreFileAdapter.CommittedLocalizedDelta
+      delta.after.freePages prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (onImage : committed.prepared.OnImage oldImage)
+    (oldHeader : SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
+    (beforeRowsInline : CorePageCodec.NodeRowsInline
+      delta.table.before.table.schema delta.table.before.tree.root)
+    (afterRowsInline : CorePageCodec.NodeRowsInline
+      delta.table.after.table.schema delta.table.after.tree.root)
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding) :
+    PostImageCertificate oldImage committed.prepared.writes
+      delta.after.database := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have beforeInline : before.encoding.overflowPages = [] :=
+    CorePageCodec.encodeChunkNodeWithOverflow_inline
+      delta.table.before.table.schema delta.table.before.tree.root
+        before.nextOverflow before.encoding beforeRowsInline before.encoded
+  have afterEncoded' : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding := by
+    simpa [before, selected] using afterEncoded
+  have afterInline : afterEncoding.overflowPages = [] :=
+    CorePageCodec.encodeChunkNodeWithOverflow_inline
+      delta.table.after.table.schema delta.table.after.tree.root
+        before.nextOverflow afterEncoding afterRowsInline afterEncoded'
+  exact
+    CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingle
+      prepared indexed single noFree committed oldImage physical onImage
+        oldHeader emptyFreelist (by simpa [before, selected] using beforeInline)
+          afterEncoding afterEncoded afterInline
+
 /-- The exact pure object consumed by the live bulk writer selects a
 constructive post-image constructor.  No decoder result or byte comparison is
 accepted here: canonical and padded branches both retain the encoder equation

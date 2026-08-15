@@ -355,6 +355,80 @@ theorem executeText_committedLocalizedIndexedSingle_crash_atomic
   exact ⟨atomic.1, atomic.2,
     committed.trace_eq_commitPlan oldImage journalExact⟩
 
+/-- Semantic-row form of the live localized SQL-text theorem.  Inline storage
+is derived from the pre/post logical trees; the only remaining encoding
+argument is the equation returned by the executable encoder itself. -/
+theorem executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic
+    (text : String) (commands : List TraceCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (chunkState : CoreChunkPageState.State)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta
+      chunkState next.database delta)
+    (committed : CoreFileAdapter.CommittedLocalizedDelta
+      delta.after.freePages prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (supported : SupportedText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : chunkState.tables = [delta.table.before])
+    (noFree : delta.after.freePages = [])
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) chunkState)
+    (onImage : committed.prepared.OnImage oldImage)
+    (oldHeader : CoreDurability.SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
+    (beforeRowsInline : CorePageCodec.NodeRowsInline
+      delta.table.before.table.schema delta.table.before.tree.root)
+    (afterRowsInline : CorePageCodec.NodeRowsInline
+      delta.table.after.table.schema delta.table.after.tree.root)
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (journalExact : committed.journal =
+      GrowableStorage.makeJournal oldImage committed.prepared.writes)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        committed.prepared.writes phase) recoveredMain recoveredJournal) :
+    TraceEffects commands state next results ∧
+      ((CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some state.database.canonicalize ∨
+        CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some next.database.canonicalize) ∧
+       committed.requests =
+         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have beforeInline : before.encoding.overflowPages = [] :=
+    CorePageCodec.encodeChunkNodeWithOverflow_inline
+      delta.table.before.table.schema delta.table.before.tree.root
+        before.nextOverflow before.encoding beforeRowsInline before.encoded
+  have afterEncoded' : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding := by
+    simpa [before, selected] using afterEncoded
+  have afterInline : afterEncoding.overflowPages = [] :=
+    CorePageCodec.encodeChunkNodeWithOverflow_inline
+      delta.table.after.table.schema delta.table.after.tree.root
+        before.nextOverflow afterEncoding afterRowsInline afterEncoded'
+  exact executeText_committedLocalizedIndexedSingle_crash_atomic text commands
+    state next results chunkState delta prepared committed oldImage supported
+    success oldRepresents indexed single noFree physical onImage oldHeader
+    emptyFreelist (by simpa [before, selected] using beforeInline) afterEncoding
+    afterEncoded afterInline journalExact phase recoveredMain recoveredJournal
+    outcome
+
 theorem executeText_returned_recovers_new
     (text : String) (commands : List TraceCommand)
     (state next : Core.State) (results : List Core.Result)

@@ -308,6 +308,17 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   delta, table bytes, header/freelist plan, and concrete request trace; the
   remaining integration work is the final construction of the post-image
   component witness from that bound preparation.
+  The ordinary indexed point-update chain now discharges its former raw
+  `beforeInline`/`afterInline` overflow equations from the semantic
+  `NodeRowsInline` invariant. `resolvePlans_pages_eq_nil_of_payload_le` proves
+  that locally fitting SQLite record payloads allocate no overflow pages,
+  `encodeChunkNodeWithOverflow_inline` lifts that fact through every persistent
+  tree branch, and
+  `executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic`
+  composes it with the exact returned commit. This covers the literal YCSB
+  `TEXT PRIMARY KEY` layout and its 512-byte field without replacing it by an
+  integer surrogate; genuinely large records retain the separately verified
+  bulk/overflow path.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk

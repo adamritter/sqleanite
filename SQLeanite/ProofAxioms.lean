@@ -523,6 +523,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLTraceText.executeText_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_localized_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingle_crash_atomic
+#print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_returned_recovers_new
 #print axioms SQLeanite.CoreSQLTraceText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
@@ -734,6 +735,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageCodec.decode_encodeChecked
 #print axioms SQLeanite.CorePageCodec.encodeBulk_generatedHeader
 #print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+#print axioms SQLeanite.CoreOverflow.resolvePlans_pages_eq_nil_of_payload_le
+#print axioms SQLeanite.CoreOverflow.ycsbRow_inline
+#print axioms SQLeanite.CorePageCodec.nodeRowsInline_of_mem_rows
+#print axioms SQLeanite.CorePageCodec.tableStateRowsInline_of_rows
+#print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_inline
 #print axioms SQLeanite.CorePageCodec.lookupTableRowidFrom_encodeChunkNodeWithOverflow
 #print axioms SQLeanite.CoreDecode.AbstractTableTree.rangeCandidates_exact
 #print axioms SQLeanite.CoreDecode.lookupTableRangeFrom_decodeAbstract_exact
@@ -845,6 +851,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.free_not_active
 #print axioms SQLeanite.CoreDurability.PostImageCertificate.representsDatabase
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingle
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingleOfRowsInline
 #print axioms SQLeanite.CoreDurability.postImageCertificate_of_preparedBulkImage
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedBulkCommit.postImageCertificate
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?

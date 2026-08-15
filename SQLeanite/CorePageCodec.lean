@@ -3140,6 +3140,135 @@ structure OverflowEncoding where
   overflowPages : List CoreFile.Page
   nextPage : Nat
 
+/-- Every row stored below a persistent table node has a record payload which
+fits in the local part of a SQLite table-leaf cell.  The recursive shape makes
+the invariant compositional across page-local tree edits. -/
+def NodeRowsInline (schema : Core.Schema) :
+    PersistentPageTree.Node CoreChunkPageState.Chunk → Prop
+  | .leaf _ entries => ∀ entry ∈ entries, ∀ row ∈ entry.2,
+      CoreOverflow.RowInline schema row
+  | .branch2 _ left _ right =>
+      NodeRowsInline schema left ∧ NodeRowsInline schema right
+  | .branch3 _ left _ middle _ right =>
+      NodeRowsInline schema left ∧ NodeRowsInline schema middle ∧
+        NodeRowsInline schema right
+
+/-- A pointwise property of the logical row abstraction establishes the
+recursive inline invariant, independent of the tree's current topology. -/
+theorem nodeRowsInline_of_mem_rows (schema : Core.Schema) :
+    ∀ (node : PersistentPageTree.Node CoreChunkPageState.Chunk),
+      (∀ row ∈ CoreChunkPageState.Node.rows node,
+        CoreOverflow.RowInline schema row) →
+      NodeRowsInline schema node
+  | .leaf pageId entries, inline => by
+      simp only [NodeRowsInline]
+      intro entry entryMember row rowMember
+      apply inline row
+      unfold CoreChunkPageState.Node.rows
+      simp only [PersistentPageTree.Node.erase,
+        RecursiveBPlusTree.Node.toList]
+      exact List.mem_flatMap.mpr ⟨entry, entryMember, rowMember⟩
+  | .branch2 pageId left separator right, inline => by
+      simp only [NodeRowsInline]
+      constructor
+      · apply nodeRowsInline_of_mem_rows schema left
+        intro row member
+        apply inline row
+        unfold CoreChunkPageState.Node.rows at member ⊢
+        simp only [PersistentPageTree.Node.erase,
+          RecursiveBPlusTree.Node.toList, List.flatMap_append,
+          List.mem_append]
+        exact Or.inl member
+      · apply nodeRowsInline_of_mem_rows schema right
+        intro row member
+        apply inline row
+        unfold CoreChunkPageState.Node.rows at member ⊢
+        simp only [PersistentPageTree.Node.erase,
+          RecursiveBPlusTree.Node.toList, List.flatMap_append,
+          List.mem_append]
+        exact Or.inr member
+  | .branch3 pageId left firstSeparator middle secondSeparator right,
+      inline => by
+      simp only [NodeRowsInline]
+      constructor
+      · apply nodeRowsInline_of_mem_rows schema left
+        intro row member
+        apply inline row
+        unfold CoreChunkPageState.Node.rows at member ⊢
+        simp only [PersistentPageTree.Node.erase,
+          RecursiveBPlusTree.Node.toList, List.flatMap_append,
+          List.mem_append]
+        exact Or.inl (Or.inl member)
+      · constructor
+        · apply nodeRowsInline_of_mem_rows schema middle
+          intro row member
+          apply inline row
+          unfold CoreChunkPageState.Node.rows at member ⊢
+          simp only [PersistentPageTree.Node.erase,
+            RecursiveBPlusTree.Node.toList, List.flatMap_append,
+            List.mem_append]
+          exact Or.inl (Or.inr member)
+        · apply nodeRowsInline_of_mem_rows schema right
+          intro row member
+          apply inline row
+          unfold CoreChunkPageState.Node.rows at member ⊢
+          simp only [PersistentPageTree.Node.erase,
+            RecursiveBPlusTree.Node.toList, List.flatMap_append,
+            List.mem_append]
+          exact Or.inr member
+
+/-- A table state's logical representation equation lifts a row-wise payload
+bound to the exact persistent tree used by the localized writer. -/
+theorem tableStateRowsInline_of_rows
+    (state : CoreChunkPageState.TableState)
+    (inline : ∀ row ∈ state.table.rows,
+      CoreOverflow.RowInline state.table.schema row) :
+    NodeRowsInline state.table.schema state.tree.root := by
+  apply nodeRowsInline_of_mem_rows state.table.schema state.tree.root
+  intro row member
+  apply inline row
+  rw [← state.represents]
+  exact member
+
+private theorem tableCellPlans_payload_le_of_rowsInline
+    (schema : Core.Schema) : ∀ (rows : List Core.Row)
+      (plans : List CoreOverflow.CellPlan),
+      rows.mapM (CoreOverflow.tableCellPlan? schema) = some plans →
+      (∀ row ∈ rows, CoreOverflow.RowInline schema row) →
+      ∀ plan ∈ plans,
+        plan.payload.length ≤ CoreOverflow.maxLocal plan.kind
+  | [], plans, planned, _ => by
+      change some [] = some plans at planned
+      have empty : plans = [] := (Option.some.inj planned).symm
+      subst plans
+      simp
+  | row :: rows, plans, planned, inline => by
+      simp only [List.mapM_cons] at planned
+      cases planResult : CoreOverflow.tableCellPlan? schema row with
+      | none => simp [planResult] at planned
+      | some plan =>
+          simp only [planResult, Option.bind_eq_bind, Option.bind] at planned
+          cases tailResult : rows.mapM (CoreOverflow.tableCellPlan? schema) with
+          | none => simp [tailResult] at planned
+          | some tail =>
+              simp only [tailResult, Option.some.injEq] at planned
+              have plansEqual : plans = plan :: tail :=
+                (Option.some.inj planned).symm
+              subst plans
+              intro candidate member
+              simp only [List.mem_cons] at member
+              rcases member with rfl | tailMember
+              · have rowInline := inline row (by simp)
+                have payload := CoreOverflow.tableCellPlan_payload_le_of_inline
+                  rowInline planResult
+                rw [CoreOverflow.tableCellPlan_kind planResult]
+                exact payload
+              · apply tableCellPlans_payload_le_of_rowsInline schema rows tail
+                  tailResult
+                · intro tailRow tailRowMember
+                  exact inline tailRow (by simp [tailRowMember])
+                · exact tailMember
+
 private theorem tableCellPlan_cellBytes_none_encodeCell
     {schema : Core.Schema} {row : Core.Row}
     {plan : CoreOverflow.CellPlan} {cell : List UInt8}
@@ -3250,6 +3379,100 @@ def encodeChunkNodeWithOverflow (schema : Core.Schema) :
         overflowPages := leftEncoding.overflowPages ++
           middleEncoding.overflowPages ++ rightEncoding.overflowPages
         nextPage := rightEncoding.nextPage }
+
+/-- The overflow-aware encoder emits no overflow run when the logical rows
+meet `NodeRowsInline`.  This turns inline storage from a caller-supplied fact
+about an opaque encoder result into a semantic invariant of the table rows. -/
+theorem encodeChunkNodeWithOverflow_inline
+    (schema : Core.Schema) :
+    ∀ (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
+      (nextOverflow : Nat) (encoding : OverflowEncoding),
+      NodeRowsInline schema node →
+      encodeChunkNodeWithOverflow schema node nextOverflow = some encoding →
+      encoding.overflowPages = []
+  | .leaf pageId entries, nextOverflow, encoding, inline, encoded => by
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      let rows := entries.flatMap fun entry => entry.2
+      cases plansResult : rows.mapM (CoreOverflow.tableCellPlan? schema) with
+      | none => simp [rows, plansResult] at encoded
+      | some plans =>
+          simp only [rows, plansResult, Option.bind_eq_bind, Option.bind] at encoded
+          cases resolvedResult : CoreOverflow.resolvePlans nextOverflow plans with
+          | none => simp [resolvedResult] at encoded
+          | some resolved =>
+              simp only [resolvedResult] at encoded
+              cases pageResult : CoreFile.tableLeafPage? resolved.cells with
+              | none => simp [pageResult] at encoded
+              | some page =>
+                  simp only [pageResult, Option.some.injEq] at encoded
+                  subst encoding
+                  have rowsInline : ∀ row ∈ rows,
+                      CoreOverflow.RowInline schema row := by
+                    intro row member
+                    rcases List.mem_flatMap.mp member with
+                      ⟨chunk, chunkMember, rowMember⟩
+                    exact inline chunk chunkMember row rowMember
+                  have payloads := tableCellPlans_payload_le_of_rowsInline
+                    schema rows plans plansResult rowsInline
+                  exact CoreOverflow.resolvePlans_pages_eq_nil_of_payload_le
+                    resolvedResult payloads
+  | .branch2 pageId left separator right, nextOverflow, encoding, inline,
+      encoded => by
+      simp only [NodeRowsInline] at inline
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      cases rootResult : encodeChunkRoot schema
+          (.branch2 pageId left separator right) with
+      | none => simp [rootResult] at encoded
+      | some root =>
+          simp only [rootResult, Option.bind_eq_bind, Option.bind] at encoded
+          cases leftResult : encodeChunkNodeWithOverflow schema left nextOverflow with
+          | none => simp [leftResult] at encoded
+          | some leftEncoding =>
+              simp only [leftResult] at encoded
+              cases rightResult : encodeChunkNodeWithOverflow schema right
+                  leftEncoding.nextPage with
+              | none => simp [rightResult] at encoded
+              | some rightEncoding =>
+                  simp only [rightResult, Option.some.injEq] at encoded
+                  subst encoding
+                  have leftEmpty := encodeChunkNodeWithOverflow_inline schema left
+                    nextOverflow leftEncoding inline.1 leftResult
+                  have rightEmpty := encodeChunkNodeWithOverflow_inline schema right
+                    leftEncoding.nextPage rightEncoding inline.2 rightResult
+                  simp [leftEmpty, rightEmpty]
+  | .branch3 pageId left firstSeparator middle secondSeparator right,
+      nextOverflow, encoding, inline, encoded => by
+      simp only [NodeRowsInline] at inline
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      cases rootResult : encodeChunkRoot schema
+          (.branch3 pageId left firstSeparator middle secondSeparator right) with
+      | none => simp [rootResult] at encoded
+      | some root =>
+          simp only [rootResult, Option.bind_eq_bind, Option.bind] at encoded
+          cases leftResult : encodeChunkNodeWithOverflow schema left nextOverflow with
+          | none => simp [leftResult] at encoded
+          | some leftEncoding =>
+              simp only [leftResult] at encoded
+              cases middleResult : encodeChunkNodeWithOverflow schema middle
+                  leftEncoding.nextPage with
+              | none => simp [middleResult] at encoded
+              | some middleEncoding =>
+                  simp only [middleResult] at encoded
+                  cases rightResult : encodeChunkNodeWithOverflow schema right
+                      middleEncoding.nextPage with
+                  | none => simp [rightResult] at encoded
+                  | some rightEncoding =>
+                      simp only [rightResult, Option.some.injEq] at encoded
+                      subst encoding
+                      have leftEmpty := encodeChunkNodeWithOverflow_inline schema left
+                        nextOverflow leftEncoding inline.1 leftResult
+                      have middleEmpty := encodeChunkNodeWithOverflow_inline schema
+                        middle leftEncoding.nextPage middleEncoding inline.2.1
+                          middleResult
+                      have rightEmpty := encodeChunkNodeWithOverflow_inline schema
+                        right middleEncoding.nextPage rightEncoding inline.2.2
+                          rightResult
+                      simp [leftEmpty, middleEmpty, rightEmpty]
 
 /-- The general encoder and the localized tree encoder produce identical tree
 pages whenever the general encoding emits no overflow run.  This is the
