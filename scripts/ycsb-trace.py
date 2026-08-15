@@ -12,7 +12,7 @@ Java implementations (`ZipfianGenerator`, `ScrambledZipfianGenerator`,
 so both engines replay an identical trace.
 
 Emits:
-  <out>/load.sql  schema, index, and `recordcount` inserts in one transaction
+  <out>/load.sql  exact paper schema and `recordcount` inserts in one transaction
   <out>/run.sql   `operationcount` operations in the workload's mix
 
 Usage:
@@ -154,23 +154,17 @@ def main():
     # One transaction, matching the bulk-load shape their driver uses.
     load_path = os.path.join(args.out, "load.sql")
     with open(load_path, "w") as out:
-        # `id` is a surrogate key. YCSB's own key is `ycsb_key`; the verified
-        # Core requires exactly one INTEGER PRIMARY KEY and rejects
-        # `ycsb_key TEXT PRIMARY KEY`, so the string key lives in an indexed
-        # column instead. This is a declared deviation, not a free choice.
+        # Preserve the benchmark's string-key schema literally. In SQLite a
+        # TEXT PRIMARY KEY is backed by an implicit unique index on a rowid
+        # table; Core supports and certifies that physical representation.
         out.write(
-            "CREATE TABLE usertable("
-            "id INTEGER PRIMARY KEY, ycsb_key TEXT NOT NULL, "
-            "field0 TEXT NOT NULL);\n"
+            "CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);\n"
         )
-        # Non-unique: the verified MVP rejects UNIQUE indexes. The generator
-        # never emits a duplicate key, so uniqueness holds by construction.
-        out.write("CREATE INDEX ukey ON usertable(ycsb_key);\n")
         out.write("BEGIN;\n")
         for i in range(args.records):
             out.write(
-                "INSERT INTO usertable VALUES(%d,%s,%s);\n"
-                % (i + 1, quote(keyname(i)), quote(fieldvalue(rng, args.field_length)))
+                "INSERT INTO usertable VALUES(%s,%s);\n"
+                % (quote(keyname(i)), quote(fieldvalue(rng, args.field_length)))
             )
         out.write("COMMIT;\n")
 
@@ -208,8 +202,8 @@ def main():
 
             if op == "insert":
                 out.write(
-                    "INSERT INTO usertable VALUES(%d,%s,%s);\n"
-                    % (next_key + 1, quote(keyname(next_key)), quote(fieldvalue(rng, args.field_length)))
+                    "INSERT INTO usertable VALUES(%s,%s);\n"
+                    % (quote(keyname(next_key)), quote(fieldvalue(rng, args.field_length)))
                 )
                 next_key += 1
                 continue

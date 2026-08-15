@@ -726,11 +726,12 @@ the entire declared-key map on every insert from `table.rows`, which is a full
 4,000-row load were 52, 84, 120, 162, 202, 248, 303, 359, 409 -- linear in rows
 already present.
 
-**Fixed for schemas with an explicit INTEGER PRIMARY KEY**, which is the common
-case and the YCSB schema. `declaredKeyMapAfterUpsert` now takes the tree rather
-than a materialized row list, so the `∅` branch never forces `storedRows`. Per
-insert is now flat at 35--39 microseconds, and load growth per doubling is
-1.9x/2.0x/2.2x. At 16,000 rows the load went from 23.5 s to 6.6 s.
+**Fixed for schemas with an explicit INTEGER PRIMARY KEY**, which is a common
+SQLite shape but is not the literal YCSB schema used here.
+`declaredKeyMapAfterUpsert` now takes the tree rather than a materialized row
+list, so the `∅` branch never forces `storedRows`. Per insert is now flat at
+35--39 microseconds, and load growth per doubling is 1.9x/2.0x/2.2x. At 16,000
+rows the load went from 23.5 s to 6.6 s.
 
 **Still open, and worse than the original: `REPLACE` and `UPDATE` on a
 hidden-rowid table.** `Table.insertValues` routes hidden-rowid *inserts* to

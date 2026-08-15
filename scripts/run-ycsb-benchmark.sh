@@ -87,7 +87,7 @@ median() { # median of stdin integers
 }
 
 printf 'YCSB-style: records=%s ops=%s runs=%s seed=%s\n' "$records" "$ops" "$runs" "$seed"
-printf 'schema: usertable(id INTEGER PRIMARY KEY, ycsb_key TEXT NOT NULL, field0 TEXT NOT NULL) + INDEX(ycsb_key)\n'
+printf 'schema: usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT)\n'
 if [ "$field" = 512 ]; then
   printf 'field length 512 (matches VeriBetrKV fieldcount=1 fieldlength=512)\n\n'
 else
@@ -120,6 +120,12 @@ for workload in $workloads; do
   trace=$work/$workload
   python3 scripts/ycsb-trace.py --workload "$workload" --records "$records" \
     --ops "$ops" --out "$trace" --seed "$seed" --field-length "$field" >/dev/null
+  schema=$(sed -n '1p' "$trace/load.sql")
+  if [ "$schema" != \
+      'CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);' ]; then
+    printf 'unexpected YCSB schema: %s\n' "$schema" >&2
+    exit 2
+  fi
 
   load_l_samples=$work/ll; load_c_samples=$work/lc
   run_l_samples=$work/rl; run_c_samples=$work/rc
