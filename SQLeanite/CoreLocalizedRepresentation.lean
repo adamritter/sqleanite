@@ -478,6 +478,180 @@ inductive IndexMetadataGroups :
       (tail : IndexMetadataGroups tables remaining) :
       IndexMetadataGroups (table :: tables) (entries ++ remaining)
 
+/-- One encoded index run establishes both its physical decoder equations and
+its catalog-metadata reconstruction.  Keeping the pair together prevents the
+two certificates from drifting to different index orders. -/
+theorem indexCertificates_encodeIndexes
+    (source : CoreDecode.PageSource) (table : Core.Table) :
+    ∀ (nextPage : Nat) (indexes : List Core.Index)
+      (encodings : List CoreOverflow.IndexEncoding),
+      (∀ index ∈ indexes, index ∈ table.indexes) →
+      CoreOverflow.encodeIndexes nextPage
+        (indexes.map fun index => (table, index)) = some encodings →
+      (∀ encoding ∈ encodings,
+        CoreDecode.ReadsPagesFrom source encoding.rootPage encoding.pages) →
+      (∀ encoding ∈ encodings, 0 < encoding.rootPage) →
+      (∀ encoding ∈ encodings,
+        encoding.rootPage + encoding.pages.length < 2 ^ 32) →
+      (∀ encoding ∈ encodings,
+        encoding.rootPage + encoding.pages.length ≤ source.pageCount + 1) →
+      IndexesDecode source table.withoutIndexes
+          (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) ∧
+        IndexMetadataDecode table
+          (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) indexes
+  | _, [], encodings, _, encoded, _, _, _, _ => by
+      simp only [List.map_nil, CoreOverflow.encodeIndexes,
+        Option.some.injEq] at encoded
+      subst encodings
+      exact ⟨.nil, .nil⟩
+  | nextPage, index :: indexes, encodings, members, encoded, reads,
+      positive, pageBound, sourceBound => by
+      simp only [List.map_cons, CoreOverflow.encodeIndexes,
+        Option.bind_eq_bind, Option.bind] at encoded
+      cases headResult : CoreOverflow.encodeIndex nextPage table index with
+      | none => simp [headResult] at encoded
+      | some head =>
+        simp only [headResult] at encoded
+        cases tailResult : CoreOverflow.encodeIndexes
+            (nextPage + head.pages.length)
+            (indexes.map fun candidate => (table, candidate)) with
+        | none => simp [tailResult] at encoded
+        | some tail =>
+          simp only [tailResult, Option.some.injEq] at encoded
+          subst encodings
+          have identity := CoreOverflow.encodeIndex_identity headResult
+          have headMember : index ∈ table.indexes := members index (by simp)
+          have metadataOriginal := CoreDecode.decodeCanonicalIndex_encoded
+            table index headMember nextPage
+          have metadata : CoreDecode.decodeCanonicalIndex
+              table.withoutIndexes.schema table.withoutIndexes.schema.name
+              (CoreDecode.CatalogEntry.ofEncoded head.catalogEntry) =
+                some index := by
+            simpa [CoreOverflow.IndexEncoding.catalogEntry, identity.1,
+              identity.2.1, identity.2.2] using metadataOriginal
+          have physicalOriginal := CoreDecode.decodeIndexSubtreeFrom_encodeIndex
+            source headResult (by
+              simpa [identity.2.2] using reads head (by simp))
+            (by simpa [identity.2.2] using positive head (by simp))
+            (by simpa [identity.2.2] using pageBound head (by simp))
+            (by simpa [identity.2.2] using sourceBound head (by simp))
+          have physical : CoreDecode.decodeIndexSubtreeFrom source
+              (source.pageCount + 1)
+              (CoreDecode.CatalogEntry.ofEncoded head.catalogEntry).rootPage =
+                some (CoreDecode.expectedIndexEntries
+                  table.withoutIndexes index) := by
+            rw [show (CoreDecode.CatalogEntry.ofEncoded
+                head.catalogEntry).rootPage = nextPage by
+              simp [CoreOverflow.IndexEncoding.catalogEntry,
+                CoreDecode.CatalogEntry.ofEncoded, identity.2.2]]
+            calc
+              _ = some (CoreDecode.expectedIndexEntries table index) := by
+                simpa [CoreDecode.expectedIndexEntries] using physicalOriginal
+              _ = some (CoreDecode.expectedIndexEntries
+                    table.withoutIndexes index) :=
+                congrArg some
+                  (CoreDecode.expectedIndexEntries_withoutIndexes table index).symm
+          have tailCertificates := indexCertificates_encodeIndexes source table
+            (nextPage + head.pages.length) indexes tail
+            (fun candidate member => members candidate (by simp [member]))
+            tailResult
+            (fun encoding member => reads encoding (by simp [member]))
+            (fun encoding member => positive encoding (by simp [member]))
+            (fun encoding member => pageBound encoding (by simp [member]))
+            (fun encoding member => sourceBound encoding (by simp [member]))
+          constructor
+          · exact .cons (by
+              change head.table.schema.name = table.schema.name
+              rw [identity.1])
+              metadata physical tailCertificates.1
+          · exact .cons (by
+              change head.table.schema.name = table.schema.name
+              rw [identity.1])
+              metadata tailCertificates.2
+
+/-- Lift the paired per-index certificates across all table groups in the
+same contiguous order emitted by the physical encoder. -/
+theorem indexGroupCertificates_encodeIndexTableGroups
+    (source : CoreDecode.PageSource) :
+    ∀ (nextPage : Nat) (tables : List Core.Table)
+      (encodings : List CoreOverflow.IndexEncoding),
+      Core.TablesWellFormed tables →
+      CoreOverflow.encodeIndexTableGroups nextPage tables = some encodings →
+      (∀ encoding ∈ encodings,
+        CoreDecode.ReadsPagesFrom source encoding.rootPage encoding.pages) →
+      (∀ encoding ∈ encodings, 0 < encoding.rootPage) →
+      (∀ encoding ∈ encodings,
+        encoding.rootPage + encoding.pages.length < 2 ^ 32) →
+      (∀ encoding ∈ encodings,
+        encoding.rootPage + encoding.pages.length ≤ source.pageCount + 1) →
+      IndexGroupsDecode source (tables.map Core.Table.withoutIndexes)
+          (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) ∧
+        IndexMetadataGroups tables
+          (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry)
+  | _, [], encodings, _, encoded, _, _, _, _ => by
+      simp only [CoreOverflow.encodeIndexTableGroups,
+        Option.some.injEq] at encoded
+      subst encodings
+      exact ⟨.nil, .nil⟩
+  | nextPage, table :: tables, encodings, wellFormed, encoded, reads,
+      positive, pageBound, sourceBound => by
+      simp only [Core.TablesWellFormed, Core.namesUnique, List.map_cons,
+        List.pairwise_cons] at wellFormed
+      rcases wellFormed with ⟨headDistinct, tailWellFormed⟩
+      simp only [CoreOverflow.encodeIndexTableGroups,
+        Option.bind_eq_bind, Option.bind] at encoded
+      cases currentResult : CoreOverflow.encodeIndexes nextPage
+          (table.indexes.map fun index => (table, index)) with
+      | none => simp [currentResult] at encoded
+      | some current =>
+        simp only [currentResult] at encoded
+        cases remainingResult : CoreOverflow.encodeIndexTableGroups
+            (nextPage + (CoreOverflow.indexPagesOf current).length) tables with
+        | none => simp [remainingResult] at encoded
+        | some remaining =>
+          simp only [remainingResult, Option.some.injEq] at encoded
+          subst encodings
+          have currentCertificates := indexCertificates_encodeIndexes
+            source table nextPage table.indexes current (by simp)
+            currentResult
+            (fun encoding member => reads encoding (by simp [member]))
+            (fun encoding member => positive encoding (by simp [member]))
+            (fun encoding member => pageBound encoding (by simp [member]))
+            (fun encoding member => sourceBound encoding (by simp [member]))
+          have tailCertificates :=
+            indexGroupCertificates_encodeIndexTableGroups source
+              (nextPage + (CoreOverflow.indexPagesOf current).length)
+              tables remaining tailWellFormed remainingResult
+              (fun encoding member => reads encoding (by simp [member]))
+              (fun encoding member => positive encoding (by simp [member]))
+              (fun encoding member => pageBound encoding (by simp [member]))
+              (fun encoding member => sourceBound encoding (by simp [member]))
+          have remainingBelongs :=
+            CoreOverflow.encodeIndexTableGroups_tables remainingResult
+          have boundary : ∀ entry ∈
+              remaining.map (fun encoding =>
+                CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry),
+              entry.table ≠ table.schema.name := by
+            intro entry member
+            rcases List.mem_map.mp member with
+              ⟨encoding, encodingMember, rfl⟩
+            have tableMember := remainingBelongs encoding encodingMember
+            have distinct := headDistinct encoding.table.schema.name
+              (List.mem_map_of_mem tableMember)
+            simpa [CoreOverflow.IndexEncoding.catalogEntry,
+              CoreDecode.CatalogEntry.ofEncoded] using distinct.symm
+          constructor
+          · simpa only [List.map_cons, List.map_append] using
+              IndexGroupsDecode.cons currentCertificates.1 boundary
+                tailCertificates.1
+          · simpa only [List.map_append] using
+              IndexMetadataGroups.cons currentCertificates.2 boundary
+                tailCertificates.2
+
 theorem IndexMetadataGroups.restore
     {tables : List Core.Table} {entries : List CoreDecode.CatalogEntry}
     (decoded : IndexMetadataGroups tables entries) :
@@ -545,6 +719,45 @@ theorem applyIndexesForOpen_of_index_certificates
       some database.canonicalize := by
   exact applyIndexesForOpen_of_indexGroups source database entries physical
     (metadata.rebuild database entries)
+
+/-- Complete physical state invariant below the SQLite header.  It combines
+the store-owned table layout with exact index pages and catalog metadata, and
+records the executable catalog partition explicitly.  This is the invariant
+that bulk encoding establishes and localized mutation preserves. -/
+structure DatabaseOnSource (source : CoreDecode.PageSource)
+    (state : CoreChunkPageState.State) : Prop where
+  components : ∃ (catalog tableEntries indexEntries :
+      List CoreDecode.CatalogEntry),
+    (source.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog) ∧
+    (catalog.filter (fun entry => entry.kind == "table") = tableEntries) ∧
+    (catalog.filter (fun entry => entry.kind == "index") = indexEntries) ∧
+    TablesOnSource source tableEntries state.tables ∧
+    IndexGroupsDecode source
+      (state.database.tables.map Core.Table.withoutIndexes) indexEntries ∧
+    IndexMetadataGroups state.database.tables indexEntries
+
+theorem DatabaseOnSource.pageSourceRepresents
+    {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State}
+    (physical : DatabaseOnSource source state) :
+    CoreDecode.PageSourceRepresents source state.database := by
+  rcases physical.components with
+    ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
+      indexFilter, tables, indexes, indexMetadata⟩
+  refine .intro catalog catalogRead ?_ ?_
+  · rw [tableFilter]
+    exact (tables.databaseTablesDecode state.tables_eq).mapM
+  · rw [indexFilter]
+    exact applyIndexesForOpen_of_index_certificates source state.database
+      indexEntries indexes indexMetadata
+
+theorem DatabaseOnSource.decode
+    {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State}
+    (physical : DatabaseOnSource source state) :
+    CoreDecode.decodeFromPageSource source =
+      some state.database.canonicalize :=
+  physical.pageSourceRepresents.decode
 
 /-- Every encoded page covered by one member of a distinct write set is
 present in the page source obtained after applying that write set. -/

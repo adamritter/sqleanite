@@ -168,6 +168,16 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   catalog and database order. The multi-table encoder is proved to establish
   this invariant recursively, and `exists_tablesOnStorage_encodeBulk` ties
   the resulting base certificate to the exact live growable-storage image.
+  `DatabaseOnSource` now combines that table layout with the exact catalog
+  partition, physical index groups, and index metadata into the single
+  proof-carrying state invariant from which `PageSourceRepresents` follows.
+  The localized durability certificate is now genuinely `Prop`-valued (and
+  therefore erased) and consumes this invariant directly; its former catalog
+  data field has been moved under a propositional existential.
+  The physical index-group encoder now establishes its decoder and metadata
+  certificates together in one recursive theorem, including promoted entries
+  and implicit TEXT-primary indexes, so their orders cannot diverge during
+  final database-certificate assembly.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

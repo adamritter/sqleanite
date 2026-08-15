@@ -372,21 +372,35 @@ this certificate cannot add the former decode-and-compare validation pass. -/
 structure LocalizedRepresentation
     (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
-    (database : Core.Database) where
+    (database : Core.Database) : Prop where
   header : SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes)
-  catalog : List CoreDecode.CatalogEntry
-  catalogRead :
-    (localizedSource oldImage writes).readPage 1 >>=
-        CoreDecode.decodeCatalogForOpen = some catalog
-  tablesRead :
-    (catalog.filter (fun entry => entry.kind == "table")).mapM
+  components : ∃ catalog : List CoreDecode.CatalogEntry,
+    ((localizedSource oldImage writes).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog) ∧
+    ((catalog.filter (fun entry => entry.kind == "table")).mapM
         (CoreDecode.decodeTableFrom (localizedSource oldImage writes)) =
-      some (database.tables.map Core.Table.withoutIndexes)
-  indexesRead :
-    CoreDecode.applyIndexesForOpen (localizedSource oldImage writes)
+      some (database.tables.map Core.Table.withoutIndexes)) ∧
+    (CoreDecode.applyIndexesForOpen (localizedSource oldImage writes)
         database.withoutIndexes
         (catalog.filter (fun entry => entry.kind == "index")) =
-      some database.canonicalize
+      some database.canonicalize)
+
+/-- The strong proof-carrying physical-state invariant closes every logical
+field of a localized durability certificate at once.  Only SQLite header
+framing remains a separate obligation because it belongs to the growable
+image rather than to table/index topology. -/
+def localizedRepresentation_of_databaseOnSource
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (state : CoreChunkPageState.State)
+    (header : SQLiteHeaderMatches
+      (GrowableStorage.applyWrites oldImage writes))
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (localizedSource oldImage writes) state) :
+    LocalizedRepresentation oldImage writes state.database := by
+  rcases physical.pageSourceRepresents with
+    ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+  exact { header, components := ⟨catalog, catalogRead, tablesRead, indexesRead⟩ }
 
 /-- Build the complete component certificate from one exact schema-page write
 and the separately compositional table/index decoder facts. -/
@@ -424,11 +438,10 @@ def localizedRepresentation_of_pageZeroWrite
     header := sqliteHeaderMatches_of_pageZeroWrite oldImage writes distinct
       pageZero member zero header pageSuffix headerBytes pageCount pageSize
       reserved utf8
-    catalog
-    catalogRead := catalogRead_of_pageZeroWrite oldImage writes distinct
-      pageZero member zero catalog catalogDecoded
-    tablesRead
-    indexesRead }
+    components := ⟨catalog,
+      catalogRead_of_pageZeroWrite oldImage writes distinct
+        pageZero member zero catalog catalogDecoded,
+      tablesRead, indexesRead⟩ }
 
 /-- Variant of the constructor that accepts one compositional proof per table
 instead of the already-collapsed `mapM` equation. -/
@@ -544,13 +557,12 @@ def localizedRepresentation_of_unchangedPageZero
   header := sqliteHeaderMatches_of_unchangedPageZero oldImage writes
     notWritten positive header pageSuffix headerBytes pageCount pageSize
     reserved utf8
-  catalog
-  catalogRead := catalogRead_of_unchangedPageZero oldImage writes positive
-    notWritten catalog catalogDecoded
-  tablesRead := tables.mapM
-  indexesRead :=
+  components := ⟨catalog,
+    catalogRead_of_unchangedPageZero oldImage writes positive
+      notWritten catalog catalogDecoded,
+    tables.mapM,
     CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
-      (localizedSource oldImage writes) database _ physicalIndexes indexMetadata }
+      (localizedSource oldImage writes) database _ physicalIndexes indexMetadata⟩ }
 
 theorem LocalizedRepresentation.pageSourceRepresents
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
@@ -559,8 +571,9 @@ theorem LocalizedRepresentation.pageSourceRepresents
     (certificate : LocalizedRepresentation oldImage writes database) :
     CoreDecode.PageSourceRepresents
       (localizedSource oldImage writes) database := by
-  exact .intro certificate.catalog certificate.catalogRead
-    certificate.tablesRead certificate.indexesRead
+  rcases certificate.components with
+    ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+  exact .intro catalog catalogRead tablesRead indexesRead
 
 /-- Component proofs close the public whole-byte representation theorem. -/
 theorem LocalizedRepresentation.representsDatabase
