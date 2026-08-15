@@ -347,6 +347,7 @@ theorem localizedLastIndexDelta_cons
       intro entries tail
       exact indexesDecode_consLocalized prepared.entryTable prepared.entryRoot
         prepared.entryMetadata readable tail
+
   | decoded certificate =>
       have onStorage : certificate.OnStorage prepared.writes := by
         simpa [certificateEq] using prepared.storage
@@ -356,6 +357,21 @@ theorem localizedLastIndexDelta_cons
       intro entries tail
       exact indexesDecode_consLocalized prepared.entryTable prepared.entryRoot
         prepared.entryMetadata readable tail
+
+/-- The changed-index preparation selected by the live engine is tied to the
+same logical state transition and table-page lists that produced its combined
+table/index overlay.  These equations are kept together so a durability proof
+cannot silently substitute a separately rebuilt table delta. -/
+theorem CoreFileAdapter.LocalizedLastIndexDelta.liveDeltaEquations
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.LocalizedLastIndexDelta delta) :
+    CoreChunkPageDelta.updateStateCandidate? delta.before
+        delta.after.database = some delta ∧
+      CoreChunkPageDelta.beforeWrites delta.table =
+        some prepared.tableExpectedBefore ∧
+      CoreChunkPageDelta.writes delta.table = some prepared.tableWrites := by
+  exact ⟨prepared.candidate, prepared.tableExpectedBeforeEq,
+    prepared.tableWritesEq⟩
 
 /-- A nonempty growable image starts with the bytes returned by page zero.
 The suffix is intentionally abstract: SQLite header decoding consumes exactly
@@ -611,6 +627,52 @@ def OrdinaryLocalizedCommit.localizedRepresentation
     writes delta.after commit.header commit.databaseOnSource
   have endpoints := CoreChunkPageDelta.updateState?_endpoints commit.updated
   simpa [endpoints.2] using represented
+
+/-- The dependent object selected by the live ordinary-delta branch supplies
+all executable equations of `OrdinaryLocalizedCommit`.  The remaining
+arguments are precisely the erased physical component witnesses: the old
+validated layout, header/catalog frame, retained tables, and changed table.
+Keeping this constructor here (above the adapter import cycle) prevents a
+caller from proving durability for a write list different from the one the
+live engine passes to `commitLocalized`. -/
+def CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (header : SQLiteHeaderMatches
+      (GrowableStorage.applyWrites oldImage prepared.writes))
+    (catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites oldImage prepared.writes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog))
+    (retained : ∀ (old : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage oldImage) old →
+        ∃ _physical : CoreLocalizedRepresentation.TableOnSource
+            (CorePageSource.ofStorageImage
+              (GrowableStorage.applyWrites oldImage prepared.writes))
+            (old.retarget table equivalent), True)
+    (changed : ∃ physical : CoreLocalizedRepresentation.TableOnSource
+        (CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites oldImage prepared.writes))
+        delta.table.after, physical.encoding.overflowPages = []) :
+    OrdinaryLocalizedCommit oldImage prepared.writes state database delta := {
+  physical
+  allocation := prepared.allocation
+  updated := prepared.updated
+  converted := prepared.writesEq
+  distinct := prepared.distinct
+  header
+  catalogPreserved
+  retained
+  changed
+  preservationMode := prepared.preservationMode }
 
 /-- Constructive alternatives for the post-image premise of the public crash
 theorem.  Every constructor exposes how the bytes were justified: an ordinary

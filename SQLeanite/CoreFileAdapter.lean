@@ -577,6 +577,80 @@ theorem ValidatedOpenState.retarget?_indexImage
       CoreChunkPageDelta.indexImage delta.table.after.table :=
   delta.table.tablePagesSufficient_indexImage sufficient
 
+/-- Exact pure preparation for the ordinary localized writer.  The executable
+engine used to unpack `beforeWrites` and `writes` independently after a
+Boolean sufficiency check.  Keeping their defining equations, allocation,
+distinctness, and physical-index preservation mode in one dependent object
+makes the value consumed by the syscall path the same value consumed by the
+durability proof.
+
+The final disjunction is deliberate.  An indexed changed table preserves the
+existing physical index runs; a wholly indexless database has no such runs.
+A growing indexless table beside another table's physical index is routed to
+the bulk path because it does not preserve `TablePagesBeforeIndexRoots`. -/
+structure PreparedOrdinaryDelta
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta) where
+  expectedBefore : List
+    (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  updated : CoreChunkPageDelta.updateState? state database = some delta
+  expectedBeforeEq : CoreChunkPageDelta.beforeWrites delta.table =
+    some expectedBefore
+  writesEq : CoreChunkPageDelta.writes delta.table = some writes
+  distinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
+  allocation : state.AllocationWellFormed
+  preservationMode : delta.table.before.table.indexes ≠ [] ∨
+    ∀ table ∈ database.tables, table.indexes = []
+
+/-- Certify the already-computed candidate selected by the live engine.  No
+table delta is recomputed: the proof that `updateState?` chose this candidate
+is derived from the same `candidate` and `sufficient` branch equations. -/
+def prepareOrdinaryDelta?
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (candidate : CoreChunkPageDelta.updateStateCandidate? state database =
+      some delta)
+    (sufficient : delta.table.tablePagesSufficient = true) :
+    Option (PreparedOrdinaryDelta state database delta) :=
+  let updated : CoreChunkPageDelta.updateState? state database = some delta := by
+    simp [CoreChunkPageDelta.updateState?, candidate, sufficient]
+  match beforeResult : CoreChunkPageDelta.beforeWrites delta.table with
+  | none => none
+  | some expectedBefore =>
+      match writesResult : CoreChunkPageDelta.writes delta.table with
+      | none => none
+      | some writes =>
+          if distinct : writes.Pairwise
+              (fun left right => left.pageId ≠ right.pageId) then
+            if allocation : state.AllocationWellFormed then
+              if preservationMode : delta.table.before.table.indexes ≠ [] ∨
+                  ∀ table ∈ database.tables, table.indexes = [] then
+                some {
+                  expectedBefore
+                  writes
+                  updated
+                  expectedBeforeEq := beforeResult
+                  writesEq := writesResult
+                  distinct
+                  allocation
+                  preservationMode }
+              else none
+            else none
+          else none
+
+theorem prepareOrdinaryDelta?_updated
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    {candidate : CoreChunkPageDelta.updateStateCandidate? state database =
+      some delta}
+    {sufficient : delta.table.tablePagesSufficient = true}
+    {prepared : PreparedOrdinaryDelta state database delta}
+    (_success : prepareOrdinaryDelta? state database delta candidate sufficient =
+      some prepared) :
+    CoreChunkPageDelta.updateState? state database = some delta := by
+  exact prepared.updated
+
 /-- A bounded direct page source over the file buffer.  Converting the
 entire database to a linked list and then splitting it into page lists made a
 validated write-open traverse every byte twice before decoding began. -/
@@ -791,6 +865,8 @@ def CertifiedIndexEncoding.OnStorage
 
 structure LocalizedLastIndexDelta
     (delta : CoreChunkPageDelta.StateDelta) where
+  candidate : CoreChunkPageDelta.updateStateCandidate? delta.before
+    delta.after.database = some delta
   state : CoreChunkPageState.State
   index : Core.Index
   rootPage : Nat
@@ -800,6 +876,12 @@ structure LocalizedLastIndexDelta
   entryMetadata : CoreDecode.decodeCanonicalIndex
     delta.table.after.table.schema delta.table.after.table.schema.name entry =
       some index
+  tableExpectedBefore : List
+    (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  tableWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  tableExpectedBeforeEq : CoreChunkPageDelta.beforeWrites delta.table =
+    some tableExpectedBefore
+  tableWritesEq : CoreChunkPageDelta.writes delta.table = some tableWrites
   expectedBefore : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   certificate : LocalizedIndexCertificate rootPage
@@ -817,6 +899,19 @@ table or index by re-running its logical operation. -/
 private def decideProof? (proposition : Prop) [Decidable proposition] :
     Option (PLift proposition) :=
   if proof : proposition then some ⟨proof⟩ else none
+
+/-- Retain the defining equation of an `Option` value selected by executable
+preparation.  The equation is erased when used in proof fields, but prevents
+the durability layer from attaching a page list reconstructed separately. -/
+private structure ExactOptionResult (result : Option α) where
+  value : α
+  exact : result = some value
+
+private def exactOptionResult? (result : Option α) :
+    Option (ExactOptionResult result) :=
+  match exact : result with
+  | none => none
+  | some value => some ⟨value, by cases exact; rfl⟩
 
 private def storagePage? (bytes : List UInt8) :
     Option (Storage.Page PhysicalCodec.pageSize) :=
@@ -1343,7 +1438,9 @@ def physicalCatalogEntry? (entry : CoreDecode.CatalogEntry) :
 The old catalog comes from the validating open; the added index is the ordinary
 proved encoder rooted immediately after the current file. -/
 def prepareAppendedIndex? (validated : ValidatedOpenState)
-    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta) :
+    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta)
+    (candidate : CoreChunkPageDelta.updateStateCandidate? delta.before
+      delta.after.database = some delta) :
     Option (LocalizedLastIndexDelta delta) := do
   let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
   let (header, _) ← FileFormat.decodeDatabaseHeader firstPageBytes
@@ -1359,6 +1456,12 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
               match afterIndexes : after.indexes with
               | index :: previous =>
                   if _oneAdded : previous = before.indexes then
+                    let tableBeforeResult ← exactOptionResult?
+                      (CoreChunkPageDelta.beforeWrites delta.table)
+                    let tableBefore := tableBeforeResult.value
+                    let tableWritesResult ← exactOptionResult?
+                      (CoreChunkPageDelta.writes delta.table)
+                    let tableWrites := tableWritesResult.value
                     let source := byteArrayPageSource input count
                     let firstPage ← source.readPage 1
                     let catalog ← CoreDecode.decodeCatalogForOpen firstPage
@@ -1374,10 +1477,12 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                         let schemaPage ← CoreFile.schemaPageForEntries?
                           (entries ++ [encoding.catalogEntry]) pageCount
                         let oldPage ← storagePage? firstPageBytes
-                        let writes :=
+                        let indexWrites :=
                           (⟨0, schemaPage.storage⟩ :
                             GrowableStorage.PageWrite PhysicalCodec.pageSize) ::
                           indexPageWrites rootPage encoding.pages
+                        let writes := tableWrites ++ indexWrites
+                        let expectedBefore := tableBefore ++ [⟨0, oldPage⟩]
                         let state := { delta.after with
                           nextPage := newCount + 1 }
                         if distinct : writes.Pairwise
@@ -1386,6 +1491,7 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                             if decodeBound :
                                 rootPage + encoding.pages.length < 2 ^ 32 then
                               some {
+                                candidate
                                 state
                                 index
                                 rootPage
@@ -1432,8 +1538,12 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                                       encoding.catalogEntry) = some index
                                   simpa [CoreOverflow.IndexEncoding.catalogEntry,
                                     tableEq, indexEq, rootEq] using encodingDecoded
+                                tableExpectedBefore := tableBefore
+                                tableWrites
+                                tableExpectedBeforeEq := tableBeforeResult.exact
+                                tableWritesEq := tableWritesResult.exact
                                 certificate := .encoded certified
-                                expectedBefore := [⟨0, oldPage⟩]
+                                expectedBefore
                                 writes
                                 storage := by
                                   let oldImage := byteArrayStorageImage input
@@ -1447,7 +1557,8 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                                             encoding.pages (by omega) offset
                                             inBounds with
                                           ⟨write, member, pageNumber, bytes⟩
-                                        exact ⟨write, by simp [writes, member],
+                                        exact ⟨write, List.mem_append.mpr (.inr
+                                          (by simp [indexWrites, member])),
                                           pageNumber, bytes⟩)
                                   · have lastBound :
                                         encoding.pages.length - 1 <
@@ -1457,7 +1568,8 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                                         (encoding.pages.length - 1) lastBound with
                                       ⟨write, member, pageNumber, _⟩
                                     have present : write ∈ writes := by
-                                      simp [writes, member]
+                                      apply List.mem_append.mpr
+                                      exact .inr (by simp [indexWrites, member])
                                     have writeBound :=
                                       CorePageSource.pageId_lt_applyWrites_of_mem
                                         oldImage present
@@ -1487,7 +1599,9 @@ leaf returns `none` and retains the certified rebuild path.  A successful byte
 mutation is not trusted by itself; `certifyDecodedIndex?` below proves that the
 complete resulting physical index is exactly the logical post-state. -/
 def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
-    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta) :
+    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta)
+    (candidate : CoreChunkPageDelta.updateStateCandidate? delta.before
+      delta.after.database = some delta) :
     Option (LocalizedLastIndexDelta delta) := do
   let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
   let (header, _) ← FileFormat.decodeDatabaseHeader firstPageBytes
@@ -1520,9 +1634,12 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                           let mutated ← insertIndexRowIntoPages?
                             entry.rootPage index row source
                           let indexDelta ← mutationPageWrites? mutated
-                          let tableBefore ←
-                            CoreChunkPageDelta.beforeWrites delta.table
-                          let tableWrites ← CoreChunkPageDelta.writes delta.table
+                          let tableBeforeResult ← exactOptionResult?
+                            (CoreChunkPageDelta.beforeWrites delta.table)
+                          let tableBefore := tableBeforeResult.value
+                          let tableWritesResult ← exactOptionResult?
+                            (CoreChunkPageDelta.writes delta.table)
+                          let tableWrites := tableWritesResult.value
                           let expectedBefore := tableBefore ++ indexDelta.1
                           let writes := tableWrites ++ indexDelta.2
                           let certified ← certifyDecodedIndexAt? entry.rootPage
@@ -1545,6 +1662,7 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                                       delta.table.after.table.schema.name entry =
                                         some index)
                                   some {
+                                    candidate
                                     state := delta.after
                                     index
                                     rootPage := entry.rootPage
@@ -1552,6 +1670,10 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                                     entryTable := entryTable.down
                                     entryRoot := rfl
                                     entryMetadata := entryMetadata.down
+                                    tableExpectedBefore := tableBefore
+                                    tableWrites
+                                    tableExpectedBeforeEq := tableBeforeResult.exact
+                                    tableWritesEq := tableWritesResult.exact
                                     certificate := .decoded certified.certificate
                                     expectedBefore
                                     writes
@@ -1593,7 +1715,9 @@ replaced by the greatest entry of its left subtree, so SQLite's promoted-key
 semantics are preserved without duplication. Any overflow, page-fit, routing,
 or allocation miss returns `none` and retains the certified rebuild path. -/
 def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
-    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta) :
+    (input : ByteArray) (delta : CoreChunkPageDelta.StateDelta)
+    (candidate : CoreChunkPageDelta.updateStateCandidate? delta.before
+      delta.after.database = some delta) :
     Option (LocalizedLastIndexDelta delta) := do
   let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
   let (header, _) ← FileFormat.decodeDatabaseHeader firstPageBytes
@@ -1623,9 +1747,12 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                         let mutated ← deleteIndexRowsFromPages?
                           entry.rootPage index removed source
                         let indexDelta ← mutationPageWrites? mutated
-                        let tableBefore ←
-                          CoreChunkPageDelta.beforeWrites delta.table
-                        let tableWrites ← CoreChunkPageDelta.writes delta.table
+                        let tableBeforeResult ← exactOptionResult?
+                          (CoreChunkPageDelta.beforeWrites delta.table)
+                        let tableBefore := tableBeforeResult.value
+                        let tableWritesResult ← exactOptionResult?
+                          (CoreChunkPageDelta.writes delta.table)
+                        let tableWrites := tableWritesResult.value
                         let expectedBefore := tableBefore ++ indexDelta.1
                         let writes := tableWrites ++ indexDelta.2
                         let certified ← certifyDecodedIndexAt? entry.rootPage
@@ -1648,6 +1775,7 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                                     delta.table.after.table.schema.name entry =
                                       some index)
                                 some {
+                                  candidate
                                   state := delta.after
                                   index
                                   rootPage := entry.rootPage
@@ -1655,6 +1783,10 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                                   entryTable := entryTable.down
                                   entryRoot := rfl
                                   entryMetadata := entryMetadata.down
+                                  tableExpectedBefore := tableBefore
+                                  tableWrites
+                                  tableExpectedBeforeEq := tableBeforeResult.exact
+                                  tableWritesEq := tableWritesResult.exact
                                   certificate := .decoded certified.certificate
                                   expectedBefore
                                   writes
@@ -1697,7 +1829,9 @@ indexes that exceed the old tail return `none` and keep the full compatibility
 commit. -/
 def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
     (input : List UInt8)
-    (delta : CoreChunkPageDelta.StateDelta) :
+    (delta : CoreChunkPageDelta.StateDelta)
+    (candidate : CoreChunkPageDelta.updateStateCandidate? delta.before
+      delta.after.database = some delta) :
     Option (LocalizedLastIndexDelta delta) := do
   let (header, _) ← FileFormat.decodeDatabaseHeader input
   let count := header.databaseSizePages.val
@@ -1748,10 +1882,12 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                                   (fun pageId => pageId < entry.rootPage) &&
                                 delta.table.after.tree.root.pageIds.all
                                   (fun pageId => pageId < entry.rootPage) then
-                          let tableBefore ←
-                              CoreChunkPageDelta.beforeWrites delta.table
-                          let tableWrites ←
-                              CoreChunkPageDelta.writes delta.table
+                          let tableBeforeResult ← exactOptionResult?
+                            (CoreChunkPageDelta.beforeWrites delta.table)
+                          let tableBefore := tableBeforeResult.value
+                          let tableWritesResult ← exactOptionResult?
+                            (CoreChunkPageDelta.writes delta.table)
+                          let tableWrites := tableWritesResult.value
                           if tableWritesBounded : ∀ write ∈ tableWrites,
                               write.pageId + 1 < entry.rootPage then
                             let oldTailRun ← readPageWritesCertified? source
@@ -1780,6 +1916,7 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                                       delta.table.after.table.schema.name entry =
                                         some index)
                                   some {
+                                  candidate
                                   state
                                   index
                                   rootPage := entry.rootPage
@@ -1787,6 +1924,10 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                                   entryTable := entryTable.down
                                   entryRoot := rfl
                                   entryMetadata := entryMetadata.down
+                                  tableExpectedBefore := tableBefore
+                                  tableWrites
+                                  tableExpectedBeforeEq := tableBeforeResult.exact
+                                  tableWritesEq := tableWritesResult.exact
                                   certificate := .encoded certified
                                   expectedBefore
                                   writes

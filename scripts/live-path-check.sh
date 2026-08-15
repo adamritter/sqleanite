@@ -329,6 +329,26 @@ else
   fail "Core rollback commits bypass changed-page publication"
 fi
 
+if grep -q 'prepareOrdinaryDelta? state next.database' \
+     SQLeanite/CoreFileEngine.lean &&
+   grep -q 'connection.paths prepared.expectedBefore prepared.writes' \
+     SQLeanite/CoreFileEngine.lean &&
+   grep -q 'PreparedOrdinaryDelta.ordinaryLocalizedCommit' \
+     SQLeanite/ProofAxioms.lean; then
+  ok "ordinary localized commits consume one proof-carrying preparation"
+else
+  fail "ordinary localized syscall inputs detached from durability preparation"
+fi
+
+if grep -q 'canonicalCandidate' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'tableExpectedBeforeEq' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'LocalizedLastIndexDelta.liveDeltaEquations' \
+     SQLeanite/ProofAxioms.lean; then
+  ok "changed-index commits retain exact candidate and table-delta equations"
+else
+  fail "changed-index syscall inputs detached from their logical table delta"
+fi
+
 if grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreWALFileAdapter.lean &&

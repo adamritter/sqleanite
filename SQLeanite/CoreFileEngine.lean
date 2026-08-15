@@ -101,26 +101,46 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
     (statement : Statement) : IO Core.State := do
   if requiresPersistence current statement then
     let physical ← connection.pageState.get
-    let localized := physical.bind fun state =>
-      CoreChunkPageDelta.updateStateCandidate? state next.database
-    match localized with
+    match candidate : physical.bind fun state =>
+        CoreChunkPageDelta.updateStateCandidate? state next.database with
     | some delta =>
         if sufficient : delta.table.tablePagesSufficient then
-          let validated := (← connection.validatedOpen.get).bind fun current =>
-            current.retarget? delta sufficient
-          match CoreChunkPageDelta.beforeWrites delta.table,
-              CoreChunkPageDelta.writes delta.table with
-          | some expectedBefore, some writes =>
+          match physical with
+          | some state =>
+            have candidateState :
+                CoreChunkPageDelta.updateStateCandidate? state next.database =
+                  some delta := by
+              simpa using candidate
+            match CoreFileAdapter.prepareOrdinaryDelta? state next.database
+                delta candidateState sufficient with
+            | some prepared =>
+              let validated := (← connection.validatedOpen.get).bind fun current =>
+                current.retarget? delta sufficient
               match ← CoreFileAdapter.commitLocalized connection.syncOps
-                  connection.paths expectedBefore writes delta.after.freePages with
+                  connection.paths prepared.expectedBefore prepared.writes
+                    delta.after.freePages with
               | some _ =>
                   connection.pageState.set (some delta.after)
                   connection.validatedOpen.set validated
                   return next
               | none => commitFull connection next
-          | _, _ =>
-              throw (IO.userError "proved page delta contained page zero")
+            | none => commitFull connection next
+          | none => False.elim (by simp at candidate)
         else
+          have canonicalCandidate :
+              CoreChunkPageDelta.updateStateCandidate? delta.before
+                delta.after.database = some delta := by
+            cases physical with
+            | none => simp at candidate
+            | some state =>
+              have candidateState :
+                  CoreChunkPageDelta.updateStateCandidate? state next.database =
+                    some delta := by
+                simpa using candidate
+              have endpoints :=
+                CoreChunkPageDelta.updateStateCandidate?_endpoints candidateState
+              rw [endpoints.1, endpoints.2]
+              exact candidateState
           let validation ← connection.validatedOpen.get
           let input ← IO.FS.readBinFile connection.paths.main
           let prepared := validation.bind fun validated =>
@@ -130,19 +150,20 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
               -- table.  Dispatch directly instead of decoding the header and
               -- catalog three times before reaching deletion.
               match CoreFileAdapter.preparePageDirectedIndexDelete? validated
-                  input delta with
+                  input delta canonicalCandidate with
               | some directed => some directed
               | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
-                  input.data.toList delta
+                  input.data.toList delta canonicalCandidate
             else
-              match CoreFileAdapter.prepareAppendedIndex? validated input delta with
+              match CoreFileAdapter.prepareAppendedIndex? validated input delta
+                  canonicalCandidate with
               | some appended => some appended
               | none =>
                   match CoreFileAdapter.preparePageDirectedIndexInsert? validated
-                      input delta with
+                      input delta canonicalCandidate with
                   | some directed => some directed
                   | none => CoreFileAdapter.prepareLocalizedLastIndex? validated
-                      input.data.toList delta
+                      input.data.toList delta canonicalCandidate
           match prepared with
           | some prepared =>
               match ← CoreFileAdapter.commitLocalized connection.syncOps

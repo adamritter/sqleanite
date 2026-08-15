@@ -2745,15 +2745,29 @@ private def expectCoreFreelistShrink : IO Unit := do
   let validated ← match ← CoreFileAdapter.loadOpenState paths with
     | some value => pure value
     | none => fail "indexed shrink did not produce a validated physical state"
-  let delta ← match CoreChunkPageDelta.updateStateCandidate?
-      validated.state smallState.database with
-    | some value => pure value
+  let deltaResult : { delta : CoreChunkPageDelta.StateDelta //
+      CoreChunkPageDelta.updateStateCandidate? validated.state
+        smallState.database = some delta } ←
+    match candidate : CoreChunkPageDelta.updateStateCandidate?
+        validated.state smallState.database with
+    | some value =>
+        pure (⟨value, candidate⟩ : { delta : CoreChunkPageDelta.StateDelta //
+          CoreChunkPageDelta.updateStateCandidate? validated.state
+            smallState.database = some delta })
     | none => fail "indexed shrink did not produce a proof-carrying table delta"
+  let delta := deltaResult.val
+  have canonicalCandidate :
+      CoreChunkPageDelta.updateStateCandidate? delta.before
+        delta.after.database = some delta := by
+    have endpoints := CoreChunkPageDelta.updateStateCandidate?_endpoints
+      deltaResult.property
+    rw [endpoints.1, endpoints.2]
+    exact deltaResult.property
   if delta.table.tablePagesSufficient then
     fail "changed index was incorrectly treated as an unchanged page image"
   let input ← IO.FS.readBinFile path
   let prepared ← match CoreFileAdapter.prepareLocalizedLastIndex? validated
-      input.data.toList delta with
+      input.data.toList delta canonicalCandidate with
     | some value => pure value
     | none => fail "tail-owned changed index did not produce a localized delta"
   unless prepared.writes.length < oldPages do
