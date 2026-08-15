@@ -62,6 +62,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Binary64.compareBits_self
 #print axioms SQLeanite.Binary64.compareBits_zero_signs
 #print axioms SQLeanite.Binary64.compareInteger_zero
+#print axioms SQLeanite.FileFormat.encodeU32_decode
+#print axioms SQLeanite.FileFormat.decodeU32Bytes_sound
+#print axioms SQLeanite.FileFormat.decodeHeaderPrefix_sound
+#print axioms SQLeanite.FileFormat.decodeU32Values_sound
+#print axioms SQLeanite.FileFormat.decodeDatabaseHeader_sound
+#print axioms SQLeanite.CoreDurability.SQLiteHeaderMatches.firstPage
+#print axioms SQLeanite.CoreDurability.SQLiteHeaderMatches.applyWritesOfUnchangedPageZero
 #print axioms SQLeanite.PhysicalQuery.sqlEquals_real_zero
 #print axioms SQLeanite.PhysicalQuery.compareValue_eq_of_sqlEquals_true
 #print axioms SQLeanite.CoreOverflow.CellPlan.local_append_overflow

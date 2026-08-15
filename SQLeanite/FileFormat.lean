@@ -124,6 +124,20 @@ theorem decodeU32_encode (value : U32Value) : decodeU32 (encodeU32 value) = valu
     Nat.mod_eq_of_lt thirdBound, Nat.mod_eq_of_lt fourthBound]
   omega
 
+theorem encodeU32_decode (bytes : U32Bytes) :
+    encodeU32 ⟨decodeU32 bytes, decodeU32_lt bytes⟩ = bytes := by
+  rcases bytes with ⟨first, second, third, fourth⟩
+  change U32Bytes.mk _ _ _ _ = U32Bytes.mk first second third fourth
+  simp only [U32Bytes.mk.injEq]
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> apply UInt8.toNat.inj <;>
+    simp only [encodeU32, decodeU32, UInt8.toNat_ofNat']
+  all_goals
+    have firstBound : first.toNat < 256 := first.toBitVec.isLt
+    have secondBound : second.toNat < 256 := second.toBitVec.isLt
+    have thirdBound : third.toNat < 256 := third.toBitVec.isLt
+    have fourthBound : fourth.toNat < 256 := fourth.toBitVec.isLt
+    omega
+
 def encodeU32Bytes (value : U32Value) : List UInt8 :=
   let bytes := encodeU32 value
   [bytes.first, bytes.second, bytes.third, bytes.fourth]
@@ -141,6 +155,30 @@ theorem decodeU32Bytes_encode (value : U32Value) (suffix : List UInt8) :
       (⟨decodeU32 (encodeU32 value), decodeU32_lt (encodeU32 value)⟩ : U32Value) = value :=
     Fin.ext valueRoundtrip
   simp [encodeU32Bytes, decodeU32Bytes, decodedValue]
+
+theorem decodeU32Bytes_sound {input suffix : List UInt8} {value : U32Value}
+    (decoded : decodeU32Bytes input = some (value, suffix)) :
+    input = encodeU32Bytes value ++ suffix := by
+  cases input with
+  | nil => simp [decodeU32Bytes] at decoded
+  | cons first rest =>
+    cases rest with
+    | nil => simp [decodeU32Bytes] at decoded
+    | cons second rest =>
+      cases rest with
+      | nil => simp [decodeU32Bytes] at decoded
+      | cons third rest =>
+        cases rest with
+        | nil => simp [decodeU32Bytes] at decoded
+        | cons fourth inputSuffix =>
+          simp only [decodeU32Bytes] at decoded
+          have pairEquality := Option.some.inj decoded
+          injection pairEquality with valueEquality suffixEquality
+          subst value
+          subst suffix
+          have encoded := encodeU32_decode
+            ({ first, second, third, fourth } : U32Bytes)
+          simp [encodeU32Bytes, encoded]
 
 theorem decodeU32Bytes_short (bytes : List UInt8) (short : bytes.length < 4) :
     decodeU32Bytes bytes = none := by
@@ -169,6 +207,22 @@ private def stripPrefix? (expected input : List UInt8) : Option (List UInt8) :=
 private theorem stripPrefix_append (expected suffix : List UInt8) :
     stripPrefix? expected (expected ++ suffix) = some suffix := by
   simp [stripPrefix?]
+
+private theorem stripPrefix_sound {expected input suffix : List UInt8}
+    (decoded : stripPrefix? expected input = some suffix) :
+    input = expected ++ suffix := by
+  unfold stripPrefix? at decoded
+  split at decoded
+  next matched =>
+    injection decoded with suffixEq
+    subst suffix
+    have prefixEq : input.take expected.length = expected := by
+      simpa using matched
+    calc
+      input = input.take expected.length ++ input.drop expected.length :=
+        (List.take_append_drop expected.length input).symm
+      _ = expected ++ input.drop expected.length := by rw [prefixEq]
+  next => simp at decoded
 
 /-- Bytes 0 through 27 of an SQLite database header. The three payload
 fraction bytes are fixed by the format and therefore are validated rather than
@@ -204,6 +258,57 @@ theorem decodeHeaderPrefix_encode (header : HeaderPrefix) (suffix : List UInt8) 
   simp [encodeHeaderPrefix, decodeHeaderPrefix, List.append_assoc,
     stripPrefix_append, decodeU16Bytes_encode, decodeU32Bytes_encode]
 
+theorem decodeHeaderPrefix_sound {input suffix : List UInt8}
+    {header : HeaderPrefix}
+    (decoded : decodeHeaderPrefix input = some (header, suffix)) :
+    input = encodeHeaderPrefix header ++ suffix := by
+  unfold decodeHeaderPrefix at decoded
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨afterMagic, magicResult, decoded⟩
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨pageSizeAndRest, pageSizeResult, decoded⟩
+  rcases pageSizeAndRest with ⟨pageSizeField, afterPageSize⟩
+  cases afterPageSize with
+  | nil => simp at decoded
+  | cons writeVersion rest =>
+    cases rest with
+    | nil => simp at decoded
+    | cons readVersion rest =>
+      cases rest with
+      | nil => simp at decoded
+      | cons reservedSpace rest =>
+        cases rest with
+        | nil => simp at decoded
+        | cons fraction64 rest =>
+          cases rest with
+          | nil => simp at decoded
+          | cons fraction32a rest =>
+            cases rest with
+            | nil => simp at decoded
+            | cons fraction32b afterFractions =>
+              by_cases firstFraction : fraction64 = 64
+              · subst fraction64
+                by_cases secondFraction : fraction32a = 32
+                · subst fraction32a
+                  by_cases thirdFraction : fraction32b = 32
+                  · subst fraction32b
+                    simp only at decoded
+                    rcases Option.bind_eq_some.mp decoded with
+                      ⟨counterAndSuffix, counterResult, decoded⟩
+                    rcases counterAndSuffix with
+                      ⟨changeCounter, decodedSuffix⟩
+                    have pairEquality := Option.some.inj decoded
+                    injection pairEquality with headerEq suffixEq
+                    subst header
+                    subst suffix
+                    rw [stripPrefix_sound magicResult,
+                      decodeU16Bytes_sound pageSizeResult,
+                      decodeU32Bytes_sound counterResult]
+                    rfl
+                  · simp [thirdFraction] at decoded
+                · simp [secondFraction] at decoded
+              · simp [firstFraction] at decoded
+
 def encodeU32Values (values : List U32Value) : List UInt8 :=
   values.flatMap encodeU32Bytes
 
@@ -229,6 +334,33 @@ theorem decodeU32Values_encode (values : List U32Value) (suffix : List UInt8) :
           some (value :: values, suffix)
       rw [induction]
       rfl
+
+theorem decodeU32Values_sound :
+    ∀ {count : Nat} {input suffix : List UInt8} {values : List U32Value},
+      decodeU32Values count input = some (values, suffix) →
+      input = encodeU32Values values ++ suffix
+  | 0, input, suffix, values, decoded => by
+      simp only [decodeU32Values, Option.some.injEq] at decoded
+      injection decoded with valuesEq suffixEq
+      subst values
+      subst suffix
+      rfl
+  | count + 1, input, suffix, values, decoded => by
+      simp only [decodeU32Values] at decoded
+      rcases Option.bind_eq_some.mp decoded with
+        ⟨headAndRest, headResult, decoded⟩
+      rcases headAndRest with ⟨head, rest⟩
+      rcases Option.bind_eq_some.mp decoded with
+        ⟨tailAndSuffix, tailResult, decoded⟩
+      rcases tailAndSuffix with ⟨tail, decodedSuffix⟩
+      have pairEquality := Option.some.inj decoded
+      injection pairEquality with valuesEq suffixEq
+      subst values
+      subst suffix
+      simp only at tailResult ⊢
+      rw [decodeU32Bytes_sound headResult,
+        decodeU32Values_sound tailResult]
+      simp [encodeU32Values, List.append_assoc]
 
 /-- The complete 100-byte SQLite database header. Signed interpretation of the
 default-cache field is deferred; the file codec preserves its raw bits. -/
@@ -336,6 +468,69 @@ theorem decodeDatabaseHeader_encode (header : DatabaseHeader) (suffix : List UIn
   rw [versionsRoundtrip]
   simp only [Option.bind_eq_bind, Option.bind]
   simp [DatabaseHeader.beforeReserved, DatabaseHeader.afterReserved]
+
+/-- Successful header decoding is lossless: the returned structure and suffix
+reconstruct the exact input bytes.  This is the inverse direction needed to
+transport a validated header across page-local writes without decoding the
+whole post-image. -/
+theorem decodeDatabaseHeader_sound {input suffix : List UInt8}
+    {header : DatabaseHeader}
+    (decoded : decodeDatabaseHeader input = some (header, suffix)) :
+    input = encodeDatabaseHeader header ++ suffix := by
+  unfold decodeDatabaseHeader at decoded
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨prefixAndRest, prefixResult, decoded⟩
+  rcases prefixAndRest with ⟨headerPrefix, afterPrefix⟩
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨fieldsAndRest, fieldsResult, decoded⟩
+  rcases fieldsAndRest with ⟨fields, afterFields⟩
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨afterReserved, reservedResult, decoded⟩
+  rcases Option.bind_eq_some.mp decoded with
+    ⟨versionsAndSuffix, versionsResult, decoded⟩
+  rcases versionsAndSuffix with ⟨versions, decodedSuffix⟩
+  rcases fields with _ | ⟨databaseSizePages, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨firstFreelistTrunk, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨freelistPageCount, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨schemaCookie, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨schemaFormat, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨defaultPageCacheSize, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨largestRootBTreePage, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨textEncoding, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨userVersion, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨incrementalVacuum, fields⟩
+  · simp at decoded
+  rcases fields with _ | ⟨applicationId, fields⟩
+  · simp at decoded
+  cases fields with
+  | cons extra fields => simp at decoded
+  | nil =>
+    rcases versions with _ | ⟨versionValidFor, versions⟩
+    · simp at decoded
+    rcases versions with _ | ⟨sqliteVersion, versions⟩
+    · simp at decoded
+    cases versions with
+    | cons extra versions => simp at decoded
+    | nil =>
+      have pairEquality := Option.some.inj decoded
+      injection pairEquality with headerEq suffixEq
+      subst header
+      subst suffix
+      rw [decodeHeaderPrefix_sound prefixResult,
+        decodeU32Values_sound fieldsResult,
+        stripPrefix_sound reservedResult,
+        decodeU32Values_sound versionsResult]
+      simp [encodeDatabaseHeader, DatabaseHeader.beforeReserved,
+        DatabaseHeader.afterReserved, List.append_assoc]
 
 /-- SQLite varints represent exactly the unsigned 64-bit range. The ninth byte
 uses all eight bits; each earlier byte contributes seven payload bits and uses

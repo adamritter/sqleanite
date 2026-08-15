@@ -391,6 +391,50 @@ theorem imageBytes_eq_firstPage_append
       rw [List.range_succ_eq_map]
       simp [DiskFormat.encodePages]
 
+/-- A validated growable-image header yields the exact canonical first-page
+prefix consumed by the localized header frame theorem. -/
+theorem SQLiteHeaderMatches.firstPage
+    {image : GrowableStorage.Image PhysicalCodec.pageSize}
+    (validHeader : SQLiteHeaderMatches image) (positive : 0 < image.pageCount) :
+    ∃ (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8),
+      (image.read 0).bytes.toList =
+        FileFormat.encodeDatabaseHeader header ++ pageSuffix ∧
+      header.databaseSizePages.val = image.pageCount ∧
+      header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize ∧
+      header.headerPrefix.reservedSpace = 0 ∧ header.textEncoding.val = 1 := by
+  rcases validHeader with
+    ⟨header, suffix, decoded, pageCount, pageSize, reserved, utf8⟩
+  have exactBytes := FileFormat.decodeDatabaseHeader_sound decoded
+  rcases imageBytes_eq_firstPage_append image positive with
+    ⟨imageSuffix, imageBytes⟩
+  have joined : (image.read 0).bytes.toList ++ imageSuffix =
+      FileFormat.encodeDatabaseHeader header ++ suffix :=
+    imageBytes.symm.trans exactBytes
+  have firstLength : (image.read 0).bytes.toList.length =
+      PhysicalCodec.pageSize := by
+    simpa using (image.read 0).sizeInvariant
+  have firstLong : 100 ≤ (image.read 0).bytes.toList.length := by
+    rw [firstLength]
+    simp [PhysicalCodec.pageSize]
+  have encodedLength : (FileFormat.encodeDatabaseHeader header).length = 100 :=
+    FileFormat.encodeDatabaseHeader_length header
+  have taken := congrArg (List.take 100) joined
+  have firstPrefix : (image.read 0).bytes.toList.take 100 =
+      FileFormat.encodeDatabaseHeader header := by
+    rw [List.take_append_of_le_length firstLong,
+      List.take_append_of_le_length (by omega :
+        100 ≤ (FileFormat.encodeDatabaseHeader header).length)] at taken
+    simpa [encodedLength] using taken
+  refine ⟨header, (image.read 0).bytes.toList.drop 100, ?_, pageCount,
+    pageSize, reserved, utf8⟩
+  calc
+    (image.read 0).bytes.toList =
+        (image.read 0).bytes.toList.take 100 ++
+          (image.read 0).bytes.toList.drop 100 :=
+      (List.take_append_drop 100 (image.read 0).bytes.toList).symm
+    _ = FileFormat.encodeDatabaseHeader header ++
+          (image.read 0).bytes.toList.drop 100 := by rw [firstPrefix]
+
 /-- An exact page-zero write establishes the SQLite framing part of a
 localized representation certificate.  This theorem is the pure refinement
 target for the live header/freelist planner. -/
@@ -456,6 +500,29 @@ theorem sqliteHeaderMatches_of_unchangedPageZero
   refine .intro header (pageSuffix ++ suffix) ?_ pageCount pageSize reserved utf8
   rw [imageBytes, read, bytes, List.append_assoc]
   exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
+
+/-- A valid old header transports across a page-zero-free, non-growing write
+set.  Decoder soundness supplies the exact first-page prefix, so callers no
+longer have to unpack header fields manually. -/
+theorem SQLiteHeaderMatches.applyWritesOfUnchangedPageZero
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    (validHeader : SQLiteHeaderMatches oldImage)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (positive : 0 < oldImage.pageCount)
+    (notWritten : ∀ write ∈ writes, 0 ≠ write.pageId)
+    (stableCount :
+      (GrowableStorage.applyWrites oldImage writes).pageCount =
+        oldImage.pageCount) :
+    SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes) := by
+  rcases validHeader.firstPage positive with
+    ⟨header, pageSuffix, bytes, pageCount, pageSize, reserved, utf8⟩
+  apply sqliteHeaderMatches_of_unchangedPageZero oldImage writes notWritten
+    positive header pageSuffix bytes
+  · rw [stableCount]
+    exact pageCount
+  · exact pageSize
+  · exact reserved
+  · exact utf8
 
 /-- The same exact page-zero write supplies the catalog component without
 decoding or comparing the complete database. -/
@@ -934,8 +1001,7 @@ noncomputable def
     (physical : CoreLocalizedRepresentation.DatabaseOnSource
       (CorePageSource.ofStorageImage oldImage) state)
     (notWritten : ∀ write ∈ final.writes, 0 ≠ write.pageId)
-    (header : SQLiteHeaderMatches
-      (GrowableStorage.applyWrites oldImage final.writes))
+    (oldHeader : SQLiteHeaderMatches oldImage)
     (beforeInline :
       (Classical.choose (physical.exists_table delta.table.before
         (CoreChunkPageDelta.updateState?_selected_mem
@@ -951,6 +1017,14 @@ noncomputable def
   have selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
   have positive := physical.pageCount_pos_of_table oldImage
     delta.table.before selected.1
+  have bounded :=
+    SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.finalWrites_pageId_lt_of_indexed
+      prepared indexed final noFree oldImage physical beforeInline
+        afterEncoding afterEncoded afterInline
+  have stableCount := GrowableStorage.applyWrites_pageCount_eq_of_forall_lt
+    oldImage final.writes bounded
+  have header := oldHeader.applyWritesOfUnchangedPageZero final.writes positive
+    notWritten stableCount
   have catalogPreserved : ∀ catalog,
       ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
           CoreDecode.decodeCatalogForOpen = some catalog) →
