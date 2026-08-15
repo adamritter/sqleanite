@@ -7,6 +7,7 @@ import SQLeanite.PagedBTree
 import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreWriteBytes
 import SQLeanite.CoreChunkPageState
 import SQLeanite.SyscallVFS
 import SQLeanite.CoreChunkPageDelta

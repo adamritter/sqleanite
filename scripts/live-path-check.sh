@@ -107,6 +107,20 @@ else
   fail "a live write command detached from its execute-level theorem"
 fi
 
+if grep -q 'execute_createTable_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_createIndex_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_insert_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_replace_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_delete_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_update_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_commit_to_bytes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'localized_state_represents_database' \
+     SQLeanite/ProofAxioms.lean; then
+  ok "all seven write postconditions compose with SQLite bytes"
+else
+  fail "a live write command detached from its SQLite byte refinement"
+fi
+
 if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
    grep -q 'literalSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&

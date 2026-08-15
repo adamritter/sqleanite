@@ -7,6 +7,7 @@ import SQLeanite.PagedBTree
 import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreWriteBytes
 import SQLeanite.CoreChunkPageState
 import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad
@@ -423,6 +424,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.mergeDelete?_represents
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_tablePagesSufficient
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_identityWellFormed
+#print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_endpoints
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_endpoints
 #print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_identityWellFormed
 #print axioms SQLeanite.CoreChunkPageDelta.firstInserted_mem_after
 #print axioms SQLeanite.CoreChunkPageDelta.firstDeleted_mem_before
@@ -475,6 +478,15 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.decodeCatalogForOpen_schemaPageForEntries
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
 #print axioms SQLeanite.CorePageCodec.decode_encodeBulk
+#print axioms SQLeanite.CoreWriteBytes.decode_encoded_database
+#print axioms SQLeanite.CoreWriteBytes.execute_createTable_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_createIndex_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_insert_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_replace_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_delete_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_update_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.execute_commit_to_bytes
+#print axioms SQLeanite.CoreWriteBytes.localized_state_represents_database
 #print axioms SQLeanite.CorePageCodec.encodeBulkWithState_image
 #print axioms SQLeanite.CorePageCodec.encodeBulkWithState_represents
 #print axioms SQLeanite.CorePageCodec.decode_encodeChecked

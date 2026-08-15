@@ -1049,6 +1049,23 @@ theorem updateStateCandidate?_identityWellFormed
     exact identities
   next => contradiction
 
+theorem updateStateCandidate?_endpoints
+    {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateStateCandidate? state database = some delta) :
+    delta.before = state ∧ delta.after.database = database := by
+  unfold updateStateCandidate? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨aligned, alignedResult, updated⟩
+  rcases Option.bind_eq_some.mp updated with
+    ⟨table, tableResult, updated⟩
+  split at updated
+  next identities =>
+    injection updated with equal
+    subst delta
+    exact ⟨rfl, rfl⟩
+  next => contradiction
+
 def updateState? (state : CoreChunkPageState.State) (database : Core.Database) :
     Option StateDelta := do
   let delta ← updateStateCandidate? state database
@@ -1080,6 +1097,20 @@ theorem updateState?_tablePagesSufficient {state : CoreChunkPageState.State}
     injection updated with equal
     subst candidate
     exact sufficient
+  next => contradiction
+
+theorem updateState?_endpoints {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateState? state database = some delta) :
+    delta.before = state ∧ delta.after.database = database := by
+  unfold updateState? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨candidate, candidateResult, updated⟩
+  split at updated
+  next =>
+    injection updated with equal
+    subst candidate
+    exact updateStateCandidate?_endpoints candidateResult
   next => contradiction
 
 def numberedWrite? (page : CorePageCodec.NumberedPage) :
