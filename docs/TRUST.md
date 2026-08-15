@@ -729,6 +729,13 @@ and index components as separate proof fields.  Both
 establish it, while its `decode` theorem recovers the public whole-image
 inverse.  This decomposition is the representation invariant used by
 localized-write preservation proofs; it carries no runtime validation data.
+`CorePageSource.ofStorageImage` is the explicit bridge from the durability
+model's zero-based growable pages to SQLite's one-based decoder reads.  Its
+write lemmas prove that every distinct committed page reads back as written
+and every unwritten old page is unchanged.  With the separately stated four
+SQLite header fields, `CoreDurability.pageSourceRepresents_storageImage`
+composes this component invariant into the public whole-byte representation
+relation.  These propositions and proofs erase during compilation.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

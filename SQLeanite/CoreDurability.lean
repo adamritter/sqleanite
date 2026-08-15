@@ -1,6 +1,7 @@
 import SQLeanite.CorePageCodec
 import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreFileAdapter
+import SQLeanite.CorePageSource
 import SQLeanite.PhysicalJournalRecovery
 
 namespace SQLeanite
@@ -55,6 +56,51 @@ def RepresentsDatabase
     (database : Core.Database) : Prop :=
   CoreDecode.decode (PhysicalJournalRecovery.imageBytes image) =
     some database.canonicalize
+
+/-- The byte decoder's non-logical framing obligations for a growable image.
+The catalog/table/index meaning is deliberately kept in
+`PageSourceRepresents`; this relation records only the SQLite header fields
+which connect the byte string to that page source. -/
+inductive SQLiteHeaderMatches
+    (image : GrowableStorage.Image PhysicalCodec.pageSize) : Prop where
+  | intro (header : FileFormat.DatabaseHeader) (suffix : List UInt8)
+      (decoded : FileFormat.decodeDatabaseHeader
+        (PhysicalJournalRecovery.imageBytes image) = some (header, suffix))
+      (pageCount : header.databaseSizePages.val = image.pageCount)
+      (pageSize : header.headerPrefix.pageSizeField.val =
+        PhysicalCodec.pageSize)
+      (reserved : header.headerPrefix.reservedSpace = 0)
+      (utf8 : header.textEncoding.val = 1) :
+      SQLiteHeaderMatches image
+
+/-- Component-wise physical representation plus the four SQLite framing
+fields implies representation by the public whole-byte decoder.  This is the
+composition rule needed by localized writes: they may preserve or re-prove
+catalog/table/index components independently and close the byte-level result
+without another execution or validation pass. -/
+theorem pageSourceRepresents_storageImage
+    {image : GrowableStorage.Image PhysicalCodec.pageSize}
+    {database : Core.Database}
+    (header : SQLiteHeaderMatches image)
+    (represents : CoreDecode.PageSourceRepresents
+      (CorePageSource.ofStorageImage image) database) :
+    RepresentsDatabase image database := by
+  rcases header with ⟨header, suffix, decoded, pageCount, pageSize,
+    reserved, utf8⟩
+  unfold RepresentsDatabase CoreDecode.decode
+  rw [decoded]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [pageCount]
+  rw [dif_pos pageSize, dif_pos reserved, dif_pos utf8]
+  have fileLength :
+      (PhysicalJournalRecovery.imageBytes image).length =
+        image.pageCount * PhysicalCodec.pageSize := by
+    unfold PhysicalJournalRecovery.imageBytes
+    rw [DiskFormat.encodePages_length,
+      PhysicalJournalRecovery.imagePages_length]
+    exact Nat.mul_comm _ _
+  rw [dif_pos fileLength, CorePageSource.pages_imageBytes]
+  exact represents.decode
 
 theorem storageImage_encodeBulk_represents
     (utf8 : CoreDecode.UTF8Roundtrips)

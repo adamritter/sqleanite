@@ -8,6 +8,7 @@ import SQLeanite.PagedBTree
 import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
 import SQLeanite.CorePageCodec
+import SQLeanite.CorePageSource
 import SQLeanite.CoreWriteBytes
 import SQLeanite.CoreChunkPageState
 import SQLeanite.CoreChunkPageDelta
@@ -426,6 +427,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.decode_imageBytes_encodeBulk
 #print axioms SQLeanite.CoreDurability.storageImage_encodeBulk_represents
 #print axioms SQLeanite.CoreDurability.storageImage_padded_represents
+#print axioms SQLeanite.CoreDurability.pageSourceRepresents_storageImage
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_padded_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
@@ -505,6 +507,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.decodeCanonicalFile_encode
 #print axioms SQLeanite.CoreDecode.decodeCatalogForOpen_schemaPageForEntries
 #print axioms SQLeanite.CoreDecode.PageSourceRepresents.decode
+#print axioms SQLeanite.CorePageSource.readPage_applyWrites_of_not_written
+#print axioms SQLeanite.CorePageSource.readPage_applyWrites_of_mem
+#print axioms SQLeanite.CorePageSource.readPage_write_same
+#print axioms SQLeanite.CorePageSource.readPage_write_other
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk_in
 #print axioms SQLeanite.CorePageCodec.pageSourceRepresents_encodeBulk_in
