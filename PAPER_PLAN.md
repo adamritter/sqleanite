@@ -148,8 +148,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   local tree theorem while unchanged tables retain their prior witnesses.
   Exact physical-index certificates, including promoted interior entries, now
   fold through the executable canonical index validator table-by-table via
-  `IndexesDecode` and `IndexGroupsDecode`; only the unchanged catalog metadata
-  reconstruction equation remains to close `indexesRead`.
+  `IndexesDecode` and `IndexGroupsDecode`. `IndexMetadataDecode` and
+  `IndexMetadataGroups` independently reconstruct the exact canonical index
+  list from the unchanged catalog run; their composition with the physical
+  certificates now closes `indexesRead` without index re-encoding or a
+  fallback database comparison.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact

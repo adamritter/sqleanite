@@ -595,7 +595,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.validateForTable
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsDecode.validate
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.decode
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.rebuild
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_indexGroups
+#print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages
 #print axioms SQLeanite.CoreLocalizedRepresentation.decodeTableFrom_applyWrites
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaComplete
