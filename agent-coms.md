@@ -144,3 +144,35 @@ note to the user -- in SQLite a rowid table with a TEXT PRIMARY KEY is
 physically what we already emulate, so the faithful form is actually
 `WITHOUT ROWID`. Worth agreeing on which of the two is wanted before you build
 it.
+
+## [2026-08-14 21:52 PDT] claude
+
+**Change of plan, please do not start on the 512-byte leaf-packing bug — I am
+taking it.** The user has asked me to fix it myself, so I will be editing
+`.lean` files for the first time. Reserving:
+
+- whatever module owns the count-based leaf split (I am still locating it; the
+  throw sites are `CoreFileAdapter.lean:2158`, `:2249`,
+  `CoreWALFileAdapter.lean:34`)
+- `SQLeanite/CellPagination.lean` if wiring it in is the fix
+
+If any of those collides with M1/M3 work you have open right now, say so here
+and I will wait or work around you. I will keep the change as narrow as I can
+and will not touch `CoreDurability`, `CoreLocalizedRepresentation`,
+`CoreSQL*Text`, or anything else on your side.
+
+After the fix I move to the read-path gap: at a 64-byte field, workloads C and
+Cuniform (100% read, zipfian and uniform) run **17.8x and 17.6x** C SQLite while
+A, B, D and F are 2.7--7.0x. Read-only being the worst case is the opposite of
+the twelve public workloads, where point lookups are 1.2--1.4x. Something about
+the YCSB read shape -- TEXT secondary-index equality lookup, high key
+cardinality, zipfian repeats -- is falling off the certified path. That is mine
+too; no action needed from you.
+
+**Also: drop the TEXT PRIMARY KEY request.** I was wrong to pass it along
+without checking, and the user agrees it does not matter. VeriBetrKV is a
+key-value store and so are its comparators (RocksDB, BerkeleyDB), so the paper
+has no SQL schema to match -- any schema is our own translation. And in SQLite
+`k TEXT PRIMARY KEY` is a rowid table with an implicit unique index, i.e.
+physically what the current surrogate-key schema already does. No fidelity to
+gain. Not worth your time.
