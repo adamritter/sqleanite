@@ -46,6 +46,7 @@ import SQLeanite.CellPagination
 import SQLeanite.CoreRecord
 import SQLeanite.CoreFile
 import SQLeanite.CoreMultiFreelist
+import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreDurability
@@ -424,12 +425,16 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.imageBytes_storageImage
 #print axioms SQLeanite.CoreDurability.decode_imageBytes_encodeBulk
 #print axioms SQLeanite.CoreDurability.storageImage_encodeBulk_represents
+#print axioms SQLeanite.CoreDurability.storageImage_padded_represents
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_crash_atomic
+#print axioms SQLeanite.CoreDurability.rollbackCommit_padded_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_returned_recovers_new
+#print axioms SQLeanite.CoreDurability.rollbackCommit_padded_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_repeated_recovery_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_recovery_crash_trace_atomic
+#print axioms SQLeanite.CoreDurability.rollbackCommit_padded_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_repeated_recovery_atomic
 #print axioms SQLeanite.GrowableStorage.makeJournal_exactPreimages
 #print axioms SQLeanite.GrowableStorage.recoverWithJournal_apply_recovery_subset
@@ -500,7 +505,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.decodeCanonicalFile_encode
 #print axioms SQLeanite.CoreDecode.decodeCatalogForOpen_schemaPageForEntries
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
+#print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk_in
 #print axioms SQLeanite.CorePageCodec.decode_encodeBulk
+#print axioms SQLeanite.CoreFreelistCodec.decodeFromPageSource_padded
+#print axioms SQLeanite.CoreFreelistCodec.decode_paddedImage
 #print axioms SQLeanite.CoreWriteBytes.decode_encoded_database
 #print axioms SQLeanite.CoreWriteBytes.execute_createTable_to_bytes
 #print axioms SQLeanite.CoreWriteBytes.execute_createIndex_to_bytes

@@ -1,4 +1,5 @@
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreFileAdapter
 import SQLeanite.PhysicalJournalRecovery
 
@@ -62,6 +63,16 @@ theorem storageImage_encodeBulk_represents
     RepresentsDatabase (CoreFileAdapter.storageImage image) database :=
   decode_imageBytes_encodeBulk utf8 database image encoded
 
+theorem storageImage_padded_represents
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (layout : CoreMultiFreelist.Layout)
+    (encoded : CorePageCodec.encodeBulk database = some layout.image) :
+    RepresentsDatabase
+      (CoreFileAdapter.storageImage layout.paddedImage) database := by
+  unfold RepresentsDatabase
+  rw [imageBytes_storageImage]
+  exact CoreFreelistCodec.decode_paddedImage utf8 database layout encoded
+
 /-- Representation-parametric crash atomicity.  This is the reusable FSCQ
 lifting theorem: the storage protocol supplies old-or-new page equivalence;
 the two representation premises say what those byte images mean. -/
@@ -100,6 +111,34 @@ theorem rollbackCommit_represents_crash_atomic
     unfold PhysicalJournalRecovery.recoverBytes
     rw [bytes]
     exact newRepresents
+
+theorem rollbackCommit_padded_crash_atomic
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (layout : CoreMultiFreelist.Layout)
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newEncoded : CorePageCodec.encodeBulk newDatabase = some layout.image)
+    (doesNotShrink : oldImage.pageCount ≤
+      (CoreFileAdapter.storageImage layout.paddedImage).pageCount)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage layout.paddedImage) phase)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some newDatabase.canonicalize := by
+  exact rollbackCommit_represents_crash_atomic oldDatabase newDatabase oldImage
+    layout.paddedImage oldRepresents
+    (storageImage_padded_represents utf8 newDatabase layout newEncoded)
+    doesNotShrink phase recoveredMain recoveredJournal outcome
 
 /-- A crash at every rollback-journal checkpoint decodes to the old or new
 Core database, not merely an equivalent abstract page image. -/
@@ -165,6 +204,30 @@ theorem rollbackCommit_represents_returned_recovers_new
   unfold PhysicalJournalRecovery.recoverBytes
   rw [bytes]
   exact newRepresents
+
+theorem rollbackCommit_padded_returned_recovers_new
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (layout : CoreMultiFreelist.Layout)
+    (newEncoded : CorePageCodec.encodeBulk newDatabase = some layout.image)
+    (doesNotShrink : oldImage.pageCount ≤
+      (CoreFileAdapter.storageImage layout.paddedImage).pageCount)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage layout.paddedImage)
+          .committed)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+      some newDatabase.canonicalize := by
+  exact rollbackCommit_represents_returned_recovers_new newDatabase oldImage
+    layout.paddedImage
+    (storageImage_padded_represents utf8 newDatabase layout newEncoded)
+    doesNotShrink recoveredMain recoveredJournal outcome
 
 /-- After the commit protocol has returned, the old disjunct is impossible:
 every permitted crash image decodes to the committed Core database. -/
@@ -265,6 +328,35 @@ theorem rollbackCommit_represents_recovery_crash_trace_atomic
   exact rollbackCommit_represents_crash_atomic oldDatabase newDatabase oldImage
     newImage oldRepresents newRepresents doesNotShrink phase recoveredMain
     (some journal) outcome
+
+theorem rollbackCommit_padded_recovery_crash_trace_atomic
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (layout : CoreMultiFreelist.Layout)
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newEncoded : CorePageCodec.encodeBulk newDatabase = some layout.image)
+    (doesNotShrink : oldImage.pageCount ≤
+      (CoreFileAdapter.storageImage layout.paddedImage).pageCount)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain finalMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        (CoreFileAdapter.transactionWrites oldImage layout.paddedImage) phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : GrowableStorage.RecoveryCrashTrace journal
+      recoveredMain finalMain) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some newDatabase.canonicalize := by
+  exact rollbackCommit_represents_recovery_crash_trace_atomic oldDatabase
+    newDatabase oldImage layout.paddedImage oldRepresents
+    (storageImage_padded_represents utf8 newDatabase layout newEncoded)
+    doesNotShrink phase recoveredMain finalMain journal outcome recoveryCrashes
 
 /-- Crashing and restarting the recovery process any finite number of times
 does not enlarge the set of database outcomes. -/

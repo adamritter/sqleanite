@@ -4012,16 +4012,86 @@ theorem encodeBulk_header {database : Core.Database} {image : CoreFile.Image}
               simp [CoreFile.Image.pageCount, count, remaining, Nat.add_comm]
           next => contradiction
 
+/-- The generated schema B-tree has the same meaning after replacing only its
+100-byte database header.  This is the catalog bridge used by SQLite freelist
+images, whose size/freelist fields differ from the canonical bulk image. -/
+theorem decodeCatalogForOpen_encodeBulk_replaceHeader
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : encodeBulk database = some image)
+    (first : CoreFile.Page) (remainingPages : List CoreFile.Page)
+    (pagesEqual : image.pages = first :: remainingPages)
+    (headerBytes : List UInt8) (headerLength : headerBytes.length = 100) :
+    CoreDecode.decodeCatalogForOpen (headerBytes ++ first.bytes.drop 100) =
+      CoreDecode.decodeCatalogForOpen first.bytes := by
+  unfold encodeBulk encodeBulkFromState at encoded
+  cases stateResult : CoreChunkPageState.State.build? database with
+  | none => simp [stateResult] at encoded
+  | some state =>
+      simp only [stateResult, Option.bind_eq_bind, Option.bind] at encoded
+      cases tableResult : encodeChunkTablesWithOverflow state.nextPage
+          state.tables with
+      | none => simp [tableResult] at encoded
+      | some tableEncoding =>
+          simp only [tableResult] at encoded
+          cases indexResult : CoreOverflow.encodeIndexTableGroups
+              tableEncoding.nextPage database.tables with
+          | none => simp [indexResult] at encoded
+          | some indexEncodings =>
+              simp only [indexResult] at encoded
+              split at encoded
+              next countBound =>
+                let entries := state.tables.map chunkTableCatalogEntry ++
+                  CoreOverflow.indexEntriesOf indexEncodings
+                let pages := tableEncoding.treePages.map NumberedPage.page ++
+                  tableEncoding.overflowPages ++
+                  CoreOverflow.indexPagesOf indexEncodings
+                let count : FileFormat.U32Value := ⟨1 + pages.length, by
+                  simp only [pages, List.length_append, List.length_map]
+                  simp only [List.length_append, List.length_map] at countBound
+                  omega⟩
+                change (do
+                  let schema ← CoreFile.schemaPageForEntries? entries count
+                  some ⟨database, schema :: pages⟩) = some image at encoded
+                cases schemaResult : CoreFile.schemaPageForEntries? entries count with
+                | none => simp [schemaResult] at encoded
+                | some schema =>
+                    rw [schemaResult] at encoded
+                    simp only [Option.bind_eq_bind, Option.bind,
+                      Option.some.injEq] at encoded
+                    subst image
+                    simp only at pagesEqual
+                    injection pagesEqual with firstEqual
+                    subst first
+                    have safe : ∀ entry ∈ entries,
+                        CoreDecode.CatalogTextRoundtrips entry := by
+                      intro entry _
+                      exact ⟨utf8 entry.kind, utf8 entry.name,
+                        utf8 entry.table, utf8 entry.sql⟩
+                    exact
+                      (CoreDecode.decodeCatalogForOpen_schemaPageForEntries_withHeader
+                        entries count headerBytes headerLength safe
+                        schemaResult).trans
+                      (CoreDecode.decodeCatalogForOpen_schemaPageForEntries
+                        entries count safe schemaResult).symm
+              next => contradiction
+
 /-- The live store-owned bulk image is a left inverse of the general page
 decoder, up to the intentional canonical rebuilding of proof-carrying row
 trees.  Every table and promoted index entry is decoded from its actual page
 interval; no re-encoding comparison appears in the statement or proof. -/
-theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
+theorem decodeFromPageSource_encodeBulk_in (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)
-    (encoded : encodeBulk database = some image) :
-    CoreDecode.decodeFromPageSource
-      (.ofList (image.pages.map CoreFile.Page.bytes)) =
-        some database.canonicalize := by
+    (encoded : encodeBulk database = some image)
+    (source : CoreDecode.PageSource)
+    (catalogRead :
+      source.readPage 1 >>= CoreDecode.decodeCatalogForOpen =
+        (CoreDecode.PageSource.ofList
+          (image.pages.map CoreFile.Page.bytes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen)
+    (activeTailReads : CoreDecode.ReadsPagesFrom source 2 image.pages.tail)
+    (enoughPages : image.pageCount ≤ source.pageCount) :
+    CoreDecode.decodeFromPageSource source = some database.canonicalize := by
   unfold encodeBulk encodeBulkFromState at encoded
   cases stateResult : CoreChunkPageState.State.build? database with
   | none => simp [stateResult] at encoded
@@ -4062,8 +4132,6 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
               simp only [Option.bind_eq_bind, Option.bind,
                 Option.some.injEq] at encoded
               subst image
-              let source : CoreDecode.PageSource := .ofList
-                ((schemaPage :: remaining).map CoreFile.Page.bytes)
               obtain ⟨tablePageCount, stateNext, statePages⟩ :=
                 CoreChunkPageState.State.build?_interval stateResult
               have treeNumbers := encodeChunkTablesWithOverflow_pageNumbers
@@ -4074,15 +4142,15 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                 simpa [treePages] using lengths
               have tableNext := encodeChunkTablesWithOverflow_nextPage
                 state.nextPage state.tables tableEncoding tableResult
-              have sourceCount : source.pageCount = 1 + remaining.length := by
-                simp [source, CoreDecode.PageSource.ofList]
-                omega
+              have sourceCountLower : 1 + remaining.length ≤ source.pageCount := by
+                simpa [CoreFile.Image.pageCount, Nat.add_comm] using enoughPages
+              have remainingReads : CoreDecode.ReadsPagesFrom source 2
+                  remaining := by
+                simpa using activeTailReads
               have treeReads : CoreDecode.ReadsPagesFrom source 2 treePages := by
-                have reads := CoreDecode.ReadsPagesFrom.ofList_append
-                  [schemaPage.bytes] treePages
-                  (tableEncoding.overflowPages.map CoreFile.Page.bytes ++
-                    indexPages.map CoreFile.Page.bytes)
-                simpa [source, remaining, List.map_append] using reads
+                apply CoreDecode.ReadsPagesFrom.left
+                  (right := tableEncoding.overflowPages ++ indexPages)
+                simpa [remaining, List.append_assoc] using remainingReads
               have treeContains : PageSourceContains source
                   tableEncoding.treePages := by
                 apply PageSourceContains.ofReadsRange source 2
@@ -4094,22 +4162,24 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                 · exact treeReads
               have overflowReads : CoreDecode.ReadsPagesFrom source
                   state.nextPage tableEncoding.overflowPages := by
-                have reads := CoreDecode.ReadsPagesFrom.ofList_append
-                  (schemaPage.bytes :: treePages.map CoreFile.Page.bytes)
-                  tableEncoding.overflowPages
-                  (indexPages.map CoreFile.Page.bytes)
-                simpa [source, remaining, List.map_append, stateNext,
-                  treeLength, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
-                  using reads
+                have afterTree := CoreDecode.ReadsPagesFrom.right
+                  (left := treePages)
+                  (right := tableEncoding.overflowPages ++ indexPages)
+                  (by simpa [remaining, List.append_assoc] using remainingReads)
+                have overflow := CoreDecode.ReadsPagesFrom.left afterTree
+                simpa [stateNext, treeLength, Nat.add_comm, Nat.add_left_comm,
+                  Nat.add_assoc] using overflow
               have indexReads : CoreDecode.ReadsPagesFrom source
                   tableEncoding.nextPage indexPages := by
-                have reads := CoreDecode.ReadsPagesFrom.ofList_append
-                  (schemaPage.bytes :: treePages.map CoreFile.Page.bytes ++
-                    tableEncoding.overflowPages.map CoreFile.Page.bytes)
-                  indexPages []
-                simpa [source, remaining, List.map_append, tableNext, stateNext,
-                  treeLength, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
-                  using reads
+                have afterTree := CoreDecode.ReadsPagesFrom.right
+                  (left := treePages)
+                  (right := tableEncoding.overflowPages ++ indexPages)
+                  (by simpa [remaining, List.append_assoc] using remainingReads)
+                have afterOverflow := CoreDecode.ReadsPagesFrom.right
+                  (left := tableEncoding.overflowPages) (right := indexPages)
+                  afterTree
+                simpa [tableNext, stateNext, treeLength, Nat.add_comm,
+                  Nat.add_left_comm, Nat.add_assoc] using afterOverflow
               have individualIndexReads : ∀ encoding ∈ indexEncodings,
                   CoreDecode.ReadsPagesFrom source encoding.rootPage
                     encoding.pages :=
@@ -4150,7 +4220,6 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                 intro encoding member
                 have range := indexRange encoding member
                 rw [endBound] at range
-                rw [sourceCount]
                 omega
               have tableHeights : ∀ table ∈ state.tables,
                   table.tree.root.erase.height < source.pageCount + 1 := by
@@ -4166,8 +4235,6 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                 unfold CoreChunkPageState.TableState.pageIds at included
                 rw [statePages] at included
                 simp only [List.length_range'] at included
-                rw [sourceCount]
-                simp only [remaining, List.length_append]
                 omega
               have tablesDecoded :=
                 decodeTablesFrom_encodeChunkTablesWithOverflow source
@@ -4179,7 +4246,7 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                     simp only [remaining, List.length_append, List.length_map]
                       at countBound
                     omega)
-                  (by rw [sourceCount]; omega) tableHeights
+                  (by omega) tableHeights
               have safe : ∀ entry ∈ entries,
                   CoreDecode.CatalogTextRoundtrips entry := by
                 intro entry _
@@ -4274,10 +4341,13 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
                 simpa [indexEntries, CoreOverflow.indexEntriesOf,
                   List.map_map, Function.comp_def] using indexesApplied
               unfold CoreDecode.decodeFromPageSource
-              change source.readPage 1 >>= _ = _
-              have firstRead : source.readPage 1 = some schemaPage.bytes := by
-                simp [source, CoreDecode.PageSource.ofList, CoreDecode.page?]
-              rw [firstRead]
+              rw [← bind_assoc, catalogRead]
+              have canonicalFirstRead :
+                  (CoreDecode.PageSource.ofList
+                    ((schemaPage :: remaining).map CoreFile.Page.bytes)).readPage
+                      1 = some schemaPage.bytes := by
+                simp [CoreDecode.PageSource.ofList, CoreDecode.page?]
+              rw [canonicalFirstRead]
               simp only [Option.bind_eq_bind, Option.bind]
               rw [catalogDecoded]
               simp only [Option.bind_eq_bind, Option.bind]
@@ -4285,8 +4355,19 @@ theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
               simp only [Option.bind_eq_bind, Option.bind]
               rw [Core.Database.rebuild_withoutIndexes]
               simp only [Except.toOption]
-              simpa [source] using indexesApplied'
+              exact indexesApplied'
           next => contradiction
+
+theorem decodeFromPageSource_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : encodeBulk database = some image) :
+    CoreDecode.decodeFromPageSource
+      (.ofList (image.pages.map CoreFile.Page.bytes)) =
+        some database.canonicalize := by
+  apply decodeFromPageSource_encodeBulk_in utf8 database image encoded
+  · rfl
+  · exact CoreDecode.ReadsPagesFrom.ofList_tail image.pages
+  · simp [CoreDecode.PageSource.ofList, CoreFile.Image.pageCount]
 
 /-- The live bulk encoder persists the generated-image provenance stamp in
 the bytes that a cold reader actually parses. -/

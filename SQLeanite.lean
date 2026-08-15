@@ -63,6 +63,7 @@ import SQLeanite.CoreFile
 import SQLeanite.RecursivePageBTree
 import SQLeanite.CoreFreelist
 import SQLeanite.CoreMultiFreelist
+import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreDurability

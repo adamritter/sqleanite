@@ -904,12 +904,18 @@ count, replaces only page one's 100-byte database header, makes the first
 unused page a freelist trunk, and names every later unused page as a freelist
 leaf.  Kernel proofs establish every page's fixed length, the exact active and
 free page counts, trunk capacity, and the padded image's old page count.  The
-live rollback-journal adapter now commits that padded image and reopens its
-logical database.  A fast end-to-end test collapses a multipage table and
+live rollback-journal adapter commits that padded image and reopens its
+logical database. `CoreFreelistCodec.decode_paddedImage` now proves that the
+actual whole-file bytes—including the rewritten header, any number of freelist
+trunks, and unreachable free-page tail—decode to exactly the canonical Core
+database. The representation-parametric crash, returned-commit, and
+recovery-crash-trace theorems are specialized to this padded image, closing
+the former logical gap for shrinking bulk commits. A fast end-to-end test
+collapses a multipage table and
 secondary index, checks the file did not truncate, and requires C SQLite
 `integrity_check`, a positive `freelist_count`, and the expected row count.
-The current bound is one trunk (at most 1,023 free pages); multi-trunk freelists
-remain a compatibility extension.
+`CoreMultiFreelist` recursively emits as many capacity-bounded trunks as the
+old file length requires.
 
 Core reopen no longer begins with `readBinFile`.  `CoreDecode.IOPageSource`
 lifts the same total, fuel-bounded recursive table and index traversal over an

@@ -143,8 +143,12 @@ if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
      SQLeanite/ProofAxioms.lean &&
    grep -q 'rollbackCommit_represents_recovery_crash_trace_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'rollbackCommit_padded_recovery_crash_trace_atomic' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'rollbackCommit_recovery_crash_trace_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreFreelistCodec.decode_paddedImage' \
+     SQLeanite/CoreDurability.lean &&
    grep -q 'CoreFileAdapter.commit_crash_atomic' \
      SQLeanite/CoreDurability.lean &&
    grep -q 'CorePageCodec.decode_encodeBulk' \

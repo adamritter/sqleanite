@@ -1011,6 +1011,49 @@ theorem decodeCatalogForOpen_schemaPageForEntries
       unfold decodeCatalogForOpen
       simp [pointers, canonical]
 
+/-- Replacing only the 100-byte SQLite database header preserves the generated
+catalog.  Freelist-backed files use this theorem when they change the database
+size and freelist fields while retaining the exact schema B-tree body. -/
+theorem decodeCatalogForOpen_schemaPageForEntries_withHeader
+    (entries : List CoreFile.CatalogEntry) (count : U32Value)
+    {page : CoreFile.Page} (headerBytes : List UInt8)
+    (headerLength : headerBytes.length = 100)
+    (safe : ∀ entry ∈ entries, CatalogTextRoundtrips entry)
+    (built : CoreFile.schemaPageForEntries? entries count = some page) :
+    decodeCatalogForOpen (headerBytes ++ page.bytes.drop 100) =
+      some (entries.map CatalogEntry.ofEncoded) := by
+  unfold CoreFile.schemaPageForEntries? at built
+  cases cellsResult : CoreFile.catalogCellsFrom 1 entries with
+  | none => simp [cellsResult] at built
+  | some cells =>
+      simp only [cellsResult, Option.bind_eq_bind, Option.bind] at built
+      cases bodyResult : CoreFile.leafBody? 13 100 cells with
+      | none => simp [bodyResult] at built
+      | some body =>
+          simp only [bodyResult] at built
+          injection built with pageEqual
+          subst page
+          rcases CoreFile.leafBody_table_exact bodyResult with
+            ⟨bodyBytes, fits⟩
+          change decodeCatalogForOpen
+            (headerBytes ++
+              (encodeDatabaseHeader (CoreFile.databaseHeader count) ++
+                body.bytes).drop 100) = _
+          rw [bodyBytes]
+          have dropped :
+              (encodeDatabaseHeader (CoreFile.databaseHeader count) ++
+                  PhysicalCodec.leafPageBody 100 cells).drop 100 =
+                PhysicalCodec.leafPageBody 100 cells := by
+            rw [← encodeDatabaseHeader_length (CoreFile.databaseHeader count)]
+            simp
+          rw [dropped]
+          have canonical := decodeCanonicalCatalog_leafPageBody headerBytes
+            entries cells headerLength fits safe cellsResult
+          have pointers := canonicalCatalogPointers_leafPageBody headerBytes
+            cells headerLength fits
+          unfold decodeCatalogForOpen
+          simp [pointers, canonical]
+
 /-- Recover a schema from `sqlite_schema`.
 
 The canonical recognizer runs first: for text this engine printed it inverts
@@ -1778,6 +1821,13 @@ theorem ReadsPagesFrom.ofList_append (leading : List (List UInt8))
   rw [offsetEqual, List.getElem?_map,
     List.getElem?_eq_getElem inBounds]
   rfl
+
+theorem ReadsPagesFrom.ofList_tail (pages : List CoreFile.Page) :
+    ReadsPagesFrom (.ofList (pages.map CoreFile.Page.bytes)) 2 pages.tail := by
+  cases pages with
+  | nil => simp [ReadsPagesFrom]
+  | cons first rest =>
+      simpa using ReadsPagesFrom.ofList_append [first.bytes] rest []
 
 theorem ReadsPagesFrom.encodeOverflowIndexes (source : PageSource) :
     ∀ (nextPage : Nat) (indexes : List (Core.Table × Core.Index))
