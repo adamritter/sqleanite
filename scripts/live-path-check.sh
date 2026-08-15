@@ -196,6 +196,11 @@ else
 fi
 
 if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_count_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_sum_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_extreme_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_group_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_join_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreReadSemantics.execute_query_denotes' \
      SQLeanite/CoreSQLReadText.lean &&
    grep -q 'executeStatement_eq_core translated' \

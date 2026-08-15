@@ -94,10 +94,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   INSERT/REPLACE, DELETE, UPDATE, and COMMIT a transparent,
   execution-independent translation relation; `executeStatement_eq_core`
   proves that it reaches the corresponding live Core command.
-  `CoreSQLReadText.TranslatedRead` does the same for the live non-aggregate
-  single-table SELECT. An independent token grammar with lexer/parser
-  correctness, all remaining read forms, multi-row INSERT, and statement-list
-  traces remain open.
+  `CoreSQLReadText.TranslatedRead` now does the same for simple single-table
+  SELECT, COUNT, SUM, MIN/MAX, grouped aggregation, and two-table inner/left
+  joins.  Each form reaches its independent bag/three-valued denotation from
+  an actual SQL string.  An independent token grammar with lexer/parser
+  correctness, compound SELECT, multi-row INSERT, and statement-list traces
+  remain open.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -129,18 +131,18 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   actual SQL `String` for one supported persisted statement and reaches
   concrete recovery bytes. Its transparent support witness contains the
   parser equation and proved translation relation.
-  `CoreSQLReadText.executeText_read_refines` likewise begins at an actual SQL
-  string, proves the read leaves the state unchanged, and reaches the
-  independent bag denotation for simple SELECT. Full read-form,
-  statement-list/parser parity and construction of the localized database
-  representation premise still depend on milestones 1 and 3; those links are
-  not hidden as trusted assumptions.
+  The `CoreSQLReadText.executeText_*_refines` family likewise begins at an
+  actual SQL string, proves reads leave the state unchanged, and reaches the
+  independent bag denotation for simple queries, scalar/grouped aggregates,
+  and joins. Compound reads, statement-list/parser parity, and construction of
+  the localized database representation premise still depend on milestones 1
+  and 3; those links are not hidden as trusted assumptions.
 
-The latest three-run 2,000-row medians after the table accounting proof are
-296/9/18/75/98/11 ms for bulk load, primary lookup, secondary lookup, bulk
-UPDATE, bulk DELETE, and inner join respectively.  These are within 1.4% of
-the frozen Lean baseline in the worst case; UPDATE and DELETE improved by
-2.6% and 3.0%.
+The latest three-run 2,000-row medians after the SQL-text read refinements are
+294/9/19/76/100/11 ms for bulk load, primary lookup, secondary lookup, bulk
+UPDATE, bulk DELETE, and inner join respectively.  Every workload remains
+within the frozen non-regression budget; the proof-only additions add no
+runtime execution or validation pass.
 
 ## Milestone 1: verified SQL text front end
 
@@ -280,12 +282,103 @@ build or live-path assertion for the headline theorem.
   journal ordering, recovery, and codec faults.
 - Report three-run performance medians and scaling curves, including proof
   changes that removed runtime validation.
+- Run the YCSB-style suite below and report it beside the twelve public
+  workloads.
 - Keep `README.md`, `docs/TRUST.md`, `docs/ARCHITECTURE.md`, and benchmark
   documents synchronized with exactly what the two headline theorems say.
 
 Exit gate: `scripts/reproduce-all.sh` rebuilds the artifact from a clean tree
 and produces the theorem, test, mutation, interoperability, crash, proof-time,
 and performance tables used by the paper.
+
+## Milestone 6a: YCSB-style evaluation
+
+The twelve public workloads are more realistic than YCSB but are ours, so a
+reviewer cannot place them. VeriBetrKV (OSDI 2020) reports YCSB against RocksDB
+and BerkeleyDB, and that is the recognized yardstick a systems reviewer will
+look for. Adding it costs no proof work and makes the performance claim
+comparable to published numbers rather than self-defined.
+
+Note on provenance: YCSB is VeriBetrKV's evaluation, not FSCQ's. FSCQ evaluated
+with Unix application benchmarks (an xv6 source build, file create/delete
+microbenchmarks, and a mail-server workload) against ext4 and xv6, reporting
+roughly 2x ext4. Those are a filesystem-shaped comparison and do not transfer
+to a database. FSCQ parity is therefore about the *durability theorem*
+(milestone 4), and YCSB is about *performance comparability*. They are separate
+goals and the plan should not conflate them.
+
+### Schema and records
+
+Follow YCSB's own relational binding rather than inventing one, so the numbers
+mean what readers expect:
+
+```sql
+CREATE TABLE usertable (ycsb_key INTEGER PRIMARY KEY, field0 TEXT, ..., field9 TEXT);
+```
+
+Ten text fields of 100 bytes each, giving the standard ~1 KB record. At a 4096
+page size that keeps records on leaf pages without overflow, so the suite
+measures B+ tree and commit behaviour rather than the overflow path — the
+overflow path is already covered by the 9 KB row differential case.
+
+### The six core workloads
+
+Standard YCSB definitions (Cooper et al., SoCC 2010), unchanged:
+
+| Workload | Mix | Key distribution |
+|---|---|---|
+| A | 50% read, 50% update | Zipfian |
+| B | 95% read, 5% update | Zipfian |
+| C | 100% read | Zipfian |
+| D | 95% read, 5% insert | latest |
+| E | 95% short range scan, 5% insert | Zipfian, scan length uniform 1--100 |
+| F | 100% read-modify-write | Zipfian |
+
+Plus the insertion microbenchmark VeriBetrKV leads with: bulk load of the record
+set in pseudo-random key order, which is the write-optimized case a B+ tree is
+worst at and therefore the honest one to report.
+
+### Why this fits the frozen surface
+
+Every workload above is expressible in the existing SQL subset: primary-key
+point reads, single-row `UPDATE ... WHERE ycsb_key = ?`, `INSERT`, and
+`SELECT ... WHERE ycsb_key >= ? ORDER BY ycsb_key LIMIT n` for the E scans. No
+aggregates, no subqueries, no multi-column indexes, no column-to-column
+predicates. **The suite requires no new SQL surface** — it is purely an
+evaluation addition, which is why it belongs in milestone 6 and not earlier.
+
+### Runner
+
+`scripts/run-ycsb-benchmark.sh`, matching the conventions of
+`run-workload-benchmark.sh`: generate the operation trace once, replay the
+identical trace against SQLeanite and C SQLite, verify outputs agree before
+reporting any timing, and emit three-run medians. Record counts and operation
+counts are parameters with a small default so the suite runs in CI, and a
+paper-scale default recorded in the artifact.
+
+Zipfian and latest generators must be deterministic and seeded, so the trace is
+reproducible and the two engines provably see the same operations.
+
+Exit gate: all six workloads plus the insertion microbenchmark report
+output-verified three-run medians for both engines, and the trace generator is
+seeded and checked in.
+
+## Reach goals
+
+Not required for the paper; recorded so they are not silently dropped.
+
+- **At most 3x C SQLite on the YCSB-style suite.** The mandatory gate remains
+  5x on the twelve public workloads; this is a stronger target on the
+  recognized benchmark. Context for why 3x is ambitious but worth naming:
+  VeriBetrKV reports insertions about 8x slower than RocksDB and query
+  performance "similar to unverified databases", and FSCQ reports about 2x
+  ext4. A verified SQL engine within 3x of C SQLite on YCSB would be at the
+  strong end of the published range for verified storage, and read-side
+  workloads (B, C, and much of D) are already inside it on the public
+  workloads. Workload A and the insertion microbenchmark are the ones expected
+  to resist, for the same reason bulk DELETE does today.
+- Everything already marked reach elsewhere: general parser correctness beyond
+  the supported grammar, `WITHOUT ROWID`, and exotic file-format variants.
 
 ## Explicit non-goals
 

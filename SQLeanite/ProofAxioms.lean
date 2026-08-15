@@ -467,6 +467,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
 #print axioms SQLeanite.CoreSQLReadText.execute_eq_core
 #print axioms SQLeanite.CoreSQLReadText.executeText_read_refines
+#print axioms SQLeanite.CoreSQLReadText.executeText_count_refines
+#print axioms SQLeanite.CoreSQLReadText.executeText_sum_refines
+#print axioms SQLeanite.CoreSQLReadText.executeText_extreme_refines
+#print axioms SQLeanite.CoreSQLReadText.executeText_group_refines
+#print axioms SQLeanite.CoreSQLReadText.executeText_join_refines
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_padded_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
