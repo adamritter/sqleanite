@@ -460,6 +460,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.sqliteHeaderMatches_of_pageZeroWrite
 #print axioms SQLeanite.CoreDurability.catalogRead_of_pageZeroWrite
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_pageZeroWrite
+#print axioms SQLeanite.CoreDurability.localizedRepresentation_of_components
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
@@ -591,6 +592,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageSource.readPage_write_same
 #print axioms SQLeanite.CorePageSource.readPage_write_other
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_applyWrites
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages
 #print axioms SQLeanite.CoreLocalizedRepresentation.decodeTableFrom_applyWrites
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaComplete

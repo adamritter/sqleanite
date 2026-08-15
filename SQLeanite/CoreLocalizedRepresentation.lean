@@ -15,6 +15,31 @@ certificate feeds the existing recursive table-decoder refinement directly;
 there is no decode-and-compare admission check.
 -/
 
+/-- Per-table physical decoder certificates, aligned with the table entries in
+the SQLite catalog.  This is the list-level bridge from each local tree proof
+to `PageSourceRepresents.tablesRead`. -/
+inductive TablesDecode (source : CoreDecode.PageSource) :
+    List CoreDecode.CatalogEntry → List Core.Table → Prop where
+  | nil : TablesDecode source [] []
+  | cons {entry : CoreDecode.CatalogEntry}
+      {entries : List CoreDecode.CatalogEntry}
+      {table : Core.Table} {tables : List Core.Table}
+      (head : CoreDecode.decodeTableFrom source entry =
+        some table.withoutIndexes)
+      (tail : TablesDecode source entries tables) :
+      TablesDecode source (entry :: entries) (table :: tables)
+
+theorem TablesDecode.mapM
+    {source : CoreDecode.PageSource}
+    {entries : List CoreDecode.CatalogEntry} {tables : List Core.Table}
+    (decoded : TablesDecode source entries tables) :
+    entries.mapM (CoreDecode.decodeTableFrom source) =
+      some (tables.map Core.Table.withoutIndexes) := by
+  induction decoded with
+  | nil => rfl
+  | cons head tail induction =>
+      simp [head, induction]
+
 /-- Every encoded page covered by one member of a distinct write set is
 present in the page source obtained after applying that write set. -/
 theorem pageSourceContains_applyWrites_of_covered

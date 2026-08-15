@@ -2,6 +2,7 @@ import SQLeanite.CorePageCodec
 import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CorePageSource
+import SQLeanite.CoreLocalizedRepresentation
 import SQLeanite.PhysicalJournalRecovery
 
 namespace SQLeanite
@@ -251,6 +252,41 @@ def localizedRepresentation_of_pageZeroWrite
       pageZero member zero catalog catalogDecoded
     tablesRead
     indexesRead }
+
+/-- Variant of the constructor that accepts one compositional proof per table
+instead of the already-collapsed `mapM` equation. -/
+def localizedRepresentation_of_components
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database)
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (pageZero : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (member : pageZero ∈ writes) (zero : pageZero.pageId = 0)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (headerBytes : pageZero.page.bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1)
+    (catalog : List CoreDecode.CatalogEntry)
+    (catalogDecoded :
+      CoreDecode.decodeCatalogForOpen pageZero.page.bytes.toList = some catalog)
+    (tables : CoreLocalizedRepresentation.TablesDecode
+      (localizedSource oldImage writes)
+      (catalog.filter (fun entry => entry.kind == "table")) database.tables)
+    (indexesRead :
+      CoreDecode.applyIndexesForOpen (localizedSource oldImage writes)
+          database.withoutIndexes
+          (catalog.filter (fun entry => entry.kind == "index")) =
+        some database.canonicalize) :
+    LocalizedRepresentation oldImage writes database :=
+  localizedRepresentation_of_pageZeroWrite oldImage writes database distinct
+    pageZero member zero header pageSuffix headerBytes pageCount pageSize
+    reserved utf8 catalog catalogDecoded tables.mapM indexesRead
 
 theorem LocalizedRepresentation.pageSourceRepresents
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
