@@ -588,7 +588,7 @@ def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
     else
       let start := (pageNumber - 1) * PhysicalCodec.pageSize
       let stop := start + PhysicalCodec.pageSize
-      if stop ≤ input.size then some (input.data.extract start stop).toList
+      if stop ≤ input.size then some (input.extract start stop).data.toList
       else none }
 
 /-- The growable-storage image denoted by one exact in-memory file buffer.
@@ -603,17 +603,23 @@ def byteArrayStorageImage (input : ByteArray) (pageCount : Nat)
       let start := pageId * PhysicalCodec.pageSize
       let stop := start + PhysicalCodec.pageSize
       {
-        bytes := input.data.extract start stop
+        bytes := (input.extract start stop).data
         sizeInvariant := by
-          simp only [Array.size_extract]
-          change min stop input.size - start = PhysicalCodec.pageSize
-          rw [exactSize]
           have stopBound : stop ≤ pageCount * PhysicalCodec.pageSize := by
             have countBound : pageId + 1 ≤ pageCount := by omega
             have scaled := Nat.mul_le_mul_right PhysicalCodec.pageSize countBound
             simpa [stop, start, Nat.add_mul] using scaled
-          rw [Nat.min_eq_left stopBound]
-          simp only [stop, start, Nat.add_sub_cancel_left] }
+          have inputSize : input.data.size =
+              pageCount * PhysicalCodec.pageSize := by
+            simpa [ByteArray.size] using exactSize
+          have pageSize : (input.data.extract start stop).size =
+              PhysicalCodec.pageSize := by
+            rw [Array.size_extract, inputSize, Nat.min_eq_left stopBound]
+            simp only [stop, start, Nat.add_sub_cancel_left]
+          change (input.extract start stop).data.size =
+            PhysicalCodec.pageSize
+          simpa [ByteArray.extract, ByteArray.copySlice, ByteArray.empty,
+            ByteArray.emptyWithCapacity, stop] using pageSize }
     else Storage.Page.zero PhysicalCodec.pageSize }
 
 /-- The fast array-backed decoder source and the growable-storage view read
