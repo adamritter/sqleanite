@@ -21,6 +21,26 @@ def Node.toList : Node Value → List (Entry Value)
   | .branch3 left _ middle _ right =>
       left.toList ++ middle.toList ++ right.toList
 
+/-- Descend only through rightmost children to recover the greatest entry.
+The fallback handles arbitrary malformed/empty child shapes too, so its
+equation with the abstraction does not require a validity premise. -/
+def Node.last? : Node Value → Option (Entry Value)
+  | .leaf entries => entries.getLast?
+  | .branch2 left _ right => right.last?.or left.last?
+  | .branch3 left _ middle _ right =>
+      right.last?.or (middle.last?.or left.last?)
+
+theorem Node.last?_eq_getLast? (node : Node Value) :
+    node.last? = node.toList.getLast? := by
+  induction node with
+  | leaf entries => rfl
+  | branch2 left separator right leftInduction rightInduction =>
+      simp [Node.last?, Node.toList, leftInduction, rightInduction]
+  | branch3 left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp [Node.last?, Node.toList, leftInduction, middleInduction,
+        rightInduction, Option.or_assoc]
+
 def Node.height : Node Value → Nat
   | .leaf _ => 0
   | .branch2 left _ _ => left.height + 1

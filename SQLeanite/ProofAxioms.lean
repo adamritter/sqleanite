@@ -680,3 +680,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.lookupIndexRangeFrom_all_matches
 #print axioms SQLeanite.Core.executeUncertifiedQueryWithCandidates_eq_execute
 #print axioms SQLeanite.CoreFileAdapter.takeExact_spec
+#print axioms SQLeanite.Core.Value.orderKey_injective
+#print axioms SQLeanite.Core.buildDeclaredKeyMap_get_of_hidden
+#print axioms SQLeanite.Core.buildDeclaredKeyMap_represents
+#print axioms SQLeanite.Core.Table.findDeclaredPrimary?_exact
+#print axioms SQLeanite.Core.Table.nextGeneratedRowid?_greater
+#print axioms SQLeanite.Core.Table.declaredKeyMap_insert_represents_orderedUpsert
+#print axioms SQLeanite.Core.Table.upsertGeneratedFresh_rows
+#print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
+#print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
+#print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase

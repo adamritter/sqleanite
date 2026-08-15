@@ -80,8 +80,14 @@ fi
 if grep -q 'table.insertValues values' SQLeanite/CoreEngine.lean &&
    grep -q 'table.replaceValues values' SQLeanite/CoreEngine.lean &&
    grep -q 'table.findRowid? row.rowid' SQLeanite/Core.lean &&
+   grep -q 'table.rowTree.root.lookup rowid.treeKey' SQLeanite/Core.lean &&
+   grep -q 'table.rowTree.root.last?.map' SQLeanite/Core.lean &&
+   grep -q 'PersistentPageTree.Node.lookup_eq_erase' SQLeanite/ProofAxioms.lean &&
+   grep -q 'table.upsertGeneratedFresh row valid hidden' SQLeanite/Core.lean &&
+   grep -q 'Table.findDeclaredPrimary?_exact' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Table.upsertGeneratedFresh_rows' SQLeanite/ProofAxioms.lean &&
    grep -q 'Table.findRowid?_eq_some_iff' SQLeanite/ProofAxioms.lean; then
-  ok "executor uses proof-carrying Core INSERT/REPLACE operations"
+  ok "executor uses proof-carrying Core INSERT/REPLACE and balanced TEXT-key routing"
 else
   fail "Core INSERT/REPLACE bypasses their proof-carrying table operations"
 fi

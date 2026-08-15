@@ -35,6 +35,51 @@ def Node.erase : Node Value → RecursiveBPlusTree.Node Value
   | .branch3 _ left firstSeparator middle secondSeparator right =>
       .branch3 left.erase firstSeparator middle.erase secondSeparator right.erase
 
+/-- Page-identity-preserving routed lookup.  Calling `erase.lookup` first
+reconstructed the entire logical tree on every point operation; this version
+follows the same single root-to-leaf path without allocating that shadow tree. -/
+def Node.lookup (key : Nat) : Node Value → Option Value
+  | .leaf _ entries => (entries.find? fun entry => entry.1 = key).map (·.2)
+  | .branch2 _ left separator right =>
+      if key < separator then left.lookup key else right.lookup key
+  | .branch3 _ left firstSeparator middle secondSeparator right =>
+      if key < firstSeparator then left.lookup key
+      else if key < secondSeparator then middle.lookup key
+      else right.lookup key
+
+theorem Node.lookup_eq_erase (node : Node Value) (key : Nat) :
+    node.lookup key = node.erase.lookup key := by
+  induction node with
+  | leaf => rfl
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp only [Node.lookup, Node.erase, RecursiveBPlusTree.Node.lookup]
+      split <;> assumption
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp only [Node.lookup, Node.erase, RecursiveBPlusTree.Node.lookup]
+      split
+      next => exact leftInduction
+      next => split <;> assumption
+
+/-- Greatest entry by right-spine descent, again without allocating erasure. -/
+def Node.last? : Node Value → Option (PagedBTree.Entry Value)
+  | .leaf _ entries => entries.getLast?
+  | .branch2 _ left _ right => right.last?.or left.last?
+  | .branch3 _ left _ middle _ right =>
+      right.last?.or (middle.last?.or left.last?)
+
+theorem Node.last?_eq_erase (node : Node Value) :
+    node.last? = node.erase.last? := by
+  induction node with
+  | leaf => rfl
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp [Node.last?, Node.erase, RecursiveBPlusTree.Node.last?,
+        leftInduction, rightInduction]
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp [Node.last?, Node.erase, RecursiveBPlusTree.Node.last?,
+        leftInduction, middleInduction, rightInduction]
+
 def Node.pageIds : Node Value → List PageId
   | .leaf pageId _ => [pageId]
   | .branch2 pageId left _ right => pageId :: left.pageIds ++ right.pageIds
