@@ -162,6 +162,39 @@ theorem sqliteHeaderMatches_of_pageZeroWrite
   rw [imageBytes, read, bytes, List.append_assoc]
   exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
 
+/-- Localized row/index writes do not normally touch page zero.  In that
+case the already-certified header bytes remain the header of the post-image.
+The explicit page-count equality is the useful boundary: a growing write must
+instead use `sqliteHeaderMatches_of_pageZeroWrite`, because SQLite records the
+new size in page zero. -/
+theorem sqliteHeaderMatches_of_unchangedPageZero
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (notWritten : ∀ write ∈ writes, 0 ≠ write.pageId)
+    (positive : 0 < oldImage.pageCount)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (bytes : (oldImage.read 0).bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1) :
+    SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes) := by
+  let image := GrowableStorage.applyWrites oldImage writes
+  have imagePositive : 0 < image.pageCount := by
+    have growth := CorePageSource.applyWrites_pageCount_ge oldImage writes
+    simpa [image] using Nat.lt_of_lt_of_le positive growth
+  rcases imageBytes_eq_firstPage_append image imagePositive with
+    ⟨suffix, imageBytes⟩
+  have read : image.read 0 = oldImage.read 0 := by
+    exact GrowableStorage.applyWrites_read_of_not_written oldImage writes 0
+      notWritten
+  refine .intro header (pageSuffix ++ suffix) ?_ pageCount pageSize reserved utf8
+  rw [imageBytes, read, bytes, List.append_assoc]
+  exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
+
 /-- The same exact page-zero write supplies the catalog component without
 decoding or comparing the complete database. -/
 theorem catalogRead_of_pageZeroWrite
@@ -179,6 +212,31 @@ theorem catalogRead_of_pageZeroWrite
   have read := CorePageSource.readPage_applyWrites_of_mem oldImage distinct
     member
   rw [zero] at read
+  change (CorePageSource.ofStorageImage
+    (GrowableStorage.applyWrites oldImage writes)).readPage 1 >>=
+      CoreDecode.decodeCatalogForOpen = some catalog
+  rw [read]
+  exact decoded
+
+/-- A page-local write set which omits page zero preserves the exact catalog
+read.  This closes the catalog component for the common constant-page-count
+write path without re-decoding or comparing the database. -/
+theorem catalogRead_of_unchangedPageZero
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (positive : 0 < oldImage.pageCount)
+    (notWritten : ∀ write ∈ writes, 0 ≠ write.pageId)
+    (catalog : List CoreDecode.CatalogEntry)
+    (decoded : (CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+      CoreDecode.decodeCatalogForOpen = some catalog) :
+    (localizedSource oldImage writes).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog := by
+  have newBound :
+      0 < (GrowableStorage.applyWrites oldImage writes).pageCount := by
+    have growth := CorePageSource.applyWrites_pageCount_ge oldImage writes
+    exact Nat.lt_of_lt_of_le positive growth
+  have read := CorePageSource.readPage_applyWrites_of_not_written
+    oldImage writes 0 newBound positive notWritten
   change (CorePageSource.ofStorageImage
     (GrowableStorage.applyWrites oldImage writes)).readPage 1 >>=
       CoreDecode.decodeCatalogForOpen = some catalog
@@ -328,6 +386,52 @@ def localizedRepresentation_of_certificates
     reserved utf8 catalog catalogDecoded tables
     (CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
       (localizedSource oldImage writes) database _ physicalIndexes indexMetadata)
+
+/-- Fully decomposed constructor for the common localized path which leaves
+page zero untouched.  Header and catalog facts are transported from the old
+represented image; table and index witnesses describe only the components
+whose page reads can have changed.  Freelist pages may occur in `writes` as
+long as page zero and the recorded page count remain unchanged. -/
+def localizedRepresentation_of_unchangedPageZero
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database)
+    (notWritten : ∀ write ∈ writes, 0 ≠ write.pageId)
+    (positive : 0 < oldImage.pageCount)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (headerBytes : (oldImage.read 0).bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1)
+    (catalog : List CoreDecode.CatalogEntry)
+    (catalogDecoded :
+      (CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog)
+    (tables : CoreLocalizedRepresentation.TablesDecode
+      (localizedSource oldImage writes)
+      (catalog.filter (fun entry => entry.kind == "table")) database.tables)
+    (physicalIndexes : CoreLocalizedRepresentation.IndexGroupsDecode
+      (localizedSource oldImage writes)
+      (database.tables.map Core.Table.withoutIndexes)
+      (catalog.filter (fun entry => entry.kind == "index")))
+    (indexMetadata : CoreLocalizedRepresentation.IndexMetadataGroups
+      database.tables
+      (catalog.filter (fun entry => entry.kind == "index"))) :
+    LocalizedRepresentation oldImage writes database := {
+  header := sqliteHeaderMatches_of_unchangedPageZero oldImage writes
+    notWritten positive header pageSuffix headerBytes pageCount pageSize
+    reserved utf8
+  catalog
+  catalogRead := catalogRead_of_unchangedPageZero oldImage writes positive
+    notWritten catalog catalogDecoded
+  tablesRead := tables.mapM
+  indexesRead :=
+    CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
+      (localizedSource oldImage writes) database _ physicalIndexes indexMetadata }
 
 theorem LocalizedRepresentation.pageSourceRepresents
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}

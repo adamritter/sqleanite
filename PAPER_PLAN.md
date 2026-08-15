@@ -139,8 +139,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   also composed: every emitted write comes from an exact complete post-tree
   page, and active post-tree page identities are unique.  These facts now
   yield `pageSourceContains_updateStateTree`, a direct represented-old-image
-  to represented-new-table-tree theorem with no runtime validation. Catalog,
-  overflow, freelist, and changed-index components must still be discharged.
+  to represented-new-table-tree theorem with no runtime validation.
+  Constant-size localized writes now preserve the exact header and catalog
+  facts directly when page zero is omitted; freelist-only page writes are
+  therefore logically irrelevant on that path, while growth is forced through
+  the explicit page-zero constructor. Overflow and changed-index composition
+  remain to be discharged.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
@@ -167,6 +171,8 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   decoder's contiguous-page relation via
   `readsPagesFrom_applyWrites_of_covered`; `IndexesDecode.consEncoded` then
   turns an encoded changed index directly into the physical certificate.
+  `localizedRepresentation_of_unchangedPageZero` composes these witnesses for
+  the common constant-page-count path without a whole-file validation pass.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
