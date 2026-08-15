@@ -767,10 +767,19 @@ and `encodeChangedChunkPages_accounts` partitions every post-state page into an
 exact write or an exact pre-state page.  The live one-pass cached selector is
 proved extensionally equal to that specification and avoids a quadratic scan.
 For point mutations, `encodeChunkPath_subset_encodeChunkNode` proves that every
-selected path page is an exact post-state page.  The still-open table theorem
-is the converse off-path preservation result for those point mutations and
-composition across every `TableDelta` constructor, followed by catalog and
-changed-index composition.
+selected path page is an exact post-state page. `Node.PathAgrees` states that a
+no-allocation insertion shares every page identity, separator, and sibling off
+one root-to-leaf route. `encodeChunkPath_accounts_of_pathAgrees` turns that
+structural relation into the complementary byte theorem: every complete
+post-state page is either emitted on the path or occurs byte-for-byte in the
+complete pre-state encoding. `replace?_treePagesAccounted`,
+`insert?_treePagesAccounted`, and `delete?_treePagesAccounted` establish this
+for point mutations; exact physical-difference proofs cover split, merge, and
+bulk mutations. `replaceBetween?_treePagesAccounted` and
+`updateState?_treePagesAccounted` compose all constructors through the live
+state-delta builder. The remaining localized representation work is no longer
+table-tree accounting; it is composition with catalog, overflow, freelist, and
+changed-index components.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

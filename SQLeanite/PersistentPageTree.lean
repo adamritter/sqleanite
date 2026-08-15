@@ -151,6 +151,258 @@ def Node.insert (nextPage key : Nat) (value : Value) (node : Node Value) :
       (.branch2 node.rootId (left.setRootId nextPage) separator right,
         nextPage + 1)
 
+/-- Two identified trees agree away from the one search path selected by
+`key`.  Every sibling, separator, and page identity off that path is shared
+definitionally. -/
+inductive Node.PathAgrees (key : Nat) : Node Value → Node Value → Prop where
+  | leaf (pageId : PageId) (before after : List (PagedBTree.Entry Value)) :
+      PathAgrees key (.leaf pageId before) (.leaf pageId after)
+  | branch2Left (pageId : PageId) (before after : Node Value)
+      (separator : Nat) (right : Node Value)
+      (route : key < separator) (child : PathAgrees key before after) :
+      PathAgrees key (.branch2 pageId before separator right)
+        (.branch2 pageId after separator right)
+  | branch2Right (pageId : PageId) (left : Node Value) (separator : Nat)
+      (before after : Node Value) (route : ¬key < separator)
+      (child : PathAgrees key before after) :
+      PathAgrees key (.branch2 pageId left separator before)
+        (.branch2 pageId left separator after)
+  | branch3Left (pageId : PageId) (before after : Node Value)
+      (firstSeparator : Nat) (middle : Node Value) (secondSeparator : Nat)
+      (right : Node Value) (route : key < firstSeparator)
+      (child : PathAgrees key before after) :
+      PathAgrees key
+        (.branch3 pageId before firstSeparator middle secondSeparator right)
+        (.branch3 pageId after firstSeparator middle secondSeparator right)
+  | branch3Middle (pageId : PageId) (left : Node Value)
+      (firstSeparator : Nat) (before after : Node Value)
+      (secondSeparator : Nat) (right : Node Value)
+      (leftRoute : ¬key < firstSeparator) (route : key < secondSeparator)
+      (child : PathAgrees key before after) :
+      PathAgrees key
+        (.branch3 pageId left firstSeparator before secondSeparator right)
+        (.branch3 pageId left firstSeparator after secondSeparator right)
+  | branch3Right (pageId : PageId) (left : Node Value)
+      (firstSeparator : Nat) (middle : Node Value) (secondSeparator : Nat)
+      (before after : Node Value) (leftRoute : ¬key < firstSeparator)
+      (middleRoute : ¬key < secondSeparator)
+      (child : PathAgrees key before after) :
+      PathAgrees key
+        (.branch3 pageId left firstSeparator middle secondSeparator before)
+        (.branch3 pageId left firstSeparator middle secondSeparator after)
+
+/-- Every split advances the page high-water mark. -/
+theorem Node.insertStep_split_allocates (node : Node Value)
+    (nextPage key : Nat) (value : Value) (left : Node Value)
+    (separator : Nat) (right : Node Value) (nextPage' : Nat)
+    (success : node.insertStep nextPage key value =
+      (.split left separator right, nextPage')) :
+    nextPage < nextPage' := by
+  induction node generalizing nextPage left separator right nextPage' with
+  | leaf pageId entries =>
+      unfold Node.insertStep at success
+      generalize contentsEq : PagedBTree.orderedInsert key value entries =
+        contents at success
+      cases contents with
+      | nil => cases success
+      | cons first rest =>
+        cases rest with
+        | nil => cases success
+        | cons second rest =>
+          cases rest with
+          | nil => cases success
+          | cons third rest =>
+            cases rest with
+            | nil => cases success; omega
+            | cons fourth rest => cases success
+  | branch2 pageId oldLeft oldSeparator oldRight leftInduction rightInduction =>
+      simp only [Node.insertStep] at success
+      split at success <;>
+        first
+        | cases childResult : oldLeft.insertStep nextPage key value <;>
+            rename_i outcome childNext <;> rw [childResult] at success <;>
+            cases outcome <;> cases success
+        | cases childResult : oldRight.insertStep nextPage key value <;>
+            rename_i outcome childNext <;> rw [childResult] at success <;>
+            cases outcome <;> cases success
+  | branch3 pageId oldLeft firstSeparator oldMiddle secondSeparator oldRight
+      leftInduction middleInduction rightInduction =>
+      simp only [Node.insertStep] at success
+      split at success
+      next =>
+        cases childResult : oldLeft.insertStep nextPage key value with
+        | mk outcome childNext =>
+          rw [childResult] at success
+          cases outcome with
+          | done updated => cases success
+          | split first promoted second =>
+            have allocated := leftInduction nextPage first promoted second
+              childNext childResult
+            cases success
+            omega
+      next =>
+        split at success
+        next =>
+          cases childResult : oldMiddle.insertStep nextPage key value with
+          | mk outcome childNext =>
+            rw [childResult] at success
+            cases outcome with
+            | done updated => cases success
+            | split first promoted second =>
+              have allocated := middleInduction nextPage first promoted second
+                childNext childResult
+              cases success
+              omega
+        next =>
+          cases childResult : oldRight.insertStep nextPage key value with
+          | mk outcome childNext =>
+            rw [childResult] at success
+            cases outcome with
+            | done updated => cases success
+            | split first promoted second =>
+              have allocated := rightInduction nextPage first promoted second
+                childNext childResult
+              cases success
+              omega
+
+/-- A successful no-allocation insertion changes exactly one search path. -/
+theorem Node.insertStep_done_pathAgrees (node : Node Value)
+    (nextPage key : Nat) (value : Value) (updated : Node Value)
+    (success : node.insertStep nextPage key value = (.done updated, nextPage)) :
+    Node.PathAgrees key node updated := by
+  induction node generalizing nextPage updated with
+  | leaf pageId entries =>
+      unfold Node.insertStep at success
+      generalize contentsEq : PagedBTree.orderedInsert key value entries =
+        contents at success
+      cases contents with
+      | nil => cases success; exact .leaf pageId entries []
+      | cons first rest =>
+        cases rest with
+        | nil => cases success; exact .leaf pageId entries [first]
+        | cons second rest =>
+          cases rest with
+          | nil => cases success; exact .leaf pageId entries [first, second]
+          | cons third rest =>
+            cases rest with
+            | nil => cases success
+            | cons fourth rest =>
+              cases success
+              exact .leaf pageId entries
+                (first :: second :: third :: fourth :: rest)
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp only [Node.insertStep] at success
+      split at success
+      next route =>
+        cases childResult : left.insertStep nextPage key value with
+        | mk outcome childNext =>
+          rw [childResult] at success
+          cases outcome with
+          | done child =>
+            have childNextEq : childNext = nextPage :=
+              congrArg Prod.snd success
+            have childPath := leftInduction nextPage child (by
+              simpa [childNextEq] using childResult)
+            cases success
+            exact .branch2Left pageId left child separator right route
+              childPath
+          | split first promoted second =>
+            have allocated := left.insertStep_split_allocates nextPage key value
+              first promoted second childNext childResult
+            have childNextEq : childNext = nextPage :=
+              congrArg Prod.snd success
+            omega
+      next route =>
+        cases childResult : right.insertStep nextPage key value with
+        | mk outcome childNext =>
+          rw [childResult] at success
+          cases outcome with
+          | done child =>
+            have childNextEq : childNext = nextPage :=
+              congrArg Prod.snd success
+            have childPath := rightInduction nextPage child (by
+              simpa [childNextEq] using childResult)
+            cases success
+            exact .branch2Right pageId left separator right child route
+              childPath
+          | split first promoted second =>
+            have allocated := right.insertStep_split_allocates nextPage key value
+              first promoted second childNext childResult
+            have childNextEq : childNext = nextPage :=
+              congrArg Prod.snd success
+            omega
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp only [Node.insertStep] at success
+      split at success
+      next leftRoute =>
+        cases childResult : left.insertStep nextPage key value with
+        | mk outcome childNext =>
+          rw [childResult] at success
+          cases outcome with
+          | done child =>
+            have childNextEq : childNext = nextPage :=
+              congrArg Prod.snd success
+            have childPath := leftInduction nextPage child (by
+              simpa [childNextEq] using childResult)
+            cases success
+            exact .branch3Left pageId left child firstSeparator middle
+              secondSeparator right leftRoute
+              childPath
+          | split first promoted second => cases success
+      next leftRoute =>
+        split at success
+        next middleRoute =>
+          cases childResult : middle.insertStep nextPage key value with
+          | mk outcome childNext =>
+            rw [childResult] at success
+            cases outcome with
+            | done child =>
+              have childNextEq : childNext = nextPage :=
+                congrArg Prod.snd success
+              have childPath := middleInduction nextPage child (by
+                simpa [childNextEq] using childResult)
+              cases success
+              exact .branch3Middle pageId left firstSeparator middle child
+                secondSeparator right leftRoute middleRoute
+                childPath
+            | split first promoted second => cases success
+        next middleRoute =>
+          cases childResult : right.insertStep nextPage key value with
+          | mk outcome childNext =>
+            rw [childResult] at success
+            cases outcome with
+            | done child =>
+              have childNextEq : childNext = nextPage :=
+                congrArg Prod.snd success
+              have childPath := rightInduction nextPage child (by
+                simpa [childNextEq] using childResult)
+              cases success
+              exact .branch3Right pageId left firstSeparator middle
+                secondSeparator right child leftRoute middleRoute
+                childPath
+            | split first promoted second => cases success
+
+theorem Node.insert_pathAgrees_of_noAllocation (node : Node Value)
+    (nextPage key : Nat) (value : Value)
+    (noAllocation : (node.insert nextPage key value).2 = nextPage) :
+    Node.PathAgrees key node (node.insert nextPage key value).1 := by
+  unfold Node.insert at noAllocation ⊢
+  cases stepResult : node.insertStep nextPage key value with
+  | mk outcome nextPage' =>
+    rw [stepResult] at noAllocation
+    cases outcome with
+    | done updated =>
+      change nextPage' = nextPage at noAllocation
+      change Node.PathAgrees key node updated
+      subst nextPage'
+      exact node.insertStep_done_pathAgrees nextPage key value updated stepResult
+    | split left separator right =>
+      change nextPage' + 1 = nextPage at noAllocation
+      have allocated := node.insertStep_split_allocates nextPage key value left
+        separator right nextPage' stepResult
+      omega
+
 theorem Node.insertStep_done_rootId (node : Node Value) (nextPage key : Nat)
     (value : Value) (updated : Node Value) (nextPage' : Nat)
     (success : node.insertStep nextPage key value = (.done updated, nextPage')) :

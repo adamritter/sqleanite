@@ -100,10 +100,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   pages.  A byte-relevant physical page descriptor records derived SQLite
   separators; its changed-page encoder accounts for every complete post-state
   tree page, and the live cached selector is proved equal to that specification.
-  Root-to-leaf point writes are proved to contain only post-state pages.  The
-  remaining table-local obligation is complementary off-path preservation for
-  point writes and constructor-level composition; catalog and changed-index
-  composition follow it.
+  Root-to-leaf point writes now have both directions: selected pages are exact
+  post-state bytes, and every omitted post-state page is byte-identical to a
+  complete pre-state page.  This accounting theorem is composed across point
+  insert/replace/delete, split/merge, bulk replace/retain, `replaceBetween?`,
+  table alignment, and the live `updateState?` delta builder.  Catalog,
+  overflow, freelist, and changed-index components must still be composed into
+  the complete localized database representation witness.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
@@ -113,6 +116,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   effect of all seven persisted commands and composes it with arbitrary-delta
   recovery.  The final SQL-text theorem still depends on completing milestones
   1 and 3; those links are not hidden as trusted assumptions.
+
+The latest three-run 2,000-row medians after the table accounting proof are
+296/9/18/75/98/11 ms for bulk load, primary lookup, secondary lookup, bulk
+UPDATE, bulk DELETE, and inner join respectively.  These are within 1.4% of
+the frozen Lean baseline in the worst case; UPDATE and DELETE improved by
+2.6% and 3.0%.
 
 ## Milestone 1: verified SQL text front end
 

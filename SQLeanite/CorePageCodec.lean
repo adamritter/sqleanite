@@ -424,6 +424,29 @@ def physicalChunkPages :
         physicalChunkPages left ++ physicalChunkPages middle ++
           physicalChunkPages right
 
+def physicalChunkRoot :
+    PersistentPageTree.Node CoreChunkPageState.Chunk → PhysicalChunkPage
+  | .leaf pageId entries => .leaf pageId entries
+  | .branch2 pageId left _ right =>
+      .branch2 pageId left.rootId (maximumChunkRowid? left) right.rootId
+  | .branch3 pageId left _ middle _ right =>
+      .branch3 pageId left.rootId (maximumChunkRowid? left) middle.rootId
+        (maximumChunkRowid? middle) right.rootId
+
+def physicalChunkPath (key : Nat) :
+    PersistentPageTree.Node CoreChunkPageState.Chunk →
+      List PhysicalChunkPage
+  | node@(.leaf ..) => [physicalChunkRoot node]
+  | node@(.branch2 _ left separator right) =>
+      physicalChunkRoot node ::
+        if key < separator then physicalChunkPath key left
+        else physicalChunkPath key right
+  | node@(.branch3 _ left firstSeparator middle secondSeparator right) =>
+      physicalChunkRoot node ::
+        if key < firstSeparator then physicalChunkPath key left
+        else if key < secondSeparator then physicalChunkPath key middle
+        else physicalChunkPath key right
+
 /-- One-pass cache for the descriptor traversal.  The last logical entry is
 enough to derive a subtree's physical separator, so parent construction need
 not repeatedly flatten descendant rows. -/
@@ -977,6 +1000,12 @@ def encodeChunkRoot (schema : Core.Schema) :
       let page ← RecursivePageBTree.interiorPage?
         [(left.rootId, leftKey), (middle.rootId, middleKey)] right.rootId
       some ⟨pageId, page⟩
+
+theorem encodeChunkRoot_eq_encodePhysicalChunkRoot (schema : Core.Schema)
+    (node : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    encodeChunkRoot schema node =
+      encodePhysicalChunkPage schema (physicalChunkRoot node) := by
+  cases node <;> rfl
 
 theorem encodeChunkRoot_pageNumber (schema : Core.Schema)
     (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
@@ -2645,6 +2674,261 @@ def encodeChunkPath (schema : Core.Schema) (key : Nat) :
         else if key < secondSeparator then encodeChunkPath schema key middle
         else encodeChunkPath schema key right
       some (page :: child)
+
+theorem encodeChunkPath_eq_mapM (schema : Core.Schema) (key : Nat)
+    (node : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    encodeChunkPath schema key node =
+      (physicalChunkPath key node).mapM (encodePhysicalChunkPage schema) := by
+  induction node with
+  | leaf pageId entries =>
+      simp only [encodeChunkPath, physicalChunkPath, List.mapM_cons,
+        List.mapM_nil, pure, Option.pure_def]
+      rw [encodeChunkRoot_eq_encodePhysicalChunkRoot]
+      cases result : encodePhysicalChunkPage schema
+          (physicalChunkRoot (.leaf pageId entries)) <;>
+        simp [encodeChunkPath, physicalChunkPath, result]
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp only [encodeChunkPath, physicalChunkPath, List.mapM_cons]
+      rw [encodeChunkRoot_eq_encodePhysicalChunkRoot]
+      by_cases route : key < separator
+      · rw [if_pos route]
+        rw [leftInduction]
+        cases rootResult : encodePhysicalChunkPage schema
+            (physicalChunkRoot (.branch2 pageId left separator right)) with
+        | none =>
+          simp [encodeChunkPath, physicalChunkPath, route, rootResult]
+        | some root =>
+          cases childResult : (physicalChunkPath key left).mapM
+              (encodePhysicalChunkPage schema) <;>
+            simp [encodeChunkPath, physicalChunkPath, route, rootResult,
+              childResult]
+      · rw [if_neg route]
+        rw [rightInduction]
+        cases rootResult : encodePhysicalChunkPage schema
+            (physicalChunkRoot (.branch2 pageId left separator right)) with
+        | none =>
+          simp [encodeChunkPath, physicalChunkPath, route, rootResult]
+        | some root =>
+          cases childResult : (physicalChunkPath key right).mapM
+              (encodePhysicalChunkPage schema) <;>
+            simp [encodeChunkPath, physicalChunkPath, route, rootResult,
+              childResult]
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp only [encodeChunkPath, physicalChunkPath, List.mapM_cons]
+      rw [encodeChunkRoot_eq_encodePhysicalChunkRoot]
+      by_cases leftRoute : key < firstSeparator
+      · rw [if_pos leftRoute]
+        rw [leftInduction]
+        cases rootResult : encodePhysicalChunkPage schema
+            (physicalChunkRoot (.branch3 pageId left firstSeparator middle
+              secondSeparator right)) with
+        | none =>
+          simp [encodeChunkPath, physicalChunkPath, leftRoute, rootResult]
+        | some root =>
+          cases childResult : (physicalChunkPath key left).mapM
+              (encodePhysicalChunkPage schema) <;>
+            simp [encodeChunkPath, physicalChunkPath, leftRoute, rootResult,
+              childResult]
+      · rw [if_neg leftRoute]
+        by_cases middleRoute : key < secondSeparator
+        · rw [if_pos middleRoute]
+          rw [middleInduction]
+          cases rootResult : encodePhysicalChunkPage schema
+              (physicalChunkRoot (.branch3 pageId left firstSeparator middle
+                secondSeparator right)) with
+          | none =>
+            simp [encodeChunkPath, physicalChunkPath, leftRoute, middleRoute,
+              rootResult]
+          | some root =>
+            cases childResult : (physicalChunkPath key middle).mapM
+                (encodePhysicalChunkPage schema) <;>
+              simp [encodeChunkPath, physicalChunkPath, leftRoute, middleRoute,
+                rootResult, childResult]
+        · rw [if_neg middleRoute]
+          rw [rightInduction]
+          cases rootResult : encodePhysicalChunkPage schema
+              (physicalChunkRoot (.branch3 pageId left firstSeparator middle
+                secondSeparator right)) with
+          | none =>
+            simp [encodeChunkPath, physicalChunkPath, leftRoute, middleRoute,
+              rootResult]
+          | some root =>
+            cases childResult : (physicalChunkPath key right).mapM
+                (encodePhysicalChunkPage schema) <;>
+              simp [encodeChunkPath, physicalChunkPath, leftRoute, middleRoute,
+                rootResult, childResult]
+
+theorem physicalChunkPages_accounted_of_pathAgrees (key : Nat)
+    {before after : PersistentPageTree.Node CoreChunkPageState.Chunk}
+    (agrees : PersistentPageTree.Node.PathAgrees key before after) :
+    ∀ descriptor ∈ physicalChunkPages after,
+      descriptor ∈ physicalChunkPath key after ∨
+        descriptor ∈ physicalChunkPages before := by
+  induction agrees with
+  | leaf pageId beforeEntries afterEntries =>
+      intro descriptor member
+      simp only [physicalChunkPages, List.mem_singleton] at member
+      subst descriptor
+      exact .inl (by simp [physicalChunkPath, physicalChunkRoot])
+  | branch2Left pageId beforeChild afterChild separator right route child
+      induction =>
+      intro descriptor member
+      rw [physicalChunkPages] at member
+      rcases List.mem_cons.mp member with root | descendants
+      · exact .inl (by
+          rw [physicalChunkPath, if_pos route]
+          exact List.mem_cons.mpr (.inl root))
+      rcases List.mem_append.mp descendants with inChild | inRight
+      · rcases induction descriptor inChild with inPath | inBefore
+        · exact .inl (by
+            rw [physicalChunkPath, if_pos route]
+            exact List.mem_cons.mpr (.inr inPath))
+        · exact .inr (by
+            rw [physicalChunkPages]
+            exact List.mem_cons.mpr
+              (.inr (List.mem_append.mpr (.inl inBefore))))
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr
+            (.inr (List.mem_append.mpr (.inr inRight))))
+  | branch2Right pageId left separator beforeChild afterChild route child
+      induction =>
+      intro descriptor member
+      rw [physicalChunkPages] at member
+      rcases List.mem_cons.mp member with root | descendants
+      · exact .inl (by
+          rw [physicalChunkPath, if_neg route]
+          exact List.mem_cons.mpr (.inl root))
+      rcases List.mem_append.mp descendants with inLeft | inChild
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr
+            (.inr (List.mem_append.mpr (.inl inLeft))))
+      · rcases induction descriptor inChild with inPath | inBefore
+        · exact .inl (by
+            rw [physicalChunkPath, if_neg route]
+            exact List.mem_cons.mpr (.inr inPath))
+        · exact .inr (by
+            rw [physicalChunkPages]
+            exact List.mem_cons.mpr
+              (.inr (List.mem_append.mpr (.inr inBefore))))
+  | branch3Left pageId beforeChild afterChild firstSeparator middle
+      secondSeparator right route child induction =>
+      intro descriptor member
+      rw [physicalChunkPages] at member
+      rcases List.mem_cons.mp member with root | descendants
+      · exact .inl (by
+          rw [physicalChunkPath, if_pos route]
+          exact List.mem_cons.mpr (.inl root))
+      rcases List.mem_append.mp descendants with leftAndMiddle | inRight
+      rcases List.mem_append.mp leftAndMiddle with inChild | inMiddle
+      · rcases induction descriptor inChild with inPath | inBefore
+        · exact .inl (by
+            rw [physicalChunkPath, if_pos route]
+            exact List.mem_cons.mpr (.inr inPath))
+        · exact .inr (by
+            rw [physicalChunkPages]
+            exact List.mem_cons.mpr (.inr
+              (List.mem_append.mpr (.inl
+                (List.mem_append.mpr (.inl inBefore))))))
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr (.inr
+            (List.mem_append.mpr (.inl
+              (List.mem_append.mpr (.inr inMiddle))))))
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr
+            (.inr (List.mem_append.mpr (.inr inRight))))
+  | branch3Middle pageId left firstSeparator beforeChild afterChild
+      secondSeparator right leftRoute route child induction =>
+      intro descriptor member
+      rw [physicalChunkPages] at member
+      rcases List.mem_cons.mp member with root | descendants
+      · exact .inl (by
+          rw [physicalChunkPath, if_neg leftRoute, if_pos route]
+          exact List.mem_cons.mpr (.inl root))
+      rcases List.mem_append.mp descendants with leftAndMiddle | inRight
+      rcases List.mem_append.mp leftAndMiddle with inLeft | inChild
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr (.inr
+            (List.mem_append.mpr (.inl
+              (List.mem_append.mpr (.inl inLeft))))))
+      · rcases induction descriptor inChild with inPath | inBefore
+        · exact .inl (by
+            rw [physicalChunkPath, if_neg leftRoute, if_pos route]
+            exact List.mem_cons.mpr (.inr inPath))
+        · exact .inr (by
+            rw [physicalChunkPages]
+            exact List.mem_cons.mpr (.inr
+              (List.mem_append.mpr (.inl
+                (List.mem_append.mpr (.inr inBefore))))))
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr
+            (.inr (List.mem_append.mpr (.inr inRight))))
+  | branch3Right pageId left firstSeparator middle secondSeparator beforeChild
+      afterChild leftRoute middleRoute child induction =>
+      intro descriptor member
+      rw [physicalChunkPages] at member
+      rcases List.mem_cons.mp member with root | descendants
+      · exact .inl (by
+          rw [physicalChunkPath, if_neg leftRoute, if_neg middleRoute]
+          exact List.mem_cons.mpr (.inl root))
+      rcases List.mem_append.mp descendants with leftAndMiddle | inChild
+      rcases List.mem_append.mp leftAndMiddle with inLeft | inMiddle
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr (.inr
+            (List.mem_append.mpr (.inl
+              (List.mem_append.mpr (.inl inLeft))))))
+      · exact .inr (by
+          rw [physicalChunkPages]
+          exact List.mem_cons.mpr (.inr
+            (List.mem_append.mpr (.inl
+              (List.mem_append.mpr (.inr inMiddle))))))
+      · rcases induction descriptor inChild with inPath | inBefore
+        · exact .inl (by
+            rw [physicalChunkPath, if_neg leftRoute, if_neg middleRoute]
+            exact List.mem_cons.mpr (.inr inPath))
+        · exact .inr (by
+            rw [physicalChunkPages]
+            exact List.mem_cons.mpr
+              (.inr (List.mem_append.mpr (.inr inBefore))))
+
+/-- If two persistent trees differ only along one search path, encoding that
+post-state path accounts for every new byte image.  Pages off the path are
+present byte-for-byte in the complete pre-state encoding. -/
+theorem encodeChunkPath_accounts_of_pathAgrees (schema : Core.Schema)
+    (key : Nat)
+    {before after : PersistentPageTree.Node CoreChunkPageState.Chunk}
+    (path beforePages afterPages : List NumberedPage)
+    (agrees : PersistentPageTree.Node.PathAgrees key before after)
+    (pathEncoded : encodeChunkPath schema key after = some path)
+    (beforeEncoded : encodeChunkNode schema before = some beforePages)
+    (afterEncoded : encodeChunkNode schema after = some afterPages) :
+    ∀ page ∈ afterPages, page ∈ path ∨ page ∈ beforePages := by
+  rw [encodeChunkPath_eq_mapM] at pathEncoded
+  rw [encodeChunkNode_eq_mapM] at beforeEncoded afterEncoded
+  intro page pageMember
+  rcases mapM_encodePhysicalChunkPage_output schema afterEncoded page
+      pageMember with ⟨descriptor, descriptorMember, descriptorEncoded⟩
+  rcases physicalChunkPages_accounted_of_pathAgrees key agrees descriptor
+      descriptorMember with inPath | inBefore
+  · left
+    rcases mapM_encodePhysicalChunkPage_input schema pathEncoded descriptor
+        inPath with ⟨selected, selectedMember, selectedEncoded⟩
+    have equal : selected = page := Option.some.inj
+      (selectedEncoded.symm.trans descriptorEncoded)
+    simpa [equal] using selectedMember
+  · right
+    rcases mapM_encodePhysicalChunkPage_input schema beforeEncoded descriptor
+        inBefore with ⟨old, oldMember, oldEncoded⟩
+    have equal : old = page := Option.some.inj
+      (oldEncoded.symm.trans descriptorEncoded)
+    simpa [equal] using oldMember
 
 /-- A localized root-to-leaf encoding contains only pages from the complete
 encoding of the same persistent tree.  It may omit unchanged siblings, but it

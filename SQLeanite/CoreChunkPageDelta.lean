@@ -14,6 +14,18 @@ structure TableDelta where
   beforePages? : Option (List CorePageCodec.NumberedPage) := none
   freedPageNumbers : List Nat := []
 
+/-- Every complete post-state tree page is either emitted by the delta or is
+byte-identical to a page in the complete pre-state tree encoding.  The
+post-state schema is used on both sides; schema preservation is a separate
+database-level frame fact. -/
+def TableDelta.TreePagesAccounted (delta : TableDelta) : Prop :=
+  ∀ (beforePages afterPages : List CorePageCodec.NumberedPage),
+    CorePageCodec.encodeChunkNode delta.after.table.schema
+        delta.before.tree.root = some beforePages →
+    CorePageCodec.encodeChunkNode delta.after.table.schema
+        delta.after.tree.root = some afterPages →
+    ∀ page ∈ afterPages, page ∈ delta.pages ∨ page ∈ beforePages
+
 def maximumTreeKey? (node : PersistentPageTree.Node
     CoreChunkPageState.Chunk) : Option Nat :=
   node.erase.toList.getLast?.map (fun entry => entry.1)
@@ -127,6 +139,36 @@ def encodeChunkNodesWithIds (schema : Core.Schema) (ids : List Nat) :
   ((CorePageCodec.physicalChunkPagesFast node).filter fun page =>
       ids.contains page.pageNumber).mapM
     (CorePageCodec.encodePhysicalChunkPage schema)
+
+theorem treePagesAccounted_of_changedPhysical
+    (schema : Core.Schema)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (pages : List CorePageCodec.NumberedPage)
+    (encoded : (CorePageCodec.changedPhysicalChunkPagesFast before after).mapM
+      (CorePageCodec.encodePhysicalChunkPage schema) = some pages) :
+    ∀ (beforePages afterPages : List CorePageCodec.NumberedPage),
+      CorePageCodec.encodeChunkNode schema before = some beforePages →
+      CorePageCodec.encodeChunkNode schema after = some afterPages →
+      ∀ page ∈ afterPages, page ∈ pages ∨ page ∈ beforePages := by
+  rw [CorePageCodec.changedPhysicalChunkPagesFast_eq] at encoded
+  intro beforePages afterPages beforeEncoded afterEncoded
+  exact CorePageCodec.encodeChangedChunkPages_accounts schema before after
+    beforePages afterPages pages beforeEncoded afterEncoded (by
+      simpa [CorePageCodec.encodeChangedChunkPages] using encoded)
+
+theorem treePagesAccounted_of_pathAgrees
+    (schema : Core.Schema) (key : Nat)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (pages : List CorePageCodec.NumberedPage)
+    (agrees : PersistentPageTree.Node.PathAgrees key before after)
+    (encoded : CorePageCodec.encodeChunkPath schema key after = some pages) :
+    ∀ (beforePages afterPages : List CorePageCodec.NumberedPage),
+      CorePageCodec.encodeChunkNode schema before = some beforePages →
+      CorePageCodec.encodeChunkNode schema after = some afterPages →
+      ∀ page ∈ afterPages, page ∈ pages ∨ page ∈ beforePages := by
+  intro beforePages afterPages beforeEncoded afterEncoded
+  exact CorePageCodec.encodeChunkPath_accounts_of_pathAgrees schema key pages
+    beforePages afterPages agrees encoded beforeEncoded afterEncoded
 
 def replace? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     (row : Core.Row) (replacement : Core.Table) : Option TableDelta := do
@@ -303,15 +345,14 @@ def replaceMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     let updatedTree := updated.1
     if _noAllocation : updatedTree.nextPage = nextPage then
       if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-        -- Rowids and topology are fixed on the bulk-update path, so generic
-        -- stable-page equality is already byte-complete and avoids computing
-        -- derived separators that cannot change.
-        let changedIds := (PersistentPageTree.changedPages state.tree.root
-          updatedTree.root).map PersistentPageTree.Page.pageId
+        let changedPhysical := CorePageCodec.changedPhysicalChunkPagesFast
+          state.tree.root updatedTree.root
+        let changedIds := changedPhysical.map
+          CorePageCodec.PhysicalChunkPage.pageNumber
         let beforePages ← encodeChunkNodesWithIds state.table.schema changedIds
           state.tree.root
-        let pages ← encodeChunkNodesWithIds replacement.schema changedIds
-          updatedTree.root
+        let pages ← changedPhysical.mapM
+          (CorePageCodec.encodePhysicalChunkPage replacement.schema)
         let after : CoreChunkPageState.TableState :=
           ⟨replacement, updatedTree, represents⟩
         some ⟨state, after, row.treeKey, pages, some beforePages, []⟩
@@ -347,6 +388,32 @@ theorem replaceMany?_represents {state : CoreChunkPageState.TableState}
     (success : replaceMany? state nextPage replacement = some delta) :
     CoreChunkPageState.Store.rows delta.after.tree = replacement.rows := by
   rw [delta.after.represents, replaceMany?_table success]
+
+theorem replaceMany?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceMany? state nextPage replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold replaceMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next represents =>
+        rcases Option.bind_eq_some.mp success with
+          ⟨beforePages, beforeResult, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        have equal := Option.some.inj success
+        subst delta
+        exact treePagesAccounted_of_changedPhysical replacement.schema
+          state.tree.root _ pages pagesResult
+      next => contradiction
+    next => contradiction
+  next => contradiction
 
 /-- Consume the replacement rows belonging to one old chunk.  Both inputs are
 strictly rowid ordered; rows absent from the replacement are deletions, while a
@@ -425,6 +492,29 @@ theorem retainMany?_represents {state : CoreChunkPageState.TableState}
     (success : retainMany? state nextPage replacement = some delta) :
     CoreChunkPageState.Store.rows delta.after.tree = replacement.rows := by
   rw [delta.after.represents, retainMany?_table success]
+
+theorem retainMany?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : retainMany? state nextPage replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold retainMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next represents =>
+      rcases Option.bind_eq_some.mp success with
+        ⟨beforePages, beforeResult, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+      have equal := Option.some.inj success
+      subst delta
+      exact treePagesAccounted_of_changedPhysical replacement.schema
+        state.tree.root _ pages pagesResult
+    next => contradiction
+  next => contradiction
 
 def replaceBetween? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     (replacement : Core.Table) : Option TableDelta :=
@@ -527,6 +617,50 @@ theorem replace?_table {state : CoreChunkPageState.TableState}
         next => contradiction
       next => contradiction
 
+theorem replace?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : replace? state nextPage row replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold replace? at success
+  cases entryResult : findChunkFor? row.treeKey state.tree.root with
+  | none => simp [entryResult] at success
+  | some entry =>
+      simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
+      split at success
+      next =>
+        dsimp only at success
+        split at success
+        next noAllocation =>
+          split at success
+          next represents =>
+            cases pageResult : CorePageCodec.encodeChunkPath replacement.schema
+                entry.1 ({ state.tree with nextPage }.insert entry.1
+                  (replaceRow row entry.2)).root with
+            | none => simp [pageResult] at success
+            | some pages =>
+                simp only [pageResult, Option.bind_eq_bind, Option.bind,
+                  Option.some.injEq] at success
+                subst delta
+                unfold TableDelta.TreePagesAccounted
+                dsimp only
+                have agrees :=
+                  state.tree.root.insert_pathAgrees_of_noAllocation nextPage
+                    entry.1 (replaceRow row entry.2) (by
+                      simpa [PersistentPageTree.Store.insert] using
+                        noAllocation)
+                have accounted := treePagesAccounted_of_pathAgrees
+                  replacement.schema entry.1 state.tree.root
+                    (state.tree.root.insert nextPage entry.1
+                      (replaceRow row entry.2)).1 pages agrees (by
+                        simpa [PersistentPageTree.Store.insert] using
+                          pageResult)
+                simpa [PersistentPageTree.Store.insert] using accounted
+          next => contradiction
+        next => contradiction
+      next => contradiction
+
 theorem insert?_correct {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
     {delta : TableDelta}
@@ -573,6 +707,53 @@ theorem insert?_table {state : CoreChunkPageState.TableState}
     (success : insert? state nextPage row replacement = some delta) :
     delta.after.table = replacement :=
   (insert?_correct success).2
+
+theorem insert?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : insert? state nextPage row replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold insert? at success
+  cases entryResult : findChunkFor? row.treeKey state.tree.root with
+  | none => simp [entryResult] at success
+  | some entry =>
+      simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
+      split at success
+      next =>
+        split at success
+        next =>
+          split at success
+          next noAllocation =>
+            split at success
+            next represents =>
+              cases pageResult : CorePageCodec.encodeChunkPath
+                  replacement.schema entry.1
+                  ({ state.tree with nextPage }.insert entry.1
+                    (Core.orderedUpsert row entry.2)).root with
+              | none => simp [pageResult] at success
+              | some pages =>
+                  simp only [pageResult, Option.bind_eq_bind, Option.bind,
+                    Option.some.injEq] at success
+                  subst delta
+                  unfold TableDelta.TreePagesAccounted
+                  dsimp only
+                  have agrees :=
+                    state.tree.root.insert_pathAgrees_of_noAllocation nextPage
+                      entry.1 (Core.orderedUpsert row entry.2) (by
+                        simpa [PersistentPageTree.Store.insert] using
+                          noAllocation)
+                  have accounted := treePagesAccounted_of_pathAgrees
+                    replacement.schema entry.1 state.tree.root
+                      (state.tree.root.insert nextPage entry.1
+                        (Core.orderedUpsert row entry.2)).1 pages agrees (by
+                          simpa [PersistentPageTree.Store.insert] using
+                            pageResult)
+                  simpa [PersistentPageTree.Store.insert] using accounted
+            next => contradiction
+          next => contradiction
+        next => contradiction
+      next => contradiction
 
 theorem delete?_correct {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
@@ -622,6 +803,58 @@ theorem delete?_table {state : CoreChunkPageState.TableState}
     delta.after.table = replacement :=
   (delete?_correct success).2
 
+theorem delete?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : delete? state nextPage row replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold delete? at success
+  cases entryResult : findChunkFor? row.treeKey state.tree.root with
+  | none => simp [entryResult] at success
+  | some entry =>
+      simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
+      split at success
+      next =>
+        dsimp only at success
+        split at success
+        next =>
+          split at success
+          next noAllocation =>
+            split at success
+            next represents =>
+              cases pageResult : CorePageCodec.encodeChunkPath
+                  replacement.schema entry.1
+                  ({ state.tree with nextPage }.insert entry.1
+                    (entry.2.filter
+                      (fun old => old.rowid != row.rowid))).root with
+              | none => simp [pageResult] at success
+              | some pages =>
+                  simp only [pageResult, Option.bind_eq_bind, Option.bind,
+                    Option.some.injEq] at success
+                  subst delta
+                  unfold TableDelta.TreePagesAccounted
+                  dsimp only
+                  let updatedChunk := entry.2.filter
+                    (fun old => old.rowid != row.rowid)
+                  have agrees :=
+                    state.tree.root.insert_pathAgrees_of_noAllocation nextPage
+                      entry.1 updatedChunk (by
+                        simpa [updatedChunk, PersistentPageTree.Store.insert]
+                          using noAllocation)
+                  have accounted := treePagesAccounted_of_pathAgrees
+                    replacement.schema entry.1 state.tree.root
+                      (state.tree.root.insert nextPage entry.1
+                        updatedChunk).1 pages agrees (by
+                          simpa [updatedChunk,
+                            PersistentPageTree.Store.insert] using pageResult)
+                  simpa [updatedChunk, PersistentPageTree.Store.insert] using
+                    accounted
+            next => contradiction
+          next => contradiction
+        next => contradiction
+      next => contradiction
+
 theorem splitInsert?_table {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
     {delta : TableDelta}
@@ -657,6 +890,35 @@ theorem splitInsert?_represents {state : CoreChunkPageState.TableState}
     CoreChunkPageState.Store.rows delta.after.tree = replacement.rows := by
   rw [delta.after.represents, splitInsert?_table success]
 
+theorem splitInsert?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : splitInsert? state nextPage row replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold splitInsert? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      split at success
+      next represents =>
+        rcases Option.bind_eq_some.mp success with
+          ⟨beforePages, beforeResult, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        have equal := Option.some.inj success
+        subst delta
+        exact treePagesAccounted_of_changedPhysical replacement.schema
+          state.tree.root _ pages pagesResult
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
 theorem mergeDelete?_table {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
     {delta : TableDelta}
@@ -688,6 +950,33 @@ theorem mergeDelete?_represents {state : CoreChunkPageState.TableState}
     (success : mergeDelete? state nextPage row replacement = some delta) :
     CoreChunkPageState.Store.rows delta.after.tree = replacement.rows := by
   rw [delta.after.represents, mergeDelete?_table success]
+
+theorem mergeDelete?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : mergeDelete? state nextPage row replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold mergeDelete? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      split at success
+      next represents =>
+        rcases Option.bind_eq_some.mp success with
+          ⟨beforePages, beforeResult, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        have equal := Option.some.inj success
+        subst delta
+        exact treePagesAccounted_of_changedPhysical replacement.schema
+          state.tree.root _ pages pagesResult
+      next => contradiction
+    next => contradiction
+  next => contradiction
 
 theorem replaceBetween?_table {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
@@ -749,6 +1038,76 @@ theorem replaceBetween?_table {state : CoreChunkPageState.TableState}
                   rw [replacementResult] at success
                   exact replaceMany?_table success
 
+theorem replaceBetween?_treePagesAccounted
+    {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceBetween? state nextPage replacement = some delta) :
+    delta.TreePagesAccounted := by
+  unfold replaceBetween? at success
+  split at success
+  next sameData =>
+    injection success with equal
+    subst delta
+    unfold TableDelta.TreePagesAccounted
+    dsimp only
+    intro beforePages afterPages beforeEncoded afterEncoded page member
+    right
+    have pagesEqual : beforePages = afterPages := Option.some.inj
+      (beforeEncoded.symm.trans afterEncoded)
+    simpa [pagesEqual] using member
+  next =>
+    split at success
+    next =>
+      cases inserted : firstInserted state.table.rows replacement.rows with
+      | none => simp [inserted] at success
+      | some row =>
+          simp only [inserted, Option.bind_eq_bind, Option.bind] at success
+          cases insertionResult : insert? state nextPage row replacement with
+          | none =>
+              rw [insertionResult] at success
+              exact splitInsert?_treePagesAccounted success
+          | some candidate =>
+              rw [insertionResult] at success
+              simp only [Option.some.injEq] at success
+              subst candidate
+              exact insert?_treePagesAccounted insertionResult
+    next =>
+      split at success
+      next =>
+        cases deleted : firstDeleted state.table.rows replacement.rows with
+        | none => simp [deleted] at success
+        | some row =>
+            simp only [deleted, Option.bind_eq_bind, Option.bind] at success
+            cases deletionResult : delete? state nextPage row replacement with
+            | none =>
+                rw [deletionResult] at success
+                exact mergeDelete?_treePagesAccounted success
+            | some candidate =>
+                rw [deletionResult] at success
+                simp only [Option.some.injEq] at success
+                subst candidate
+                exact delete?_treePagesAccounted deletionResult
+      next =>
+        split at success
+        next => exact retainMany?_treePagesAccounted success
+        next =>
+          cases difference : firstDifference state.table.rows
+              replacement.rows with
+          | none => simp [difference] at success
+          | some row =>
+              simp only [difference, Option.bind_eq_bind, Option.bind]
+                at success
+              cases replacementResult : replace? state nextPage row
+                  replacement with
+              | some candidate =>
+                  rw [replacementResult] at success
+                  simp only [Option.some.injEq] at success
+                  subst candidate
+                  exact replace?_treePagesAccounted replacementResult
+              | none =>
+                  rw [replacementResult] at success
+                  exact replaceMany?_treePagesAccounted success
+
 structure AlignedTables (target : List Core.Table) where
   tables : List CoreChunkPageState.TableState
   aligned : tables.map (fun state => state.table) = target
@@ -780,6 +1139,48 @@ def alignTables? : Nat → List CoreChunkPageState.TableState →
                     tail.nextPage, some head⟩
                 else none
   | _, _, _ => none
+
+theorem alignTables?_delta_treePagesAccounted :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta → delta.TreePagesAccounted := by
+  intro nextPage states
+  induction states generalizing nextPage with
+  | nil =>
+      intro target aligned delta success selected
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | cons old olds induction =>
+      intro target aligned delta success selected
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+          unfold alignTables? at success
+          split at success
+          next same =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tail, tailResult, success⟩
+            injection success with equal
+            subst aligned
+            exact induction tailResult selected
+          next =>
+            split at success
+            next => contradiction
+            next head headResult =>
+              split at success
+              next => contradiction
+              next tail tailResult =>
+                split at success
+                next =>
+                  injection success with equal
+                  subst aligned
+                  have headEqual : head = delta := Option.some.inj selected
+                  subst delta
+                  exact replaceBetween?_treePagesAccounted headResult
+                next => contradiction
 
 structure StateDelta where
   before : CoreChunkPageState.State
@@ -1058,6 +1459,23 @@ theorem updateStateCandidate?_endpoints
     exact ⟨rfl, rfl⟩
   next => contradiction
 
+theorem updateStateCandidate?_treePagesAccounted
+    {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateStateCandidate? state database = some delta) :
+    delta.table.TreePagesAccounted := by
+  unfold updateStateCandidate? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨aligned, alignedResult, updated⟩
+  rcases Option.bind_eq_some.mp updated with
+    ⟨table, tableResult, updated⟩
+  split at updated
+  next =>
+    injection updated with equal
+    subst delta
+    exact alignTables?_delta_treePagesAccounted alignedResult tableResult
+  next => contradiction
+
 def updateState? (state : CoreChunkPageState.State) (database : Core.Database) :
     Option StateDelta := do
   let delta ← updateStateCandidate? state database
@@ -1103,6 +1521,21 @@ theorem updateState?_endpoints {state : CoreChunkPageState.State}
     injection updated with equal
     subst candidate
     exact updateStateCandidate?_endpoints candidateResult
+  next => contradiction
+
+theorem updateState?_treePagesAccounted
+    {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateState? state database = some delta) :
+    delta.table.TreePagesAccounted := by
+  unfold updateState? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨candidate, candidateResult, updated⟩
+  split at updated
+  next =>
+    injection updated with equal
+    subst candidate
+    exact updateStateCandidate?_treePagesAccounted candidateResult
   next => contradiction
 
 def numberedWrite? (page : CorePageCodec.NumberedPage) :
