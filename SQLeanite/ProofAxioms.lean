@@ -518,6 +518,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedValue_exact
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedRange_exact
 #print axioms SQLeanite.CoreFileAdapter.CertifiedCandidates.result_exact
+#print axioms SQLeanite.Core.Database.findTable?_eq_some_of_mem
+#print axioms SQLeanite.Core.Database.table_eq_of_mem_of_name_eq
 #print axioms SQLeanite.CoreFileAdapter.StoredIntegerIndex.retarget_value_exact
 #print axioms SQLeanite.CoreFileAdapter.StoredIntegerIndex.retarget_range_exact
 #print axioms SQLeanite.CoreFileEngine.requiresPersistence_write_in_transaction

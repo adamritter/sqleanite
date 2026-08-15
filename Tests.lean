@@ -2229,9 +2229,10 @@ private def expectPhysicalIndexTraversal : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty sql with
     | .ok outcome => pure outcome
     | .error message => fail s!"physical index setup failed: {message}"
-  let table ← match state.database.findTable? "indexed" with
+  let attachedTable ← match state.database.findTableMember? "indexed" with
     | some table => pure table
     | none => fail "physical index setup lost its table"
+  let table := attachedTable.val
   let index ← match table.indexes.find? (·.name == "indexed_value") with
     | some index => pure index
     | none => fail "physical index setup lost its index"
@@ -2334,9 +2335,11 @@ private def expectPhysicalIndexTraversal : IO Unit := do
       "UPDATE indexed SET note='new' WHERE id=61;" with
     | .ok (updated, _) => pure updated
     | .error message => fail s!"certificate retarget setup failed: {message}"
-  let updatedTable ← match updatedState.database.findTable? "indexed" with
+  let attachedUpdatedTable ← match
+      updatedState.database.findTableMember? "indexed" with
     | some updated => pure updated
     | none => fail "certificate retarget lost its logical table"
+  let updatedTable := attachedUpdatedTable.val
   let retargeted := CoreFileAdapter.retargetIntegerIndexCertificates
     retainedCertificates updatedState.database
   let retargetQuery : Core.Query := {
@@ -2344,7 +2347,7 @@ private def expectPhysicalIndexTraversal : IO Unit := do
     predicate := some (.equal integerIndex.column integerTarget) }
   let retargetLookup ← match
       CoreFileAdapter.lookupCertifiedIndexCandidates retargeted updatedTable
-        retargetQuery with
+        attachedUpdatedTable.property retargetQuery with
     | some lookup => pure lookup
     | none => fail "index-preserving update discarded its certificate"
   match retargetLookup.result.rows with
@@ -2354,7 +2357,7 @@ private def expectPhysicalIndexTraversal : IO Unit := do
   | _ => fail "retargeted certificate returned the wrong result shape"
   let certifiedCandidates ← match
       CoreFileAdapter.lookupCertifiedIndexCandidates retainedCertificates table
-        integerQuery with
+        attachedTable.property integerQuery with
     | some lookup => pure lookup
     | none => fail "integer index certificate was not reusable by a query"
   unless certifiedCandidates.candidates.map (·.rowid.value) == [61] do
@@ -2572,9 +2575,10 @@ private def expectWideCIndexCertificate : IO Unit := do
   unless created.exitCode == 0 do
     fail s!"sqlite3 could not create a wide index: {created.stderr}"
   let database ← CoreFileAdapter.reopen paths
-  let table ← match database.findTable? "wide" with
+  let attachedTable ← match database.findTableMember? "wide" with
     | some table => pure table
     | none => fail "general decoder lost the C-produced wide table"
+  let table := attachedTable.val
   let index ← match table.indexes.find? (·.name == "wide_score") with
     | some index => pure index
     | none => fail "general decoder lost the C-produced wide index"
@@ -2595,7 +2599,8 @@ private def expectWideCIndexCertificate : IO Unit := do
     columns := [0, index.column]
     predicate := some (.equal index.column target) }
   let certified ← match
-      CoreFileAdapter.lookupCertifiedIndexCandidates certificates table query with
+      CoreFileAdapter.lookupCertifiedIndexCandidates certificates table
+        attachedTable.property query with
     | some certified => pure certified
     | none => fail "wide C-produced index fell back to a full query"
   match certified.result.rows with
@@ -2603,9 +2608,10 @@ private def expectWideCIndexCertificate : IO Unit := do
       unless id.value == 2000 && score.value == 20000 do
         fail "wide C-produced certificate returned the wrong row"
   | _ => fail "wide C-produced certificate returned the wrong result shape"
-  let mixedTable ← match database.findTable? "mixed" with
+  let attachedMixedTable ← match database.findTableMember? "mixed" with
     | some table => pure table
     | none => fail "general decoder lost the mixed-storage table"
+  let mixedTable := attachedMixedTable.val
   let mixedIndex ← match mixedTable.indexes.find? (·.name == "mixed_v") with
     | some index => pure index
     | none => fail "general decoder lost the mixed-storage index"
@@ -2624,7 +2630,7 @@ private def expectWideCIndexCertificate : IO Unit := do
     predicate := some (.equal mixedIndex.column textTarget) }
   let mixedCertified ← match
       CoreFileAdapter.lookupCertifiedIndexCandidates certificates mixedTable
-        mixedQuery with
+        attachedMixedTable.property mixedQuery with
     | some certified => pure certified
     | none => fail "mixed-storage equality query fell back to a full plan"
   match mixedCertified.result.rows with
@@ -2637,7 +2643,7 @@ private def expectWideCIndexCertificate : IO Unit := do
     predicate := some (.compare .greaterEqual mixedIndex.column textTarget) }
   let rangeCertified ← match
       CoreFileAdapter.lookupCertifiedIndexCandidates certificates mixedTable
-        mixedRange with
+        attachedMixedTable.property mixedRange with
     | some certified => pure certified
     | none => fail "mixed-storage range query fell back to a full plan"
   unless rangeCertified.result.rows ==

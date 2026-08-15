@@ -1434,8 +1434,9 @@ theorem IntegerIndexRouting.rangeEntries_exact
 specific physical page source to the exact logical entries of `table/index`.
 The connection invalidates these values on mutation until localized
 certificate maintenance is implemented. -/
-structure StoredIntegerIndex where
+structure StoredIntegerIndex (database : Core.Database) where
   table : Core.Table
+  tableMember : table ∈ database.tables
   index : Core.Index
   source : CoreDecode.PageSource
   fuel : Nat
@@ -1447,11 +1448,14 @@ structure StoredIntegerIndex where
 /-- Rebind a physical index certificate to a newer logical table when the
 exact abstract index entries are unchanged.  The dependent certificate itself
 is reused: it names only the immutable page source and `expected` list. -/
-def StoredIntegerIndex.retarget (stored : StoredIntegerIndex)
-    (table : Core.Table) (index : Core.Index)
+def StoredIntegerIndex.retarget {before : Core.Database}
+    (stored : StoredIntegerIndex before) (database : Core.Database)
+    (table : Core.Table) (tableMember : table ∈ database.tables)
+    (index : Core.Index)
     (sameExpected : CoreDecode.expectedIndexEntries table index =
-      stored.expected) : StoredIntegerIndex := {
+      stored.expected) : StoredIntegerIndex database := {
   table
+  tableMember
   index
   source := stored.source
   fuel := stored.fuel
@@ -1461,27 +1465,34 @@ def StoredIntegerIndex.retarget (stored : StoredIntegerIndex)
   certificate := stored.certificate }
 
 @[simp] theorem StoredIntegerIndex.retarget_expected
-    (stored : StoredIntegerIndex) (table : Core.Table) (index : Core.Index)
+    {before : Core.Database} (stored : StoredIntegerIndex before)
+    (database : Core.Database) (table : Core.Table)
+    (tableMember : table ∈ database.tables) (index : Core.Index)
     (sameExpected : CoreDecode.expectedIndexEntries table index =
       stored.expected) :
-    (stored.retarget table index sameExpected).expected = stored.expected := rfl
+    (stored.retarget database table tableMember index sameExpected).expected =
+      stored.expected := rfl
 
 theorem StoredIntegerIndex.retarget_value_exact
-    (stored : StoredIntegerIndex) (table : Core.Table) (index : Core.Index)
+    {before : Core.Database} (stored : StoredIntegerIndex before)
+    (database : Core.Database) (table : Core.Table)
+    (tableMember : table ∈ database.tables) (index : Core.Index)
     (sameExpected : CoreDecode.expectedIndexEntries table index =
       stored.expected) (target : Core.Value) :
-    (stored.retarget table index sameExpected).certificate.valueEntries target =
+    (stored.retarget database table tableMember index sameExpected).certificate.valueEntries target =
       (CoreDecode.expectedIndexEntries table index).filter
         (fun entry => entry.matchesValue target) := by
   change stored.certificate.valueEntries target = _
   rw [stored.certificate.valueEntries_exact, sameExpected]
 
 theorem StoredIntegerIndex.retarget_range_exact
-    (stored : StoredIntegerIndex) (table : Core.Table) (index : Core.Index)
+    {before : Core.Database} (stored : StoredIntegerIndex before)
+    (database : Core.Database) (table : Core.Table)
+    (tableMember : table ∈ database.tables) (index : Core.Index)
     (sameExpected : CoreDecode.expectedIndexEntries table index =
       stored.expected) (operation : PhysicalQuery.Comparison)
     (target : Core.Value) :
-    (stored.retarget table index sameExpected).certificate.rangeEntries
+    (stored.retarget database table tableMember index sameExpected).certificate.rangeEntries
         operation target =
       (CoreDecode.expectedIndexEntries table index).filter
         (fun entry => entry.matchesRange operation target) := by
@@ -1490,31 +1501,41 @@ theorem StoredIntegerIndex.retarget_range_exact
 
 /-- Checked certificate maintenance for a localized table mutation.  Schema,
 index identity and the complete logical index image must all agree. -/
-def StoredIntegerIndex.retarget? (stored : StoredIntegerIndex)
-    (database : Core.Database) : Option StoredIntegerIndex := do
-  let table ← database.findTable? stored.table.schema.name
-  if _sameSchema : table.schema = stored.table.schema then
-    let index ← table.indexes.find? fun candidate =>
-      candidate.name == stored.index.name
-    if _sameIndex : index = stored.index then
-      if sameExpected : CoreDecode.expectedIndexEntries table index =
-          stored.expected then
-        some (stored.retarget table index sameExpected)
+def StoredIntegerIndex.retarget? {before : Core.Database}
+    (stored : StoredIntegerIndex before) (database : Core.Database) :
+    Option (StoredIntegerIndex database) :=
+  match found : database.findTable? stored.table.schema.name with
+  | none => none
+  | some table =>
+      have tableMember : table ∈ database.tables :=
+        database.findTable?_mem found
+      if _sameSchema : table.schema = stored.table.schema then
+        match table.indexes.find? fun candidate =>
+            candidate.name == stored.index.name with
+        | none => none
+        | some index =>
+            if _sameIndex : index = stored.index then
+              if sameExpected : CoreDecode.expectedIndexEntries table index =
+                  stored.expected then
+                some (stored.retarget database table tableMember index
+                  sameExpected)
+              else none
+            else none
       else none
-    else none
-  else none
 
 def retargetIntegerIndexCertificates
-    (certificates : List StoredIntegerIndex) (database : Core.Database) :
-    List StoredIntegerIndex :=
+    {before : Core.Database}
+    (certificates : List (StoredIntegerIndex before))
+    (database : Core.Database) : List (StoredIntegerIndex database) :=
   certificates.filterMap fun stored => stored.retarget? database
 
 def certifyIntegerIndexes (physicalPages : List (List UInt8))
     (catalog : List CoreDecode.CatalogEntry) (database : Core.Database) :
-    List StoredIntegerIndex :=
+    List (StoredIntegerIndex database) :=
   let source := CoreDecode.PageSource.ofList physicalPages
   let fuel := physicalPages.length + 1
-  database.tables.flatMap fun table =>
+  database.tables.attach.flatMap fun attached =>
+    let table := attached.val
     table.indexes.filterMap fun index =>
       match catalog.find? (fun entry =>
         entry.kind == "index" && entry.name == index.name &&
@@ -1532,17 +1553,20 @@ def certifyIntegerIndexes (physicalPages : List (List UInt8))
                       catalogEntry.rootPage expected with
                   | none => none
                   | some certificate =>
-                      some ⟨table, index, source, fuel, catalogEntry.rootPage,
+                      some ⟨table, attached.property, index, source, fuel,
+                        catalogEntry.rootPage,
                         expected, rfl, .allValues certificate⟩
               | some certificate =>
-                  some ⟨table, index, source, fuel, catalogEntry.rootPage,
+                  some ⟨table, attached.property, index, source, fuel,
+                    catalogEntry.rootPage,
                     expected, rfl, .general certificate⟩
           | some certificate =>
-              some ⟨table, index, source, fuel, catalogEntry.rootPage,
+              some ⟨table, attached.property, index, source, fuel,
+                catalogEntry.rootPage,
                 expected, rfl, .generated certificate⟩
 
 def loadIntegerIndexCertificates (paths : Paths) (database : Core.Database) :
-    IO (List StoredIntegerIndex) := do
+    IO (List (StoredIntegerIndex database)) := do
   let input ← IO.FS.readBinFile paths.main
   let bytes := input.data.toList
   let some (header, _) := FileFormat.decodeDatabaseHeader bytes | return []
@@ -1869,9 +1893,10 @@ theorem CertifiedCandidates.result_exact {table : Core.Table}
     certified.result.rows = query.eval table.rows := by
   exact certified.exact
 
-def certifiedEqualityCandidates (stored : StoredIntegerIndex)
+def certifiedEqualityCandidates {database : Core.Database}
+    (stored : StoredIntegerIndex database)
     (table : Core.Table) (query : Core.Query) (target : Core.Value)
-    (rowsEqual : stored.table.rows = table.rows)
+    (sameTable : stored.table = table)
     (predicateEqual : query.predicate =
       some (.equal stored.index.column target)) :
     CertifiedCandidates table query :=
@@ -1884,6 +1909,8 @@ def certifiedEqualityCandidates (stored : StoredIntegerIndex)
   have candidatesEqual : candidates = table.rows.filter
       (Core.selects query.predicate) := by
     unfold candidates
+    have rowsEqual : stored.table.rows = table.rows :=
+      congrArg Core.Table.rows sameTable
     have expectedCurrent : stored.expected =
         CoreDecode.expectedIndexEntries table stored.index := by
       rw [stored.expected_eq]
@@ -1900,10 +1927,11 @@ def certifiedEqualityCandidates (stored : StoredIntegerIndex)
   ⟨candidates, Core.Query.eval_indexed stored.index query table.rows candidates
     narrowed⟩
 
-def certifiedRangeCandidates (stored : StoredIntegerIndex)
+def certifiedRangeCandidates {database : Core.Database}
+    (stored : StoredIntegerIndex database)
     (table : Core.Table) (query : Core.Query)
     (operation : PhysicalQuery.Comparison) (target : Core.Value)
-    (rowsEqual : stored.table.rows = table.rows)
+    (sameTable : stored.table = table)
     (predicateEqual : query.predicate =
       some (.compare operation stored.index.column target)) :
     CertifiedCandidates table query :=
@@ -1916,6 +1944,8 @@ def certifiedRangeCandidates (stored : StoredIntegerIndex)
   have candidatesEqual : candidates = table.rows.filter
       (Core.selects query.predicate) := by
     unfold candidates
+    have rowsEqual : stored.table.rows = table.rows :=
+      congrArg Core.Table.rows sameTable
     have expectedCurrent : stored.expected =
         CoreDecode.expectedIndexEntries table stored.index := by
       rw [stored.expected_eq]
@@ -1932,31 +1962,39 @@ def certifiedRangeCandidates (stored : StoredIntegerIndex)
   ⟨candidates, Core.Query.eval_indexed stored.index query table.rows candidates
     narrowed⟩
 
-def lookupCertifiedIndexCandidates (certificates : List StoredIntegerIndex)
-    (table : Core.Table) (query : Core.Query) :
+def lookupCertifiedIndexCandidates {database : Core.Database}
+    (certificates : List (StoredIntegerIndex database))
+    (table : Core.Table) (tableMember : table ∈ database.tables)
+    (query : Core.Query) :
     Option (CertifiedCandidates table query) :=
   match predicateResult : query.predicate with
   | some (.equal column target) =>
       match table.chooseAccessPath query.predicate with
       | .equalityIndex index =>
           if columnEqual : column = index.column then
-            match certificates.find? fun stored =>
+            match storedResult : certificates.find? fun stored =>
                 stored.table.schema.name == table.schema.name &&
                   stored.index.name == index.name with
             | none => none
             | some stored =>
                 if indexEqual : stored.index = index then
-                  if rowsEqual : stored.table.rows = table.rows then
-                    have predicateEqual : query.predicate =
-                        some (.equal stored.index.column target) := by
-                      calc
-                        query.predicate = some (.equal column target) :=
-                          predicateResult
-                        _ = some (.equal stored.index.column target) := by
-                          simp [indexEqual, columnEqual]
-                    some (certifiedEqualityCandidates stored table query target
-                      rowsEqual predicateEqual)
-                  else none
+                  have storedName : stored.table.schema.name =
+                      table.schema.name := by
+                    have selected := List.find?_some storedResult
+                    simp only [Bool.and_eq_true, beq_iff_eq] at selected
+                    exact selected.1
+                  have sameTable : stored.table = table :=
+                    database.table_eq_of_mem_of_name_eq stored.tableMember
+                      tableMember storedName
+                  have predicateEqual : query.predicate =
+                      some (.equal stored.index.column target) := by
+                    calc
+                      query.predicate = some (.equal column target) :=
+                        predicateResult
+                      _ = some (.equal stored.index.column target) := by
+                        simp [indexEqual, columnEqual]
+                  some (certifiedEqualityCandidates stored table query target
+                    sameTable predicateEqual)
                 else none
           else none
       | _ => none
@@ -1964,24 +2002,30 @@ def lookupCertifiedIndexCandidates (certificates : List StoredIntegerIndex)
       match table.chooseAccessPath query.predicate with
       | .rangeIndex index =>
           if columnEqual : column = index.column then
-            match certificates.find? fun stored =>
+            match storedResult : certificates.find? fun stored =>
                 stored.table.schema.name == table.schema.name &&
                   stored.index.name == index.name with
             | none => none
             | some stored =>
                 if indexEqual : stored.index = index then
-                  if rowsEqual : stored.table.rows = table.rows then
-                    have predicateEqual : query.predicate =
-                        some (.compare operation stored.index.column target) := by
-                      calc
-                        query.predicate =
-                            some (.compare operation column target) :=
-                          predicateResult
-                        _ = some (.compare operation stored.index.column target) := by
-                          simp [indexEqual, columnEqual]
-                    some (certifiedRangeCandidates stored table query operation
-                      target rowsEqual predicateEqual)
-                  else none
+                  have storedName : stored.table.schema.name =
+                      table.schema.name := by
+                    have selected := List.find?_some storedResult
+                    simp only [Bool.and_eq_true, beq_iff_eq] at selected
+                    exact selected.1
+                  have sameTable : stored.table = table :=
+                    database.table_eq_of_mem_of_name_eq stored.tableMember
+                      tableMember storedName
+                  have predicateEqual : query.predicate =
+                      some (.compare operation stored.index.column target) := by
+                    calc
+                      query.predicate =
+                          some (.compare operation column target) :=
+                        predicateResult
+                      _ = some (.compare operation stored.index.column target) := by
+                        simp [indexEqual, columnEqual]
+                  some (certifiedRangeCandidates stored table query operation
+                    target sameTable predicateEqual)
                 else none
           else none
       | _ => none

@@ -10,16 +10,27 @@ inductive FileProvenance where
   | foreign
   deriving DecidableEq
 
+/-- Logical connection state and its optional physical-index certificates.
+The dependent cache cannot be paired with a different database: every stored
+certificate carries membership in `state.database`.  Statement transitions
+retarget the cache through a checked constructor before the new state can be
+installed. -/
+structure LiveState where
+  state : Core.State
+  certificates : Option
+    (List (CoreFileAdapter.StoredIntegerIndex state.database)) := none
+
+def LiveState.retarget (live : LiveState) (state : Core.State) : LiveState := {
+  state
+  certificates := live.certificates.map fun certificates =>
+    CoreFileAdapter.retargetIntegerIndexCertificates certificates state.database }
+
 structure Connection where
   paths : CoreFileAdapter.Paths
   syncOps : CoreFileAdapter.SyncOps
-  private state : Std.Mutex Core.State
+  private state : Std.Mutex LiveState
   private pageState : IO.Ref (Option CoreChunkPageState.State)
   private validatedOpen : IO.Ref (Option CoreFileAdapter.ValidatedOpenState)
-  -- `none` means not yet loaded; `some []` means loaded and genuinely empty.
-  -- Testing emptiness instead re-read and re-decoded the whole main file on
-  -- every query whenever certification legitimately produced nothing.
-  private indexCertificates : IO.Ref (Option (List CoreFileAdapter.StoredIntegerIndex))
   -- Page count and catalog, decoded once rather than per statement. Cleared
   -- alongside the other caches on every write.
   private fileGeometry : IO.Ref (Option CoreFileAdapter.FileGeometry)
@@ -45,12 +56,9 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
   return {
     paths
     syncOps
-    state := ← Std.Mutex.new { database := database }
+    state := ← Std.Mutex.new { state := { database := database } }
     pageState := ← IO.mkRef pageState
     validatedOpen := ← IO.mkRef opened
-    -- Index certificates are needed only by secondary-index SELECTs. Loading
-    -- them here made every write-only connection decode every index twice.
-    indexCertificates := ← IO.mkRef none
     fileGeometry := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign) }
 
@@ -85,7 +93,6 @@ private def commitFull (connection : Connection) (next : Core.State) :
     throw (IO.userError "general MVP commit reopened different logical contents")
   connection.pageState.set (some validated.state)
   connection.validatedOpen.set (some validated)
-  connection.indexCertificates.set none
   connection.fileGeometry.set none
   connection.provenance.set .generated
   return { next with database := reopened }
@@ -109,13 +116,6 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
               | some _ =>
                   connection.pageState.set (some delta.after)
                   connection.validatedOpen.set validated
-                  -- Retarget only what was already loaded. A `none` here means
-                  -- nothing was cached, and must stay `none` rather than
-                  -- becoming a loaded-and-empty result.
-                  connection.indexCertificates.modify fun cached =>
-                    cached.map fun certificates =>
-                      CoreFileAdapter.retargetIntegerIndexCertificates certificates
-                        next.database
                   return next
               | none => commitFull connection next
           | _, _ =>
@@ -151,9 +151,6 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
               | some _ =>
                   connection.pageState.set (some prepared.state)
                   connection.validatedOpen.set (some prepared.validated)
-                  -- This path changes the physical index image, so retained
-                  -- certificates must be rebuilt on the next indexed read.
-                  connection.indexCertificates.set none
                   connection.fileGeometry.set none
                   return next
               | none => commitFull connection next
@@ -161,52 +158,35 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
     | none => commitFull connection next
   else return next
 
-/-- Whether to attempt the certified index lookup for this table.
-
-`CoreFileAdapter.lookupCertifiedIndexCandidates` requires
-`stored.table.rows = table.rows`, a structural comparison of every row, so the
-attempt costs O(table) per query whether or not it succeeds. Measured marginal
-cost per read at 512-byte rows: 0.76 ms at 250 rows rising linearly to 8.64 ms at
-2000. The verified in-memory executor that runs when the attempt misses is
-strictly cheaper, so above this size the certified attempt is pure overhead --
-dropping the index outright made the same hundred reads run 116 ms instead of
-651 ms.
-
-**This is a stopgap with a named deletion condition.** Delete this function, and
-attempt the certified path unconditionally, once the certificate carries its own
-validity rather than re-deriving it: either the table holds its index
-certificate as proof-carrying state, or the lookup validates only the candidates
-it returns. Both make the check independent of table size, and neither is a
-heuristic. Until then a size gate is the honest choice, because the certified
-path as built cannot beat a scan at any size. -/
-private def certifiedLookupWorthAttempting (table : Core.Table) : Bool :=
-  table.rows.length ≤ 256
-
-private def executeStatement (connection : Connection) (state : Core.State)
-    (statement : Statement) : IO (Except String (Core.State × List Core.Result)) := do
+private def executeStatement (connection : Connection) (live : LiveState)
+    (statement : Statement) :
+    IO (LiveState × Except String (Core.State × List Core.Result)) := do
+  let state := live.state
   match statement with
   | .select select =>
       match CoreSQL.simpleQuery? state select with
       | some (tableName, query) =>
-          match state.database.findTable? tableName with
+          match found : state.database.findTable? tableName with
           | some table =>
+              have tableMember : table ∈ state.database.tables :=
+                state.database.findTable?_mem found
               let optimized := CoreOptimizerBridge.optimize tableName query
-              let certificates ← match table.chooseAccessPath optimized.predicate with
+              let (certificates, live) ←
+                match table.chooseAccessPath optimized.predicate with
                 | .equalityIndex _ | .rangeIndex _ =>
-                    if certifiedLookupWorthAttempting table then do
-                      match ← connection.indexCertificates.get with
-                      | some retained => pure retained
-                      | none =>
-                          let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
-                            connection.paths state.database
-                          connection.indexCertificates.set (some loaded)
-                          pure loaded
-                    else pure []
-                | _ => pure ((← connection.indexCertificates.get).getD [])
+                    match live.certificates with
+                    | some retained => pure (retained, live)
+                    | none => do
+                        let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
+                          connection.paths state.database
+                        let loadedLive : LiveState := {
+                          live with certificates := some loaded }
+                        pure (loaded, loadedLive)
+                | _ => pure (live.certificates.getD [], live)
               match CoreFileAdapter.lookupCertifiedIndexCandidates certificates
-                  table optimized with
+                  table tableMember optimized with
               | some lookup =>
-                  return .ok (state, [lookup.result])
+                  return (live, .ok (state, [lookup.result]))
               | none =>
                   let geometry ← match ← connection.fileGeometry.get with
                     | some cached => pure (some cached)
@@ -227,30 +207,35 @@ private def executeStatement (connection : Connection) (state : Core.State)
                           -- refinement. A certificate miss is only an
                           -- optimization miss, so execute the verified plan
                           -- directly without the foreign-byte comparison.
-                          return (Core.execute state (.query tableName optimized)).map
-                            fun result => (result.1, [result.2])
+                          return (live,
+                            (Core.execute state (.query tableName optimized)).map
+                              fun result => (result.1, [result.2]))
                       | .foreign =>
                           -- This is the sole validating comparison boundary:
                           -- arbitrary external bytes carry no encoder witness.
-                          return (Core.executeUncertifiedQueryWithCandidates state
-                            tableName optimized lookup.candidates).map fun result =>
-                              (result.1, [result.2])
+                          return (live,
+                            (Core.executeUncertifiedQueryWithCandidates state
+                              tableName optimized lookup.candidates).map fun result =>
+                                (result.1, [result.2]))
                   | none =>
-                      return (Core.execute state (.query tableName optimized)).map
-                        fun result => (result.1, [result.2])
-          | none => return CoreSQL.executeStatement state statement
-      | none => return CoreSQL.executeStatement state statement
-  | _ => return CoreSQL.executeStatement state statement
+                      return (live,
+                        (Core.execute state (.query tableName optimized)).map
+                          fun result => (result.1, [result.2]))
+          | none => return (live, CoreSQL.executeStatement state statement)
+      | none => return (live, CoreSQL.executeStatement state statement)
+  | _ => return (live, CoreSQL.executeStatement state statement)
 
-private def runStatements (connection : Connection) : Core.State →
-    List Statement → IO (Core.State × Except String (List Core.Result))
-  | state, [] => pure (state, .ok [])
-  | state, statement :: statements => do
-      match ← executeStatement connection state statement with
-      | .error message => pure (state, .error message)
+private def runStatements (connection : Connection) : LiveState →
+    List Statement → IO (LiveState × Except String (List Core.Result))
+  | live, [] => pure (live, .ok [])
+  | live, statement :: statements => do
+      let (cached, execution) ← executeStatement connection live statement
+      match execution with
+      | .error message => pure (cached, .error message)
       | .ok (next, results) => do
-          let persisted ← persistIfNeeded connection state next statement
-          let (finalState, tail) ← runStatements connection persisted statements
+          let persisted ← persistIfNeeded connection live.state next statement
+          let advanced := cached.retarget persisted
+          let (finalState, tail) ← runStatements connection advanced statements
           match tail with
           | .error message => pure (finalState, .error message)
           | .ok remaining => pure (finalState, .ok (results ++ remaining))
@@ -267,7 +252,7 @@ def execute (connection : Connection) (sql : String) :
         return result
 
 def snapshot (connection : Connection) : IO Core.State :=
-  connection.state.atomically get
+  connection.state.atomically do return (← get).state
 
 end CoreFileEngine
 end SQLeanite

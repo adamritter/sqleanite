@@ -351,15 +351,24 @@ fi
 
 if grep -q 'CoreFileAdapter.lookupCertifiedIndexCandidates certificates' \
      SQLeanite/CoreFileEngine.lean &&
-   grep -q 'return .ok (state, \[lookup.result\])' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'return (live, .ok (state, \[lookup.result\]))' \
+     SQLeanite/CoreFileEngine.lean &&
    grep -q 'retargetIntegerIndexCertificates certificates' \
      SQLeanite/CoreFileEngine.lean &&
+   grep -q 'StoredIntegerIndex state.database' \
+     SQLeanite/CoreFileEngine.lean &&
+   grep -q 'tableMember : table ∈ database.tables' \
+     SQLeanite/CoreFileAdapter.lean &&
+   ! grep -q 'certifiedLookupWorthAttempting' \
+     SQLeanite/CoreFileEngine.lean &&
+   ! grep -q 'if rowsEqual : stored.table.rows = table.rows' \
+     SQLeanite/CoreFileAdapter.lean &&
    grep -q 'lookupIndexValueFrom_certified_exact' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'lookupIndexRangeFrom_certified_exact' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'StoredIntegerIndex.retarget_value_exact' SQLeanite/ProofAxioms.lean &&
    grep -q 'updateState?_tablePagesSufficient' SQLeanite/ProofAxioms.lean &&
    grep -q 'CertifiedCandidates.result_exact' SQLeanite/ProofAxioms.lean; then
-  ok "certified indexes survive exact index-preserving localized writes"
+  ok "proof-carrying certified indexes survive state transitions without table scans"
 else
   fail "the certified index path detached from lookup or maintenance proofs"
 fi

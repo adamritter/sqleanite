@@ -972,6 +972,58 @@ theorem Database.rebuild_self (database : Database) :
 def Database.findTable? (database : Database) (name : String) : Option Table :=
   database.tables.find? (fun table => table.schema.name == name)
 
+theorem Database.findTable?_mem {database : Database} {name : String}
+    {table : Table} (found : database.findTable? name = some table) :
+    table ∈ database.tables := by
+  exact List.mem_of_find?_eq_some found
+
+def Database.findTableMember? (database : Database) (name : String) :
+    Option { table // table ∈ database.tables } :=
+  match found : database.findTable? name with
+  | none => none
+  | some table => some ⟨table, database.findTable?_mem found⟩
+
+private theorem findTableIn?_eq_some_of_mem :
+    ∀ (tables : List Table), TablesWellFormed tables →
+      ∀ (table : Table), table ∈ tables →
+        tables.find? (fun current => current.schema.name == table.schema.name) =
+          some table
+  | [], _, _, member => by simp at member
+  | head :: tail, valid, table, member => by
+      have valid' := valid
+      unfold TablesWellFormed namesUnique at valid'
+      simp only [List.map_cons, List.pairwise_cons] at valid'
+      simp only [List.mem_cons] at member
+      rcases member with same | member
+      · subst table
+        simp
+      · have different : head.schema.name ≠ table.schema.name := by
+          exact valid'.1 table.schema.name (by
+            rw [List.mem_map]
+            exact ⟨table, member, rfl⟩)
+        have tailValid : TablesWellFormed tail := by
+          exact valid'.2
+        simp [different,
+          findTableIn?_eq_some_of_mem tail tailValid table member]
+
+/-- A table carried by a database can be recovered by its unique schema name.
+This is the proof bridge used by connection-local physical certificates: the
+cache names a table by membership, while a statement obtains it by lookup. -/
+theorem Database.findTable?_eq_some_of_mem {database : Database}
+    {table : Table} (member : table ∈ database.tables) :
+    database.findTable? table.schema.name = some table := by
+  exact findTableIn?_eq_some_of_mem database.tables database.tablesWellFormed
+    table member
+
+theorem Database.table_eq_of_mem_of_name_eq {database : Database}
+    {left right : Table} (leftMember : left ∈ database.tables)
+    (rightMember : right ∈ database.tables)
+    (sameName : left.schema.name = right.schema.name) : left = right := by
+  have leftFound := database.findTable?_eq_some_of_mem leftMember
+  have rightFound := database.findTable?_eq_some_of_mem rightMember
+  rw [sameName] at leftFound
+  exact Option.some.inj (leftFound.symm.trans rightFound)
+
 def Database.createTable (database : Database) (schema : Schema) :
     Except String Database :=
   if (database.findTable? schema.name).isSome then
