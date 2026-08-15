@@ -526,6 +526,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic
+#print axioms SQLeanite.CoreSQLTraceText.executeText_committedLocalizedIndexedSingleYCSB_crash_atomic
 #print axioms SQLeanite.CoreSQLTraceText.executeText_returned_recovers_new
 #print axioms SQLeanite.CoreSQLTraceText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
@@ -739,8 +740,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
 #print axioms SQLeanite.CoreOverflow.resolvePlans_pages_eq_nil_of_payload_le
 #print axioms SQLeanite.CoreOverflow.ycsbRow_inline
+#print axioms SQLeanite.CoreOverflow.YCSBRow.inline
 #print axioms SQLeanite.CorePageCodec.nodeRowsInline_of_mem_rows
 #print axioms SQLeanite.CorePageCodec.tableStateRowsInline_of_rows
+#print axioms SQLeanite.CorePageCodec.YCSBTableState.rowsInline
 #print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_inline
 #print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_of_inline
 #print axioms SQLeanite.CorePageCodec.exists_encodeChunkNode_of_changed

@@ -560,6 +560,58 @@ theorem executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic
   exact ⟨atomic.1, atomic.2,
     committed.trace_eq_commitPlan oldImage journalExact⟩
 
+/-- Exact VeriBetrKV/YCSB specialization: literal TEXT-primary schema,
+64-bit-hash keys and one 512-byte field.  The row-shape premises discharge all
+inline/encoder facts through `YCSBRow.inline`; no benchmark adaptation appears
+in the statement. -/
+theorem executeText_committedLocalizedIndexedSingleYCSB_crash_atomic
+    (text : String) (commands : List TraceCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (chunkState : CoreChunkPageState.State)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta
+      chunkState next.database delta)
+    (committed : CoreFileAdapter.CommittedLocalizedDelta
+      delta.after.freePages prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (supported : SupportedText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : chunkState.tables = [delta.table.before])
+    (noFree : delta.after.freePages = [])
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) chunkState)
+    (onImage : committed.prepared.OnImage oldImage)
+    (oldHeader : CoreDurability.SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
+    (beforeYCSB : CorePageCodec.YCSBTableState delta.table.before)
+    (afterYCSB : CorePageCodec.YCSBTableState delta.table.after)
+    (journalExact : committed.journal =
+      GrowableStorage.makeJournal oldImage committed.prepared.writes)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage
+        committed.prepared.writes phase) recoveredMain recoveredJournal) :
+    TraceEffects commands state next results ∧
+      ((CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some state.database.canonicalize ∨
+        CoreDecode.decode
+            (PhysicalJournalRecovery.recoverBytes recoveredMain
+              recoveredJournal) = some next.database.canonicalize) ∧
+       committed.requests =
+         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+  exact executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic
+    text commands state next results chunkState delta prepared committed
+      oldImage supported success oldRepresents indexed single noFree physical
+        onImage oldHeader emptyFreelist beforeYCSB.rowsInline
+          afterYCSB.rowsInline journalExact phase recoveredMain
+            recoveredJournal outcome
+
 theorem executeText_returned_recovers_new
     (text : String) (commands : List TraceCommand)
     (state next : Core.State) (results : List Core.Result)

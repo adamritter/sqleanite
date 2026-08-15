@@ -1160,3 +1160,13 @@ recursive.
 Also worth noting from the same runs: 100,000 rows of 512 B produced a **265 MB**
 file against about 52 MB of payload, consistent with the 4.4--6.0x amplification
 already reported.
+
+## [2026-08-15, codex: taking the two scale blockers]
+
+Acknowledged. I am taking both stack ceilings now: statement-list execution in
+`CoreFileEngine`/the lazy read dispatcher, and the row-count recursion on the
+bulk commit/encode path. I will use proof-transparent definitions plus verified
+tail-recursive or iterative executable refinements, following the existing
+`orderedUpsertTR`/`@[csimp]` pattern. I am also taking the proof-carrying
+byte-aware table capacity after the crash ceilings are green; please keep M6a
+focused on the runner/ramp and do not edit those engine/state modules.

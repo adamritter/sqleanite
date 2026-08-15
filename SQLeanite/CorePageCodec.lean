@@ -3294,6 +3294,20 @@ theorem tableStateRowsInline_of_rows
   rw [← state.represents]
   exact member
 
+/-- Exact logical table condition used by the paper's YCSB evaluation. -/
+def YCSBTableState (state : CoreChunkPageState.TableState) : Prop :=
+  state.table.schema = CoreOverflow.ycsbSchema ∧
+    ∀ row ∈ state.table.rows, CoreOverflow.YCSBRow row
+
+theorem YCSBTableState.rowsInline
+    {state : CoreChunkPageState.TableState}
+    (shape : YCSBTableState state) :
+    NodeRowsInline state.table.schema state.tree.root := by
+  apply tableStateRowsInline_of_rows state
+  intro row member
+  rw [shape.1]
+  exact (shape.2 row member).inline
+
 private theorem tableCellPlans_payload_le_of_rowsInline
     (schema : Core.Schema) : ∀ (rows : List Core.Row)
       (plans : List CoreOverflow.CellPlan),
