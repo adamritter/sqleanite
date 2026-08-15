@@ -410,6 +410,48 @@ theorem resolvePlans_nextPage : ∀ {next : Nat} {plans : List CellPlan}
                   rw [resolvePlans_nextPage restResult]
                   omega
 
+/-- If resolution emitted no overflow pages, it is exactly the pointwise
+`none`-pointer cell encoding and leaves the allocation cursor unchanged. -/
+theorem resolvePlans_noOverflow : ∀ {next : Nat} {plans : List CellPlan}
+    {resolved : Resolved},
+    resolvePlans next plans = some resolved → resolved.pages = [] →
+      plans.mapM (fun plan => plan.cellBytes? none) = some resolved.cells ∧
+      resolved.nextPage = next
+  | _, [], resolved, success, empty => by
+      simp only [resolvePlans, Option.some.injEq] at success
+      subst resolved
+      exact ⟨rfl, rfl⟩
+  | next, plan :: plans, resolved, success, empty => by
+      simp only [resolvePlans, Option.bind_eq_bind, Option.bind] at success
+      cases cellResult : plan.cellBytes?
+          (if overflowPageCount plan.overflowBytes = 0 then none else some next) with
+      | none => simp [cellResult] at success
+      | some cell =>
+        simp only [cellResult] at success
+        cases pagesResult : makeOverflowPages? next plan.overflowBytes with
+        | none => simp [pagesResult] at success
+        | some pages =>
+          simp only [pagesResult] at success
+          cases restResult : resolvePlans (next + pages.length) plans with
+          | none => simp [restResult] at success
+          | some rest =>
+            simp only [restResult, Option.some.injEq] at success
+            subst resolved
+            have emptyParts : pages = [] ∧ rest.pages = [] :=
+              List.append_eq_nil_iff.mp empty
+            have countZero : overflowPageCount plan.overflowBytes = 0 := by
+              have pageLength := makeOverflowPages?_length pagesResult
+              rw [emptyParts.1] at pageLength
+              simpa using pageLength.symm
+            have headCell : plan.cellBytes? none = some cell := by
+              simpa [countZero] using cellResult
+            have tail := resolvePlans_noOverflow restResult emptyParts.2
+            constructor
+            · rw [List.mapM_cons, headCell, tail.1]
+              rfl
+            · rw [tail.2, emptyParts.1]
+              rfl
+
 def tableCellPlan? (schema : Core.Schema) (row : Core.Row) : Option CellPlan := do
   let record ← CoreRecord.rowRecord? schema row
   if bounded : record.encode.length < 2 ^ 64 then

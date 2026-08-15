@@ -3140,6 +3140,84 @@ structure OverflowEncoding where
   overflowPages : List CoreFile.Page
   nextPage : Nat
 
+private theorem tableCellPlan_cellBytes_none_encodeCell
+    {schema : Core.Schema} {row : Core.Row}
+    {plan : CoreOverflow.CellPlan} {cell : List UInt8}
+    (planned : CoreOverflow.tableCellPlan? schema row = some plan)
+    (built : plan.cellBytes? none = some cell) :
+    CoreRecord.encodeCell? schema row = some cell := by
+  unfold CoreOverflow.tableCellPlan? at planned
+  unfold CoreRecord.encodeCell?
+  cases recordResult : CoreRecord.rowRecord? schema row with
+  | none => simp [recordResult] at planned
+  | some record =>
+    simp only [recordResult, Option.bind_eq_bind, Option.bind] at planned ⊢
+    split at planned
+    next bounded =>
+      simp only [Option.some.injEq] at planned
+      subst plan
+      unfold CoreOverflow.CellPlan.cellBytes? at built
+      split at built
+      next =>
+        simp only [Option.some.injEq] at built
+        subst cell
+        rw [dif_pos bounded]
+      next => simp at built
+    next => contradiction
+
+private theorem tableCellPlans_noOverflow_encodeCells
+    (schema : Core.Schema) : ∀ (rows : List Core.Row)
+      (plans : List CoreOverflow.CellPlan) (cells : List (List UInt8)),
+      rows.mapM (CoreOverflow.tableCellPlan? schema) = some plans →
+      plans.mapM (fun plan => plan.cellBytes? none) = some cells →
+      rows.mapM (CoreRecord.encodeCell? schema) = some cells
+  | [], plans, cells, planned, built => by
+      change some [] = some plans at planned
+      have plansEmpty : plans = [] := (Option.some.inj planned).symm
+      subst plans
+      change some [] = some cells at built
+      have cellsEmpty : cells = [] := (Option.some.inj built).symm
+      subst cells
+      rfl
+  | row :: rows, plans, cells, planned, built => by
+      simp only [List.mapM_cons] at planned built ⊢
+      cases planResult : CoreOverflow.tableCellPlan? schema row with
+      | none => simp [planResult] at planned
+      | some plan =>
+        simp only [planResult, Option.bind_eq_bind, Option.bind] at planned
+        cases tailPlansResult :
+            rows.mapM (CoreOverflow.tableCellPlan? schema) with
+        | none => simp [tailPlansResult] at planned
+        | some tailPlans =>
+          simp only [tailPlansResult] at planned
+          change some (plan :: tailPlans) = some plans at planned
+          have plansEqual : plans = plan :: tailPlans :=
+            (Option.some.inj planned).symm
+          subst plans
+          rw [List.mapM_cons] at built
+          cases cellResult : plan.cellBytes? none with
+          | none => simp [cellResult] at built
+          | some cell =>
+            rw [cellResult] at built
+            cases tailCellsResult :
+                tailPlans.mapM (fun candidate => candidate.cellBytes? none) with
+            | none =>
+              rw [tailCellsResult] at built
+              change none = some cells at built
+              contradiction
+            | some tailCells =>
+              rw [tailCellsResult] at built
+              change some (cell :: tailCells) = some cells at built
+              have cellsEqual : cells = cell :: tailCells :=
+                (Option.some.inj built).symm
+              subst cells
+              have headEncoded := tableCellPlan_cellBytes_none_encodeCell
+                planResult cellResult
+              have tailEncoded := tableCellPlans_noOverflow_encodeCells schema
+                rows tailPlans tailCells tailPlansResult tailCellsResult
+              rw [headEncoded, tailEncoded]
+              rfl
+
 def encodeChunkNodeWithOverflow (schema : Core.Schema) :
     PersistentPageTree.Node CoreChunkPageState.Chunk → Nat →
       Option OverflowEncoding
@@ -3172,6 +3250,145 @@ def encodeChunkNodeWithOverflow (schema : Core.Schema) :
         overflowPages := leftEncoding.overflowPages ++
           middleEncoding.overflowPages ++ rightEncoding.overflowPages
         nextPage := rightEncoding.nextPage }
+
+/-- The general encoder and the localized tree encoder produce identical tree
+pages whenever the general encoding emits no overflow run.  This is the
+representation bridge for page-local mutations of inline SQLite records. -/
+theorem encodeChunkNodeWithOverflow_noOverflow
+    (schema : Core.Schema) :
+    ∀ (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
+      (nextOverflow : Nat) (encoding : OverflowEncoding),
+      encodeChunkNodeWithOverflow schema node nextOverflow = some encoding →
+      encoding.overflowPages = [] →
+      encodeChunkNode schema node = some encoding.treePages
+  | .leaf pageId entries, nextOverflow, encoding, encoded, empty => by
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      let rows := entries.flatMap fun entry => entry.2
+      cases plansResult : rows.mapM (CoreOverflow.tableCellPlan? schema) with
+      | none => simp [rows, plansResult] at encoded
+      | some plans =>
+        simp only [rows, plansResult, Option.bind_eq_bind, Option.bind] at encoded
+        cases resolvedResult : CoreOverflow.resolvePlans nextOverflow plans with
+        | none => simp [resolvedResult] at encoded
+        | some resolved =>
+          simp only [resolvedResult] at encoded
+          cases pageResult : CoreFile.tableLeafPage? resolved.cells with
+          | none => simp [pageResult] at encoded
+          | some page =>
+            simp only [pageResult, Option.some.injEq] at encoded
+            subst encoding
+            have noOverflow :=
+              CoreOverflow.resolvePlans_noOverflow resolvedResult empty
+            have rowCells := tableCellPlans_noOverflow_encodeCells schema
+              rows plans resolved.cells plansResult noOverflow.1
+            have leafEncoded : encodeChunkLeaf schema entries = some page := by
+              unfold encodeChunkLeaf encodeLeaf
+              have cellsResult :
+                  (entries.flatMap fun entry =>
+                    entry.2.map fun row => (row.treeKey, row)).mapM
+                      (fun entry => CoreRecord.encodeCell? schema entry.2) =
+                    some resolved.cells := by
+                rw [← mapM_map_entry_values]
+                simpa [rows, List.map_flatMap, List.map_map,
+                  Function.comp_def] using rowCells
+              rw [cellsResult]
+              simpa only [Option.bind] using pageResult
+            simp [encodeChunkNode, leafEncoded]
+  | .branch2 pageId left separator right, nextOverflow, encoding,
+      encoded, empty => by
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      cases rootResult : encodeChunkRoot schema
+          (.branch2 pageId left separator right) with
+      | none => simp [rootResult] at encoded
+      | some root =>
+        simp only [rootResult, Option.bind_eq_bind, Option.bind] at encoded
+        cases leftResult : encodeChunkNodeWithOverflow schema left nextOverflow with
+        | none => simp [leftResult] at encoded
+        | some leftEncoding =>
+          simp only [leftResult] at encoded
+          cases rightResult : encodeChunkNodeWithOverflow schema right
+              leftEncoding.nextPage with
+          | none => simp [rightResult] at encoded
+          | some rightEncoding =>
+            simp only [rightResult, Option.some.injEq] at encoded
+            subst encoding
+            have emptyParts : leftEncoding.overflowPages = [] ∧
+                rightEncoding.overflowPages = [] :=
+              List.append_eq_nil_iff.mp empty
+            have leftEncoded := encodeChunkNodeWithOverflow_noOverflow schema
+              left nextOverflow leftEncoding leftResult emptyParts.1
+            have rightEncoded := encodeChunkNodeWithOverflow_noOverflow schema
+              right leftEncoding.nextPage rightEncoding rightResult emptyParts.2
+            simp only [encodeChunkRoot] at rootResult
+            cases keyResult : maximumChunkRowid? left with
+            | none => simp [keyResult] at rootResult
+            | some key =>
+              simp only [keyResult, Option.bind_eq_bind, Option.bind]
+                at rootResult
+              cases pageResult : RecursivePageBTree.interiorPage?
+                  [(left.rootId, key)] right.rootId with
+              | none => simp [pageResult] at rootResult
+              | some page =>
+                simp only [pageResult, Option.some.injEq] at rootResult
+                subst root
+                simp [encodeChunkNode, keyResult, pageResult, leftEncoded,
+                  rightEncoded]
+  | .branch3 pageId left firstSeparator middle secondSeparator right,
+      nextOverflow, encoding, encoded, empty => by
+      simp only [encodeChunkNodeWithOverflow] at encoded
+      cases rootResult : encodeChunkRoot schema
+          (.branch3 pageId left firstSeparator middle secondSeparator right) with
+      | none => simp [rootResult] at encoded
+      | some root =>
+        simp only [rootResult, Option.bind_eq_bind, Option.bind] at encoded
+        cases leftResult : encodeChunkNodeWithOverflow schema left nextOverflow with
+        | none => simp [leftResult] at encoded
+        | some leftEncoding =>
+          simp only [leftResult] at encoded
+          cases middleResult : encodeChunkNodeWithOverflow schema middle
+              leftEncoding.nextPage with
+          | none => simp [middleResult] at encoded
+          | some middleEncoding =>
+            simp only [middleResult] at encoded
+            cases rightResult : encodeChunkNodeWithOverflow schema right
+                middleEncoding.nextPage with
+            | none => simp [rightResult] at encoded
+            | some rightEncoding =>
+              simp only [rightResult, Option.some.injEq] at encoded
+              subst encoding
+              have emptyParts : leftEncoding.overflowPages = [] ∧
+                  middleEncoding.overflowPages = [] ∧
+                  rightEncoding.overflowPages = [] := by
+                have parts := List.append_eq_nil_iff.mp empty
+                have firstParts := List.append_eq_nil_iff.mp parts.1
+                exact ⟨firstParts.1, firstParts.2, parts.2⟩
+              have leftEncoded := encodeChunkNodeWithOverflow_noOverflow schema
+                left nextOverflow leftEncoding leftResult emptyParts.1
+              have middleEncoded := encodeChunkNodeWithOverflow_noOverflow schema
+                middle leftEncoding.nextPage middleEncoding middleResult
+                  emptyParts.2.1
+              have rightEncoded := encodeChunkNodeWithOverflow_noOverflow schema
+                right middleEncoding.nextPage rightEncoding rightResult
+                  emptyParts.2.2
+              simp only [encodeChunkRoot] at rootResult
+              cases leftKeyResult : maximumChunkRowid? left with
+              | none => simp [leftKeyResult] at rootResult
+              | some leftKey =>
+                simp only [leftKeyResult, Option.bind_eq_bind, Option.bind]
+                  at rootResult
+                cases middleKeyResult : maximumChunkRowid? middle with
+                | none => simp [middleKeyResult] at rootResult
+                | some middleKey =>
+                  simp only [middleKeyResult] at rootResult
+                  cases pageResult : RecursivePageBTree.interiorPage?
+                      [(left.rootId, leftKey), (middle.rootId, middleKey)]
+                      right.rootId with
+                  | none => simp [pageResult] at rootResult
+                  | some page =>
+                    simp only [pageResult, Option.some.injEq] at rootResult
+                    subst root
+                    simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                      pageResult, leftEncoded, middleEncoded, rightEncoded]
 
 def encodeChunkTablesWithOverflow : Nat →
     List CoreChunkPageState.TableState → Option OverflowEncoding

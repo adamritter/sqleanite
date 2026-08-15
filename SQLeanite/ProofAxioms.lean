@@ -69,6 +69,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreOverflow.overflowPageBytes_length
 #print axioms SQLeanite.CoreOverflow.resolvePlans_cells_length
 #print axioms SQLeanite.CoreOverflow.resolvePlans_nextPage
+#print axioms SQLeanite.CoreOverflow.resolvePlans_noOverflow
 #print axioms SQLeanite.CoreDecode.readOverflowFrom_generated
 #print axioms SQLeanite.CoreDecode.readOverflowFrom_generated_fuel
 #print axioms SQLeanite.CoreDecode.decodeRowCellsFrom_resolvePlans
@@ -658,6 +659,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.byteArrayPageSource_eq_storageImage
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaComplete
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_updateStateTree
+#print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_updateStateCandidateTree
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.updateStateInline
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.updateStateCandidateInline
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk
 #print axioms SQLeanite.CorePageCodec.decodeFromPageSource_encodeBulk_in
 #print axioms SQLeanite.CorePageCodec.pageSourceRepresents_encodeBulk_in
@@ -678,6 +682,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CorePageCodec.encodeBulkWithState_represents
 #print axioms SQLeanite.CorePageCodec.decode_encodeChecked
 #print axioms SQLeanite.CorePageCodec.encodeBulk_generatedHeader
+#print axioms SQLeanite.CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
 #print axioms SQLeanite.CorePageCodec.lookupTableRowidFrom_encodeChunkNodeWithOverflow
 #print axioms SQLeanite.CoreDecode.AbstractTableTree.rangeCandidates_exact
 #print axioms SQLeanite.CoreDecode.lookupTableRangeFrom_decodeAbstract_exact
