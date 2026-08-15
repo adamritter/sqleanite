@@ -110,6 +110,57 @@ def localizedSource
     CoreDecode.PageSource :=
   CorePageSource.ofStorageImage (GrowableStorage.applyWrites oldImage writes)
 
+/-- A nonempty growable image starts with the bytes returned by page zero.
+The suffix is intentionally abstract: SQLite header decoding consumes exactly
+the first 100 bytes and does not need to inspect the remaining pages. -/
+theorem imageBytes_eq_firstPage_append
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (positive : 0 < image.pageCount) :
+    ∃ suffix,
+      PhysicalJournalRecovery.imageBytes image =
+        (image.read 0).bytes.toList ++ suffix := by
+  cases count : image.pageCount with
+  | zero => simp [count] at positive
+  | succ remaining =>
+      unfold PhysicalJournalRecovery.imageBytes
+      unfold PhysicalJournalRecovery.imagePages
+      rw [count]
+      rw [List.range_succ_eq_map]
+      simp [DiskFormat.encodePages]
+
+/-- An exact page-zero write establishes the SQLite framing part of a
+localized representation certificate.  This theorem is the pure refinement
+target for the live header/freelist planner. -/
+theorem sqliteHeaderMatches_of_pageZeroWrite
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (pageZero : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (member : pageZero ∈ writes) (zero : pageZero.pageId = 0)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (bytes : pageZero.page.bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1) :
+    SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes) := by
+  let image := GrowableStorage.applyWrites oldImage writes
+  have bound := CorePageSource.pageId_lt_applyWrites_of_mem oldImage member
+  have positive : 0 < image.pageCount := by simpa [image, zero] using bound
+  rcases imageBytes_eq_firstPage_append image positive with
+    ⟨suffix, imageBytes⟩
+  have read : image.read 0 = pageZero.page := by
+    have exactRead := CorePageSource.applyWrites_read_of_mem oldImage distinct
+      member
+    simpa [image, zero] using exactRead
+  refine .intro header (pageSuffix ++ suffix) ?_ pageCount pageSize reserved utf8
+  rw [imageBytes, read, bytes, List.append_assoc]
+  exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
+
 /-- Component-wise certificate for a live localized commit.  This is stronger
 and more informative than assuming `RepresentsDatabase` for the post-image:
 it exposes the exact catalog read, all table decodes, index reconstruction,

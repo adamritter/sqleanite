@@ -138,7 +138,9 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
   crash theorem from it rather than assuming an opaque post-image decoder
-  equation.
+  equation. An exact distinct page-zero write carrying an encoded SQLite
+  header now proves the certificate's header field directly for the resulting
+  growable image (`sqliteHeaderMatches_of_pageZeroWrite`).
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact

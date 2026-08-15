@@ -457,6 +457,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.storageImage_padded_represents
 #print axioms SQLeanite.CoreDurability.pageSourceRepresents_storageImage
 #print axioms SQLeanite.CoreDurability.LocalizedRepresentation.representsDatabase
+#print axioms SQLeanite.CoreDurability.sqliteHeaderMatches_of_pageZeroWrite
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
