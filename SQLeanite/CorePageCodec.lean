@@ -909,6 +909,28 @@ theorem encodeChangedChunkPages_accounts (schema : Core.Schema)
       (oldEncoded.symm.trans descriptorEncoded)
     simpa [equal] using oldMember
 
+/-- Every byte selected by the exact physical-difference encoder is an exact
+page of the complete post-state encoding. -/
+theorem encodeChangedChunkPages_subset (schema : Core.Schema)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (afterPages changedPages : List NumberedPage)
+    (afterEncoded : encodeChunkNode schema after = some afterPages)
+    (changedEncoded : encodeChangedChunkPages schema before after =
+      some changedPages) :
+    ∀ page ∈ changedPages, page ∈ afterPages := by
+  rw [encodeChunkNode_eq_mapM] at afterEncoded
+  unfold encodeChangedChunkPages at changedEncoded
+  intro page pageMember
+  rcases mapM_encodePhysicalChunkPage_output schema changedEncoded page
+      pageMember with ⟨descriptor, descriptorMember, descriptorEncoded⟩
+  have postDescriptor : descriptor ∈ physicalChunkPages after :=
+    (List.mem_filter.mp descriptorMember).1
+  rcases mapM_encodePhysicalChunkPage_input schema afterEncoded descriptor
+      postDescriptor with ⟨post, postMember, postEncoded⟩
+  have equal : post = page := Option.some.inj
+    (postEncoded.symm.trans descriptorEncoded)
+  simpa [equal] using postMember
+
 theorem encodeChunkNode_pageNumbers (schema : Core.Schema)
     (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
     (pages : List NumberedPage)

@@ -114,6 +114,114 @@ theorem pageSourceContains_applyWrites
   · exact readPage_applyWrites_of_unchanged image writes numbered
       unchanged.1 unchanged.2.1 unchanged.2.2.1 unchanged.2.2.2
 
+private theorem numberedPage_eq_of_pageNumber_eq
+    {pages : List CorePageCodec.NumberedPage}
+    (unique : (pages.map CorePageCodec.NumberedPage.pageNumber).Nodup) :
+    ∀ {left right : CorePageCodec.NumberedPage}, left ∈ pages →
+      right ∈ pages → left.pageNumber = right.pageNumber → left = right := by
+  induction pages with
+  | nil => simp
+  | cons head pages induction =>
+      simp only [List.map_cons, List.nodup_cons] at unique
+      intro left right leftMember rightMember pageNumber
+      simp only [List.mem_cons] at leftMember rightMember
+      rcases leftMember with rfl | leftLater
+      · rcases rightMember with rfl | rightLater
+        · rfl
+        · exfalso
+          exact unique.1 (List.mem_map.mpr
+            ⟨right, rightLater, pageNumber.symm⟩)
+      · rcases rightMember with rfl | rightLater
+        · exfalso
+          exact unique.1 (List.mem_map.mpr
+            ⟨left, leftLater, pageNumber⟩)
+        · exact induction unique.2 leftLater rightLater pageNumber
+
+/-- Complete no-overflow table-page preservation from a `TableDelta`.
+
+The accounting theorem supplies the logical partition; exact conversion gives
+both directions between selected pages and writes; and unique post-state page
+identities rule out a write aliasing an allegedly unchanged page.  This is the
+component theorem needed before composing table pages with overflow, catalog,
+freelist, and index components. -/
+theorem pageSourceContains_tableDeltaComplete
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (delta : CoreChunkPageDelta.TableDelta)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (beforePages afterPages : List CorePageCodec.NumberedPage)
+    (converted : CoreChunkPageDelta.writes delta = some writes)
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (accounted : ∀ page ∈ afterPages,
+      page ∈ delta.pages ∨ page ∈ beforePages)
+    (selected : ∀ page ∈ delta.pages, page ∈ afterPages)
+    (unique : (afterPages.map
+      CorePageCodec.NumberedPage.pageNumber).Nodup)
+    (oldContains : CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage image) beforePages)
+    (oldBounds : ∀ page ∈ beforePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount) :
+    CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) afterPages := by
+  apply pageSourceContains_applyWrites image writes distinct afterPages
+  intro page pageMember
+  by_cases selectedMember : page ∈ delta.pages
+  · left
+    exact CoreChunkPageDelta.writes_covers_pages converted page selectedMember
+  · right
+    have oldMember : page ∈ beforePages := by
+      rcases accounted page pageMember with changed | unchanged
+      · exact False.elim (selectedMember changed)
+      · exact unchanged
+    refine ⟨(oldBounds page oldMember).1, (oldBounds page oldMember).2,
+      oldContains page oldMember, ?_⟩
+    intro write writeMember samePage
+    rcases CoreChunkPageDelta.writes_sources_pages converted write writeMember
+        with ⟨source, sourceMember, sourcePage, sourceBytes⟩
+    have sourceAfter := selected source sourceMember
+    have equal : source = page := numberedPage_eq_of_pageNumber_eq unique
+      sourceAfter pageMember (sourcePage.symm.trans samePage)
+    exact selectedMember (equal ▸ sourceMember)
+
+/-- Live-state specialization.  The delta builder itself supplies accounting,
+post-state selection, and active-page identity uniqueness; callers need only
+provide the represented old bytes and the successful deterministic encodings.
+-/
+theorem pageSourceContains_updateStateTree
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (beforePages afterPages : List CorePageCodec.NumberedPage)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (converted : CoreChunkPageDelta.writes delta.table = some writes)
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (beforeEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.before.tree.root =
+        some beforePages)
+    (afterEncoded : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterPages)
+    (oldContains : CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage image) beforePages)
+    (oldBounds : ∀ page ∈ beforePages,
+      0 < page.pageNumber ∧ page.pageNumber ≤ image.pageCount) :
+    CorePageCodec.PageSourceContains
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) afterPages := by
+  apply pageSourceContains_tableDeltaComplete image delta.table writes
+    beforePages afterPages converted distinct
+  · exact CoreChunkPageDelta.updateState?_treePagesAccounted updated
+      beforePages afterPages beforeEncoded afterEncoded
+  · exact CoreChunkPageDelta.updateState?_treePagesSelected updated afterPages
+      afterEncoded
+  · rw [CorePageCodec.encodeChunkNode_pageNumbers _ _ _ afterEncoded]
+    exact (CoreChunkPageDelta.updateState?_identityWellFormed updated).1
+  · exact oldContains
+  · exact oldBounds
+
 /-- Decoding a canonical persistent table after a local page delta returns
 exactly the logical table carried by the proof-carrying state.  Tree pages are
 identified and may be sparse; overflow pages retain their separately allocated

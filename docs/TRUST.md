@@ -777,9 +777,15 @@ complete pre-state encoding. `replace?_treePagesAccounted`,
 for point mutations; exact physical-difference proofs cover split, merge, and
 bulk mutations. `replaceBetween?_treePagesAccounted` and
 `updateState?_treePagesAccounted` compose all constructors through the live
-state-delta builder. The remaining localized representation work is no longer
-table-tree accounting; it is composition with catalog, overflow, freelist, and
-changed-index components.
+state-delta builder. The converse family (`*_treePagesSelected`) proves that
+every selected byte occurs in the complete post-state encoding. Successful
+`numberedWrite?` conversion is proved in both directions, and active post-tree
+page identities are unique. `pageSourceContains_updateStateTree` composes
+these facts with old-image containment and read-after-write: applying the live
+table write list contains the exact complete post-tree encoding without a
+decode-and-compare check. The remaining localized representation work is no
+longer table-tree accounting; it is composition with catalog, overflow,
+freelist, and changed-index components.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer
