@@ -128,6 +128,10 @@ else
 fi
 
 if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
+   grep -q 'lexCertified sql' SQLeanite/Lexer.lean &&
+   grep -q 'lex_sound' SQLeanite/ProofAxioms.lean &&
+   grep -q 'parse_success_tokenizes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'ParsedSupportedText.tokenizes' SQLeanite/ProofAxioms.lean &&
    grep -q 'literalSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'groupOutputSyntax_of_success' SQLeanite/ProofAxioms.lean &&
@@ -135,7 +139,7 @@ if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
    grep -q 'parsedSupportedText_of_execute_success' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
-  ok "live Core translation carries structural grammar and text-boundary proofs"
+  ok "live Core translation carries proof-producing lexing and structural grammar"
 else
   fail "Core SQL translation detached from its grammar or text certificate"
 fi

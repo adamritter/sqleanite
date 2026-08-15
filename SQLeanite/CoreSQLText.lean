@@ -79,6 +79,15 @@ parser equation is evidence, not a definition by execution success. -/
 def ParsedSupportedText (text : String) (statements : Array Statement) : Prop :=
   parse text = .ok statements ∧ CoreStatementListForm statements.toList
 
+/-- Supported Core text carries an independently checkable character-to-token
+trace, not merely the final parser equation. -/
+theorem ParsedSupportedText.tokenizes {text : String}
+    {statements : Array Statement}
+    (supported : ParsedSupportedText text statements) :
+    ∃ tokens : Array Token,
+      lex text = .ok tokens ∧ Tokenizes text.toList tokens.toList :=
+  parse_success_tokenizes supported.1
+
 theorem execute_eq_runStatements_of_parsed {state : Core.State} {text : String}
     {statements : Array Statement}
     (supported : ParsedSupportedText text statements) :

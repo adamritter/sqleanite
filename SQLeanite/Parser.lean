@@ -1271,6 +1271,19 @@ def parse (sql : String) : Except String (Array Statement) := do
   let tokens ← lex sql
   (parseStatementsM.run { tokens }).map (·.1)
 
+/-- A successful parse exposes the proof-producing lexical trace used by the
+live parser.  This is the text-to-token half of the verified front-end
+boundary; token-to-AST correctness is stated separately by the Core grammar. -/
+theorem parse_success_tokenizes {sql : String} {statements : Array Statement}
+    (success : parse sql = .ok statements) :
+    ∃ tokens : Array Token,
+      lex sql = .ok tokens ∧ Tokenizes sql.toList tokens.toList := by
+  cases tokenized : lex sql with
+  | error message =>
+      simp [parse, tokenized, Except.instMonad, Except.bind] at success
+  | ok tokens =>
+      exact ⟨tokens, rfl, lex_sound tokenized⟩
+
 private def parseOne : ParserM (Option Statement) := do
   while ← acceptSymbol ";" do pure ()
   if (← peek) == .eof then pure none

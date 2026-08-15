@@ -423,8 +423,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.groupOutputSyntax_of_success
 #print axioms SQLeanite.CoreSQL.joinOperandSyntax_of_success
 #print axioms SQLeanite.CoreSQL.joinPredicateSyntax_of_success
+#print axioms SQLeanite.lex_sound
+#print axioms SQLeanite.parse_success_tokenizes
 #print axioms SQLeanite.CoreSQL.statementForm_of_execute_success
 #print axioms SQLeanite.CoreSQL.statementListForm_of_run_success
+#print axioms SQLeanite.CoreSQL.ParsedSupportedText.tokenizes
 #print axioms SQLeanite.CoreSQL.execute_eq_runStatements_of_parsed
 #print axioms SQLeanite.CoreSQL.parsedSupportedText_of_execute_success
 #print axioms SQLeanite.CoreSQL.parsedSupportedText_execute_exact
