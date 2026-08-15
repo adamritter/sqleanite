@@ -51,6 +51,7 @@ import SQLeanite.CoreFreelistCodec
 import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreDurability
+import SQLeanite.CoreEndToEnd
 import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.QuerySemantics.predicatePushdown_eval
@@ -431,6 +432,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
+#print axioms SQLeanite.CoreEndToEnd.execute_write_exact
+#print axioms SQLeanite.CoreEndToEnd.executeCommand_commit_crash_atomic
+#print axioms SQLeanite.CoreEndToEnd.executeCommand_returned_recovers_new
+#print axioms SQLeanite.CoreEndToEnd.executeCommand_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_padded_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic

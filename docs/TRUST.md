@@ -745,6 +745,15 @@ and an arbitrary finite crash trace during page-by-page recovery.  The theorem
 does not require the target to have been produced by the bulk encoder, so the
 remaining live-localized obligation is precisely the component-wise
 representation preservation premise rather than another durability proof.
+`CoreEndToEnd.WriteCommand` packages all seven persisted Core commands, and
+`execute_write_exact` dispatches to their existing exact postconditions
+without weakening the target-table or other-table frame clauses.
+`executeCommand_commit_crash_atomic` composes that logical effect with the
+generic page-delta theorem; companion results cover returned commit and finite
+recovery-crash traces.  This chain starts at a parsed Core command.  It is not
+yet the final SQL-text theorem: independent lexer/parser correctness and
+construction of the live localized representation witness remain explicit
+open links.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

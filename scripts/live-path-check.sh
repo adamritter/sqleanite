@@ -164,6 +164,21 @@ else
   fail "Core database durability detached from the codec or journal theorem"
 fi
 
+if grep -q 'executeCommand_commit_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeCommand_returned_recovers_new' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeCommand_recovery_crash_trace_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreDurability.rollbackWrites_represents_crash_atomic' \
+     SQLeanite/CoreEndToEnd.lean &&
+   grep -q 'execute_write_exact command success' \
+     SQLeanite/CoreEndToEnd.lean; then
+  ok "all persisted Core commands compose with crash-atomic SQLite bytes"
+else
+  fail "Core write semantics detached from the durability composition"
+fi
+
 if grep -q '| .primaryKey rowid => table.primaryKeyRows rowid' \
      SQLeanite/CoreEngine.lean &&
    grep -q 'exact Query.eval_primaryKey table query rowid' \
