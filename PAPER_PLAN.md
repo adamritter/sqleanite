@@ -242,8 +242,16 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   padded branch and delta-write equation, and
   `PreparedBulkCommit.postImageCertificate` maps it to the public constructor
   with no extra runtime pass. The SQL-text and statement-trace crash theorems
-  consume this constructive certificate. Ordinary localized and changed-index
-  preparations are the remaining live return-type integrations.
+  consume this constructive certificate. The ordinary live branch now returns
+  one dependent preparation carrying its exact candidate, preimages, writes,
+  distinctness, allocation, and preservation mode; the changed-index branches
+  retain the same candidate plus exact table-preimage/table-write equations.
+  Header/freelist augmentation is now a pure `planLocalizedWrites?` step, and
+  `CommittedLocalizedDelta.trace_eq` ties the exact final list to the live
+  journal/main-file request trace. The remaining localized integration is to
+  construct the complete post-image table/index component certificate from
+  those prepared values, rather than supplying its erased physical witnesses
+  separately.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
@@ -295,10 +303,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   joins, and arbitrary recursively nested compound reads. Statement-list/parser
   parity is complete, and localized database post-image construction is now
   exposed through `PostImageCertificate`
-  rather than a bare decoder equality. The remaining integration work is to
-  have every live adapter preparation return the corresponding constructor
-  directly, so detaching certificate construction from the executable path is
-  mechanically impossible.
+  rather than a bare decoder equality. Bulk commits already return the public
+  certificate directly. Localized commits now mechanically bind the logical
+  delta, table bytes, header/freelist plan, and concrete request trace; the
+  remaining integration work is the final construction of the post-image
+  component witness from that bound preparation.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk
@@ -706,6 +715,74 @@ row) rather than global, so it stays provable without trusting IO state.
 A second, smaller defect in the same path: `CoreFileEngine.lean:164` caches with
 `if retained.isEmpty then <load>`, so a legitimately empty certificate list
 never caches and the whole file is re-read *per query*. That needs a loaded flag.
+**Fixed** -- the cache is now `Option (List _)`, so loaded-and-empty is distinct
+from unloaded.
+
+### Write-path cost structure, and the one remaining quadratic
+
+Bulk load was quadratic in row count. Root cause was `Table.upsert` rebuilding
+the entire declared-key map on every insert from `table.rows`, which is a full
+`toList` of the row tree. Mean microseconds per insert by decile of position in a
+4,000-row load were 52, 84, 120, 162, 202, 248, 303, 359, 409 -- linear in rows
+already present.
+
+**Fixed for schemas with an explicit INTEGER PRIMARY KEY**, which is the common
+case and the YCSB schema. `declaredKeyMapAfterUpsert` now takes the tree rather
+than a materialized row list, so the `∅` branch never forces `storedRows`. Per
+insert is now flat at 35--39 microseconds, and load growth per doubling is
+1.9x/2.0x/2.2x. At 16,000 rows the load went from 23.5 s to 6.6 s.
+
+**Still open, and worse than the original: `REPLACE` and `UPDATE` on a
+hidden-rowid table.** `Table.insertValues` routes hidden-rowid *inserts* to
+`Table.upsertGeneratedFresh`, which was already incremental, so plain INSERT is
+linear on both schema shapes -- a TEXT PRIMARY KEY table loads at
+736/1449/3004/7144 ms for 2k/4k/8k/16k rows, growth 2.0x/2.1x/2.4x, essentially
+the same as the explicit-key case. The surviving quadratic is reached through
+`Table.upsert` on a table where `schema.hasHiddenRowid` is true, which is what
+`REPLACE` and `UPDATE` do.
+
+Measured, TEXT PRIMARY KEY table, load then REPLACE every row:
+
+| rows | total | growth |
+|---|---:|---:|
+| 1,000 | 5.6 s | -- |
+| 2,000 | 24.1 s | 4.3x |
+| 4,000 | 108.4 s | 4.5x |
+
+Quadrupling per doubling is textbook O(n^2), and 108 seconds for four thousand
+replaces is far more severe than the bulk-load defect this replaced.
+
+Making it incremental is **not** a local change, and this is the interesting part:
+`upsert` may *replace* an existing row, and the replaced row's declared key can
+differ from the new row's. A bare `declaredKeyMap.insert` would then leave the
+old key still mapped to a row that no longer exists, breaking
+`DeclaredKeyMapRepresents`. `Table.upsertGeneratedFresh` already does the
+incremental insert correctly, but only because its `fresh` precondition rules the
+replacement case out entirely.
+
+A correct incremental version needs to erase the replaced row's declared key
+before inserting the new one, which means looking up the row currently at
+`row.treeKey` first. The shape is:
+
+```lean
+declaredKeyMap :=
+  match tree.root.lookup row.treeKey with
+  | some previous =>
+      (declaredKeyMap.erase (previous.declaredKey schema)).insert
+        (row.declaredKey schema) row
+  | none => declaredKeyMap.insert (row.declaredKey schema) row
+```
+
+and the obligation is that this equals
+`buildDeclaredKeyMap schema (orderedUpsert row rows)` whenever the map already
+represents `rows` and the tree is well-keyed. That is a genuine proof about
+`orderedUpsert` interacting with map erase/insert, not a rewrite, so it belongs
+with the milestone 3 representation work rather than being done opportunistically.
+
+*Acceptance:* a scale-tier run over `REPLACE` and `UPDATE` against a
+TEXT-PRIMARY-KEY table grows at about 2x per doubling, matching the INSERT case.
+`scripts/run-scale-tiers.sh` currently covers INSERT only and should be extended
+with a mutation tier once this is fixed, so the guard would catch a regression.
 
 ### Scale risk
 
