@@ -288,6 +288,47 @@ def localizedRepresentation_of_components
     pageZero member zero header pageSuffix headerBytes pageCount pageSize
     reserved utf8 catalog catalogDecoded tables.mapM indexesRead
 
+/-- Fully decomposed constructor: exact table pages, exact index pages, and
+independently decoded index metadata establish the two logical decoder fields.
+Unlike `localizedRepresentation_of_components`, no whole index-decoder
+equation is left as an input premise. -/
+def localizedRepresentation_of_certificates
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database)
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (pageZero : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (member : pageZero ∈ writes) (zero : pageZero.pageId = 0)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (headerBytes : pageZero.page.bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1)
+    (catalog : List CoreDecode.CatalogEntry)
+    (catalogDecoded :
+      CoreDecode.decodeCatalogForOpen pageZero.page.bytes.toList = some catalog)
+    (tables : CoreLocalizedRepresentation.TablesDecode
+      (localizedSource oldImage writes)
+      (catalog.filter (fun entry => entry.kind == "table")) database.tables)
+    (physicalIndexes : CoreLocalizedRepresentation.IndexGroupsDecode
+      (localizedSource oldImage writes)
+      (database.tables.map Core.Table.withoutIndexes)
+      (catalog.filter (fun entry => entry.kind == "index")))
+    (indexMetadata : CoreLocalizedRepresentation.IndexMetadataGroups
+      database.tables
+      (catalog.filter (fun entry => entry.kind == "index"))) :
+    LocalizedRepresentation oldImage writes database :=
+  localizedRepresentation_of_components oldImage writes database distinct
+    pageZero member zero header pageSuffix headerBytes pageCount pageSize
+    reserved utf8 catalog catalogDecoded tables
+    (CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
+      (localizedSource oldImage writes) database _ physicalIndexes indexMetadata)
+
 theorem LocalizedRepresentation.pageSourceRepresents
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
     {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}

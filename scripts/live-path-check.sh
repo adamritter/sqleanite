@@ -210,6 +210,8 @@ if grep -q 'CoreSQLTraceText.executeText_commit_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'LocalizedRepresentation.representsDatabase' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'localizedRepresentation_of_certificates' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'sqliteHeaderMatches_of_pageZeroWrite' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'catalogRead_of_pageZeroWrite' \

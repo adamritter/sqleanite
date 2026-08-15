@@ -152,7 +152,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `IndexMetadataGroups` independently reconstruct the exact canonical index
   list from the unchanged catalog run; their composition with the physical
   certificates now closes `indexesRead` without index re-encoding or a
-  fallback database comparison.
+  fallback database comparison. The public
+  `localizedRepresentation_of_certificates` constructor consumes those exact
+  table/index/metadata witnesses directly, so neither whole-database nor
+  whole-index decoder equations remain as constructor assumptions.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
