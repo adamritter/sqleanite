@@ -736,6 +736,15 @@ and every unwritten old page is unchanged.  With the separately stated four
 SQLite header fields, `CoreDurability.pageSourceRepresents_storageImage`
 composes this component invariant into the public whole-byte representation
 relation.  These propositions and proofs erase during compilation.
+`CoreDurability.rollbackWrites_represents_crash_atomic` then lifts the
+growable rollback protocol over an arbitrary exact page-write list: if the old
+image represents the old Core database and applying those writes represents
+the new one, every modeled commit crash and recovery decodes to exactly the
+old or new canonical database.  Companion theorems cover a returned commit
+and an arbitrary finite crash trace during page-by-page recovery.  The theorem
+does not require the target to have been produced by the bulk encoder, so the
+remaining live-localized obligation is precisely the component-wise
+representation preservation premise rather than another durability proof.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

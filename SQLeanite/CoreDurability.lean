@@ -119,6 +119,93 @@ theorem storageImage_padded_represents
   rw [imageBytes_storageImage]
   exact CoreFreelistCodec.decode_paddedImage utf8 database layout encoded
 
+/-- Fully representation-parametric FSCQ lifting.  Unlike the older
+`CoreFile.Image` wrapper below, the target here is the exact result of an
+arbitrary page-write list.  This is the theorem consumed by the live
+localized writer once its component-wise codec preservation proof is
+available. -/
+theorem rollbackWrites_represents_crash_atomic
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newRepresents : RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) newDatabase)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some newDatabase.canonicalize := by
+  rcases GrowableStorage.rollbackCommit_crash_atomic oldImage writes phase
+      recoveredMain recoveredJournal outcome with restored | committed
+  · left
+    unfold PhysicalJournalRecovery.recoverBytes
+    rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv restored]
+    exact oldRepresents
+  · right
+    unfold PhysicalJournalRecovery.recoverBytes
+    rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv committed]
+    exact newRepresents
+
+theorem rollbackWrites_represents_returned_recovers_new
+    (newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (newRepresents : RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) newDatabase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes .committed)
+      recoveredMain recoveredJournal) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+      some newDatabase.canonicalize := by
+  have recovered := GrowableStorage.rollbackCommit_committed_recovers_new
+    oldImage writes recoveredMain recoveredJournal outcome
+  unfold PhysicalJournalRecovery.recoverBytes
+  rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv recovered]
+  exact newRepresents
+
+theorem rollbackWrites_represents_recovery_crash_trace_atomic
+    (oldDatabase newDatabase : Core.Database)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (oldRepresents : RepresentsDatabase oldImage oldDatabase)
+    (newRepresents : RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) newDatabase)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain finalMain :
+      GrowableStorage.Image PhysicalCodec.pageSize)
+    (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : GrowableStorage.RecoveryCrashTrace journal
+      recoveredMain finalMain) :
+    CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some oldDatabase.canonicalize ∨
+      CoreDecode.decode
+        (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+        some newDatabase.canonicalize := by
+  have stable := GrowableStorage.recoverWithJournal_after_recovery_trace
+    journal recoveredMain finalMain recoveryCrashes
+  unfold PhysicalJournalRecovery.recoverBytes
+  rw [stable]
+  exact rollbackWrites_represents_crash_atomic oldDatabase newDatabase
+    oldImage writes oldRepresents newRepresents phase recoveredMain
+    (some journal) outcome
+
 /-- Representation-parametric crash atomicity.  This is the reusable FSCQ
 lifting theorem: the storage protocol supplies old-or-new page equivalence;
 the two representation premises say what those byte images mean. -/
