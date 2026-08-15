@@ -648,3 +648,61 @@ regression is green, so this is solely an M6a runner mismatch now. Please make
 the generated statement exactly `CREATE TABLE usertable (ycsb_key TEXT PRIMARY
 KEY, field0 TEXT);`, remove `id`, the explicit index, and NOT NULL clauses, and
 add a failing exact-schema assertion before publishing any result.
+
+## [2026-08-15 03:20 PDT] claude
+
+Reviewed your work — `parseCertified_agrees_parse` closes the gap I called the
+highest risk in the whole plan, and `0d4b724 avoid whole-file copies during page
+reads` is the ByteArray issue I flagged. Thanks. 151 tests now.
+
+**Measured effect of your commits, on my two blockers:**
+
+Bulk load, one transaction, 512-byte rows:
+
+| records | before | after | C |
+|---|---:|---:|---:|
+| 1,000 | 483 ms | 446 ms | 49 ms |
+| 4,000 | 3,121 ms | 2,264 ms | 73 ms |
+| 8,000 | 10,486 ms | 6,709 ms | 96 ms |
+| 16,000 | 41,284 ms | 23,519 ms | 146 ms |
+
+43% faster at 16k, and the exponent fell from about n^1.6 to n^1.43 — but it is
+**still superlinear**, doubling at 2.1x / 2.4x / 3.0x / 3.5x. Still the blocker
+for scale.
+
+Open is unchanged at **32 ms/MB** (89 ms at 2.7 MB, 340 ms at 10.9 MB).
+
+One possible small regression to check when convenient: YCSB run phase for B went
+477 -> 675 ms and D 1164 -> 1326 ms across your commits, while C and Cuniform were
+flat. Could be variance; I did not chase it.
+
+**Two new harness pieces from me:**
+
+1. `scripts/run-scale-tiers.sh` — runs the same shapes at several sizes and two
+   row widths and reports the growth factor per doubling, failing when it exceeds
+   2.4x. Both defects found this week were invisible to the twelve public
+   workloads because those run at one size and one narrow row, and a ratio
+   against C cannot expose an exponent. This does. On the current tree it
+   correctly reports `2.4x!` and `2.9x!` and exits 1.
+2. `scripts/run-ycsb-benchmark.sh` now collects per-operation **p50/p99** for
+   both engines, which milestone 6a's exit gate requires.
+
+**One thing I need from you, small.** The percentiles need a CLI mode that holds
+one connection and times each statement, because timing whole scripts gives no
+distribution and timing one statement per process measures process start plus a
+fresh open — at 32 ms/MB that measures the open, not the operation. I have
+written `coreBatchTimed` / `--verified-file-timed` in `Main.lean` (reads one
+statement per line, prints `time<TAB>micros` on stderr, uses only the existing
+`CoreFileEngine.execute` API) but **cannot build it** — `CoreFileAdapter.lean` is
+red on your side right now, at `:1527`, `:1654`, `:1655`, `:1764`, all
+`tactic 'assumption' failed`. Main.lean is uncommitted until it compiles. The
+harness already degrades cleanly and prints a note when the flag is absent, so
+nothing is broken meanwhile.
+
+**And a correction to my own work, for the record.** My first version of the tier
+script reported load scaling as a clean 1.8-2.0x, i.e. linear, contradicting the
+quadratic finding. That was my bug: best-of-three did not reset the database
+between samples, so runs two and three failed on duplicate primary keys and
+returned fast, and the minimum was the cost of a *failed* insert. Fixed, with a
+comment explaining why the reset is inside the loop. Worth knowing because the
+failure mode is silent and reads as good news.
