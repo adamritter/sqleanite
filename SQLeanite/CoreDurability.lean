@@ -107,6 +107,65 @@ theorem exists_databaseOnStorage_encodeBulk
   · exact readsPagesFrom_storageImage_tail image
   · simp [CoreFileAdapter.storageImage, CoreFile.Image.pageCount]
 
+/-- Freelist padding changes page-zero framing and appends unreachable pages,
+but preserves the complete active physical state.  This strengthens the
+existing whole-decoder theorem for shrinking commits with the table/index
+ownership evidence needed by the next localized transaction. -/
+theorem exists_databaseOnStorage_padded
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (layout : CoreMultiFreelist.Layout)
+    (encoded : CorePageCodec.encodeBulk database = some layout.image) :
+    ∃ state : CoreChunkPageState.State,
+      CoreChunkPageState.State.build? database = some state ∧
+      CoreLocalizedRepresentation.DatabaseOnSource
+        (CorePageSource.ofStorageImage
+          (CoreFileAdapter.storageImage layout.paddedImage)) state := by
+  let source : CoreDecode.PageSource :=
+    .ofList (layout.paddedImage.pages.map CoreFile.Page.bytes)
+  have physical :=
+    CoreLocalizedRepresentation.exists_databaseOnSource_encodeBulk_in
+      utf8 database layout.image encoded source
+      (by
+        have catalogSame :=
+          CorePageCodec.decodeCatalogForOpen_encodeBulk_replaceHeader utf8
+            database layout.image encoded layout.firstPage
+            layout.remainingActive layout.pages_eq
+            (FileFormat.encodeDatabaseHeader layout.databaseHeader)
+            (FileFormat.encodeDatabaseHeader_length layout.databaseHeader)
+        have paddedFirst : source.readPage 1 =
+            some layout.schemaPage.bytes := by
+          simp [source, CoreDecode.PageSource.ofList, CoreDecode.page?,
+            CoreMultiFreelist.Layout.paddedImage,
+            CoreMultiFreelist.Layout.pages,
+            CoreMultiFreelist.Layout.activePages]
+        have canonicalFirst :
+            (CoreDecode.PageSource.ofList
+              (layout.image.pages.map CoreFile.Page.bytes)).readPage 1 =
+                some layout.firstPage.bytes := by
+          rw [layout.pages_eq]
+          simp [CoreDecode.PageSource.ofList, CoreDecode.page?]
+        rw [paddedFirst, canonicalFirst]
+        simp only [Option.bind_eq_bind, Option.bind]
+        simpa [CoreMultiFreelist.Layout.schemaPage] using catalogSame)
+      (by
+        rw [layout.pages_eq]
+        have reads := CoreDecode.ReadsPagesFrom.ofList_append
+          [layout.schemaPage.bytes] layout.remainingActive
+          (layout.freelistPages.map CoreFile.Page.bytes)
+        simpa [source, CoreMultiFreelist.Layout.paddedImage,
+          CoreMultiFreelist.Layout.pages,
+          CoreMultiFreelist.Layout.activePages,
+          List.map_append] using reads)
+      (by
+        change layout.image.pageCount ≤
+          (layout.paddedImage.pages.map CoreFile.Page.bytes).length
+        rw [List.length_map]
+        change layout.image.pageCount ≤ layout.pages.length
+        rw [CoreMultiFreelist.Layout.pages_length]
+        exact layout.active_le_total)
+  rw [pageSource_storageImage] at ⊢
+  exact physical
+
 theorem decode_imageBytes_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)
     (encoded : CorePageCodec.encodeBulk database = some image) :

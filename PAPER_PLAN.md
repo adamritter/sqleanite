@@ -182,6 +182,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   table/overflow ownership, and physical/metadata index witnesses into one
   `DatabaseOnSource`; `exists_databaseOnStorage_encodeBulk` specializes that
   theorem to the exact array-backed page source used by the live writer.
+  `exists_databaseOnStorage_padded` proves the same strong invariant after a
+  shrinking commit appends its verified freelist, while
+  `DatabaseOnSource.restate` raises the live allocator watermark beyond all
+  physical pages without discarding any representation evidence.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

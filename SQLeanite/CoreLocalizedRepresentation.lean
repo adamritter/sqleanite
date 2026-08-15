@@ -759,6 +759,26 @@ theorem DatabaseOnSource.decode
       some state.database.canonicalize :=
   physical.pageSourceRepresents.decode
 
+/-- Representation depends on the logical database and table states, not on
+the allocator watermark or freelist bookkeeping stored beside them.  This is
+the proof bridge from a bulk-built state to the live retained state, whose
+`nextPage` is raised past every physical overflow and index page. -/
+def DatabaseOnSource.restate
+    {source : CoreDecode.PageSource}
+    {before after : CoreChunkPageState.State}
+    (physical : DatabaseOnSource source before)
+    (databaseEq : after.database = before.database)
+    (tablesEq : after.tables = before.tables) :
+    DatabaseOnSource source after := by
+  rcases physical.components with
+    ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
+      indexFilter, tables, indexes, metadata⟩
+  refine ⟨⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
+    indexFilter, ?_, ?_, ?_⟩⟩
+  · simpa [tablesEq] using tables
+  · simpa [databaseEq] using indexes
+  · simpa [databaseEq] using metadata
+
 /-- The canonical bulk encoder establishes the complete physical state
 invariant over any source which contains its emitted tail and reads its schema
 page.  Unlike `PageSourceRepresents`, the result retains table-page ownership,
