@@ -1960,6 +1960,293 @@ private theorem replaceMany?_before {state : CoreChunkPageState.TableState}
     next => contradiction
   next => contradiction
 
+private theorem replaceManyFold_rootId :
+    ∀ (entries : List (PagedBTree.Entry CoreChunkPageState.Chunk))
+      (store : PersistentPageTree.Store CoreChunkPageState.Chunk)
+      (rows : List Core.Row)
+      (updated : PersistentPageTree.Store CoreChunkPageState.Chunk ×
+        List Core.Row),
+      entries.foldlM (fun accumulator entry => do
+        let resolved ← replacementChunk? accumulator.2 entry.2
+        let tree := if resolved.1 = entry.2 then accumulator.1
+          else accumulator.1.insert entry.1 resolved.1
+        some (tree, resolved.2)) (store, rows) = some updated →
+      updated.1.root.rootId = store.root.rootId
+  | [], store, rows, updated, success => by
+      simp only [List.foldlM_nil, pure, Option.pure_def,
+        Option.some.injEq] at success
+      subst updated
+      rfl
+  | entry :: entries, store, rows, updated, success => by
+      simp only [List.foldlM_cons] at success
+      rcases Option.bind_eq_some.mp success with ⟨next, stepResult, success⟩
+      have stepRoot : next.1.root.rootId = store.root.rootId := by
+        rcases Option.bind_eq_some.mp stepResult with
+          ⟨resolved, resolvedResult, stepResult⟩
+        split at stepResult
+        next =>
+          injection stepResult with equal
+          subst next
+          rfl
+        next =>
+          injection stepResult with equal
+          subst next
+          exact store.insert_rootId entry.1 resolved.1
+      have tail := replaceManyFold_rootId entries next.1 next.2 updated success
+      exact tail.trans stepRoot
+
+private theorem retainManyFold_rootId :
+    ∀ (entries : List (PagedBTree.Entry CoreChunkPageState.Chunk))
+      (store : PersistentPageTree.Store CoreChunkPageState.Chunk)
+      (rows : List Core.Row) (freed : List Nat)
+      (updated : PersistentPageTree.Store CoreChunkPageState.Chunk ×
+        List Core.Row × List Nat),
+      entries.foldlM (fun accumulator entry => do
+        let resolved ← retainedChunk? entry.2 accumulator.2.1
+        if resolved.1 = entry.2 then
+          some (accumulator.1, resolved.2, accumulator.2.2)
+        else if resolved.1.isEmpty then
+          let deleted ← accumulator.1.delete? entry.1
+          some (deleted.1, resolved.2, accumulator.2.2 ++ deleted.2)
+        else
+          some (accumulator.1.insert entry.1 resolved.1, resolved.2,
+            accumulator.2.2)) (store, rows, freed) = some updated →
+      updated.1.root.rootId = store.root.rootId
+  | [], store, rows, freed, updated, success => by
+      simp only [List.foldlM_nil, pure, Option.pure_def,
+        Option.some.injEq] at success
+      subst updated
+      rfl
+  | entry :: entries, store, rows, freed, updated, success => by
+      simp only [List.foldlM_cons] at success
+      rcases Option.bind_eq_some.mp success with ⟨next, stepResult, success⟩
+      have stepRoot : next.1.root.rootId = store.root.rootId := by
+        rcases Option.bind_eq_some.mp stepResult with
+          ⟨resolved, resolvedResult, stepResult⟩
+        split at stepResult
+        next =>
+          injection stepResult with equal
+          subst next
+          rfl
+        next =>
+          split at stepResult
+          next =>
+            rcases Option.bind_eq_some.mp stepResult with
+              ⟨deleted, deletedResult, stepResult⟩
+            injection stepResult with equal
+            subst next
+            exact store.delete?_rootId deletedResult
+          next =>
+            injection stepResult with equal
+            subst next
+            exact store.insert_rootId entry.1 resolved.1
+      have tail := retainManyFold_rootId entries next.1 next.2.1 next.2.2
+        updated success
+      exact tail.trans stepRoot
+
+private theorem replace?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : replace? state nextPage row replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold replace? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        exact PersistentPageTree.Store.insert_rootId
+          { state.tree with nextPage } entry.1 (replaceRow row entry.2)
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem insert?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : insert? state nextPage row replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold insert? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    split at success
+    next =>
+      dsimp only at success
+      split at success
+      next =>
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          injection success with equal
+          subst delta
+          exact PersistentPageTree.Store.insert_rootId
+            { state.tree with nextPage } entry.1
+              (Core.orderedUpsert row entry.2)
+        next => contradiction
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem delete?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : delete? state nextPage row replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold delete? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          injection success with equal
+          subst delta
+          exact PersistentPageTree.Store.insert_rootId
+            { state.tree with nextPage } entry.1
+              (entry.2.filter fun old => old.rowid != row.rowid)
+        next => contradiction
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem mergeDelete?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : mergeDelete? state nextPage row replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold mergeDelete? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with
+        ⟨deleted, deletedResult, success⟩
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        have root := PersistentPageTree.Store.delete?_rootId deletedResult
+        simpa using root
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem replaceMany?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceMany? state nextPage replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold replaceMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with
+    ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        have root := replaceManyFold_rootId state.tree.root.erase.toList
+          { state.tree with nextPage } replacement.rows updated updatedResult
+        simpa using root
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem retainMany?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : retainMany? state nextPage replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold retainMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with
+    ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+      injection success with equal
+      subst delta
+      have root := retainManyFold_rootId state.tree.root.erase.toList
+        { state.tree with nextPage } replacement.rows [] updated updatedResult
+      simpa using root
+    next => contradiction
+  next => contradiction
+
+private theorem splitInsert?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (oldRoot : state.tree.root.rootId < nextPage)
+    (success : splitInsert? state nextPage row replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold splitInsert? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with
+        ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some.mp success with
+        ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some.mp success with
+        ⟨deleted, deletedResult, success⟩
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        let updated := Core.orderedUpsert row entry.2
+        let splitAt := updated.length / 2
+        let left := updated.take splitAt
+        let right := updated.drop splitAt
+        let deleting : PersistentPageTree.Store CoreChunkPageState.Chunk :=
+          { state.tree with nextPage }
+        let first := deleted.1.insert leftKey left
+        let allocated := first.insert rightKey right
+        have deletedRoot : deleted.1.root.rootId = state.tree.root.rootId := by
+          have root := PersistentPageTree.Store.delete?_rootId deletedResult
+          simpa [deleting] using root
+        have firstRoot : first.root.rootId = deleted.1.root.rootId :=
+          deleted.1.insert_rootId leftKey left
+        have allocatedRoot : allocated.root.rootId = first.root.rootId :=
+          first.insert_rootId rightKey right
+        have allocatedOld : allocated.root.rootId < nextPage := by
+          rw [allocatedRoot, firstRoot, deletedRoot]
+          exact oldRoot
+        have reusedRoot := allocated.reuseFresh_getD_rootId nextPage deleted.2
+          allocatedOld
+        injection success with equal
+        subst delta
+        simpa [updated, splitAt, left, right, deleting, first, allocated]
+          using reusedRoot.trans (allocatedRoot.trans (firstRoot.trans deletedRoot))
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
 theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
     {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
     (success : replaceBetween? state nextPage replacement = some delta) :
@@ -2007,6 +2294,74 @@ theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
           | none =>
               rw [replacementResult] at success
               exact replaceMany?_before success
+
+/-- Every localized data mutation retains the table's SQLite root page.  Root
+splits keep the existing root identity, deletion shrink repairs back to it,
+and fresh-page recycling cannot relabel an old root below the allocation
+watermark. -/
+theorem replaceBetween?_rootId {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (oldRoot : state.tree.root.rootId < nextPage)
+    (success : replaceBetween? state nextPage replacement = some delta) :
+    delta.after.tree.root.rootId = state.tree.root.rootId := by
+  unfold replaceBetween? at success
+  split at success
+  next => injection success with equal; subst delta; rfl
+  next =>
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+      cases insertion : insert? state nextPage row replacement with
+      | some candidate =>
+          rw [insertion] at success
+          injection success with equal
+          subst candidate
+          exact insert?_rootId insertion
+      | none =>
+          rw [insertion] at success
+          exact splitInsert?_rootId oldRoot success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+        cases deletion : delete? state nextPage row replacement with
+        | some candidate =>
+            rw [deletion] at success
+            injection success with equal
+            subst candidate
+            exact delete?_rootId deletion
+        | none =>
+            rw [deletion] at success
+            exact mergeDelete?_rootId success
+      next =>
+        split at success
+        next => exact retainMany?_rootId success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          cases replacementResult : replace? state nextPage row replacement with
+          | some candidate =>
+              rw [replacementResult] at success
+              injection success with equal
+              subst candidate
+              exact replace?_rootId replacementResult
+          | none =>
+              rw [replacementResult] at success
+              exact replaceMany?_rootId success
+
+theorem replaceBetween?_catalogEntry
+    {state : CoreChunkPageState.TableState} {nextPage : Nat}
+    {replacement : Core.Table} {delta : TableDelta}
+    (oldRoot : state.tree.root.rootId < nextPage)
+    (success : replaceBetween? state nextPage replacement = some delta)
+    (sufficient : delta.tablePagesSufficient = true) :
+    CorePageCodec.chunkTableCatalogEntry delta.after =
+      CorePageCodec.chunkTableCatalogEntry state := by
+  have metadata := TableDelta.tablePagesSufficient_metadata delta sufficient
+  rw [replaceBetween?_before success] at metadata
+  have root := replaceBetween?_rootId oldRoot success
+  unfold CorePageCodec.chunkTableCatalogEntry
+    CoreChunkPageState.TableState.rootPage
+  simp only [metadata.1, root]
 
 /-- A successful alignment with no selected table delta consists entirely of
 catalog-metadata-preserving retargets. -/
@@ -2104,6 +2459,110 @@ theorem alignTables?_metadata_changed :
                     replaceBetween?_table headResult] at headMetadata
                   exact .cons headMetadata
                     (alignTables?_metadata_none tailResult tailNone)
+                next => contradiction
+
+private theorem chunkTableCatalogEntry_retarget
+    (state : CoreChunkPageState.TableState) (table : Core.Table)
+    (equivalent : state.table.Equiv table) :
+    CorePageCodec.chunkTableCatalogEntry (state.retarget table equivalent) =
+      CorePageCodec.chunkTableCatalogEntry state := by
+  unfold CorePageCodec.chunkTableCatalogEntry
+    CoreChunkPageState.TableState.rootPage
+  simp only [CoreChunkPageState.TableState.retarget_table,
+    CoreChunkPageState.TableState.retarget_tree, equivalent.schema_eq]
+
+theorem alignTables?_catalogEntries_none :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = none →
+      aligned.tables.map CorePageCodec.chunkTableCatalogEntry =
+        states.map CorePageCodec.chunkTableCatalogEntry
+  | _, [], target, aligned, success, noChange => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      rfl
+  | nextPage, old :: olds, target, aligned, success, noChange => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+          unfold alignTables? at success
+          split at success
+          next same =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tail, tailResult, success⟩
+            injection success with equal
+            subst aligned
+            simp only [List.map_cons, List.cons.injEq]
+            exact ⟨chunkTableCatalogEntry_retarget old replacement same,
+              alignTables?_catalogEntries_none tailResult noChange⟩
+          next =>
+            split at success
+            next => contradiction
+            next head headResult =>
+              split at success
+              next => contradiction
+              next tail tailResult =>
+                split at success
+                next =>
+                  injection success with equal
+                  subst aligned
+                  simp at noChange
+                next => contradiction
+
+theorem alignTables?_catalogEntries_changed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      (∀ state ∈ states, state.tree.root.rootId < nextPage) →
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      aligned.tables.map CorePageCodec.chunkTableCatalogEntry =
+        states.map CorePageCodec.chunkTableCatalogEntry
+  | _, [], target, aligned, delta, roots, success, selected, sufficient => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, roots, success, selected,
+      sufficient => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+          unfold alignTables? at success
+          split at success
+          next same =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tail, tailResult, success⟩
+            injection success with equal
+            subst aligned
+            simp only [List.map_cons, List.cons.injEq]
+            refine ⟨chunkTableCatalogEntry_retarget old replacement same,
+              alignTables?_catalogEntries_changed ?_ tailResult selected
+                sufficient⟩
+            intro state member
+            exact roots state (by simp [member])
+          next =>
+            split at success
+            next => contradiction
+            next head headResult =>
+              split at success
+              next => contradiction
+              next tail tailResult =>
+                split at success
+                next onlyChange =>
+                  injection success with equal
+                  subst aligned
+                  have headEqual : head = delta := Option.some.inj selected
+                  subst head
+                  have tailNone : tail.delta = none := by
+                    cases tailDelta : tail.delta with
+                    | none => rfl
+                    | some value => simp [tailDelta] at onlyChange
+                  simp only [List.map_cons, List.cons.injEq]
+                  exact ⟨replaceBetween?_catalogEntry
+                      (roots old (by simp)) headResult sufficient,
+                    alignTables?_catalogEntries_none tailResult tailNone⟩
                 next => contradiction
 
 def addFreePages (existing added : List Nat) : List Nat :=
@@ -2297,6 +2756,27 @@ theorem updateState?_metadataAligned
     ⟨aligned, alignment, _, selected⟩
   exact alignTables?_metadata_changed alignment selected
     (updateState?_tablePagesSufficient updated)
+
+/-- The ordinary localized fast path leaves every table entry in page-zero's
+catalog byte-for-byte unchanged, including root page numbers. -/
+theorem updateState?_catalogEntries
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (allocation : state.AllocationWellFormed)
+    (updated : updateState? state database = some delta) :
+    delta.after.tables.map CorePageCodec.chunkTableCatalogEntry =
+      state.tables.map CorePageCodec.chunkTableCatalogEntry := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, alignedTables, selected⟩
+  rw [← alignedTables]
+  apply alignTables?_catalogEntries_changed _ alignment selected
+    (updateState?_tablePagesSufficient updated)
+  intro table member
+  apply allocation.2.1 table.tree.root.rootId
+  unfold CoreChunkPageState.State.activePageIds
+    CoreChunkPageState.tablePageIds
+  exact List.mem_flatMap.mpr
+    ⟨table, member, PersistentPageTree.Node.rootId_mem_pageIds table.tree.root⟩
 
 theorem updateState?_treePagesAccounted
     {state : CoreChunkPageState.State}

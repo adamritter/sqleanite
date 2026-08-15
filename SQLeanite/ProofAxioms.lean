@@ -187,6 +187,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PersistentPageTree.Store.delete?_rootId
 #print axioms SQLeanite.PersistentPageTree.Store.delete?_toList
 #print axioms SQLeanite.PersistentPageTree.Store.reuseFresh?_rootId
+#print axioms SQLeanite.PersistentPageTree.Store.reuseFresh_getD_rootId
 #print axioms SQLeanite.PersistentPageTree.Store.reuseFresh?_toList
 #print axioms SQLeanite.PersistentPageTree.Store.build_represents
 #print axioms SQLeanite.PersistentPageTree.identifyFrom_pageIds
@@ -551,6 +552,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.mergeDelete?_treePagesSelected
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_tablePagesSufficient
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_metadataAligned
+#print axioms SQLeanite.CoreChunkPageDelta.replaceBetween?_rootId
+#print axioms SQLeanite.CoreChunkPageDelta.replaceBetween?_catalogEntry
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_catalogEntries
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_identityWellFormed
 #print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_endpoints
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_endpoints
@@ -632,6 +636,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.retarget
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.applyWritesOfUntouched
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.tablesDecode
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.entries_eq
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_none
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_changed
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.updateStateCandidate
@@ -644,6 +649,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.pageSourceRepresents
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.restate
+#print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateState
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_databaseOnSource
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexCertificates_encodeIndexes
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexGroupCertificates_encodeIndexTableGroups

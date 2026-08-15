@@ -126,6 +126,18 @@ inductive TablesOnSource (source : CoreDecode.PageSource) :
       (tail : TablesOnSource source entries states) :
       TablesOnSource source (entry :: entries) (state :: states)
 
+theorem TablesOnSource.entries_eq
+    {source : CoreDecode.PageSource} {entries : List CoreDecode.CatalogEntry}
+    {states : List CoreChunkPageState.TableState}
+    (physical : TablesOnSource source entries states) :
+    entries = states.map fun state => CoreDecode.CatalogEntry.ofEncoded
+      (CorePageCodec.chunkTableCatalogEntry state) := by
+  induction physical with
+  | nil => rfl
+  | cons entryExact head tail induction =>
+      simp only [List.map_cons, List.cons.injEq]
+      exact ⟨entryExact, induction⟩
+
 /-- If alignment reports no changed table, every result is a byte-preserving
 retarget of its corresponding input state.  The caller supplies only the
 source-transport rule; the recursive alignment proof fixes the database and
@@ -1033,6 +1045,63 @@ def DatabaseOnSource.restate
   · simpa [tablesEq] using tables
   · simpa [databaseEq] using indexes
   · simpa [databaseEq] using metadata
+
+/-- Database-wide ordinary-delta composition.  The table and catalog parts
+are derived from the live delta builder; catalog metadata is transported from
+its proved declaration frame.  The sole remaining callback is physical index
+page transport, isolated explicitly because it requires the index ownership
+interval invariant rather than another logical database comparison. -/
+def DatabaseOnSource.updateState
+    {oldSource newSource : CoreDecode.PageSource}
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (physical : DatabaseOnSource oldSource state)
+    (allocation : state.AllocationWellFormed)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (catalogPreserved : ∀ catalog,
+      (oldSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog) →
+      (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
+    (retained : ∀ (old : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      TableOnSource oldSource old →
+        TableOnSource newSource (old.retarget table equivalent))
+    (changed : TableOnSource newSource delta.table.after)
+    (indexesPreserved : ∀ entries,
+      IndexGroupsDecode oldSource
+          (state.database.tables.map Core.Table.withoutIndexes) entries →
+        IndexGroupsDecode newSource
+          (database.tables.map Core.Table.withoutIndexes) entries) :
+    DatabaseOnSource newSource delta.after := by
+  rcases physical.components with
+    ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
+      indexFilter, tables, indexes, metadata⟩
+  have oldTableEntries := tables.entries_eq
+  rw [oldTableEntries] at tables
+  have newTables := TablesOnSource.updateState updated tables retained changed
+  have encodedCatalog := CoreChunkPageDelta.updateState?_catalogEntries
+    allocation updated
+  have decodedCatalog := congrArg
+    (List.map CoreDecode.CatalogEntry.ofEncoded) encodedCatalog
+  have decodedCatalog' :
+      delta.after.tables.map (fun table => CoreDecode.CatalogEntry.ofEncoded
+        (CorePageCodec.chunkTableCatalogEntry table)) =
+      state.tables.map (fun table => CoreDecode.CatalogEntry.ofEncoded
+        (CorePageCodec.chunkTableCatalogEntry table)) := by
+    simpa only [List.map_map, Function.comp_apply] using decodedCatalog
+  have tableEntriesExact :
+      delta.after.tables.map (fun table => CoreDecode.CatalogEntry.ofEncoded
+        (CorePageCodec.chunkTableCatalogEntry table)) = tableEntries :=
+    decodedCatalog'.trans oldTableEntries.symm
+  rw [tableEntriesExact] at newTables
+  have metadataAlignment := CoreChunkPageDelta.updateState?_metadataAligned updated
+  rw [state.tables_eq] at metadataAlignment
+  have newMetadata := metadata.retarget metadataAlignment
+  have endpoints := CoreChunkPageDelta.updateState?_endpoints updated
+  refine ⟨⟨catalog, tableEntries, indexEntries,
+    catalogPreserved catalog catalogRead, tableFilter, indexFilter, newTables,
+    ?_, ?_⟩⟩
+  · simpa [endpoints.2] using indexesPreserved indexEntries indexes
+  · simpa [endpoints.2] using newMetadata
 
 /-- The canonical bulk encoder establishes the complete physical state
 invariant over any source which contains its emitted tail and reads its schema

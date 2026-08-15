@@ -740,6 +740,17 @@ theorem Store.reuseFresh?_rootId {store reused : Store Value}
     next => contradiction
   next => contradiction
 
+theorem Store.reuseFresh_getD_rootId (store : Store Value)
+    (firstFresh : Nat) (freed : List PageId)
+    (old : store.root.rootId < firstFresh) :
+    ((store.reuseFresh? firstFresh freed).getD (store, freed)).1.root.rootId =
+      store.root.rootId := by
+  cases result : store.reuseFresh? firstFresh freed with
+  | none => simp [result]
+  | some pair =>
+      rcases pair with ⟨reused, remaining⟩
+      simpa [result] using Store.reuseFresh?_rootId old result
+
 /-- Assign consecutive physical page IDs to an already verified logical tree.
 This is the bulk-loading bridge: every logical node becomes exactly one
 materialized page and the returned high-water mark is ready for later local

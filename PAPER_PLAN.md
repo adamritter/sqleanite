@@ -213,6 +213,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   root shrink, insertion splits, and fresh-page recycling. This supplies the
   algorithmic basis for preserving table root-page catalog entries when page
   zero is omitted from a localized data commit.
+  That basis is now composed through the live table aligner:
+  `updateState?_catalogEntries` proves the full table catalog run unchanged,
+  and `DatabaseOnSource.updateState` assembles the catalog, changed table,
+  retained tables, and transported metadata into the post-state invariant.
+  Its one isolated callback is physical preservation of unchanged index pages;
+  closing that ownership/disjointness fact is the remaining ordinary-path M3
+  obligation rather than another logical or codec premise.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
