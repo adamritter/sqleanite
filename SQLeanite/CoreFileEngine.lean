@@ -20,6 +20,9 @@ structure Connection where
   -- Testing emptiness instead re-read and re-decoded the whole main file on
   -- every query whenever certification legitimately produced nothing.
   private indexCertificates : IO.Ref (Option (List CoreFileAdapter.StoredIntegerIndex))
+  -- Page count and catalog, decoded once rather than per statement. Cleared
+  -- alongside the other caches on every write.
+  private fileGeometry : IO.Ref (Option CoreFileAdapter.FileGeometry)
   private provenance : IO.Ref FileProvenance
 
 def databaseContents (database : Core.Database) :=
@@ -48,6 +51,7 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
     -- Index certificates are needed only by secondary-index SELECTs. Loading
     -- them here made every write-only connection decode every index twice.
     indexCertificates := ← IO.mkRef none
+    fileGeometry := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign) }
 
 def create (syncOps : CoreFileAdapter.SyncOps)
@@ -82,6 +86,7 @@ private def commitFull (connection : Connection) (next : Core.State) :
   connection.pageState.set (some validated.state)
   connection.validatedOpen.set (some validated)
   connection.indexCertificates.set none
+  connection.fileGeometry.set none
   connection.provenance.set .generated
   return { next with database := reopened }
 
@@ -149,6 +154,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
                   -- This path changes the physical index image, so retained
                   -- certificates must be rebuilt on the next indexed read.
                   connection.indexCertificates.set none
+                  connection.fileGeometry.set none
                   return next
               | none => commitFull connection next
           | none => commitFull connection next
@@ -202,8 +208,18 @@ private def executeStatement (connection : Connection) (state : Core.State)
               | some lookup =>
                   return .ok (state, [lookup.result])
               | none =>
-                  match ← CoreFileAdapter.lookupIndexCandidates
-                      connection.paths table optimized with
+                  let geometry ← match ← connection.fileGeometry.get with
+                    | some cached => pure (some cached)
+                    | none => do
+                        let decoded ← CoreFileAdapter.readFileGeometry
+                          connection.paths
+                        connection.fileGeometry.set decoded
+                        pure decoded
+                  match ← (match geometry with
+                    | none => pure none
+                    | some geometry =>
+                        CoreFileAdapter.lookupIndexCandidatesWith geometry
+                          connection.paths table optimized) with
                   | some lookup =>
                       match ← connection.provenance.get with
                       | .generated =>

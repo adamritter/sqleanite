@@ -1987,23 +1987,25 @@ def lookupCertifiedIndexCandidates (certificates : List StoredIntegerIndex)
       | _ => none
   | _ => none
 
-/-- Use the persisted SQLite index B-tree for an equality query. The traversal
-reads the catalog and only value-compatible index branches; returned rowids are
-projected back into table order so queries without ORDER BY retain Core's
-observable list semantics. Unsupported query shapes return `none`. -/
-def lookupIndexCandidates (paths : Paths) (table : Core.Table)
-    (query : Core.Query) : IO (Option IndexLookup) := do
-  let selected := match query.predicate, table.chooseAccessPath query.predicate with
-    | some (.equal column target), .equalityIndex index =>
-        if column = index.column then
-          some (index, IndexLookupTarget.equality target)
-        else none
-    | some (.compare operation column target), .rangeIndex index =>
-        if column = index.column then
-          some (index, IndexLookupTarget.range operation target)
-        else none
-    | _, _ => none
-  let some (index, target) := selected | return none
+/-- Page count and catalog for a validated main file.
+
+Used by the persisted-index lookup below, which reads the catalog and only
+value-compatible index branches; returned rowids are projected back into table
+order so queries without ORDER BY retain Core's observable list semantics.
+Unsupported query shapes return `none`.
+
+Split out of `lookupIndexCandidates` so a connection can decode it once instead
+of once per statement. Reading page zero and decoding the header and catalog is
+per-query fixed cost that does not change until a write, and writes already
+invalidate the connection's caches. -/
+structure FileGeometry where
+  pageCount : Nat
+  catalog : List CoreDecode.CatalogEntry
+
+/-- Validate the header and decode the catalog. The header checks are exactly
+those `lookupIndexCandidates` performed inline, so a cached geometry carries the
+same premises a fresh read would. -/
+def readFileGeometry (paths : Paths) : IO (Option FileGeometry) := do
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
     let some firstPage ← readPageBytes handle | return none
@@ -2014,26 +2016,53 @@ def lookupIndexCandidates (paths : Paths) (table : Core.Table)
         header.headerPrefix.reservedSpace = 0 && header.textEncoding.val = 1 &&
         metadata.byteSize.toNat = count * PhysicalCodec.pageSize do return none
     let some catalog := CoreDecode.decodeCatalog firstPage | return none
-    let some entry := catalog.find? fun entry =>
-      entry.kind == "index" && entry.name == index.name &&
-        entry.table == table.schema.name | return none
-    let reads ← IO.mkRef 0
-    let base := preadPageSource paths.main count
-    let source : CoreDecode.IOPageSource := {
-      pageCount := count
-      readPage := fun pageNumber => do
-        reads.modify (· + 1)
-        base.readPage pageNumber }
-    let entries ← match target with
-      | .equality value =>
-          CoreDecode.lookupIndexValueIOFrom source value
-            (count + 1) entry.rootPage
-      | .range operation value =>
-          CoreDecode.lookupIndexRangeIOFrom source operation value
-            (count + 1) entry.rootPage
-    let some entries := entries | return none
-    let candidates := rowsForIndexEntries table entries
-    return some ⟨candidates, ← reads.get⟩
+    return some ⟨count, catalog⟩
+
+/-- The index selected by a query's predicate, or `none` for shapes this path
+does not serve. -/
+private def selectedIndexTarget (table : Core.Table) (query : Core.Query) :
+    Option (Core.Index × IndexLookupTarget) :=
+  match query.predicate, table.chooseAccessPath query.predicate with
+  | some (.equal column target), .equalityIndex index =>
+      if column = index.column then
+        some (index, IndexLookupTarget.equality target)
+      else none
+  | some (.compare operation column target), .rangeIndex index =>
+      if column = index.column then
+        some (index, IndexLookupTarget.range operation target)
+      else none
+  | _, _ => none
+
+/-- Index lookup against an already-decoded geometry. -/
+def lookupIndexCandidatesWith (geometry : FileGeometry) (paths : Paths)
+    (table : Core.Table) (query : Core.Query) : IO (Option IndexLookup) := do
+  let some (index, target) := selectedIndexTarget table query | return none
+  let some entry := geometry.catalog.find? fun entry =>
+    entry.kind == "index" && entry.name == index.name &&
+      entry.table == table.schema.name | return none
+  let count := geometry.pageCount
+  let reads ← IO.mkRef 0
+  let base := preadPageSource paths.main count
+  let source : CoreDecode.IOPageSource := {
+    pageCount := count
+    readPage := fun pageNumber => do
+      reads.modify (· + 1)
+      base.readPage pageNumber }
+  let entries ← match target with
+    | .equality value =>
+        CoreDecode.lookupIndexValueIOFrom source value
+          (count + 1) entry.rootPage
+    | .range operation value =>
+        CoreDecode.lookupIndexRangeIOFrom source operation value
+          (count + 1) entry.rootPage
+  let some entries := entries | return none
+  let candidates := rowsForIndexEntries table entries
+  return some ⟨candidates, ← reads.get⟩
+
+def lookupIndexCandidates (paths : Paths) (table : Core.Table)
+    (query : Core.Query) : IO (Option IndexLookup) := do
+  let some geometry ← readFileGeometry paths | return none
+  lookupIndexCandidatesWith geometry paths table query
 
 /-- Cold secondary-index lookup for a stamped image emitted by the proved
 encoder. The exact canonical catalog suffix records the INTEGER-only premise
