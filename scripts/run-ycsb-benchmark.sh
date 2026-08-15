@@ -54,6 +54,34 @@ timed() {
   fi
 }
 
+# Percentile of stdin integers. $1 = percentile (50, 99). Uses nearest-rank on
+# the sorted sample, which is what YCSB's own histogram reports.
+percentile() {
+  sort -n | awk -v p="$1" '{v[NR]=$1} END {
+    if (NR == 0) { print "-"; exit }
+    rank = int((p / 100) * NR + 0.5); if (rank < 1) rank = 1; if (rank > NR) rank = NR
+    printf "%.2f", v[rank] / 1000
+  }'
+}
+
+# Per-statement latencies in microseconds, one per line.
+#
+# Needs `--verified-file-timed`, which holds one connection and times each
+# statement separately. Timing whole scripts externally cannot give a
+# distribution, and timing one statement per process measures process start plus
+# a fresh open -- at ~32 ms/MB the open dominates and the numbers would describe
+# the open, not the operation.
+lean_latencies() { # $1 database  $2 script
+  "$lean" --verified-file-timed "$1" "$2" 2>&1 >/dev/null |
+    awk -F'\t' '$1 == "time" {print $2}'
+}
+
+# C SQLite reports per-statement wall time under `.timer on`.
+c_latencies() { # $1 database  $2 script
+  { echo ".timer on"; cat "$2"; } | "$csql" -batch -noheader "$1" 2>/dev/null |
+    awk '/^Run Time:/ {for (i = 1; i <= NF; i++) if ($i == "real") print int($(i+1) * 1000000)}'
+}
+
 median() { # median of stdin integers
   sort -n | awk '{v[NR]=$1} END {print (NR%2) ? v[(NR+1)/2] : int((v[NR/2]+v[NR/2+1])/2)}'
 }
@@ -65,6 +93,21 @@ if [ "$field" = 512 ]; then
 else
   printf 'field length %s -- REDUCED FIDELITY, not comparable to published numbers\n\n' "$field"
 fi
+# Percentiles need the timed CLI mode; fall back cleanly when it is absent.
+latency_supported=no
+if "$lean" --verified-file-timed /dev/null /dev/null >/dev/null 2>&1; then
+  latency_supported=yes
+else
+  probe=$work/probe.db
+  : > "$work/probe.sql"
+  if "$lean" --verified-file-timed "$probe" "$work/probe.sql" >/dev/null 2>&1; then
+    latency_supported=yes
+  fi
+fi
+if [ "$latency_supported" = no ]; then
+  printf 'note: --verified-file-timed unavailable, per-operation p50/p99 omitted\n\n'
+fi
+
 printf '%-10s %9s %9s %7s   %9s %9s %7s  %s\n' \
   workload load_lean load_c ratio run_lean run_c ratio outputs
 printf '%s\n' "---------------------------------------------------------------------------------------"
@@ -137,6 +180,20 @@ for workload in $workloads; do
 
   printf '%-10s %9s %9s %7s   %9s %9s %7s  %s\n' \
     "$workload" "$ll" "$lc" "$lratio" "$rl" "$rc" "$rratio" "$note"
+
+  # Per-operation latency distribution, on its own freshly loaded pair so the
+  # timing runs above are not disturbed.
+  if [ "$latency_supported" = yes ] && [ -z "$broken" ]; then
+    rm -f "$ldb" "$ldb-journal" "$ldb-wal" "$sdb"
+    "$lean" --verified-file "$ldb" "$trace/load.sql" >/dev/null 2>&1 || true
+    "$csql" "$sdb" < "$trace/load.sql" >/dev/null 2>&1 || true
+    lean_latencies "$ldb" "$trace/run.sql" > "$work/l.lat" 2>/dev/null || true
+    c_latencies "$sdb" "$trace/run.sql" > "$work/c.lat" 2>/dev/null || true
+    lp50=$(percentile 50 < "$work/l.lat"); lp99=$(percentile 99 < "$work/l.lat")
+    cp50=$(percentile 50 < "$work/c.lat"); cp99=$(percentile 99 < "$work/c.lat")
+    printf '%-10s   per-op ms  lean p50 %-8s p99 %-8s   c p50 %-8s p99 %s\n' \
+      "" "$lp50" "$lp99" "$cp50" "$cp99"
+  fi
   IFS=,
 done
 IFS=$oldifs
