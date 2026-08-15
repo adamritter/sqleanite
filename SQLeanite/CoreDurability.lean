@@ -55,6 +55,21 @@ theorem readsPagesFrom_storageImage_tail (image : CoreFile.Image) :
   rw [sourceExact]
   exact CoreDecode.ReadsPagesFrom.ofList_tail image.pages
 
+/-- The array-backed live page source reads exactly the pages of its bulk
+image.  The array is an execution optimization only; it does not alter the
+logical source consumed by representation proofs. -/
+theorem pageSource_storageImage (image : CoreFile.Image) :
+    CorePageSource.ofStorageImage (CoreFileAdapter.storageImage image) =
+      CoreDecode.PageSource.ofList
+        (image.pages.map CoreFile.Page.bytes) := by
+  unfold CorePageSource.ofStorageImage
+  rw [imagePages_storageImage]
+  congr 1
+  rw [List.map_map]
+  apply List.map_congr_left
+  intro page _
+  simp [CoreFile.Page.storage]
+
 /-- The concrete storage image emitted by the live bulk writer carries the
 strong per-table physical-layout invariant, not only a whole-decoder
 equation.  This is the initial generated-image witness localized commits
@@ -71,6 +86,24 @@ theorem exists_tablesOnStorage_encodeBulk
           (CorePageCodec.chunkTableCatalogEntry table)) state.tables := by
   apply CoreLocalizedRepresentation.exists_tablesOnSource_encodeBulk_in
     database image encoded
+  · exact readsPagesFrom_storageImage_tail image
+  · simp [CoreFileAdapter.storageImage, CoreFile.Image.pageCount]
+
+/-- A canonical live bulk image establishes the complete proof-carrying
+physical state: catalog, table/overflow topology, and promoted index entries
+all refer to the exact bytes exposed by the live array-backed page source. -/
+theorem exists_databaseOnStorage_encodeBulk
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image) :
+    ∃ state : CoreChunkPageState.State,
+      CoreChunkPageState.State.build? database = some state ∧
+      CoreLocalizedRepresentation.DatabaseOnSource
+        (CorePageSource.ofStorageImage
+          (CoreFileAdapter.storageImage image)) state := by
+  apply CoreLocalizedRepresentation.exists_databaseOnSource_encodeBulk_in
+    utf8 database image encoded
+  · rw [pageSource_storageImage]
   · exact readsPagesFrom_storageImage_tail image
   · simp [CoreFileAdapter.storageImage, CoreFile.Image.pageCount]
 

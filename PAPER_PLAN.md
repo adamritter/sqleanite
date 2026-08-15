@@ -177,7 +177,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   The physical index-group encoder now establishes its decoder and metadata
   certificates together in one recursive theorem, including promoted entries
   and implicit TEXT-primary indexes, so their orders cannot diverge during
-  final database-certificate assembly.
+  final database-certificate assembly. The bulk-image base case is now closed:
+  `exists_databaseOnSource_encodeBulk_in` assembles the catalog partition,
+  table/overflow ownership, and physical/metadata index witnesses into one
+  `DatabaseOnSource`; `exists_databaseOnStorage_encodeBulk` specializes that
+  theorem to the exact array-backed page source used by the live writer.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
