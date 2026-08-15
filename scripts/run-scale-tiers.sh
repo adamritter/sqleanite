@@ -65,7 +65,9 @@ else:
     # included in the timing for both shapes so the tiers stay comparable; the
     # load itself is linear, so any superlinear growth reported here is the
     # mutation.
-    print("CREATE TABLE p(k TEXT PRIMARY KEY, v TEXT NOT NULL);")
+    # Exact YCSB-shaped schema: TEXT primary key, one value field, implicit
+    # primary index. No surrogate key, no explicit index, no NOT NULL.
+    print("CREATE TABLE p (k TEXT PRIMARY KEY, v TEXT);")
     print("BEGIN;")
     for i in range(rows):
         print("INSERT INTO p VALUES('key%08d','%s');" % (i, value))
