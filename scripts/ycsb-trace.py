@@ -138,6 +138,14 @@ def main():
     parser.add_argument("--ops", type=int, required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--seed", type=int, default=20260814)
+    parser.add_argument("--insert-batch", type=int, default=1,
+                        help="rows per INSERT in the load phase. 1 matches "
+                             "YCSB one-record-at-a-time. Larger values exist "
+                             "only because the batch SQL path overflows the "
+                             "stack somewhere between 50k and 60k statements "
+                             "in one invocation; batching keeps the same rows "
+                             "and the same data, and both engines replay the "
+                             "identical script")
     parser.add_argument("--field-length", type=int, default=FIELD_LENGTH,
                         help="512 matches VeriBetrKV; lower values are a "
                              "reduced-fidelity triage mode, not paper numbers")
@@ -161,11 +169,18 @@ def main():
             "CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);\n"
         )
         out.write("BEGIN;\n")
+        batch = max(1, args.insert_batch)
+        pending = []
         for i in range(args.records):
-            out.write(
-                "INSERT INTO usertable VALUES(%s,%s);\n"
+            pending.append(
+                "(%s,%s)"
                 % (quote(keyname(i)), quote(fieldvalue(rng, args.field_length)))
             )
+            if len(pending) == batch:
+                out.write("INSERT INTO usertable VALUES %s;\n" % ",".join(pending))
+                pending = []
+        if pending:
+            out.write("INSERT INTO usertable VALUES %s;\n" % ",".join(pending))
         out.write("COMMIT;\n")
 
     # --- run phase ---
