@@ -357,6 +357,72 @@ def resolvePlans : Nat → List CellPlan → Option Resolved
       let rest ← resolvePlans (next + pages.length) plans
       some ⟨cell :: rest.cells, pages ++ rest.pages, rest.nextPage⟩
 
+/-- Folding by cons builds the reverse of `values` in front of an existing
+reversed accumulator.  This small algebraic fact is the ordering argument for
+the stack-safe overflow resolver below. -/
+theorem foldl_cons_eq_reverse_append (values accumulator : List α) :
+    values.foldl (fun reversed value => value :: reversed) accumulator =
+      values.reverse ++ accumulator := by
+  induction values generalizing accumulator with
+  | nil => rfl
+  | cons value values induction =>
+      simp only [List.foldl_cons, induction, List.reverse_cons]
+      simp [List.append_assoc]
+
+/-- Tail-recursive implementation of `resolvePlans` for large physical
+indexes.  The specification above waits for the complete tail before
+constructing every cell and page list, giving it one native stack frame per
+indexed row.  YCSB therefore aborted between 100k and 130k rows. -/
+def resolvePlansGo : Nat → List CellPlan → List (List UInt8) →
+    List CoreFile.Page → Option Resolved
+  | next, [], reversedCells, reversedPages =>
+      some ⟨reversedCells.reverse, reversedPages.reverse, next⟩
+  | next, plan :: plans, reversedCells, reversedPages => do
+      let overflow := plan.overflowBytes
+      let count := overflowPageCount overflow
+      let first := if count = 0 then none else some next
+      let cell ← plan.cellBytes? first
+      let pages ← makeOverflowPages? next overflow
+      resolvePlansGo (next + pages.length) plans (cell :: reversedCells)
+        (pages.foldl (fun reversed page => page :: reversed) reversedPages)
+
+def resolvePlansTR (next : Nat) (plans : List CellPlan) : Option Resolved :=
+  resolvePlansGo next plans [] []
+
+theorem resolvePlansGo_eq (next : Nat) (plans : List CellPlan)
+    (reversedCells : List (List UInt8))
+    (reversedPages : List CoreFile.Page) :
+    resolvePlansGo next plans reversedCells reversedPages =
+      (resolvePlans next plans).map fun resolved =>
+        ⟨reversedCells.reverse ++ resolved.cells,
+          reversedPages.reverse ++ resolved.pages, resolved.nextPage⟩ := by
+  induction plans generalizing next reversedCells reversedPages with
+  | nil => simp [resolvePlansGo, resolvePlans]
+  | cons plan plans induction =>
+      simp only [resolvePlansGo, resolvePlans, Option.bind_eq_bind, Option.bind]
+      cases cellResult : plan.cellBytes?
+          (if overflowPageCount plan.overflowBytes = 0 then none else some next) with
+      | none => simp [cellResult]
+      | some cell =>
+          simp only [cellResult]
+          cases pagesResult : makeOverflowPages? next plan.overflowBytes with
+          | none => simp [pagesResult]
+          | some pages =>
+              simp only [pagesResult]
+              rw [induction]
+              cases restResult : resolvePlans (next + pages.length) plans with
+              | none => simp [restResult]
+              | some rest =>
+                  simp only [restResult, Option.map]
+                  rw [foldl_cons_eq_reverse_append]
+                  simp [List.append_assoc]
+
+@[csimp] theorem resolvePlans_eq_resolvePlansTR :
+    resolvePlans = resolvePlansTR := by
+  funext next plans
+  rw [resolvePlansTR, resolvePlansGo_eq]
+  cases result : resolvePlans next plans <;> simp [result]
+
 theorem resolvePlans_cells_length : ∀ {next : Nat} {plans : List CellPlan}
     {resolved : Resolved}, resolvePlans next plans = some resolved →
       resolved.cells.length = plans.length

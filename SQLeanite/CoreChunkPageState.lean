@@ -100,6 +100,51 @@ theorem flatten_chunks (capacity : Nat) (values : List α) :
       simp only [chunks, List.flatten_cons]
       rw [induction, List.take_append_drop]
 
+/-- Tail-recursive implementation of `chunks` used by compiled bulk builds.
+
+The proof-facing `chunks` has one recursive frame per physical leaf chunk.  At
+512-byte YCSB rows that exhausted the native stack around 130,000 rows even
+though the resulting tree is shallow.  This loop carries the already produced
+chunks in reverse order and is proved extensionally equal below. -/
+def chunksGo : Nat → List α → List (List α) → List (List α)
+  | 0, values, reversed =>
+      if values.isEmpty then reversed.reverse
+      else reversed.reverseAux [values]
+  | _ + 1, [], reversed => reversed.reverse
+  | capacity + 1, value :: values, reversed =>
+      let input := value :: values
+      chunksGo (capacity + 1) (input.drop (capacity + 1))
+        (input.take (capacity + 1) :: reversed)
+  termination_by _ values _ => values.length
+  decreasing_by
+    simp only [input, List.length_drop, List.length_cons]
+    omega
+
+def chunksTR (capacity : Nat) (values : List α) : List (List α) :=
+  chunksGo capacity values []
+
+theorem chunksGo_eq (capacity : Nat) (values : List α)
+    (reversed : List (List α)) :
+    chunksGo capacity values reversed = reversed.reverse ++ chunks capacity values := by
+  induction capacity, values using chunks.induct generalizing reversed with
+  | case1 values =>
+      simp only [chunksGo, chunks]
+      split
+      · simp_all
+      · simp [List.reverseAux_eq]
+  | case2 values empty => simp [chunksGo, chunks, empty]
+  | case3 capacity => simp [chunksGo, chunks]
+  | case4 capacity value values input induction =>
+      simp only [chunksGo, chunks]
+      rw [induction]
+      simp [input]
+
+@[csimp] theorem chunks_eq_chunksTR :
+    @chunks = @chunksTR := by
+  funext α capacity values
+  rw [chunksTR, chunksGo_eq]
+  simp
+
 def chunkKey? (chunk : Chunk) : Option Nat :=
   chunk.getLast?.map Core.Row.treeKey
 
@@ -152,6 +197,39 @@ theorem entries?_projections {rowChunks : List Chunk}
               subst entries
               have tailProjection := induction tailResult
               simp [lastRows, last, tailProjection.1, tailProjection.2]
+
+/-- Tail-recursive compiled implementation of `entries?`. -/
+def entriesGo? : List Chunk → List (PagedBTree.Entry Chunk) →
+    Option (List (PagedBTree.Entry Chunk))
+  | [], reversed => some reversed.reverse
+  | chunk :: rowChunks, reversed => do
+      let key ← chunkKey? chunk
+      entriesGo? rowChunks ((key, chunk) :: reversed)
+
+def entriesTR? (rowChunks : List Chunk) :
+    Option (List (PagedBTree.Entry Chunk)) :=
+  entriesGo? rowChunks []
+
+theorem entriesGo?_eq (rowChunks : List Chunk)
+    (reversed : List (PagedBTree.Entry Chunk)) :
+    entriesGo? rowChunks reversed =
+      (entries? rowChunks).map (reversed.reverse ++ ·) := by
+  induction rowChunks generalizing reversed with
+  | nil => simp [entriesGo?, entries?]
+  | cons chunk rowChunks induction =>
+      simp only [entriesGo?, entries?]
+      cases key : chunkKey? chunk with
+      | none => simp [key]
+      | some value =>
+          simp only [Option.bind_eq_bind, Option.bind]
+          rw [induction]
+          cases tail : entries? rowChunks <;> simp [tail]
+
+@[csimp] theorem entries?_eq_entriesTR? :
+    entries? = entriesTR? := by
+  funext rowChunks
+  rw [entriesTR?, entriesGo?_eq]
+  simp
 
 theorem entries?_sorted (capacity : Nat) (table : Core.Table)
     {entries : List (PagedBTree.Entry Chunk)}
