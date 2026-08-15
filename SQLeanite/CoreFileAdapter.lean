@@ -494,6 +494,18 @@ structure PreparedLocalizedWrites
     baseWrites = some writes
   distinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
 
+/-- The pure localized plan was prepared from this exact pre-commit image.
+Both equalities are erased.  Grouping them prevents a durability proof from
+combining a page count from one file with page zero from another file while
+leaving the executable planner and write list unchanged. -/
+structure PreparedLocalizedWrites.OnImage
+    {freePages : List Nat}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites freePages baseWrites)
+    (image : GrowableStorage.Image PhysicalCodec.pageSize) : Prop where
+  pageCount : prepared.currentPageCount = image.pageCount
+  pageZero : prepared.firstPage = (image.read 0).bytes.toList
+
 theorem PreparedLocalizedWrites.base_mem
     {freePages : List Nat}
     {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
@@ -3402,6 +3414,22 @@ theorem CommittedLocalizedDelta.trace_eq
     committed.requests =
       preparedCommitPlan committed.journal committed.prepared.writes :=
   committed.requestsEq
+
+/-- Once the concrete pre-image reads are identified with the modeled old
+image, the exact request list returned by the live localized writer is the
+proved rollback-journal commit plan.  The journal equality is precisely the
+VFS read-refinement obligation; no table or codec fact is hidden in it. -/
+theorem CommittedLocalizedDelta.trace_eq_commitPlan
+    {freePages : List Nat}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (committed : CommittedLocalizedDelta freePages baseWrites)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (journalExact : committed.journal =
+      GrowableStorage.makeJournal oldImage committed.prepared.writes) :
+    committed.requests =
+      POSIXVFS.commitPlan oldImage committed.prepared.writes := by
+  rw [committed.trace_eq, journalExact]
+  exact preparedCommitPlan_eq_commitPlan oldImage committed.prepared.writes
 
 /-- Commit an already proved page delta. Only the final pages selected by the
 pure preparation are read for journal pre-images, written, and read back. No

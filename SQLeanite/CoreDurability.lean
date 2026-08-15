@@ -1108,8 +1108,7 @@ noncomputable def
     (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
     (physical : CoreLocalizedRepresentation.DatabaseOnSource
       (CorePageSource.ofStorageImage oldImage) state)
-    (currentCount : final.currentPageCount = oldImage.pageCount)
-    (firstPage : final.firstPage = (oldImage.read 0).bytes.toList)
+    (onImage : final.OnImage oldImage)
     (oldHeader : SQLiteHeaderMatches oldImage)
     (emptyFreelist : oldHeader.FreelistEmpty)
     (beforeInline :
@@ -1134,7 +1133,7 @@ noncomputable def
   have baseBound : ∀ write ∈ prepared.writes,
       write.pageId < final.currentPageCount := by
     intro write member
-    rw [currentCount]
+    rw [onImage.pageCount]
     exact bounded write (final.base_mem write member)
   have basePositive :=
     SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.baseWrites_pageId_pos_of_indexed
@@ -1148,14 +1147,14 @@ noncomputable def
       freeCount⟩
   have decodedFirst : FileFormat.decodeDatabaseHeader final.firstPage =
       some (decodedHeader, pageSuffix) := by
-    rw [firstPage, pageBytes]
+    rw [onImage.pageZero, pageBytes]
     exact FileFormat.decodeDatabaseHeader_encode decodedHeader pageSuffix
   have canonicalFirst : final.firstPage =
       FileFormat.encodeDatabaseHeader decodedHeader ++ pageSuffix := by
-    rw [firstPage]
+    rw [onImage.pageZero]
     exact pageBytes
   have countMatches : decodedHeader.databaseSizePages.val =
-      final.currentPageCount := headerCount.trans currentCount.symm
+      final.currentPageCount := headerCount.trans onImage.pageCount.symm
   have notWritten := final.pageZero_not_mem_of_stable noFree baseBound
     baseNoZero decodedHeader pageSuffix decodedFirst canonicalFirst countMatches
       firstFree freeCount
@@ -1289,6 +1288,45 @@ inductive PostImageCertificate
       (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
         (CoreFileAdapter.storageImage layout.paddedImage)) :
       PostImageCertificate oldImage writes database
+
+/-- The value returned by the live localized writer carries the exact final
+write list consumed by both the syscall trace and the component proof.  This
+constructor closes the one-table indexed point-update/YCSB post-image chain
+without permitting a separately reconstructed list of pages. -/
+noncomputable def
+    CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingle
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : state.tables = [delta.table.before])
+    (noFree : delta.after.freePages = [])
+    (committed : CoreFileAdapter.CommittedLocalizedDelta
+      delta.after.freePages prepared.writes)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (onImage : committed.prepared.OnImage oldImage)
+    (oldHeader : SQLiteHeaderMatches oldImage)
+    (emptyFreelist : oldHeader.FreelistEmpty)
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = []) :
+    PostImageCertificate oldImage committed.prepared.writes
+      delta.after.database :=
+  .components
+    (CoreFileAdapter.PreparedOrdinaryDelta.localizedOnFinalWritesIndexedSingle
+      prepared indexed single committed.prepared noFree oldImage physical
+      onImage oldHeader emptyFreelist beforeInline afterEncoding afterEncoded
+      afterInline)
 
 /-- The exact pure object consumed by the live bulk writer selects a
 constructive post-image constructor.  No decoder result or byte comparison is

@@ -827,6 +827,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.localizedOnFinalWritesIndexedSingle
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.LocalizedLastIndexDelta.liveDeltaEquations
 #print axioms SQLeanite.CoreFileAdapter.CommittedLocalizedDelta.trace_eq
+#print axioms SQLeanite.CoreFileAdapter.CommittedLocalizedDelta.trace_eq_commitPlan
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.base_mem
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.sources
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.added_disjoint_active
@@ -838,6 +839,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.free_after_catalog
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.free_not_active
 #print axioms SQLeanite.CoreDurability.PostImageCertificate.representsDatabase
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedSingle
 #print axioms SQLeanite.CoreDurability.postImageCertificate_of_preparedBulkImage
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedBulkCommit.postImageCertificate
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
