@@ -92,8 +92,16 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
 
 ## Progress snapshot (2026-08-14)
 
-- Milestone 1 is partial.  The live total parser is connected to an explicit
-  AST grammar and successful execution exposes its parse equation.
+- Milestone 1's verified front end is complete for the supported Core grammar.
+  `Lexer.lexCertified` constructs an inductive character-to-token trace.
+  `CoreTokenGrammar.parseCertified` then cross-checks the total parser's AST
+  with a separate AST-directed concrete grammar which shares no parser routine
+  or parser state. It checks literal values, names, precedence trees,
+  delimiters, joins, aliases, statement boundaries, and transaction commands;
+  `parseCertified_agrees_parse` proves both front ends agree on the admitted
+  AST. The live executor consumes only this certificate, and the text-level
+  read/write/trace theorem families require it rather than a bare parse
+  equation.
   `CoreSQLWriteText.TranslatedWrite` gives CREATE TABLE/INDEX, single-row
   INSERT/REPLACE, DELETE, UPDATE, and COMMIT a transparent,
   execution-independent translation relation; `executeStatement_eq_core`
@@ -103,9 +111,8 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   joins, and binary UNION ALL/UNION/INTERSECT/EXCEPT.  Each form reaches its
   independent bag/three-valued denotation from an actual SQL string.  The
   compound theorem retains both arm denotations, explicit empty-result width,
-  and the duplicate-sensitive bag operator.  An independent lexer/parser
-  correctness characterization and arbitrarily nested compound chains remain
-  open. Multi-row INSERT/REPLACE now
+  and the duplicate-sensitive bag operator. Arbitrarily nested compound
+  semantic chains remain open. Multi-row INSERT/REPLACE now
   translates to the exact live recursive Core command trace; every row keeps
   its command-specific logical effect, and the whole statement composes with
   returned-commit and repeated-recovery crash theorems. Transactional

@@ -760,9 +760,19 @@ bytes. `CoreSQLReadText.TranslatedRead` gives the non-aggregate single-table
 SELECT an analogous result-independent translation relation;
 `executeText_read_refines` proves actual supported text leaves the state
 unchanged and yields exactly `CoreReadSemantics.queryDenotation`. Independent
-lexer/parser soundness for a declarative token grammar, the other read forms,
-multi-row and multi-statement traces, and construction of the live localized
-representation witness remain explicit open links.
+lexing and parsing are now on that same live path. `Lexer.Tokenizes` records a
+character-to-token derivation produced by `lexCertified`.
+`CoreTokenGrammar.check` is a separate AST-directed grammar implementation: it
+shares no recursive-descent routine or state with `Parser`, and replays the
+significant tokens against the exact proposed AST, including names, literal
+values, operator-tree precedence, delimiters, aliases, joins, statement
+boundaries, and transaction commands. `parseCertified_agrees_parse` proves the
+certified result is the broad parser's result, while `Parses.grammar` exposes
+the independent replay witness. `CoreSQL.execute` consumes only this certified
+result, and all read, single/multi-row write, and multi-statement trace support
+relations now require `CoreTokenGrammar.Parses` rather than a bare parser
+equation. Construction of the complete live localized representation witness
+remains an explicit open link.
 `CoreLocalizedRepresentation` proves the physical read-after-write layer used
 to discharge that remaining premise.  Every numbered page selected by
 `CoreChunkPageDelta.writes` is present byte-for-byte in the resulting storage

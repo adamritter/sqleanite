@@ -3360,7 +3360,19 @@ private def expectPersistentPageTree : IO Unit := do
   unless check.exitCode == 0 && check.stdout == "ok\n3\n1\n" do
     fail s!"sqlite3 rejected stable-page bulk encoding: {check.stderr}{check.stdout}"
 
+private def expectCertifiedCoreTokenGrammar : IO Unit := do
+  let sql := "CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT);\n    BEGIN; INSERT INTO usertable VALUES('user0001','payload');\n    SELECT field0 FROM usertable WHERE (ycsb_key='user0001'); COMMIT;"
+  let certificate ← match CoreTokenGrammar.parseCertified sql with
+    | .ok certificate => pure certificate
+    | .error message => fail s!"certified Core grammar rejected its exact schema: {message}"
+  unless certificate.statements.size == 5 do
+    fail "certified Core grammar lost a statement boundary"
+  match CoreTokenGrammar.check certificate.tokens #[.rollback] with
+  | .error _ => pure ()
+  | .ok () => fail "independent Core grammar admitted a mismatched AST"
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("certified Core token grammar", expectCertifiedCoreTokenGrammar),
   ("persistent page identities", expectPersistentPageTree),
   ("verified file-format codecs", expectU16Codec),
   ("verified SQLite varints", expectVarintCodec),

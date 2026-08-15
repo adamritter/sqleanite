@@ -605,7 +605,7 @@ theorem executeStatement_eq_core
 inductive SupportedReadText (state : Core.State) (text : String)
     (command : Core.Command) : Prop where
   | intro (statement : Statement)
-      (parsed : parse text = .ok #[statement])
+      (parsed : CoreTokenGrammar.Parses text #[statement])
       (translated : TranslatedRead state statement command) :
       SupportedReadText state text command
 
@@ -613,7 +613,7 @@ inductive SupportedBinaryCompoundText (state : Core.State) (text : String)
     (left : Core.Command) (operation : CompoundOp) (right : Core.Command) :
     Prop where
   | intro (select : Select)
-      (parsed : parse text = .ok #[.select select])
+      (parsed : CoreTokenGrammar.Parses text #[.select select])
       (translated : TranslatedBinaryCompound state select left operation right) :
       SupportedBinaryCompoundText state text left operation right
 
@@ -623,7 +623,8 @@ theorem execute_binary_eq_core
     (supported : SupportedBinaryCompoundText state text left operation right) :
     CoreSQL.execute state text = executeBinaryPlan state left operation right := by
   rcases supported with ⟨select, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind,
+  rcases parsed with ⟨certificate, certified, statements⟩
+  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_binary_eq_core translated]
   cases execution : executeBinaryPlan state left operation right <;>
@@ -634,7 +635,8 @@ theorem execute_eq_core
     (supported : SupportedReadText state text command) :
     CoreSQL.execute state text = oneResult (Core.execute state command) := by
   rcases supported with ⟨statement, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind,
+  rcases parsed with ⟨certificate, certified, statements⟩
+  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_eq_core translated]
   unfold oneResult

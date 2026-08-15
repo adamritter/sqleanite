@@ -74,10 +74,14 @@ theorem statementListForm_of_run_success (state : Core.State) :
               · exact statementForm_of_execute_success head
               · exact statementListForm_of_run_success middle tail candidate member
 
-/-- A successful parse whose AST lies in the Core top-level grammar.  The
-parser equation is evidence, not a definition by execution success. -/
+/-- A proof-producing parse whose AST lies in the Core top-level grammar.  The
+certificate contains both the character-to-token trace and the independent
+token-to-AST replay used by the live executor. -/
 def ParsedSupportedText (text : String) (statements : Array Statement) : Prop :=
-  parse text = .ok statements ∧ CoreStatementListForm statements.toList
+  ∃ certificate : CoreTokenGrammar.CertifiedParse text,
+    CoreTokenGrammar.parseCertified text = .ok certificate ∧
+    certificate.statements = statements ∧
+    CoreStatementListForm statements.toList
 
 /-- Supported Core text carries an independently checkable character-to-token
 trace, not merely the final parser equation. -/
@@ -86,14 +90,25 @@ theorem ParsedSupportedText.tokenizes {text : String}
     (supported : ParsedSupportedText text statements) :
     ∃ tokens : Array Token,
       lex text = .ok tokens ∧ Tokenizes text.toList tokens.toList :=
-  parse_success_tokenizes supported.1
+  by
+    rcases supported with ⟨certificate, _, rfl, _⟩
+    exact ⟨certificate.tokens, certificate.lexes, certificate.tokenizes⟩
+
+theorem ParsedSupportedText.grammar {text : String}
+    {statements : Array Statement}
+    (supported : ParsedSupportedText text statements) :
+    ∃ tokens : Array Token,
+      Tokenizes text.toList tokens.toList ∧
+      CoreTokenGrammar.Matches tokens statements := by
+  rcases supported with ⟨certificate, _, rfl, _⟩
+  exact ⟨certificate.tokens, certificate.tokenizes, certificate.grammar⟩
 
 theorem execute_eq_runStatements_of_parsed {state : Core.State} {text : String}
     {statements : Array Statement}
     (supported : ParsedSupportedText text statements) :
     execute state text = runStatements state statements.toList := by
-  simp [ParsedSupportedText] at supported
-  simp [execute, supported.1, Except.instMonad, Except.bind]
+  rcases supported with ⟨certificate, parsed, rfl, _⟩
+  simp [execute, parsed, Except.instMonad, Except.bind]
 
 /-- Every text accepted all the way through the live Core has a parser witness
 and contains no legacy-only top-level statement. -/
@@ -101,11 +116,11 @@ theorem parsedSupportedText_of_execute_success {state next : Core.State}
     {text : String} {results : List Core.Result}
     (success : execute state text = .ok (next, results)) :
     ∃ statements, ParsedSupportedText text statements := by
-  cases parsed : parse text with
+  cases parsed : CoreTokenGrammar.parseCertified text with
   | error message =>
       simp [execute, parsed, Except.instMonad, Except.bind] at success
-  | ok statements =>
-      refine ⟨statements, parsed, ?_⟩
+  | ok certificate =>
+      refine ⟨certificate.statements, certificate, parsed, rfl, ?_⟩
       exact statementListForm_of_run_success state
         (by simpa [execute, parsed, Except.instMonad, Except.bind] using success)
 

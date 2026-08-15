@@ -190,21 +190,83 @@ def lexCertified (sql : String) :
   (lexCertifiedFuel (Nat.succ sql.toList.length) sql.toList).map fun result =>
     ⟨result.val.toArray, by simpa using result.property⟩
 
-/-- The live lexer erases only the proof carried by `lexCertified`. -/
+private def appendTokens : Array Token → List Token → Array Token
+  | output, [] => output
+  | output, token :: tokens => appendTokens (output.push token) tokens
+
+private theorem appendTokens_append (output : Array Token)
+    (left right : List Token) :
+    appendTokens (appendTokens output left) right =
+      appendTokens output (left ++ right) := by
+  induction left generalizing output with
+  | nil => rfl
+  | cons token tokens induction =>
+      simp only [appendTokens, List.cons_append]
+      exact induction (output.push token)
+
+private theorem appendTokens_toList (output : Array Token) (tokens : List Token) :
+    (appendTokens output tokens).toList = output.toList ++ tokens := by
+  induction tokens generalizing output with
+  | nil => simp [appendTokens]
+  | cons token tokens induction =>
+      simp only [appendTokens, induction, Array.push_toList,
+        List.append_assoc, List.singleton_append]
+
+/-- Tail-recursive erasure of the certified lexical grammar.  The Array is
+uniquely owned along the loop, so native `push` is in-place; the theorem below
+connects this fast implementation to the proof-producing reference. -/
+private def lexFastFuel : Nat → List Char → Array Token →
+    Except String (Array Token)
+  | 0, _, _ => throw "tokenizer progress limit exceeded"
+  | _ + 1, [], output => pure (output.push .eof)
+  | fuel + 1, head :: rest, output =>
+      match lexicalStep (head :: rest) with
+      | .error message => .error message
+      | .ok none => .error "tokenizer stopped before end of input"
+      | .ok (some result) =>
+          lexFastFuel fuel result.rest (appendTokens output result.emitted)
+
+private theorem lexFastFuel_sound :
+    ∀ (fuel : Nat) (input : List Char) (output final : Array Token),
+      lexFastFuel fuel input output = .ok final →
+      ∃ suffix : List Token,
+        final.toList = output.toList ++ suffix ∧ Tokenizes input suffix
+  | 0, input, output, final, success => by
+      simp [lexFastFuel] at success
+  | fuel + 1, [], output, final, success => by
+      change Except.ok (output.push .eof) = Except.ok final at success
+      have equal : output.push .eof = final := Except.ok.inj success
+      subst final
+      exact ⟨[.eof], by simp, .eof⟩
+  | fuel + 1, head :: rest, output, final, success => by
+      cases scanned : lexicalStep (head :: rest) with
+      | error message => simp [lexFastFuel, scanned] at success
+      | ok result =>
+          cases result with
+          | none => simp [lexFastFuel, scanned] at success
+          | some step =>
+              rw [lexFastFuel, scanned] at success
+              rcases lexFastFuel_sound fuel step.rest
+                  (appendTokens output step.emitted) final success with
+                ⟨suffix, finalShape, tail⟩
+              refine ⟨step.emitted ++ suffix, ?_, .step scanned tail⟩
+              rw [finalShape, appendTokens_toList]
+              simp [List.append_assoc]
+
+private def lexFast (sql : String) : Except String (Array Token) :=
+  lexFastFuel (Nat.succ sql.toList.length) sql.toList #[]
+
+/-- The live lexer is the proved tail-recursive erasure of `lexCertified`. -/
 def lex (sql : String) : Except String (Array Token) :=
-  lexCertified sql |>.map Subtype.val
+  lexFast sql
 
 theorem lex_sound {sql : String} {tokens : Array Token}
     (success : lex sql = .ok tokens) : Tokenizes sql.toList tokens.toList := by
-  unfold lex at success
-  cases certified : lexCertified sql with
-  | error message =>
-      rw [certified] at success
-      contradiction
-  | ok result =>
-      simp only [certified, Except.map, Except.ok.injEq] at success
-      subst tokens
-      exact result.property
+  unfold lex lexFast at success
+  rcases lexFastFuel_sound (Nat.succ sql.toList.length) sql.toList #[] tokens
+      success with ⟨suffix, shape, trace⟩
+  have same : tokens.toList = suffix := by simpa using shape
+  simpa [same] using trace
 
 theorem lex_budget_exceeds_character_count (sql : String) :
     sql.toList.length < Nat.succ sql.toList.length :=

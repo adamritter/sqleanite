@@ -353,7 +353,7 @@ theorem runStatements_eq_writeTrace
 inductive SupportedWriteTraceText (state : Core.State) (text : String)
     (commands : List CoreEndToEnd.WriteCommand) : Prop where
   | intro (statements : Array Statement)
-      (parsed : parse text = .ok statements)
+      (parsed : CoreTokenGrammar.Parses text statements)
       (translated : TranslatedWriteTrace state statements.toList commands) :
       SupportedWriteTraceText state text commands
 
@@ -363,7 +363,9 @@ theorem execute_trace_eq_core
     (supported : SupportedWriteTraceText state text commands) :
     CoreSQL.execute state text = executeWriteCommands state commands := by
   rcases supported with ⟨statements, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind]
+  rcases parsed with ⟨certificate, certified, statementList⟩
+  simp only [CoreSQL.execute, certified, statementList,
+    Except.instMonad, Except.bind]
   exact runStatements_eq_writeTrace translated
 
 theorem writeTrace_success
@@ -461,7 +463,7 @@ theorem executeText_trace_recovery_crash_trace_atomic
 inductive SupportedInsertRowsText (state : Core.State) (text : String)
     (commands : List CoreEndToEnd.WriteCommand) : Prop where
   | intro (statement : Statement)
-      (parsed : parse text = .ok #[statement])
+      (parsed : CoreTokenGrammar.Parses text #[statement])
       (translated : TranslatedInsertRows state statement commands) :
       SupportedInsertRowsText state text commands
 
@@ -471,7 +473,8 @@ theorem execute_insertRows_eq_core
     (supported : SupportedInsertRowsText state text commands) :
     CoreSQL.execute state text = executeWriteCommands state commands := by
   rcases supported with ⟨statement, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind,
+  rcases parsed with ⟨certificate, certified, statements⟩
+  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_insertRows_eq_core translated]
   cases execution : executeWriteCommands state commands <;>
@@ -573,7 +576,7 @@ theorem executeText_insertRows_recovery_crash_trace_atomic
 inductive SupportedWriteText (state : Core.State) (text : String)
     (command : CoreEndToEnd.WriteCommand) : Prop where
   | intro (statement : Statement)
-      (parsed : parse text = .ok #[statement])
+      (parsed : CoreTokenGrammar.Parses text #[statement])
       (translated : TranslatedWrite state statement command) :
       SupportedWriteText state text command
 
@@ -584,7 +587,8 @@ theorem execute_eq_core
     CoreSQL.execute state text = oneResult
       (Core.execute state command.toCore) := by
   rcases supported with ⟨statement, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind,
+  rcases parsed with ⟨certificate, certified, statements⟩
+  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_eq_core translated]
   unfold oneResult

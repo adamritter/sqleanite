@@ -1267,9 +1267,15 @@ private def parseStatementsM : ParserM (Array Statement) := do
         throw (syntaxError (← peek))
   pure out
 
+/-- Run the total syntax parser over an already-tokenized input.  Exposing this
+boundary lets the verified Core front end use one proof-producing lexical pass
+and independently certify the resulting token-to-AST relation. -/
+def parseTokens (tokens : Array Token) : Except String (Array Statement) :=
+  (parseStatementsM.run { tokens }).map (·.1)
+
 def parse (sql : String) : Except String (Array Statement) := do
   let tokens ← lex sql
-  (parseStatementsM.run { tokens }).map (·.1)
+  parseTokens tokens
 
 /-- A successful parse exposes the proof-producing lexical trace used by the
 live parser.  This is the text-to-token half of the verified front-end

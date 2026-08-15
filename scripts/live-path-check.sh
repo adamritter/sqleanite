@@ -128,18 +128,22 @@ else
 fi
 
 if grep -q 'comparisonPredicate schema' SQLeanite/CoreSQL.lean &&
-   grep -q 'lexCertified sql' SQLeanite/Lexer.lean &&
+   grep -q 'lexFast sql' SQLeanite/Lexer.lean &&
    grep -q 'lex_sound' SQLeanite/ProofAxioms.lean &&
    grep -q 'parse_success_tokenizes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreTokenGrammar.parseCertified_sound' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreTokenGrammar.parseCertified_agrees_parse' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreTokenGrammar.Parses.grammar' SQLeanite/ProofAxioms.lean &&
    grep -q 'ParsedSupportedText.tokenizes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'ParsedSupportedText.grammar' SQLeanite/ProofAxioms.lean &&
    grep -q 'literalSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'predicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'groupOutputSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'joinPredicateSyntax_of_success' SQLeanite/ProofAxioms.lean &&
    grep -q 'parsedSupportedText_of_execute_success' \
      SQLeanite/ProofAxioms.lean &&
-   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
-  ok "live Core translation carries proof-producing lexing and structural grammar"
+   grep -q 'CoreTokenGrammar.parseCertified sql' SQLeanite/CoreSQL.lean; then
+  ok "live Core translation carries independent proof-producing token grammar"
 else
   fail "Core SQL translation detached from its grammar or text certificate"
 fi
@@ -199,7 +203,7 @@ if grep -q 'executeText_commit_crash_atomic' \
      SQLeanite/CoreSQLWriteText.lean &&
    grep -q 'CoreEndToEnd.executeCommand_commit_crash_atomic' \
      SQLeanite/CoreSQLWriteText.lean &&
-   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
+   grep -q 'CoreTokenGrammar.parseCertified sql' SQLeanite/CoreSQL.lean; then
   ok "supported SQL write text composes with crash-atomic SQLite bytes"
 else
   fail "SQL text boundary detached from write durability"
@@ -253,7 +257,7 @@ if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
      SQLeanite/CoreSQLReadText.lean &&
    grep -q 'executeStatement_eq_core translated' \
      SQLeanite/CoreSQLReadText.lean &&
-   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
+   grep -q 'CoreTokenGrammar.parseCertified sql' SQLeanite/CoreSQL.lean; then
   ok "supported SQL read text reaches the independent bag denotation"
 else
   fail "SQL text boundary detached from read denotation"

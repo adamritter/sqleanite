@@ -199,7 +199,7 @@ theorem executeCommands_exact : ∀ (commands : List TraceCommand)
 inductive SupportedText (state : Core.State) (text : String)
     (commands : List TraceCommand) : Prop where
   | intro (statements : Array Statement)
-      (parsed : parse text = .ok statements)
+      (parsed : CoreTokenGrammar.Parses text statements)
       (translated : TranslatedTrace state statements.toList commands) :
       SupportedText state text commands
 
@@ -208,7 +208,9 @@ theorem execute_eq_commands
     (supported : SupportedText state text commands) :
     CoreSQL.execute state text = executeCommands state commands := by
   rcases supported with ⟨statements, parsed, translated⟩
-  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind]
+  rcases parsed with ⟨certificate, certified, statementList⟩
+  simp only [CoreSQL.execute, certified, statementList,
+    Except.instMonad, Except.bind]
   exact runStatements_eq_commands translated
 
 theorem execute_success

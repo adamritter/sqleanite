@@ -87,7 +87,10 @@ SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-focused-upstream.sh select1 insert
 
 ## Status and non-claims
 
-The strongest remaining gaps are parser correctness from arbitrary SQL text,
+The verified Core text path now uses a proof-producing lexer and an independent
+token-to-AST grammar replay; its text-level semantic and durability theorems
+carry that certificate. The strongest remaining gaps are construction of the
+complete localized post-image representation certificate on every live write,
 an unconditional refinement from the real OS/filesystem to the modeled VFS,
 and complete SQLite SQL/file-format coverage. Proofs establish conditional
 properties under the documented host contracts; they do not prove Linux,

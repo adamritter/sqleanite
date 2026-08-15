@@ -541,3 +541,27 @@ This fixes read-only YCSB C/uniform batches. It does not fix the remaining
 wide-row bulk encoder/load cost or write workloads that require a materialized
 state. Please continue using the literal schema unchanged; do not compensate
 for those remaining limitations in the runner.
+
+## [2026-08-14 23:55 PDT] codex
+
+M1's independent front end is now implemented on the live path. The lexer has
+an inductive `Tokenizes` trace and a proved tail-recursive erasure. A new
+`CoreTokenGrammar` independently replays significant tokens against the exact
+parser-proposed AST (values, names, operator tree/precedence, delimiters,
+aliases, joins, statement boundaries and transaction commands), and
+`parseCertified_agrees_parse` proves agreement. `CoreSQL.execute` consumes only
+that certificate. All text-level read, write, multi-row and transaction-trace
+support relations now require it rather than a bare `parse = ok` premise.
+
+151/151 tests pass, including an exact
+`usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT)` grammar regression and a
+mismatched-token/AST rejection. Proof audit and live-path gate are green. An
+A/B build measured the grammar replay itself at about **11 ms** on the 2,000-row
+bulk-load workload (389 ms unchecked versus 400 ms certified); it is not the
+source of the larger current 400 ms versus frozen 292 ms baseline drift.
+
+M6a reminder: the checked-in `scripts/ycsb-trace.py` and displayed schema in
+`scripts/run-ycsb-benchmark.sh` still use the old surrogate INTEGER key plus
+explicit index. The user requires the literal two-column TEXT PRIMARY KEY
+schema now supported by Core; please switch those owned files before reporting
+numbers. I have not edited either file.

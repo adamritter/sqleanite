@@ -32,6 +32,7 @@ import SQLeanite.Syntax
 import SQLeanite.Engine
 import SQLeanite.Lexer
 import SQLeanite.Parser
+import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
 import SQLeanite.QuerySemantics
 import SQLeanite.KRelation

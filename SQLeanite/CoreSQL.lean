@@ -1,5 +1,6 @@
 import SQLeanite.CoreEngine
 import SQLeanite.CoreOptimizerBridge
+import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
 
 namespace SQLeanite
@@ -760,8 +761,8 @@ def runStatements : Core.State → List Statement →
 
 def execute (state : Core.State) (sql : String) :
     Except String (Core.State × List Core.Result) := do
-  let statements ← parse sql
-  runStatements state statements.toList
+  let parsed ← CoreTokenGrammar.parseCertified sql
+  runStatements state parsed.statements.toList
 
 theorem runStatements_append (state : Core.State)
     (left right : List Statement) :
