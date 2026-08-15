@@ -131,6 +131,40 @@ def ofImageTotal? (image : CoreFile.Image) (totalPageCount : Nat) :
         else none
       else none
 
+theorem ofImageTotal?_image {image : CoreFile.Image} {totalPageCount : Nat}
+    {layout : Layout}
+    (prepared : ofImageTotal? image totalPageCount = some layout) :
+    layout.image = image := by
+  unfold ofImageTotal? at prepared
+  split at prepared
+  next => contradiction
+  next firstPage remainingActive pagesEq =>
+    split at prepared
+    next enough =>
+      split at prepared
+      next totalFits =>
+        injection prepared with equal
+        exact congrArg Layout.image equal.symm
+      next => contradiction
+    next => contradiction
+
+theorem ofImageTotal?_totalPageCount {image : CoreFile.Image}
+    {totalPageCount : Nat} {layout : Layout}
+    (prepared : ofImageTotal? image totalPageCount = some layout) :
+    layout.totalPageCount = totalPageCount := by
+  unfold ofImageTotal? at prepared
+  split at prepared
+  next => contradiction
+  next firstPage remainingActive pagesEq =>
+    split at prepared
+    next enough =>
+      split at prepared
+      next totalFits =>
+        injection prepared with equal
+        exact congrArg Layout.totalPageCount equal.symm
+      next => contradiction
+    next => contradiction
+
 def Layout.activePageCount (layout : Layout) : Nat := layout.image.pageCount
 def Layout.freePageCount (layout : Layout) : Nat :=
   layout.totalPageCount - layout.activePageCount

@@ -778,6 +778,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.databaseOnSource
 #print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.localizedRepresentation
 #print axioms SQLeanite.CoreDurability.PostImageCertificate.representsDatabase
+#print axioms SQLeanite.CoreDurability.postImageCertificate_of_preparedBulkImage
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedBulkCommit.postImageCertificate
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase

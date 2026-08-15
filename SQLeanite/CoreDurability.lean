@@ -638,6 +638,49 @@ inductive PostImageCertificate
         (CoreFileAdapter.storageImage layout.paddedImage)) :
       PostImageCertificate oldImage writes database
 
+/-- The exact pure object consumed by the live bulk writer selects a
+constructive post-image constructor.  No decoder result or byte comparison is
+accepted here: canonical and padded branches both retain the encoder equation
+chosen before the syscall trace begins. -/
+def postImageCertificate_of_preparedBulkImage
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) (canonicalImage newImage : CoreFile.Image)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (encoded : CorePageCodec.encodeBulk database = some canonicalImage)
+    (choice : CoreFileAdapter.PreparedBulkImage canonicalImage newImage)
+    (doesNotShrink : oldImage.pageCount ≤
+      (CoreFileAdapter.storageImage newImage).pageCount)
+    (writesEq : writes = CoreFileAdapter.transactionWrites oldImage newImage) :
+    PostImageCertificate oldImage writes database := by
+  have applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+      (CoreFileAdapter.storageImage newImage) := by
+    rw [writesEq]
+    exact GrowableStorage.apply_deltaWrites_equiv oldImage
+      (CoreFileAdapter.storageImage newImage) doesNotShrink
+  cases choice with
+  | canonical => exact .bulk utf8 canonicalImage encoded applied
+  | padded layout sameImage =>
+      have layoutEncoded : CorePageCodec.encodeBulk database =
+          some layout.image := by
+        rw [sameImage]
+        exact encoded
+      exact .padded utf8 layout layoutEncoded applied
+
+/-- Every successful live bulk preparation already carries the public
+post-image certificate; turning it into the crash theorem's premise is proof
+only and performs no additional encoding, decoding, or file read. -/
+def CoreFileAdapter.PreparedBulkCommit.postImageCertificate
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {database : Core.Database}
+    (prepared : CoreFileAdapter.PreparedBulkCommit oldImage database)
+    (utf8 : CoreDecode.UTF8Roundtrips) :
+    PostImageCertificate oldImage prepared.writes database :=
+  postImageCertificate_of_preparedBulkImage utf8 oldImage database
+    prepared.canonicalImage prepared.newImage prepared.writes
+    (CorePageCodec.encodeBulkWithState_image prepared.encodedWithState)
+    prepared.choice prepared.doesNotShrink prepared.writesEq
+
 theorem PostImageCertificate.representsDatabase
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
     {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}

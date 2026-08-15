@@ -237,8 +237,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   retained and changed table witnesses, and preservation mode.
   `PostImageCertificate` admits only that certificate, decomposed component
   evidence, canonical bulk encoding, or verified freelist padding—never a bare
-  post-image decoder equation. The SQL-text and statement-trace crash theorems
-  now consume this constructive certificate.
+  post-image decoder equation. `PreparedBulkCommit` is now the exact pure
+  object consumed by the live rollback writer; it retains its canonical versus
+  padded branch and delta-write equation, and
+  `PreparedBulkCommit.postImageCertificate` maps it to the public constructor
+  with no extra runtime pass. The SQL-text and statement-trace crash theorems
+  consume this constructive certificate. Ordinary localized and changed-index
+  preparations are the remaining live return-type integrations.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

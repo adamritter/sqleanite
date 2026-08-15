@@ -29,6 +29,78 @@ def transactionWrites (old : GrowableStorage.Image PhysicalCodec.pageSize)
     List (GrowableStorage.PageWrite PhysicalCodec.pageSize) :=
   GrowableStorage.deltaWrites old (storageImage image)
 
+/-- The two byte-image forms selected by the live bulk writer.  This is a
+lower-layer, proof-carrying description of the choice; `CoreDurability` turns
+it into the corresponding `PostImageCertificate` without creating an import
+cycle back into the file adapter. -/
+inductive PreparedBulkImage (canonical : CoreFile.Image) :
+    CoreFile.Image → Prop where
+  | canonical : PreparedBulkImage canonical canonical
+  | padded (layout : CoreMultiFreelist.Layout)
+      (sameImage : layout.image = canonical) :
+      PreparedBulkImage canonical layout.paddedImage
+
+/-- Pure preparation consumed by the actual bulk commit.  It retains the
+encoder equation, exact selected image, non-shrinking allocation fact, and
+exact delta-write equation as erased fields. -/
+structure PreparedBulkCommit
+    (old : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) where
+  state : CoreChunkPageState.State
+  canonicalImage : CoreFile.Image
+  newImage : CoreFile.Image
+  freePages : List Nat
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  encodedWithState : CorePageCodec.encodeBulkWithState database =
+    some (canonicalImage, state)
+  choice : PreparedBulkImage canonicalImage newImage
+  doesNotShrink : old.pageCount ≤ (storageImage newImage).pageCount
+  writesEq : writes = transactionWrites old newImage
+
+/-- Decide the exact bulk image and page delta before performing any syscall.
+The returned object is both the executable input to `commit` and the erased
+proof input to the durability layer. -/
+def prepareBulkCommit? (old : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) : Option (PreparedBulkCommit old database) :=
+  match encoded : CorePageCodec.encodeBulkWithState database with
+  | none => none
+  | some (canonicalImage, state) =>
+      if grows : old.pageCount ≤ canonicalImage.pageCount then
+        let writes := transactionWrites old canonicalImage
+        some {
+          state
+          canonicalImage
+          newImage := canonicalImage
+          freePages := []
+          writes
+          encodedWithState := encoded
+          choice := .canonical
+          doesNotShrink := by
+            simpa [storageImage, CoreFile.Image.pageCount] using grows
+          writesEq := rfl }
+      else
+        match layoutResult : CoreMultiFreelist.ofImageTotal? canonicalImage
+            old.pageCount with
+        | none => none
+        | some layout =>
+            let writes := transactionWrites old layout.paddedImage
+            some {
+              state
+              canonicalImage
+              newImage := layout.paddedImage
+              freePages := List.range' (canonicalImage.pageCount + 1)
+                (old.pageCount - canonicalImage.pageCount)
+              writes
+              encodedWithState := encoded
+              choice := .padded layout
+                (CoreMultiFreelist.ofImageTotal?_image layoutResult)
+              doesNotShrink := by
+                change old.pageCount ≤ layout.paddedImage.pageCount
+                rw [CoreMultiFreelist.Layout.paddedImage_pageCount,
+                  CoreMultiFreelist.ofImageTotal?_totalPageCount layoutResult]
+                exact Nat.le_refl _
+              writesEq := rfl }
+
 def commitPlan (old : GrowableStorage.Image PhysicalCodec.pageSize)
     (new : CoreFile.Image) : List Request :=
   let writes := transactionWrites old new
@@ -2779,24 +2851,15 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   let oldImage ← match physicalImage? current.data.toList with
     | some image => pure image
     | none => throw (IO.userError "could not page the current general MVP image")
-  -- The bulk encoder has a compositional whole-image inverse. The exact write
-  -- delta is read back below; the in-memory codec theorem and the on-disk
-  -- read-back check establish distinct obligations without reparsing rows.
-  let bulk ← match CorePageCodec.encodeBulkWithState new with
+  -- The pure preparation retains the exact encoder branch and write equation
+  -- later consumed by `PreparedBulkCommit.postImageCertificate`; syscalls do
+  -- not recompute or reinterpret either choice.
+  let prepared ← match prepareBulkCommit? oldImage new with
     | some result => pure result
-    | none => throw (IO.userError "general MVP database exceeds the physical subset")
-  let canonicalImage := bulk.1
-  let (newImage, freePages) ←
-    if oldImage.pageCount ≤ canonicalImage.pageCount then
-      pure (canonicalImage, [])
-    else
-      match CoreMultiFreelist.ofImageTotal? canonicalImage oldImage.pageCount with
-      | some layout =>
-          pure (layout.paddedImage,
-            List.range' (canonicalImage.pageCount + 1)
-              (oldImage.pageCount - canonicalImage.pageCount))
-      | none => throw (IO.userError "general MVP freelist exceeds the verified page-count bound")
-  let writes := transactionWrites oldImage newImage
+    | none => throw (IO.userError
+        "general MVP database or freelist exceeds the verified physical bounds")
+  let newImage := prepared.newImage
+  let writes := prepared.writes
   let journal := GrowableStorage.makeJournal oldImage writes
   let encodable ← match PhysicalJournalCodec.ofJournal? journal with
     | some value => pure value
@@ -2811,7 +2874,8 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   verifyWrittenPages paths.main writes
   SyscallVFS.unlinkPath paths.journal.toString
   syncOps.syncDeletion paths.main
-  let validated ← match retainGeneratedState? bulk.2 newImage.pageCount freePages with
+  let validated ← match retainGeneratedState? prepared.state
+      newImage.pageCount prepared.freePages with
     | some value => pure value
     | none => throw (IO.userError
         "generated commit did not retain a proof-carrying state")

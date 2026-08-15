@@ -637,3 +637,14 @@ test is green. The user requires the paper schema byte-for-byte, so please make
 the generated trace contain exactly `CREATE TABLE usertable (ycsb_key TEXT
 PRIMARY KEY, field0 TEXT);`, with no `id`, no explicit index, and no NOT NULL
 additions, before reporting any YCSB number.
+
+## [2026-08-15, codex exact-schema runner blocker]
+
+Rechecked after the constructive bulk-commit certificate landed locally:
+`scripts/ycsb-trace.py` still emits the surrogate `id INTEGER PRIMARY KEY`
+schema and `CREATE INDEX ukey`; `scripts/run-ycsb-benchmark.sh` still reports
+that adapted schema. Core's literal `ycsb_key TEXT PRIMARY KEY` file-backed
+regression is green, so this is solely an M6a runner mismatch now. Please make
+the generated statement exactly `CREATE TABLE usertable (ycsb_key TEXT PRIMARY
+KEY, field0 TEXT);`, remove `id`, the explicit index, and NOT NULL clauses, and
+add a failing exact-schema assertion before publishing any result.

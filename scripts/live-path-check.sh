@@ -320,14 +320,17 @@ else
 fi
 
 if grep -q 'GrowableStorage.deltaWrites old (storageImage image)' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'writeMainPages paths.main writes' SQLeanite/CoreFileAdapter.lean; then
+   grep -q 'writeMainPages paths.main writes' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'PreparedBulkCommit.postImageCertificate' \
+     SQLeanite/ProofAxioms.lean; then
   ok "rollback commits publish the proved changed-page transaction"
 else
   fail "Core rollback commits bypass changed-page publication"
 fi
 
 if grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'CorePageCodec.encodeBulkWithState new' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreWALFileAdapter.lean &&
    ! grep -q 'def encodeTable' SQLeanite/CoreOverflow.lean; then
   ok "all writers use store-owned table topology and checked creation/WAL encoding"
@@ -437,8 +440,10 @@ if grep -q 'current.retarget? delta sufficient' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'let (validated, _) ← CoreFileAdapter.commit' \
      SQLeanite/CoreFileEngine.lean &&
-   grep -q 'CorePageCodec.encodeBulkWithState new' \
+   grep -q 'prepareBulkCommit? oldImage new' \
      SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'PreparedBulkCommit.postImageCertificate' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'encodeBulkWithState_represents' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'verifyWrittenPages paths.main writes' \
