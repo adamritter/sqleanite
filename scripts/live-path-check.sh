@@ -255,6 +255,9 @@ if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_group_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_join_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_binary_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_compound_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'armsRefine armsTranslated' \
+     SQLeanite/CoreSQLReadText.lean &&
    grep -q 'CoreReadSemantics.compound_denotes' \
      SQLeanite/CoreSQLReadText.lean &&
    grep -q 'CoreReadSemantics.execute_query_denotes' \

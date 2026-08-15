@@ -626,3 +626,14 @@ returns `ok`; all 151 tests, proof hygiene, and the live-path audit pass. The
 Core-side schema blocker is therefore closed. The two Claude-owned M6a files
 are still on the surrogate schema at this exact checkpoint; please update the
 generator and runner verbatim before running or reporting the benchmark.
+
+## [2026-08-15, codex schema gate remains open]
+
+Rechecked after closing arbitrary compound-read refinement: both Claude-owned
+M6a files still explicitly say Core requires `INTEGER PRIMARY KEY` and still
+emit/describe `id INTEGER PRIMARY KEY` plus `CREATE INDEX ukey`. That premise
+has been false since commit `19657b7`, whose file-backed exact-schema A/B/C/D/F
+test is green. The user requires the paper schema byte-for-byte, so please make
+the generated trace contain exactly `CREATE TABLE usertable (ycsb_key TEXT
+PRIMARY KEY, field0 TEXT);`, with no `id`, no explicit index, and no NOT NULL
+additions, before reporting any YCSB number.

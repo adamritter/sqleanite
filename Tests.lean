@@ -1996,6 +1996,15 @@ private def expectGeneralMVPSQL : IO Unit := do
       "INSERT INTO users VALUES(3,NULL,NULL);" with
   | .ok _ => fail "general MVP SQL admitted a NOT NULL violation"
   | .error _ => pure ()
+  let (_, nestedResults) ← match CoreSQL.execute state
+      "SELECT user_id FROM users UNION ALL SELECT author_id FROM posts INTERSECT SELECT user_id FROM users;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"nested Core compound read failed: {message}"
+  unless nestedResults.map (fun result => result.rows) ==
+      [[[
+        .integer ⟨1, by decide, by decide⟩],
+        [.integer ⟨2, by decide, by decide⟩]]] do
+    fail "nested Core compound read changed left-to-right bag semantics"
 
 private def expectBinary64Core : IO Unit := do
   let positiveZero : FileFormat.U64Value := ⟨0, by decide⟩

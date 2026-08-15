@@ -90,7 +90,7 @@ and performance deltas against this baseline.
 The gate is `scripts/check-paper-floor.sh`; full three-run medians use
 `scripts/run-benchmark-regression.sh`.
 
-## Progress snapshot (2026-08-14)
+## Progress snapshot (2026-08-15)
 
 - Milestone 1's verified front end is complete for the supported Core grammar.
   `Lexer.lexCertified` constructs an inductive character-to-token trace.
@@ -108,11 +108,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   proves that it reaches the corresponding live Core command.
   `CoreSQLReadText.TranslatedRead` now does the same for simple single-table
   SELECT, COUNT, SUM, MIN/MAX, grouped aggregation, and two-table inner/left
-  joins, and binary UNION ALL/UNION/INTERSECT/EXCEPT.  Each form reaches its
-  independent bag/three-valued denotation from an actual SQL string.  The
-  compound theorem retains both arm denotations, explicit empty-result width,
-  and the duplicate-sensitive bag operator. Arbitrarily nested compound
-  semantic chains remain open. Multi-row INSERT/REPLACE now
+  joins, and arbitrary recursively nested UNION ALL/UNION/INTERSECT/EXCEPT
+  chains. Each form reaches its independent bag/three-valued denotation from
+  an actual SQL string. `TranslatedCompoundRead` recursively retains every
+  leaf denotation and empty-result width; `CompoundReadArmsRefine` proves each
+  duplicate-sensitive operator against the independent optimized bag plan.
+  Multi-row INSERT/REPLACE now
   translates to the exact live recursive Core command trace; every row keeps
   its command-specific logical effect, and the whole statement composes with
   returned-commit and repeated-recovery crash theorems. Transactional
@@ -153,8 +154,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `OnStorage` witness too: every encoded page is either present in the exact
   physical delta or proved byte-for-byte equal to its validated old page.
   Thus both routed and rebuilt changed-index preparations are connected to the
-  actual post-write storage image; complete database-certificate assembly
-  remains the M3 integration obligation. The validating loader now exposes
+  actual post-write storage image. Complete database-certificate assembly is
+  now closed by `DatabaseOnSource`, `OrdinaryLocalizedCommit`, and
+  `PostImageCertificate`; the remaining M3 integration obligation is for each
+  live adapter preparation to return that constructive certificate directly.
+  The validating loader now exposes
   its exact catalog/table/index equations as
   `CoreDecode.PageSourceDecodes`, and a proved conversion produces
   `PageSourceRepresents` when the decoded database is a canonicalization
@@ -283,9 +287,9 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   The `CoreSQLReadText.executeText_*_refines` family likewise begins at an
   actual SQL string, proves reads leave the state unchanged, and reaches the
   independent bag denotation for simple queries, scalar/grouped aggregates,
-  joins, and binary compound reads. Arbitrarily nested compounds,
-  statement-list/parser parity, and construction of the localized database
-  post-image construction is now exposed through `PostImageCertificate`
+  joins, and arbitrary recursively nested compound reads. Statement-list/parser
+  parity is complete, and localized database post-image construction is now
+  exposed through `PostImageCertificate`
   rather than a bare decoder equality. The remaining integration work is to
   have every live adapter preparation return the corresponding constructor
   directly, so detaching certificate construction from the executable path is
