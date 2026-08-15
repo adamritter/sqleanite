@@ -364,6 +364,75 @@ def replacementChunk? (rows : List Core.Row)
     some (replacement, rows.drop chunk.length)
   else none
 
+/-- The proof-oriented bulk replacement loop, named separately so page
+identity can be related to its accumulator without unfolding a higher-order
+`foldlM` application. -/
+def replaceManyFold :
+    List (PagedBTree.Entry CoreChunkPageState.Chunk) →
+      (PersistentPageTree.Store CoreChunkPageState.Chunk × List Core.Row) →
+      Option (PersistentPageTree.Store CoreChunkPageState.Chunk × List Core.Row)
+  | [], accumulator => some accumulator
+  | entry :: entries, accumulator => do
+      let resolved ← replacementChunk? accumulator.2 entry.2
+      let tree := if resolved.1 = entry.2 then accumulator.1
+        else accumulator.1.insert entry.1 resolved.1
+      replaceManyFold entries (tree, resolved.2)
+
+theorem replaceManyFold_nextPage_le :
+    ∀ {entries : List (PagedBTree.Entry CoreChunkPageState.Chunk)}
+      {store updated : PersistentPageTree.Store CoreChunkPageState.Chunk}
+      {rows remaining : List Core.Row},
+      replaceManyFold entries (store, rows) = some (updated, remaining) →
+      store.nextPage ≤ updated.nextPage
+  | [], store, updated, rows, remaining, success => by
+      simp only [replaceManyFold, Option.some.injEq, Prod.mk.injEq] at success
+      exact success.1 ▸ Nat.le_refl _
+  | entry :: entries, store, updated, rows, remaining, success => by
+      unfold replaceManyFold at success
+      rcases Option.bind_eq_some.mp success with
+        ⟨resolved, resolvedResult, success⟩
+      split at success
+      next => exact replaceManyFold_nextPage_le success
+      next =>
+        exact Nat.le_trans (store.nextPage_le_insert entry.1 resolved.1)
+          (replaceManyFold_nextPage_le success)
+
+/-- If the completed replacement loop did not advance the allocation
+watermark, every insertion in the loop was a no-allocation update and the
+complete physical page-identity list is unchanged. -/
+theorem replaceManyFold_pageIds_of_noAllocation :
+    ∀ {entries : List (PagedBTree.Entry CoreChunkPageState.Chunk)}
+      {store updated : PersistentPageTree.Store CoreChunkPageState.Chunk}
+      {rows remaining : List Core.Row},
+      replaceManyFold entries (store, rows) = some (updated, remaining) →
+      updated.nextPage = store.nextPage →
+      updated.root.pageIds = store.root.pageIds
+  | [], store, updated, rows, remaining, success, noAllocation => by
+      simp only [replaceManyFold, Option.some.injEq, Prod.mk.injEq] at success
+      exact congrArg (fun tree => tree.root.pageIds) success.1.symm
+  | entry :: entries, store, updated, rows, remaining, success,
+      noAllocation => by
+      unfold replaceManyFold at success
+      rcases Option.bind_eq_some.mp success with
+        ⟨resolved, resolvedResult, success⟩
+      split at success
+      next same =>
+        exact replaceManyFold_pageIds_of_noAllocation success noAllocation
+      next changed =>
+        let inserted := store.insert entry.1 resolved.1
+        have stepBound : store.nextPage ≤ inserted.nextPage :=
+          store.nextPage_le_insert entry.1 resolved.1
+        have tailBound : inserted.nextPage ≤ updated.nextPage :=
+          replaceManyFold_nextPage_le success
+        have stepNoAllocation : inserted.nextPage = store.nextPage := by
+          omega
+        have tailNoAllocation : updated.nextPage = inserted.nextPage := by
+          omega
+        exact (replaceManyFold_pageIds_of_noAllocation success
+          tailNoAllocation).trans
+            (store.insert_pageIds_of_noAllocation entry.1 resolved.1
+              stepNoAllocation)
+
 /-- Update all changed chunks without rebuilding table topology.  Stable page
 identity selects the exact before/after paths for the rollback journal.  The
 final representation equality is retained as the proof field of `TableState`,
@@ -373,11 +442,8 @@ def replaceMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
   let row ← firstDifference state.table.rows replacement.rows
   let allocating : PersistentPageTree.Store CoreChunkPageState.Chunk :=
     { state.tree with nextPage }
-  let updated ← state.tree.root.erase.toList.foldlM (fun accumulator entry => do
-    let resolved ← replacementChunk? accumulator.2 entry.2
-    let tree := if resolved.1 = entry.2 then accumulator.1
-      else accumulator.1.insert entry.1 resolved.1
-    some (tree, resolved.2)) (allocating, replacement.rows)
+  let updated ← replaceManyFold state.tree.root.erase.toList
+    (allocating, replacement.rows)
   if _consumed : updated.2 = [] then
     let updatedTree := updated.1
     if _noAllocation : updatedTree.nextPage = nextPage then
@@ -1775,6 +1841,13 @@ theorem TableDelta.tablePagesSufficient_indexImage (delta : TableDelta)
     rw [indexImage_eq_sortIndexSourceImage,
       indexImage_eq_sortIndexSourceImage, sufficient.2.2]
 
+theorem TableDelta.tablePagesSufficient_rowsLength_of_indexed
+    (delta : TableDelta) (sufficient : delta.tablePagesSufficient = true)
+    (indexed : delta.before.table.indexes ≠ []) :
+    delta.after.table.rows.length = delta.before.table.rows.length := by
+  simp [TableDelta.tablePagesSufficient, indexed] at sufficient
+  exact sufficient.2.1.symm
+
 /-- The part of table identity stored in `sqlite_master`.  Rows and proof-tree
 topology are deliberately absent: a data mutation changes both without
 changing the catalog declaration. -/
@@ -1966,34 +2039,22 @@ private theorem replaceManyFold_rootId :
       (rows : List Core.Row)
       (updated : PersistentPageTree.Store CoreChunkPageState.Chunk ×
         List Core.Row),
-      entries.foldlM (fun accumulator entry => do
-        let resolved ← replacementChunk? accumulator.2 entry.2
-        let tree := if resolved.1 = entry.2 then accumulator.1
-          else accumulator.1.insert entry.1 resolved.1
-        some (tree, resolved.2)) (store, rows) = some updated →
+      replaceManyFold entries (store, rows) = some updated →
       updated.1.root.rootId = store.root.rootId
   | [], store, rows, updated, success => by
-      simp only [List.foldlM_nil, pure, Option.pure_def,
-        Option.some.injEq] at success
+      simp only [replaceManyFold, Option.some.injEq] at success
       subst updated
       rfl
   | entry :: entries, store, rows, updated, success => by
-      simp only [List.foldlM_cons] at success
-      rcases Option.bind_eq_some.mp success with ⟨next, stepResult, success⟩
-      have stepRoot : next.1.root.rootId = store.root.rootId := by
-        rcases Option.bind_eq_some.mp stepResult with
-          ⟨resolved, resolvedResult, stepResult⟩
-        split at stepResult
-        next =>
-          injection stepResult with equal
-          subst next
-          rfl
-        next =>
-          injection stepResult with equal
-          subst next
-          exact store.insert_rootId entry.1 resolved.1
-      have tail := replaceManyFold_rootId entries next.1 next.2 updated success
-      exact tail.trans stepRoot
+      unfold replaceManyFold at success
+      rcases Option.bind_eq_some.mp success with
+        ⟨resolved, resolvedResult, success⟩
+      split at success
+      next => exact replaceManyFold_rootId entries store resolved.2 updated success
+      next =>
+        have tail := replaceManyFold_rootId entries
+          (store.insert entry.1 resolved.1) resolved.2 updated success
+        exact tail.trans (store.insert_rootId entry.1 resolved.1)
 
 private theorem retainManyFold_rootId :
     ∀ (entries : List (PagedBTree.Entry CoreChunkPageState.Chunk))
@@ -2063,6 +2124,30 @@ private theorem replace?_rootId {state : CoreChunkPageState.TableState}
         subst delta
         exact PersistentPageTree.Store.insert_rootId
           { state.tree with nextPage } entry.1 (replaceRow row entry.2)
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem replace?_pageIds {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : replace? state nextPage row replacement = some delta) :
+    delta.after.tree.root.pageIds = state.tree.root.pageIds := by
+  unfold replace? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next noAllocation =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        exact PersistentPageTree.Store.insert_pageIds_of_noAllocation
+          { state.tree with nextPage } entry.1 (replaceRow row entry.2)
+          noAllocation
       next => contradiction
     next => contradiction
   next => contradiction
@@ -2169,6 +2254,35 @@ private theorem replaceMany?_rootId {state : CoreChunkPageState.TableState}
         have root := replaceManyFold_rootId state.tree.root.erase.toList
           { state.tree with nextPage } replacement.rows updated updatedResult
         simpa using root
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem replaceMany?_pageIds
+    {state : CoreChunkPageState.TableState} {nextPage : Nat}
+    {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceMany? state nextPage replacement = some delta) :
+    delta.after.tree.root.pageIds = state.tree.root.pageIds := by
+  unfold replaceMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with
+    ⟨updated, updatedResult, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next noAllocation =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        have pageIds : updated.1.root.pageIds = state.tree.root.pageIds := by
+          have preserved := replaceManyFold_pageIds_of_noAllocation
+            updatedResult (by simpa using noAllocation)
+          simpa using preserved
+        injection success with equal
+        subst delta
+        exact pageIds
       next => contradiction
     next => contradiction
   next => contradiction
@@ -2347,6 +2461,39 @@ theorem replaceBetween?_rootId {state : CoreChunkPageState.TableState}
           | none =>
               rw [replacementResult] at success
               exact replaceMany?_rootId success
+
+/-- Equal-cardinality table replacement cannot take an allocating insert or a
+deleting branch.  Both remaining update algorithms preserve every page
+identity, so a separately allocated physical index interval stays disjoint. -/
+theorem replaceBetween?_pageIds_of_length_eq
+    {state : CoreChunkPageState.TableState} {nextPage : Nat}
+    {replacement : Core.Table} {delta : TableDelta}
+    (sameLength : replacement.rows.length = state.table.rows.length)
+    (success : replaceBetween? state nextPage replacement = some delta) :
+    delta.after.tree.root.pageIds = state.tree.root.pageIds := by
+  unfold replaceBetween? at success
+  split at success
+  next => injection success with equal; subst delta; rfl
+  next =>
+    split at success
+    next inserted => omega
+    next =>
+      split at success
+      next deleted => omega
+      next =>
+        split at success
+        next retained => omega
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          cases replacementResult : replace? state nextPage row replacement with
+          | some candidate =>
+              rw [replacementResult] at success
+              injection success with equal
+              subst candidate
+              exact replace?_pageIds replacementResult
+          | none =>
+              rw [replacementResult] at success
+              exact replaceMany?_pageIds success
 
 theorem replaceBetween?_catalogEntry
     {state : CoreChunkPageState.TableState} {nextPage : Nat}
@@ -2564,6 +2711,211 @@ theorem alignTables?_catalogEntries_changed :
                       (roots old (by simp)) headResult sufficient,
                     alignTables?_catalogEntries_none tailResult tailNone⟩
                 next => contradiction
+
+/-- The selected table in an indexed ordinary delta keeps its complete page
+identity list.  `tablePagesSufficient` forces equal row cardinality when an
+index exists, excluding the allocating/deleting alignment branches. -/
+theorem alignTables?_selectedPageIds_of_indexed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      delta.before.table.indexes ≠ [] →
+      delta.after.tree.root.pageIds = delta.before.tree.root.pageIds
+  | _, [], target, aligned, delta, success, selected, sufficient,
+      indexed => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected,
+      sufficient, indexed => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+        unfold alignTables? at success
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          exact alignTables?_selectedPageIds_of_indexed tailResult selected
+            sufficient indexed
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                have headEqual : head = delta := Option.some.inj selected
+                subst head
+                have sameLength :=
+                  delta.tablePagesSufficient_rowsLength_of_indexed sufficient
+                    indexed
+                rw [replaceBetween?_before headResult,
+                  replaceBetween?_table headResult] at sameLength
+                have pages := replaceBetween?_pageIds_of_length_eq
+                  (state := old) (replacement := replacement)
+                  (delta := delta) sameLength headResult
+                rw [replaceBetween?_before headResult]
+                exact pages
+              next => contradiction
+
+theorem alignTables?_selected_mem :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.before ∈ states ∧ delta.after ∈ aligned.tables
+  | _, [], target, aligned, delta, success, selected => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+        unfold alignTables? at success
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          have found := alignTables?_selected_mem tailResult selected
+          exact ⟨by simp [found.1], by simp [found.2]⟩
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                have headEqual : head = delta := Option.some.inj selected
+                subst head
+                rw [replaceBetween?_before headResult]
+                exact ⟨by simp, by simp⟩
+              next => contradiction
+
+theorem alignTables?_tablePageIds_none :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = none →
+      CoreChunkPageState.tablePageIds aligned.tables =
+        CoreChunkPageState.tablePageIds states
+  | _, [], target, aligned, success, noChange => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      rfl
+  | nextPage, old :: olds, target, aligned, success, noChange => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+        unfold alignTables? at success
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          unfold CoreChunkPageState.tablePageIds
+          simp only [List.flatMap_cons,
+            CoreChunkPageState.TableState.retarget_tree]
+          exact congrArg (old.tree.root.pageIds ++ ·)
+            (alignTables?_tablePageIds_none tailResult noChange)
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                simp at noChange
+              next => contradiction
+
+theorem alignTables?_tablePageIds_changed_indexed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      delta.before.table.indexes ≠ [] →
+      CoreChunkPageState.tablePageIds aligned.tables =
+        CoreChunkPageState.tablePageIds states
+  | _, [], target, aligned, delta, success, selected, sufficient,
+      indexed => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected,
+      sufficient, indexed => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+        unfold alignTables? at success
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          unfold CoreChunkPageState.tablePageIds
+          simp only [List.flatMap_cons,
+            CoreChunkPageState.TableState.retarget_tree]
+          exact congrArg (old.tree.root.pageIds ++ ·)
+            (alignTables?_tablePageIds_changed_indexed tailResult selected
+              sufficient indexed)
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                have headEqual : head = delta := Option.some.inj selected
+                subst head
+                have tailNone : tail.delta = none := by
+                  cases tailDelta : tail.delta with
+                  | none => rfl
+                  | some value => simp [tailDelta] at *
+                have sameLength :=
+                  delta.tablePagesSufficient_rowsLength_of_indexed sufficient
+                    indexed
+                rw [replaceBetween?_before headResult,
+                  replaceBetween?_table headResult] at sameLength
+                have headPages := replaceBetween?_pageIds_of_length_eq
+                  (state := old) (replacement := replacement)
+                  (delta := delta) sameLength headResult
+                have tailPages := alignTables?_tablePageIds_none tailResult
+                  tailNone
+                simp only [CoreChunkPageState.tablePageIds] at tailPages
+                unfold CoreChunkPageState.tablePageIds
+                simp only [List.flatMap_cons,
+                  CoreChunkPageState.TableState.pageIds]
+                rw [headPages, tailPages]
+              next => contradiction
 
 def addFreePages (existing added : List Nat) : List Nat :=
   added.foldl (fun pages page =>
@@ -2807,6 +3159,42 @@ theorem updateState?_treePagesSelected
     subst candidate
     exact updateStateCandidate?_treePagesSelected candidateResult
   next => contradiction
+
+theorem updateState?_selectedPageIds_of_indexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (updated : updateState? state database = some delta)
+    (indexed : delta.table.before.table.indexes ≠ []) :
+    delta.table.after.tree.root.pageIds =
+      delta.table.before.tree.root.pageIds := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, _, selected⟩
+  exact alignTables?_selectedPageIds_of_indexed alignment selected
+    (updateState?_tablePagesSufficient updated) indexed
+
+theorem updateState?_activePageIds_eq_of_indexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (updated : updateState? state database = some delta)
+    (indexed : delta.table.before.table.indexes ≠ []) :
+    delta.after.activePageIds = state.activePageIds := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, alignedTables, selected⟩
+  unfold CoreChunkPageState.State.activePageIds
+  rw [← alignedTables]
+  exact alignTables?_tablePageIds_changed_indexed alignment selected
+    (updateState?_tablePagesSufficient updated) indexed
+
+theorem updateState?_selected_mem
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (updated : updateState? state database = some delta) :
+    delta.table.before ∈ state.tables ∧
+      delta.table.after ∈ delta.after.tables := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, alignedTables, selected⟩
+  have found := alignTables?_selected_mem alignment selected
+  exact ⟨found.1, by simpa [alignedTables] using found.2⟩
 
 def numberedWrite? (page : CorePageCodec.NumberedPage) :
     Option (GrowableStorage.PageWrite PhysicalCodec.pageSize) :=

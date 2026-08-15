@@ -1346,6 +1346,16 @@ theorem applyIndexesForOpen_of_index_certificates
   exact applyIndexesForOpen_of_indexGroups source database entries physical
     (metadata.rebuild database entries)
 
+/-- Canonical bulk images allocate every table-tree page before the first
+index run.  Indexed ordinary updates preserve the complete table page-ID set,
+so this compact separation invariant is enough to transport all unchanged
+index bytes without inspecting them again. -/
+def TablePagesBeforeIndexRoots
+    (tables : List CoreChunkPageState.TableState)
+    (entries : List CoreDecode.CatalogEntry) : Prop :=
+  ∀ pageId ∈ CoreChunkPageState.tablePageIds tables,
+    ∀ entry ∈ entries, pageId < entry.rootPage
+
 /-- Complete physical state invariant below the SQLite header.  It combines
 the store-owned table layout with exact index pages and catalog metadata, and
 records the executable catalog partition explicitly.  This is the invariant
@@ -1360,7 +1370,8 @@ structure DatabaseOnSource (source : CoreDecode.PageSource)
     TablesOnSource source tableEntries state.tables ∧
     IndexGroupsOnSource source
       state.database.tables indexEntries ∧
-    IndexMetadataGroups state.database.tables indexEntries
+    IndexMetadataGroups state.database.tables indexEntries ∧
+    TablePagesBeforeIndexRoots state.tables indexEntries
 
 theorem DatabaseOnSource.pageSourceRepresents
     {source : CoreDecode.PageSource}
@@ -1369,7 +1380,7 @@ theorem DatabaseOnSource.pageSourceRepresents
     CoreDecode.PageSourceRepresents source state.database := by
   rcases physical.components with
     ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
-      indexFilter, tables, indexes, indexMetadata⟩
+      indexFilter, tables, indexes, indexMetadata, separation⟩
   refine .intro catalog catalogRead ?_ ?_
   · rw [tableFilter]
     exact (tables.databaseTablesDecode state.tables_eq).mapM
@@ -1398,12 +1409,13 @@ def DatabaseOnSource.restate
     DatabaseOnSource source after := by
   rcases physical.components with
     ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
-      indexFilter, tables, indexes, metadata⟩
+      indexFilter, tables, indexes, metadata, separation⟩
   refine ⟨⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
-    indexFilter, ?_, ?_, ?_⟩⟩
+    indexFilter, ?_, ?_, ?_, ?_⟩⟩
   · simpa [tablesEq] using tables
   · simpa [databaseEq] using indexes
   · simpa [databaseEq] using metadata
+  · simpa [tablesEq] using separation
 
 /-- Database-wide ordinary-delta composition.  The table and catalog parts
 are derived from the live delta builder; catalog metadata is transported from
@@ -1429,12 +1441,17 @@ def DatabaseOnSource.updateState
       IndexMetadataGroups state.database.tables entries →
       IndexGroupsOnSource oldSource
           state.database.tables entries →
+      TablePagesBeforeIndexRoots state.tables entries →
         IndexGroupsOnSource newSource
-          database.tables entries) :
+          database.tables entries)
+    (separationPreserved : ∀ entries,
+      IndexMetadataGroups state.database.tables entries →
+      TablePagesBeforeIndexRoots state.tables entries →
+      TablePagesBeforeIndexRoots delta.after.tables entries) :
     DatabaseOnSource newSource delta.after := by
   rcases physical.components with
     ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
-      indexFilter, tables, indexes, metadata⟩
+      indexFilter, tables, indexes, metadata, separation⟩
   have oldTableEntries := tables.entries_eq
   rw [oldTableEntries] at tables
   have newTables := TablesOnSource.updateState updated tables retained changed
@@ -1459,9 +1476,9 @@ def DatabaseOnSource.updateState
   have endpoints := CoreChunkPageDelta.updateState?_endpoints updated
   refine ⟨⟨catalog, tableEntries, indexEntries,
     catalogPreserved catalog catalogRead, tableFilter, indexFilter, newTables,
-    ?_, ?_⟩⟩
+    ?_, ?_, separationPreserved indexEntries metadata separation⟩⟩
   · simpa [endpoints.2] using
-      indexesPreserved indexEntries metadata indexes
+      indexesPreserved indexEntries metadata indexes separation
   · simpa [endpoints.2] using newMetadata
 
 /-- Complete ordinary-delta preservation for databases with no declared
@@ -1485,15 +1502,25 @@ def DatabaseOnSource.updateStateIndexless
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after) :
     DatabaseOnSource newSource delta.after := by
-  apply physical.updateState allocation updated catalogPreserved retained changed
-  intro entries metadata indexes
-  have metadataAlignment := CoreChunkPageDelta.updateState?_metadataAligned updated
-  rw [state.tables_eq] at metadataAlignment
-  have newMetadata := metadata.retarget metadataAlignment
-  have entriesEmpty := newMetadata.entries_nil_of_indexless indexless
-  subst entries
-  exact IndexGroupsOnSource.indexless newSource
-    database.tables
+  refine physical.updateState allocation updated catalogPreserved retained
+    changed ?_ ?_
+  · intro entries metadata indexes separation
+    have metadataAlignment :=
+      CoreChunkPageDelta.updateState?_metadataAligned updated
+    rw [state.tables_eq] at metadataAlignment
+    have newMetadata := metadata.retarget metadataAlignment
+    have entriesEmpty := newMetadata.entries_nil_of_indexless indexless
+    subst entries
+    exact IndexGroupsOnSource.indexless newSource database.tables
+  · intro entries metadata separation
+    have metadataAlignment :=
+      CoreChunkPageDelta.updateState?_metadataAligned updated
+    rw [state.tables_eq] at metadataAlignment
+    have newMetadata := metadata.retarget metadataAlignment
+    have entriesEmpty := newMetadata.entries_nil_of_indexless indexless
+    subst entries
+    intro pageId pageMember entry entryMember
+    simp at entryMember
 
 /-- The canonical bulk encoder establishes the complete physical state
 invariant over any source which contains its emitted tail and reads its schema
@@ -1722,7 +1749,7 @@ theorem exists_databaseOnSource_encodeBulk_in
             refine ⟨entries.map CoreDecode.CatalogEntry.ofEncoded,
               tableEntries.map CoreDecode.CatalogEntry.ofEncoded,
               indexEntries.map CoreDecode.CatalogEntry.ofEncoded,
-              expectedCatalogRead, tableFilter, indexFilter, ?_, ?_, ?_⟩
+              expectedCatalogRead, tableFilter, indexFilter, ?_, ?_, ?_, ?_⟩
             · simpa [tableEntries] using baseTables
             · rw [stateDatabase]
               simpa [indexEntries, CoreOverflow.indexEntriesOf,
@@ -1730,6 +1757,19 @@ theorem exists_databaseOnSource_encodeBulk_in
             · rw [stateDatabase]
               simpa [indexEntries, CoreOverflow.indexEntriesOf,
                 List.map_map, Function.comp_def] using indexCertificates.2.1
+            · unfold TablePagesBeforeIndexRoots
+              intro pageId pageMember entry entryMember
+              rw [statePages] at pageMember
+              simp only [List.mem_range'_1] at pageMember
+              rcases List.mem_map.mp entryMember with
+                ⟨encodedEntry, encodedMember, rfl⟩
+              rcases List.mem_map.mp (by
+                simpa [indexEntries, CoreOverflow.indexEntriesOf] using
+                  encodedMember) with ⟨encoding, encodingMember, rfl⟩
+              have range := indexRange encoding encodingMember
+              rw [tableNext, stateNext] at range
+              change pageId < encoding.rootPage
+              omega
         next => contradiction
 
 /-- Every encoded page covered by one member of a distinct write set is
@@ -1932,17 +1972,56 @@ def DatabaseOnSource.updateStateApplyWritesBelow
     (changed : TableOnSource
       (CorePageSource.ofStorageImage
         (GrowableStorage.applyWrites image writes)) delta.table.after)
-    (below : ∀ entries,
-      IndexMetadataGroups state.database.tables entries →
-      ∀ entry ∈ entries, ∀ write ∈ writes,
-        write.pageId + 1 < entry.rootPage) :
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (converted : CoreChunkPageDelta.writes delta.table = some writes)
+    (inline : changed.encoding.overflowPages = []) :
     DatabaseOnSource
       (CorePageSource.ofStorageImage
         (GrowableStorage.applyWrites image writes)) delta.after := by
-  apply physical.updateState allocation updated catalogPreserved retained changed
-  intro entries metadata owned
-  exact (owned.applyWritesBelow image writes distinct
-    (below entries metadata)).retarget (updateState?_indexImagesAligned updated)
+  refine physical.updateState allocation updated catalogPreserved retained
+    changed ?_ ?_
+  · intro entries metadata owned separation
+    have afterEncoded := changed.inlineEncoded inline
+    have selectedPages := CoreChunkPageDelta.updateState?_treePagesSelected
+      updated changed.encoding.treePages afterEncoded
+    have selectedTable :=
+      CoreChunkPageDelta.updateState?_selected_mem updated
+    have activePages :=
+      CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
+        indexed
+    have below : ∀ entry ∈ entries, ∀ write ∈ writes,
+        write.pageId + 1 < entry.rootPage := by
+      intro entry entryMember write writeMember
+      rcases CoreChunkPageDelta.writes_sources_pages converted write writeMember
+          with ⟨page, pageMember, pageNumber, pageBytes⟩
+      have selectedPage := selectedPages page pageMember
+      have pageNumberMember : page.pageNumber ∈
+          delta.table.after.tree.root.pageIds := by
+        rw [← CorePageCodec.encodeChunkNodeWithOverflow_pageNumbers
+          delta.table.after.table.schema delta.table.after.tree.root
+          changed.nextOverflow changed.encoding changed.encoded]
+        exact List.mem_map_of_mem selectedPage
+      have afterActive : page.pageNumber ∈ delta.after.activePageIds := by
+        unfold CoreChunkPageState.State.activePageIds
+          CoreChunkPageState.tablePageIds
+        exact List.mem_flatMap.mpr ⟨delta.table.after, selectedTable.2,
+          by simpa [CoreChunkPageState.TableState.pageIds] using
+            pageNumberMember⟩
+      have beforeActive : page.pageNumber ∈ state.activePageIds := by
+        rw [← activePages]
+        exact afterActive
+      rw [pageNumber]
+      exact separation page.pageNumber beforeActive entry entryMember
+    exact (owned.applyWritesBelow image writes distinct
+      below).retarget
+        (updateState?_indexImagesAligned updated)
+  · intro entries metadata separation
+    unfold TablePagesBeforeIndexRoots at separation ⊢
+    intro pageId pageMember entry entryMember
+    have active : pageId ∈ delta.after.activePageIds := pageMember
+    rw [CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
+      indexed] at active
+    exact separation pageId active entry entryMember
 
 /-- A successfully encoded index run plus exact post-write page reads gives
 the physical index premise consumed by `IndexGroupsDecode`. -/

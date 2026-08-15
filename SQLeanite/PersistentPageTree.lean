@@ -236,6 +236,84 @@ inductive Node.PathAgrees (key : Nat) : Node Value → Node Value → Prop where
         (.branch3 pageId left firstSeparator middle secondSeparator before)
         (.branch3 pageId left firstSeparator middle secondSeparator after)
 
+/-- Updating one search path without allocating preserves the complete page
+identity set, not merely the root identity.  This is the physical frame fact
+used to keep separately allocated SQLite index runs disjoint from table-page
+updates. -/
+theorem Node.PathAgrees.pageIds_eq {key : Nat} {before after : Node Value}
+    (agrees : Node.PathAgrees key before after) :
+    after.pageIds = before.pageIds := by
+  induction agrees <;> simp_all [Node.pageIds]
+
+/-- Allocation is monotone: insertion never moves the high-water mark
+backwards. -/
+theorem Node.insertStep_nextPage_le (node : Node Value)
+    (nextPage key : Nat) (value : Value) :
+    nextPage ≤ (node.insertStep nextPage key value).2 := by
+  induction node generalizing nextPage with
+  | leaf pageId entries =>
+      simp only [Node.insertStep]
+      generalize inserted : PagedBTree.orderedInsert key value entries = result
+      cases result with
+      | nil => simp
+      | cons first rest =>
+        cases rest with
+        | nil => simp
+        | cons second rest =>
+          cases rest with
+          | nil => simp
+          | cons third rest =>
+            cases rest <;> simp
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp only [Node.insertStep]
+      split
+      next =>
+        cases result : left.insertStep nextPage key value with
+        | mk outcome nextPage' =>
+          have bound := leftInduction nextPage
+          rw [result] at bound
+          cases outcome <;> exact bound
+      next =>
+        cases result : right.insertStep nextPage key value with
+        | mk outcome nextPage' =>
+          have bound := rightInduction nextPage
+          rw [result] at bound
+          cases outcome <;> exact bound
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp only [Node.insertStep]
+      split
+      next =>
+        cases result : left.insertStep nextPage key value with
+        | mk outcome nextPage' =>
+          have bound := leftInduction nextPage
+          rw [result] at bound
+          cases outcome <;> simp [result] <;> omega
+      next =>
+        split
+        next =>
+          cases result : middle.insertStep nextPage key value with
+          | mk outcome nextPage' =>
+            have bound := middleInduction nextPage
+            rw [result] at bound
+            cases outcome <;> simp [result] <;> omega
+        next =>
+          cases result : right.insertStep nextPage key value with
+          | mk outcome nextPage' =>
+            have bound := rightInduction nextPage
+            rw [result] at bound
+            cases outcome <;> simp [result] <;> omega
+
+theorem Node.insert_nextPage_le (node : Node Value)
+    (nextPage key : Nat) (value : Value) :
+    nextPage ≤ (node.insert nextPage key value).2 := by
+  unfold Node.insert
+  cases result : node.insertStep nextPage key value with
+  | mk outcome nextPage' =>
+      have bound := node.insertStep_nextPage_le nextPage key value
+      rw [result] at bound
+      cases outcome <;> simp [result] <;> omega
+
 /-- Every split advances the page high-water mark. -/
 theorem Node.insertStep_split_allocates (node : Node Value)
     (nextPage key : Nat) (value : Value) (left : Node Value)
@@ -448,6 +526,13 @@ theorem Node.insert_pathAgrees_of_noAllocation (node : Node Value)
         separator right nextPage' stepResult
       omega
 
+theorem Node.insert_pageIds_of_noAllocation (node : Node Value)
+    (nextPage key : Nat) (value : Value)
+    (noAllocation : (node.insert nextPage key value).2 = nextPage) :
+    (node.insert nextPage key value).1.pageIds = node.pageIds :=
+  (node.insert_pathAgrees_of_noAllocation nextPage key value
+    noAllocation).pageIds_eq
+
 theorem Node.insertStep_done_rootId (node : Node Value) (nextPage key : Nat)
     (value : Value) (updated : Node Value) (nextPage' : Nat)
     (success : node.insertStep nextPage key value = (.done updated, nextPage')) :
@@ -603,6 +688,20 @@ def Store.insert (store : Store Value) (key : Nat) (value : Value) : Store Value
     (store.insert key value).root.rootId = store.root.rootId := by
   unfold Store.insert
   exact store.root.insert_rootId store.nextPage key value
+
+theorem Store.insert_pageIds_of_noAllocation (store : Store Value)
+    (key : Nat) (value : Value)
+    (noAllocation : (store.insert key value).nextPage = store.nextPage) :
+    (store.insert key value).root.pageIds = store.root.pageIds := by
+  unfold Store.insert at noAllocation ⊢
+  exact store.root.insert_pageIds_of_noAllocation store.nextPage key value
+    noAllocation
+
+theorem Store.nextPage_le_insert (store : Store Value)
+    (key : Nat) (value : Value) :
+    store.nextPage ≤ (store.insert key value).nextPage := by
+  unfold Store.insert
+  exact store.root.insert_nextPage_le store.nextPage key value
 
 theorem Store.insert_toList (store : Store Value) (key : Nat) (value : Value) :
     (store.insert key value).root.erase.toList =

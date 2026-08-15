@@ -766,6 +766,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableIndexImageEq.ofDelta
 #print axioms SQLeanite.CoreLocalizedRepresentation.updateState?_indexImagesAligned
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateStateApplyWritesBelow
+#print axioms SQLeanite.PersistentPageTree.Node.PathAgrees.pageIds_eq
+#print axioms SQLeanite.PersistentPageTree.Store.insert_pageIds_of_noAllocation
+#print axioms SQLeanite.CoreChunkPageDelta.replaceManyFold_pageIds_of_noAllocation
+#print axioms SQLeanite.CoreChunkPageDelta.replaceBetween?_pageIds_of_length_eq
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_selectedPageIds_of_indexed
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_selected_mem
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase
