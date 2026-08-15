@@ -451,7 +451,7 @@ if grep -q 'CoreChunkPageDelta.updateStateCandidate?' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareLocalizedLastIndex? validated' \
      SQLeanite/CoreFileEngine.lean &&
-   grep -q 'commitLocalized connection.syncOps' \
+   grep -q 'commitLocalizedCertified connection.syncOps' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'certifyIndexEncoding?_exact' SQLeanite/ProofAxioms.lean &&
    grep -q 'replaceBetween?_sameData' SQLeanite/ProofAxioms.lean &&

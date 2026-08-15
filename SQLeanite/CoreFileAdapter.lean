@@ -229,6 +229,37 @@ private def targetPageCount (current : Nat)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : Nat :=
   writes.foldl (fun count write => max count (write.pageId + 1)) current
 
+/-- Add the one-trunk SQLite freelist image without removing any logical page
+write. Bounds on the trunk and leaves are checked by the enclosing planner. -/
+def addFreelistWrite? (freePages : List Nat)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :=
+  match freePages with
+  | [] => some writes
+  | trunk :: leaves => do
+      let trunkPrefix := FileFormat.encodeUnsignedFixed 4 0 ++
+        FileFormat.encodeUnsignedFixed 4 leaves.length ++
+          CoreFreelist.encodePageNumbers leaves
+      if _fits : trunkPrefix.length ≤ PhysicalCodec.pageSize then
+        let trunkBytes := trunkPrefix ++
+          List.replicate (PhysicalCodec.pageSize - trunkPrefix.length) 0
+        let (trunkPage, trunkRest) ←
+          DiskFormat.decodeStoragePage PhysicalCodec.pageSize trunkBytes
+        if _trunkExact : trunkRest = [] then
+          some (⟨trunk - 1, trunkPage⟩ :: writes)
+        else none
+      else none
+
+/-- Add page zero exactly when neither the base delta nor an identical current
+header already supplies it. -/
+def addLocalizedHeaderWrite (firstPage : List UInt8)
+    (headerPage : Storage.Page PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    List (GrowableStorage.PageWrite PhysicalCodec.pageSize) :=
+  if writes.any (fun write => write.pageId = 0) then writes
+  else if headerPage.bytes.toList == firstPage then writes
+  else ⟨0, headerPage⟩ :: writes
+
 /-- Pure header/freelist augmentation for a localized delta.  Keeping this
 planner outside `IO` is important: the exact list returned here is retained in
 `PreparedLocalizedWrites` and is also the exact list journaled and written by
@@ -266,28 +297,175 @@ def planLocalizedWrites? (current : Nat) (firstPage : List UInt8)
     let (headerPage, headerRest) ←
       DiskFormat.decodeStoragePage PhysicalCodec.pageSize patched
     if _headerExact : headerRest = [] then
-      let writes ← match freePages with
-        | [] => some writes
-        | trunk :: leaves => do
-            let trunkPrefix := FileFormat.encodeUnsignedFixed 4 0 ++
-              FileFormat.encodeUnsignedFixed 4 leaves.length ++
-                CoreFreelist.encodePageNumbers leaves
-            if _fits : trunkPrefix.length ≤ PhysicalCodec.pageSize then
-              let trunkBytes := trunkPrefix ++
-                List.replicate (PhysicalCodec.pageSize - trunkPrefix.length) 0
-              let (trunkPage, trunkRest) ←
-                DiskFormat.decodeStoragePage PhysicalCodec.pageSize trunkBytes
-              if _trunkExact : trunkRest = [] then
-                some (⟨trunk - 1, trunkPage⟩ :: writes)
-              else none
-            else none
-      if writes.any (fun write => write.pageId = 0) then
-        some writes
-      else if headerPage.bytes.toList == firstPage then
-        some writes
-      else some (⟨0, headerPage⟩ :: writes)
+      let writes ← addFreelistWrite? freePages writes
+      some (addLocalizedHeaderWrite firstPage headerPage writes)
     else none
   else none
+
+/-- Freelist augmentation only prepends its trunk; it never drops or replaces
+a logical table/index write. -/
+theorem addFreelistWrite?_base_mem
+    {freePages : List Nat}
+    {writes finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (success : addFreelistWrite? freePages writes = some finalWrites) :
+    ∀ write ∈ writes, write ∈ finalWrites := by
+  intro write member
+  cases freePages with
+  | nil =>
+      simp only [addFreelistWrite?, Option.some.injEq] at success
+      subst finalWrites
+      exact member
+  | cons trunk leaves =>
+      simp only [addFreelistWrite?] at success
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with
+          ⟨trunkAndRest, decoded, success⟩
+        rcases trunkAndRest with ⟨trunkPage, trunkRest⟩
+        split at success
+        next =>
+          injection success with equal
+          subst finalWrites
+          exact List.mem_cons_of_mem _ member
+        next => contradiction
+      next => contradiction
+
+theorem addLocalizedHeaderWrite_base_mem
+    (firstPage : List UInt8)
+    (headerPage : Storage.Page PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    ∀ write ∈ writes,
+      write ∈ addLocalizedHeaderWrite firstPage headerPage writes := by
+  intro write member
+  unfold addLocalizedHeaderWrite
+  split
+  next => exact member
+  next =>
+    split
+    next => exact member
+    next => exact List.mem_cons_of_mem _ member
+
+/- The exact syscall write set is an extension of the logical delta selected
+by the table/index preparation. This is the first half of the frame proof for
+lifting component certificates across page-zero/freelist augmentation. -/
+set_option maxRecDepth 10000 in
+theorem planLocalizedWrites?_base_mem
+    {current : Nat} {firstPage : List UInt8} {freePages : List Nat}
+    {baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (planned : planLocalizedWrites? current firstPage freePages baseWrites =
+      some finalWrites) :
+    ∀ write ∈ baseWrites, write ∈ finalWrites := by
+  intro write member
+  simp only [planLocalizedWrites?] at planned
+  split at planned
+  next =>
+    rcases Option.bind_eq_some.mp planned with
+      ⟨headerAndSuffix, headerResult, planned⟩
+    rcases headerAndSuffix with ⟨header, suffix⟩
+    rcases Option.bind_eq_some.mp planned with
+      ⟨pageAndRest, pageResult, planned⟩
+    rcases pageAndRest with ⟨headerPage, headerRest⟩
+    split at planned
+    next =>
+      rcases Option.bind_eq_some.mp planned with
+        ⟨augmented, augmentedResult, finalResult⟩
+      injection finalResult with finalEq
+      subst finalWrites
+      exact addLocalizedHeaderWrite_base_mem firstPage headerPage
+        augmented write
+        (addFreelistWrite?_base_mem augmentedResult write member)
+    next => contradiction
+  next => contradiction
+
+theorem addFreelistWrite?_sources
+    {freePages : List Nat}
+    {writes finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (success : addFreelistWrite? freePages writes = some finalWrites) :
+    ∀ write ∈ finalWrites,
+      write ∈ writes ∨ ∃ trunk ∈ freePages, write.pageId = trunk - 1 := by
+  intro write member
+  cases freePages with
+  | nil =>
+      simp only [addFreelistWrite?, Option.some.injEq] at success
+      subst finalWrites
+      exact .inl member
+  | cons trunk leaves =>
+      simp only [addFreelistWrite?] at success
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with
+          ⟨trunkAndRest, decoded, success⟩
+        rcases trunkAndRest with ⟨trunkPage, trunkRest⟩
+        split at success
+        next =>
+          injection success with equal
+          subst finalWrites
+          simp only [List.mem_cons] at member
+          rcases member with rfl | member
+          · exact .inr ⟨trunk, by simp, rfl⟩
+          · exact .inl member
+        next => contradiction
+      next => contradiction
+
+theorem addLocalizedHeaderWrite_sources
+    (firstPage : List UInt8)
+    (headerPage : Storage.Page PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    ∀ write ∈ addLocalizedHeaderWrite firstPage headerPage writes,
+      write ∈ writes ∨ write.pageId = 0 := by
+  intro write member
+  unfold addLocalizedHeaderWrite at member
+  split at member
+  next => exact .inl member
+  next =>
+    split at member
+    next => exact .inl member
+    next =>
+      simp only [List.mem_cons] at member
+      rcases member with rfl | member
+      · exact .inr rfl
+      · exact .inl member
+
+/- Every final write is either a logical delta write, page zero, or the one
+freelist trunk selected from the post-state free-page list. -/
+set_option maxRecDepth 10000 in
+theorem planLocalizedWrites?_sources
+    {current : Nat} {firstPage : List UInt8} {freePages : List Nat}
+    {baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (planned : planLocalizedWrites? current firstPage freePages baseWrites =
+      some finalWrites) :
+    ∀ write ∈ finalWrites,
+      write ∈ baseWrites ∨ write.pageId = 0 ∨
+        ∃ trunk ∈ freePages, write.pageId = trunk - 1 := by
+  intro write member
+  simp only [planLocalizedWrites?] at planned
+  split at planned
+  next =>
+    rcases Option.bind_eq_some.mp planned with
+      ⟨headerAndSuffix, headerResult, planned⟩
+    rcases headerAndSuffix with ⟨header, suffix⟩
+    rcases Option.bind_eq_some.mp planned with
+      ⟨pageAndRest, pageResult, planned⟩
+    rcases pageAndRest with ⟨headerPage, headerRest⟩
+    split at planned
+    next =>
+      rcases Option.bind_eq_some.mp planned with
+        ⟨augmented, augmentedResult, finalResult⟩
+      injection finalResult with finalEq
+      subst finalWrites
+      rcases addLocalizedHeaderWrite_sources firstPage headerPage augmented
+          write member with augmentedMember | pageZero
+      · rcases addFreelistWrite?_sources augmentedResult write augmentedMember
+            with baseMember | trunk
+        · exact .inl baseMember
+        · exact .inr (.inr trunk)
+      · exact .inr (.inl pageZero)
+    next => contradiction
+  next => contradiction
 
 /-- The exact final write set selected before the journal protocol begins.
 `planned` is proof-only, while `writes` is the executable value consumed by
@@ -301,6 +479,47 @@ structure PreparedLocalizedWrites
   planned : planLocalizedWrites? currentPageCount firstPage freePages
     baseWrites = some writes
   distinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
+
+theorem PreparedLocalizedWrites.base_mem
+    {freePages : List Nat}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites freePages baseWrites) :
+    ∀ write ∈ baseWrites, write ∈ prepared.writes :=
+  planLocalizedWrites?_base_mem prepared.planned
+
+theorem PreparedLocalizedWrites.sources
+    {freePages : List Nat}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites freePages baseWrites) :
+    ∀ write ∈ prepared.writes,
+      write ∈ baseWrites ∨ write.pageId = 0 ∨
+        ∃ trunk ∈ freePages, write.pageId = trunk - 1 :=
+  planLocalizedWrites?_sources prepared.planned
+
+/-- Header/freelist framing added after the logical delta cannot alias any
+table-tree page owned by the allocator state. This closes the table-page part
+of the frame argument without inspecting bytes at runtime. -/
+theorem PreparedLocalizedWrites.added_disjoint_active
+    {state : CoreChunkPageState.State}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites state.freePages baseWrites)
+    (allocation : state.AllocationWellFormed)
+    {write : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (member : write ∈ prepared.writes) (notBase : write ∉ baseWrites) :
+    ∀ pageId ∈ state.activePageIds, write.pageId + 1 ≠ pageId := by
+  intro pageId active equal
+  rcases prepared.sources write member with base | pageZero | trunk
+  · exact notBase base
+  · have afterCatalog := allocation.active_after_catalog pageId active
+    rw [pageZero] at equal
+    omega
+  · rcases trunk with ⟨trunk, free, writePage⟩
+    have trunkAfterCatalog := allocation.free_after_catalog trunk free
+    have freeNotActive := allocation.free_not_active trunk free
+    rw [writePage] at equal
+    have trunkEq : trunk = pageId := by omega
+    rw [trunkEq] at freeNotActive
+    exact freeNotActive active
 
 private def certifyLocalizedWrites?
     (current : Nat) (firstPage : List UInt8) (freePages : List Nat)

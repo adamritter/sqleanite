@@ -429,7 +429,9 @@ def State.AllocationWellFormed (state : State) : Prop :=
   (∀ pageId ∈ state.activePageIds, pageId < state.nextPage) ∧
   state.freePages.Nodup ∧
   (∀ pageId ∈ state.freePages, pageId < state.nextPage) ∧
-  (∀ pageId ∈ state.freePages, pageId ∉ state.activePageIds)
+  (∀ pageId ∈ state.freePages, pageId ∉ state.activePageIds) ∧
+  (∀ pageId ∈ state.activePageIds, 1 < pageId) ∧
+  (∀ pageId ∈ state.freePages, 1 < pageId)
 
 instance (state : State) : Decidable state.AllocationWellFormed :=
   inferInstanceAs (Decidable
@@ -437,7 +439,24 @@ instance (state : State) : Decidable state.AllocationWellFormed :=
       (∀ pageId ∈ state.activePageIds, pageId < state.nextPage) ∧
       state.freePages.Nodup ∧
       (∀ pageId ∈ state.freePages, pageId < state.nextPage) ∧
-      (∀ pageId ∈ state.freePages, pageId ∉ state.activePageIds)))
+      (∀ pageId ∈ state.freePages, pageId ∉ state.activePageIds) ∧
+      (∀ pageId ∈ state.activePageIds, 1 < pageId) ∧
+      (∀ pageId ∈ state.freePages, 1 < pageId)))
+
+theorem State.AllocationWellFormed.active_after_catalog
+    {state : State} (wellFormed : state.AllocationWellFormed) :
+    ∀ pageId ∈ state.activePageIds, 1 < pageId :=
+  wellFormed.2.2.2.2.2.1
+
+theorem State.AllocationWellFormed.free_after_catalog
+    {state : State} (wellFormed : state.AllocationWellFormed) :
+    ∀ pageId ∈ state.freePages, 1 < pageId :=
+  wellFormed.2.2.2.2.2.2
+
+theorem State.AllocationWellFormed.free_not_active
+    {state : State} (wellFormed : state.AllocationWellFormed) :
+    ∀ pageId ∈ state.freePages, pageId ∉ state.activePageIds :=
+  wellFormed.2.2.2.2.1
 
 def State.build? (database : Core.Database) : Option State :=
   match result : buildTables? 2 database.tables with
@@ -502,11 +521,15 @@ theorem State.build?_allocationWellFormed {database : Core.Database}
     unfold State.AllocationWellFormed State.activePageIds
     simp only
     rw [pages, nextPage]
-    refine ⟨List.nodup_range', ?_, List.nodup_nil, ?_, ?_⟩
+    refine ⟨List.nodup_range', ?_, List.nodup_nil, ?_, ?_, ?_, ?_⟩
     · intro pageId member
       simp only [List.mem_range'_1] at member
       exact member.2
     · simp
+    · simp
+    · intro pageId member
+      simp only [List.mem_range'_1] at member
+      omega
     · simp
 
 end CoreChunkPageState
