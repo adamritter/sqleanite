@@ -2105,6 +2105,20 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
     | none => fail "TEXT PRIMARY KEY physical encoder rejected a valid row"
   let path : System.FilePath := ".lake/build/sqleanite-text-primary.db"
   IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let paths : CoreFileAdapter.Paths := {
+    main := path
+    journal := ".lake/build/sqleanite-text-primary.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  match ← CoreLazyFileEngine.execute? paths "
+      SELECT * FROM usertable WHERE ycsb_key='user1';
+      SELECT * FROM usertable WHERE ycsb_key='missing';" with
+  | some (.ok [{ rows := found }, { rows := missing }]) =>
+      unless found == [[
+          .text ⟨[117, 115, 101, 114, 49], by decide⟩,
+          .text ⟨[118, 97, 108, 117, 101, 49], by decide⟩]] &&
+          missing.isEmpty do
+        fail "page-directed TEXT PRIMARY KEY batch returned wrong rows"
+  | _ => fail "TEXT PRIMARY KEY read batch missed the certified cold path"
   let inspected ← IO.Process.output {
     cmd := "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader", "

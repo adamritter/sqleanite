@@ -48,12 +48,10 @@ private def coldQuery? (schema : Core.Schema) (select : Select) :
     distinct := select.distinct }
   some query
 
-/-- `some result` means the cold path handled the complete SQL input. `none`
-is an optimization miss and must be followed by ordinary execution. -/
-def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
-    IO (Option (Except String (List Core.Result))) := do
-  let .ok statements := parse sql | return none
-  let [Statement.select select] := statements.toList | return none
+/-- Execute one read-only SELECT entirely through certified page traversal.
+`none` is an optimization miss, never a partial result. -/
+private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
+    IO (Option Core.Result) := do
   if let some (leftName, rightName) := joinSourceNames? select then
     let some lookup ← CoreFileAdapter.lookupGeneratedPrimaryJoin paths
         leftName rightName | return none
@@ -63,8 +61,8 @@ def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
     unless optimized.on = some (CoreJoin.rowidOn
           lookup.leftSchema.primaryKey lookup.rightSchema.primaryKey) &&
         optimized.where_.isNone && optimized.kind = .inner do return none
-    return some (.ok [{ rows := (optimized.evalPrimaryKeyCandidates
-      lookup.leftCandidates lookup.rightRows) }])
+    return some ({ rows := (optimized.evalPrimaryKeyCandidates
+      lookup.leftCandidates lookup.rightRows) } : Core.Result)
   let some tableName := selectSource? select | return none
   let some schema ← CoreFileAdapter.readTableSchema paths tableName | return none
   let some query := coldQuery? schema select | return none
@@ -79,31 +77,54 @@ def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
         let physicalRows := match lookup.outcome with
           | .found row => [row]
           | .generatedMissing => []
-        return some (.ok [{ rows := optimized.eval physicalRows }])
+        return some ({ rows := optimized.eval physicalRows } : Core.Result)
       else
         let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
             paths tableName schema query | return none
-        return some (.ok [{ rows := optimized.eval lookup.candidates }])
+        return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | some (.equal ..) | some (.compare ..) =>
       match query.predicate with
       | some (.compare operation column (.integer target)) =>
           if column = schema.primaryKey then
             let some lookup ← CoreFileAdapter.lookupGeneratedPrimaryRange
                 paths tableName schema operation target | return none
-            return some (.ok [{ rows := optimized.eval lookup.candidates }])
+            return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
           else
             let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
                 paths tableName schema query | return none
-            return some (.ok [{ rows := optimized.eval lookup.candidates }])
+            return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
       | _ =>
           let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
               paths tableName schema query | return none
-          return some (.ok [{ rows := optimized.eval lookup.candidates }])
+          return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | none =>
       let some lookup ← CoreFileAdapter.lookupGeneratedOrderedPrefix paths
           tableName schema query | return none
-      return some (.ok [{ rows := optimized.eval lookup.candidates }])
+      return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | _ => return none
+
+private def executeReadStatements? (paths : CoreFileAdapter.Paths) :
+    List Statement → IO (Option (List Core.Result))
+  | [] => pure (some [])
+  | .select select :: statements => do
+      let some result ← executeSelect? paths select | return none
+      let some results ← executeReadStatements? paths statements | return none
+      return some (result :: results)
+  | _ => pure none
+
+/-- `some result` means the cold path handled the complete SQL input. `none`
+is an optimization miss and must be followed by ordinary execution.  A batch
+of read-only statements stays page-directed statement by statement instead of
+materializing the complete database merely because the input contains more
+than one SELECT. -/
+def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
+    IO (Option (Except String (List Core.Result))) := do
+  let .ok statements := parse sql | return none
+  let statementList := statements.toList
+  if statementList.isEmpty then return none
+  let some results ← executeReadStatements? paths statementList |
+    return none
+  return some (.ok results)
 
 end CoreLazyFileEngine
 end SQLeanite

@@ -605,6 +605,10 @@ fi
 
 if grep -q 'lookupGeneratedIndexCandidates' \
      SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'executeReadStatements? paths statementList' \
+     SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'Core.Index.isImplicitPrimary schema' \
+     SQLeanite/CoreFileAdapter.lean &&
    grep -q 'CanonicalIndexSQL.parseGeneratedCertified' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'CoreFile.hasGeneratedImageStamp header' \
@@ -620,8 +624,10 @@ if grep -q 'lookupGeneratedIndexCandidates' \
    grep -q 'lookupIndexValueFrom_text_encodeIndex_exact' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'lookupIndexRangeFrom_encodeIndex_exact' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'implicitPrimaryIndexes_areImplicit' \
      SQLeanite/ProofAxioms.lean; then
-  ok "cold generated INTEGER/TEXT indexes use exact page-directed traversal"
+  ok "cold read batches and generated explicit/implicit indexes use exact page traversal"
 else
   fail "the cold generated-index path detached from provenance or exactness"
 fi

@@ -2108,6 +2108,25 @@ def lookupIndexCandidates (paths : Paths) (table : Core.Table)
   let some geometry ← readFileGeometry paths | return none
   lookupIndexCandidatesWith geometry paths table query
 
+/-- Recognize exactly the two index-catalog shapes emitted by the certified
+encoder. Explicit indexes carry the canonical proof marker in their SQL text;
+SQLite's required automatic index for a non-aliasing primary key has NULL SQL,
+so its certificate is instead the canonical name/column pair derived from the
+decoded table schema. The generated-image stamp remains the outer provenance
+gate for both cases. -/
+private def generatedIndexEntryMatches (schema : Core.Schema)
+    (tableName : String) (column : Nat) (columnName : String)
+    (entry : CoreDecode.CatalogEntry) : Bool :=
+  entry.kind == "index" && entry.table == tableName &&
+    match entry.sql with
+    | some sql =>
+        match CanonicalIndexSQL.parseGeneratedCertified sql with
+        | some spec => spec.name == entry.name && spec.table == tableName &&
+            spec.column == columnName
+        | none => false
+    | none =>
+        Core.Index.isImplicitPrimary schema { name := entry.name, column }
+
 /-- Cold secondary-index lookup for a stamped image emitted by the proved
 encoder. The exact canonical catalog suffix records the INTEGER-only premise
 of `lookupIndexValueFrom_encodeIndex_exact` and
@@ -2140,12 +2159,8 @@ def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
     let some tableSql := tableEntry.sql | return none
     let some decodedSchema := CoreDecode.parseTableSchema tableSql | return none
     unless decodedSchema = schema && schema.name = tableName do return none
-    let some indexEntry := catalog.find? (fun entry =>
-      entry.kind == "index" && entry.table == tableName &&
-        match entry.sql.bind CanonicalIndexSQL.parseGeneratedCertified with
-        | some spec => spec.name == entry.name && spec.table == tableName &&
-            spec.column == columnSpec.name
-        | none => false) | return none
+    let some indexEntry := catalog.find? (generatedIndexEntryMatches schema
+      tableName column columnSpec.name) | return none
     let reads ← IO.mkRef 0
     let base := preadPageSource paths.main count
     let source : CoreDecode.IOPageSource := {
@@ -2199,12 +2214,8 @@ def lookupGeneratedOrderedPrefix (paths : Paths) (tableName : String)
     let some tableSql := tableEntry.sql | return none
     let some decodedSchema := CoreDecode.parseTableSchema tableSql | return none
     unless decodedSchema = schema && schema.name = tableName do return none
-    let some indexEntry := catalog.find? (fun entry =>
-      entry.kind == "index" && entry.table == tableName &&
-        match entry.sql.bind CanonicalIndexSQL.parseGeneratedCertified with
-        | some spec => spec.name == entry.name && spec.table == tableName &&
-            spec.column == columnSpec.name
-        | none => false) | return none
+    let some indexEntry := catalog.find? (generatedIndexEntryMatches schema
+      tableName column columnSpec.name) | return none
     let reads ← IO.mkRef 0
     let base := preadPageSource paths.main count
     let source : CoreDecode.IOPageSource := {

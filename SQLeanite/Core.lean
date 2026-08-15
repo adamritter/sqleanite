@@ -575,6 +575,28 @@ def implicitPrimaryIndexes (schema : Schema) : List Index :=
     | none => []
   else []
 
+theorem implicitPrimaryIndexes_areImplicit (schema : Schema) :
+    ∀ index ∈ implicitPrimaryIndexes schema,
+      index.isImplicitPrimary schema = true := by
+  intro index member
+  unfold implicitPrimaryIndexes at member
+  split at member
+  next hidden =>
+    cases declared : schema.declaredPrimaryKey? with
+    | none => simp [declared] at member
+    | some column =>
+        have columnEq : column = schema.declaredPrimaryKey := by
+          unfold Schema.declaredPrimaryKey? at declared
+          cases present : schema.columns[schema.declaredPrimaryKey]? with
+          | none => simp [present] at declared
+          | some definition =>
+              rw [present] at declared
+              exact (Option.some.inj declared).symm
+        simp only [declared, List.mem_singleton] at member
+        subst index
+        simp [Index.isImplicitPrimary, hidden, columnEq]
+  next visible => simp at member
+
 def emptyTable (schema : Schema) : Except String Table :=
   Table.rebuild schema (implicitPrimaryIndexes schema) []
 

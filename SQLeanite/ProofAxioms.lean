@@ -690,3 +690,4 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase
+#print axioms SQLeanite.Core.implicitPrimaryIndexes_areImplicit
