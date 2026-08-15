@@ -38,6 +38,42 @@ theorem imageBytes_storageImage (image : CoreFile.Image) :
   | cons page pages induction =>
       simp [DiskFormat.encodePages, CoreFile.Page.storage, induction]
 
+theorem readsPagesFrom_storageImage_tail (image : CoreFile.Image) :
+    CoreDecode.ReadsPagesFrom
+      (CorePageSource.ofStorageImage (CoreFileAdapter.storageImage image)) 2
+      image.pages.tail := by
+  have sourceExact :
+      CorePageSource.ofStorageImage (CoreFileAdapter.storageImage image) =
+        CoreDecode.PageSource.ofList (image.pages.map CoreFile.Page.bytes) := by
+    unfold CorePageSource.ofStorageImage
+    rw [imagePages_storageImage]
+    congr 1
+    rw [List.map_map]
+    apply List.map_congr_left
+    intro page _
+    simp [CoreFile.Page.storage]
+  rw [sourceExact]
+  exact CoreDecode.ReadsPagesFrom.ofList_tail image.pages
+
+/-- The concrete storage image emitted by the live bulk writer carries the
+strong per-table physical-layout invariant, not only a whole-decoder
+equation.  This is the initial generated-image witness localized commits
+preserve. -/
+theorem exists_tablesOnStorage_encodeBulk
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image) :
+    ∃ state : CoreChunkPageState.State,
+      CoreChunkPageState.State.build? database = some state ∧
+      CoreLocalizedRepresentation.TablesOnSource
+        (CorePageSource.ofStorageImage
+          (CoreFileAdapter.storageImage image))
+        (state.tables.map fun table => CoreDecode.CatalogEntry.ofEncoded
+          (CorePageCodec.chunkTableCatalogEntry table)) state.tables := by
+  apply CoreLocalizedRepresentation.exists_tablesOnSource_encodeBulk_in
+    database image encoded
+  · exact readsPagesFrom_storageImage_tail image
+  · simp [CoreFileAdapter.storageImage, CoreFile.Image.pageCount]
+
 theorem decode_imageBytes_encodeBulk (utf8 : CoreDecode.UTF8Roundtrips)
     (database : Core.Database) (image : CoreFile.Image)
     (encoded : CorePageCodec.encodeBulk database = some image) :

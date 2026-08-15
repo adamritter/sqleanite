@@ -15,6 +15,79 @@ certificate feeds the existing recursive table-decoder refinement directly;
 there is no decode-and-compare admission check.
 -/
 
+/-- Physical representation of one proof-carrying table state.  It records
+both the identified tree pages and the separately allocated overflow run; the
+decoder bounds are retained explicitly because they are exactly the facts a
+page-local update must preserve. -/
+structure TableOnSource (source : CoreDecode.PageSource)
+    (state : CoreChunkPageState.TableState) where
+  nextOverflow : Nat
+  encoding : CorePageCodec.OverflowEncoding
+  encoded : CorePageCodec.encodeChunkNodeWithOverflow state.table.schema
+    state.tree.root nextOverflow = some encoding
+  treeContains : CorePageCodec.PageSourceContains source encoding.treePages
+  overflowContains : CoreDecode.ReadsPagesFrom source nextOverflow
+    encoding.overflowPages
+  heightBound : state.tree.root.erase.height < source.pageCount + 1
+  nextPositive : 0 < nextOverflow
+  pageBound : nextOverflow + encoding.overflowPages.length < 2 ^ 32
+  fuelBound : encoding.overflowPages.length < source.pageCount + 1
+
+theorem TableOnSource.decode
+    {source : CoreDecode.PageSource}
+    {state : CoreChunkPageState.TableState}
+    (physical : TableOnSource source state) :
+    CoreDecode.decodeTableFrom source
+      (CoreDecode.CatalogEntry.ofEncoded
+        (CorePageCodec.chunkTableCatalogEntry state)) =
+      some state.table.withoutIndexes := by
+  exact CorePageCodec.decodeTableFrom_encodeChunkNodeWithOverflow source state
+    physical.nextOverflow physical.encoding physical.encoded
+    physical.treeContains physical.overflowContains physical.heightBound
+    physical.nextPositive physical.pageBound physical.fuelBound
+
+/-- Preserve a table certificate across a source change after separately
+re-establishing its exact tree and overflow bytes.  Page-count growth is the
+only numeric fact needed to transport both recursive decoder bounds. -/
+def TableOnSource.transport
+    {oldSource newSource : CoreDecode.PageSource}
+    {state : CoreChunkPageState.TableState}
+    (physical : TableOnSource oldSource state)
+    (pageCountGrows : oldSource.pageCount ≤ newSource.pageCount)
+    (treeContains : CorePageCodec.PageSourceContains newSource
+      physical.encoding.treePages)
+    (overflowContains : CoreDecode.ReadsPagesFrom newSource
+      physical.nextOverflow physical.encoding.overflowPages) :
+    TableOnSource newSource state := {
+  nextOverflow := physical.nextOverflow
+  encoding := physical.encoding
+  encoded := physical.encoded
+  treeContains
+  overflowContains
+  heightBound := Nat.lt_of_lt_of_le physical.heightBound
+    (Nat.add_le_add_right pageCountGrows 1)
+  nextPositive := physical.nextPositive
+  pageBound := physical.pageBound
+  fuelBound := Nat.lt_of_lt_of_le physical.fuelBound
+    (Nat.add_le_add_right pageCountGrows 1) }
+
+/-- Database-order physical table certificates.  Catalog identity is part of
+the relation, so a certificate cannot be silently attached to the wrong table
+or root page. -/
+inductive TablesOnSource (source : CoreDecode.PageSource) :
+    List CoreDecode.CatalogEntry →
+      List CoreChunkPageState.TableState → Prop where
+  | nil : TablesOnSource source [] []
+  | cons {entry : CoreDecode.CatalogEntry}
+      {entries : List CoreDecode.CatalogEntry}
+      {state : CoreChunkPageState.TableState}
+      {states : List CoreChunkPageState.TableState}
+      (entryExact : entry = CoreDecode.CatalogEntry.ofEncoded
+        (CorePageCodec.chunkTableCatalogEntry state))
+      (head : TableOnSource source state)
+      (tail : TablesOnSource source entries states) :
+      TablesOnSource source (entry :: entries) (state :: states)
+
 /-- Per-table physical decoder certificates, aligned with the table entries in
 the SQLite catalog.  This is the list-level bridge from each local tree proof
 to `PageSourceRepresents.tablesRead`. -/
@@ -28,6 +101,236 @@ inductive TablesDecode (source : CoreDecode.PageSource) :
         some table.withoutIndexes)
       (tail : TablesDecode source entries tables) :
       TablesDecode source (entry :: entries) (table :: tables)
+
+/-- Collapse the stronger physical-layout invariant into the exact table
+decoder equations consumed by the durability certificate. -/
+theorem TablesOnSource.tablesDecode
+    {source : CoreDecode.PageSource}
+    {entries : List CoreDecode.CatalogEntry}
+    {states : List CoreChunkPageState.TableState}
+    (physical : TablesOnSource source entries states) :
+    TablesDecode source entries (states.map (fun state => state.table)) := by
+  induction physical with
+  | nil => exact .nil
+  | cons entryExact head tail induction =>
+      subst entryExact
+      exact .cons head.decode induction
+
+theorem TablesOnSource.databaseTablesDecode
+    {source : CoreDecode.PageSource}
+    {entries : List CoreDecode.CatalogEntry}
+    {states : List CoreChunkPageState.TableState}
+    {database : Core.Database}
+    (physical : TablesOnSource source entries states)
+    (aligned : states.map (fun state => state.table) = database.tables) :
+    TablesDecode source entries database.tables := by
+  rw [← aligned]
+  exact physical.tablesDecode
+
+/-- The store-owned multi-table encoder establishes the stronger physical
+layout invariant table by table.  This is the bulk-image base case for later
+localized-preservation proofs. -/
+theorem TablesOnSource.ofEncodedTables
+    (source : CoreDecode.PageSource) :
+    ∀ (nextOverflow : Nat)
+      (tables : List CoreChunkPageState.TableState)
+      (encoding : CorePageCodec.OverflowEncoding),
+      CorePageCodec.encodeChunkTablesWithOverflow nextOverflow tables =
+        some encoding →
+      CorePageCodec.PageSourceContains source encoding.treePages →
+      CoreDecode.ReadsPagesFrom source nextOverflow encoding.overflowPages →
+      0 < nextOverflow →
+      nextOverflow + encoding.overflowPages.length < 2 ^ 32 →
+      encoding.overflowPages.length < source.pageCount + 1 →
+      (∀ table ∈ tables,
+        table.tree.root.erase.height < source.pageCount + 1) →
+      TablesOnSource source
+        (tables.map fun table => CoreDecode.CatalogEntry.ofEncoded
+          (CorePageCodec.chunkTableCatalogEntry table)) tables
+  | _, [], encoding, encoded, _, _, _, _, _, _ => by
+      simp only [CorePageCodec.encodeChunkTablesWithOverflow,
+        Option.some.injEq] at encoded
+      subst encoding
+      exact .nil
+  | nextOverflow, table :: tables, encoding, encoded, treeContains,
+      overflowContains, nextPositive, pageBound, fuelBound, heights => by
+      simp only [CorePageCodec.encodeChunkTablesWithOverflow,
+        Option.bind_eq_bind, Option.bind] at encoded
+      cases headResult : CorePageCodec.encodeChunkNodeWithOverflow
+          table.table.schema table.tree.root nextOverflow with
+      | none => simp [headResult] at encoded
+      | some head =>
+        simp only [headResult] at encoded
+        cases tailResult : CorePageCodec.encodeChunkTablesWithOverflow
+            head.nextPage tables with
+        | none => simp [tailResult] at encoded
+        | some tail =>
+          simp only [tailResult, Option.some.injEq] at encoded
+          subst encoding
+          have headTreeContains : CorePageCodec.PageSourceContains source
+              head.treePages := by
+            intro numbered member
+            exact treeContains numbered (by simp [member])
+          have tailTreeContains : CorePageCodec.PageSourceContains source
+              tail.treePages := by
+            intro numbered member
+            exact treeContains numbered (by simp [member])
+          have headOverflowContains : CoreDecode.ReadsPagesFrom source
+              nextOverflow head.overflowPages :=
+            CoreDecode.ReadsPagesFrom.left overflowContains
+          have tailOverflowAt := CoreDecode.ReadsPagesFrom.right overflowContains
+          have headNext := CorePageCodec.encodeChunkNodeWithOverflow_nextPage
+            table.table.schema table.tree.root nextOverflow head headResult
+          have tailOverflowContains : CoreDecode.ReadsPagesFrom source
+              head.nextPage tail.overflowPages := by
+            simpa [headNext] using tailOverflowAt
+          have headPhysical : TableOnSource source table := {
+            nextOverflow
+            encoding := head
+            encoded := headResult
+            treeContains := headTreeContains
+            overflowContains := headOverflowContains
+            heightBound := heights table (by simp)
+            nextPositive
+            pageBound := by
+              simp only [List.length_append] at pageBound
+              omega
+            fuelBound := by
+              simp only [List.length_append] at fuelBound
+              omega }
+          have tailPhysical := ofEncodedTables source head.nextPage tables tail
+            tailResult tailTreeContains tailOverflowContains (by
+              rw [headNext]
+              omega) (by
+              simp only [List.length_append] at pageBound
+              rw [headNext]
+              omega) (by
+              simp only [List.length_append] at fuelBound
+              omega) (fun candidate member => heights candidate (by
+                simp [member]))
+          exact .cons rfl headPhysical tailPhysical
+
+/-- A successful bulk image establishes the full per-table physical-layout
+invariant over any page source that contains its active tail.  The returned
+state is exactly the proof-carrying state built by the live bulk encoder. -/
+theorem exists_tablesOnSource_encodeBulk_in
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image)
+    (source : CoreDecode.PageSource)
+    (activeTailReads : CoreDecode.ReadsPagesFrom source 2 image.pages.tail)
+    (enoughPages : image.pageCount ≤ source.pageCount) :
+    ∃ state : CoreChunkPageState.State,
+      CoreChunkPageState.State.build? database = some state ∧
+      TablesOnSource source
+        (state.tables.map fun table => CoreDecode.CatalogEntry.ofEncoded
+          (CorePageCodec.chunkTableCatalogEntry table)) state.tables := by
+  unfold CorePageCodec.encodeBulk CorePageCodec.encodeBulkFromState at encoded
+  cases stateResult : CoreChunkPageState.State.build? database with
+  | none => simp [stateResult] at encoded
+  | some state =>
+    simp only [stateResult, Option.bind_eq_bind, Option.bind] at encoded
+    cases tableResult : CorePageCodec.encodeChunkTablesWithOverflow
+        state.nextPage state.tables with
+    | none => simp [tableResult] at encoded
+    | some tableEncoding =>
+      simp only [tableResult] at encoded
+      cases indexResult : CoreOverflow.encodeIndexTableGroups
+          tableEncoding.nextPage database.tables with
+      | none => simp [indexResult] at encoded
+      | some indexEncodings =>
+        simp only [indexResult] at encoded
+        split at encoded
+        next countBound =>
+          let entries := state.tables.map CorePageCodec.chunkTableCatalogEntry ++
+            CoreOverflow.indexEntriesOf indexEncodings
+          let treePages := tableEncoding.treePages.map
+            CorePageCodec.NumberedPage.page
+          let indexPages := CoreOverflow.indexPagesOf indexEncodings
+          let remaining := treePages ++ tableEncoding.overflowPages ++ indexPages
+          let count : FileFormat.U32Value := ⟨1 + remaining.length, by
+            change 1 + remaining.length < 2 ^ 32
+            simp only [remaining, treePages, indexPages]
+            omega⟩
+          change (do
+            let schema ← CoreFile.schemaPageForEntries? entries count
+            some ⟨database, schema :: remaining⟩) = some image at encoded
+          cases schemaResult : CoreFile.schemaPageForEntries? entries count with
+          | none => simp [schemaResult] at encoded
+          | some schemaPage =>
+            rw [schemaResult] at encoded
+            simp only [Option.bind_eq_bind, Option.bind,
+              Option.some.injEq] at encoded
+            subst image
+            obtain ⟨tablePageCount, stateNext, statePages⟩ :=
+              CoreChunkPageState.State.build?_interval stateResult
+            have treeNumbers :=
+              CorePageCodec.encodeChunkTablesWithOverflow_pageNumbers
+                state.nextPage state.tables tableEncoding tableResult
+            rw [statePages] at treeNumbers
+            have treeLength : treePages.length = tablePageCount := by
+              have lengths := congrArg List.length treeNumbers
+              simpa [treePages] using lengths
+            have tableNext :=
+              CorePageCodec.encodeChunkTablesWithOverflow_nextPage
+                state.nextPage state.tables tableEncoding tableResult
+            have sourceCountLower :
+                1 + remaining.length ≤ source.pageCount := by
+              simpa [CoreFile.Image.pageCount, Nat.add_comm] using enoughPages
+            have remainingReads : CoreDecode.ReadsPagesFrom source 2
+                remaining := by
+              simpa using activeTailReads
+            have treeReads : CoreDecode.ReadsPagesFrom source 2 treePages := by
+              apply CoreDecode.ReadsPagesFrom.left
+                (right := tableEncoding.overflowPages ++ indexPages)
+              simpa [remaining, List.append_assoc] using remainingReads
+            have treeContains : CorePageCodec.PageSourceContains source
+                tableEncoding.treePages := by
+              apply CorePageCodec.PageSourceContains.ofReadsRange source 2
+              · have numberedLength : tableEncoding.treePages.length =
+                    tablePageCount := by
+                  simpa [treePages] using treeLength
+                rw [numberedLength]
+                exact treeNumbers
+              · exact treeReads
+            have overflowReads : CoreDecode.ReadsPagesFrom source
+                state.nextPage tableEncoding.overflowPages := by
+              have afterTree := CoreDecode.ReadsPagesFrom.right
+                (left := treePages)
+                (right := tableEncoding.overflowPages ++ indexPages)
+                (by simpa [remaining, List.append_assoc] using remainingReads)
+              have overflow := CoreDecode.ReadsPagesFrom.left afterTree
+              simpa [stateNext, treeLength, Nat.add_comm, Nat.add_left_comm,
+                Nat.add_assoc] using overflow
+            have tablePagesWithin : tablePageCount ≤ remaining.length := by
+              simp only [remaining, List.length_append]
+              rw [treeLength]
+              omega
+            have tableHeights : ∀ table ∈ state.tables,
+                table.tree.root.erase.height < source.pageCount + 1 := by
+              intro table member
+              have height := RecursiveBPlusTree.Node.height_lt_pageCount
+                table.tree.root.erase
+              have pageCount := PersistentPageTree.Node.pageIds_length
+                table.tree.root
+              have included :=
+                CoreChunkPageState.TableState.pageIds_length_le_tablePageIds
+                  member
+              unfold CoreChunkPageState.TableState.pageIds at included
+              rw [statePages] at included
+              simp only [List.length_range'] at included
+              omega
+            refine ⟨state, rfl, ?_⟩
+            exact TablesOnSource.ofEncodedTables source state.nextPage
+              state.tables tableEncoding tableResult treeContains overflowReads
+              (by rw [stateNext]; omega) (by
+                rw [stateNext]
+                change 1 + remaining.length + 1 < 2 ^ 32 at countBound
+                simp only [remaining, List.length_append, List.length_map]
+                  at countBound
+                omega) (by
+                  simp only [remaining, List.length_append] at sourceCountLower
+                  omega) tableHeights
+        next => contradiction
 
 theorem TablesDecode.mapM
     {source : CoreDecode.PageSource}

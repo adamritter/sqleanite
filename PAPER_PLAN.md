@@ -161,7 +161,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   fixed point. Canonicalization is proved idempotent, and the canonical
   catalog rebuilder is proved to return such a fixed point; this makes the
   remaining localized-preservation obligation explicit rather than hiding it
-  behind a whole-decoder premise.
+  behind a whole-decoder premise. The stronger
+  `CoreLocalizedRepresentation.TableOnSource` invariant now records each
+  table's identified tree pages, separately allocated overflow interval, and
+  recursive decoder bounds. `TablesOnSource` aligns those witnesses with the
+  catalog and database order. The multi-table encoder is proved to establish
+  this invariant recursively, and `exists_tablesOnStorage_encodeBulk` ties
+  the resulting base certificate to the exact live growable-storage image.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

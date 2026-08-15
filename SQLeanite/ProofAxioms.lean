@@ -620,6 +620,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.readsPagesFrom_applyWrites
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.consEncoded
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.decode
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.transport
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.tablesDecode
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.ofEncodedTables
+#print axioms SQLeanite.CoreLocalizedRepresentation.exists_tablesOnSource_encodeBulk_in
+#print axioms SQLeanite.CoreDurability.exists_tablesOnStorage_encodeBulk
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.validateForTable
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsDecode.validate
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.decode
