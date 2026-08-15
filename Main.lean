@@ -115,9 +115,58 @@ private def coreWALCheckpoint (databasePath : String) : IO UInt32 := do
   ProcessLock.withLock lock (CoreWALFileEngine.checkpoint .system paths)
   pure 0
 
+/-- Execute one statement per input line on a single connection, reporting each
+statement's wall-clock microseconds on stderr as `time<TAB>micros`.
+
+Exists so latency percentiles can be measured at all. The ordinary batch mode
+executes a whole script under one `execute` call, so timing it externally
+measures the open plus the script, and timing one statement per process measures
+process startup and a fresh open -- at 32 ms/MB the open dominates and any
+per-operation number derived that way is meaningless. Holding one connection and
+timing each statement separately is the only honest way to get a distribution.
+
+Input is split on newlines, so it suits generated one-statement-per-line traces
+such as `scripts/ycsb-trace.py` output. It is a measurement aid, not a general
+SQL splitter: a statement spanning lines will be rejected by the parser. -/
+private def coreBatchTimed (databasePath : String) (args : List String) :
+    IO UInt32 := do
+  let sql ←
+    match args with
+    | file :: _ => IO.FS.readFile file
+    | [] => readStreamToEnd (← IO.getStdin)
+  let mainPath : System.FilePath := databasePath
+  let paths : CoreFileAdapter.Paths := {
+    main := mainPath, journal := databasePath ++ "-journal" }
+  let process := (← IO.Process.getPID).toNat
+  let lock : ProcessLock.Config := {
+    directory := databasePath ++ ".sqleanite-lock", process }
+  ProcessLock.withLock lock do
+    let fileExists ← mainPath.pathExists
+    requireWritableFor mainPath sql
+    let connection ← if fileExists then CoreFileEngine.reopen .system paths
+      else CoreFileEngine.create .system paths
+    let statements := (sql.splitOn "\n").filter fun line => !line.trim.isEmpty
+    let mut status : UInt32 := 0
+    for statement in statements do
+      let started ← IO.monoNanosNow
+      let outcome ← CoreFileEngine.execute connection statement
+      let ended ← IO.monoNanosNow
+      IO.eprintln s!"time\t{(ended - started) / 1000}"
+      match outcome with
+      | .error message =>
+          IO.eprintln s!"Error: {message}"
+          status := 1
+      | .ok results =>
+          let text := String.intercalate "\n" <|
+            (results.map renderCoreResult).filter fun output => !output.isEmpty
+          unless text.isEmpty do IO.println text
+    pure status
+
 private def runMain (args : List String) : IO UInt32 :=
   match args with
   | "--verified-file" :: databasePath :: rest => coreBatch databasePath rest
+  | "--verified-file-timed" :: databasePath :: rest =>
+      coreBatchTimed databasePath rest
   | "--verified-wal-file" :: databasePath :: rest => coreWALBatch databasePath rest
   | "--verified-wal-checkpoint" :: databasePath :: _ => coreWALCheckpoint databasePath
   | "--help" :: _ => do
