@@ -161,6 +161,29 @@ theorem sqliteHeaderMatches_of_pageZeroWrite
   rw [imageBytes, read, bytes, List.append_assoc]
   exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
 
+/-- The same exact page-zero write supplies the catalog component without
+decoding or comparing the complete database. -/
+theorem catalogRead_of_pageZeroWrite
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (pageZero : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (member : pageZero ∈ writes) (zero : pageZero.pageId = 0)
+    (catalog : List CoreDecode.CatalogEntry)
+    (decoded : CoreDecode.decodeCatalogForOpen pageZero.page.bytes.toList =
+      some catalog) :
+    (localizedSource oldImage writes).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog := by
+  have read := CorePageSource.readPage_applyWrites_of_mem oldImage distinct
+    member
+  rw [zero] at read
+  change (CorePageSource.ofStorageImage
+    (GrowableStorage.applyWrites oldImage writes)).readPage 1 >>=
+      CoreDecode.decodeCatalogForOpen = some catalog
+  rw [read]
+  exact decoded
+
 /-- Component-wise certificate for a live localized commit.  This is stronger
 and more informative than assuming `RepresentsDatabase` for the post-image:
 it exposes the exact catalog read, all table decodes, index reconstruction,
@@ -186,6 +209,48 @@ structure LocalizedRepresentation
         database.withoutIndexes
         (catalog.filter (fun entry => entry.kind == "index")) =
       some database.canonicalize
+
+/-- Build the complete component certificate from one exact schema-page write
+and the separately compositional table/index decoder facts. -/
+def localizedRepresentation_of_pageZeroWrite
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database)
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (pageZero : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (member : pageZero ∈ writes) (zero : pageZero.pageId = 0)
+    (header : FileFormat.DatabaseHeader) (pageSuffix : List UInt8)
+    (headerBytes : pageZero.page.bytes.toList =
+      FileFormat.encodeDatabaseHeader header ++ pageSuffix)
+    (pageCount : header.databaseSizePages.val =
+      (GrowableStorage.applyWrites oldImage writes).pageCount)
+    (pageSize : header.headerPrefix.pageSizeField.val =
+      PhysicalCodec.pageSize)
+    (reserved : header.headerPrefix.reservedSpace = 0)
+    (utf8 : header.textEncoding.val = 1)
+    (catalog : List CoreDecode.CatalogEntry)
+    (catalogDecoded :
+      CoreDecode.decodeCatalogForOpen pageZero.page.bytes.toList = some catalog)
+    (tablesRead :
+      (catalog.filter (fun entry => entry.kind == "table")).mapM
+          (CoreDecode.decodeTableFrom (localizedSource oldImage writes)) =
+        some (database.tables.map Core.Table.withoutIndexes))
+    (indexesRead :
+      CoreDecode.applyIndexesForOpen (localizedSource oldImage writes)
+          database.withoutIndexes
+          (catalog.filter (fun entry => entry.kind == "index")) =
+        some database.canonicalize) :
+    LocalizedRepresentation oldImage writes database := by
+  exact {
+    header := sqliteHeaderMatches_of_pageZeroWrite oldImage writes distinct
+      pageZero member zero header pageSuffix headerBytes pageCount pageSize
+      reserved utf8
+    catalog
+    catalogRead := catalogRead_of_pageZeroWrite oldImage writes distinct
+      pageZero member zero catalog catalogDecoded
+    tablesRead
+    indexesRead }
 
 theorem LocalizedRepresentation.pageSourceRepresents
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
