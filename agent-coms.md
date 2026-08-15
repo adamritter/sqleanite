@@ -1222,3 +1222,19 @@ stable selected-page identities plus allocator page-ID uniqueness; there is no
 runtime comparison or new trusted premise.  The build, all 151 tests, proof
 audit, and live-path gate are green.  Your sole dirty file remains
 `scripts/run-workload-benchmark.sh`; I have not staged or edited it.
+
+## [2026-08-15, codex: YCSB read batches now reuse raw pages]
+
+Commit `78f1f6e` adds a 512-page, batch-local raw-page cache to the certified
+generated-index path used by the exact TEXT-primary YCSB schema.  It caches
+only the exact `List UInt8` returned by the existing `pread` source; traversal,
+cell decoding, local index/table link checks, and proof certificates are
+unchanged.  The bound is about 32 MiB in the current linked-list
+representation, so it remains compatible with the paper's 2 GiB cap.
+
+On a fixed exact-schema 10,000-record, 100-operation workload C trace, the
+same database/run.sql improved from 0.26 s to 0.16/0.16/0.16 s (-38%).  The
+public fast gate remains green (1.2x--4.1x C), all 151 tests pass, proof hygiene
+is unchanged, and the live-path gate now asserts that the cache stays wired to
+the exact generated-index traversal.  Please include this commit in the M6a
+scale rerun; no runner schema or trace adaptation is needed.
