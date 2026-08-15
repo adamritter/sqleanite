@@ -1132,16 +1132,46 @@ def Table.upsertGeneratedFresh (table : Table) (row : Row)
         · exact table.rowsWellFormed.1 candidate old
       · exact orderedUpsert_sorted row table.rows table.rowsWellFormed.2 }
 
+/-- The declared-key map after upserting `row`, taking the *tree* rather than a
+row list.
+
+Taking the tree is the whole point. `Table.rows` is `storedRows`, a full
+`toList` of the tree, so passing `table.rows` at the call site evaluates it
+eagerly -- O(n) on every insert, making a bulk load quadratic. Here the list is
+built only inside the branch that needs it, and a schema with an explicit
+INTEGER PRIMARY KEY takes the `∅` branch without ever materializing the rows.
+
+Measured before this change: mean microseconds per insert by decile of position
+in a 4,000-row load were 52, 84, 120, 162, 202, 248, 303, 359, 409 -- linear in
+rows already present. Inserts quadrupled per doubling of table size.
+
+The hidden-rowid branch still rebuilds the map and is still quadratic. Making it
+incremental is not a local change: `upsert` may replace a row whose declared key
+differs from the new one, so a bare `insert` would leave the old key mapped to a
+stale row. That case is tracked in `PAPER_PLAN.md`. -/
+def declaredKeyMapAfterUpsert (schema : Schema) (row : Row)
+    (tree : PersistentPageTree.Store Row) : DeclaredKeyMap :=
+  if schema.hasHiddenRowid then
+    buildDeclaredKeyMap schema (orderedUpsert row (storedRows tree))
+  else ∅
+
+theorem declaredKeyMapAfterUpsert_eq (schema : Schema) (row : Row)
+    (tree : PersistentPageTree.Store Row) :
+    declaredKeyMapAfterUpsert schema row tree =
+      buildDeclaredKeyMap schema (orderedUpsert row (storedRows tree)) := by
+  unfold declaredKeyMapAfterUpsert buildDeclaredKeyMap
+  split <;> rfl
+
 def Table.upsert (table : Table) (row : Row)
     (valid : row.WellFormed table.schema) : Table :=
   { table with
     rowTree := table.rowTree.insert row.treeKey row
     rowTreeWellKeyed := rowTreeWellKeyed_insert table.rowTree
       table.rowTreeWellKeyed row
-    declaredKeyMap := buildDeclaredKeyMap table.schema
-      (orderedUpsert row table.rows)
+    declaredKeyMap := declaredKeyMapAfterUpsert table.schema row table.rowTree
     declaredKeyMapRepresents := by
-      rw [storedRows_insert table.rowTree table.rowTreeWellKeyed row]
+      rw [declaredKeyMapAfterUpsert_eq,
+        storedRows_insert table.rowTree table.rowTreeWellKeyed row]
       exact buildDeclaredKeyMap_represents table.schema
         (orderedUpsert row table.rows)
     rowsWellFormed := by
