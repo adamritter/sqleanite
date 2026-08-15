@@ -2148,6 +2148,174 @@ def encodeChunkPath (schema : Core.Schema) (key : Nat) :
         else encodeChunkPath schema key right
       some (page :: child)
 
+/-- A localized root-to-leaf encoding contains only pages from the complete
+encoding of the same persistent tree.  It may omit unchanged siblings, but it
+cannot invent a page identity or byte image. -/
+theorem encodeChunkPath_subset_encodeChunkNode (schema : Core.Schema)
+    (key : Nat) :
+    ∀ (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
+      (path pages : List NumberedPage),
+      encodeChunkPath schema key node = some path →
+      encodeChunkNode schema node = some pages →
+      ∀ page ∈ path, page ∈ pages
+  | .leaf pageId entries, path, pages, pathEncoded, pagesEncoded => by
+      cases leafResult : encodeChunkLeaf schema entries with
+      | none =>
+        simp [encodeChunkPath, encodeChunkRoot, leafResult] at pathEncoded
+      | some leaf =>
+        simp [encodeChunkPath, encodeChunkRoot, encodeChunkNode, leafResult] at pathEncoded pagesEncoded
+        subst path
+        subst pages
+        simp
+  | .branch2 pageId left separator right, path, pages, pathEncoded,
+      pagesEncoded => by
+      cases keyResult : maximumChunkRowid? left with
+      | none =>
+        simp [encodeChunkPath, encodeChunkRoot, keyResult] at pathEncoded
+      | some leftKey =>
+        cases pageResult : RecursivePageBTree.interiorPage?
+            [(left.rootId, leftKey)] right.rootId with
+        | none =>
+          simp [encodeChunkPath, encodeChunkRoot, keyResult, pageResult] at pathEncoded
+        | some rootPage =>
+          cases leftResult : encodeChunkNode schema left with
+          | none =>
+            simp [encodeChunkNode, keyResult, pageResult, leftResult] at pagesEncoded
+          | some leftPages =>
+            cases rightResult : encodeChunkNode schema right with
+            | none =>
+              simp [encodeChunkNode, keyResult, pageResult, leftResult,
+                rightResult] at pagesEncoded
+            | some rightPages =>
+              simp [encodeChunkNode, keyResult, pageResult, leftResult,
+                rightResult] at pagesEncoded
+              subst pages
+              by_cases route : key < separator
+              · cases childResult : encodeChunkPath schema key left with
+                | none =>
+                  simp [encodeChunkPath, encodeChunkRoot, keyResult, pageResult,
+                    route, childResult] at pathEncoded
+                | some child =>
+                  simp [encodeChunkPath, encodeChunkRoot, keyResult, pageResult,
+                    route, childResult] at pathEncoded
+                  subst path
+                  intro page member
+                  simp only [List.mem_cons] at member
+                  rcases member with rfl | childMember
+                  · simp
+                  · simp only [List.mem_cons, List.mem_append]
+                    exact .inr (.inl
+                      (encodeChunkPath_subset_encodeChunkNode schema key left
+                        child leftPages childResult leftResult page childMember))
+              · cases childResult : encodeChunkPath schema key right with
+                | none =>
+                  simp [encodeChunkPath, encodeChunkRoot, keyResult, pageResult,
+                    route, childResult] at pathEncoded
+                | some child =>
+                  simp [encodeChunkPath, encodeChunkRoot, keyResult, pageResult,
+                    route, childResult] at pathEncoded
+                  subst path
+                  intro page member
+                  simp only [List.mem_cons] at member
+                  rcases member with rfl | childMember
+                  · simp
+                  · simp only [List.mem_cons, List.mem_append]
+                    exact .inr (.inr
+                      (encodeChunkPath_subset_encodeChunkNode schema key right
+                        child rightPages childResult rightResult page childMember))
+  | .branch3 pageId left firstSeparator middle secondSeparator right,
+      path, pages, pathEncoded, pagesEncoded => by
+      cases leftKeyResult : maximumChunkRowid? left with
+      | none =>
+        simp [encodeChunkPath, encodeChunkRoot, leftKeyResult] at pathEncoded
+      | some leftKey =>
+        cases middleKeyResult : maximumChunkRowid? middle with
+        | none =>
+          simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+            middleKeyResult] at pathEncoded
+        | some middleKey =>
+          cases pageResult : RecursivePageBTree.interiorPage?
+              [(left.rootId, leftKey), (middle.rootId, middleKey)]
+              right.rootId with
+          | none =>
+            simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+              middleKeyResult, pageResult] at pathEncoded
+          | some rootPage =>
+            cases leftResult : encodeChunkNode schema left with
+            | none =>
+              simp [encodeChunkNode, leftKeyResult, middleKeyResult, pageResult,
+                leftResult] at pagesEncoded
+            | some leftPages =>
+              cases middleResult : encodeChunkNode schema middle with
+              | none =>
+                simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                  pageResult, leftResult, middleResult] at pagesEncoded
+              | some middlePages =>
+                cases rightResult : encodeChunkNode schema right with
+                | none =>
+                  simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                    pageResult, leftResult, middleResult, rightResult] at pagesEncoded
+                | some rightPages =>
+                  simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                    pageResult, leftResult, middleResult, rightResult] at pagesEncoded
+                  subst pages
+                  by_cases leftRoute : key < firstSeparator
+                  · cases childResult : encodeChunkPath schema key left with
+                    | none =>
+                      simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                        middleKeyResult, pageResult, leftRoute, childResult] at pathEncoded
+                    | some child =>
+                      simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                        middleKeyResult, pageResult, leftRoute, childResult] at pathEncoded
+                      subst path
+                      intro page member
+                      simp only [List.mem_cons] at member
+                      rcases member with rfl | childMember
+                      · simp
+                      · simp only [List.mem_cons, List.mem_append]
+                        exact .inr (.inl
+                          (encodeChunkPath_subset_encodeChunkNode schema key left
+                            child leftPages childResult leftResult page childMember))
+                  · by_cases middleRoute : key < secondSeparator
+                    · cases childResult : encodeChunkPath schema key middle with
+                      | none =>
+                        simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                          middleKeyResult, pageResult, leftRoute, middleRoute,
+                          childResult] at pathEncoded
+                      | some child =>
+                        simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                          middleKeyResult, pageResult, leftRoute, middleRoute,
+                          childResult] at pathEncoded
+                        subst path
+                        intro page member
+                        simp only [List.mem_cons] at member
+                        rcases member with rfl | childMember
+                        · simp
+                        · simp only [List.mem_cons, List.mem_append]
+                          exact .inr (.inr (.inl
+                            (encodeChunkPath_subset_encodeChunkNode schema key
+                              middle child middlePages childResult middleResult
+                              page childMember)))
+                    · cases childResult : encodeChunkPath schema key right with
+                      | none =>
+                        simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                          middleKeyResult, pageResult, leftRoute, middleRoute,
+                          childResult] at pathEncoded
+                      | some child =>
+                        simp [encodeChunkPath, encodeChunkRoot, leftKeyResult,
+                          middleKeyResult, pageResult, leftRoute, middleRoute,
+                          childResult] at pathEncoded
+                        subst path
+                        intro page member
+                        simp only [List.mem_cons] at member
+                        rcases member with rfl | childMember
+                        · simp
+                        · simp only [List.mem_cons, List.mem_append]
+                          exact .inr (.inr (.inr
+                            (encodeChunkPath_subset_encodeChunkNode schema key
+                              right child rightPages childResult rightResult page
+                              childMember)))
+
 def encodeChunkTable (state : CoreChunkPageState.TableState) :
     Option (List NumberedPage) :=
   encodeChunkNode state.table.schema state.tree.root

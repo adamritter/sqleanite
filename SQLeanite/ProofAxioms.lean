@@ -179,6 +179,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PersistentPageTree.Store.build_represents
 #print axioms SQLeanite.PersistentPageTree.identifyFrom_pageIds
 #print axioms SQLeanite.CorePageCodec.decodeCanonicalRows_encodeLeaf
+#print axioms SQLeanite.CorePageCodec.encodeChunkPath_subset_encodeChunkNode
 #print axioms SQLeanite.CoreDecode.decodeRowCellFrom_encodeCell
 #print axioms SQLeanite.CorePageCodec.interiorChildren_interiorPage_one
 #print axioms SQLeanite.CorePageCodec.interiorChildren_interiorPage_two
