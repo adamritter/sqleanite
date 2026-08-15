@@ -205,6 +205,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `localizedLastIndexDelta_cons` installs either routed or rebuilt index bytes
   into the physical catalog run without permitting the certificate to be
   attached to an unrelated entry.
+  The successful ordinary delta alignment now proves, for the complete table
+  list, that schemas and declared indexes are unchanged.  Consequently the
+  old `sqlite_master` metadata groups transport to the exact logical post-state
+  as erased evidence; no catalog reparse or database comparison is required.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

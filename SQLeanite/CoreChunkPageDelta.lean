@@ -1775,6 +1775,337 @@ theorem TableDelta.tablePagesSufficient_indexImage (delta : TableDelta)
     rw [indexImage_eq_sortIndexSourceImage,
       indexImage_eq_sortIndexSourceImage, sufficient.2.2]
 
+/-- The part of table identity stored in `sqlite_master`.  Rows and proof-tree
+topology are deliberately absent: a data mutation changes both without
+changing the catalog declaration. -/
+def TableMetadataEq (before after : Core.Table) : Prop :=
+  before.schema = after.schema ∧ before.indexes = after.indexes
+
+inductive TablesMetadataAligned : List Core.Table → List Core.Table → Prop where
+  | nil : TablesMetadataAligned [] []
+  | cons {before after : Core.Table} {befores afters : List Core.Table}
+      (head : TableMetadataEq before after)
+      (tail : TablesMetadataAligned befores afters) :
+      TablesMetadataAligned (before :: befores) (after :: afters)
+
+theorem TableDelta.tablePagesSufficient_metadata (delta : TableDelta)
+    (sufficient : delta.tablePagesSufficient = true) :
+    TableMetadataEq delta.before.table delta.after.table := by
+  simp only [TableDelta.tablePagesSufficient, Bool.and_eq_true,
+    beq_iff_eq] at sufficient
+  exact sufficient.1
+
+private theorem replace?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : replace? state nextPage row replacement = some delta) :
+    delta.before = state := by
+  unfold replace? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        rfl
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem insert?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : insert? state nextPage row replacement = some delta) :
+    delta.before = state := by
+  unfold insert? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    split at success
+    next =>
+      dsimp only at success
+      split at success
+      next =>
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          injection success with equal
+          subst delta
+          rfl
+        next => contradiction
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem splitInsert?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : splitInsert? state nextPage row replacement = some delta) :
+    delta.before = state := by
+  unfold splitInsert? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨leftKey, _, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨rightKey, _, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨deleted, _, success⟩
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        rfl
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem delete?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : delete? state nextPage row replacement = some delta) :
+    delta.before = state := by
+  unfold delete? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        split at success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          injection success with equal
+          subst delta
+          rfl
+        next => contradiction
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem mergeDelete?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {row : Core.Row} {replacement : Core.Table}
+    {delta : TableDelta}
+    (success : mergeDelete? state nextPage row replacement = some delta) :
+    delta.before = state := by
+  unfold mergeDelete? at success
+  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨deleted, _, success⟩
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        rfl
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+private theorem retainMany?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : retainMany? state nextPage replacement = some delta) :
+    delta.before = state := by
+  unfold retainMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+      rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+      injection success with equal
+      subst delta
+      rfl
+    next => contradiction
+  next => contradiction
+
+private theorem replaceMany?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceMany? state nextPage replacement = some delta) :
+    delta.before = state := by
+  unfold replaceMany? at success
+  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        injection success with equal
+        subst delta
+        rfl
+      next => contradiction
+    next => contradiction
+  next => contradiction
+
+theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
+    {nextPage : Nat} {replacement : Core.Table} {delta : TableDelta}
+    (success : replaceBetween? state nextPage replacement = some delta) :
+    delta.before = state := by
+  unfold replaceBetween? at success
+  split at success
+  next => injection success with equal; subst delta; rfl
+  next =>
+    split at success
+    next =>
+      rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+      cases insertion : insert? state nextPage row replacement with
+      | some candidate =>
+          rw [insertion] at success
+          injection success with equal
+          subst candidate
+          exact insert?_before insertion
+      | none =>
+          rw [insertion] at success
+          exact splitInsert?_before success
+    next =>
+      split at success
+      next =>
+        rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+        cases deletion : delete? state nextPage row replacement with
+        | some candidate =>
+            rw [deletion] at success
+            injection success with equal
+            subst candidate
+            exact delete?_before deletion
+        | none =>
+            rw [deletion] at success
+            exact mergeDelete?_before success
+      next =>
+        split at success
+        next => exact retainMany?_before success
+        next =>
+          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          cases replacementResult : replace? state nextPage row replacement with
+          | some candidate =>
+              rw [replacementResult] at success
+              injection success with equal
+              subst candidate
+              exact replace?_before replacementResult
+          | none =>
+              rw [replacementResult] at success
+              exact replaceMany?_before success
+
+/-- A successful alignment with no selected table delta consists entirely of
+catalog-metadata-preserving retargets. -/
+theorem alignTables?_metadata_none :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = none →
+      TablesMetadataAligned
+        (states.map fun state => state.table) target
+  | _, [], target, aligned, success, noChange => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      exact .nil
+  | nextPage, old :: olds, target, aligned, success, noChange => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+          unfold alignTables? at success
+          split at success
+          next same =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tail, tailResult, success⟩
+            injection success with equal
+            subst aligned
+            refine .cons ⟨?_, ?_⟩
+              (alignTables?_metadata_none tailResult noChange)
+            · exact Core.Table.Equiv.schema_eq same
+            · exact Core.Table.Equiv.indexes_eq same
+          next =>
+            split at success
+            next => contradiction
+            next head headResult =>
+              split at success
+              next => contradiction
+              next tail tailResult =>
+                split at success
+                next =>
+                  injection success with equal
+                  subst aligned
+                  simp at noChange
+                next => contradiction
+
+/-- With one selected table delta, the sufficient-table fast-path check proves
+that the changed head also preserves catalog metadata; all remaining tables
+come from `alignTables?_metadata_none`. -/
+theorem alignTables?_metadata_changed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table} {aligned : AlignedTables target}
+      {delta : TableDelta},
+      alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      TablesMetadataAligned
+        (states.map fun state => state.table) target
+  | _, [], target, aligned, delta, success, selected, sufficient => by
+      cases target <;> simp [alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected,
+      sufficient => by
+      cases target with
+      | nil => simp [alignTables?] at success
+      | cons replacement replacements =>
+          unfold alignTables? at success
+          split at success
+          next same =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tail, tailResult, success⟩
+            injection success with equal
+            subst aligned
+            refine .cons ⟨Core.Table.Equiv.schema_eq same,
+              Core.Table.Equiv.indexes_eq same⟩
+              (alignTables?_metadata_changed tailResult selected sufficient)
+          next =>
+            split at success
+            next => contradiction
+            next head headResult =>
+              split at success
+              next => contradiction
+              next tail tailResult =>
+                split at success
+                next onlyChange =>
+                  injection success with equal
+                  subst aligned
+                  have headEqual : head = delta := Option.some.inj selected
+                  subst head
+                  have tailNone : tail.delta = none := by
+                    cases tailDelta : tail.delta with
+                    | none => rfl
+                    | some value => simp [tailDelta] at onlyChange
+                  have headMetadata :=
+                    TableDelta.tablePagesSufficient_metadata delta sufficient
+                  rw [replaceBetween?_before headResult,
+                    replaceBetween?_table headResult] at headMetadata
+                  exact .cons headMetadata
+                    (alignTables?_metadata_none tailResult tailNone)
+                next => contradiction
+
 def addFreePages (existing added : List Nat) : List Nat :=
   added.foldl (fun pages page =>
     if pages.contains page then pages else pages ++ [page]) existing
@@ -1952,6 +2283,20 @@ theorem updateState?_alignment {state : CoreChunkPageState.State}
     subst candidate
     exact updateStateCandidate?_alignment candidateResult
   next => contradiction
+
+/-- Ordinary localized table writes preserve every catalog-level table/index
+declaration.  This is derived from the same successful alignment and
+`tablePagesSufficient` check consumed by the live writer. -/
+theorem updateState?_metadataAligned
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : StateDelta}
+    (updated : updateState? state database = some delta) :
+    TablesMetadataAligned (state.tables.map fun table => table.table)
+      database.tables := by
+  rcases updateState?_alignment updated with
+    ⟨aligned, alignment, _, selected⟩
+  exact alignTables?_metadata_changed alignment selected
+    (updateState?_tablePagesSufficient updated)
 
 theorem updateState?_treePagesAccounted
     {state : CoreChunkPageState.State}

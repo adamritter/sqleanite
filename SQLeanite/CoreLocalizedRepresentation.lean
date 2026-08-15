@@ -692,6 +692,47 @@ inductive IndexMetadataGroups :
       (tail : IndexMetadataGroups tables remaining) :
       IndexMetadataGroups (table :: tables) (entries ++ remaining)
 
+/-- Catalog metadata decoding depends on a table's schema and declared index
+list, not on its rows or persistent-tree topology. -/
+theorem IndexMetadataDecode.retargetSchema
+    {before after : Core.Table} {entries : List CoreDecode.CatalogEntry}
+    {indexes : List Core.Index}
+    (schemaEq : before.schema = after.schema)
+    (decoded : IndexMetadataDecode before entries indexes) :
+    IndexMetadataDecode after entries indexes := by
+  induction decoded with
+  | nil => exact .nil
+  | cons sameTable metadata tail induction =>
+      exact .cons (by simpa [← schemaEq] using sameTable)
+        (by simpa [← schemaEq] using metadata) induction
+
+/-- Transport every catalog metadata group through the declaration-preserving
+table alignment proved by the live delta builder.  No catalog SQL is reparsed
+at runtime; this theorem changes only the logical row-bearing table index of
+the erased certificate. -/
+theorem IndexMetadataGroups.retarget :
+    ∀ {before after : List Core.Table}
+      {entries : List CoreDecode.CatalogEntry},
+      CoreChunkPageDelta.TablesMetadataAligned before after →
+      IndexMetadataGroups before entries →
+      IndexMetadataGroups after entries
+  | [], [], entries, .nil, decoded => by
+      cases decoded
+      exact .nil
+  | beforeTable :: beforeTables, afterTable :: afterTables, entries,
+      .cons metadataEq aligned, decoded => by
+      cases decoded with
+      | cons current boundary tail =>
+          have current' := current.retargetSchema metadataEq.1
+          rw [metadataEq.2] at current'
+          exact .cons current'
+            (by
+              intro entry member same
+              have nameEq : beforeTable.schema.name =
+                  afterTable.schema.name := congrArg Core.Schema.name metadataEq.1
+              exact boundary entry member (same.trans nameEq.symm))
+            (IndexMetadataGroups.retarget aligned tail)
+
 /-- One encoded index run establishes both its physical decoder equations and
 its catalog-metadata reconstruction.  Keeping the pair together prevents the
 two certificates from drifting to different index orders. -/

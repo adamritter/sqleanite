@@ -546,6 +546,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.mergeDelete?_treePagesAccounted
 #print axioms SQLeanite.CoreChunkPageDelta.mergeDelete?_treePagesSelected
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_tablePagesSufficient
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_metadataAligned
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_identityWellFormed
 #print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_endpoints
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_endpoints
@@ -649,7 +650,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexesDecode.validateForTable
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsDecode.validate
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.decode
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataDecode.retargetSchema
 #print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.rebuild
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexMetadataGroups.retarget
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_indexGroups
 #print axioms SQLeanite.CoreLocalizedRepresentation.applyIndexesForOpen_of_index_certificates
 #print axioms SQLeanite.CoreLocalizedRepresentation.pageSourceContains_tableDeltaPages
