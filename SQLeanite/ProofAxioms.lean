@@ -654,6 +654,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_databaseOnSource
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexCertificates_encodeIndexes
 #print axioms SQLeanite.CoreLocalizedRepresentation.indexGroupCertificates_encodeIndexTableGroups
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexOnSource.physical
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsOnSource.decode
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexOnSource.applyWritesBelow
+#print axioms SQLeanite.CoreLocalizedRepresentation.IndexGroupsOnSource.applyWritesBelow
 #print axioms SQLeanite.CoreLocalizedRepresentation.exists_databaseOnSource_encodeBulk_in
 #print axioms SQLeanite.CoreDurability.pageSource_storageImage
 #print axioms SQLeanite.CoreDurability.exists_databaseOnStorage_encodeBulk
@@ -759,6 +763,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Table.nextGeneratedRowid?_greater
 #print axioms SQLeanite.Core.Table.declaredKeyMap_insert_represents_orderedUpsert
 #print axioms SQLeanite.Core.Table.upsertGeneratedFresh_rows
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableIndexImageEq.ofDelta
+#print axioms SQLeanite.CoreLocalizedRepresentation.updateState?_indexImagesAligned
+#print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateStateApplyWritesBelow
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase

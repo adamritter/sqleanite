@@ -628,6 +628,308 @@ inductive IndexGroupsDecode (source : CoreDecode.PageSource) :
       (tail : IndexGroupsDecode source tables remaining) :
       IndexGroupsDecode source (table :: tables) (entries ++ remaining)
 
+/-- Byte-owning certificate for one physical index.  Unlike `IndexesDecode`,
+this retains the exact encoder run and every page it owns.  The reference
+table may predate later row mutations; `logical` states precisely why those
+same bytes still denote the current table's index image. -/
+def IndexOnSource (source : CoreDecode.PageSource)
+    (table : Core.Table) (entry : CoreDecode.CatalogEntry)
+    (index : Core.Index) : Prop :=
+  ∃ (reference : Core.Table) (encoding : CoreOverflow.IndexEncoding),
+    entry.table = table.schema.name ∧
+    entry.rootPage = encoding.rootPage ∧
+    CoreDecode.decodeCanonicalIndex table.schema table.schema.name entry =
+      some index ∧
+    index ∈ table.indexes ∧
+    CoreOverflow.encodeIndex encoding.rootPage reference index =
+      some encoding ∧
+    CoreDecode.ReadsPagesFrom source encoding.rootPage encoding.pages ∧
+    0 < encoding.rootPage ∧
+    encoding.rootPage + encoding.pages.length < 2 ^ 32 ∧
+    encoding.rootPage + encoding.pages.length ≤ source.pageCount + 1 ∧
+    CoreDecode.expectedIndexEntries reference index =
+      CoreDecode.expectedIndexEntries table index
+
+/-- Exact owned index runs for one table, in catalog order. -/
+inductive IndexesOnSource (source : CoreDecode.PageSource)
+    (table : Core.Table) : List CoreDecode.CatalogEntry → Prop where
+  | nil : IndexesOnSource source table []
+  | cons {entry : CoreDecode.CatalogEntry}
+      {entries : List CoreDecode.CatalogEntry} {index : Core.Index}
+      (head : IndexOnSource source table entry index)
+      (tail : IndexesOnSource source table entries) :
+      IndexesOnSource source table (entry :: entries)
+
+/-- Database-order grouping of the byte-owning index runs. -/
+inductive IndexGroupsOnSource (source : CoreDecode.PageSource) :
+    List Core.Table → List CoreDecode.CatalogEntry → Prop where
+  | nil : IndexGroupsOnSource source [] []
+  | cons {table : Core.Table} {tables : List Core.Table}
+      {entries remaining : List CoreDecode.CatalogEntry}
+      (current : IndexesOnSource source table entries)
+      (boundary : ∀ entry ∈ remaining,
+        entry.table ≠ table.schema.name)
+      (tail : IndexGroupsOnSource source tables remaining) :
+      IndexGroupsOnSource source (table :: tables) (entries ++ remaining)
+
+theorem IndexOnSource.physical
+    {source : CoreDecode.PageSource} {table : Core.Table}
+    {entry : CoreDecode.CatalogEntry} {index : Core.Index}
+    (owned : IndexOnSource source table entry index) :
+    CoreDecode.decodeIndexSubtreeFrom source (source.pageCount + 1)
+        entry.rootPage =
+      some (CoreDecode.expectedIndexEntries table index) := by
+  rcases owned with ⟨reference, encoding, sameTable, sameRoot, metadata,
+    member, encoded, reads, rootPositive, pageBound, withinSource, logical⟩
+  rw [sameRoot]
+  have decoded := CoreDecode.decodeIndexSubtreeFrom_encodeIndex source
+    encoded reads rootPositive pageBound withinSource
+  calc
+    _ = some (CoreDecode.expectedIndexEntries reference index) := by
+      simpa only [CoreDecode.expectedIndexEntries] using decoded
+    _ = some (CoreDecode.expectedIndexEntries table index) :=
+      congrArg some logical
+
+theorem IndexesOnSource.decode
+    {source : CoreDecode.PageSource} {table : Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexesOnSource source table entries) :
+    IndexesDecode source table.withoutIndexes entries := by
+  induction owned with
+  | nil => exact .nil
+  | cons head tail induction =>
+      rcases head with ⟨reference, encoding, sameTable, sameRoot, metadata,
+        member, encoded, reads, rootPositive, pageBound, withinSource, logical⟩
+      refine .cons (by simpa using sameTable) (by simpa using metadata) ?_ induction
+      simpa only [CoreDecode.expectedIndexEntries_withoutIndexes] using
+        IndexOnSource.physical ⟨reference, encoding, sameTable, sameRoot,
+          metadata, member, encoded, reads, rootPositive, pageBound,
+          withinSource, logical⟩
+
+theorem IndexGroupsOnSource.decode
+    {source : CoreDecode.PageSource} {tables : List Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexGroupsOnSource source tables entries) :
+    IndexGroupsDecode source (tables.map Core.Table.withoutIndexes) entries := by
+  induction owned with
+  | nil => exact .nil
+  | cons current boundary tail induction =>
+      simpa only [List.map_cons] using
+        IndexGroupsDecode.cons current.decode boundary induction
+
+def TableIndexImageEq (before after : Core.Table) : Prop :=
+  before.schema = after.schema ∧
+  before.indexes = after.indexes ∧
+  ∀ index ∈ before.indexes,
+    CoreDecode.expectedIndexEntries before index =
+      CoreDecode.expectedIndexEntries after index
+
+inductive TablesIndexImagesAligned :
+    List Core.Table → List Core.Table → Prop where
+  | nil : TablesIndexImagesAligned [] []
+  | cons {before after : Core.Table} {befores afters : List Core.Table}
+      (head : TableIndexImageEq before after)
+      (tail : TablesIndexImagesAligned befores afters) :
+      TablesIndexImagesAligned (before :: befores) (after :: afters)
+
+theorem expectedIndexEntries_eq_of_rows_eq
+    {before after : Core.Table} (index : Core.Index)
+    (rows : before.rows = after.rows) :
+    CoreDecode.expectedIndexEntries before index =
+      CoreDecode.expectedIndexEntries after index := by
+  unfold CoreDecode.expectedIndexEntries CoreFile.sortedIndexRows
+    CoreFile.indexValuesInteger CoreFile.indexValuesText
+  rw [rows]
+
+theorem TableIndexImageEq.ofEquiv {before after : Core.Table}
+    (equivalent : before.Equiv after) : TableIndexImageEq before after := by
+  exact ⟨equivalent.schema_eq, equivalent.indexes_eq,
+    fun index _ => expectedIndexEntries_eq_of_rows_eq index equivalent.rows_eq⟩
+
+private theorem map_index_entries_eq_value
+    (indexes : List Core.Index)
+    (left right : Core.Index → List CoreDecode.IndexEntry)
+    (equal : indexes.map (fun index => (index, left index)) =
+      indexes.map (fun index => (index, right index))) :
+    ∀ index ∈ indexes, left index = right index := by
+  induction indexes with
+  | nil => simp
+  | cons head tail induction =>
+      simp only [List.map_cons, List.cons.injEq] at equal
+      intro index member
+      simp only [List.mem_cons] at member
+      rcases member with rfl | member
+      · exact congrArg Prod.snd equal.1
+      · exact induction equal.2 index member
+
+theorem TableIndexImageEq.ofDelta
+    (delta : CoreChunkPageDelta.TableDelta)
+    (sufficient : delta.tablePagesSufficient = true) :
+    TableIndexImageEq delta.before.table delta.after.table := by
+  have metadata := delta.tablePagesSufficient_metadata sufficient
+  refine ⟨metadata.1, metadata.2, ?_⟩
+  have image := delta.tablePagesSufficient_indexImage sufficient
+  unfold CoreChunkPageDelta.indexImage at image
+  rw [metadata.2] at image
+  intro index member
+  apply map_index_entries_eq_value delta.after.table.indexes
+    (fun candidate =>
+      CoreDecode.expectedIndexEntries delta.before.table candidate)
+    (fun candidate =>
+      CoreDecode.expectedIndexEntries delta.after.table candidate) image index
+  rw [← metadata.2]
+  exact member
+
+theorem alignTables?_indexImages_none :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table}
+      {aligned : CoreChunkPageDelta.AlignedTables target},
+      CoreChunkPageDelta.alignTables? nextPage states target = some aligned →
+      aligned.delta = none →
+      TablesIndexImagesAligned
+        (states.map fun state => state.table) target
+  | _, [], target, aligned, success, noChange => by
+      cases target <;> simp [CoreChunkPageDelta.alignTables?] at success
+      subst aligned
+      exact .nil
+  | nextPage, old :: olds, target, aligned, success, noChange => by
+      cases target with
+      | nil => simp [CoreChunkPageDelta.alignTables?] at success
+      | cons replacement replacements =>
+        unfold CoreChunkPageDelta.alignTables? at success
+        split at success
+        next same =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          exact .cons (TableIndexImageEq.ofEquiv same)
+            (alignTables?_indexImages_none tailResult noChange)
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next =>
+                injection success with equal
+                subst aligned
+                simp at noChange
+              next => contradiction
+
+theorem alignTables?_indexImages_changed :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table}
+      {aligned : CoreChunkPageDelta.AlignedTables target}
+      {delta : CoreChunkPageDelta.TableDelta},
+      CoreChunkPageDelta.alignTables? nextPage states target = some aligned →
+      aligned.delta = some delta →
+      delta.tablePagesSufficient = true →
+      TablesIndexImagesAligned
+        (states.map fun state => state.table) target
+  | _, [], target, aligned, delta, success, selected, sufficient => by
+      cases target <;> simp [CoreChunkPageDelta.alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, old :: olds, target, aligned, delta, success, selected,
+      sufficient => by
+      cases target with
+      | nil => simp [CoreChunkPageDelta.alignTables?] at success
+      | cons replacement replacements =>
+        unfold CoreChunkPageDelta.alignTables? at success
+        split at success
+        next same =>
+          rcases Option.bind_eq_some.mp success with
+            ⟨tail, tailResult, success⟩
+          injection success with equal
+          subst aligned
+          exact .cons (TableIndexImageEq.ofEquiv same)
+            (alignTables?_indexImages_changed tailResult selected sufficient)
+        next =>
+          split at success
+          next => contradiction
+          next head headResult =>
+            split at success
+            next => contradiction
+            next tail tailResult =>
+              split at success
+              next onlyChange =>
+                injection success with equal
+                subst aligned
+                have headEqual : head = delta := Option.some.inj selected
+                subst head
+                have tailNone : tail.delta = none := by
+                  cases tailDelta : tail.delta with
+                  | none => rfl
+                  | some value => simp [tailDelta] at onlyChange
+                have headAligned := TableIndexImageEq.ofDelta delta sufficient
+                rw [CoreChunkPageDelta.replaceBetween?_before headResult,
+                  CoreChunkPageDelta.replaceBetween?_table headResult]
+                    at headAligned
+                exact .cons headAligned
+                  (alignTables?_indexImages_none tailResult tailNone)
+              next => contradiction
+
+theorem updateState?_indexImagesAligned
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (updated : CoreChunkPageDelta.updateState? state database = some delta) :
+    TablesIndexImagesAligned state.database.tables database.tables := by
+  rcases CoreChunkPageDelta.updateState?_alignment updated with
+    ⟨aligned, alignment, _, selected⟩
+  have result := alignTables?_indexImages_changed alignment selected
+    (CoreChunkPageDelta.updateState?_tablePagesSufficient updated)
+  rw [state.tables_eq] at result
+  exact result
+
+def IndexOnSource.retarget
+    {source : CoreDecode.PageSource} {before after : Core.Table}
+    {entry : CoreDecode.CatalogEntry} {index : Core.Index}
+    (owned : IndexOnSource source before entry index)
+    (aligned : TableIndexImageEq before after) :
+    IndexOnSource source after entry index := by
+  rcases owned with ⟨reference, encoding, sameTable, sameRoot, metadata,
+    member, encoded, reads, rootPositive, pageBound, withinSource, logical⟩
+  refine ⟨reference, encoding, ?_, sameRoot, ?_, ?_, encoded, reads,
+    rootPositive, pageBound, withinSource, ?_⟩
+  · simpa [← aligned.1] using sameTable
+  · simpa [← aligned.1] using metadata
+  · simpa [← aligned.2.1] using member
+  · exact logical.trans (aligned.2.2 index member)
+
+def IndexesOnSource.retarget
+    {source : CoreDecode.PageSource} {before after : Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexesOnSource source before entries)
+    (aligned : TableIndexImageEq before after) :
+    IndexesOnSource source after entries := by
+  induction owned with
+  | nil => exact .nil
+  | cons head tail induction =>
+      exact .cons (head.retarget aligned) induction
+
+def IndexGroupsOnSource.retarget
+    {source : CoreDecode.PageSource} {before after : List Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexGroupsOnSource source before entries)
+    (aligned : TablesIndexImagesAligned before after) :
+    IndexGroupsOnSource source after entries := by
+  induction owned generalizing after with
+  | nil =>
+      cases aligned
+      exact .nil
+  | cons current boundary tail induction =>
+      cases aligned with
+      | cons headAligned tailAligned =>
+          exact .cons (current.retarget headAligned)
+            (by
+              intro entry member equal
+              exact boundary entry member (equal.trans
+                (congrArg Core.Schema.name headAligned.1).symm))
+            (induction tailAligned)
+
 theorem IndexGroupsDecode.validateGroups
     {source : CoreDecode.PageSource} {tables : List Core.Table}
     {entries : List CoreDecode.CatalogEntry}
@@ -775,6 +1077,11 @@ def IndexGroupsDecode.indexless (source : CoreDecode.PageSource) :
   | [] => .nil
   | table :: tables => .cons .nil (by simp) (indexless source tables)
 
+def IndexGroupsOnSource.indexless (source : CoreDecode.PageSource) :
+    ∀ tables : List Core.Table, IndexGroupsOnSource source tables []
+  | [] => .nil
+  | table :: tables => .cons .nil (by simp) (indexless source tables)
+
 /-- One encoded index run establishes both its physical decoder equations and
 its catalog-metadata reconstruction.  Keeping the pair together prevents the
 two certificates from drifting to different index orders. -/
@@ -797,12 +1104,15 @@ theorem indexCertificates_encodeIndexes
             CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) ∧
         IndexMetadataDecode table
           (encodings.map fun encoding =>
-            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) indexes
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) indexes ∧
+        IndexesOnSource source table
+          (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry)
   | _, [], encodings, _, encoded, _, _, _, _ => by
       simp only [List.map_nil, CoreOverflow.encodeIndexes,
         Option.some.injEq] at encoded
       subst encodings
-      exact ⟨.nil, .nil⟩
+      exact ⟨.nil, .nil, .nil⟩
   | nextPage, index :: indexes, encodings, members, encoded, reads,
       positive, pageBound, sourceBound => by
       simp only [List.map_cons, CoreOverflow.encodeIndexes,
@@ -858,7 +1168,7 @@ theorem indexCertificates_encodeIndexes
             (fun encoding member => positive encoding (by simp [member]))
             (fun encoding member => pageBound encoding (by simp [member]))
             (fun encoding member => sourceBound encoding (by simp [member]))
-          constructor
+          refine ⟨?_, ?_, ?_⟩
           · exact .cons (by
               change head.table.schema.name = table.schema.name
               rw [identity.1])
@@ -866,7 +1176,20 @@ theorem indexCertificates_encodeIndexes
           · exact .cons (by
               change head.table.schema.name = table.schema.name
               rw [identity.1])
-              metadata tailCertificates.2
+              metadata tailCertificates.2.1
+          · refine IndexesOnSource.cons ⟨table, head, ?_, ?_, ?_,
+              headMember,
+              (by simpa [identity.2.2] using headResult),
+              reads head (by simp), positive head (by simp),
+              pageBound head (by simp), sourceBound head (by simp), ?_⟩
+              tailCertificates.2.2
+            · change head.table.schema.name = table.schema.name
+              simp [identity.1]
+            · simp [CoreOverflow.IndexEncoding.catalogEntry,
+                CoreDecode.CatalogEntry.ofEncoded, identity.2.2]
+            · simpa [CoreOverflow.IndexEncoding.catalogEntry, identity.1,
+                identity.2.1, identity.2.2] using metadataOriginal
+            · rfl
 
 /-- Lift the paired per-index certificates across all table groups in the
 same contiguous order emitted by the physical encoder. -/
@@ -888,12 +1211,15 @@ theorem indexGroupCertificates_encodeIndexTableGroups
             CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) ∧
         IndexMetadataGroups tables
           (encodings.map fun encoding =>
+            CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry) ∧
+        IndexGroupsOnSource source tables
+          (encodings.map fun encoding =>
             CoreDecode.CatalogEntry.ofEncoded encoding.catalogEntry)
   | _, [], encodings, _, encoded, _, _, _, _ => by
       simp only [CoreOverflow.encodeIndexTableGroups,
         Option.some.injEq] at encoded
       subst encodings
-      exact ⟨.nil, .nil⟩
+      exact ⟨.nil, .nil, .nil⟩
   | nextPage, table :: tables, encodings, wellFormed, encoded, reads,
       positive, pageBound, sourceBound => by
       simp only [Core.TablesWellFormed, Core.namesUnique, List.map_cons,
@@ -941,13 +1267,16 @@ theorem indexGroupCertificates_encodeIndexTableGroups
               (List.mem_map_of_mem tableMember)
             simpa [CoreOverflow.IndexEncoding.catalogEntry,
               CoreDecode.CatalogEntry.ofEncoded] using distinct.symm
-          constructor
+          refine ⟨?_, ?_, ?_⟩
           · simpa only [List.map_cons, List.map_append] using
               IndexGroupsDecode.cons currentCertificates.1 boundary
                 tailCertificates.1
           · simpa only [List.map_append] using
-              IndexMetadataGroups.cons currentCertificates.2 boundary
-                tailCertificates.2
+              IndexMetadataGroups.cons currentCertificates.2.1 boundary
+                tailCertificates.2.1
+          · simpa only [List.map_append] using
+              IndexGroupsOnSource.cons currentCertificates.2.2 boundary
+                tailCertificates.2.2
 
 theorem IndexMetadataGroups.restore
     {tables : List Core.Table} {entries : List CoreDecode.CatalogEntry}
@@ -1029,8 +1358,8 @@ structure DatabaseOnSource (source : CoreDecode.PageSource)
     (catalog.filter (fun entry => entry.kind == "table") = tableEntries) ∧
     (catalog.filter (fun entry => entry.kind == "index") = indexEntries) ∧
     TablesOnSource source tableEntries state.tables ∧
-    IndexGroupsDecode source
-      (state.database.tables.map Core.Table.withoutIndexes) indexEntries ∧
+    IndexGroupsOnSource source
+      state.database.tables indexEntries ∧
     IndexMetadataGroups state.database.tables indexEntries
 
 theorem DatabaseOnSource.pageSourceRepresents
@@ -1046,7 +1375,7 @@ theorem DatabaseOnSource.pageSourceRepresents
     exact (tables.databaseTablesDecode state.tables_eq).mapM
   · rw [indexFilter]
     exact applyIndexesForOpen_of_index_certificates source state.database
-      indexEntries indexes indexMetadata
+      indexEntries indexes.decode indexMetadata
 
 theorem DatabaseOnSource.decode
     {source : CoreDecode.PageSource}
@@ -1098,10 +1427,10 @@ def DatabaseOnSource.updateState
     (changed : TableOnSource newSource delta.table.after)
     (indexesPreserved : ∀ entries,
       IndexMetadataGroups state.database.tables entries →
-      IndexGroupsDecode oldSource
-          (state.database.tables.map Core.Table.withoutIndexes) entries →
-        IndexGroupsDecode newSource
-          (database.tables.map Core.Table.withoutIndexes) entries) :
+      IndexGroupsOnSource oldSource
+          state.database.tables entries →
+        IndexGroupsOnSource newSource
+          database.tables entries) :
     DatabaseOnSource newSource delta.after := by
   rcases physical.components with
     ⟨catalog, tableEntries, indexEntries, catalogRead, tableFilter,
@@ -1163,8 +1492,8 @@ def DatabaseOnSource.updateStateIndexless
   have newMetadata := metadata.retarget metadataAlignment
   have entriesEmpty := newMetadata.entries_nil_of_indexless indexless
   subst entries
-  exact IndexGroupsDecode.indexless newSource
-    (database.tables.map Core.Table.withoutIndexes)
+  exact IndexGroupsOnSource.indexless newSource
+    database.tables
 
 /-- The canonical bulk encoder establishes the complete physical state
 invariant over any source which contains its emitted tail and reads its schema
@@ -1397,10 +1726,10 @@ theorem exists_databaseOnSource_encodeBulk_in
             · simpa [tableEntries] using baseTables
             · rw [stateDatabase]
               simpa [indexEntries, CoreOverflow.indexEntriesOf,
-                List.map_map, Function.comp_def] using indexCertificates.1
+                List.map_map, Function.comp_def] using indexCertificates.2.2
             · rw [stateDatabase]
               simpa [indexEntries, CoreOverflow.indexEntriesOf,
-                List.map_map, Function.comp_def] using indexCertificates.2
+                List.map_map, Function.comp_def] using indexCertificates.2.1
         next => contradiction
 
 /-- Every encoded page covered by one member of a distinct write set is
@@ -1493,6 +1822,127 @@ theorem readsPagesFrom_applyWrites
     · simpa [pageNumber] using unchanged.2.2.1
     · intro write member equal
       exact unchanged.2.2.2 write member (by omega)
+
+/-- Writes strictly below an owned index root cannot alter any page in that
+index's contiguous tree/overflow run.  The old exact bytes therefore transport
+to the actual post-write storage image without decoding the index again. -/
+def IndexOnSource.applyWritesBelow
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    {table : Core.Table} {entry : CoreDecode.CatalogEntry}
+    {index : Core.Index}
+    (owned : IndexOnSource (CorePageSource.ofStorageImage image)
+      table entry index)
+    (below : ∀ write ∈ writes, write.pageId + 1 < entry.rootPage) :
+    IndexOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) table entry index := by
+  rcases owned with ⟨reference, encoding, sameTable, sameRoot, metadata,
+    member, encoded, reads, rootPositive, pageBound, withinSource, logical⟩
+  refine ⟨reference, encoding, sameTable, sameRoot, metadata, member, encoded,
+    ?_, rootPositive, pageBound, ?_, logical⟩
+  · apply readsPagesFrom_applyWrites image writes distinct
+      encoding.rootPage encoding.pages
+    intro offset inBounds
+    refine .inr ⟨by omega, by
+      simp only [CorePageSource.ofStorageImage_pageCount] at withinSource
+      omega, reads offset inBounds, ?_⟩
+    intro write member equal
+    have strictlyBelow := below write member
+    rw [sameRoot] at strictlyBelow
+    omega
+  · simp only [CorePageSource.ofStorageImage_pageCount]
+    have growth := CorePageSource.applyWrites_pageCount_ge image writes
+    simp only [CorePageSource.ofStorageImage_pageCount] at withinSource
+    omega
+
+def IndexesOnSource.applyWritesBelow
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    {table : Core.Table} {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexesOnSource (CorePageSource.ofStorageImage image)
+      table entries)
+    (below : ∀ entry ∈ entries, ∀ write ∈ writes,
+      write.pageId + 1 < entry.rootPage) :
+    IndexesOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) table entries := by
+  induction owned with
+  | nil => exact .nil
+  | cons head tail induction =>
+      exact .cons
+        (head.applyWritesBelow image writes distinct
+          (below _ (by simp)))
+        (induction (fun entry member => below entry (by simp [member])))
+
+def IndexGroupsOnSource.applyWritesBelow
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    {tables : List Core.Table} {entries : List CoreDecode.CatalogEntry}
+    (owned : IndexGroupsOnSource (CorePageSource.ofStorageImage image)
+      tables entries)
+    (below : ∀ entry ∈ entries, ∀ write ∈ writes,
+      write.pageId + 1 < entry.rootPage) :
+    IndexGroupsOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) tables entries := by
+  induction owned with
+  | nil => exact .nil
+  | cons current boundary tail induction =>
+      exact .cons
+        (current.applyWritesBelow image writes distinct
+          (fun entry member => below entry (by simp [member])))
+        boundary
+        (induction (fun entry member => below entry (by simp [member])))
+
+/-- Storage-image specialization of `updateState`.  The former opaque
+physical-index callback is reduced to the concrete allocator fact used by the
+live ordinary path: every emitted table-page write is below every catalogued
+index root.  Exact index bytes are then transported by the ownership
+certificate itself. -/
+def DatabaseOnSource.updateStateApplyWritesBelow
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (physical : DatabaseOnSource (CorePageSource.ofStorageImage image) state)
+    (allocation : state.AllocationWellFormed)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage image).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites image writes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog))
+    (retained : ∀ (old : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      TableOnSource (CorePageSource.ofStorageImage image) old →
+        TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites image writes))
+          (old.retarget table equivalent))
+    (changed : TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) delta.table.after)
+    (below : ∀ entries,
+      IndexMetadataGroups state.database.tables entries →
+      ∀ entry ∈ entries, ∀ write ∈ writes,
+        write.pageId + 1 < entry.rootPage) :
+    DatabaseOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) delta.after := by
+  apply physical.updateState allocation updated catalogPreserved retained changed
+  intro entries metadata owned
+  exact (owned.applyWritesBelow image writes distinct
+    (below entries metadata)).retarget (updateState?_indexImagesAligned updated)
 
 /-- A successfully encoded index run plus exact post-write page reads gives
 the physical index premise consumed by `IndexGroupsDecode`. -/
