@@ -1,4 +1,5 @@
 import SQLeanite.Core
+import SQLeanite.CoreOverflow
 
 namespace SQLeanite
 namespace CoreChunkPageState
@@ -9,14 +10,71 @@ namespace CoreChunkPageState
 The generic verified 2-3 tree stores *page chunks*, not individual rows.  This
 keeps its small, fully proved branching algorithm while making physical page
 count proportional to SQLite leaf capacity rather than row count.  A chunk is
-bounded at sixteen rows; a tree leaf contains at most two chunks, so ordinary
-MVP records pack up to thirty-two rows per SQLite leaf.  The byte codec remains
-the final authority on whether unusually wide rows fit and falls back cleanly.
+bounded at `chunkCapacityFor`, which is sixteen rows for ordinary records and
+smaller for wide ones, so a tree leaf's two chunks always fit one SQLite leaf
+page.  A fixed sixteen made the codec reject wide tables outright rather than
+falling back, which is what `chunkCapacityFor` documents and fixes.
 -/
 
 abbrev Chunk := List Core.Row
 
 def chunkCapacity : Nat := 16
+
+/-- Cheap upper bound on one value's serialized length.
+
+Deliberately arithmetic: it must not build the encoded bytes. Computing a real
+`CoreOverflow.tableCellPlan?` per row costs a full payload materialization, and
+doing that for every row on every `TableState.build?` regressed bulk load by
+80%. This walks the already-materialized byte lists to count them but allocates
+nothing.
+
+Bounds: a serial-type varint is at most 9 bytes; an integer body at most 8; a
+real is exactly 8; text and blob bodies are their own byte length. -/
+def valueSizeBound : Core.Value → Nat
+  | .null => 9
+  | .integer _ => 9 + 8
+  | .realBits _ => 9 + 8
+  | .text value => 9 + value.bytes.length
+  | .blob value => 9 + value.bytes.length
+
+/-- Upper bound on the encoded cell length for one row: the record header, the
+column bodies, the payload-length varint and the rowid varint. -/
+def rowCellBound (row : Core.Row) : Nat :=
+  9 + 9 + 9 + row.values.foldl (fun bound value => bound + valueSizeBound value) 0
+
+/-- Rows per chunk for one table, chosen so the encoder can always place a
+leaf's cells on one page.
+
+A tree leaf holds up to two chunks, so up to `2 * capacity` cells must satisfy
+`PhysicalCodec.PageFit 0`, which is
+`8 + 2 * cells.length + totalCellBytes ≤ pageSize`. Bounding every cell by
+`widest` makes `8 + 2 * capacity * (widest + 2) ≤ pageSize` sufficient, which is
+what the division below solves for.
+
+Chunking at a fixed sixteen rows was byte-blind. The module comment claimed the
+codec "falls back cleanly" on wide rows, but it does not: `tableLeafPage?`
+returns `none`, `encodeBulk` propagates it, and the CLI reports "general MVP
+database exceeds the physical subset". A table of 512-byte rows was therefore
+unloadable, and so was a table of 130-byte rows at exactly 32, 48 or 64 rows --
+the counts that give some leaf a full sixteen-row pair. Narrow rows keep the
+sixteen-row cap, so existing page layout and the twelve public workloads are
+unchanged. -/
+def chunkCapacityFor (rows : List Core.Row) : Nat :=
+  let widest := rows.foldl (fun bound row => max bound (rowCellBound row)) 0
+  min chunkCapacity (max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2))))
+
+theorem chunkCapacityFor_pos (rows : List Core.Row) :
+    0 < chunkCapacityFor rows := by
+  simp only [chunkCapacityFor, chunkCapacity]
+  rw [Nat.lt_min]
+  constructor
+  · omega
+  · omega
+
+theorem chunkCapacityFor_le (rows : List Core.Row) :
+    chunkCapacityFor rows ≤ chunkCapacity := by
+  unfold chunkCapacityFor chunkCapacity
+  exact Nat.min_le_left _ _
 
 def chunks : Nat → List α → List (List α)
   | 0, values => if values.isEmpty then [] else [values]
@@ -95,18 +153,18 @@ theorem entries?_projections {rowChunks : List Chunk}
               have tailProjection := induction tailResult
               simp [lastRows, last, tailProjection.1, tailProjection.2]
 
-theorem entries?_sorted (table : Core.Table)
+theorem entries?_sorted (capacity : Nat) (table : Core.Table)
     {entries : List (PagedBTree.Entry Chunk)}
-    (success : entries? (chunks chunkCapacity table.rows) = some entries) :
+    (success : entries? (chunks capacity table.rows) = some entries) :
     PagedBTree.KeysStrictlySorted entries := by
   have flattenedOrdered :
-      (chunks chunkCapacity table.rows).flatten.Pairwise Core.Row.keyLess := by
+      (chunks capacity table.rows).flatten.Pairwise Core.Row.keyLess := by
     simpa [flatten_chunks] using table.rowsWellFormed.2
   have lastOrdered :
-      (lastRows (chunks chunkCapacity table.rows)).Pairwise Core.Row.keyLess :=
+      (lastRows (chunks capacity table.rows)).Pairwise Core.Row.keyLess :=
     flattenedOrdered.sublist (lastRows_sublist_flatten _)
   have keyOrdered :
-      ((lastRows (chunks chunkCapacity table.rows)).map
+      ((lastRows (chunks capacity table.rows)).map
         Core.Row.treeKey).Pairwise (fun left right => left < right) :=
     lastOrdered.map Core.Row.treeKey fun left right less =>
       (Core.Row.treeKey_lt_iff left right).2 less
@@ -192,16 +250,16 @@ def TableState.rootPage (state : TableState) : Nat := state.tree.root.rootId
 
 def TableState.pageIds (state : TableState) : List Nat := state.tree.root.pageIds
 
-theorem buildTree_rows (rootPage : Nat) (table : Core.Table)
+theorem buildTree_rows (capacity : Nat) (rootPage : Nat) (table : Core.Table)
     {entries : List (PagedBTree.Entry Chunk)}
-    (success : entries? (chunks chunkCapacity table.rows) = some entries) :
+    (success : entries? (chunks capacity table.rows) = some entries) :
     let built := PersistentPageTree.Store.build rootPage entries
     let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
       built.rootValid
     Store.rows tree = table.rows := by
   dsimp only
   have builtRepresents := PersistentPageTree.Store.build_represents rootPage
-    entries (entries?_sorted table success)
+    entries (entries?_sorted capacity table success)
   let built := PersistentPageTree.Store.build rootPage entries
   have identifiedRepresents := PersistentPageTree.Store.ofTree_represents
     rootPage built.root.erase built.rootValid
@@ -216,7 +274,7 @@ theorem buildTree_rows (rootPage : Nat) (table : Core.Table)
 
 def TableState.build? (rootPage : Nat) (table : Core.Table) :
     Option TableState :=
-  let rowChunks := chunks chunkCapacity table.rows
+  let rowChunks := chunks (chunkCapacityFor table.rows) table.rows
   match result : entries? rowChunks with
   | none => none
   | some entries =>
@@ -225,7 +283,7 @@ def TableState.build? (rootPage : Nat) (table : Core.Table) :
       -- a forward cursor. Later mutations preserve these identities locally.
       let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
         built.rootValid
-      some ⟨table, tree, buildTree_rows rootPage table result⟩
+      some ⟨table, tree, buildTree_rows _ rootPage table result⟩
 
 def buildTables? : Nat → List Core.Table →
     Option (List TableState × Nat)
