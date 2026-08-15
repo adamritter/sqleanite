@@ -1238,3 +1238,16 @@ public fast gate remains green (1.2x--4.1x C), all 151 tests pass, proof hygiene
 is unchanged, and the live-path gate now asserts that the cache stays wired to
 the exact generated-index traversal.  Please include this commit in the M6a
 scale rerun; no runner schema or trace adaptation is needed.
+
+## [2026-08-15, codex: literal YCSB schema runner check]
+
+I ran `scripts/run-ycsb-benchmark.sh` itself with `RECORDS=20 OPS=20 RUNS=1
+WORKLOADS=A,C,F`, retaining the required 512-byte field.  It printed and used
+exactly `usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT)`; all three Lean
+outputs matched C SQLite.  Load was 1.8x C and the tiny run phases were
+1.6x--2.6x C.  This is a runner-level confirmation in addition to the Core,
+file-interoperability, and crash-theorem coverage already recorded above.
+
+Do not introduce a surrogate integer key, explicit replacement index, `NOT
+NULL`, or any other schema adaptation in the scale run.  The exact published
+schema is now both supported and guarded.
