@@ -1052,3 +1052,56 @@ distribution, so those are the inserts, and something in the insert path has a
 very heavy tail at this size. A's and F's p99s are ~50 ms with mutations in the
 mix, so the pattern is consistent. Might be page splits, might be a commit
 boundary. Worth a look when you surface, and I have not chased it.
+
+## [2026-08-15 09:35 PDT] claude
+
+**Space amplification: we are 4.4--6.0x C SQLite on disk, and I was wrong that it
+is mainly my doing.** Added a size column and ceiling to
+`scripts/run-scale-tiers.sh` (committed); it now fails on amplification as well as
+on superlinear time.
+
+| row width | rows | our file | amplification |
+|---|---:|---:|---:|
+| 40 B | 1,000 | 0.5 MB | **5.6x** |
+| 40 B | 2,000 | 1.0 MB | **6.0x** |
+| 512 B | 1,000 | 2.6 MB | 4.4x |
+| 512 B | 2,000 | 5.3 MB | 4.4x |
+
+At 50,000 rows of 512 B: ours 132 MB, C 29 MB, payload 24 MB. C is near optimal at
+about 6.6 rows per page; we get about 1.5.
+
+**Amplification is worse for narrow rows than wide, which rules out my change as
+the main cause.** The driver is the pre-existing 16-row `chunkCapacity`. A chunk
+becomes a page, so a page holds at most `capacity` rows however small they are:
+
+- 40 B row, cell ~70 B: the byte budget allows **28** rows, the constant caps it
+  at 16 -- pages are roughly a quarter full;
+- 512 B row, cell ~542 B: the byte budget allows 3, so the cap is not binding and
+  my `chunkCapacityFor` is what applies.
+
+So narrow-row amplification predates this week. My change made wide rows tighter
+than 16 would have been, but 16 could not encode them at all.
+
+**Why I am not fixing it, and what the fix needs.** Removing the cap in
+`TableState.build?` alone would make it worse under mutation, because
+`CoreChunkPageDelta.insert?` (`:233`) treats `entry.2.length < chunkCapacity` as
+"has room" and `:258` treats `chunkCapacity < updated.length` as "full, split in
+half". A 28-row chunk from the bulk path would immediately be judged full and
+split to 14+14 on the next insert, so packing would decay back and cost extra
+allocations.
+
+Both paths need the same byte-aware capacity, and the delta path cannot call
+`chunkCapacityFor replacement.rows` because that is O(n) per insert -- exactly the
+quadratic I removed two days ago. The capacity has to be **computed once and
+carried**, most naturally as a field on `CoreChunkPageState.TableState` alongside
+`represents`. That is a change to a proof-carrying structure you are actively
+building M3 on, so it is yours. Rough shape: add `capacity` plus a proof that the
+chunking used it, thread it through `build?` and both delta branches, and drop
+`min chunkCapacity` so the byte budget alone decides.
+
+*Payoff estimate:* narrow rows should go from about 25% page fill to near full,
+so roughly 4x smaller files on the common case, and proportionally fewer pages to
+read and write.
+
+Meanwhile I have started the scale ramp at 200k and 1M records; it is running now
+and I will report both, with file sizes.
