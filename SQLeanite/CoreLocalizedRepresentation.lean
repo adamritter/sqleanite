@@ -237,33 +237,38 @@ theorem TablesOnSource.alignTables_none
                   simp at noChange
                 next => contradiction
 
-/-- A successful one-table alignment transports every unchanged physical
-table and installs the supplied exact certificate for the changed table.
-This is the table-list frame theorem used by localized commits. -/
-theorem TablesOnSource.alignTables_changed
+/-- Membership-aware form of `alignTables_none`.  The stronger callback is
+what a page-frame proof needs: it is invoked only for states actually present
+in the unchanged list, rather than for an arbitrary `TableState` value. -/
+theorem TablesOnSource.alignTables_none_mem
     {oldSource newSource : CoreDecode.PageSource}
-    (retained : ∀ (state : CoreChunkPageState.TableState)
-      (table : Core.Table) (equivalent : state.table.Equiv table),
+    {scopeStates : List CoreChunkPageState.TableState}
+    (retained : ∀ (state : CoreChunkPageState.TableState), state ∈ scopeStates →
+      ∀ (table : Core.Table) (equivalent : state.table.Equiv table),
       TableOnSource oldSource state →
-        TableOnSource newSource (state.retarget table equivalent))
-    {changed : CoreChunkPageDelta.TableDelta}
-    (changedPhysical : TableOnSource newSource changed.after) :
+        TableOnSource newSource (state.retarget table equivalent)) :
     ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
       {target : List Core.Table}
       {aligned : CoreChunkPageDelta.AlignedTables target}
       {entries : List CoreDecode.CatalogEntry},
+      (∀ state ∈ states, state ∈ scopeStates) →
       CoreChunkPageDelta.alignTables? nextPage states target = some aligned →
-      aligned.delta = some changed →
+      aligned.delta = none →
       TablesOnSource oldSource entries states →
       TablesOnSource newSource
         (aligned.tables.map fun state => CoreDecode.CatalogEntry.ofEncoded
           (CorePageCodec.chunkTableCatalogEntry state)) aligned.tables
-  | _, [], target, aligned, entries, success, selected, physical => by
-      cases target <;> simp [CoreChunkPageDelta.alignTables?] at success
-      subst aligned
-      simp at selected
-  | nextPage, state :: states, target, aligned, entries, success, selected,
-      physical => by
+  | _, [], target, aligned, entries, subset, success, noChange, physical => by
+      cases target with
+      | nil =>
+          simp only [CoreChunkPageDelta.alignTables?, Option.some.injEq]
+            at success
+          subst aligned
+          cases physical
+          exact .nil
+      | cons _ _ => simp [CoreChunkPageDelta.alignTables?] at success
+  | nextPage, state :: states, target, aligned, entries, subset, success,
+      noChange, physical => by
       cases target with
       | nil => simp [CoreChunkPageDelta.alignTables?] at success
       | cons table tables =>
@@ -276,9 +281,82 @@ theorem TablesOnSource.alignTables_changed
               ⟨tailAligned, tailResult, success⟩
             simp only [Option.some.injEq] at success
             subst aligned
+            have tailSubset : ∀ candidate ∈ states,
+                candidate ∈ scopeStates := by
+              intro candidate member
+              exact subset candidate (by simp [member])
+            have tailPhysical := alignTables_none_mem retained tailSubset
+              tailResult noChange tail
+            exact .cons rfl
+              (retained state (subset state (by simp)) table equivalent head)
+              tailPhysical
+          next =>
+            split at success
+            next => contradiction
+            next changed changedResult =>
+              split at success
+              next => contradiction
+              next tailAligned tailResult =>
+                split at success
+                next =>
+                  simp only [Option.some.injEq] at success
+                  subst aligned
+                  simp at noChange
+                next => contradiction
+
+/-- A successful one-table alignment transports every unchanged physical
+table and installs the supplied exact certificate for the changed table.
+This is the table-list frame theorem used by localized commits. -/
+theorem TablesOnSource.alignTables_changed
+    {oldSource newSource : CoreDecode.PageSource}
+    {changed : CoreChunkPageDelta.TableDelta}
+    (retained : ∀ (state : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : state.table.Equiv table),
+      state ≠ changed.before →
+      TableOnSource oldSource state →
+        TableOnSource newSource (state.retarget table equivalent))
+    (changedPhysical : TableOnSource newSource changed.after) :
+    ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
+      {target : List Core.Table}
+      {aligned : CoreChunkPageDelta.AlignedTables target}
+      {entries : List CoreDecode.CatalogEntry},
+      states.Nodup →
+      CoreChunkPageDelta.alignTables? nextPage states target = some aligned →
+      aligned.delta = some changed →
+      TablesOnSource oldSource entries states →
+      TablesOnSource newSource
+        (aligned.tables.map fun state => CoreDecode.CatalogEntry.ofEncoded
+          (CorePageCodec.chunkTableCatalogEntry state)) aligned.tables
+  | _, [], target, aligned, entries, nodup, success, selected, physical => by
+      cases target <;> simp [CoreChunkPageDelta.alignTables?] at success
+      subst aligned
+      simp at selected
+  | nextPage, state :: states, target, aligned, entries, nodup, success,
+      selected, physical => by
+      simp only [List.nodup_cons] at nodup
+      cases target with
+      | nil => simp [CoreChunkPageDelta.alignTables?] at success
+      | cons table tables =>
+        cases physical with
+        | cons entryExact head tail =>
+          unfold CoreChunkPageDelta.alignTables? at success
+          split at success
+          next equivalent =>
+            rcases Option.bind_eq_some.mp success with
+              ⟨tailAligned, tailResult, success⟩
+            simp only [Option.some.injEq] at success
+            subst aligned
+            have selectedTail :=
+              CoreChunkPageDelta.alignTables?_selected_mem tailResult selected
+            have stateDifferent : state ≠ changed.before := by
+              intro equal
+              apply nodup.1
+              rw [equal]
+              exact selectedTail.1
             have tailPhysical := alignTables_changed retained changedPhysical
-              tailResult selected tail
-            exact .cons rfl (retained state table equivalent head) tailPhysical
+              nodup.2 tailResult selected tail
+            exact .cons rfl
+              (retained state table equivalent stateDifferent head) tailPhysical
           next =>
             split at success
             next => contradiction
@@ -297,8 +375,24 @@ theorem TablesOnSource.alignTables_changed
                     cases tailResultValue : tailAligned.delta with
                     | none => rfl
                     | some value => simp [tailResultValue] at onlyChange
-                  have tailPhysical := alignTables_none retained tailResult
-                    tailNone tail
+                  have changedBefore : changed.before = state :=
+                    CoreChunkPageDelta.replaceBetween?_before headResult
+                  have retainedTail : ∀ old ∈ states, ∀ table
+                      (equivalent : old.table.Equiv table),
+                      TableOnSource oldSource old →
+                        TableOnSource newSource
+                          (old.retarget table equivalent) := by
+                    intro old member table equivalent oldPhysical
+                    apply retained old table equivalent
+                    · intro equalOld
+                      apply nodup.1
+                      have oldEqual : old = state := equalOld.trans changedBefore
+                      simpa [oldEqual] using member
+                    · exact oldPhysical
+                  have tailPhysical := alignTables_none_mem
+                    (scopeStates := states) retainedTail
+                    (by intro candidate member; exact member)
+                    tailResult tailNone tail
                   exact .cons rfl changedPhysical tailPhysical
                 next => contradiction
 
@@ -316,6 +410,7 @@ theorem TablesOnSource.updateStateCandidate
         (CorePageCodec.chunkTableCatalogEntry table)) state.tables)
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       TableOnSource oldSource old →
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after) :
@@ -324,8 +419,8 @@ theorem TablesOnSource.updateStateCandidate
         (CorePageCodec.chunkTableCatalogEntry table)) delta.after.tables := by
   rcases CoreChunkPageDelta.updateStateCandidate?_alignment updated with
     ⟨aligned, alignedResult, alignedTables, selected⟩
-  have transported := alignTables_changed retained changed alignedResult
-    selected physical
+  have transported := alignTables_changed retained changed state.tables_nodup
+    alignedResult selected physical
   rw [alignedTables] at transported
   exact transported
 
@@ -341,6 +436,7 @@ theorem TablesOnSource.updateState
         (CorePageCodec.chunkTableCatalogEntry table)) state.tables)
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       TableOnSource oldSource old →
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after) :
@@ -349,8 +445,8 @@ theorem TablesOnSource.updateState
         (CorePageCodec.chunkTableCatalogEntry table)) delta.after.tables := by
   rcases CoreChunkPageDelta.updateState?_alignment updated with
     ⟨aligned, alignedResult, alignedTables, selected⟩
-  have transported := alignTables_changed retained changed alignedResult
-    selected physical
+  have transported := alignTables_changed retained changed state.tables_nodup
+    alignedResult selected physical
   rw [alignedTables] at transported
   exact transported
 
@@ -1485,6 +1581,7 @@ def DatabaseOnSource.updateState
       (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       TableOnSource oldSource old →
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after)
@@ -1549,6 +1646,7 @@ def DatabaseOnSource.updateStateIndexless
       (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       TableOnSource oldSource old →
         TableOnSource newSource (old.retarget table equivalent))
     (changed : TableOnSource newSource delta.table.after) :
@@ -2014,6 +2112,7 @@ def DatabaseOnSource.updateStateApplyWritesBelow
             CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       TableOnSource (CorePageSource.ofStorageImage image) old →
         TableOnSource
           (CorePageSource.ofStorageImage

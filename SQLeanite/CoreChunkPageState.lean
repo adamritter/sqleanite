@@ -421,6 +421,20 @@ structure State where
   nextPage : Nat
   freePages : List Nat := []
 
+/-- Database table-name uniqueness lifts to the proof-carrying physical table
+list.  In particular, the selected table in a one-table delta cannot occur
+again in an unchanged prefix or suffix. -/
+theorem State.tables_nodup (state : State) : state.tables.Nodup := by
+  have names := state.database.tablesWellFormed
+  unfold Core.TablesWellFormed at names
+  rw [← state.tables_eq] at names
+  simp only [List.map_map, Function.comp_apply] at names
+  have tableNames := List.pairwise_map.mp names
+  exact tableNames.imp (by
+    intro left right different equal
+    apply different
+    rw [equal])
+
 def State.activePageIds (state : State) : List Nat :=
   tablePageIds state.tables
 

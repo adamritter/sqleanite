@@ -574,6 +574,7 @@ structure OrdinaryLocalizedCommit
           CoreDecode.decodeCatalogForOpen = some catalog)
   retained : ∀ (old : CoreChunkPageState.TableState)
     (table : Core.Table) (equivalent : old.table.Equiv table),
+    old ≠ delta.table.before →
     CoreLocalizedRepresentation.TableOnSource
         (CorePageSource.ofStorageImage oldImage) old →
       ∃ _physical : CoreLocalizedRepresentation.TableOnSource
@@ -599,14 +600,16 @@ def OrdinaryLocalizedCommit.databaseOnSource
   rcases commit.changed with ⟨changed, inline⟩
   have retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       CoreLocalizedRepresentation.TableOnSource
           (CorePageSource.ofStorageImage oldImage) old →
         CoreLocalizedRepresentation.TableOnSource
           (CorePageSource.ofStorageImage
             (GrowableStorage.applyWrites oldImage writes))
           (old.retarget table equivalent) := by
-    intro old table equivalent physical
-    exact Classical.choose (commit.retained old table equivalent physical)
+    intro old table equivalent different physical
+    exact Classical.choose
+      (commit.retained old table equivalent different physical)
   rcases commit.preservationMode with indexed | indexless
   · exact commit.physical.updateStateApplyWritesBelow oldImage writes
       commit.distinct commit.allocation commit.updated commit.catalogPreserved
@@ -766,6 +769,7 @@ def CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
             CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
       (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
       CoreLocalizedRepresentation.TableOnSource
           (CorePageSource.ofStorageImage oldImage) old →
         ∃ _physical : CoreLocalizedRepresentation.TableOnSource
