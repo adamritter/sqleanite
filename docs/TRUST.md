@@ -743,8 +743,11 @@ the new one, every modeled commit crash and recovery decodes to exactly the
 old or new canonical database.  Companion theorems cover a returned commit
 and an arbitrary finite crash trace during page-by-page recovery.  The theorem
 does not require the target to have been produced by the bulk encoder, so the
-remaining live-localized obligation is precisely the component-wise
-representation preservation premise rather than another durability proof.
+live-localized obligation is component-wise representation preservation rather
+than another durability proof. `PostImageCertificate` now makes that
+obligation constructive: its constructors are ordinary localized preservation,
+decomposed component evidence, canonical bulk encoding, and verified freelist
+padding. It has no constructor for a bare post-image decoder equation.
 `CoreEndToEnd.WriteCommand` packages all seven persisted Core commands, and
 `execute_write_exact` dispatches to their existing exact postconditions
 without weakening the target-table or other-table frame clauses.
@@ -771,8 +774,10 @@ certified result is the broad parser's result, while `Parses.grammar` exposes
 the independent replay witness. `CoreSQL.execute` consumes only this certified
 result, and all read, single/multi-row write, and multi-statement trace support
 relations now require `CoreTokenGrammar.Parses` rather than a bare parser
-equation. Construction of the complete live localized representation witness
-remains an explicit open link.
+equation. The complete ordinary localized witness is assembled by
+`OrdinaryLocalizedCommit.localizedRepresentation`; the remaining integration
+link is making every executable adapter preparation return that constructor
+directly rather than assembling equivalent component evidence at its caller.
 `CoreLocalizedRepresentation` proves the physical read-after-write layer used
 to discharge that remaining premise.  Every numbered page selected by
 `CoreChunkPageDelta.writes` is present byte-for-byte in the resulting storage
@@ -802,9 +807,11 @@ every selected byte occurs in the complete post-state encoding. Successful
 page identities are unique. `pageSourceContains_updateStateTree` composes
 these facts with old-image containment and read-after-write: applying the live
 table write list contains the exact complete post-tree encoding without a
-decode-and-compare check. The remaining localized representation work is no
-longer table-tree accounting; it is composition with catalog, overflow,
-freelist, and changed-index components.
+decode-and-compare check. Catalog metadata, exact promoted-index ownership,
+freelist padding, and inline ordinary indexed/indexless mutations now compose
+through `DatabaseOnSource`. Overflow-changing and changed-index live paths use
+their existing decomposed certificates; unifying those adapter return types is
+the remaining integration work.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

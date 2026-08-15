@@ -203,6 +203,10 @@ if grep -q 'executeText_commit_crash_atomic' \
      SQLeanite/CoreSQLWriteText.lean &&
    grep -q 'CoreEndToEnd.executeCommand_commit_crash_atomic' \
      SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'CoreDurability.PostImageCertificate' \
+     SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'PostImageCertificate.representsDatabase' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreTokenGrammar.parseCertified sql' SQLeanite/CoreSQL.lean; then
   ok "supported SQL write text composes with crash-atomic SQLite bytes"
 else

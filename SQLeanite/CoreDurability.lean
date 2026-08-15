@@ -529,6 +529,145 @@ def localizedRepresentation_of_databaseOnSource
     ⟨catalog, catalogRead, tablesRead, indexesRead⟩
   exact { header, components := ⟨catalog, catalogRead, tablesRead, indexesRead⟩ }
 
+/-- Transparent proof certificate for the ordinary live localized writer.
+
+Unlike a bare post-image decoder equation, every field names a fact produced
+by the actual delta pipeline: represented old components, exact numbered
+writes, unchanged catalog/header bytes, retained-table noninterference, and
+the exact changed table.  The final alternative is intentional: an indexed
+table update preserves all page identities, while a wholly indexless database
+has no physical index run to preserve.  Mixed databases growing an unindexed
+table use the separately proved bulk compatibility path. -/
+structure OrdinaryLocalizedCommit
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (state : CoreChunkPageState.State) (database : Core.Database)
+    (delta : CoreChunkPageDelta.StateDelta) : Prop where
+  physical : CoreLocalizedRepresentation.DatabaseOnSource
+    (CorePageSource.ofStorageImage oldImage) state
+  allocation : state.AllocationWellFormed
+  updated : CoreChunkPageDelta.updateState? state database = some delta
+  converted : CoreChunkPageDelta.writes delta.table = some writes
+  distinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
+  header : SQLiteHeaderMatches (GrowableStorage.applyWrites oldImage writes)
+  catalogPreserved : ∀ catalog,
+    ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+        CoreDecode.decodeCatalogForOpen = some catalog) →
+    ((CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage writes)).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog)
+  retained : ∀ (old : CoreChunkPageState.TableState)
+    (table : Core.Table) (equivalent : old.table.Equiv table),
+    CoreLocalizedRepresentation.TableOnSource
+        (CorePageSource.ofStorageImage oldImage) old →
+      ∃ _physical : CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites oldImage writes))
+          (old.retarget table equivalent), True
+  changed : ∃ physical : CoreLocalizedRepresentation.TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage writes)) delta.table.after,
+      physical.encoding.overflowPages = []
+  preservationMode : delta.table.before.table.indexes ≠ [] ∨
+    ∀ table ∈ database.tables, table.indexes = []
+
+def OrdinaryLocalizedCommit.databaseOnSource
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+    CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage writes)) delta.after := by
+  rcases commit.changed with ⟨changed, inline⟩
+  have retained : ∀ (old : CoreChunkPageState.TableState)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage oldImage) old →
+        CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites oldImage writes))
+          (old.retarget table equivalent) := by
+    intro old table equivalent physical
+    exact Classical.choose (commit.retained old table equivalent physical)
+  rcases commit.preservationMode with indexed | indexless
+  · exact commit.physical.updateStateApplyWritesBelow oldImage writes
+      commit.distinct commit.allocation commit.updated commit.catalogPreserved
+      retained changed indexed commit.converted inline
+  · exact commit.physical.updateStateIndexless commit.allocation commit.updated
+      indexless commit.catalogPreserved retained changed
+
+/-- The ordinary localized preparation certificate closes the complete
+post-image representation premise consumed by crash atomicity. -/
+def OrdinaryLocalizedCommit.localizedRepresentation
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+    LocalizedRepresentation oldImage writes database := by
+  have represented := localizedRepresentation_of_databaseOnSource oldImage
+    writes delta.after commit.header commit.databaseOnSource
+  have endpoints := CoreChunkPageDelta.updateState?_endpoints commit.updated
+  simpa [endpoints.2] using represented
+
+/-- Constructive alternatives for the post-image premise of the public crash
+theorem.  Every constructor exposes how the bytes were justified: an ordinary
+localized delta, a canonical bulk image, or a verified freelist-padded image.
+There is deliberately no constructor accepting an opaque decoder equation. -/
+inductive PostImageCertificate
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database) : Prop where
+  | ordinary {state : CoreChunkPageState.State}
+      {delta : CoreChunkPageDelta.StateDelta}
+      (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+      PostImageCertificate oldImage writes database
+  | components (certificate : LocalizedRepresentation oldImage writes
+      database) : PostImageCertificate oldImage writes database
+  | bulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CorePageCodec.encodeBulk database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
+  | padded (utf8 : CoreDecode.UTF8Roundtrips)
+      (layout : CoreMultiFreelist.Layout)
+      (encoded : CorePageCodec.encodeBulk database = some layout.image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage layout.paddedImage)) :
+      PostImageCertificate oldImage writes database
+
+theorem PostImageCertificate.representsDatabase
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    {database : Core.Database}
+    (certificate : PostImageCertificate oldImage writes database) :
+    RepresentsDatabase (GrowableStorage.applyWrites oldImage writes)
+      database := by
+  cases certificate with
+  | ordinary commit =>
+      rcases commit.localizedRepresentation with ⟨header, components⟩
+      apply pageSourceRepresents_storageImage header
+      rcases components with
+        ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+      exact .intro catalog catalogRead tablesRead indexesRead
+  | components certificate =>
+      rcases certificate with ⟨header, components⟩
+      apply pageSourceRepresents_storageImage header
+      rcases components with
+        ⟨catalog, catalogRead, tablesRead, indexesRead⟩
+      exact .intro catalog catalogRead tablesRead indexesRead
+  | bulk utf8 image encoded applied =>
+      unfold RepresentsDatabase
+      rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv applied]
+      exact decode_imageBytes_encodeBulk utf8 database image encoded
+  | padded utf8 layout encoded applied =>
+      unfold RepresentsDatabase
+      rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv applied,
+        imageBytes_storageImage]
+      exact CoreFreelistCodec.decode_paddedImage utf8 database layout encoded
+
 /-- Build the complete component certificate from one exact schema-page write
 and the separately compositional table/index decoder facts. -/
 def localizedRepresentation_of_pageZeroWrite

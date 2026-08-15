@@ -773,6 +773,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_selectedPageIds_of_indexed
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed
 #print axioms SQLeanite.CoreChunkPageDelta.updateState?_selected_mem
+#print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.databaseOnSource
+#print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.localizedRepresentation
+#print axioms SQLeanite.CoreDurability.PostImageCertificate.representsDatabase
 #print axioms SQLeanite.RecursiveBPlusTree.Node.last?_eq_getLast?
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase

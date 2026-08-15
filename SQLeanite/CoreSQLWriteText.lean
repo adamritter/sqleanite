@@ -623,9 +623,9 @@ theorem core_success_of_execute
       rw [stateEqual, resultEqual]
 
 /-- Supported SQL write text, not a pre-parsed command, composes with the
-concrete page-level rollback theorem.  The representation premises are the
-remaining localized-codec link; no parser or execution equation is assumed by
-the caller beyond the transparent `SupportedWriteText` witness. -/
+concrete page-level rollback theorem.  The post-image evidence must identify
+the actual construction path (ordinary localized, bulk, or freelist-padded);
+an opaque decoder equality is no longer an admissible premise. -/
 theorem executeText_commit_crash_atomic
     (text : String) (command : CoreEndToEnd.WriteCommand)
     (state next : Core.State) (result : Core.Result)
@@ -634,8 +634,8 @@ theorem executeText_commit_crash_atomic
     (supported : SupportedWriteText state text command)
     (success : CoreSQL.execute state text = .ok (next, [result]))
     (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
-    (newRepresents : CoreDurability.RepresentsDatabase
-      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (postImage : CoreDurability.PostImageCertificate oldImage writes
+      next.database)
     (phase : GrowableStorage.CommitPhase)
     (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
     (recoveredJournal : Option
@@ -652,7 +652,8 @@ theorem executeText_commit_crash_atomic
           some next.database.canonicalize) := by
   exact CoreEndToEnd.executeCommand_commit_crash_atomic command state next
     result oldImage writes (core_success_of_execute supported success)
-    oldRepresents newRepresents phase recoveredMain recoveredJournal outcome
+    oldRepresents postImage.representsDatabase phase recoveredMain
+    recoveredJournal outcome
 
 theorem executeText_returned_recovers_new
     (text : String) (command : CoreEndToEnd.WriteCommand)

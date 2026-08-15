@@ -232,8 +232,8 @@ theorem executeText_commit_crash_atomic
     (supported : SupportedText state text commands)
     (success : CoreSQL.execute state text = .ok (next, results))
     (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
-    (newRepresents : CoreDurability.RepresentsDatabase
-      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (postImage : CoreDurability.PostImageCertificate oldImage writes
+      next.database)
     (phase : GrowableStorage.CommitPhase)
     (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
     (recoveredJournal : Option
@@ -250,8 +250,9 @@ theorem executeText_commit_crash_atomic
           some next.database.canonicalize) := by
   exact ⟨execute_success supported success,
     CoreDurability.rollbackWrites_represents_crash_atomic
-      state.database next.database oldImage writes oldRepresents newRepresents
-      phase recoveredMain recoveredJournal outcome⟩
+      state.database next.database oldImage writes oldRepresents
+      postImage.representsDatabase phase recoveredMain recoveredJournal
+      outcome⟩
 
 /-- Stronger localized form of the headline write theorem.  The post-image is
 not admitted as one opaque decoder equation: catalog, table, index, and header
@@ -281,7 +282,7 @@ theorem executeText_localized_commit_crash_atomic
           (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
           some next.database.canonicalize) := by
   exact executeText_commit_crash_atomic text commands state next results
-    oldImage writes supported success oldRepresents localized.representsDatabase
+    oldImage writes supported success oldRepresents (.components localized)
     phase recoveredMain recoveredJournal outcome
 
 theorem executeText_returned_recovers_new

@@ -1418,10 +1418,9 @@ def DatabaseOnSource.restate
   · simpa [tablesEq] using separation
 
 /-- Database-wide ordinary-delta composition.  The table and catalog parts
-are derived from the live delta builder; catalog metadata is transported from
-its proved declaration frame.  The sole remaining callback is physical index
-page transport, isolated explicitly because it requires the index ownership
-interval invariant rather than another logical database comparison. -/
+are derived from the live delta builder; catalog metadata and table/index page
+separation are transported explicitly.  The storage-image specialization
+below discharges both callbacks from exact ownership and page provenance. -/
 def DatabaseOnSource.updateState
     {oldSource newSource : CoreDecode.PageSource}
     {state : CoreChunkPageState.State} {database : Core.Database}
@@ -1941,11 +1940,10 @@ def IndexGroupsOnSource.applyWritesBelow
         boundary
         (induction (fun entry member => below entry (by simp [member])))
 
-/-- Storage-image specialization of `updateState`.  The former opaque
-physical-index callback is reduced to the concrete allocator fact used by the
-live ordinary path: every emitted table-page write is below every catalogued
-index root.  Exact index bytes are then transported by the ownership
-certificate itself. -/
+/-- Storage-image specialization of `updateState`.  It derives—rather than
+assumes—that every emitted indexed-table write is below every catalogued index
+root. Exact index bytes and the separation invariant are then transported by
+the ownership certificate itself. -/
 def DatabaseOnSource.updateStateApplyWritesBelow
     (image : GrowableStorage.Image PhysicalCodec.pageSize)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))

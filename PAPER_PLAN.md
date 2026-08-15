@@ -217,14 +217,24 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `updateState?_catalogEntries` proves the full table catalog run unchanged,
   and `DatabaseOnSource.updateState` assembles the catalog, changed table,
   retained tables, and transported metadata into the post-state invariant.
-  Its one isolated callback is physical preservation of unchanged index pages;
-  closing that ownership/disjointness fact is the remaining ordinary-path M3
-  obligation rather than another logical or codec premise.
-  The indexless case is closed completely by
+  Physical index ownership is now retained as the exact encoder run, including
+  promoted entries, page reads, allocation bounds, and the logical index
+  image. `TablePagesBeforeIndexRoots` is established by the bulk encoder.
+  For an indexed ordinary delta, allocation monotonicity plus the successful
+  equal-cardinality path proves the complete table page-ID list unchanged;
+  exact write-to-page provenance then derives index noninterference without an
+  arbitrary callback or a runtime scan. The indexless case is closed by
   `DatabaseOnSource.updateStateIndexless`: metadata proves that the catalog's
   index partition is empty, eliminating the physical-index callback rather
-  than satisfying it vacuously. Indexed databases still require the explicit
-  page-ownership/disjointness theorem above.
+  than satisfying it vacuously. A mixed database which grows an unindexed
+  table beside another table's index deliberately uses the proved bulk path;
+  it is not admitted by a false global "all table pages precede indexes" rule.
+  `OrdinaryLocalizedCommit` packages the actual delta, catalog/header frame,
+  retained and changed table witnesses, and preservation mode.
+  `PostImageCertificate` admits only that certificate, decomposed component
+  evidence, canonical bulk encoding, or verified freelist padding—never a bare
+  post-image decoder equation. The SQL-text and statement-trace crash theorems
+  now consume this constructive certificate.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
@@ -275,8 +285,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   independent bag denotation for simple queries, scalar/grouped aggregates,
   joins, and binary compound reads. Arbitrarily nested compounds,
   statement-list/parser parity, and construction of the localized database
-  representation premise still depend on milestones 1 and 3; those links are
-  not hidden as trusted assumptions.
+  post-image construction is now exposed through `PostImageCertificate`
+  rather than a bare decoder equality. The remaining integration work is to
+  have every live adapter preparation return the corresponding constructor
+  directly, so detaching certificate construction from the executable path is
+  mechanically impossible.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk
