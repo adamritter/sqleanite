@@ -598,6 +598,12 @@ def Store.insert (store : Store Value) (key : Nat) (value : Value) : Store Value
       rw [store.root.insert_erases store.nextPage key value]
       exact store.root.erase.insert_rootValid store.rootValid key value }
 
+@[simp] theorem Store.insert_rootId (store : Store Value) (key : Nat)
+    (value : Value) :
+    (store.insert key value).root.rootId = store.root.rootId := by
+  unfold Store.insert
+  exact store.root.insert_rootId store.nextPage key value
+
 theorem Store.insert_toList (store : Store Value) (key : Nat) (value : Value) :
     (store.insert key value).root.erase.toList =
       PagedBTree.orderedInsert key value store.root.erase.toList := by
@@ -629,6 +635,23 @@ def replacementPageId (replacements : List (PageId × PageId))
   | some replacement => replacement.2
   | none => pageId
 
+theorem replacementPageId_range_zip_of_lt (firstFresh count pageId : Nat)
+    (freed : List PageId) (old : pageId < firstFresh) :
+    replacementPageId
+      ((List.range' firstFresh count).zip (freed.take count)) pageId = pageId := by
+  unfold replacementPageId
+  cases found : ((List.range' firstFresh count).zip (freed.take count)).find?
+      (fun replacement => replacement.1 == pageId) with
+  | none => rfl
+  | some replacement =>
+      have selected := List.find?_some found
+      have member := List.mem_of_find?_eq_some found
+      have firstMember :=
+        (List.of_mem_zip member).1
+      simp only [beq_iff_eq] at selected
+      have lower := (List.mem_range'_1.mp firstMember).1
+      omega
+
 def Node.relabelPageIds (replacements : List (PageId × PageId)) :
     Node Value → Node Value
   | .leaf pageId entries => .leaf (replacementPageId replacements pageId) entries
@@ -653,6 +676,16 @@ def Node.relabelPageIds (replacements : List (PageId × PageId)) :
       leftInduction middleInduction rightInduction =>
       simp [Node.relabelPageIds, Node.erase, leftInduction, middleInduction,
         rightInduction]
+
+theorem Node.relabelPageIds_rootId_range_zip_of_lt
+    (node : Node Value) (firstFresh count : Nat) (freed : List PageId)
+    (old : node.rootId < firstFresh) :
+    (node.relabelPageIds
+      ((List.range' firstFresh count).zip (freed.take count))).rootId =
+        node.rootId := by
+  cases node <;> simp only [Node.relabelPageIds, Node.rootId] <;>
+    apply replacementPageId_range_zip_of_lt <;>
+    simpa only [Node.rootId] using old
 
 /-- Recycle a prefix of `freed` for every identity allocated at or above
 `firstFresh`.  Success resets the high-water mark because no fresh identity
@@ -686,6 +719,24 @@ theorem Store.reuseFresh?_toList {store reused : Store Value}
     next =>
       cases Option.some.inj success
       simp
+    next => contradiction
+  next => contradiction
+
+theorem Store.reuseFresh?_rootId {store reused : Store Value}
+    {firstFresh : Nat} {freed remaining : List PageId}
+    (old : store.root.rootId < firstFresh)
+    (success : store.reuseFresh? firstFresh freed = some (reused, remaining)) :
+    reused.root.rootId = store.root.rootId := by
+  unfold Store.reuseFresh? at success
+  split at success
+  next =>
+    dsimp only at success
+    split at success
+    next =>
+      injection success with equal
+      cases equal
+      exact store.root.relabelPageIds_rootId_range_zip_of_lt firstFresh
+        (store.nextPage - firstFresh) freed old
     next => contradiction
   next => contradiction
 
@@ -976,6 +1027,59 @@ private def repairThreeRight (pageId : PageId) (left : Node Value)
       .done (.branch3 pageId left firstSeparator middle secondSeparator under) freed
   | _, none => .done (.branch2 pageId left firstSeparator middle) freed
 
+/-- Root-page identity carried by every nonempty deletion result.  The empty
+case is repaired by `deleteCandidate` using the original root page. -/
+private def DeleteResult.PreservesRoot (pageId : PageId) :
+    DeleteResult Value → Prop
+  | .done node _ | .underflow node _ => node.rootId = pageId
+  | .empty _ => True
+
+private theorem repairTwoLeft_preservesRoot (pageId : PageId)
+    (separator : Nat) (deficit : Option (Node Value)) (right : Node Value)
+    (freed : List PageId) :
+    (repairTwoLeft pageId separator deficit right freed).PreservesRoot pageId := by
+  cases deficit <;> cases right <;>
+    simp [repairTwoLeft, DeleteResult.PreservesRoot, reuseFreedRoot, Node.rootId,
+      Node.setRootId]
+
+private theorem repairTwoRight_preservesRoot (pageId : PageId)
+    (left : Node Value) (separator : Nat) (deficit : Option (Node Value))
+    (freed : List PageId) :
+    (repairTwoRight pageId left separator deficit freed).PreservesRoot pageId := by
+  cases left <;> cases deficit <;>
+    simp [repairTwoRight, DeleteResult.PreservesRoot, reuseFreedRoot,
+      Node.rootId, Node.setRootId]
+
+private theorem repairThreeLeft_preservesRoot (pageId : PageId)
+    (firstSeparator : Nat) (deficit : Option (Node Value))
+    (middle : Node Value) (secondSeparator : Nat) (right : Node Value)
+    (freed : List PageId) :
+    (repairThreeLeft pageId firstSeparator deficit middle secondSeparator right
+      freed).PreservesRoot pageId := by
+  cases deficit <;> cases middle <;>
+    simp [repairThreeLeft, DeleteResult.PreservesRoot, reuseFreedRoot,
+      Node.rootId, Node.setRootId]
+
+private theorem repairThreeMiddle_preservesRoot (pageId : PageId)
+    (left : Node Value) (firstSeparator : Nat)
+    (deficit : Option (Node Value)) (secondSeparator : Nat)
+    (right : Node Value) (freed : List PageId) :
+    (repairThreeMiddle pageId left firstSeparator deficit secondSeparator right
+      freed).PreservesRoot pageId := by
+  cases left <;> cases deficit <;>
+    simp [repairThreeMiddle, DeleteResult.PreservesRoot, reuseFreedRoot,
+      Node.rootId, Node.setRootId]
+
+private theorem repairThreeRight_preservesRoot (pageId : PageId)
+    (left : Node Value) (firstSeparator : Nat) (middle : Node Value)
+    (secondSeparator : Nat) (deficit : Option (Node Value))
+    (freed : List PageId) :
+    (repairThreeRight pageId left firstSeparator middle secondSeparator deficit
+      freed).PreservesRoot pageId := by
+  cases middle <;> cases deficit <;>
+    simp [repairThreeRight, DeleteResult.PreservesRoot, reuseFreedRoot,
+      Node.rootId, Node.setRootId]
+
 def Node.deleteStep (key : Nat) : Node Value → DeleteResult Value
   | .leaf pageId entries =>
       match PagedBTree.eraseKey key entries with
@@ -1028,10 +1132,79 @@ def Node.deleteStep (key : Nat) : Node Value → DeleteResult Value
         | .empty freed => repairThreeRight pageId left firstSeparator middle
             secondSeparator none freed
 
+theorem Node.deleteStep_preservesRoot (node : Node Value) (key : Nat) :
+    (node.deleteStep key).PreservesRoot node.rootId := by
+  cases node with
+  | leaf pageId entries =>
+      simp only [Node.deleteStep, Node.rootId]
+      generalize erased : PagedBTree.eraseKey key entries = remaining
+      cases remaining <;> simp [DeleteResult.PreservesRoot, Node.rootId]
+  | branch2 pageId left separator right =>
+      simp only [Node.deleteStep, Node.rootId]
+      split
+      next =>
+        cases changed : left.deleteStep key with
+        | done => rfl
+        | underflow under freed =>
+            exact repairTwoLeft_preservesRoot pageId separator (some under)
+              right freed
+        | empty freed =>
+            exact repairTwoLeft_preservesRoot pageId separator none right freed
+      next =>
+        cases changed : right.deleteStep key with
+        | done => rfl
+        | underflow under freed =>
+            exact repairTwoRight_preservesRoot pageId left separator
+              (some under) freed
+        | empty freed =>
+            exact repairTwoRight_preservesRoot pageId left separator none freed
+  | branch3 pageId left firstSeparator middle secondSeparator right =>
+      simp only [Node.deleteStep, Node.rootId]
+      split
+      next =>
+        cases changed : left.deleteStep key with
+        | done => rfl
+        | underflow under freed =>
+            exact repairThreeLeft_preservesRoot pageId firstSeparator
+              (some under) middle secondSeparator right freed
+        | empty freed =>
+            exact repairThreeLeft_preservesRoot pageId firstSeparator none
+              middle secondSeparator right freed
+      next =>
+        split
+        next =>
+          cases changed : middle.deleteStep key with
+          | done => rfl
+          | underflow under freed =>
+              exact repairThreeMiddle_preservesRoot pageId left firstSeparator
+                (some under) secondSeparator right freed
+          | empty freed =>
+              exact repairThreeMiddle_preservesRoot pageId left firstSeparator
+                none secondSeparator right freed
+        next =>
+          cases changed : right.deleteStep key with
+          | done => rfl
+          | underflow under freed =>
+              exact repairThreeRight_preservesRoot pageId left firstSeparator
+                middle secondSeparator (some under) freed
+          | empty freed =>
+              exact repairThreeRight_preservesRoot pageId left firstSeparator
+                middle secondSeparator none freed
+
 def Node.deleteCandidate (node : Node Value) (key : Nat) : Node Value × List PageId :=
   match node.deleteStep key with
   | .done updated freed | .underflow updated freed => (updated, freed)
   | .empty freed => (.leaf node.rootId [], freed.filter (fun id => id ≠ node.rootId))
+
+theorem Node.deleteCandidate_rootId (node : Node Value) (key : Nat) :
+    (node.deleteCandidate key).1.rootId = node.rootId := by
+  have preserved := node.deleteStep_preservesRoot key
+  unfold Node.deleteCandidate
+  cases changed : node.deleteStep key with
+  | done updated freed => simpa [changed, DeleteResult.PreservesRoot] using preserved
+  | underflow updated freed =>
+      simpa [changed, DeleteResult.PreservesRoot] using preserved
+  | empty freed => rfl
 
 theorem Node.deleteStep_erases (node : Node Value) (key : Nat) :
     (node.deleteStep key).erase = node.erase.deleteBalancedStep key := by
@@ -1140,6 +1313,19 @@ def Store.delete? (store : Store Value) (key : Nat) :
       (RecursiveBPlusTree.Node.checkRootValid_iff changed.1.erase).mp valid⟩,
       changed.2)
   else none
+
+theorem Store.delete?_rootId {store updated : Store Value} {key : Nat}
+    {freed : List PageId}
+    (success : store.delete? key = some (updated, freed)) :
+    updated.root.rootId = store.root.rootId := by
+  unfold Store.delete? at success
+  dsimp only at success
+  split at success
+  next =>
+    injection success with equal
+    cases equal
+    exact store.root.deleteCandidate_rootId key
+  next => contradiction
 
 theorem Store.delete?_toList {store : Store Value} {key : Nat}
     {updated : Store Value} {freed : List PageId}

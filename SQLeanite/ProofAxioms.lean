@@ -180,9 +180,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RecursiveBPlusTree.Node.lookup_of_mem
 #print axioms SQLeanite.PersistentPageTree.Node.insertStep_erases
 #print axioms SQLeanite.PersistentPageTree.Node.insert_erases
+#print axioms SQLeanite.PersistentPageTree.Node.deleteCandidate_rootId
 #print axioms SQLeanite.PersistentPageTree.Node.insert_pathAgrees_of_noAllocation
+#print axioms SQLeanite.PersistentPageTree.Store.insert_rootId
 #print axioms SQLeanite.PersistentPageTree.Store.insert_represents
+#print axioms SQLeanite.PersistentPageTree.Store.delete?_rootId
 #print axioms SQLeanite.PersistentPageTree.Store.delete?_toList
+#print axioms SQLeanite.PersistentPageTree.Store.reuseFresh?_rootId
 #print axioms SQLeanite.PersistentPageTree.Store.reuseFresh?_toList
 #print axioms SQLeanite.PersistentPageTree.Store.build_represents
 #print axioms SQLeanite.PersistentPageTree.identifyFrom_pageIds

@@ -209,6 +209,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   list, that schemas and declared indexes are unchanged.  Consequently the
   old `sqlite_master` metadata groups transport to the exact logical post-state
   as erased evidence; no catalog reparse or database comparison is required.
+  Stable root identity is now proved through recursive deletion repair,
+  root shrink, insertion splits, and fresh-page recycling. This supplies the
+  algorithmic basis for preserving table root-page catalog entries when page
+  zero is omitted from a localized data commit.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
