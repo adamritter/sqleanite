@@ -1014,6 +1014,56 @@ theorem eval_innerJoin (predicate : Left → Right → Truth)
       KRelation.select (fun row => predicate row.1 row.2)
         (KRelation.join (eval left) (eval right)) := rfl
 
+/-- POPL'10's cartesian-product primitive is the constant-true special case
+of SQLeanite's derived inner join.  Stating the equality explicitly keeps the
+parity claim independent of the choice of primitive algebra operators. -/
+theorem innerJoin_true_eval (left : Expr Left) (right : Expr Right) :
+    eval (innerJoin (fun _ _ => .true) left right) =
+      eval (.product left right) := by
+  apply KRelation.Relation.ext
+  intro row
+  simp [innerJoin, eval, KRelation.select]
+
+/-- The two total maps and inverse laws needed for a typed column
+permutation.  This small local structure avoids adding a library dependency
+to the verified core. -/
+structure Bijection (Input Output : Type) where
+  forward : Input → Output
+  backward : Output → Input
+  leftInverse : ∀ input, backward (forward input) = input
+  rightInverse : ∀ output, forward (backward output) = output
+
+def Bijection.symm (equiv : Bijection Input Output) :
+    Bijection Output Input where
+  forward := equiv.backward
+  backward := equiv.forward
+  leftInverse := equiv.rightInverse
+  rightInverse := equiv.leftInverse
+
+/-- A bijective rename is a typed column/tuple permutation.  The executable
+direction is the inverse map because relations are observed by output tuple;
+the theorem records that no multiplicity is created or lost. -/
+def permute (equiv : Bijection Input Output) (input : Expr Input) :
+    Expr Output :=
+  .rename equiv.backward input
+
+theorem permute_eval (equiv : Bijection Input Output) (input : Expr Input)
+    (row : Input) :
+    eval (permute equiv input) (equiv.forward row) = eval input row := by
+  change eval input (equiv.backward (equiv.forward row)) = eval input row
+  rw [equiv.leftInverse]
+
+/-- Applying a permutation and its inverse is denotationally the identity.
+This is the explicit witness that `rename` subsumes POPL'10's permutation
+operator rather than merely resembling it. -/
+theorem permute_symm_eval (equiv : Bijection Input Output)
+    (input : Expr Input) :
+    eval (permute equiv.symm (permute equiv input)) = eval input := by
+  apply KRelation.Relation.ext
+  intro row
+  change eval input (equiv.backward (equiv.forward row)) = eval input row
+  rw [equiv.leftInverse]
+
 def joinedRows (left right : Expr QuerySemantics.Row) :
     Expr QuerySemantics.Row :=
   .embed (fun

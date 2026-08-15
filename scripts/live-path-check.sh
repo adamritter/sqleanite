@@ -458,6 +458,14 @@ else
   fail "live optimizer selected a rewrite without its logical cost certificate"
 fi
 
+if grep -q 'innerJoin_true_eval' SQLeanite/ProofAxioms.lean &&
+   grep -q 'permute_eval' SQLeanite/ProofAxioms.lean &&
+   grep -q 'permute_symm_eval' SQLeanite/ProofAxioms.lean; then
+  ok "POPL algebra product and permutation parity witnesses are audited"
+else
+  fail "POPL algebra parity witness detached from the proof audit"
+fi
+
 if grep -q 'execute_query_denotes' SQLeanite/ProofAxioms.lean &&
    grep -q 'execute_join_denotes' SQLeanite/ProofAxioms.lean &&
    grep -q 'execute_group_denotes' SQLeanite/ProofAxioms.lean &&

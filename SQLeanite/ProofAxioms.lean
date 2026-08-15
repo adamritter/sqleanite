@@ -107,6 +107,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RelationalAlgebra.coreGroup_evalKeys_refines
 #print axioms SQLeanite.RelationalAlgebra.coreGroup_eval_refines
 #print axioms SQLeanite.RelationalAlgebra.joinedRows_eval
+#print axioms SQLeanite.RelationalAlgebra.innerJoin_true_eval
+#print axioms SQLeanite.RelationalAlgebra.permute_eval
+#print axioms SQLeanite.RelationalAlgebra.permute_symm_eval
 #print axioms SQLeanite.RelationalAlgebra.joinedLeftOuterRows_eval
 #print axioms SQLeanite.RelationalAlgebra.listMultiplicity_leftOuterOnRows
 #print axioms SQLeanite.RelationalAlgebra.joinedLeftOuterOn_eval

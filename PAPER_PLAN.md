@@ -114,6 +114,9 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   compose the full parsed text with the same recovery theorems.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
+  Explicit parity witnesses now show that typed bijective renaming implements
+  column permutation without changing multiplicity, and that cartesian product
+  is exactly inner join with a constant SQL-TRUE predicate.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
   localized proof now has a component-wise representation invariant, exact
   storage-image read-after-write lemmas, a recursive validating-open
@@ -158,6 +161,18 @@ within the frozen non-regression budget and at or below 5x C SQLite by median;
 the proof additions add no runtime execution or validation pass.
 
 ## Milestone 1: verified SQL text front end
+
+**This milestone is POPL'10 parity, not a reach goal.** Their RDBMS parses user
+input with Ynot's packrat PEG parser, "implemented as a verified compiler": a
+PEG grammar plus semantic actions yields an imperative computation whose result
+"agrees with the specification" (paper section 4.2). A comparison that leaves
+our parser unproved concedes a component they had.
+
+Note the exact scope of their theorem, because it is also the right scope here:
+it relates the *parser to a grammar*, not the grammar to SQL. Correctness
+against an explicit, inspectable grammar is the standard they met and the
+standard this milestone targets. Proving that the grammar is the true SQL
+grammar remains a reach goal and is not needed for parity.
 
 Define `CoreSQL.SupportedText text statements` as a transparent relation for
 the lexical and grammatical subset accepted by the verified Core.  Separate
@@ -252,15 +267,14 @@ improvement rather than as parity.
 - projection, filtering, DISTINCT, ordering and LIMIT -- **[parity]** for
   projection and filtering; **[superset]** for ordering and LIMIT, which their
   set-based algebra cannot express at all;
-- **column permutation** -- **[parity]**, one of their six primitives. Either
-  give it its own denotation and refinement, or prove that our projection
-  subsumes it by producing an explicitly reordered column list, and cite that
-  subsumption theorem where the parity claim is made. Do not leave it implicit:
-  reordering is the operator most easily assumed rather than proved.
-- **cartesian product** -- **[parity]**, their sixth primitive. Our join is
-  primitive rather than derived, so prove `product = join with a constant-true
-  predicate` and treat that lemma as the parity witness. State the direction
-  honestly: they derive join from product, we derive product from join.
+- **column permutation** -- **[parity]**, one of their six primitives. This is
+  discharged by `RelationalAlgebra.permute_eval` and
+  `RelationalAlgebra.permute_symm_eval`: typed bijective `rename` preserves
+  every tuple multiplicity and composing with the inverse is the identity.
+- **cartesian product** -- **[parity]**, their sixth primitive. This is
+  discharged by `RelationalAlgebra.innerJoin_true_eval`. State the direction
+  honestly: they derive join from product, we identify product as the
+  constant-true special case of our derived inner join.
 - COUNT, SUM, MIN/MAX and grouped aggregation -- **[superset]**. Their algebra
   has no aggregation.
 - inner and left-outer join -- **[parity]** via the product lemma above for the
@@ -555,8 +569,13 @@ Not required for the paper; recorded so they are not silently dropped.
   the paper scale, the ratio there is dominated by page-access count rather
   than by CPU work, which is a different optimisation target from the current
   write-path work -- do not assume progress on one transfers to the other.
-- Everything already marked reach elsewhere: general parser correctness beyond
-  the supported grammar, `WITHOUT ROWID`, and exotic file-format variants.
+- **General parser correctness beyond the supported grammar.** Careful with
+  this one: parser correctness *against an explicit grammar* is milestone 1 and
+  is POPL'10 parity, because their PEG parser is verified. Only the stronger
+  claim -- that the grammar itself is SQL's real grammar, over the unbounded
+  surface -- is reach. Do not cite this bullet as grounds for leaving the
+  front end unproved.
+- `WITHOUT ROWID` and exotic file-format variants.
 
 ## Explicit non-goals
 
