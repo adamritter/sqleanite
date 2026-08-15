@@ -1,4 +1,5 @@
 import SQLeanite.Optimizer
+import SQLeanite.QueryCost
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.KRelation
 import SQLeanite.RelationalAlgebra
@@ -120,6 +121,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.QuerySemantics.rewrite_sound
 #print axioms SQLeanite.QuerySemantics.rewrite_sound_ordered
 #print axioms SQLeanite.QuerySemantics.optimizePlan_eval
+#print axioms SQLeanite.QuerySemantics.foldConstants_comparisonCount_le
+#print axioms SQLeanite.QuerySemantics.profile_rows
+#print axioms SQLeanite.QuerySemantics.projectionElimination_cost_le
+#print axioms SQLeanite.QuerySemantics.projectionElimination_strict_on_nonempty_rows
+#print axioms SQLeanite.QuerySemantics.constantFolding_cost_le
+#print axioms SQLeanite.QuerySemantics.rewriteRoot_cost_le
+#print axioms SQLeanite.QuerySemantics.filterFusion_not_unconditionally_cost_safe
 #print axioms SQLeanite.CoreOptimizerBridge.toSemantics_eval
 #print axioms SQLeanite.CoreOptimizerBridge.optimize_eval
 #print axioms SQLeanite.CoreOptimizerBridge.optimize_innerJoinPlan_eval

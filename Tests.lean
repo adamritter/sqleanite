@@ -1100,22 +1100,26 @@ private def expectOptimizerSemantics : IO Unit := do
   let unionInput : Plan :=
     .unionAll (.rows (leftRows.take 2)) (.rows (leftRows.drop 2))
   let distributedInput : Plan := .filter predicate unionInput
-  let distributed := QuerySemantics.optimizePlan distributedInput
+  let distributed := QuerySemantics.unionDistribution distributedInput
   unless evalPlan Core.Database.empty distributedInput ==
       evalPlan Core.Database.empty distributed do
     fail "verified UNION ALL distribution changed row order or 3VL results"
   match distributed with
   | .unionAll (.filter _ _) (.filter _ _) => pure ()
-  | _ => fail "bottom-up optimizer did not consume filter/UNION distribution"
+  | _ => fail "explicit filter/UNION distribution did not expose both arms"
+  let costSafe := QuerySemantics.optimizePlan distributedInput
+  unless (QuerySemantics.cost Core.Database.empty costSafe).total ≤
+      (QuerySemantics.cost Core.Database.empty distributedInput).total do
+    fail "live optimizer increased the certified logical cost"
   let groupedInput : Plan :=
     .groupSum (fun _ => .values [one]) (fun _ => 2) unionInput
-  let groupedDistributed := QuerySemantics.optimizePlan groupedInput
+  let groupedDistributed := QuerySemantics.unionDistribution groupedInput
   unless evalPlan Core.Database.empty groupedInput ==
       evalPlan Core.Database.empty groupedDistributed do
     fail "verified grouped UNION ALL distribution changed weighted results"
   match groupedDistributed with
   | .unionAll (.groupSum _ _ _) (.groupSum _ _ _) => pure ()
-  | _ => fail "bottom-up optimizer did not consume grouped UNION distribution"
+  | _ => fail "explicit grouped UNION distribution did not expose both arms"
   let ordered : QuerySemantics.Select := {
     plan := filtered
     orderBy := [{ column := .left (.cell 0) }] }

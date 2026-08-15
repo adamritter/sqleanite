@@ -347,6 +347,17 @@ else
   fail "a live Core SELECT path bypasses the denotational optimizer"
 fi
 
+if grep -q 'def rewriteRoot (plan : Plan)' SQLeanite/Optimizer.lean &&
+   grep -q 'projectionElimination (constantFolding plan)' \
+     SQLeanite/Optimizer.lean &&
+   grep -q 'rewriteRoot_cost_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'filterFusion_not_unconditionally_cost_safe' \
+     SQLeanite/ProofAxioms.lean; then
+  ok "live optimizer root is restricted to proved cost-safe rewrites"
+else
+  fail "live optimizer selected a rewrite without its logical cost certificate"
+fi
+
 if grep -q 'where_\.leftOnly = true' SQLeanite/CoreJoin.lean &&
    grep -q 'left\.rows\.filter (selectsLeft where_)' SQLeanite/CoreJoin.lean &&
    grep -q 'matchingRows_pushLeft' SQLeanite/ProofAxioms.lean &&

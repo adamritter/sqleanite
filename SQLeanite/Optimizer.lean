@@ -280,23 +280,23 @@ theorem Rewrite.applyPlan_eval (rewrite : Rewrite) (database : Core.Database)
   | filterFusion => exact filterFusion_eval database plan
   | unionDistribution => exact unionDistribution_eval database plan
 
-/-- Apply every proved local rewrite at one plan node. The order is chosen so
-an identity projection is removed before filter fusion inspects the exposed
-child. -/
+/-- Apply the local rewrites that are both semantics-preserving and
+unconditionally non-increasing in the executable logical cost model.
+
+Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
 def rewriteRoot (plan : Plan) : Plan :=
-  unionDistribution
-    (filterFusion (projectionElimination
-      (constantFolding (predicatePushdown plan))))
+  projectionElimination (constantFolding plan)
 
 theorem rewriteRoot_eval (database : Core.Database) (plan : Plan) :
     evalPlan database (rewriteRoot plan) = evalPlan database plan := by
   unfold rewriteRoot
-  rw [unionDistribution_eval, filterFusion_eval, projectionElimination_eval,
-    constantFolding_eval, predicatePushdown_eval]
+  rw [projectionElimination_eval, constantFolding_eval]
 
-/-- Bottom-up optimizer used by the live Core bridge. Unlike the original
-one-step demonstrations, this visits every node and then runs all five proved
-rewrites at that node. -/
+/-- Bottom-up optimizer used by the live Core bridge. It visits every node and
+then runs the certified cost-safe root pipeline. -/
 def optimizePlan : Plan → Plan
   | .table name => .table name
   | .rows rows => .rows rows
