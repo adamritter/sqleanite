@@ -1070,6 +1070,139 @@ private theorem find?_orderedUpsert_of_true (inserted : Row) (rows : List Row)
             induction tailNone]
         · simp [orderedUpsert, before, after, insertedTrue]
 
+/-- Replacing the first row selected by a predicate makes the replacement the
+first selected row when it has the same rowid and still satisfies the
+predicate. This is the list-level fact behind incremental TEXT-primary-key map
+maintenance. -/
+private theorem find?_orderedUpsert_replacing_first_of_true
+    (inserted previous : Row) (predicate : Row → Bool) :
+    ∀ (rows : List Row), rows.Pairwise Row.keyLess →
+      predicate inserted = true → previous.rowid = inserted.rowid →
+      rows.find? predicate = some previous →
+      (orderedUpsert inserted rows).find? predicate = some inserted
+  | [], _, _, _, found => by simp at found
+  | head :: tail, sorted, insertedTrue, sameRowid, found => by
+      have sortedParts := List.pairwise_cons.mp sorted
+      cases headMatch : predicate head with
+      | true =>
+          have previousEq : previous = head := by
+            have headEq : head = previous := by simpa [headMatch] using found
+            exact headEq.symm
+          subst previous
+          have valuesEq : head.rowid.value = inserted.rowid.value :=
+            congrArg FileFormat.SignedInteger.value sameRowid
+          have notBefore : ¬inserted.rowid.value < head.rowid.value := by omega
+          have notAfter : ¬head.rowid.value < inserted.rowid.value := by omega
+          simp [orderedUpsert, notBefore, notAfter, insertedTrue]
+      | false =>
+          have tailFound : tail.find? predicate = some previous := by
+            simpa [headMatch] using found
+          have previousMember : previous ∈ tail :=
+            List.mem_of_find?_eq_some tailFound
+          have headBeforePrevious := sortedParts.1 previous previousMember
+          have valuesEq : previous.rowid.value = inserted.rowid.value :=
+            congrArg FileFormat.SignedInteger.value sameRowid
+          have headBefore : head.rowid.value < inserted.rowid.value := by
+            simpa [Row.keyLess, valuesEq] using headBeforePrevious
+          have notBefore : ¬inserted.rowid.value < head.rowid.value := by omega
+          simp [orderedUpsert, notBefore, headBefore, headMatch,
+            find?_orderedUpsert_replacing_first_of_true inserted previous
+              predicate tail sortedParts.2 insertedTrue sameRowid tailFound]
+
+/-- Replacing a row which does not satisfy a predicate leaves the first match
+unchanged when the replacement also does not satisfy it. -/
+private theorem find?_orderedUpsert_replacing_of_false
+    (inserted previous : Row) (predicate : Row → Bool) :
+    ∀ (rows : List Row), rows.Pairwise Row.keyLess → previous ∈ rows →
+      previous.rowid = inserted.rowid → predicate inserted = false →
+      predicate previous = false →
+      (orderedUpsert inserted rows).find? predicate = rows.find? predicate
+  | [], _, member, _, _, _ => by simp at member
+  | head :: tail, sorted, member, sameRowid, insertedFalse, previousFalse => by
+      have sortedParts := List.pairwise_cons.mp sorted
+      simp only [List.mem_cons] at member
+      rcases member with previousEq | previousTail
+      · subst previous
+        have valuesEq : head.rowid.value = inserted.rowid.value :=
+          congrArg FileFormat.SignedInteger.value sameRowid
+        have notBefore : ¬inserted.rowid.value < head.rowid.value := by omega
+        have notAfter : ¬head.rowid.value < inserted.rowid.value := by omega
+        simp [orderedUpsert, notBefore, notAfter, insertedFalse, previousFalse]
+      · have headBeforePrevious := sortedParts.1 previous previousTail
+        have valuesEq : previous.rowid.value = inserted.rowid.value :=
+          congrArg FileFormat.SignedInteger.value sameRowid
+        have headBefore : head.rowid.value < inserted.rowid.value := by
+          simpa [Row.keyLess, valuesEq] using headBeforePrevious
+        have notBefore : ¬inserted.rowid.value < head.rowid.value := by omega
+        simp only [orderedUpsert, if_neg notBefore, if_pos headBefore,
+          List.find?_cons]
+        cases headResult : predicate head
+        · exact find?_orderedUpsert_replacing_of_false inserted previous
+            predicate tail sortedParts.2 previousTail sameRowid insertedFalse
+              previousFalse
+        · rfl
+
+private theorem Table.rowTree_lookup_some_mem_eq
+    {table : Table} {row previous : Row}
+    (found : table.rowTree.root.lookup row.treeKey = some previous) :
+    previous ∈ table.rows ∧ previous.rowid = row.rowid := by
+  have foundErased : table.rowTree.root.erase.lookup row.treeKey =
+      some previous := by
+    rw [← PersistentPageTree.Node.lookup_eq_erase]
+    exact found
+  have inTree := RecursiveBPlusTree.Node.lookup_some_mem foundErased
+  have represented := table.rowTreeWellKeyed
+  unfold RowTreeWellKeyed PersistentPageTree.Store.Represents at represented
+  rw [represented] at inTree
+  rcases List.mem_map.mp inTree with ⟨source, member, pairEqual⟩
+  have keyEqual : source.treeKey = row.treeKey :=
+    congrArg Prod.fst pairEqual
+  have rowEqual : source = previous := congrArg Prod.snd pairEqual
+  subst source
+  refine ⟨member, FileFormat.SignedInteger.ext ?_⟩
+  exact (Row.treeKey_eq_iff previous row).mp keyEqual
+
+/-- Updating the row which owns a declared key can update the balanced key map
+with one insert. The proof handles every other lookup explicitly, so this is a
+representation theorem rather than a cache-coherence assumption. -/
+theorem Table.declaredKeyMap_replace_represents_orderedUpsert
+    (table : Table) (row previous : Row)
+    (hidden : table.schema.hasHiddenRowid = true)
+    (found : table.rowTree.root.lookup row.treeKey = some previous)
+    (sameKey : previous.declaredKey table.schema =
+      row.declaredKey table.schema)
+    (owner : table.declaredKeyMap.get? (row.declaredKey table.schema) =
+      some previous) :
+    DeclaredKeyMapRepresents table.schema (orderedUpsert row table.rows)
+      (table.declaredKeyMap.insert (row.declaredKey table.schema) row) := by
+  have previousFacts := table.rowTree_lookup_some_mem_eq found
+  intro _ target
+  change (table.declaredKeyMap.insert
+    (row.declaredKey table.schema) row)[target]? = _
+  rw [Std.TreeMap.getElem?_insert]
+  simp only [Value.compareOn_orderKey_eq]
+  have represented := table.declaredKeyMapRepresents hidden target
+  change table.declaredKeyMap[target]? =
+    table.rows.find? (fun existing =>
+      existing.declaredKey table.schema == target) at represented
+  by_cases sameTarget : row.declaredKey table.schema = target
+  · subst target
+    rw [if_pos rfl]
+    have oldFound : table.rows.find? (fun existing =>
+        existing.declaredKey table.schema == row.declaredKey table.schema) =
+        some previous := by
+      have representedKey := table.declaredKeyMapRepresents hidden
+        (row.declaredKey table.schema)
+      rw [owner] at representedKey
+      exact representedKey.symm
+    exact (find?_orderedUpsert_replacing_first_of_true row previous _
+      table.rows table.rowsWellFormed.2 (by simp) previousFacts.2
+        oldFound).symm
+  · rw [if_neg sameTarget, represented]
+    exact (find?_orderedUpsert_replacing_of_false row previous _ table.rows
+      table.rowsWellFormed.2 previousFacts.1 previousFacts.2
+        (by simp [sameTarget]) (by simp [sameKey, sameTarget])).symm
+
 theorem Table.declaredKeyMap_insert_represents_orderedUpsert (table : Table)
     (row : Row) (hidden : table.schema.hasHiddenRowid = true)
     (freshRowid : ∀ existing ∈ table.rows,
@@ -1132,35 +1265,48 @@ def Table.upsertGeneratedFresh (table : Table) (row : Row)
         · exact table.rowsWellFormed.1 candidate old
       · exact orderedUpsert_sorted row table.rows table.rowsWellFormed.2 }
 
-/-- The declared-key map after upserting `row`, taking the *tree* rather than a
-row list.
+/-- Incremental declared-key maintenance for the common hidden-rowid mutation.
 
-Taking the tree is the whole point. `Table.rows` is `storedRows`, a full
-`toList` of the tree, so passing `table.rows` at the call site evaluates it
-eagerly -- O(n) on every insert, making a bulk load quadratic. Here the list is
-built only inside the branch that needs it, and a schema with an explicit
-INTEGER PRIMARY KEY takes the `∅` branch without ever materializing the rows.
-
-Measured before this change: mean microseconds per insert by decile of position
-in a 4,000-row load were 52, 84, 120, 162, 202, 248, 303, 359, 409 -- linear in
-rows already present. Inserts quadrupled per doubling of table size.
-
-The hidden-rowid branch still rebuilds the map and is still quadratic. Making it
-incremental is not a local change: `upsert` may replace a row whose declared key
-differs from the new one, so a bare `insert` would leave the old key mapped to a
-stale row. That case is tracked in `PAPER_PLAN.md`. -/
-def declaredKeyMapAfterUpsert (schema : Schema) (row : Row)
-    (tree : PersistentPageTree.Store Row) : DeclaredKeyMap :=
-  if schema.hasHiddenRowid then
-    buildDeclaredKeyMap schema (orderedUpsert row (storedRows tree))
+TEXT-primary UPDATE and REPLACE preserve the declared key and replace the row
+which currently owns it. That branch performs one primary-tree lookup and one
+balanced-map insert. Unusual operations which change the declared key, or a
+noncanonical table with duplicate declared keys, retain the exact rebuild
+fallback. Thus the fast path is logarithmic without weakening the invariant,
+while the fallback preserves the full existing semantics. -/
+def declaredKeyMapAfterUpsert (table : Table) (row : Row) : DeclaredKeyMap :=
+  if table.schema.hasHiddenRowid then
+    match table.rowTree.root.lookup row.treeKey with
+    | some previous =>
+        if previous.declaredKey table.schema = row.declaredKey table.schema then
+          if table.declaredKeyMap.get? (row.declaredKey table.schema) =
+              some previous then
+            table.declaredKeyMap.insert (row.declaredKey table.schema) row
+          else buildDeclaredKeyMap table.schema (orderedUpsert row table.rows)
+        else buildDeclaredKeyMap table.schema (orderedUpsert row table.rows)
+    | none => buildDeclaredKeyMap table.schema (orderedUpsert row table.rows)
   else ∅
 
-theorem declaredKeyMapAfterUpsert_eq (schema : Schema) (row : Row)
-    (tree : PersistentPageTree.Store Row) :
-    declaredKeyMapAfterUpsert schema row tree =
-      buildDeclaredKeyMap schema (orderedUpsert row (storedRows tree)) := by
-  unfold declaredKeyMapAfterUpsert buildDeclaredKeyMap
-  split <;> rfl
+theorem declaredKeyMapAfterUpsert_represents (table : Table) (row : Row) :
+    DeclaredKeyMapRepresents table.schema (orderedUpsert row table.rows)
+      (declaredKeyMapAfterUpsert table row) := by
+  unfold declaredKeyMapAfterUpsert
+  split
+  next hidden =>
+    cases found : table.rowTree.root.lookup row.treeKey with
+    | none => exact buildDeclaredKeyMap_represents table.schema _
+    | some previous =>
+      simp only
+      split
+      next sameKey =>
+        split
+        next owner =>
+          exact table.declaredKeyMap_replace_represents_orderedUpsert row
+            previous hidden found sameKey owner
+        next => exact buildDeclaredKeyMap_represents table.schema _
+      next => exact buildDeclaredKeyMap_represents table.schema _
+  next visible =>
+    intro hidden
+    contradiction
 
 def Table.upsert (table : Table) (row : Row)
     (valid : row.WellFormed table.schema) : Table :=
@@ -1168,12 +1314,10 @@ def Table.upsert (table : Table) (row : Row)
     rowTree := table.rowTree.insert row.treeKey row
     rowTreeWellKeyed := rowTreeWellKeyed_insert table.rowTree
       table.rowTreeWellKeyed row
-    declaredKeyMap := declaredKeyMapAfterUpsert table.schema row table.rowTree
+    declaredKeyMap := declaredKeyMapAfterUpsert table row
     declaredKeyMapRepresents := by
-      rw [declaredKeyMapAfterUpsert_eq,
-        storedRows_insert table.rowTree table.rowTreeWellKeyed row]
-      exact buildDeclaredKeyMap_represents table.schema
-        (orderedUpsert row table.rows)
+      rw [storedRows_insert table.rowTree table.rowTreeWellKeyed row]
+      exact declaredKeyMapAfterUpsert_represents table row
     rowsWellFormed := by
       rw [storedRows_insert table.rowTree table.rowTreeWellKeyed row]
       constructor

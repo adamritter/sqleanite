@@ -764,6 +764,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Table.findDeclaredPrimary?_exact
 #print axioms SQLeanite.Core.Table.nextGeneratedRowid?_greater
 #print axioms SQLeanite.Core.Table.declaredKeyMap_insert_represents_orderedUpsert
+#print axioms SQLeanite.Core.Table.declaredKeyMap_replace_represents_orderedUpsert
+#print axioms SQLeanite.Core.declaredKeyMapAfterUpsert_represents
 #print axioms SQLeanite.Core.Table.upsertGeneratedFresh_rows
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableIndexImageEq.ofDelta
 #print axioms SQLeanite.CoreLocalizedRepresentation.updateState?_indexImagesAligned
