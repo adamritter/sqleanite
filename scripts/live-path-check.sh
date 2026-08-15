@@ -671,6 +671,10 @@ fi
 
 if grep -q 'lookupGeneratedIndexCandidates' \
      SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'PageReadCache.create' SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'query (some cache)' SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'preadPageSourceCached paths.main count cache' \
+     SQLeanite/CoreFileAdapter.lean &&
    grep -q 'executeReadStatements? paths statementList' \
      SQLeanite/CoreLazyFileEngine.lean &&
    grep -q 'Core.Index.isImplicitPrimary schema' \
@@ -693,7 +697,7 @@ if grep -q 'lookupGeneratedIndexCandidates' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'implicitPrimaryIndexes_areImplicit' \
      SQLeanite/ProofAxioms.lean; then
-  ok "cold read batches and generated explicit/implicit indexes use exact page traversal"
+  ok "cold read batches cache raw pages and use exact generated-index traversal"
 else
   fail "the cold generated-index path detached from provenance or exactness"
 fi

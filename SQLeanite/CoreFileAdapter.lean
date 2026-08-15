@@ -832,6 +832,34 @@ private def preadPageSource (path : System.FilePath)
     if bytes.size = PhysicalCodec.pageSize then return some bytes.toList
     else return none }
 
+/-- A bounded batch-local cache for immutable routed reads.  It stores the
+exact page bytes returned by `preadPageSource`; decoder results and proof
+certificates are unchanged.  The bound prevents a long random-read workload
+from retaining one linked-list page per lookup. -/
+structure PageReadCache where
+  pages : IO.Ref (Std.HashMap Nat (List UInt8))
+  capacity : Nat
+
+def PageReadCache.create (capacity : Nat := 512) : BaseIO PageReadCache := do
+  return ⟨← IO.mkRef (Std.HashMap.emptyWithCapacity capacity), capacity⟩
+
+private def preadPageSourceCached (path : System.FilePath)
+    (pageCount : Nat) (cache : PageReadCache) : CoreDecode.IOPageSource :=
+  let source := preadPageSource path pageCount
+  { pageCount
+    readPage := fun pageNumber => do
+      let pages ← cache.pages.get
+      match pages.get? pageNumber with
+      | some page => return some page
+      | none =>
+          let result ← source.readPage pageNumber
+          match result with
+          | some page =>
+              if pages.size < cache.capacity then
+                cache.pages.set (pages.insert pageNumber page)
+              return some page
+          | none => return none }
+
 /-- Turn the semantic SQLite page size in a validated zero-reserved-byte
 header into the proof-carrying geometry consumed by the general decoder. -/
 def headerUsablePageSize? (header : FileFormat.DatabaseHeader) :
@@ -3252,7 +3280,8 @@ of `lookupIndexValueFrom_encodeIndex_exact` and
 the corresponding primary-tree paths are read; every returned rowid/value
 link is checked locally before it reaches SQL evaluation. -/
 def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
-    (schema : Core.Schema) (query : Core.Query) : IO (Option IndexLookup) := do
+    (schema : Core.Schema) (query : Core.Query)
+    (cache : Option PageReadCache := none) : IO (Option IndexLookup) := do
   let selected := match query.predicate with
     | some (.equal column target) =>
         some (column, IndexLookupTarget.equality target)
@@ -3280,7 +3309,9 @@ def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
     let some indexEntry := catalog.find? (generatedIndexEntryMatches schema
       tableName column columnSpec.name) | return none
     let reads ← IO.mkRef 0
-    let base := preadPageSource paths.main count
+    let base := match cache with
+      | some cache => preadPageSourceCached paths.main count cache
+      | none => preadPageSource paths.main count
     let source : CoreDecode.IOPageSource := {
       pageCount := count
       readPage := fun pageNumber => do

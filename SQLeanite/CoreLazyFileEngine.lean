@@ -50,7 +50,8 @@ private def coldQuery? (schema : Core.Schema) (select : Select) :
 
 /-- Execute one read-only SELECT entirely through certified page traversal.
 `none` is an optimization miss, never a partial result. -/
-private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
+private def executeSelect? (paths : CoreFileAdapter.Paths)
+    (cache : CoreFileAdapter.PageReadCache) (select : Select) :
     IO (Option Core.Result) := do
   if let some (leftName, rightName) := joinSourceNames? select then
     let some lookup ← CoreFileAdapter.lookupGeneratedPrimaryJoin paths
@@ -80,7 +81,7 @@ private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
         return some ({ rows := optimized.eval physicalRows } : Core.Result)
       else
         let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-            paths tableName schema query | return none
+            paths tableName schema query (some cache) | return none
         return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | some (.equal ..) | some (.compare ..) =>
       match query.predicate with
@@ -91,11 +92,11 @@ private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
             return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
           else
             let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-                paths tableName schema query | return none
+                paths tableName schema query (some cache) | return none
             return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
       | _ =>
           let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-              paths tableName schema query | return none
+              paths tableName schema query (some cache) | return none
           return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | none =>
       let some lookup ← CoreFileAdapter.lookupGeneratedOrderedPrefix paths
@@ -103,18 +104,21 @@ private def executeSelect? (paths : CoreFileAdapter.Paths) (select : Select) :
       return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | _ => return none
 
-private def executeReadStatementsGo? (paths : CoreFileAdapter.Paths) :
+private def executeReadStatementsGo? (paths : CoreFileAdapter.Paths)
+    (cache : CoreFileAdapter.PageReadCache) :
     List Statement → List Core.Result → IO (Option (List Core.Result))
   | [], reversed => pure (some reversed.reverse)
   | .select select :: statements, reversed => do
-      let some result ← executeSelect? paths select | return none
-      executeReadStatementsGo? paths statements (result :: reversed)
+      let some result ← executeSelect? paths cache select | return none
+      executeReadStatementsGo? paths cache statements (result :: reversed)
   | _, _ => pure none
 
 /-- Stack-safe execution of a page-directed read batch. -/
 private def executeReadStatements? (paths : CoreFileAdapter.Paths)
     (statements : List Statement) : IO (Option (List Core.Result)) :=
-  executeReadStatementsGo? paths statements []
+  do
+    let cache ← CoreFileAdapter.PageReadCache.create
+    executeReadStatementsGo? paths cache statements []
 
 /-- `some result` means the cold path handled the complete SQL input. `none`
 is an optimization miss and must be followed by ordinary execution.  A batch
