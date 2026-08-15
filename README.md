@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 53,176 lines in 71 library modules, 1,321
-theorems/lemmas, 454 explicitly audited headline theorems, and 149 executable
+At this snapshot it contains 74,769 lines in 85 library modules, 1,806
+theorems/lemmas, 818 explicitly audited headline theorems, and 151 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`.
 
@@ -26,8 +26,11 @@ remain precise. See [Trust and scope](docs/TRUST.md) before relying on a result.
 - live-path checks that tie the audited theorems to the shipped executable.
 
 The executable can read and write real SQLite-format files within its supported
-subset. Tables require exactly one `INTEGER PRIMARY KEY`; values include
-`NULL`, signed 64-bit `INTEGER`, bounded `TEXT`/`BLOB`, and finite `REAL`.
+subset. Tables require exactly one `INTEGER PRIMARY KEY` or `TEXT PRIMARY KEY`;
+the latter uses SQLite's hidden-rowid table plus implicit autoindex, including
+the literal VeriBetrKV/YCSB `usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT)`
+schema. Values include `NULL`, signed 64-bit `INTEGER`, bounded `TEXT`/`BLOB`,
+and finite `REAL`.
 Single-column indexes, transactions, common predicates, ordering, grouping,
 aggregates, and a bounded join subset are supported. Unsupported SQL is
 rejected instead of silently falling back to C SQLite.
@@ -89,10 +92,13 @@ SQLITE_SOURCE_DIR=/path/to/sqlite scripts/run-focused-upstream.sh select1 insert
 
 The verified Core text path now uses a proof-producing lexer and an independent
 token-to-AST grammar replay; its text-level semantic and durability theorems
-carry that certificate. The strongest remaining gaps are construction of the
-complete localized post-image representation certificate on every live write,
-an unconditional refinement from the real OS/filesystem to the modeled VFS,
-and complete SQLite SQL/file-format coverage. Proofs establish conditional
+carry that certificate. The strongest localized theorem now covers indexed
+mutations in multi-table inline databases, deriving exact post-state bytes and
+unchanged-table frames from the live prepared delta. Overflow-changing and
+freelist-changing cases use the separately verified bulk/padded path; unifying
+those cases under one localized theorem remains open. Other major gaps are an
+unconditional refinement from the real OS/filesystem to the modeled VFS and
+complete SQLite SQL/file-format coverage. Proofs establish conditional
 properties under the documented host contracts; they do not prove Linux,
 storage hardware, the Lean compiler/runtime, or the C syscall shim.
 

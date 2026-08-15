@@ -775,11 +775,15 @@ the independent replay witness. `CoreSQL.execute` consumes only this certified
 result, and all read, single/multi-row write, and multi-statement trace support
 relations now require `CoreTokenGrammar.Parses` rather than a bare parser
 equation. The complete ordinary localized witness is assembled by
-`OrdinaryLocalizedCommit.localizedRepresentation`; the remaining integration
-link is making every executable adapter preparation return that constructor
-directly rather than assembling equivalent component evidence at its caller.
-`CoreLocalizedRepresentation` proves the physical read-after-write layer used
-to discharge that remaining premise.  Every numbered page selected by
+`OrdinaryLocalizedCommit.localizedRepresentation`. For the common indexed,
+no-freelist, inline-row path,
+`executeText_committedLocalizedIndexedInlineTables_crash_atomic` starts at
+certified SQL text and the exact preparation/commit values returned by the live
+adapter, derives the complete multi-table post-image internally, and reaches
+old-or-new recovery plus the concrete POSIX request list. No caller-selected
+post-state encoder result or whole-image decoder equation remains in that
+theorem. `CoreLocalizedRepresentation` proves its physical read-after-write
+layer. Every numbered page selected by
 `CoreChunkPageDelta.writes` is present byte-for-byte in the resulting storage
 page source; pages omitted from a distinct write set are preserved from the
 old image.  A recursive table-decoder theorem consumes a mixed
@@ -809,9 +813,12 @@ these facts with old-image containment and read-after-write: applying the live
 table write list contains the exact complete post-tree encoding without a
 decode-and-compare check. Catalog metadata, exact promoted-index ownership,
 freelist padding, and inline ordinary indexed/indexless mutations now compose
-through `DatabaseOnSource`. Overflow-changing and changed-index live paths use
-their existing decomposed certificates; unifying those adapter return types is
-the remaining integration work.
+through `DatabaseOnSource`. `pageIds_disjoint_of_nodup` and
+`retainedTableOnFinalWritesIndexed` derive the unchanged-table frame from the
+allocator invariant, so the earlier one-table shortcut is no longer required.
+Overflow-changing and freelist-changing writes remain on their proved
+bulk/padded certificate paths; a single localized theorem covering those cases
+is still open.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer
