@@ -783,6 +783,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.base_mem
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.sources
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.added_disjoint_active
+#print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.added_disjoint_table_tree
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.active_after_catalog
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.free_after_catalog
 #print axioms SQLeanite.CoreChunkPageState.State.AllocationWellFormed.free_not_active

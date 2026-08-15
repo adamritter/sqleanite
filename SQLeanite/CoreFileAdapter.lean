@@ -521,6 +521,38 @@ theorem PreparedLocalizedWrites.added_disjoint_active
     rw [trunkEq] at freeNotActive
     exact freeNotActive active
 
+/-- The allocator-level frame theorem specializes to every numbered tree page
+in the strong physical representation. This is the form consumed when an
+ordinary table certificate is transported from the logical delta to the final
+header/freelist-augmented syscall write set. -/
+theorem PreparedLocalizedWrites.added_disjoint_table_tree
+    {state : CoreChunkPageState.State}
+    {baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites state.freePages baseWrites)
+    (allocation : state.AllocationWellFormed)
+    {source : CoreDecode.PageSource}
+    {table : CoreChunkPageState.TableState}
+    (tableMember : table ∈ state.tables)
+    (physical : CoreLocalizedRepresentation.TableOnSource source table)
+    {write : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (writeMember : write ∈ prepared.writes)
+    (notBase : write ∉ baseWrites)
+    {numbered : CorePageCodec.NumberedPage}
+    (pageMember : numbered ∈ physical.encoding.treePages) :
+    write.pageId + 1 ≠ numbered.pageNumber := by
+  have pageNumberMember : numbered.pageNumber ∈ table.tree.root.pageIds := by
+    rw [← CorePageCodec.encodeChunkNodeWithOverflow_pageNumbers
+      table.table.schema table.tree.root physical.nextOverflow
+        physical.encoding physical.encoded]
+    exact List.mem_map_of_mem pageMember
+  have active : numbered.pageNumber ∈ state.activePageIds := by
+    unfold CoreChunkPageState.State.activePageIds
+      CoreChunkPageState.tablePageIds
+    exact List.mem_flatMap.mpr ⟨table, tableMember, by
+      simpa [CoreChunkPageState.TableState.pageIds] using pageNumberMember⟩
+  exact prepared.added_disjoint_active allocation writeMember notBase
+    numbered.pageNumber active
+
 private def certifyLocalizedWrites?
     (current : Nat) (firstPage : List UInt8) (freePages : List Nat)
     (baseWrites : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
