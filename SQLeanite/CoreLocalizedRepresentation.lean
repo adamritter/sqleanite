@@ -1409,6 +1409,51 @@ theorem pageSourceContains_applyWrites
   · exact readPage_applyWrites_of_unchanged image writes numbered
       unchanged.1 unchanged.2.1 unchanged.2.2.1 unchanged.2.2.2
 
+/-- Transport an unchanged table certificate across a disjoint physical write
+set.  Every tree and overflow byte is read from the old image; the proof makes
+the noninterference condition explicit instead of relying on a whole-file
+decode after the write. -/
+def TableOnSource.applyWritesOfUntouched
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : writes.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    (state : CoreChunkPageState.TableState)
+    (physical : TableOnSource (CorePageSource.ofStorageImage image) state)
+    (treeBounds : ∀ numbered ∈ physical.encoding.treePages,
+      0 < numbered.pageNumber ∧ numbered.pageNumber ≤ image.pageCount)
+    (treeUntouched : ∀ numbered ∈ physical.encoding.treePages,
+      ∀ write ∈ writes, write.pageId + 1 ≠ numbered.pageNumber)
+    (overflowBounds : ∀ (offset : Nat)
+      (_inBounds : offset < physical.encoding.overflowPages.length),
+      0 < physical.nextOverflow + offset ∧
+        physical.nextOverflow + offset ≤ image.pageCount)
+    (overflowUntouched : ∀ (offset : Nat)
+      (_inBounds : offset < physical.encoding.overflowPages.length),
+      ∀ write ∈ writes,
+        write.pageId + 1 ≠ physical.nextOverflow + offset) :
+    TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image writes)) state := by
+  refine TableOnSource.transport
+    (newSource := CorePageSource.ofStorageImage
+      (GrowableStorage.applyWrites image writes)) physical (by
+        simpa only [CorePageSource.ofStorageImage_pageCount] using
+          CorePageSource.applyWrites_pageCount_ge image writes) ?_ ?_
+  · apply pageSourceContains_applyWrites image writes distinct
+      physical.encoding.treePages
+    intro numbered member
+    exact .inr ⟨(treeBounds numbered member).1,
+      (treeBounds numbered member).2, physical.treeContains numbered member,
+      treeUntouched numbered member⟩
+  · apply readsPagesFrom_applyWrites image writes distinct
+      physical.nextOverflow physical.encoding.overflowPages
+    intro offset inBounds
+    exact .inr ⟨(overflowBounds offset inBounds).1,
+      (overflowBounds offset inBounds).2,
+      physical.overflowContains offset inBounds,
+      overflowUntouched offset inBounds⟩
+
 private theorem numberedPage_eq_of_pageNumber_eq
     {pages : List CorePageCodec.NumberedPage}
     (unique : (pages.map CorePageCodec.NumberedPage.pageNumber).Nodup) :

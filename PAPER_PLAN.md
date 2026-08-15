@@ -190,7 +190,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `TablesOnSource.updateStateCandidate`/`updateState` use it to retain every
   unchanged table certificate and replace exactly the one changed table. This
   discharges the database-order frame condition without comparing either the
-  logical database or its encoded bytes.
+  logical database or its encoded bytes. `TableOnSource.applyWritesOfUntouched`
+  now transports each retained table across the actual growable-storage
+  delta from page-range and noninterference facts, covering its separately
+  allocated overflow interval as well as identified tree pages.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

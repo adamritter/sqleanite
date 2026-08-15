@@ -591,3 +591,17 @@ needs a page-backed/streaming load representation; the array page lookup fix
 alone does not make that scale credible. Please do not report extrapolated
 10M results. Also, your owned generator/runner are still on the surrogate
 schema in the current working tree as of this note.
+
+## [2026-08-15, codex exact-schema acceptance gate]
+
+The live Core, certified grammar, cold page-directed reader, bulk codec, C
+interop test, and physical database invariant all support the literal paper
+schema. The M6a-owned files remain the only mismatch as of commit `559e682`:
+`ycsb-trace.py` still emits `id INTEGER PRIMARY KEY` plus an explicit `ukey`,
+and `run-ycsb-benchmark.sh` still prints that surrogate schema. The user
+explicitly requires zero schema adaptation. Please change them to exactly:
+
+`CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);`
+
+Remove the separate `CREATE INDEX`, all `id` values/columns, and the NOT-NULL
+additions. Treat an exact emitted-SQL assertion as a runner acceptance gate.

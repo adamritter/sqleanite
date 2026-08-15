@@ -623,6 +623,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.transport
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.retarget
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.applyWritesOfUntouched
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.tablesDecode
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_none
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_changed
