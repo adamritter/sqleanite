@@ -155,6 +155,27 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
     | none => commitFull connection next
   else return next
 
+/-- Whether to attempt the certified index lookup for this table.
+
+`CoreFileAdapter.lookupCertifiedIndexCandidates` requires
+`stored.table.rows = table.rows`, a structural comparison of every row, so the
+attempt costs O(table) per query whether or not it succeeds. Measured marginal
+cost per read at 512-byte rows: 0.76 ms at 250 rows rising linearly to 8.64 ms at
+2000. The verified in-memory executor that runs when the attempt misses is
+strictly cheaper, so above this size the certified attempt is pure overhead --
+dropping the index outright made the same hundred reads run 116 ms instead of
+651 ms.
+
+**This is a stopgap with a named deletion condition.** Delete this function, and
+attempt the certified path unconditionally, once the certificate carries its own
+validity rather than re-deriving it: either the table holds its index
+certificate as proof-carrying state, or the lookup validates only the candidates
+it returns. Both make the check independent of table size, and neither is a
+heuristic. Until then a size gate is the honest choice, because the certified
+path as built cannot beat a scan at any size. -/
+private def certifiedLookupWorthAttempting (table : Core.Table) : Bool :=
+  table.rows.length ≤ 256
+
 private def executeStatement (connection : Connection) (state : Core.State)
     (statement : Statement) : IO (Except String (Core.State × List Core.Result)) := do
   match statement with
@@ -165,14 +186,16 @@ private def executeStatement (connection : Connection) (state : Core.State)
           | some table =>
               let optimized := CoreOptimizerBridge.optimize tableName query
               let certificates ← match table.chooseAccessPath optimized.predicate with
-                | .equalityIndex _ | .rangeIndex _ => do
-                    match ← connection.indexCertificates.get with
-                    | some retained => pure retained
-                    | none =>
-                        let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
-                          connection.paths state.database
-                        connection.indexCertificates.set (some loaded)
-                        pure loaded
+                | .equalityIndex _ | .rangeIndex _ =>
+                    if certifiedLookupWorthAttempting table then do
+                      match ← connection.indexCertificates.get with
+                      | some retained => pure retained
+                      | none =>
+                          let loaded ← CoreFileAdapter.loadIntegerIndexCertificates
+                            connection.paths state.database
+                          connection.indexCertificates.set (some loaded)
+                          pure loaded
+                    else pure []
                 | _ => pure ((← connection.indexCertificates.get).getD [])
               match CoreFileAdapter.lookupCertifiedIndexCandidates certificates
                   table optimized with
