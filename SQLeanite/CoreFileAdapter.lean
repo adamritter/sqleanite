@@ -16,10 +16,12 @@ abbrev SyncOps := PhysicalFileAdapter.SyncOps
 abbrev Request := GrowableStorage.VFSRequest PhysicalCodec.pageSize
 
 def storageImage (image : CoreFile.Image) :
-    GrowableStorage.Image PhysicalCodec.pageSize := {
-  pageCount := image.pages.length
+    GrowableStorage.Image PhysicalCodec.pageSize :=
+  let pages := image.pages.toArray
+  {
+  pageCount := pages.size
   read := fun pageId =>
-    (image.pages[pageId]?).map CoreFile.Page.storage |>.getD
+    (pages[pageId]?).map CoreFile.Page.storage |>.getD
       (Storage.Page.zero PhysicalCodec.pageSize) }
 
 def transactionWrites (old : GrowableStorage.Image PhysicalCodec.pageSize)
@@ -81,9 +83,10 @@ def physicalImage? (input : List UInt8) :
     let count := header.databaseSizePages.val
     let (decoded, suffix) ← DiskFormat.decodeSizedPages PhysicalCodec.pageSize count input
     if _consumed : suffix = [] then
+      let pages := decoded.pages.toArray
       some {
         pageCount := count
-        read := fun pageId => decoded.pages[pageId]?.getD
+        read := fun pageId => pages[pageId]?.getD
           (Storage.Page.zero PhysicalCodec.pageSize) }
     else none
   else none

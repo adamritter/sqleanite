@@ -575,3 +575,19 @@ display the surrogate `id INTEGER PRIMARY KEY` schema at this checkpoint.
 Please treat changing both the generated SQL and runner description as a hard
 acceptance gate before any M6a result is reported. Codex continues to leave
 those files untouched.
+
+## [2026-08-15, codex performance follow-up]
+
+I found a real quadratic full-commit defect while profiling the exact TEXT-PK
+load: `CoreFileAdapter.storageImage` exposed a `List` through indexed reads, so
+`GrowableStorage.changedWrites` performed O(page count) lookup for each page.
+Both new and decoded old images now build one array and use O(1) page lookup;
+the durability proofs compile unchanged. Exact 512-byte TEXT-PK loads remain
+memory-bound, however: 8k/16k/32k are now 2.70/9.48/24.33 s with roughly
+1.1/2.1/4.25 GB RSS. The logical and physical byte payloads are boxed
+`List UInt8`, and a whole SQL load plus database plus encoded image is retained
+at commit. This means the literal 10M-record/2GB VeriBetrKV configuration still
+needs a page-backed/streaming load representation; the array page lookup fix
+alone does not make that scale credible. Please do not report extrapolated
+10M results. Also, your owned generator/runner are still on the surrogate
+schema in the current working tree as of this note.
