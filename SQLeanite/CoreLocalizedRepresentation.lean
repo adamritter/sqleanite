@@ -1534,6 +1534,26 @@ theorem DatabaseOnSource.exists_table
       indexFilter, tables, indexes, metadata, separation⟩
   exact tables.exists_table
 
+/-- Any represented table supplies an in-bounds root page, hence the backing
+storage image is nonempty.  Localized header/catalog frame proofs use this
+instead of accepting positivity as a separate caller premise. -/
+theorem DatabaseOnSource.pageCount_pos_of_table
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    {state : CoreChunkPageState.State}
+    (physical : DatabaseOnSource (CorePageSource.ofStorageImage image) state)
+    (table : CoreChunkPageState.TableState) (member : table ∈ state.tables) :
+    0 < image.pageCount := by
+  let represented := Classical.choose (physical.exists_table table member)
+  have rootMember : table.tree.root.rootId ∈ table.tree.root.pageIds :=
+    PersistentPageTree.Node.rootId_mem_pageIds _
+  rw [← CorePageCodec.encodeChunkNodeWithOverflow_pageNumbers
+    table.table.schema table.tree.root represented.nextOverflow
+      represented.encoding represented.encoded] at rootMember
+  rcases List.mem_map.mp rootMember with
+    ⟨rootPage, rootPageMember, rootNumber⟩
+  have rootBound := represented.treeBounds image rootPage rootPageMember
+  omega
+
 theorem DatabaseOnSource.pageSourceRepresents
     {source : CoreDecode.PageSource}
     {state : CoreChunkPageState.State}

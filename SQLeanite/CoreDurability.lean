@@ -747,6 +747,87 @@ noncomputable def
       prepared.allocation prepared.updated indexed)
     beforeInline afterEncoding afterEncoded afterInline heightBound
 
+/-- Every write in the no-freelist indexed point-update plan targets an
+already existing page.  Base writes inherit the unchanged persistent page-ID
+set; the only possible framing addition is page zero. -/
+theorem
+    CoreFileAdapter.PreparedOrdinaryDelta.finalWrites_pageId_lt_of_indexed
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (final : CoreFileAdapter.PreparedLocalizedWrites delta.after.freePages
+      prepared.writes)
+    (noFree : delta.after.freePages = [])
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = []) :
+    ∀ write ∈ final.writes, write.pageId < oldImage.pageCount := by
+  let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  let before := Classical.choose
+    (physical.exists_table delta.table.before selected.1)
+  have beforeInline' : before.encoding.overflowPages = [] := by
+    simpa [before, selected] using beforeInline
+  have beforeTree := before.inlineEncoded beforeInline'
+  have afterEncoded' : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow = some afterEncoding := by
+    simpa [before, selected] using afterEncoded
+  have afterTree : CorePageCodec.encodeChunkNode
+      delta.table.after.table.schema delta.table.after.tree.root =
+        some afterEncoding.treePages :=
+    CorePageCodec.encodeChunkNodeWithOverflow_noOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      before.nextOverflow afterEncoding afterEncoded' afterInline
+  have sameIds := CoreChunkPageDelta.updateState?_selectedPageIds_of_indexed
+    prepared.updated indexed
+  have beforeNumbers := CorePageCodec.encodeChunkNode_pageNumbers
+    delta.table.before.table.schema delta.table.before.tree.root
+    before.encoding.treePages beforeTree
+  have oldPositive : 0 < oldImage.pageCount := by
+    have rootMember : delta.table.before.tree.root.rootId ∈
+        delta.table.before.tree.root.pageIds :=
+      PersistentPageTree.Node.rootId_mem_pageIds _
+    rw [← beforeNumbers] at rootMember
+    rcases List.mem_map.mp rootMember with
+      ⟨rootPage, rootPageMember, rootNumber⟩
+    have rootBound := before.treeBounds oldImage rootPage rootPageMember
+    omega
+  intro write writeMember
+  rcases final.sources write writeMember with base | pageZero | trunk
+  · rcases CoreChunkPageDelta.writes_sources_pages prepared.writesEq write base
+        with ⟨page, pageMember, pageNumber, pageBytes⟩
+    have selectedPage := CoreChunkPageDelta.updateState?_treePagesSelected
+      prepared.updated afterEncoding.treePages afterTree page pageMember
+    have afterId : page.pageNumber ∈
+        delta.table.after.tree.root.pageIds := by
+      rw [← CorePageCodec.encodeChunkNode_pageNumbers
+        delta.table.after.table.schema delta.table.after.tree.root
+          afterEncoding.treePages afterTree]
+      exact List.mem_map_of_mem selectedPage
+    rw [sameIds] at afterId
+    rw [← beforeNumbers] at afterId
+    rcases List.mem_map.mp afterId with
+      ⟨oldPage, oldPageMember, oldNumber⟩
+    have oldBound := before.treeBounds oldImage oldPage oldPageMember
+    omega
+  · rw [pageZero]
+    exact oldPositive
+  · rcases trunk with ⟨trunk, member, equal⟩
+    rw [noFree] at member
+    simp at member
+
 /-- Complete the table/index part of a one-table indexed commit over the
 planner's exact final write list.  The no-freelist premise is the ordinary
 point-update/YCSB case: every non-delta write is then page zero, whose page
@@ -834,6 +915,57 @@ noncomputable def
     final.writes final.distinct prepared.allocation prepared.updated
     catalogPreserved retained changed indexed prepared.writesEq addedBelow
     changedInline
+
+/-- Package the exact one-table indexed final-write proof as the public
+localized post-image certificate.  Page-zero omission transports the catalog
+directly; the supplied header fact is now the only remaining file-framing
+obligation outside the prepared table/index delta. -/
+noncomputable def
+    CoreFileAdapter.PreparedOrdinaryDelta.localizedOnFinalWritesIndexedSingle
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : state.tables = [delta.table.before])
+    (final : CoreFileAdapter.PreparedLocalizedWrites delta.after.freePages
+      prepared.writes)
+    (noFree : delta.after.freePages = [])
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (notWritten : ∀ write ∈ final.writes, 0 ≠ write.pageId)
+    (header : SQLiteHeaderMatches
+      (GrowableStorage.applyWrites oldImage final.writes))
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = []) :
+    LocalizedRepresentation oldImage final.writes delta.after.database := by
+  have selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
+  have positive := physical.pageCount_pos_of_table oldImage
+    delta.table.before selected.1
+  have catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites oldImage final.writes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog) := by
+    intro catalog decoded
+    exact catalogRead_of_unchangedPageZero oldImage final.writes positive
+      notWritten catalog decoded
+  have post :=
+    SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.databaseOnFinalWritesIndexedSingle
+      prepared indexed single final noFree oldImage physical catalogPreserved
+        beforeInline afterEncoding afterEncoded afterInline
+  exact localizedRepresentation_of_databaseOnSource oldImage final.writes
+    delta.after header post
 
 /-- The dependent object selected by the live ordinary-delta branch supplies
 all executable equations of `OrdinaryLocalizedCommit`.  The remaining

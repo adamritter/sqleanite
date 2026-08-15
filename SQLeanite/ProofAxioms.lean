@@ -274,6 +274,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RecursivePageBTree.encodeIndex_pages_length
 #print axioms SQLeanite.GrowableStorage.recover_makeJournal_apply_subset
 #print axioms SQLeanite.GrowableStorage.rollbackCommit_crash_atomic
+#print axioms SQLeanite.GrowableStorage.applyWrites_pageCount_eq_of_forall_lt
 #print axioms SQLeanite.GrowableStorage.rollbackCommit_committed_recovers_new
 #print axioms SQLeanite.GrowableStorage.crash_can_roll_back_growth
 #print axioms SQLeanite.PhysicalCodec.decodeValueField_recordField
@@ -657,6 +658,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.exists_tablesOnStorage_encodeBulk
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.pageSourceRepresents
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.exists_table
+#print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.pageCount_pos_of_table
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.restate
 #print axioms SQLeanite.CoreLocalizedRepresentation.DatabaseOnSource.updateState
@@ -811,7 +813,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommitSingle
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.finalWrites_pageId_lt_of_indexed
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.databaseOnFinalWritesIndexedSingle
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.localizedOnFinalWritesIndexedSingle
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.LocalizedLastIndexDelta.liveDeltaEquations
 #print axioms SQLeanite.CoreFileAdapter.CommittedLocalizedDelta.trace_eq
 #print axioms SQLeanite.CoreFileAdapter.PreparedLocalizedWrites.base_mem

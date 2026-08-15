@@ -60,6 +60,28 @@ def applyWrites (image : Image pageSize) (writes : List (PageWrite pageSize)) :
     Image pageSize :=
   writes.foldl Image.write image
 
+/-- A write set confined to existing page identifiers cannot grow the image.
+This is the page-count frame used by localized point updates: it lets the old
+SQLite header remain valid without reopening or decoding the whole file. -/
+theorem applyWrites_pageCount_eq_of_forall_lt
+    (image : Image pageSize) :
+    ∀ (writes : List (PageWrite pageSize)),
+      (∀ write ∈ writes, write.pageId < image.pageCount) →
+      (applyWrites image writes).pageCount = image.pageCount
+  | [], _ => rfl
+  | head :: tail, bounded => by
+      have headBound : head.pageId < image.pageCount :=
+        bounded head (by simp)
+      have headCount : (image.write head).pageCount = image.pageCount := by
+        simp only [Image.write]
+        omega
+      change (applyWrites (image.write head) tail).pageCount = image.pageCount
+      rw [applyWrites_pageCount_eq_of_forall_lt (image.write head) tail]
+      · exact headCount
+      · intro write member
+        rw [headCount]
+        exact bounded write (by simp [member])
+
 theorem applyWrites_read_of_not_written (image : Image pageSize)
     (writes : List (PageWrite pageSize)) (pageId : Nat)
     (notWritten : ∀ write ∈ writes, pageId ≠ write.pageId) :
