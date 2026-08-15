@@ -1832,6 +1832,29 @@ theorem updateStateCandidate?_endpoints
     exact ⟨rfl, rfl⟩
   next => contradiction
 
+/-- Expose the exact recursive table alignment retained inside a successful
+state delta.  This proof-only witness lets physical representation proofs
+transport unchanged tables in order and replace exactly the selected table. -/
+theorem updateStateCandidate?_alignment
+    {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateStateCandidate? state database = some delta) :
+    ∃ aligned : AlignedTables database.tables,
+      alignTables? state.nextPage state.tables database.tables = some aligned ∧
+      aligned.tables = delta.after.tables ∧
+      aligned.delta = some delta.table := by
+  unfold updateStateCandidate? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨aligned, alignedResult, updated⟩
+  rcases Option.bind_eq_some.mp updated with
+    ⟨table, tableResult, updated⟩
+  split at updated
+  next =>
+    injection updated with equal
+    subst delta
+    exact ⟨aligned, alignedResult, rfl, tableResult⟩
+  next => contradiction
+
 theorem updateStateCandidate?_treePagesAccounted
     {state : CoreChunkPageState.State}
     {database : Core.Database} {delta : StateDelta}
@@ -1911,6 +1934,23 @@ theorem updateState?_endpoints {state : CoreChunkPageState.State}
     injection updated with equal
     subst candidate
     exact updateStateCandidate?_endpoints candidateResult
+  next => contradiction
+
+theorem updateState?_alignment {state : CoreChunkPageState.State}
+    {database : Core.Database} {delta : StateDelta}
+    (updated : updateState? state database = some delta) :
+    ∃ aligned : AlignedTables database.tables,
+      alignTables? state.nextPage state.tables database.tables = some aligned ∧
+      aligned.tables = delta.after.tables ∧
+      aligned.delta = some delta.table := by
+  unfold updateState? at updated
+  rcases Option.bind_eq_some.mp updated with
+    ⟨candidate, candidateResult, updated⟩
+  split at updated
+  next =>
+    injection updated with equal
+    subst candidate
+    exact updateStateCandidate?_alignment candidateResult
   next => contradiction
 
 theorem updateState?_treePagesAccounted

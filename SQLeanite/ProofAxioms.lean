@@ -622,7 +622,14 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesDecode.mapM
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.decode
 #print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.transport
+#print axioms SQLeanite.CoreLocalizedRepresentation.TableOnSource.retarget
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.tablesDecode
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_none
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.alignTables_changed
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.updateStateCandidate
+#print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.updateState
+#print axioms SQLeanite.CoreChunkPageDelta.updateStateCandidate?_alignment
+#print axioms SQLeanite.CoreChunkPageDelta.updateState?_alignment
 #print axioms SQLeanite.CoreLocalizedRepresentation.TablesOnSource.ofEncodedTables
 #print axioms SQLeanite.CoreLocalizedRepresentation.exists_tablesOnSource_encodeBulk_in
 #print axioms SQLeanite.CoreDurability.exists_tablesOnStorage_encodeBulk

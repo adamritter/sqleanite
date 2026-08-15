@@ -185,7 +185,12 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `exists_databaseOnStorage_padded` proves the same strong invariant after a
   shrinking commit appends its verified freelist, while
   `DatabaseOnSource.restate` raises the live allocator watermark beyond all
-  physical pages without discarding any representation evidence.
+  physical pages without discarding any representation evidence. The live
+  table aligner now exposes an erased recursive alignment witness, and
+  `TablesOnSource.updateStateCandidate`/`updateState` use it to retain every
+  unchanged table certificate and replace exactly the one changed table. This
+  discharges the database-order frame condition without comparing either the
+  logical database or its encoded bytes.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
