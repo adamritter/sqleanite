@@ -642,6 +642,35 @@ theorem SQLiteHeaderMatches.applyWritesOfUnchangedPageZero
   · exact reserved
   · exact utf8
 
+/-- Empty-freelist framing is transported by the same page-zero frame as the
+ordinary header.  This lets a sequence of allocation-preserving point updates
+reuse the localized proof inductively instead of assuming an empty freelist at
+every step. -/
+theorem SQLiteHeaderMatches.FreelistEmpty.applyWritesOfUnchangedPageZero
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    (oldHeader : SQLiteHeaderMatches oldImage)
+    (empty : oldHeader.FreelistEmpty)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (positive : 0 < oldImage.pageCount)
+    (notWritten : ∀ write ∈ writes, 0 ≠ write.pageId)
+    (postHeader : SQLiteHeaderMatches
+      (GrowableStorage.applyWrites oldImage writes)) :
+    postHeader.FreelistEmpty := by
+  rcases oldHeader.firstPage_of_freelistEmpty empty positive with
+    ⟨header, pageSuffix, bytes, _, _, _, _, firstFree, freeCount⟩
+  let image := GrowableStorage.applyWrites oldImage writes
+  have imagePositive : 0 < image.pageCount := by
+    have growth := CorePageSource.applyWrites_pageCount_ge oldImage writes
+    simpa [image] using Nat.lt_of_lt_of_le positive growth
+  rcases imageBytes_eq_firstPage_append image imagePositive with
+    ⟨suffix, imageBytes⟩
+  have read : image.read 0 = oldImage.read 0 := by
+    exact GrowableStorage.applyWrites_read_of_not_written oldImage writes 0
+      notWritten
+  refine ⟨header, pageSuffix ++ suffix, ?_, firstFree, freeCount⟩
+  rw [imageBytes, read, bytes, List.append_assoc]
+  exact FileFormat.decodeDatabaseHeader_encode header (pageSuffix ++ suffix)
+
 /-- The same exact page-zero write supplies the catalog component without
 decoding or comparing the complete database. -/
 theorem catalogRead_of_pageZeroWrite

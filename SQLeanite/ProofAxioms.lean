@@ -73,6 +73,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.sqliteHeaderMatches_storageImage_encodeBulk_freelistEmpty
 #print axioms SQLeanite.CoreDurability.exists_framedDatabaseOnStorage_encodeBulk
 #print axioms SQLeanite.CoreDurability.SQLiteHeaderMatches.applyWritesOfUnchangedPageZero
+#print axioms SQLeanite.CoreDurability.SQLiteHeaderMatches.FreelistEmpty.applyWritesOfUnchangedPageZero
 #print axioms SQLeanite.PhysicalQuery.sqlEquals_real_zero
 #print axioms SQLeanite.PhysicalQuery.compareValue_eq_of_sqlEquals_true
 #print axioms SQLeanite.CoreOverflow.CellPlan.local_append_overflow
