@@ -195,6 +195,15 @@ else
   fail "SQL text boundary detached from write durability"
 fi
 
+if grep -q 'executeText_insertRows_commit_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'insertRows_eq_runCoreCommands' SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'executeWriteCommands_exact' SQLeanite/CoreSQLWriteText.lean; then
+  ok "multi-row SQL write text composes with crash-atomic SQLite bytes"
+else
+  fail "multi-row SQL write refinement is detached from the live executor"
+fi
+
 if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_count_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_sum_refines' SQLeanite/ProofAxioms.lean &&

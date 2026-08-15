@@ -86,6 +86,250 @@ inductive TranslatedWrite (state : Core.State) :
         (.updateWhere (CoreSQL.canonical table) updates predicate)
   | commit : TranslatedWrite state .commit .commit
 
+/-- Multi-row INSERT/REPLACE translates to the exact Core command trace run
+by the live recursive statement executor. -/
+inductive TranslatedInsertRows (state : Core.State) :
+    Statement → List CoreEndToEnd.WriteCommand → Prop where
+  | insert (table : String) (columns : Option (Array String))
+      (rows : Array (Array Expr)) (conflict : ConflictAction)
+      (allowed : conflict = .default ∨ conflict = .abort)
+      (stored : Core.Table) (values : List (List Core.Value))
+      (found : state.database.findTable? (CoreSQL.canonical table) =
+        some stored)
+      (translated : rows.toList.mapM
+        (CoreSQL.rowValues stored.schema columns) = .ok values) :
+      TranslatedInsertRows state (.insert table columns rows conflict)
+        (values.map fun row =>
+          .insert (CoreSQL.canonical table) row)
+  | replace (table : String) (columns : Option (Array String))
+      (rows : Array (Array Expr)) (stored : Core.Table)
+      (values : List (List Core.Value))
+      (found : state.database.findTable? (CoreSQL.canonical table) =
+        some stored)
+      (translated : rows.toList.mapM
+        (CoreSQL.rowValues stored.schema columns) = .ok values) :
+      TranslatedInsertRows state (.insert table columns rows .replace)
+        (values.map fun row =>
+          .replace (CoreSQL.canonical table) row)
+
+def executeWriteCommands (state : Core.State)
+    (commands : List CoreEndToEnd.WriteCommand) :
+    Except String (Core.State × List Core.Result) :=
+  CoreSQL.runCoreCommands state (commands.map (·.toCore))
+
+theorem map_toCore_inserts (table : String)
+    (values : List (List Core.Value)) :
+    (values.map fun row =>
+      CoreEndToEnd.WriteCommand.insert table row).map (·.toCore) =
+      values.map fun row => Core.Command.insert table row := by
+  induction values with
+  | nil => rfl
+  | cons value values induction =>
+      simp [induction, CoreEndToEnd.WriteCommand.toCore]
+
+theorem map_toCore_replaces (table : String)
+    (values : List (List Core.Value)) :
+    (values.map fun row =>
+      CoreEndToEnd.WriteCommand.replace table row).map (·.toCore) =
+      values.map fun row => Core.Command.replace table row := by
+  induction values with
+  | nil => rfl
+  | cons value values induction =>
+      simp [induction, CoreEndToEnd.WriteCommand.toCore]
+
+theorem map_comp_toCore_inserts (table : String)
+    (values : List (List Core.Value)) :
+    values.map ((fun command : CoreEndToEnd.WriteCommand => command.toCore) ∘
+      fun row => CoreEndToEnd.WriteCommand.insert table row) =
+      values.map fun row => Core.Command.insert table row := by
+  induction values with
+  | nil => rfl
+  | cons value values induction =>
+      simp [Function.comp_apply, CoreEndToEnd.WriteCommand.toCore, induction]
+
+theorem map_comp_toCore_replaces (table : String)
+    (values : List (List Core.Value)) :
+    values.map ((fun command : CoreEndToEnd.WriteCommand => command.toCore) ∘
+      fun row => CoreEndToEnd.WriteCommand.replace table row) =
+      values.map fun row => Core.Command.replace table row := by
+  induction values with
+  | nil => rfl
+  | cons value values induction =>
+      simp [Function.comp_apply, CoreEndToEnd.WriteCommand.toCore, induction]
+
+theorem executeStatement_insertRows_eq_core
+    {state : Core.State} {statement : Statement}
+    {commands : List CoreEndToEnd.WriteCommand}
+    (translated : TranslatedInsertRows state statement commands) :
+    CoreSQL.executeStatement state statement =
+      executeWriteCommands state commands := by
+  cases translated with
+  | insert table columns rows conflict allowed stored values found translation =>
+      rcases allowed with rfl | rfl <;>
+        simp [CoreSQL.executeStatement, found,
+          CoreSQL.insertRows_eq_runCoreCommands, translation,
+          executeWriteCommands, map_toCore_inserts, map_comp_toCore_inserts,
+          Except.instMonad, Except.bind, Except.pure, pure]
+  | replace table columns rows stored values found translation =>
+      simp [CoreSQL.executeStatement, found,
+        CoreSQL.insertRows_eq_runCoreCommands, translation,
+        executeWriteCommands, map_toCore_replaces, map_comp_toCore_replaces,
+        Except.instMonad, Except.bind, Except.pure, pure]
+
+/-- Command-by-command logical effects for a persisted write trace. -/
+inductive WriteTraceEffect : List CoreEndToEnd.WriteCommand → Core.State →
+    Core.State → List Core.Result → Prop where
+  | nil (state : Core.State) : WriteTraceEffect [] state state []
+  | cons {command : CoreEndToEnd.WriteCommand}
+      {commands : List CoreEndToEnd.WriteCommand}
+      {state middle next : Core.State} {result : Core.Result}
+      {results : List Core.Result}
+      (head : CoreEndToEnd.WriteEffect command state middle result)
+      (tail : WriteTraceEffect commands middle next results) :
+      WriteTraceEffect (command :: commands) state next (result :: results)
+
+theorem executeWriteCommands_exact :
+    ∀ (commands : List CoreEndToEnd.WriteCommand)
+      (state next : Core.State) (results : List Core.Result),
+      executeWriteCommands state commands = .ok (next, results) →
+      WriteTraceEffect commands state next results
+  | [], state, next, results, success => by
+      simp [executeWriteCommands, CoreSQL.runCoreCommands] at success
+      rcases success with ⟨rfl, rfl⟩
+      exact .nil state
+  | command :: commands, state, next, results, success => by
+      unfold executeWriteCommands at success
+      simp only [List.map_cons, CoreSQL.runCoreCommands] at success
+      cases headExecution : Core.execute state command.toCore with
+      | error message =>
+          simp [headExecution, Except.instMonad, Except.bind] at success
+      | ok headOutcome =>
+          rcases headOutcome with ⟨middle, result⟩
+          cases tailExecution : CoreSQL.runCoreCommands middle
+              (commands.map (·.toCore)) with
+          | error message =>
+              simp [headExecution, tailExecution, Except.instMonad,
+                Except.bind] at success
+          | ok tailOutcome =>
+              rcases tailOutcome with ⟨actualNext, actualResults⟩
+              simp [headExecution, tailExecution, Except.instMonad,
+                Except.bind, Except.pure, pure] at success
+              rcases success with ⟨rfl, rfl⟩
+              exact .cons (CoreEndToEnd.execute_write_exact command
+                headExecution) (executeWriteCommands_exact commands middle
+                  actualNext actualResults tailExecution)
+
+inductive SupportedInsertRowsText (state : Core.State) (text : String)
+    (commands : List CoreEndToEnd.WriteCommand) : Prop where
+  | intro (statement : Statement)
+      (parsed : parse text = .ok #[statement])
+      (translated : TranslatedInsertRows state statement commands) :
+      SupportedInsertRowsText state text commands
+
+theorem execute_insertRows_eq_core
+    {state : Core.State} {text : String}
+    {commands : List CoreEndToEnd.WriteCommand}
+    (supported : SupportedInsertRowsText state text commands) :
+    CoreSQL.execute state text = executeWriteCommands state commands := by
+  rcases supported with ⟨statement, parsed, translated⟩
+  simp only [CoreSQL.execute, parsed, Except.instMonad, Except.bind,
+    CoreSQL.runStatements]
+  rw [executeStatement_insertRows_eq_core translated]
+  cases execution : executeWriteCommands state commands <;>
+    simp [execution, Except.instMonad, Except.bind, Except.pure, pure]
+
+theorem insertRows_trace_success
+    {state next : Core.State} {text : String}
+    {commands : List CoreEndToEnd.WriteCommand} {results : List Core.Result}
+    (supported : SupportedInsertRowsText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results)) :
+    WriteTraceEffect commands state next results := by
+  exact executeWriteCommands_exact commands state next results
+    ((execute_insertRows_eq_core supported).symm.trans success)
+
+theorem executeText_insertRows_commit_crash_atomic
+    (text : String) (commands : List CoreEndToEnd.WriteCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedInsertRowsText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (newRepresents : CoreDurability.RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain recoveredJournal) :
+    WriteTraceEffect commands state next results ∧
+      (CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+          some state.database.canonicalize ∨
+        CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+          some next.database.canonicalize) := by
+  exact ⟨insertRows_trace_success supported success,
+    CoreDurability.rollbackWrites_represents_crash_atomic
+      state.database next.database oldImage writes oldRepresents newRepresents
+      phase recoveredMain recoveredJournal outcome⟩
+
+theorem executeText_insertRows_returned_recovers_new
+    (text : String) (commands : List CoreEndToEnd.WriteCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedInsertRowsText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (newRepresents : CoreDurability.RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes .committed)
+      recoveredMain recoveredJournal) :
+    WriteTraceEffect commands state next results ∧
+      CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some next.database.canonicalize := by
+  exact ⟨insertRows_trace_success supported success,
+    CoreDurability.rollbackWrites_represents_returned_recovers_new
+      next.database oldImage writes newRepresents recoveredMain
+      recoveredJournal outcome⟩
+
+theorem executeText_insertRows_recovery_crash_trace_atomic
+    (text : String) (commands : List CoreEndToEnd.WriteCommand)
+    (state next : Core.State) (results : List Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedInsertRowsText state text commands)
+    (success : CoreSQL.execute state text = .ok (next, results))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (newRepresents : CoreDurability.RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain finalMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : GrowableStorage.RecoveryCrashTrace journal
+      recoveredMain finalMain) :
+    WriteTraceEffect commands state next results ∧
+      (CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+          some state.database.canonicalize ∨
+        CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+          some next.database.canonicalize) := by
+  exact ⟨insertRows_trace_success supported success,
+    CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
+      state.database next.database oldImage writes oldRepresents newRepresents
+      phase recoveredMain finalMain journal outcome recoveryCrashes⟩
+
 theorem executeStatement_eq_core
     {state : Core.State} {statement : Statement}
     {command : CoreEndToEnd.WriteCommand}

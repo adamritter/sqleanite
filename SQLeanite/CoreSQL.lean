@@ -244,6 +244,59 @@ theorem insertRows_singleton (state : Core.State) (table : String)
       simp only [insertRows, translated, if_pos rfl, executeCommand,
         Except.instMonad, Except.bind, pure]
 
+/-- Execute a sequence of already translated Core commands, retaining the
+per-row result list used by SQL multi-row INSERT. -/
+def runCoreCommands : Core.State → List Core.Command →
+    Except String (Core.State × List Core.Result)
+  | state, [] => .ok (state, [])
+  | state, command :: commands => do
+      let (next, result) ← Core.execute state command
+      let (finalState, results) ← runCoreCommands next commands
+      return (finalState, result :: results)
+
+/-- The live recursive INSERT executor is exactly command-trace execution
+once every VALUES row has translated. -/
+theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
+    (schema : Core.Schema) (columns : Option (Array String))
+    (replacing : Bool) : ∀ (rows : List (Array Expr))
+      (values : List (List Core.Value)),
+      rows.mapM (rowValues schema columns) = .ok values →
+      insertRows state table schema columns replacing rows =
+        runCoreCommands state (values.map fun row =>
+          if replacing then .replace table row else .insert table row)
+  | [], values, translated => by
+      have empty : values = [] := by simpa using Except.ok.inj translated
+      subst values
+      rfl
+  | expressions :: rows, values, translated => by
+      cases head : rowValues schema columns expressions with
+      | error message =>
+          simp [List.mapM_cons, head, Except.instMonad, Except.bind,
+            Except.pure, pure] at translated
+      | ok value =>
+          cases tail : rows.mapM (rowValues schema columns) with
+          | error message =>
+              simp [List.mapM_cons, head, tail, Except.instMonad, Except.bind,
+                Except.pure, pure] at translated
+          | ok remaining =>
+              have valuesEqual : values = value :: remaining := by
+                simp [List.mapM_cons, head, tail, Except.instMonad,
+                  Except.bind, Except.pure, pure] at translated
+                exact translated.symm
+              subst values
+              simp only [insertRows, head, List.map_cons, runCoreCommands]
+              let command : Core.Command :=
+                if replacing then .replace table value else .insert table value
+              cases execution : Core.execute state command with
+              | error message =>
+                  simp [command, execution, Except.instMonad, Except.bind]
+              | ok outcome =>
+                  rcases outcome with ⟨next, result⟩
+                  have induction := insertRows_eq_runCoreCommands next table
+                    schema columns replacing rows remaining tail
+                  simp [command, execution, induction, Except.instMonad,
+                    Except.bind, Except.pure, pure]
+
 def updateAssignments (schema : Core.Schema) :
     List (String × Expr) → Except String (List (Nat × Core.Value))
   | [] => .ok []

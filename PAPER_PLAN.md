@@ -104,8 +104,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   independent bag/three-valued denotation from an actual SQL string.  The
   compound theorem retains both arm denotations, explicit empty-result width,
   and the duplicate-sensitive bag operator.  An independent token grammar
-  with lexer/parser correctness, arbitrarily nested compound chains,
-  multi-row INSERT, and statement-list traces remain open.
+  with lexer/parser correctness, arbitrarily nested compound chains, and
+  general statement-list traces remain open. Multi-row INSERT/REPLACE now
+  translates to the exact live recursive Core command trace; every row keeps
+  its command-specific logical effect, and the whole statement composes with
+  returned-commit and repeated-recovery crash theorems.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -145,11 +148,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   representation premise still depend on milestones 1 and 3; those links are
   not hidden as trusted assumptions.
 
-The latest three-run 2,000-row medians after the SQL-text read refinements are
-294/9/19/76/100/11 ms for bulk load, primary lookup, secondary lookup, bulk
+The latest three-run 2,000-row medians after multi-row write refinement are
+293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk
 UPDATE, bulk DELETE, and inner join respectively.  Every workload remains
-within the frozen non-regression budget; the proof-only additions add no
-runtime execution or validation pass.
+within the frozen non-regression budget and at or below 5x C SQLite by median;
+the proof additions add no runtime execution or validation pass.
 
 ## Milestone 1: verified SQL text front end
 
@@ -316,11 +319,29 @@ goals and the plan should not conflate them.
 
 ### The exact configuration VeriBetrKV used
 
-Taken from their OSDI'20 artifact
-(`secure-foundations/veribetrkv-osdi2020`,
-`src/veribetrkv-dynamic-frames/ycsb/*.spec`), not from the standard YCSB
-distribution. Their specs differ from stock YCSB in ways that matter, so copy
-theirs:
+Taken from their OSDI'20 artifact, not from the standard YCSB distribution.
+Their specs differ from stock YCSB in ways that matter, so copy theirs.
+
+Source: <https://github.com/secure-foundations/veribetrkv-osdi2020> (commit
+`053dd16`, "add source code"). A local read-only clone is kept outside this
+repository next to the other third-party reference code, at
+`../usefulreading/code/veribetrkv-osdi2020/`. It is deliberately not vendored
+here: it is 96 MB and 5,925 files of someone else's Dafny, Docker and YCSB-C
+source under their own licenses. The files that matter are
+
+- `docker-hdd/src/veribetrkv-dynamic-frames/ycsb/*.spec` -- the seventeen
+  workload specifications;
+- `.../ycsb/YcsbMain.cpp` -- the driver, including the separate load/run timing
+  and the HDR latency histograms;
+- `.../ycsb/wrappers/ycsbwrappers.cpp` -- key selection
+  (`NextSequenceKey`/`NextTransactionKey`);
+- `.../Makefile`, target `build/VeribetrfsYcsb.data` -- which specs the paper
+  actually runs;
+- `.../vendor/YCSB-C/` -- the zipfian and latest generators to port;
+- `run-experiments-in-docker-dynamic-frames.sh` -- the `--memory=2g` cap.
+
+If reproducibility later requires the specs to be in-tree, vendor only the
+`.spec` files with their upstream attribution; do not vendor the tree.
 
 | Spec | Name | read | update | scan | insert | RMW | distribution |
 |---|---|---:|---:|---:|---:|---:|---|

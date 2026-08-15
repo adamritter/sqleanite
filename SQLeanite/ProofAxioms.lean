@@ -464,6 +464,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLWriteText.executeText_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLWriteText.executeText_returned_recovers_new
 #print axioms SQLeanite.CoreSQLWriteText.executeText_recovery_crash_trace_atomic
+#print axioms SQLeanite.CoreSQL.insertRows_eq_runCoreCommands
+#print axioms SQLeanite.CoreSQLWriteText.executeStatement_insertRows_eq_core
+#print axioms SQLeanite.CoreSQLWriteText.executeWriteCommands_exact
+#print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_commit_crash_atomic
+#print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_returned_recovers_new
+#print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
 #print axioms SQLeanite.CoreSQLReadText.execute_eq_core
 #print axioms SQLeanite.CoreSQLReadText.executeSelectBase_eq_core
