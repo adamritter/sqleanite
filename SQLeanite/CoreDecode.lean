@@ -8920,15 +8920,40 @@ def decodeIndexCellIOFrom (source : IOPageSource) (fuel : Nat)
       | _ => return none
   | _ => return none
 
-def decodeIndexLeafIOFrom (source : IOPageSource) (page : List UInt8) :
-    IO (Option (List IndexEntry)) := do
+/-- A source used only for the inline fast path below.  Canonical packed cells
+which contain no overflow pointer never consult `readPage`; an overflow cell
+therefore fails closed and is retried by the general effectful decoder. -/
+private def inlineOnlyPageSource (pageCount : Nat) : PageSource := {
+  pageCount
+  readPage := fun _ => none }
+
+/-- General pointer-array leaf decoding retained as the compatibility and
+overflow fallback. -/
+private def decodeIndexLeafIOByPointersFrom (source : IOPageSource)
+    (page : List UInt8) : IO (Option (List IndexEntry)) := do
   let some offsets := leafIndexOffsetsFor? source.usable.val page | return none
   let entries ← offsets.mapM fun offset =>
     decodeIndexCellIOFrom source (source.pageCount + 1) (page.drop offset)
   return sequenceOptions entries
 
-def decodeIndexInteriorIOFrom (source : IOPageSource) (page : List UInt8) :
-    IO (Option (List (Nat × IndexEntry) × Nat)) := do
+def decodeIndexLeafIOFrom (source : IOPageSource) (page : List UInt8) :
+    IO (Option (List IndexEntry)) := do
+  if source.usable.val = PhysicalCodec.pageSize &&
+      canonicalIndexLeafPointersBeginAtContent page then
+    match canonicalIndexLeafContent? page with
+    | some (count, content) =>
+        match decodePackedIndexCellsFrom
+            (inlineOnlyPageSource source.pageCount) (source.pageCount + 1)
+            count content with
+        | some (entries, []) => return some entries
+        | _ => decodeIndexLeafIOByPointersFrom source page
+    | none => decodeIndexLeafIOByPointersFrom source page
+  else decodeIndexLeafIOByPointersFrom source page
+
+/-- General pointer-array interior decoding retained for foreign layouts and
+cells whose payload spills to overflow pages. -/
+private def decodeIndexInteriorIOByPointersFrom (source : IOPageSource)
+    (page : List UInt8) : IO (Option (List (Nat × IndexEntry) × Nat)) := do
   unless page.length = source.usable.val do return none
   let some (header, afterHeader) := decodeBTreePageHeader page | return none
   match header with
@@ -8944,6 +8969,20 @@ def decodeIndexInteriorIOFrom (source : IOPageSource) (page : List UInt8) :
         return some (child, key)
       return (sequenceOptions entries).map fun values => (values, rightmost.val)
   | _ => return none
+
+def decodeIndexInteriorIOFrom (source : IOPageSource) (page : List UInt8) :
+    IO (Option (List (Nat × IndexEntry) × Nat)) := do
+  if source.usable.val = PhysicalCodec.pageSize &&
+      canonicalIndexInteriorPointersBeginAtContent page then
+    match canonicalIndexInteriorContent? page with
+    | some (count, rightmost, content) =>
+        match decodePackedIndexInteriorCellsFrom
+            (inlineOnlyPageSource source.pageCount) (source.pageCount + 1)
+            count content with
+        | some (entries, []) => return some (entries, rightmost)
+        | _ => decodeIndexInteriorIOByPointersFrom source page
+    | none => decodeIndexInteriorIOByPointersFrom source page
+  else decodeIndexInteriorIOByPointersFrom source page
 
 def decodeIndexSubtreeIOFrom (source : IOPageSource) :
     Nat → Nat → IO (Option (List IndexEntry))
