@@ -388,6 +388,504 @@ def encodeChunkNode (schema : Core.Schema) :
       let rightPages ← encodeChunkNode schema right
       some (⟨pageId, page⟩ :: leftPages ++ middlePages ++ rightPages)
 
+/-! ## Physical page descriptors
+
+`PersistentPageTree.Page` deliberately describes the generic 2-3 tree.  A
+SQLite table interior cell additionally stores the greatest rowid reachable
+through its left child.  The descriptor below records exactly the inputs that
+determine one physical page, including that derived key.  It is therefore the
+right equality notion for selecting a byte-exact localized write set. -/
+
+inductive PhysicalChunkPage where
+  | leaf (pageNumber : Nat)
+      (entries : List (PagedBTree.Entry CoreChunkPageState.Chunk))
+  | branch2 (pageNumber leftPage : Nat) (leftKey : Option Nat)
+      (rightPage : Nat)
+  | branch3 (pageNumber leftPage : Nat) (leftKey : Option Nat)
+      (middlePage : Nat) (middleKey : Option Nat) (rightPage : Nat)
+  deriving DecidableEq
+
+def PhysicalChunkPage.pageNumber : PhysicalChunkPage → Nat
+  | .leaf pageNumber _ | .branch2 pageNumber .. | .branch3 pageNumber .. =>
+      pageNumber
+
+/-- Preorder physical descriptors retain the same stable page identities as
+the persistent tree while making byte-level dependencies explicit. -/
+def physicalChunkPages :
+    PersistentPageTree.Node CoreChunkPageState.Chunk →
+      List PhysicalChunkPage
+  | .leaf pageId entries => [.leaf pageId entries]
+  | .branch2 pageId left _ right =>
+      .branch2 pageId left.rootId (maximumChunkRowid? left) right.rootId ::
+        physicalChunkPages left ++ physicalChunkPages right
+  | .branch3 pageId left _ middle _ right =>
+      .branch3 pageId left.rootId (maximumChunkRowid? left) middle.rootId
+          (maximumChunkRowid? middle) right.rootId ::
+        physicalChunkPages left ++ physicalChunkPages middle ++
+          physicalChunkPages right
+
+/-- One-pass cache for the descriptor traversal.  The last logical entry is
+enough to derive a subtree's physical separator, so parent construction need
+not repeatedly flatten descendant rows. -/
+structure PhysicalChunkSummary where
+  pages : List PhysicalChunkPage
+  lastEntry? : Option (PagedBTree.Entry CoreChunkPageState.Chunk)
+
+def PhysicalChunkSummary.maximumRowid? (summary : PhysicalChunkSummary) :
+    Option Nat :=
+  summary.lastEntry?.bind fun entry =>
+    entry.2.getLast?.map (fun row => row.rowid.toUnsigned)
+
+def summarizePhysicalChunkPages :
+    PersistentPageTree.Node CoreChunkPageState.Chunk → PhysicalChunkSummary
+  | .leaf pageId entries => ⟨[.leaf pageId entries], entries.getLast?⟩
+  | .branch2 pageId left _ right =>
+      let leftSummary := summarizePhysicalChunkPages left
+      let rightSummary := summarizePhysicalChunkPages right
+      ⟨.branch2 pageId left.rootId leftSummary.maximumRowid? right.rootId ::
+          leftSummary.pages ++ rightSummary.pages,
+        rightSummary.lastEntry?.or leftSummary.lastEntry?⟩
+  | .branch3 pageId left _ middle _ right =>
+      let leftSummary := summarizePhysicalChunkPages left
+      let middleSummary := summarizePhysicalChunkPages middle
+      let rightSummary := summarizePhysicalChunkPages right
+      ⟨.branch3 pageId left.rootId leftSummary.maximumRowid? middle.rootId
+            middleSummary.maximumRowid? right.rootId ::
+          leftSummary.pages ++ middleSummary.pages ++ rightSummary.pages,
+        rightSummary.lastEntry?.or
+          (middleSummary.lastEntry?.or leftSummary.lastEntry?)⟩
+
+theorem summarizePhysicalChunkPages_lastEntry (node :
+    PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    (summarizePhysicalChunkPages node).lastEntry? =
+      node.erase.toList.getLast? := by
+  induction node with
+  | leaf pageId entries => rfl
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp [summarizePhysicalChunkPages, PersistentPageTree.Node.erase,
+        RecursiveBPlusTree.Node.toList, List.getLast?_append,
+        leftInduction, rightInduction]
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp [summarizePhysicalChunkPages, PersistentPageTree.Node.erase,
+        RecursiveBPlusTree.Node.toList, List.getLast?_append,
+        leftInduction, middleInduction, rightInduction, List.append_assoc,
+        Option.or_assoc]
+
+theorem summarizePhysicalChunkPages_maximum (node :
+    PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    (summarizePhysicalChunkPages node).maximumRowid? =
+      maximumChunkRowid? node := by
+  unfold PhysicalChunkSummary.maximumRowid? maximumChunkRowid?
+  rw [summarizePhysicalChunkPages_lastEntry]
+
+def physicalChunkPagesFast (node :
+    PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    List PhysicalChunkPage :=
+  (summarizePhysicalChunkPages node).pages
+
+/-- The cached traversal is extensionally the specification traversal. -/
+theorem physicalChunkPagesFast_eq (node :
+    PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    physicalChunkPagesFast node = physicalChunkPages node := by
+  induction node with
+  | leaf pageId entries => rfl
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      unfold physicalChunkPagesFast at leftInduction rightInduction
+      simp [physicalChunkPagesFast, summarizePhysicalChunkPages,
+        physicalChunkPages, summarizePhysicalChunkPages_maximum,
+        leftInduction, rightInduction]
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      unfold physicalChunkPagesFast at leftInduction middleInduction rightInduction
+      simp [physicalChunkPagesFast, summarizePhysicalChunkPages,
+        physicalChunkPages, summarizePhysicalChunkPages_maximum,
+        leftInduction, middleInduction, rightInduction, List.append_assoc]
+
+/-- Encode exactly one physical descriptor.  A missing derived separator is
+the same fail-closed condition as in the recursive encoder. -/
+def encodePhysicalChunkPage (schema : Core.Schema) :
+    PhysicalChunkPage → Option NumberedPage
+  | .leaf pageNumber entries => do
+      let page ← encodeChunkLeaf schema entries
+      some ⟨pageNumber, page⟩
+  | .branch2 pageNumber leftPage leftKey rightPage => do
+      let key ← leftKey
+      let page ← RecursivePageBTree.interiorPage?
+        [(leftPage, key)] rightPage
+      some ⟨pageNumber, page⟩
+  | .branch3 pageNumber leftPage leftKey middlePage middleKey rightPage => do
+      let first ← leftKey
+      let second ← middleKey
+      let page ← RecursivePageBTree.interiorPage?
+        [(leftPage, first), (middlePage, second)] rightPage
+      some ⟨pageNumber, page⟩
+
+@[simp] theorem encodePhysicalChunkPage_pageNumber
+    (schema : Core.Schema) (descriptor : PhysicalChunkPage)
+    (page : NumberedPage)
+    (encoded : encodePhysicalChunkPage schema descriptor = some page) :
+    page.pageNumber = descriptor.pageNumber := by
+  cases descriptor with
+  | leaf pageNumber entries =>
+      cases result : encodeChunkLeaf schema entries with
+      | none => simp [encodePhysicalChunkPage, result] at encoded
+      | some encodedPage =>
+        simp [encodePhysicalChunkPage, result] at encoded
+        subst page
+        rfl
+  | branch2 pageNumber leftPage leftKey rightPage =>
+      cases leftKey with
+      | none => simp [encodePhysicalChunkPage] at encoded
+      | some key =>
+        cases result : RecursivePageBTree.interiorPage?
+            [(leftPage, key)] rightPage with
+        | none => simp [encodePhysicalChunkPage, result] at encoded
+        | some encodedPage =>
+          simp [encodePhysicalChunkPage, result] at encoded
+          subst page
+          rfl
+  | branch3 pageNumber leftPage leftKey middlePage middleKey rightPage =>
+      cases leftKey with
+      | none => simp [encodePhysicalChunkPage] at encoded
+      | some first =>
+        cases middleKey with
+        | none => simp [encodePhysicalChunkPage] at encoded
+        | some second =>
+          cases result : RecursivePageBTree.interiorPage?
+              [(leftPage, first), (middlePage, second)] rightPage with
+          | none => simp [encodePhysicalChunkPage, result] at encoded
+          | some encodedPage =>
+            simp [encodePhysicalChunkPage, result] at encoded
+            subst page
+            rfl
+
+/-- The existing recursive encoder is precisely `mapM` over physical page
+descriptors.  This is a representation theorem, not a second implementation:
+all live encoding continues to use `encodeChunkNode`. -/
+theorem encodeChunkNode_eq_mapM (schema : Core.Schema)
+    (node : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    encodeChunkNode schema node =
+      (physicalChunkPages node).mapM (encodePhysicalChunkPage schema) := by
+  induction node with
+  | leaf pageId entries =>
+      cases result : encodeChunkLeaf schema entries <;>
+        simp [encodeChunkNode, physicalChunkPages, encodePhysicalChunkPage,
+          result]
+  | branch2 pageId left separator right leftInduction rightInduction =>
+      simp only [physicalChunkPages, List.mapM_cons, List.mapM_append,
+        encodePhysicalChunkPage, ← leftInduction, ← rightInduction]
+      cases keyResult : maximumChunkRowid? left with
+      | none => simp [encodeChunkNode, keyResult]
+      | some key =>
+        cases pageResult : RecursivePageBTree.interiorPage?
+            [(left.rootId, key)] right.rootId with
+        | none => simp [encodeChunkNode, keyResult, pageResult]
+        | some page =>
+          cases leftResult : encodeChunkNode schema left with
+          | none =>
+            simp [encodeChunkNode, keyResult, pageResult, leftResult]
+          | some leftPages =>
+            cases rightResult : encodeChunkNode schema right with
+            | none =>
+              simp [encodeChunkNode, keyResult, pageResult, leftResult,
+                rightResult]
+            | some rightPages =>
+              simp [encodeChunkNode, keyResult, pageResult, leftResult,
+                rightResult]
+  | branch3 pageId left firstSeparator middle secondSeparator right
+      leftInduction middleInduction rightInduction =>
+      simp only [physicalChunkPages, List.mapM_cons, List.mapM_append,
+        encodePhysicalChunkPage, ← leftInduction, ← middleInduction,
+        ← rightInduction]
+      cases leftKeyResult : maximumChunkRowid? left with
+      | none => simp [encodeChunkNode, leftKeyResult]
+      | some leftKey =>
+        cases middleKeyResult : maximumChunkRowid? middle with
+        | none => simp [encodeChunkNode, leftKeyResult, middleKeyResult]
+        | some middleKey =>
+          cases pageResult : RecursivePageBTree.interiorPage?
+              [(left.rootId, leftKey), (middle.rootId, middleKey)]
+              right.rootId with
+          | none =>
+            simp [encodeChunkNode, leftKeyResult, middleKeyResult, pageResult]
+          | some page =>
+            cases leftResult : encodeChunkNode schema left with
+            | none =>
+              simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                pageResult, leftResult]
+            | some leftPages =>
+              cases middleResult : encodeChunkNode schema middle with
+              | none =>
+                simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                  pageResult, leftResult, middleResult]
+              | some middlePages =>
+                cases rightResult : encodeChunkNode schema right with
+                | none =>
+                  simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                    pageResult, leftResult, middleResult, rightResult]
+                | some rightPages =>
+                  simp [encodeChunkNode, leftKeyResult, middleKeyResult,
+                    pageResult, leftResult, middleResult, rightResult,
+                    List.append_assoc]
+
+def findPhysicalChunkPage? (pageNumber : Nat)
+    (pages : List PhysicalChunkPage) : Option PhysicalChunkPage :=
+  pages.find? (fun page => page.pageNumber = pageNumber)
+
+/-- Byte-relevant dirty pages.  Unlike the generic persistent-tree delta,
+this comparison includes SQLite's derived interior keys. -/
+def changedPhysicalChunkPages
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    List PhysicalChunkPage :=
+  (physicalChunkPages after).filter fun page =>
+    findPhysicalChunkPage? page.pageNumber (physicalChunkPages before) !=
+      some page
+
+def physicalChunkPageSlotCount : List PhysicalChunkPage → Nat
+  | [] => 0
+  | page :: pages => max (page.pageNumber + 1)
+      (physicalChunkPageSlotCount pages)
+
+def fillPhysicalChunkPageSlots :
+    Array (Option PhysicalChunkPage) → List PhysicalChunkPage →
+      Array (Option PhysicalChunkPage)
+  | slots, [] => slots
+  | slots, page :: pages =>
+      let next := match slots[page.pageNumber]? with
+        | some none => slots.setIfInBounds page.pageNumber (some page)
+        | _ => slots
+      fillPhysicalChunkPageSlots next pages
+
+def physicalChunkPageSlots (pages : List PhysicalChunkPage) :
+    Array (Option PhysicalChunkPage) :=
+  fillPhysicalChunkPageSlots
+    (Array.replicate (physicalChunkPageSlotCount pages) none) pages
+
+def physicalChunkPageSlotLookup
+    (slots : Array (Option PhysicalChunkPage)) (pageNumber : Nat) :
+    Option PhysicalChunkPage :=
+  slots[pageNumber]?.join
+
+theorem physicalChunkPageNumber_lt_slotCount
+    {page : PhysicalChunkPage} {pages : List PhysicalChunkPage}
+    (member : page ∈ pages) :
+    page.pageNumber < physicalChunkPageSlotCount pages := by
+  induction pages with
+  | nil => simp at member
+  | cons head pages induction =>
+      simp only [List.mem_cons] at member
+      simp only [physicalChunkPageSlotCount]
+      rcases member with rfl | later
+      · omega
+      · have bound := induction later
+        omega
+
+@[simp] theorem fillPhysicalChunkPageSlots_size
+    (slots : Array (Option PhysicalChunkPage))
+    (pages : List PhysicalChunkPage) :
+    (fillPhysicalChunkPageSlots slots pages).size = slots.size := by
+  induction pages generalizing slots with
+  | nil => rfl
+  | cons page pages induction =>
+      unfold fillPhysicalChunkPageSlots
+      split <;> simp [induction]
+
+/-- Filling a bounded slot table implements first-match lookup.  The existing
+slot wins, otherwise the first page with that identity is installed. -/
+theorem fillPhysicalChunkPageSlots_lookup
+    (slots : Array (Option PhysicalChunkPage))
+    (pages : List PhysicalChunkPage)
+    (bounded : ∀ page ∈ pages, page.pageNumber < slots.size)
+    (pageNumber : Nat) :
+    physicalChunkPageSlotLookup
+        (fillPhysicalChunkPageSlots slots pages) pageNumber =
+      match physicalChunkPageSlotLookup slots pageNumber with
+      | some existing => some existing
+      | none => findPhysicalChunkPage? pageNumber pages := by
+  induction pages generalizing slots with
+  | nil =>
+      cases lookup : physicalChunkPageSlotLookup slots pageNumber <;>
+        simp [fillPhysicalChunkPageSlots, findPhysicalChunkPage?, lookup]
+  | cons page pages induction =>
+      have pageBound : page.pageNumber < slots.size :=
+        bounded page (by simp)
+      have tailBound : ∀ candidate ∈ pages,
+          candidate.pageNumber < slots.size := by
+        intro candidate member
+        exact bounded candidate (by simp [member])
+      unfold fillPhysicalChunkPageSlots
+      cases slotResult : slots[page.pageNumber]? with
+      | none => simp [pageBound] at slotResult
+      | some slot =>
+        cases slot with
+        | none =>
+          rw [induction]
+          · by_cases same : page.pageNumber = pageNumber
+            · subst pageNumber
+              simp [physicalChunkPageSlotLookup, slotResult, pageBound,
+                findPhysicalChunkPage?]
+            · simp [physicalChunkPageSlotLookup, slotResult, pageBound,
+                Array.getElem?_setIfInBounds_ne same,
+                findPhysicalChunkPage?, same]
+          · intro candidate member
+            simpa using tailBound candidate member
+        | some existing =>
+          rw [induction]
+          · by_cases same : page.pageNumber = pageNumber
+            · subst pageNumber
+              simp [physicalChunkPageSlotLookup, slotResult,
+                findPhysicalChunkPage?]
+            · simp [physicalChunkPageSlotLookup, slotResult,
+                findPhysicalChunkPage?, same]
+          · exact tailBound
+
+theorem physicalChunkPageSlots_lookup (pages : List PhysicalChunkPage)
+    (pageNumber : Nat) :
+    physicalChunkPageSlotLookup (physicalChunkPageSlots pages) pageNumber =
+      findPhysicalChunkPage? pageNumber pages := by
+  unfold physicalChunkPageSlots
+  rw [fillPhysicalChunkPageSlots_lookup]
+  · by_cases inBounds : pageNumber < physicalChunkPageSlotCount pages <;>
+      simp [physicalChunkPageSlotLookup, inBounds]
+  · intro page member
+    simpa using physicalChunkPageNumber_lt_slotCount member
+
+def changedPhysicalChunkPagesFast
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    List PhysicalChunkPage :=
+  let slots := physicalChunkPageSlots (physicalChunkPagesFast before)
+  (physicalChunkPagesFast after).filter fun page =>
+    physicalChunkPageSlotLookup slots page.pageNumber != some page
+
+theorem changedPhysicalChunkPagesFast_eq (before after :
+    PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    changedPhysicalChunkPagesFast before after =
+      changedPhysicalChunkPages before after := by
+  unfold changedPhysicalChunkPagesFast changedPhysicalChunkPages
+  rw [physicalChunkPagesFast_eq, physicalChunkPagesFast_eq]
+  apply List.filter_congr
+  intro page member
+  rw [physicalChunkPageSlots_lookup]
+
+def encodeChangedChunkPages (schema : Core.Schema)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk) :
+    Option (List NumberedPage) :=
+  (changedPhysicalChunkPages before after).mapM
+    (encodePhysicalChunkPage schema)
+
+theorem not_mem_changedPhysicalChunkPages
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (page : PhysicalChunkPage) (member : page ∈ physicalChunkPages after)
+    (unchanged : page ∉ changedPhysicalChunkPages before after) :
+    findPhysicalChunkPage? page.pageNumber (physicalChunkPages before) =
+      some page := by
+  unfold changedPhysicalChunkPages at unchanged
+  simp only [List.mem_filter, member, true_and, Bool.not_eq_true] at unchanged
+  simpa using unchanged
+
+/-- Every successful descriptor has its encoded page in a successful `mapM`
+result. -/
+theorem mapM_encodePhysicalChunkPage_input (schema : Core.Schema) :
+    ∀ {descriptors : List PhysicalChunkPage} {pages : List NumberedPage},
+      descriptors.mapM (encodePhysicalChunkPage schema) = some pages →
+      ∀ descriptor ∈ descriptors,
+        ∃ page ∈ pages,
+          encodePhysicalChunkPage schema descriptor = some page
+  | [], pages, encoded => by
+      simp only [List.mapM_nil, pure, Option.pure_def,
+        Option.some.injEq] at encoded
+      subst pages
+      simp
+  | descriptor :: descriptors, pages, encoded => by
+      simp only [List.mapM_cons] at encoded
+      cases headResult : encodePhysicalChunkPage schema descriptor with
+      | none => simp [headResult] at encoded
+      | some head =>
+        simp only [headResult, Option.bind_eq_bind, Option.bind] at encoded
+        cases tailResult : descriptors.mapM
+            (encodePhysicalChunkPage schema) with
+        | none => simp [tailResult] at encoded
+        | some tail =>
+          simp only [tailResult, Option.some.injEq] at encoded
+          simp only [pure, Option.pure_def, Option.some.injEq] at encoded
+          subst pages
+          intro candidate member
+          simp only [List.mem_cons] at member
+          rcases member with rfl | later
+          · exact ⟨head, by simp, headResult⟩
+          · rcases mapM_encodePhysicalChunkPage_input schema tailResult
+                candidate later with ⟨page, pageMember, pageResult⟩
+            exact ⟨page, by simp [pageMember], pageResult⟩
+
+/-- Conversely, every page in a successful `mapM` result comes from one
+physical descriptor. -/
+theorem mapM_encodePhysicalChunkPage_output (schema : Core.Schema) :
+    ∀ {descriptors : List PhysicalChunkPage} {pages : List NumberedPage},
+      descriptors.mapM (encodePhysicalChunkPage schema) = some pages →
+      ∀ page ∈ pages,
+        ∃ descriptor ∈ descriptors,
+          encodePhysicalChunkPage schema descriptor = some page
+  | [], pages, encoded => by
+      simp only [List.mapM_nil, pure, Option.pure_def,
+        Option.some.injEq] at encoded
+      subst pages
+      simp
+  | descriptor :: descriptors, pages, encoded => by
+      simp only [List.mapM_cons] at encoded
+      cases headResult : encodePhysicalChunkPage schema descriptor with
+      | none => simp [headResult] at encoded
+      | some head =>
+        simp only [headResult, Option.bind_eq_bind, Option.bind] at encoded
+        cases tailResult : descriptors.mapM
+            (encodePhysicalChunkPage schema) with
+        | none => simp [tailResult] at encoded
+        | some tail =>
+          simp only [tailResult, Option.some.injEq] at encoded
+          simp only [pure, Option.pure_def, Option.some.injEq] at encoded
+          subst pages
+          intro candidate member
+          simp only [List.mem_cons] at member
+          rcases member with rfl | later
+          · exact ⟨descriptor, by simp, headResult⟩
+          · rcases mapM_encodePhysicalChunkPage_output schema tailResult
+                candidate later with ⟨source, sourceMember, sourceResult⟩
+            exact ⟨source, by simp [sourceMember], sourceResult⟩
+
+/-- A byte-exact changed-page encoding accounts for every page in the full
+post-state: selected pages occur in the delta, and every omitted page occurs
+byte-for-byte in the full pre-state encoding. -/
+theorem encodeChangedChunkPages_accounts (schema : Core.Schema)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (beforePages afterPages changedPages : List NumberedPage)
+    (beforeEncoded : encodeChunkNode schema before = some beforePages)
+    (afterEncoded : encodeChunkNode schema after = some afterPages)
+    (changedEncoded : encodeChangedChunkPages schema before after =
+      some changedPages) :
+    ∀ page ∈ afterPages, page ∈ changedPages ∨ page ∈ beforePages := by
+  rw [encodeChunkNode_eq_mapM] at beforeEncoded afterEncoded
+  unfold encodeChangedChunkPages at changedEncoded
+  intro page pageMember
+  rcases mapM_encodePhysicalChunkPage_output schema afterEncoded page
+      pageMember with ⟨descriptor, descriptorMember, descriptorEncoded⟩
+  by_cases changed : descriptor ∈ changedPhysicalChunkPages before after
+  · left
+    rcases mapM_encodePhysicalChunkPage_input schema changedEncoded descriptor
+        changed with ⟨selected, selectedMember, selectedEncoded⟩
+    have equal : selected = page := Option.some.inj
+      (selectedEncoded.symm.trans descriptorEncoded)
+    simpa [equal] using selectedMember
+  · right
+    have found := not_mem_changedPhysicalChunkPages before after descriptor
+      descriptorMember changed
+    have oldMember : descriptor ∈ physicalChunkPages before :=
+      List.mem_of_find?_eq_some found
+    rcases mapM_encodePhysicalChunkPage_input schema beforeEncoded descriptor
+        oldMember with ⟨old, oldMember, oldEncoded⟩
+    have equal : old = page := Option.some.inj
+      (oldEncoded.symm.trans descriptorEncoded)
+    simpa [equal] using oldMember
+
 theorem encodeChunkNode_pageNumbers (schema : Core.Schema)
     (node : PersistentPageTree.Node CoreChunkPageState.Chunk)
     (pages : List NumberedPage)

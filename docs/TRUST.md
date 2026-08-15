@@ -760,10 +760,17 @@ to discharge that remaining premise.  Every numbered page selected by
 page source; pages omitted from a distinct write set are preserved from the
 old image.  A recursive table-decoder theorem consumes a mixed
 changed/unchanged containment certificate (including overflow pages) and
-returns exactly the proof-carrying logical table.  The still-open theorem is
-that the live persistent-tree changed-page selector supplies this accounting
-certificate for the complete post-state, followed by catalog and changed-index
-composition.
+returns exactly the proof-carrying logical table.  `PhysicalChunkPage` records
+the derived SQLite separator that the generic tree page intentionally omits;
+`encodeChunkNode_eq_mapM` proves these are exactly the existing encoder inputs,
+and `encodeChangedChunkPages_accounts` partitions every post-state page into an
+exact write or an exact pre-state page.  The live one-pass cached selector is
+proved extensionally equal to that specification and avoids a quadratic scan.
+For point mutations, `encodeChunkPath_subset_encodeChunkNode` proves that every
+selected path page is an exact post-state page.  The still-open table theorem
+is the converse off-path preservation result for those point mutations and
+composition across every `TableDelta` constructor, followed by catalog and
+changed-index composition.
 `decode_encodeBulk` then proves the public byte decoder returns the canonical
 database. `decode_encodeChecked` exposes logical equivalence for adapter
 callers. No theorem relies on executing a decoder and comparing its answer

@@ -97,9 +97,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   localized proof now has a component-wise representation invariant, exact
   storage-image read-after-write lemmas, a recursive validating-open
   refinement, and direct table-decoder refinement from mixed changed/unchanged
-  pages.  Proving that the live persistent-tree changed-page selector accounts
-  for every page of the post-state is the remaining table-local obligation;
-  catalog and changed-index composition follow it.
+  pages.  A byte-relevant physical page descriptor records derived SQLite
+  separators; its changed-page encoder accounts for every complete post-state
+  tree page, and the live cached selector is proved equal to that specification.
+  Root-to-leaf point writes are proved to contain only post-state pages.  The
+  remaining table-local obligation is complementary off-path preservation for
+  point writes and constructor-level composition; catalog and changed-index
+  composition follow it.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact

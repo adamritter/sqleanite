@@ -123,27 +123,10 @@ write set remains logarithmic even though this proof-oriented collector walks
 the in-memory tree to locate them. -/
 def encodeChunkNodesWithIds (schema : Core.Schema) (ids : List Nat) :
     PersistentPageTree.Node CoreChunkPageState.Chunk →
-      Option (List CorePageCodec.NumberedPage)
-  | node@(.leaf pageId _) => do
-      if ids.contains pageId then
-        let page ← CorePageCodec.encodeChunkRoot schema node
-        some [page]
-      else some []
-  | node@(.branch2 pageId left _ right) => do
-      let root ← if ids.contains pageId then
-        CorePageCodec.encodeChunkRoot schema node |>.map (fun page => [page])
-      else some []
-      let leftPages ← encodeChunkNodesWithIds schema ids left
-      let rightPages ← encodeChunkNodesWithIds schema ids right
-      some (root ++ leftPages ++ rightPages)
-  | node@(.branch3 pageId left _ middle _ right) => do
-      let root ← if ids.contains pageId then
-        CorePageCodec.encodeChunkRoot schema node |>.map (fun page => [page])
-      else some []
-      let leftPages ← encodeChunkNodesWithIds schema ids left
-      let middlePages ← encodeChunkNodesWithIds schema ids middle
-      let rightPages ← encodeChunkNodesWithIds schema ids right
-      some (root ++ leftPages ++ middlePages ++ rightPages)
+      Option (List CorePageCodec.NumberedPage) := fun node =>
+  ((CorePageCodec.physicalChunkPagesFast node).filter fun page =>
+      ids.contains page.pageNumber).mapM
+    (CorePageCodec.encodePhysicalChunkPage schema)
 
 def replace? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     (row : Core.Row) (replacement : Core.Table) : Option TableDelta := do
@@ -219,13 +202,15 @@ def splitInsert? (state : CoreChunkPageState.TableState) (nextPage : Nat)
         (allocatedTree, deleted.2)
       let updatedTree := reused.1
       if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-        let changedIds := (PersistentPageTree.changedPages state.tree.root
-          updatedTree.root).map PersistentPageTree.Page.pageId
+        let changedPhysical := CorePageCodec.changedPhysicalChunkPagesFast
+          state.tree.root updatedTree.root
+        let changedIds := changedPhysical.map
+          CorePageCodec.PhysicalChunkPage.pageNumber
         let beforeIds := changedIds ++ deleted.2
         let beforePages ← encodeChunkNodesWithIds state.table.schema beforeIds
           state.tree.root
-        let pages ← encodeChunkNodesWithIds replacement.schema changedIds
-          updatedTree.root
+        let pages ← changedPhysical.mapM
+          (CorePageCodec.encodePhysicalChunkPage replacement.schema)
         let after : CoreChunkPageState.TableState :=
           ⟨replacement, updatedTree, represents⟩
         some ⟨state, after, entry.1, pages, some beforePages, reused.2⟩
@@ -272,13 +257,15 @@ def mergeDelete? (state : CoreChunkPageState.TableState) (nextPage : Nat)
         -- before/after page difference so every changed sibling is written,
         -- and include every absorbed page in the preimage set used by the
         -- rollback journal.
-        let changedIds := (PersistentPageTree.changedPages state.tree.root
-          updatedTree.root).map PersistentPageTree.Page.pageId
+        let changedPhysical := CorePageCodec.changedPhysicalChunkPagesFast
+          state.tree.root updatedTree.root
+        let changedIds := changedPhysical.map
+          CorePageCodec.PhysicalChunkPage.pageNumber
         let beforeIds := changedIds ++ deleted.2
         let beforePages ← encodeChunkNodesWithIds state.table.schema beforeIds
           state.tree.root
-        let pages ← encodeChunkNodesWithIds replacement.schema changedIds
-          updatedTree.root
+        let pages ← changedPhysical.mapM
+          (CorePageCodec.encodePhysicalChunkPage replacement.schema)
         let after : CoreChunkPageState.TableState :=
           ⟨replacement, updatedTree, represents⟩
         some ⟨state, after, entry.1, pages, some beforePages, deleted.2⟩
@@ -316,6 +303,9 @@ def replaceMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
     let updatedTree := updated.1
     if _noAllocation : updatedTree.nextPage = nextPage then
       if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
+        -- Rowids and topology are fixed on the bulk-update path, so generic
+        -- stable-page equality is already byte-complete and avoids computing
+        -- derived separators that cannot change.
         let changedIds := (PersistentPageTree.changedPages state.tree.root
           updatedTree.root).map PersistentPageTree.Page.pageId
         let beforePages ← encodeChunkNodesWithIds state.table.schema changedIds
@@ -394,13 +384,15 @@ def retainMany? (state : CoreChunkPageState.TableState) (nextPage : Nat)
   if _consumed : updated.2.1 = [] then
     let updatedTree := updated.1
     if represents : CoreChunkPageState.Store.rows updatedTree = replacement.rows then
-      let changedIds := (PersistentPageTree.changedPages state.tree.root
-        updatedTree.root).map PersistentPageTree.Page.pageId
+      let changedPhysical := CorePageCodec.changedPhysicalChunkPagesFast
+        state.tree.root updatedTree.root
+      let changedIds := changedPhysical.map
+        CorePageCodec.PhysicalChunkPage.pageNumber
       let beforeIds := changedIds ++ updated.2.2
       let beforePages ← encodeChunkNodesWithIds state.table.schema beforeIds
         state.tree.root
-      let pages ← encodeChunkNodesWithIds replacement.schema changedIds
-        updatedTree.root
+      let pages ← changedPhysical.mapM
+        (CorePageCodec.encodePhysicalChunkPage replacement.schema)
       let after : CoreChunkPageState.TableState :=
         ⟨replacement, updatedTree, represents⟩
       some ⟨state, after, row.treeKey, pages, some beforePages,
