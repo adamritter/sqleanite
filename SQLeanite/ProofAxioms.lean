@@ -128,6 +128,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.QuerySemantics.projectionElimination_strict_on_nonempty_rows
 #print axioms SQLeanite.QuerySemantics.constantFolding_cost_le
 #print axioms SQLeanite.QuerySemantics.rewriteRoot_cost_le
+#print axioms SQLeanite.QuerySemantics.optimizePlan_cost_le
 #print axioms SQLeanite.QuerySemantics.filterFusion_not_unconditionally_cost_safe
 #print axioms SQLeanite.CoreOptimizerBridge.toSemantics_eval
 #print axioms SQLeanite.CoreOptimizerBridge.optimize_eval

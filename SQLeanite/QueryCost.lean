@@ -42,6 +42,15 @@ theorem Cost.LE.trans {first second third : Cost}
     Nat.le_trans left.2.1 right.2.1,
     Nat.le_trans left.2.2 right.2.2⟩
 
+theorem Cost.add_le_add {leftA leftB rightA rightB : Cost}
+    (left : leftA.LE leftB) (right : rightA.LE rightB) :
+    (leftA + rightA).LE (leftB + rightB) := by
+  rcases left with ⟨leftVisits, leftComparisons, leftMaterializations⟩
+  rcases right with ⟨rightVisits, rightComparisons, rightMaterializations⟩
+  exact ⟨Nat.add_le_add leftVisits rightVisits,
+    Nat.add_le_add leftComparisons rightComparisons,
+    Nat.add_le_add leftMaterializations rightMaterializations⟩
+
 theorem Cost.total_le {left right : Cost} (bounded : left.LE right) :
     left.total ≤ right.total := by
   unfold Cost.total
@@ -266,6 +275,47 @@ theorem rewriteRoot_cost_le (database : Core.Database) (plan : Plan) :
   unfold rewriteRoot
   exact (projectionElimination_cost_le database (constantFolding plan)).trans
     (constantFolding_cost_le database plan)
+
+private theorem profile_optimize_rows (database : Core.Database) (plan : Plan) :
+    (profile database (optimizePlan plan)).rows = (profile database plan).rows := by
+  rw [profile_rows, optimizePlan_eval, profile_rows]
+
+/-- The complete bottom-up optimizer, not only one root rewrite, is
+componentwise cost non-increasing.  The proof uses semantic equality of each
+optimized child to keep the surrounding operator's cardinality-dependent
+charges identical. -/
+theorem optimizePlan_cost_le (database : Core.Database) (plan : Plan) :
+    (cost database (optimizePlan plan)).LE (cost database plan) := by
+  induction plan with
+  | table | rows => exact Cost.LE.refl _
+  | unionAll left right leftIH rightIH |
+    intersectAll left right leftIH rightIH |
+    exceptAll left right leftIH rightIH |
+    innerJoin left right leftIH rightIH |
+    leftOuterJoin left right leftIH rightIH =>
+      apply (rewriteRoot_cost_le database _).trans
+      have leftRows := profile_optimize_rows database left
+      have rightRows := profile_optimize_rows database right
+      simp only [cost, profile, leftRows, rightRows]
+      exact Cost.add_le_add (Cost.add_le_add leftIH rightIH)
+        (Cost.LE.refl _)
+  | distinct input inputIH |
+    filter _ input inputIH |
+    project _ input inputIH |
+    groupCount _ input inputIH |
+    groupSum _ _ input inputIH =>
+      apply (rewriteRoot_cost_le database _).trans
+      have inputRows := profile_optimize_rows database input
+      simp only [cost, profile, inputRows, filterCost]
+      exact Cost.add_le_add inputIH (Cost.LE.refl _)
+  | leftOuterOn _ left right leftIH rightIH |
+    leftOuterOnWith _ _ left right leftIH rightIH =>
+      apply (rewriteRoot_cost_le database _).trans
+      have leftRows := profile_optimize_rows database left
+      have rightRows := profile_optimize_rows database right
+      simp only [cost, profile, leftRows, rightRows]
+      exact Cost.add_le_add (Cost.add_le_add leftIH rightIH)
+        (Cost.LE.refl _)
 
 /-- Exact condition for filter fusion under this strict predicate evaluator.
 Fusion saves one list traversal over rows passing the inner filter, but it also

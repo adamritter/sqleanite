@@ -367,6 +367,7 @@ if grep -q 'def rewriteRoot (plan : Plan)' SQLeanite/Optimizer.lean &&
    grep -q 'projectionElimination (constantFolding plan)' \
      SQLeanite/Optimizer.lean &&
    grep -q 'rewriteRoot_cost_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'optimizePlan_cost_le' SQLeanite/ProofAxioms.lean &&
    grep -q 'filterFusion_not_unconditionally_cost_safe' \
      SQLeanite/ProofAxioms.lean; then
   ok "live optimizer root is restricted to proved cost-safe rewrites"
