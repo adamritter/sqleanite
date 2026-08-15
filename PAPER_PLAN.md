@@ -319,6 +319,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `TEXT PRIMARY KEY` layout and its 512-byte field without replacing it by an
   integer surrogate; genuinely large records retain the separately verified
   bulk/overflow path.
+  The converse bridge, `encodeChunkNodeWithOverflow_of_inline`, now derives
+  the complete overflow-aware encoding directly from the live localized
+  tree-encoder equation. The strongest public theorem,
+  `executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic`,
+  therefore has neither a caller-selected general encoding nor a raw
+  no-overflow premise; it consumes the bytes the localized writer actually
+  encoded.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk
