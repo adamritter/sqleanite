@@ -37,6 +37,7 @@ import SQLeanite.RelationalAlgebra
 import SQLeanite.Optimizer
 import SQLeanite.QueryCost
 import SQLeanite.CoreOptimizerBridge
+import SQLeanite.CoreReadSemantics
 import SQLeanite.Durability
 import SQLeanite.SerializedConnection
 import SQLeanite.WALConnection

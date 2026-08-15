@@ -375,6 +375,18 @@ else
   fail "live optimizer selected a rewrite without its logical cost certificate"
 fi
 
+if grep -q 'execute_query_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_join_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_group_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_count_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_sum_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'execute_extreme_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'compound_denotes' SQLeanite/ProofAxioms.lean; then
+  ok "every live Core read form reaches the multiplicity denotation"
+else
+  fail "a live Core read form is detached from the relational semantics"
+fi
+
 if grep -q 'where_\.leftOnly = true' SQLeanite/CoreJoin.lean &&
    grep -q 'left\.rows\.filter (selectsLeft where_)' SQLeanite/CoreJoin.lean &&
    grep -q 'matchingRows_pushLeft' SQLeanite/ProofAxioms.lean &&

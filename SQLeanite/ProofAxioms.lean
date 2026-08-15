@@ -1,6 +1,7 @@
 import SQLeanite.Optimizer
 import SQLeanite.QueryCost
 import SQLeanite.CoreOptimizerBridge
+import SQLeanite.CoreReadSemantics
 import SQLeanite.KRelation
 import SQLeanite.RelationalAlgebra
 import SQLeanite.PagedBTree
@@ -135,6 +136,17 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreOptimizerBridge.optimize_innerJoinPlan_eval
 #print axioms SQLeanite.CoreOptimizerBridge.optimize_leftOuterJoinPlan_eval
 #print axioms SQLeanite.CoreOptimizerBridge.optimizeJoin_eval
+#print axioms SQLeanite.CoreReadSemantics.optimize_tableFilterPlan_eval
+#print axioms SQLeanite.CoreReadSemantics.query_eval_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_query_denotes
+#print axioms SQLeanite.CoreReadSemantics.optimize_joinPlan_eval
+#print axioms SQLeanite.CoreReadSemantics.join_eval_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_join_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_group_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_count_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_sum_denotes
+#print axioms SQLeanite.CoreReadSemantics.execute_extreme_denotes
+#print axioms SQLeanite.CoreReadSemantics.compound_denotes
 #print axioms SQLeanite.PagedBTree.Tree.toList_insert
 #print axioms SQLeanite.PagedBTree.Tree.toList_delete
 #print axioms SQLeanite.PagedBTree.Tree.toList_sorted
