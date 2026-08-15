@@ -179,6 +179,18 @@ else
   fail "Core write semantics detached from the durability composition"
 fi
 
+if grep -q 'executeText_commit_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeStatement_eq_core translated' \
+     SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'CoreEndToEnd.executeCommand_commit_crash_atomic' \
+     SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
+  ok "supported SQL write text composes with crash-atomic SQLite bytes"
+else
+  fail "SQL text boundary detached from write durability"
+fi
+
 if grep -q '| .primaryKey rowid => table.primaryKeyRows rowid' \
      SQLeanite/CoreEngine.lean &&
    grep -q 'exact Query.eval_primaryKey table query rowid' \

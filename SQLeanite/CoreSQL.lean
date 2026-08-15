@@ -211,6 +211,12 @@ private def executeCommand (state : Core.State) (command : Core.Command) :
   let (next, result) ← Core.execute state command
   return (next, [result])
 
+theorem executeCommand_eq_core (state : Core.State) (command : Core.Command) :
+    executeCommand state command =
+      (fun outcome => (outcome.1, [outcome.2])) <$>
+        Core.execute state command := by
+  rfl
+
 private def insertRows (state : Core.State) (table : String)
     (schema : Core.Schema) (columns : Option (Array String)) (replacing : Bool) :
     List (Array Expr) → Except String (Core.State × List Core.Result)
@@ -222,6 +228,21 @@ private def insertRows (state : Core.State) (table : String)
       let (next, result) ← Core.execute state command
       let (finalState, results) ← insertRows next table schema columns replacing rows
       return (finalState, result :: results)
+
+theorem insertRows_singleton (state : Core.State) (table : String)
+    (schema : Core.Schema) (columns : Option (Array String))
+    (replacing : Bool) (expressions : Array Expr) (values : List Core.Value)
+    (translated : rowValues schema columns expressions = .ok values) :
+    insertRows state table schema columns replacing [expressions] =
+      executeCommand state
+        (if replacing then .replace table values else .insert table values) := by
+  cases replacing with
+  | false =>
+      simp only [insertRows, translated, Bool.false_eq_true, if_false,
+        executeCommand, Except.instMonad, Except.bind, pure]
+  | true =>
+      simp only [insertRows, translated, if_pos rfl, executeCommand,
+        Except.instMonad, Except.bind, pure]
 
 def updateAssignments (schema : Core.Schema) :
     List (String × Expr) → Except String (List (Nat × Core.Value))

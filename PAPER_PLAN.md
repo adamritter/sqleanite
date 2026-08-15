@@ -89,8 +89,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
 ## Progress snapshot (2026-08-14)
 
 - Milestone 1 is partial.  The live total parser is connected to an explicit
-  AST grammar and successful execution exposes its parse equation, but an
-  independent text grammar with lexer/parser correctness is still open.
+  AST grammar and successful execution exposes its parse equation.
+  `CoreSQLWriteText.TranslatedWrite` gives CREATE TABLE/INDEX, single-row
+  INSERT/REPLACE, DELETE, UPDATE, and COMMIT a transparent,
+  execution-independent translation relation; `executeStatement_eq_core`
+  proves that it reaches the corresponding live Core command. An independent
+  token grammar with lexer/parser correctness, multi-row INSERT, and statement
+  list traces remain open.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -115,11 +120,16 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
   page-write list, so it does not require the bulk encoder.
-- Milestone 5 has an intermediate parsed-command theorem:
+- Milestone 5 has the parsed-command theorem
   `CoreEndToEnd.executeCommand_commit_crash_atomic` retains the exact logical
   effect of all seven persisted commands and composes it with arbitrary-delta
-  recovery.  The final SQL-text theorem still depends on completing milestones
-  1 and 3; those links are not hidden as trusted assumptions.
+  recovery. `CoreSQLWriteText.executeText_commit_crash_atomic` now begins at an
+  actual SQL `String` for one supported persisted statement and reaches
+  concrete recovery bytes. Its transparent support witness contains the
+  parser equation and proved translation relation. Full statement-list/parser
+  parity and construction of the localized database representation premise
+  still depend on milestones 1 and 3; those links are not hidden as trusted
+  assumptions.
 
 The latest three-run 2,000-row medians after the table accounting proof are
 296/9/18/75/98/11 ms for bulk load, primary lookup, secondary lookup, bulk

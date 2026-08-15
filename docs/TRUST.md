@@ -750,10 +750,15 @@ representation preservation premise rather than another durability proof.
 without weakening the target-table or other-table frame clauses.
 `executeCommand_commit_crash_atomic` composes that logical effect with the
 generic page-delta theorem; companion results cover returned commit and finite
-recovery-crash traces.  This chain starts at a parsed Core command.  It is not
-yet the final SQL-text theorem: independent lexer/parser correctness and
-construction of the live localized representation witness remain explicit
-open links.
+recovery-crash traces. `CoreSQLWriteText.TranslatedWrite` independently
+describes how CREATE TABLE/INDEX, one-row INSERT/REPLACE, DELETE, UPDATE, and
+COMMIT translate from the parsed AST to `CoreEndToEnd.WriteCommand`.
+`executeStatement_eq_core` proves the live translator executes exactly that
+command, and `executeText_commit_crash_atomic` starts from a SQL `String` and a
+transparent parser/translation witness before reaching concrete recovered
+bytes. Independent lexer/parser soundness for a declarative token grammar,
+multi-row and multi-statement traces, and construction of the live localized
+representation witness remain explicit open links.
 `CoreLocalizedRepresentation` proves the physical read-after-write layer used
 to discharge that remaining premise.  Every numbered page selected by
 `CoreChunkPageDelta.writes` is present byte-for-byte in the resulting storage

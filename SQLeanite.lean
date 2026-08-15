@@ -70,6 +70,7 @@ import SQLeanite.CoreDecode
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreDurability
 import SQLeanite.CoreEndToEnd
+import SQLeanite.CoreSQLWriteText
 import SQLeanite.CoreWAL
 import SQLeanite.CoreFileEngine
 import SQLeanite.PhysicalFileAdapter
