@@ -146,8 +146,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   the explicit page-zero constructor. Overflow encodings now enter
   `TablesDecode` directly through `consOverflowEncoded`. The changed-index
   certificate now validates the complete combined table/index overlay source,
-  rather than an index-only synthetic view; identifying that overlay with the
-  concrete input image remains the final changed-index preparation obligation.
+  rather than an index-only synthetic view. Page-directed insert/delete
+  preparations carry an erased `OnStorage` witness identifying that overlay
+  with the post-write image of the exact input buffer; the bounded-write check
+  is over the delta only, not the database. Rebuilt-index coverage remains the
+  final changed-index preparation obligation.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte

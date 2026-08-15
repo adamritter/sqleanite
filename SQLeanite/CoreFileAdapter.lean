@@ -662,20 +662,49 @@ theorem certifyDecodedIndex?_exact {rootPage : Nat} {table : Core.Table}
   rw [← certifyDecodedIndex?_source success]
   exact certified.exact
 
+/-- Retain the source identity hidden by the ordinary optional certificate.
+This wrapper is proof-only and lets the localized writer connect a successful
+decoder check to the exact storage overlay it checked. -/
+structure CertifiedDecodedIndexAt (rootPage : Nat) (table : Core.Table)
+    (index : Core.Index) (source : CoreDecode.PageSource) where
+  certificate : DecodedIndexCertificate rootPage table index
+  sourceExact : certificate.source = source
+
+def certifyDecodedIndexAt? (rootPage : Nat) (table : Core.Table)
+    (index : Core.Index) (source : CoreDecode.PageSource) :
+    Option (CertifiedDecodedIndexAt rootPage table index source) :=
+  match success : certifyDecodedIndex? rootPage table index source with
+  | none => none
+  | some certificate =>
+      some ⟨certificate, certifyDecodedIndex?_source success⟩
+
 inductive LocalizedIndexCertificate (rootPage : Nat) (table : Core.Table)
     (index : Core.Index) where
   | encoded (certificate : CertifiedIndexEncoding rootPage table index)
   | decoded (certificate : DecodedIndexCertificate rootPage table index)
+
+/-- A routed index mutation was decoded over the finite write overlay of an
+exact old storage image. -/
+def DecodedIndexCertificate.OnStorage
+    {rootPage : Nat} {table : Core.Table} {index : Core.Index}
+    (certificate : DecodedIndexCertificate rootPage table index)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : Prop :=
+  ∃ oldImage : GrowableStorage.Image PhysicalCodec.pageSize,
+    certificate.source = CorePageSource.ofStorageImage
+      (GrowableStorage.applyWrites oldImage writes)
 
 structure LocalizedLastIndexDelta
     (delta : CoreChunkPageDelta.StateDelta) where
   state : CoreChunkPageState.State
   index : Core.Index
   rootPage : Nat
-  certificate : LocalizedIndexCertificate rootPage
-    delta.table.after.table index
   expectedBefore : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  certificate : LocalizedIndexCertificate rootPage
+    delta.table.after.table index
+  decodedStorage : match certificate with
+    | .encoded _ => True
+    | .decoded decoded => decoded.OnStorage writes
   writesDistinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
   allocation : state.AllocationWellFormed
   validated : ValidatedOpenState
@@ -1119,6 +1148,7 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                               certificate := .encoded certified
                               expectedBefore := [⟨0, oldPage⟩]
                               writes
+                              decodedStorage := True.intro
                               writesDistinct := distinct
                               allocation
                               validated := ⟨state, ()⟩ }
@@ -1179,26 +1209,41 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                           let tableWrites ← CoreChunkPageDelta.writes delta.table
                           let expectedBefore := tableBefore ++ indexDelta.1
                           let writes := tableWrites ++ indexDelta.2
-                          let certificate ← certifyDecodedIndex? entry.rootPage
+                          let certified ← certifyDecodedIndexAt? entry.rootPage
                             after index (CorePageSource.applyWrites source writes)
                           if _tableBeforeIndex :
                                 delta.table.before.tree.root.pageIds.all
                                     (fun pageId => pageId < entry.rootPage) &&
                               delta.table.after.tree.root.pageIds.all
                                     (fun pageId => pageId < entry.rootPage) then
-                            if distinct : writes.Pairwise
-                                (fun left right => left.pageId ≠ right.pageId) then
-                              if allocation : delta.after.AllocationWellFormed then
-                                some {
-                                  state := delta.after
-                                  index
-                                  rootPage := entry.rootPage
-                                  certificate := .decoded certificate
-                                  expectedBefore
-                                  writes
-                                  writesDistinct := distinct
-                                  allocation
-                                  validated := ⟨delta.after, ()⟩ }
+                            if writesBounded : ∀ write ∈ writes,
+                                write.pageId < count then
+                              if distinct : writes.Pairwise
+                                  (fun left right => left.pageId ≠ right.pageId) then
+                                if allocation : delta.after.AllocationWellFormed then
+                                  some {
+                                    state := delta.after
+                                    index
+                                    rootPage := entry.rootPage
+                                    certificate := .decoded certified.certificate
+                                    expectedBefore
+                                    writes
+                                    decodedStorage := by
+                                      let oldImage := byteArrayStorageImage input
+                                        count _length
+                                      refine ⟨oldImage,
+                                        certified.sourceExact.trans ?_⟩
+                                      dsimp only [source, oldImage]
+                                      rw [byteArrayPageSource_eq_storageImage
+                                        input count _length]
+                                      apply CorePageSource.applyWrites_ofStorageImage
+                                      intro write member
+                                      simpa [oldImage, byteArrayStorageImage] using
+                                        writesBounded write member
+                                    writesDistinct := distinct
+                                    allocation
+                                    validated := ⟨delta.after, ()⟩ }
+                                else none
                               else none
                             else none
                           else none
@@ -1256,26 +1301,41 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                         let tableWrites ← CoreChunkPageDelta.writes delta.table
                         let expectedBefore := tableBefore ++ indexDelta.1
                         let writes := tableWrites ++ indexDelta.2
-                        let certificate ← certifyDecodedIndex? entry.rootPage
+                        let certified ← certifyDecodedIndexAt? entry.rootPage
                           after index (CorePageSource.applyWrites source writes)
                         if _tableBeforeIndex :
                               delta.table.before.tree.root.pageIds.all
                                   (fun pageId => pageId < entry.rootPage) &&
                             delta.table.after.tree.root.pageIds.all
                                   (fun pageId => pageId < entry.rootPage) then
-                          if distinct : writes.Pairwise
-                              (fun left right => left.pageId ≠ right.pageId) then
-                            if allocation : delta.after.AllocationWellFormed then
-                              some {
-                                state := delta.after
-                                index
-                                rootPage := entry.rootPage
-                                certificate := .decoded certificate
-                                expectedBefore
-                                writes
-                                writesDistinct := distinct
-                                allocation
-                                validated := ⟨delta.after, ()⟩ }
+                          if writesBounded : ∀ write ∈ writes,
+                              write.pageId < count then
+                            if distinct : writes.Pairwise
+                                (fun left right => left.pageId ≠ right.pageId) then
+                              if allocation : delta.after.AllocationWellFormed then
+                                some {
+                                  state := delta.after
+                                  index
+                                  rootPage := entry.rootPage
+                                  certificate := .decoded certified.certificate
+                                  expectedBefore
+                                  writes
+                                  decodedStorage := by
+                                    let oldImage := byteArrayStorageImage input
+                                      count _length
+                                    refine ⟨oldImage,
+                                      certified.sourceExact.trans ?_⟩
+                                    dsimp only [source, oldImage]
+                                    rw [byteArrayPageSource_eq_storageImage
+                                      input count _length]
+                                    apply CorePageSource.applyWrites_ofStorageImage
+                                    intro write member
+                                    simpa [oldImage, byteArrayStorageImage] using
+                                      writesBounded write member
+                                  writesDistinct := distinct
+                                  allocation
+                                  validated := ⟨delta.after, ()⟩ }
+                              else none
                             else none
                           else none
                         else none
@@ -1377,6 +1437,7 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                                   certificate := .encoded certified
                                   expectedBefore
                                   writes
+                                  decodedStorage := True.intro
                                   writesDistinct := distinct
                                   allocation
                                   validated := ⟨state, ()⟩ }

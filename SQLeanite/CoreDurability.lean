@@ -161,6 +161,21 @@ theorem indexesDecode_consLocalized
       rw [sameRoot, ← sourceExact]
       exact certified.exact
 
+/-- The storage witness carried by a page-directed live mutation supplies the
+exact `LocalizedIndexReadable` premise for its actual post-write image. -/
+theorem localizedIndexReadable_of_onStorage
+    {rootPage : Nat} {table : Core.Table} {index : Core.Index}
+    {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (certificate : CoreFileAdapter.DecodedIndexCertificate
+      rootPage table index)
+    (onStorage : certificate.OnStorage writes) :
+    ∃ oldImage : GrowableStorage.Image PhysicalCodec.pageSize,
+      LocalizedIndexReadable (localizedSource oldImage writes)
+        (.decoded certificate) := by
+  rcases onStorage with ⟨oldImage, exactSource⟩
+  refine ⟨oldImage, .decoded certificate ?_⟩
+  simpa [localizedSource] using exactSource
+
 /-- A nonempty growable image starts with the bytes returned by page zero.
 The suffix is intentionally abstract: SQLite header decoding consumes exactly
 the first 100 bytes and does not need to inspect the remaining pages. -/

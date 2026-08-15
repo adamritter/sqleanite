@@ -474,6 +474,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.catalogRead_of_unchangedPageZero
 #print axioms SQLeanite.CoreDurability.localizedRepresentation_of_unchangedPageZero
 #print axioms SQLeanite.CoreDurability.indexesDecode_consLocalized
+#print axioms SQLeanite.CoreDurability.localizedIndexReadable_of_onStorage
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackWrites_represents_recovery_crash_trace_atomic
