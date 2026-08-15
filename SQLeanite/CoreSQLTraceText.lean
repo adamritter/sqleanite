@@ -456,12 +456,6 @@ theorem executeText_committedLocalizedIndexedInlineTables_crash_atomic
       CorePageCodec.NodeRowsInline old.table.schema old.tree.root)
     (afterRowsInline : CorePageCodec.NodeRowsInline
       delta.table.after.table.schema delta.table.after.tree.root)
-    (afterEncoding : CorePageCodec.OverflowEncoding)
-    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
-      delta.table.after.table.schema delta.table.after.tree.root
-      (Classical.choose (physical.exists_table delta.table.before
-        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
-        some afterEncoding)
     (journalExact : committed.journal =
       GrowableStorage.makeJournal oldImage committed.prepared.writes)
     (phase : GrowableStorage.CommitPhase)
@@ -483,9 +477,9 @@ theorem executeText_committedLocalizedIndexedInlineTables_crash_atomic
   have postImage : CoreDurability.PostImageCertificate oldImage
       committed.prepared.writes next.database := by
     have certificate :=
-      CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedInlineOfRows
+      CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexedInlineOfInlineRows
         prepared indexed noFree committed oldImage physical onImage oldHeader
-          emptyFreelist allRowsInline afterRowsInline afterEncoding afterEncoded
+          emptyFreelist allRowsInline afterRowsInline
     have endpoints := CoreChunkPageDelta.updateState?_endpoints prepared.updated
     simpa [endpoints.2] using certificate
   have atomic := executeText_commit_crash_atomic text commands state next
