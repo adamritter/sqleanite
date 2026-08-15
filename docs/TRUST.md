@@ -756,7 +756,11 @@ COMMIT translate from the parsed AST to `CoreEndToEnd.WriteCommand`.
 `executeStatement_eq_core` proves the live translator executes exactly that
 command, and `executeText_commit_crash_atomic` starts from a SQL `String` and a
 transparent parser/translation witness before reaching concrete recovered
-bytes. Independent lexer/parser soundness for a declarative token grammar,
+bytes. `CoreSQLReadText.TranslatedRead` gives the non-aggregate single-table
+SELECT an analogous result-independent translation relation;
+`executeText_read_refines` proves actual supported text leaves the state
+unchanged and yields exactly `CoreReadSemantics.queryDenotation`. Independent
+lexer/parser soundness for a declarative token grammar, the other read forms,
 multi-row and multi-statement traces, and construction of the live localized
 representation witness remain explicit open links.
 `CoreLocalizedRepresentation` proves the physical read-after-write layer used

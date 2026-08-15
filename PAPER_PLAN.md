@@ -93,9 +93,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `CoreSQLWriteText.TranslatedWrite` gives CREATE TABLE/INDEX, single-row
   INSERT/REPLACE, DELETE, UPDATE, and COMMIT a transparent,
   execution-independent translation relation; `executeStatement_eq_core`
-  proves that it reaches the corresponding live Core command. An independent
-  token grammar with lexer/parser correctness, multi-row INSERT, and statement
-  list traces remain open.
+  proves that it reaches the corresponding live Core command.
+  `CoreSQLReadText.TranslatedRead` does the same for the live non-aggregate
+  single-table SELECT. An independent token grammar with lexer/parser
+  correctness, all remaining read forms, multi-row INSERT, and statement-list
+  traces remain open.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -126,10 +128,13 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   recovery. `CoreSQLWriteText.executeText_commit_crash_atomic` now begins at an
   actual SQL `String` for one supported persisted statement and reaches
   concrete recovery bytes. Its transparent support witness contains the
-  parser equation and proved translation relation. Full statement-list/parser
-  parity and construction of the localized database representation premise
-  still depend on milestones 1 and 3; those links are not hidden as trusted
-  assumptions.
+  parser equation and proved translation relation.
+  `CoreSQLReadText.executeText_read_refines` likewise begins at an actual SQL
+  string, proves the read leaves the state unchanged, and reaches the
+  independent bag denotation for simple SELECT. Full read-form,
+  statement-list/parser parity and construction of the localized database
+  representation premise still depend on milestones 1 and 3; those links are
+  not hidden as trusted assumptions.
 
 The latest three-run 2,000-row medians after the table accounting proof are
 296/9/18/75/98/11 ms for bulk load, primary lookup, secondary lookup, bulk

@@ -208,5 +208,59 @@ theorem executeText_commit_crash_atomic
     result oldImage writes (core_success_of_execute supported success)
     oldRepresents newRepresents phase recoveredMain recoveredJournal outcome
 
+theorem executeText_returned_recovers_new
+    (text : String) (command : CoreEndToEnd.WriteCommand)
+    (state next : Core.State) (result : Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedWriteText state text command)
+    (success : CoreSQL.execute state text = .ok (next, [result]))
+    (newRepresents : CoreDurability.RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (recoveredMain : GrowableStorage.Image PhysicalCodec.pageSize)
+    (recoveredJournal : Option
+      (GrowableStorage.Journal PhysicalCodec.pageSize))
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes .committed)
+      recoveredMain recoveredJournal) :
+    CoreEndToEnd.WriteEffect command state next result ∧
+      CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes recoveredMain recoveredJournal) =
+        some next.database.canonicalize := by
+  exact CoreEndToEnd.executeCommand_returned_recovers_new command state next
+    result oldImage writes (core_success_of_execute supported success)
+    newRepresents recoveredMain recoveredJournal outcome
+
+theorem executeText_recovery_crash_trace_atomic
+    (text : String) (command : CoreEndToEnd.WriteCommand)
+    (state next : Core.State) (result : Core.Result)
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (supported : SupportedWriteText state text command)
+    (success : CoreSQL.execute state text = .ok (next, [result]))
+    (oldRepresents : CoreDurability.RepresentsDatabase oldImage state.database)
+    (newRepresents : CoreDurability.RepresentsDatabase
+      (GrowableStorage.applyWrites oldImage writes) next.database)
+    (phase : GrowableStorage.CommitPhase)
+    (recoveredMain finalMain :
+      GrowableStorage.Image PhysicalCodec.pageSize)
+    (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
+    (outcome : GrowableStorage.JournaledCrashOutcome
+      (GrowableStorage.rollbackCommitState oldImage writes phase)
+      recoveredMain (some journal))
+    (recoveryCrashes : GrowableStorage.RecoveryCrashTrace journal
+      recoveredMain finalMain) :
+    CoreEndToEnd.WriteEffect command state next result ∧
+      (CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+          some state.database.canonicalize ∨
+        CoreDecode.decode
+          (PhysicalJournalRecovery.recoverBytes finalMain (some journal)) =
+          some next.database.canonicalize) := by
+  exact CoreEndToEnd.executeCommand_recovery_crash_trace_atomic command state
+    next result oldImage writes (core_success_of_execute supported success)
+    oldRepresents newRepresents phase recoveredMain finalMain journal outcome
+    recoveryCrashes
+
 end CoreSQLWriteText
 end SQLeanite

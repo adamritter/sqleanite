@@ -181,6 +181,10 @@ fi
 
 if grep -q 'executeText_commit_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_returned_recovers_new' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_recovery_crash_trace_atomic' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'executeStatement_eq_core translated' \
      SQLeanite/CoreSQLWriteText.lean &&
    grep -q 'CoreEndToEnd.executeCommand_commit_crash_atomic' \
@@ -189,6 +193,17 @@ if grep -q 'executeText_commit_crash_atomic' \
   ok "supported SQL write text composes with crash-atomic SQLite bytes"
 else
   fail "SQL text boundary detached from write durability"
+fi
+
+if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreReadSemantics.execute_query_denotes' \
+     SQLeanite/CoreSQLReadText.lean &&
+   grep -q 'executeStatement_eq_core translated' \
+     SQLeanite/CoreSQLReadText.lean &&
+   grep -q 'let statements ← parse sql' SQLeanite/CoreSQL.lean; then
+  ok "supported SQL read text reaches the independent bag denotation"
+else
+  fail "SQL text boundary detached from read denotation"
 fi
 
 if grep -q '| .primaryKey rowid => table.primaryKeyRows rowid' \
