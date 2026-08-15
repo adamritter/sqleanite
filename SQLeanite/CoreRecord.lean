@@ -10,6 +10,12 @@ def encodeFields : Nat → List Core.Value → List RecordField
   | primaryKey + 1, value :: values =>
       PhysicalCodec.Value.recordField value :: encodeFields primaryKey values
 
+@[simp] theorem encodeFields_length (primaryKey : Nat)
+    (values : List Core.Value) :
+    (encodeFields primaryKey values).length = values.length := by
+  induction primaryKey, values using encodeFields.induct <;>
+    simp_all [encodeFields]
+
 def decodeFields : List RecordField → Option (List Core.Value)
   | [] => some []
   | field :: fields => do
@@ -61,7 +67,10 @@ theorem decodeRowValues_encode (rowid : Core.Integer) :
 
 def rowRecordFields (schema : Core.Schema) (row : Core.Row) :
     List RecordField :=
-  encodeFields schema.primaryKey row.values
+  if schema.hasHiddenRowid = true ∧
+      row.values.length = schema.primaryKey + 1 then
+    (row.values.take schema.primaryKey).map PhysicalCodec.Value.recordField
+  else encodeFields schema.primaryKey row.values
 
 def rowRecord? (schema : Core.Schema) (row : Core.Row) :
     Option PhysicalRecord :=
@@ -80,19 +89,52 @@ theorem rowRecord_fields {schema : Core.Schema} {row : Core.Row}
   next unbounded => contradiction
 
 def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
-    (fields : List RecordField) : Option Core.Row := do
-  let values ← decodeRowValues rowid schema.primaryKey fields
-  match Core.Row.create schema values with
-  | .ok row => some row
-  | .error _ => none
+    (fields : List RecordField) : Option Core.Row :=
+  if schema.hasHiddenRowid = true ∧ fields.length = schema.primaryKey then
+    match decodeFields fields with
+    | some visible =>
+      match Core.Row.create schema (visible ++ [.integer rowid]) with
+      | .ok row => some row
+      | .error _ => none
+    | none => none
+  else
+    match decodeRowValues rowid schema.primaryKey fields with
+    | some values =>
+        match Core.Row.create schema values with
+        | .ok row => some row
+        | .error _ => none
+    | none => none
 
 theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
     (valid : row.WellFormed schema) :
     decodeRowFields schema row.rowid (rowRecordFields schema row) = some row := by
   unfold decodeRowFields rowRecordFields
-  rw [decodeRowValues_encode row.rowid schema.primaryKey row.values valid.2.1]
-  simp only [Option.bind_eq_bind, Option.bind]
-  rw [Core.Row.create_self schema row valid]
+  split
+  next standard =>
+    have bound : schema.primaryKey < row.values.length := by omega
+    have takeLength : (row.values.take schema.primaryKey).length =
+        schema.primaryKey := List.length_take_of_le (by omega)
+    simp only [List.length_map, takeLength, standard.1, true_and,
+      ↓reduceIte]
+    rw [decodeFields_encode]
+    simp only
+    have keyValue : row.values[schema.primaryKey]'bound = .integer row.rowid := by
+      simpa [List.getElem?_eq_getElem bound] using valid.2.1
+    have reconstructed : row.values.take schema.primaryKey ++
+        [.integer row.rowid] = row.values := by
+      rw [← keyValue, List.take_append_getElem]
+      exact List.take_of_length_le (by omega)
+    rw [reconstructed, Core.Row.create_self schema row valid]
+  next legacy =>
+    obtain ⟨bound, _⟩ := List.getElem?_eq_some_iff.mp valid.2.1
+    have notStandard : ¬(schema.hasHiddenRowid = true ∧
+        (encodeFields schema.primaryKey row.values).length = schema.primaryKey) := by
+      simp only [encodeFields_length]
+      omega
+    simp only [notStandard, ↓reduceIte]
+    rw [decodeRowValues_encode row.rowid schema.primaryKey row.values valid.2.1]
+    simp only
+    rw [Core.Row.create_self schema row valid]
 
 def encodeCell? (schema : Core.Schema) (row : Core.Row) :
     Option (List UInt8) := do

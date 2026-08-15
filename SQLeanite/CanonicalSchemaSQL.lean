@@ -26,19 +26,34 @@ namespace SQLeanite.CanonicalSchemaSQL
 /-- The structural conditions needed to recover exactly the schema that was
 printed. Identifier text itself is unrestricted: `quoteChars` escapes quotes. -/
 structure Printable (schema : Core.Schema) : Prop where
-  nonempty : schema.columns ≠ []
-  primaryKeyIndex : schema.columns.findIdx? (·.integerPrimaryKey) = some schema.primaryKey
-  primaryKeyNotNull : ∀ column ∈ schema.columns, column.integerPrimaryKey → column.notNull
+  nonempty : schema.catalogColumns ≠ []
+  primaryKeyNotNull : ∀ column ∈ schema.catalogColumns,
+    (column.integerPrimaryKey || column.textPrimaryKey) → column.notNull
+  catalogShape : schema.CatalogShape
 
 theorem Printable.ofWellFormed (schema : Core.Schema)
     (wellFormed : schema.WellFormed) : Printable schema := by
+  have shape := wellFormed.2.2.2.2.2.2.2
   refine {
     nonempty := ?_
-    primaryKeyIndex := wellFormed.2.2.2.2.2.1
-    primaryKeyNotNull := wellFormed.2.2.2.2.2.2 }
-  intro empty
-  have := wellFormed.2.1
-  simp [empty] at this
+    primaryKeyNotNull := ?_
+    catalogShape := shape }
+  · intro empty
+    unfold Core.Schema.CatalogShape at shape
+    split at shape
+    · simp [empty] at shape
+    · have columns : schema.catalogColumns = schema.columns := shape.1
+      have bound := wellFormed.2.1
+      rw [← columns, empty] at bound
+      simp at bound
+  · intro column member primary
+    exact wellFormed.2.2.2.2.2.2.1 column
+      (by
+        unfold Core.Schema.catalogColumns at member
+        split at member
+        · exact List.mem_of_mem_take member
+        · exact member)
+      primary
 
 /-! ## Printer -/
 
@@ -51,6 +66,7 @@ def quoteChars (name : String) : List Char := '"' :: escapeIdent name.data ++ ['
 
 def columnSuffix (column : Core.Column) : List Char :=
   if column.integerPrimaryKey then " INTEGER PRIMARY KEY".data
+  else if column.textPrimaryKey then " TEXT PRIMARY KEY".data
   else if column.notNull then " NOT NULL".data
   else []
 
@@ -64,7 +80,7 @@ def columnsChars : List Core.Column → List Char
 
 def tableChars (schema : Core.Schema) : List Char :=
   "CREATE TABLE ".data ++ quoteChars schema.name ++
-    '(' :: columnsChars schema.columns ++ [')']
+    '(' :: columnsChars schema.catalogColumns ++ [')']
 
 def print (schema : Core.Schema) : String := String.mk (tableChars schema)
 
@@ -106,11 +122,15 @@ def parseColumn : List Char → Option (Core.Column × List Char)
             some ({ name := String.mk name, notNull := true,
                     integerPrimaryKey := true }, tail)
         | none =>
-          match stripPrefix " NOT NULL".data afterName with
+          match stripPrefix " TEXT PRIMARY KEY".data afterName with
           | some tail =>
               some ({ name := String.mk name, notNull := true,
-                      integerPrimaryKey := false }, tail)
-          | none => none
+                      textPrimaryKey := true }, tail)
+          | none =>
+            match stripPrefix " NOT NULL".data afterName with
+            | some tail =>
+                some ({ name := String.mk name, notNull := true }, tail)
+            | none => none
   | _ => none
 
 def parseColumns : Nat → List Char → Option (List Core.Column × List Char)
@@ -132,9 +152,20 @@ def parseChars (input : List Char) : Option Core.Schema := do
       | '(' :: afterParen => do
           let (columns, tail) ← parseColumns (afterParen.length + 1) afterParen
           match tail with
-          | [')'] => do
-              let primaryKey ← columns.findIdx? (·.integerPrimaryKey)
-              some { name := String.mk name, columns, primaryKey }
+          | [')'] =>
+              match columns.findIdx? (·.integerPrimaryKey) with
+              | some primaryKey => some {
+                  name := String.mk name
+                  columns := columns
+                  primaryKey
+                  declaredPrimaryKey := primaryKey }
+              | none => do
+                  let declaredPrimaryKey ← columns.findIdx? (·.textPrimaryKey)
+                  some {
+                    name := String.mk name
+                    columns := columns ++ [Core.hiddenRowidColumn]
+                    primaryKey := columns.length
+                    declaredPrimaryKey }
           | _ => none
       | _ => none
   | _ => none
@@ -191,14 +222,20 @@ theorem stripPrefix_ipk_cons (rest : List Char) :
         :: 'I' :: 'M' :: 'A' :: 'R' :: 'Y' :: ' ' :: 'K' :: 'E' :: 'Y' :: rest)
       = some rest := rfl
 
-theorem parseColumn_append (columnName : String) (columnNotNull columnPrimary : Bool)
+theorem parseColumn_append (columnName : String)
+    (columnNotNull columnPrimary columnTextPrimary : Bool)
     (rest : List Char)
-    (consistent : columnPrimary = true → columnNotNull = true)
+    (consistent : (columnPrimary || columnTextPrimary) = true →
+      columnNotNull = true)
+    (exclusive : columnPrimary = true → columnTextPrimary = false)
     (separator : endsColumn rest = true) :
-    parseColumn (columnChars ⟨columnName, columnNotNull, columnPrimary⟩ ++ rest)
-      = some (⟨columnName, columnNotNull, columnPrimary⟩, rest) := by
-  cases columnPrimary <;> cases columnNotNull
-  · have shape : columnChars (⟨columnName, false, false⟩ : Core.Column) ++ rest
+    parseColumn (columnChars
+      ⟨columnName, columnNotNull, columnPrimary, columnTextPrimary⟩ ++ rest)
+      = some
+        (⟨columnName, columnNotNull, columnPrimary, columnTextPrimary⟩, rest) := by
+  cases columnPrimary <;> cases columnTextPrimary <;> cases columnNotNull
+  · have shape : columnChars
+        (⟨columnName, false, false, false⟩ : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.data ++ '"' :: rest) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by
@@ -210,47 +247,69 @@ theorem parseColumn_append (columnName : String) (columnNotNull columnPrimary : 
           subst character
           simp [endsColumn] at separator)]
     simp [separator]
-  · have shape : columnChars (⟨columnName, true, false⟩ : Core.Column) ++ rest
+  · have shape : columnChars
+        (⟨columnName, true, false, false⟩ : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.data ++ '"' :: (" NOT NULL".data ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (consistent rfl) (by simp)
-  · have shape : columnChars (⟨columnName, true, true⟩ : Core.Column) ++ rest
+  · have shape : columnChars
+        (⟨columnName, true, false, true⟩ : Core.Column) ++ rest
+        = '"' :: (escapeIdent columnName.data ++ '"' ::
+          (" TEXT PRIMARY KEY".data ++ rest)) := by
+      simp [columnChars, quoteChars, columnSuffix]
+    rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
+    simp [endsColumn, stripPrefix]
+  · exact absurd (consistent rfl) (by simp)
+  · have shape : columnChars
+        (⟨columnName, true, true, false⟩ : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.data ++ '"' :: (" INTEGER PRIMARY KEY".data ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
+  · exact absurd (exclusive rfl) (by simp)
+  · exact absurd (exclusive rfl) (by simp)
 
 theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
+    (suffix : List Char) →
     columns ≠ [] → columns.length ≤ fuel →
-    (∀ c ∈ columns, c.integerPrimaryKey = true → c.notNull = true) →
-    parseColumns fuel (columnsChars columns ++ [')']) = some (columns, [')'])
-  | [], _, h, _, _ => absurd rfl h
-  | [c], fuel + 1, _, _, cons => by
+    (∀ c ∈ columns, (c.integerPrimaryKey || c.textPrimaryKey) = true →
+      c.notNull = true) →
+    (∀ c ∈ columns, c.integerPrimaryKey = true → c.textPrimaryKey = false) →
+    parseColumns fuel (columnsChars columns ++ ')' :: suffix) =
+      some (columns, ')' :: suffix)
+  | [], _, _, h, _, _, _ => absurd rfl h
+  | [c], fuel + 1, suffix, _, _, cons, exclusive => by
       have : columnsChars [c] = columnChars c := rfl
       rw [this]
-      have step := parseColumn_append c.name c.notNull c.integerPrimaryKey [')']
-        (cons c (by simp)) rfl
+      have step := parseColumn_append c.name c.notNull c.integerPrimaryKey
+        c.textPrimaryKey
+        (')' :: suffix)
+        (cons c (by simp)) (exclusive c (by simp)) rfl
       simp only [parseColumns]
-      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey⟩ : Core.Column) = c from rfl] at step
+      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey,
+        c.textPrimaryKey⟩ : Core.Column) = c from rfl] at step
       rw [step]
       rfl
-  | c :: d :: cs, fuel + 1, _, bound, cons => by
+  | c :: d :: cs, fuel + 1, suffix, _, bound, cons, exclusive => by
       have expand : columnsChars (c :: d :: cs)
           = columnChars c ++ ',' :: columnsChars (d :: cs) := rfl
       rw [expand, List.append_assoc]
       have step := parseColumn_append c.name c.notNull c.integerPrimaryKey
-        (',' :: (columnsChars (d :: cs) ++ [')']))
-        (cons c (by simp)) rfl
-      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey⟩ : Core.Column) = c from rfl] at step
+        c.textPrimaryKey
+        (',' :: (columnsChars (d :: cs) ++ ')' :: suffix))
+        (cons c (by simp)) (exclusive c (by simp)) rfl
+      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey,
+        c.textPrimaryKey⟩ : Core.Column) = c from rfl] at step
       simp only [parseColumns]
-      rw [show ',' :: columnsChars (d :: cs) ++ [')']
-            = ',' :: (columnsChars (d :: cs) ++ [')']) from rfl] at *
+      rw [show ',' :: columnsChars (d :: cs) ++ ')' :: suffix
+            = ',' :: (columnsChars (d :: cs) ++ ')' :: suffix) from rfl] at *
       rw [step]
-      have tail := parseColumns_append (d :: cs) fuel (by simp)
+      have tail := parseColumns_append (d :: cs) fuel suffix (by simp)
         (by simp at bound ⊢; omega)
         (fun x m => cons x (by simp [m]))
+        (fun x m => exclusive x (by simp [m]))
       simp [tail]
 
 theorem columnsChars_length_ge : (columns : List Core.Column) →
@@ -268,20 +327,65 @@ theorem parseChars_tableChars (s : Core.Schema) (printable : Printable s) :
   have shape : tableChars s
       = "CREATE TABLE ".data ++
         ('"' :: (escapeIdent s.name.data ++ '"' ::
-          ('(' :: (columnsChars s.columns ++ [')'])))) := by
+          ('(' :: (columnsChars s.catalogColumns ++ [')'])))) := by
     simp [tableChars, quoteChars]
-  have body := parseColumns_append s.columns ((columnsChars s.columns ++ [')']).length + 1)
+  have body := parseColumns_append s.catalogColumns
+    ((columnsChars s.catalogColumns ++ [')']).length + 1)
+    []
     printable.nonempty
     (by have := columnsChars_length_ge s.columns; simp only [List.length_append,
-          List.length_singleton]; omega)
+          List.length_singleton];
+        have catalog := columnsChars_length_ge s.catalogColumns
+        omega)
     printable.primaryKeyNotNull
-  simp only [List.length_append, List.length_singleton] at body
+    (by
+      intro column member integer
+      have catalogShape := printable.catalogShape
+      unfold Core.Schema.CatalogShape at catalogShape
+      split at catalogShape
+      · have noInteger := catalogShape.2.2.1
+        rw [List.findIdx?_eq_none_iff] at noInteger
+        have contradiction := noInteger column member
+        rw [integer] at contradiction
+        contradiction
+      · have noText := catalogShape.2.2.2
+        rw [List.findIdx?_eq_none_iff] at noText
+        exact noText column member)
+  simp only [List.length_append, List.length_singleton, List.length_nil,
+    Nat.add_zero] at body
+  have body' :
+      parseColumns
+        ((columnsChars s.catalogColumns).length + 1 + 1)
+        (columnsChars s.catalogColumns ++ [')']) =
+        some (s.catalogColumns, [')']) := by
+    simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using body
   rw [shape]
   unfold parseChars
   rw [stripPrefix_append]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [takeIdent_escape s.name.data
-    ('(' :: (columnsChars s.columns ++ [')'])) (by simp)]
-  simp [body, printable.primaryKeyIndex]
+    ('(' :: (columnsChars s.catalogColumns ++ [')'])) (by simp)]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [show (columnsChars s.catalogColumns ++ [')']).length + 1 =
+    (columnsChars s.catalogColumns).length + 1 + 1 by simp]
+  rw [body']
+  simp only [Option.bind_eq_bind, Option.bind]
+  have catalogShape := printable.catalogShape
+  unfold Core.Schema.CatalogShape at catalogShape
+  split at catalogShape
+  · rw [catalogShape.2.2.1]
+    simp only
+    rw [catalogShape.2.2.2]
+    simp only
+    apply congrArg some
+    congr
+    · exact catalogShape.1.symm
+    · exact catalogShape.2.1.symm
+  · rw [catalogShape.2.2.1]
+    simp only
+    apply congrArg some
+    congr
+    · exact catalogShape.1
+    · exact catalogShape.2.1.symm
 
 end SQLeanite.CanonicalSchemaSQL

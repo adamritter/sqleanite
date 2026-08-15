@@ -2296,7 +2296,8 @@ def IndexEncoding.catalogEntry (encoding : IndexEncoding) : CoreFile.CatalogEntr
   name := encoding.index.name
   table := encoding.table.schema.name
   rootPage := encoding.rootPage
-  sql := CoreFile.indexSQL encoding.table encoding.index }
+  sql := CoreFile.indexSQL encoding.table encoding.index
+  sqlIsNull := encoding.index.isImplicitPrimary encoding.table.schema }
 
 def indexEntriesOf (encodings : List IndexEncoding) : List CoreFile.CatalogEntry :=
   encodings.map IndexEncoding.catalogEntry

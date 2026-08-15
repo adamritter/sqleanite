@@ -4287,7 +4287,8 @@ theorem decodeTableFrom_encodeChunkNodeWithOverflow
     state.tree.rootValid rowsValid heightBound nextPositive pageBound fuelBound
   unfold CoreDecode.decodeTableFrom chunkTableCatalogEntry
     CoreDecode.CatalogEntry.ofEncoded
-  rw [dif_pos rfl]
+  simp only [Bool.false_eq_true, if_false]
+  simp only [dif_pos True.intro]
   simp only [Option.bind_eq_bind, Option.bind]
   unfold CoreFile.tableSQL CoreChunkPageState.TableState.rootPage
   rw [CoreDecode.parseTableSchema_tableSQL state.table.schema

@@ -63,7 +63,7 @@ def WriteEffect (command : WriteCommand) (state next : Core.State)
   | .insert tableName values =>
       ∃ table replacement row,
         state.database.findTable? tableName = some table ∧
-        Core.Row.create table.schema values = .ok row ∧
+        table.createRow values = .ok row ∧
         row.WellFormed table.schema ∧
         replacement.rows = Core.orderedUpsert row table.rows ∧
         next.database.findTable? tableName = some replacement ∧
@@ -74,7 +74,7 @@ def WriteEffect (command : WriteCommand) (state next : Core.State)
   | .replace tableName values =>
       ∃ table replacement row,
         state.database.findTable? tableName = some table ∧
-        Core.Row.create table.schema values = .ok row ∧
+        table.createReplacementRow values = .ok row ∧
         replacement.rows = Core.orderedUpsert row table.rows ∧
         next.database.findTable? tableName = some replacement ∧
         next.transactionSnapshot = state.transactionSnapshot ∧

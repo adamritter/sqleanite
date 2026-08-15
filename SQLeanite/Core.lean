@@ -11,12 +11,19 @@ structure Column where
   name : String
   notNull : Bool := false
   integerPrimaryKey : Bool := false
+  /-- A non-aliasing SQLite primary key. Unlike `INTEGER PRIMARY KEY`, this
+  column remains in the record payload and is backed by an automatic index. -/
+  textPrimaryKey : Bool := false
   deriving DecidableEq, Repr
 
 structure Schema where
   name : String
   columns : List Column
   primaryKey : Nat
+  /-- Column named by the user's PRIMARY KEY declaration. It differs from
+  `primaryKey` exactly when Core lowers a non-integer key through a hidden
+  integer rowid. -/
+  declaredPrimaryKey : Nat := primaryKey
   deriving DecidableEq, Repr
 
 def namesUnique (names : List String) : Prop :=
@@ -25,6 +32,41 @@ def namesUnique (names : List String) : Prop :=
 instance (names : List String) : Decidable (namesUnique names) :=
   inferInstanceAs (Decidable (names.Pairwise (· ≠ ·)))
 
+def hiddenRowidColumn : Column := {
+  name := "__sqleanite_rowid"
+  notNull := true
+  integerPrimaryKey := true }
+
+def Schema.hasHiddenRowid (schema : Schema) : Bool :=
+  schema.primaryKey != schema.declaredPrimaryKey
+
+/-- Columns described by the public `CREATE TABLE` declaration. The internal
+rowid-alias column is deliberately absent from this view. -/
+def Schema.catalogColumns (schema : Schema) : List Column :=
+  if schema.hasHiddenRowid then schema.columns.take schema.primaryKey
+  else schema.columns
+
+/-- The two canonical schema shapes supported by the proved file codec. This
+is carried by every `Table`, so the hidden-rowid lowering cannot silently leak
+an extra SQL column or lose the declared TEXT primary key. -/
+def Schema.CatalogShape (schema : Schema) : Prop :=
+  if schema.hasHiddenRowid then
+    schema.columns = schema.catalogColumns ++ [hiddenRowidColumn] ∧
+    schema.primaryKey = schema.catalogColumns.length ∧
+    schema.catalogColumns.findIdx? (·.integerPrimaryKey) = none ∧
+    schema.catalogColumns.findIdx? (·.textPrimaryKey) =
+      some schema.declaredPrimaryKey
+  else
+    schema.catalogColumns = schema.columns ∧
+    schema.declaredPrimaryKey = schema.primaryKey ∧
+    schema.catalogColumns.findIdx? (·.integerPrimaryKey) =
+      some schema.primaryKey ∧
+    schema.catalogColumns.findIdx? (·.textPrimaryKey) = none
+
+instance (schema : Schema) : Decidable schema.CatalogShape := by
+  unfold Schema.CatalogShape
+  infer_instance
+
 def Schema.WellFormed (schema : Schema) : Prop :=
   schema.name ≠ "" ∧
   schema.primaryKey < schema.columns.length ∧
@@ -32,11 +74,24 @@ def Schema.WellFormed (schema : Schema) : Prop :=
   (schema.columns.filter (·.integerPrimaryKey)).length = 1 ∧
   namesUnique (schema.columns.map (·.name)) ∧
   schema.columns.findIdx? (·.integerPrimaryKey) = some schema.primaryKey ∧
-  (∀ column ∈ schema.columns, column.integerPrimaryKey → column.notNull)
+  (∀ column ∈ schema.columns,
+    (column.integerPrimaryKey || column.textPrimaryKey) → column.notNull) ∧
+  schema.CatalogShape
 
 instance (schema : Schema) : Decidable schema.WellFormed := by
   unfold Schema.WellFormed namesUnique
   infer_instance
+
+def Schema.visibleColumnIndices (schema : Schema) : List Nat :=
+  (List.range schema.columns.length).filter fun index =>
+    !(schema.primaryKey != schema.declaredPrimaryKey && index == schema.primaryKey)
+
+def Schema.visibleColumns (schema : Schema) : List Column :=
+  schema.visibleColumnIndices.filterMap fun index => schema.columns[index]?
+
+def Schema.declaredPrimaryKey? (schema : Schema) : Option Nat :=
+  schema.columns[schema.declaredPrimaryKey]?
+    |>.map fun _ => schema.declaredPrimaryKey
 
 theorem Schema.findIdx?_column_name (schema : Schema)
     (wellFormed : schema.WellFormed) (index : Nat)
@@ -60,6 +115,11 @@ structure Index where
   name : String
   column : Nat
   deriving DecidableEq, Repr
+
+def Index.isImplicitPrimary (schema : Schema) (index : Index) : Bool :=
+  schema.hasHiddenRowid &&
+    index.name == "sqlite_autoindex_" ++ schema.name ++ "_1" &&
+    index.column == schema.declaredPrimaryKey
 
 def Index.WellFormed (schema : Schema) (index : Index) : Prop :=
   index.name ≠ "" ∧ index.column < schema.columns.length
@@ -395,8 +455,17 @@ theorem Table.rebuild_withoutIndexesRows (table : Table) :
   rw [Table.withoutIndexes_rows]
   exact Table.rebuild_self table
 
+def implicitPrimaryIndexes (schema : Schema) : List Index :=
+  if schema.hasHiddenRowid then
+    match schema.declaredPrimaryKey? with
+    | some column => [{
+        name := "sqlite_autoindex_" ++ schema.name ++ "_1"
+        column }]
+    | none => []
+  else []
+
 def emptyTable (schema : Schema) : Except String Table :=
-  Table.rebuild schema [] []
+  Table.rebuild schema (implicitPrimaryIndexes schema) []
 
 def Row.create (schema : Schema) (values : List Value) : Except String Row :=
   match values[schema.primaryKey]? with
@@ -405,6 +474,46 @@ def Row.create (schema : Schema) (values : List Value) : Except String Row :=
       if row.WellFormed schema then .ok row
       else .error "row violates width or NOT NULL constraints"
   | _ => .error "INTEGER PRIMARY KEY must be an integer"
+
+/-- Fill the hidden rowid slot used to lower a non-integer SQLite primary key
+before applying the ordinary row invariant. -/
+def Row.createWithRowid (schema : Schema) (rowid : Integer)
+    (values : List Value) : Except String Row :=
+  if schema.hasHiddenRowid then
+    Row.create schema (values.set schema.primaryKey (.integer rowid))
+  else Row.create schema values
+
+def Table.nextGeneratedRowid? (table : Table) : Option Integer :=
+  let next := match table.rows.getLast? with
+    | none => 1
+    | some row => if row.rowid.value < 0 then 1 else row.rowid.value.toNat + 1
+  if upper : next < FileFormat.IntegerWidth.eight.midpoint then
+    some ⟨Int.ofNat next, by simp, by simpa using upper⟩
+  else none
+
+def Table.createRow (table : Table) (values : List Value) : Except String Row :=
+  if table.schema.hasHiddenRowid then
+    match table.nextGeneratedRowid? with
+    | some rowid => Row.createWithRowid table.schema rowid values
+    | none => .error "database or disk is full"
+  else Row.create table.schema values
+
+def Row.declaredPrimaryValue? (schema : Schema) (row : Row) : Option Value := do
+  let column ← schema.declaredPrimaryKey?
+  row.values[column]?
+
+def Table.findDeclaredPrimary? (table : Table) (row : Row) : Option Row :=
+  match row.declaredPrimaryValue? table.schema with
+  | none => none
+  | some key => table.rows.find? fun existing =>
+      existing.declaredPrimaryValue? table.schema == some key
+
+def Table.createReplacementRow (table : Table) (values : List Value) :
+    Except String Row := do
+  let candidate ← table.createRow values
+  match table.findDeclaredPrimary? candidate with
+  | some existing => Row.createWithRowid table.schema existing.rowid values
+  | none => pure candidate
 
 theorem Row.create_wellFormed {schema : Schema} {values : List Value} {row : Row}
     (success : Row.create schema values = .ok row) : row.WellFormed schema := by
@@ -608,41 +717,49 @@ theorem Table.upsert_rows (table : Table) (row : Row)
 
 def Table.insertValues (table : Table) (values : List Value) :
     Except String Table :=
-  match Row.create table.schema values with
+  match table.createRow values with
   | .error message => .error message
   | .ok row =>
       if valid : row.WellFormed table.schema then
         if (table.findRowid? row.rowid).isSome then
           .error "UNIQUE constraint failed: INTEGER PRIMARY KEY"
+        else if (table.findDeclaredPrimary? row).isSome then
+          .error "UNIQUE constraint failed: PRIMARY KEY"
         else .ok (table.upsert row valid)
       else .error "internal row validation mismatch"
 
 theorem Table.insertValues_exact {table next : Table} {values : List Value}
     (success : table.insertValues values = .ok next) :
-    ∃ row, Row.create table.schema values = .ok row ∧
+    ∃ row, table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
       next.rows = orderedUpsert row table.rows := by
   unfold Table.insertValues at success
-  cases created : Row.create table.schema values with
+  cases created : table.createRow values with
   | error message => simp [created] at success
   | ok row =>
-      have valid := Row.create_wellFormed created
-      simp only [created, valid, dite_true] at success
+      simp only [created] at success
       split at success
-      next duplicate => contradiction
-      next fresh =>
-        injection success with equal
-        subst next
-        exact ⟨row, rfl, valid, Table.upsert_rows table row valid⟩
+      next valid =>
+        split at success
+        next duplicate => contradiction
+        next fresh =>
+          split at success
+          next duplicate => contradiction
+          next unique =>
+            injection success with equal
+            subst next
+            exact ⟨row, rfl, valid, Table.upsert_rows table row valid⟩
+      next => contradiction
 
 theorem Table.insertValues_schema {table next : Table} {values : List Value}
     (success : table.insertValues values = .ok next) :
     next.schema = table.schema := by
   unfold Table.insertValues at success
-  cases created : Row.create table.schema values with
+  cases created : table.createRow values with
   | error message => simp [created] at success
   | ok row =>
       simp only [created] at success
+      split at success <;> try contradiction
       split at success <;> try contradiction
       split at success <;> try contradiction
       injection success with equal
@@ -654,7 +771,7 @@ failing. `orderedUpsert` already replaces on an equal key, so this is
 `insertValues` without the duplicate check. -/
 def Table.replaceValues (table : Table) (values : List Value) :
     Except String Table :=
-  match Row.create table.schema values with
+  match table.createReplacementRow values with
   | .error message => .error message
   | .ok row =>
       if valid : row.WellFormed table.schema then .ok (table.upsert row valid)
@@ -662,23 +779,25 @@ def Table.replaceValues (table : Table) (values : List Value) :
 
 theorem Table.replaceValues_rows {table next : Table} {values : List Value}
     (success : table.replaceValues values = .ok next) :
-    ∃ row, Row.create table.schema values = .ok row ∧
+    ∃ row, table.createReplacementRow values = .ok row ∧
       next.rows = orderedUpsert row table.rows := by
   unfold Table.replaceValues at success
-  cases created : Row.create table.schema values with
+  cases created : table.createReplacementRow values with
   | error message => simp [created] at success
   | ok row =>
-      have valid := Row.create_wellFormed created
-      simp only [created, valid, dite_true] at success
-      injection success with equal
-      subst next
-      exact ⟨row, rfl, Table.upsert_rows table row valid⟩
+      simp only [created] at success
+      split at success
+      next valid =>
+        injection success with equal
+        subst next
+        exact ⟨row, rfl, Table.upsert_rows table row valid⟩
+      next => contradiction
 
 theorem Table.replaceValues_schema {table next : Table} {values : List Value}
     (success : table.replaceValues values = .ok next) :
     next.schema = table.schema := by
   unfold Table.replaceValues at success
-  cases created : Row.create table.schema values with
+  cases created : table.createReplacementRow values with
   | error message => simp [created] at success
   | ok row =>
       simp only [created] at success

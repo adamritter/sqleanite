@@ -163,6 +163,9 @@ structure CatalogEntry where
   table : String
   rootPage : Nat
   sql : String
+  /-- SQLite represents automatically generated PRIMARY KEY indexes with a
+  NULL `sqlite_schema.sql` field. -/
+  sqlIsNull : Bool := false
 
 def indexedIndexes (database : Core.Database) :
     List (Core.Table × Core.Index) :=
@@ -254,7 +257,8 @@ def indexEntriesFor : List (Core.Table × Core.Index) →
     name := indexed.2.name
     table := indexed.1.schema.name
     rootPage := layout.rootPage
-    sql := indexSQL indexed.1 indexed.2 } ::
+    sql := indexSQL indexed.1 indexed.2
+    sqlIsNull := indexed.2.isImplicitPrimary indexed.1.schema } ::
       indexEntriesFor indexedIndexes layouts
   | _, _ => []
 
@@ -290,9 +294,10 @@ def catalogCell? (rowid : Nat) (entry : CatalogEntry) : Option (List UInt8) := d
   let name ← text? entry.name
   let table ← text? entry.table
   let rootPage ← signedNat? entry.rootPage
-  let sql ← text? entry.sql
+  let sqlField ← if entry.sqlIsNull then some RecordField.null
+    else (text? entry.sql).map (·.recordField)
   recordCell? rowid [kind.recordField, name.recordField, table.recordField,
-    .integer .eight rootPage, sql.recordField]
+    .integer .eight rootPage, sqlField]
 
 def catalogCellsFrom : Nat → List CatalogEntry → Option (List (List UInt8))
   | _, [] => some []
@@ -1300,7 +1305,8 @@ def IndexEncoding.catalogEntry (encoding : IndexEncoding) : CatalogEntry := {
   name := encoding.index.name
   table := encoding.table.schema.name
   rootPage := encoding.layout.rootPage
-  sql := indexSQL encoding.table encoding.index }
+  sql := indexSQL encoding.table encoding.index
+  sqlIsNull := encoding.index.isImplicitPrimary encoding.table.schema }
 
 @[simp] theorem IndexEncoding.canonicalize_catalogEntry
     (encoding : IndexEncoding) :

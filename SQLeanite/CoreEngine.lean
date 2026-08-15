@@ -1209,7 +1209,7 @@ theorem execute_insert_exact {state next : State} {tableName : String}
     (success : execute state (.insert tableName values) = .ok (next, result)) :
     ∃ table replacement row,
       state.database.findTable? tableName = some table ∧
-      Row.create table.schema values = .ok row ∧
+      table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
       replacement.rows = orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
@@ -1255,7 +1255,7 @@ theorem execute_replace_exact {state next : State} {tableName : String}
     (success : execute state (.replace tableName values) = .ok (next, result)) :
     ∃ table replacement row,
       state.database.findTable? tableName = some table ∧
-      Row.create table.schema values = .ok row ∧
+      table.createReplacementRow values = .ok row ∧
       replacement.rows = orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
       next.transactionSnapshot = state.transactionSnapshot ∧

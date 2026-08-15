@@ -631,7 +631,8 @@ structure CatalogEntry where
   deriving DecidableEq, Repr
 
 def CatalogEntry.ofEncoded (entry : CoreFile.CatalogEntry) : CatalogEntry :=
-  ⟨entry.kind, entry.name, entry.table, entry.rootPage, some entry.sql⟩
+  ⟨entry.kind, entry.name, entry.table, entry.rootPage,
+    if entry.sqlIsNull then none else some entry.sql⟩
 
 /-- Split the canonical catalog at its first non-table entry. The encoder emits
 all tables first and then all indexes. -/
@@ -728,60 +729,103 @@ theorem decodeCatalogCell_catalogCell {rowid : Nat}
       | some name =>
         simp only [nameResult, Option.bind_eq_bind, Option.bind] at built
         cases tableResult : CoreFile.text? entry.table with
-        | none => simp [tableResult] at built
-        | some table =>
-          simp only [tableResult, Option.bind_eq_bind, Option.bind] at built
-          cases rootResult : CoreFile.signedNat? entry.rootPage with
-          | none => simp [rootResult] at built
-          | some rootPage =>
-            simp only [rootResult, Option.bind_eq_bind, Option.bind] at built
-            cases sqlResult : CoreFile.text? entry.sql with
-            | none => simp [sqlResult] at built
-            | some sql =>
-              simp only [sqlResult, Option.bind_eq_bind, Option.bind] at built
-              let fields : List RecordField :=
-                [kind.recordField, name.recordField, table.recordField,
-                  .integer .eight rootPage, sql.recordField]
-              have recordCell : CoreFile.recordCell? encodedRowid fields = some cell := by
-                simpa [fields] using built
-              unfold CoreFile.recordCell? at recordCell
-              cases recordResult : CoreFile.physicalRecord? fields with
-              | none => simp [recordResult] at recordCell
-              | some record =>
-                simp only [recordResult, Option.bind_eq_bind, Option.bind] at recordCell
-                split at recordCell
-                next payloadBound =>
-                  injection recordCell with cellEqual
-                  subst cell
-                  have recordFields : record.fields = fields := by
-                    unfold CoreFile.physicalRecord? at recordResult
-                    split at recordResult
-                    next headerBound =>
-                      exact congrArg PhysicalRecord.fields
-                        (Option.some.inj recordResult.symm)
-                    next headerTooLarge => contradiction
-                  unfold decodeCatalogCellWithSuffix
-                  simp only [List.append_assoc]
-                  rw [decodeVarint_encode]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [decodeVarint_encode]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [decodePhysicalRecord_encode]
-                  simp only [Option.bind_eq_bind, Option.bind, dif_pos True.intro]
-                  rw [recordFields]
-                  simp only [fields]
-                  rw [fieldText_text kindResult textRoundtrips.1]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [fieldText_text nameResult textRoundtrips.2.1]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [fieldText_text tableResult textRoundtrips.2.2.1]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [fieldNat_signedNat rootResult]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  have sqlDecoded := fieldText_text sqlResult textRoundtrips.2.2.2
-                  rw [fieldOptionalText_text sql sqlDecoded]
-                  rfl
-                next payloadTooLarge => contradiction
+          | none => simp [tableResult] at built
+          | some table =>
+            simp only [tableResult, Option.bind_eq_bind, Option.bind] at built
+            cases rootResult : CoreFile.signedNat? entry.rootPage with
+            | none => simp [rootResult] at built
+            | some rootPage =>
+              simp only [rootResult, Option.bind_eq_bind, Option.bind] at built
+              by_cases nullSQL : entry.sqlIsNull = true
+              · simp only [nullSQL, if_pos, Option.bind_eq_bind, Option.bind] at built
+                let fields : List RecordField :=
+                  [kind.recordField, name.recordField, table.recordField,
+                    .integer .eight rootPage, .null]
+                have recordCell : CoreFile.recordCell? encodedRowid fields = some cell := by
+                  simpa [fields] using built
+                unfold CoreFile.recordCell? at recordCell
+                cases recordResult : CoreFile.physicalRecord? fields with
+                | none => simp [recordResult] at recordCell
+                | some record =>
+                  simp only [recordResult, Option.bind_eq_bind, Option.bind] at recordCell
+                  split at recordCell
+                  next payloadBound =>
+                    injection recordCell with cellEqual
+                    subst cell
+                    have recordFields : record.fields = fields := by
+                      unfold CoreFile.physicalRecord? at recordResult
+                      split at recordResult
+                      next headerBound =>
+                        exact congrArg PhysicalRecord.fields
+                          (Option.some.inj recordResult.symm)
+                      next headerTooLarge => contradiction
+                    unfold decodeCatalogCellWithSuffix
+                    simp only [List.append_assoc]
+                    rw [decodeVarint_encode]
+                    simp only [Option.bind_eq_bind, Option.bind]
+                    rw [decodeVarint_encode]
+                    simp only [Option.bind_eq_bind, Option.bind]
+                    rw [decodePhysicalRecord_encode]
+                    simp only [Option.bind_eq_bind, Option.bind, dif_pos True.intro]
+                    rw [recordFields]
+                    simp only [fields]
+                    rw [fieldText_text kindResult textRoundtrips.1]
+                    simp only [Option.bind_eq_bind, Option.bind]
+                    rw [fieldText_text nameResult textRoundtrips.2.1]
+                    simp only [Option.bind_eq_bind, Option.bind]
+                    rw [fieldText_text tableResult textRoundtrips.2.2.1]
+                    simp only [Option.bind_eq_bind, Option.bind]
+                    rw [fieldNat_signedNat rootResult]
+                    simp [fieldOptionalText?, CatalogEntry.ofEncoded, nullSQL]
+                  next payloadTooLarge => contradiction
+              · simp only [nullSQL, if_neg, Option.bind_eq_bind, Option.bind] at built
+                cases sqlResult : CoreFile.text? entry.sql with
+                | none => simp [sqlResult] at built
+                | some sql =>
+                  simp only [sqlResult, Option.bind_eq_bind, Option.bind] at built
+                  let fields : List RecordField :=
+                    [kind.recordField, name.recordField, table.recordField,
+                      .integer .eight rootPage, sql.recordField]
+                  have recordCell : CoreFile.recordCell? encodedRowid fields = some cell := by
+                    simpa [fields] using built
+                  unfold CoreFile.recordCell? at recordCell
+                  cases recordResult : CoreFile.physicalRecord? fields with
+                  | none => simp [recordResult] at recordCell
+                  | some record =>
+                    simp only [recordResult, Option.bind_eq_bind, Option.bind] at recordCell
+                    split at recordCell
+                    next payloadBound =>
+                      injection recordCell with cellEqual
+                      subst cell
+                      have recordFields : record.fields = fields := by
+                        unfold CoreFile.physicalRecord? at recordResult
+                        split at recordResult
+                        next headerBound =>
+                          exact congrArg PhysicalRecord.fields
+                            (Option.some.inj recordResult.symm)
+                        next headerTooLarge => contradiction
+                      unfold decodeCatalogCellWithSuffix
+                      simp only [List.append_assoc]
+                      rw [decodeVarint_encode]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      rw [decodeVarint_encode]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      rw [decodePhysicalRecord_encode]
+                      simp only [Option.bind_eq_bind, Option.bind, dif_pos True.intro]
+                      rw [recordFields]
+                      simp only [fields]
+                      rw [fieldText_text kindResult textRoundtrips.1]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      rw [fieldText_text nameResult textRoundtrips.2.1]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      rw [fieldText_text tableResult textRoundtrips.2.2.1]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      rw [fieldNat_signedNat rootResult]
+                      simp only [Option.bind_eq_bind, Option.bind]
+                      have sqlDecoded := fieldText_text sqlResult textRoundtrips.2.2.2
+                      rw [fieldOptionalText_text sql sqlDecoded]
+                      simp [CatalogEntry.ofEncoded, nullSQL]
+                    next payloadTooLarge => contradiction
 
 def decodeCatalogCells : Nat → List UInt8 →
     Option (List CatalogEntry × List UInt8)
@@ -1120,13 +1164,17 @@ def decodeCanonicalIndex (schema : Core.Schema) (tableName : String)
     (entry : CatalogEntry) : Option Core.Index := do
   if _isIndex : entry.kind = "index" then
     if _tableMatches : entry.table = tableName then
-      let sql ← entry.sql
-      let spec ← CanonicalIndexSQL.parse sql
-      if _metadataMatches : spec.name = entry.name ∧ spec.table = tableName then
-        let column ← schema.columns.findIdx?
-          (fun candidate => candidate.name = spec.column)
-        some ⟨spec.name, column⟩
-      else none
+      match entry.sql with
+      | some sql => do
+          let spec ← CanonicalIndexSQL.parse sql
+          if _metadataMatches : spec.name = entry.name ∧ spec.table = tableName then
+            let column ← schema.columns.findIdx?
+              (fun candidate => candidate.name = spec.column)
+            some ⟨spec.name, column⟩
+          else none
+      | none =>
+          let index : Core.Index := ⟨entry.name, schema.declaredPrimaryKey⟩
+          if index.isImplicitPrimary schema then some index else none
     else none
   else none
 
@@ -1137,33 +1185,52 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
       name := index.name
       table := table.schema.name
       rootPage
-      sql := CoreFile.indexSQL table index }
+      sql := CoreFile.indexSQL table index
+      sqlIsNull := index.isImplicitPrimary table.schema }
     decodeCanonicalIndex table.schema table.schema.name
       (CatalogEntry.ofEncoded entry) = some index := by
   dsimp only
   unfold decodeCanonicalIndex CatalogEntry.ofEncoded
   rw [dif_pos rfl, dif_pos rfl]
   simp only [Option.bind_eq_bind, Option.bind]
-  let columnName :=
-    (table.schema.columns[index.column]?).map (·.name) |>.getD ""
-  let spec : CanonicalIndexSQL.Spec :=
-    ⟨index.name, table.schema.name, columnName⟩
-  change (CanonicalIndexSQL.parse (CoreFile.indexSQL table index)).bind _ =
-    some index
-  rw [CoreFile.parse_indexSQL table index]
-  simp only [Option.bind_eq_bind, Option.bind]
-  rw [dif_pos (by simp)]
-  have indexValid := table.indexesWellFormed.1 index member
-  have columnNameEq : columnName =
-      (table.schema.columns[index.column]'indexValid.2).name := by
-    simp [columnName, List.getElem?_eq_getElem indexValid.2]
-  have found := table.schema.findIdx?_column_name table.schemaWellFormed
-    index.column indexValid.2
-  change (table.schema.columns.findIdx?
-    (fun candidate => candidate.name = columnName)).bind
-      (fun column => some (⟨index.name, column⟩ : Core.Index)) = some index
-  rw [columnNameEq, found]
-  rfl
+  have indexEta : (⟨index.name, index.column⟩ : Core.Index) = index := by
+    cases index
+    rfl
+  by_cases automatic : index.isImplicitPrimary table.schema = true
+  · rw [if_pos automatic]
+    simp only
+    have automatic' := automatic
+    unfold Core.Index.isImplicitPrimary at automatic
+    simp only [Bool.and_eq_true, beq_iff_eq] at automatic
+    have column : index.column = table.schema.declaredPrimaryKey :=
+      automatic.2
+    have indexEq :
+        (⟨index.name, table.schema.declaredPrimaryKey⟩ : Core.Index) = index := by
+      calc
+        _ = (⟨index.name, index.column⟩ : Core.Index) := by rw [column]
+        _ = index := indexEta
+    rw [indexEq, if_pos automatic']
+  · rw [if_neg automatic]
+    let columnName :=
+      (table.schema.columns[index.column]?).map (·.name) |>.getD ""
+    let spec : CanonicalIndexSQL.Spec :=
+      ⟨index.name, table.schema.name, columnName⟩
+    change (CanonicalIndexSQL.parse (CoreFile.indexSQL table index)).bind _ =
+      some index
+    rw [CoreFile.parse_indexSQL table index]
+    simp only [Option.bind_eq_bind, Option.bind]
+    rw [dif_pos (by simp)]
+    have indexValid := table.indexesWellFormed.1 index member
+    have columnNameEq : columnName =
+        (table.schema.columns[index.column]'indexValid.2).name := by
+      simp [columnName, List.getElem?_eq_getElem indexValid.2]
+    have found := table.schema.findIdx?_column_name table.schemaWellFormed
+      index.column indexValid.2
+    change (table.schema.columns.findIdx?
+      (fun candidate => candidate.name = columnName)).bind
+        (fun column => some (⟨index.name, column⟩ : Core.Index)) = some index
+    rw [columnNameEq, found]
+    rfl
 
 def decodeCanonicalIndexesForTable (schema : Core.Schema) (tableName : String) :
     List CatalogEntry → Option (List Core.Index × List CatalogEntry)
@@ -1256,6 +1323,7 @@ theorem decodeCanonicalIndexesForTable_encodeIndexes (table : Core.Table) :
                   table := table.schema.name
                   rootPage := layout.rootPage
                   sql := CoreFile.indexSQL table index
+                  sqlIsNull := index.isImplicitPrimary table.schema
                 } : CoreFile.CatalogEntry)) = some index
               exact decodeCanonicalIndex_encoded table index
                 (members index (by simp)) layout.rootPage
@@ -1427,6 +1495,7 @@ theorem decodeCanonicalIndexesForTable_encodeOverflowIndexes
                 table := table.schema.name
                 rootPage := nextPage
                 sql := CoreFile.indexSQL table index
+                sqlIsNull := index.isImplicitPrimary table.schema
               } : CoreFile.CatalogEntry)) = some index
             exact decodeCanonicalIndex_encoded table index
               (members index (by simp)) nextPage
@@ -1552,7 +1621,8 @@ theorem decodeCanonicalTableStep_encoded (table : Core.Table)
         some (table.withoutIndexes, physicalPages.length, suffix) := by
   dsimp only
   unfold decodeCanonicalTableStep CatalogEntry.ofEncoded CoreFile.tableSQL
-  rw [dif_pos rfl, dif_pos rfl]
+  simp only [Bool.false_eq_true, if_false]
+  simp only [dif_pos True.intro]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [parseTableSchema_tableSQL table.schema
     (CanonicalSchemaSQL.Printable.ofWellFormed table.schema table.schemaWellFormed)]
@@ -8973,6 +9043,7 @@ theorem validateCanonicalIndexesForTableFrom_encodeOverflowIndexes
                 table := table.schema.name
                 rootPage := nextPage
                 sql := CoreFile.indexSQL table index
+                sqlIsNull := index.isImplicitPrimary table.schema
               } : CoreFile.CatalogEntry)) = some index
             exact decodeCanonicalIndex_encoded table index
               (members index (by simp)) nextPage
@@ -9121,24 +9192,34 @@ def applyIndexesFrom (source : PageSource) :
   | database, entry :: entries => do
       let database ← applyIndexesFrom source database entries
       if _isIndex : entry.kind = "index" then
-        let sql ← entry.sql
-        match CanonicalIndexSQL.parse sql with
-        | some spec => do
-            let table ← database.findTable? spec.table
-            if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-              let column ← table.schema.columns.findIdx? (fun candidate =>
-                candidate.name = spec.column)
-              let index : Core.Index := ⟨spec.name, column⟩
-              let physical ← decodeIndexSubtreeFrom source
-                (source.pageCount + 1) entry.rootPage
-              if _contentsMatch : physical = expectedIndexEntries table index then
-                let updated ← table.addIndex index |>.toOption
-                database.updateTable updated |>.toOption
-              else none
-            else none
+        match entry.sql with
         | none => do
-            let (state, _) ← (CoreSQL.execute { database := database } sql).toOption
-            some state.database
+            let table ← database.findTable? entry.table
+            let index ← decodeCanonicalIndex table.schema table.schema.name entry
+            let physical ← decodeIndexSubtreeFrom source
+              (source.pageCount + 1) entry.rootPage
+            if _contentsMatch : physical = expectedIndexEntries table index then
+              let updated ← table.addIndex index |>.toOption
+              database.updateTable updated |>.toOption
+            else none
+        | some sql =>
+          match CanonicalIndexSQL.parse sql with
+          | some spec => do
+              let table ← database.findTable? spec.table
+              if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
+                let column ← table.schema.columns.findIdx? (fun candidate =>
+                  candidate.name = spec.column)
+                let index : Core.Index := ⟨spec.name, column⟩
+                let physical ← decodeIndexSubtreeFrom source
+                  (source.pageCount + 1) entry.rootPage
+                if _contentsMatch : physical = expectedIndexEntries table index then
+                  let updated ← table.addIndex index |>.toOption
+                  database.updateTable updated |>.toOption
+                else none
+              else none
+          | none => do
+              let (state, _) ← (CoreSQL.execute { database := database } sql).toOption
+              some state.database
       else
         some database
 
@@ -9197,25 +9278,36 @@ def applyIndexesIOFrom (source : IOPageSource) :
       let some database ← applyIndexesIOFrom source database entries |
         return none
       if _isIndex : entry.kind = "index" then
-        let some sql := entry.sql | return none
-        match CanonicalIndexSQL.parse sql with
-        | some spec =>
-            let some table := database.findTable? spec.table | return none
-            if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-              let some column := table.schema.columns.findIdx?
-                (fun candidate => candidate.name = spec.column) | return none
-              let index : Core.Index := ⟨spec.name, column⟩
-              let some physical ← decodeIndexSubtreeIOFrom source
-                (source.pageCount + 1) entry.rootPage | return none
-              if _contentsMatch : physical = expectedIndexEntries table index then
-                let some updated := (table.addIndex index).toOption | return none
-                return (database.updateTable updated).toOption
-              else return none
-            else return none
+        match entry.sql with
         | none =>
-            match (CoreSQL.execute { database := database } sql).toOption with
-            | some (state, _) => return some state.database
-            | none => return none
+            let some table := database.findTable? entry.table | return none
+            let some index := decodeCanonicalIndex table.schema table.schema.name entry |
+              return none
+            let some physical ← decodeIndexSubtreeIOFrom source
+              (source.pageCount + 1) entry.rootPage | return none
+            if _contentsMatch : physical = expectedIndexEntries table index then
+              let some updated := (table.addIndex index).toOption | return none
+              return (database.updateTable updated).toOption
+            else return none
+        | some sql =>
+          match CanonicalIndexSQL.parse sql with
+          | some spec =>
+              let some table := database.findTable? spec.table | return none
+              if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
+                let some column := table.schema.columns.findIdx?
+                  (fun candidate => candidate.name = spec.column) | return none
+                let index : Core.Index := ⟨spec.name, column⟩
+                let some physical ← decodeIndexSubtreeIOFrom source
+                  (source.pageCount + 1) entry.rootPage | return none
+                if _contentsMatch : physical = expectedIndexEntries table index then
+                  let some updated := (table.addIndex index).toOption | return none
+                  return (database.updateTable updated).toOption
+                else return none
+              else return none
+          | none =>
+              match (CoreSQL.execute { database := database } sql).toOption with
+              | some (state, _) => return some state.database
+              | none => return none
       else return some database
 
 def decodeFromIOPageSource (source : IOPageSource) : IO (Option Core.Database) := do

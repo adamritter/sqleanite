@@ -2078,6 +2078,65 @@ private def expectGeneralMVPFileInterop : IO Unit := do
   unless compact.value 2 == .integer ⟨3, by decide, by decide⟩ do
     fail "general decoder did not widen SQLite's compact integer serial type"
 
+private def expectTextPrimaryKeyInterop : IO Unit := do
+  let ddl :=
+    "CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0 TEXT);"
+  let (state, results) ← match CoreSQL.execute Core.State.empty s!"
+      {ddl}
+      INSERT INTO usertable VALUES('user1','value1');
+      SELECT * FROM usertable WHERE ycsb_key='user1';" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"TEXT PRIMARY KEY setup failed: {message}"
+  unless results.getLast?.map (·.rows) == some [[
+      .text ⟨[117, 115, 101, 114, 49], by decide⟩,
+      .text ⟨[118, 97, 108, 117, 101, 49], by decide⟩]] do
+    fail "TEXT PRIMARY KEY SELECT * exposed the internal rowid"
+  let table ← match state.database.findTable? "usertable" with
+    | some table => pure table
+    | none => fail "TEXT PRIMARY KEY setup lost its table"
+  let implicitIndex := match table.indexes with
+    | [index] => index.isImplicitPrimary table.schema
+    | _ => false
+  unless table.schema.hasHiddenRowid && table.schema.catalogColumns.length == 2 &&
+      implicitIndex do
+    fail "TEXT PRIMARY KEY was not lowered through its proof-carrying automatic index"
+  let image ← match CoreFile.encode state.database with
+    | some image => pure image
+    | none => fail "TEXT PRIMARY KEY physical encoder rejected a valid row"
+  let path : System.FilePath := ".lake/build/sqleanite-text-primary.db"
+  IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
+  let inspected ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-noheader", "
+      SELECT sql FROM sqlite_master WHERE type='table' AND name='usertable';
+      SELECT sql IS NULL FROM sqlite_master WHERE type='index';
+      SELECT * FROM usertable;
+      PRAGMA integrity_check;"] }
+  unless inspected.exitCode == 0 && inspected.stdout ==
+      "CREATE TABLE \"usertable\"(\"ycsb_key\" TEXT PRIMARY KEY,\"field0\")\n1\nuser1|value1\nok\n" do
+    fail s!"SQLite rejected the exact TEXT PRIMARY KEY image: {inspected.stderr}{inspected.stdout}"
+  let mutated ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch",
+      "INSERT INTO usertable VALUES('user2','value2');"] }
+  unless mutated.exitCode == 0 do
+    fail s!"SQLite could not insert through the automatic TEXT PRIMARY KEY index: {mutated.stderr}"
+  let bytes ← IO.FS.readBinFile path
+  let reopened ← match CoreDecode.decode bytes.data.toList with
+    | some database => pure database
+    | none => fail "Lean rejected a C-written TEXT PRIMARY KEY row"
+  let reopenedTable ← match reopened.findTable? "usertable" with
+    | some table => pure table
+    | none => fail "Lean reopen lost the TEXT PRIMARY KEY table"
+  unless reopenedTable.rows.length == 2 && reopenedTable.indexes.length == 1 do
+    fail "Lean reopen lost a C-written row or automatic index"
+  match CoreSQL.execute { database := reopened }
+      "INSERT INTO usertable VALUES('user2','different');" with
+  | .ok _ => fail "TEXT PRIMARY KEY admitted a duplicate key after C interop"
+  | .error message =>
+      unless message == "UNIQUE constraint failed: PRIMARY KEY" do
+        fail s!"TEXT PRIMARY KEY returned the wrong duplicate error: {message}"
+
 private def expectLiveOverflowInterop : IO Unit := do
   let large := String.mk (List.replicate 9000 'x')
   let sql := s!"
@@ -3316,6 +3375,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("proof-carrying arbitrary MVP schemas", expectGeneralMVPSchemaCore),
   ("arbitrary-schema verified MVP SQL", expectGeneralMVPSQL),
   ("arbitrary-schema SQLite file interop", expectGeneralMVPFileInterop),
+  ("TEXT PRIMARY KEY SQLite file interop", expectTextPrimaryKeyInterop),
   ("live table and index overflow interop", expectLiveOverflowInterop),
   ("escaped catalog identifiers", expectEscapedCatalogIdentifiers),
   ("physical multipage index traversal", expectPhysicalIndexTraversal),

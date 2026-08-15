@@ -22,22 +22,35 @@ def schema (name : String) (definitions : Array ColumnDef)
     throw "unsupported general verified-MVP SQL: column constraint"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
   unless primaryKeys.length = 1 do
-    throw "verified MVP tables require exactly one INTEGER PRIMARY KEY"
+    throw "verified MVP tables require exactly one PRIMARY KEY"
   let primaryKey ← match definitions.findIdx? (fun column => column.primaryKey) with
     | some index => .ok index
     | none => .error "verified MVP table has no primary key"
   let primaryDefinition ← match definitions[primaryKey]? with
     | some column => .ok column
     | none => .error "verified MVP primary-key index is out of bounds"
-  unless primaryDefinition.declaredType.toLower == "integer" do
-    throw "verified MVP primary key must have declared type INTEGER"
-  return {
-    name := canonical name
-    columns := definitions.toList.map fun column => {
+  let integerAlias := primaryDefinition.declaredType.toLower == "integer"
+  unless integerAlias || primaryDefinition.declaredType.toLower == "text" do
+    throw "verified MVP primary key must have declared type INTEGER or TEXT"
+  let visibleColumns := definitions.toList.map fun column => {
       name := canonical column.name
       notNull := column.notNull || column.primaryKey
-      integerPrimaryKey := column.primaryKey }
-    primaryKey }
+      integerPrimaryKey := column.primaryKey && integerAlias
+      textPrimaryKey := column.primaryKey && !integerAlias }
+  if integerAlias then return {
+    name := canonical name
+    columns := visibleColumns
+    primaryKey
+    declaredPrimaryKey := primaryKey }
+  else
+    let hiddenName := "__sqleanite_rowid"
+    if visibleColumns.any (fun column => column.name == hiddenName) then
+      throw s!"reserved verified column name: {hiddenName}"
+    return {
+      name := canonical name
+      columns := visibleColumns ++ [Core.hiddenRowidColumn]
+      primaryKey := visibleColumns.length
+      declaredPrimaryKey := primaryKey }
 
 def literal (expression : Expr) : Except String Core.Value :=
   SQLSurface.literal expression
@@ -102,7 +115,7 @@ def predicate (schema : Core.Schema) : Expr → Except String Core.Predicate
   | _ => unsupported "predicate expression"
 
 def projectionColumn (schema : Core.Schema) : ResultColumn → Except String (List Nat)
-  | { expr := .star none, .. } => .ok (List.range schema.columns.length)
+  | { expr := .star none, .. } => .ok schema.visibleColumnIndices
   | { expr := .column _ name, .. } => return [← column schema name]
   | _ => unsupported "projection expression"
 
@@ -194,14 +207,22 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
     (expressions : Array Expr) : Except String (List Core.Value) := do
   match insertColumns with
   | none =>
-      unless expressions.size = schema.columns.length do
-        throw s!"table {schema.name} has {schema.columns.length} columns but {expressions.size} values were supplied"
-      expressions.toList.mapM literal
+      unless expressions.size = schema.visibleColumns.length do
+        throw s!"table {schema.name} has {schema.visibleColumns.length} columns but {expressions.size} values were supplied"
+      let visibleValues ← expressions.toList.mapM literal
+      let pairs := schema.visibleColumnIndices.zip visibleValues
+      schema.columns.mapIdxM fun index _ =>
+        match pairs.find? (fun pair => pair.1 == index) with
+        | some pair => .ok pair.2
+        | none => .ok .null
   | some names =>
       unless names.size = expressions.size do
         throw "INSERT column/value count mismatch"
       let canonicalNames := names.toList.map canonical
       schema.columns.mapM fun target =>
+        if target.name == "__sqleanite_rowid" && target.integerPrimaryKey then
+          .ok .null
+        else
         match canonicalNames.findIdx? (· == target.name) with
         | some index => literal expressions[index]!
         | none => .ok .null
@@ -342,8 +363,8 @@ def updateAssignments (schema : Core.Schema) :
   | [] => .ok []
   | assignment :: assignments => do
       let index ← column schema assignment.1
-      if index = schema.primaryKey then
-        throw "updating the INTEGER PRIMARY KEY is outside the verified MVP"
+      if index = schema.primaryKey || index = schema.declaredPrimaryKey then
+        throw "updating the PRIMARY KEY is outside the verified MVP"
       let remaining ← updateAssignments schema assignments
       if remaining.any (fun candidate => candidate.1 == index) then
         throw s!"duplicate UPDATE assignment: {assignment.1}"
@@ -407,19 +428,23 @@ def joinSideColumns (side : CoreJoin.Side) (count : Nat) :
     List CoreJoin.ColumnRef :=
   (List.range count).map fun index => ⟨side, index⟩
 
+def joinVisibleColumns (side : CoreJoin.Side) (schema : Core.Schema) :
+    List CoreJoin.ColumnRef :=
+  schema.visibleColumnIndices.map fun index => ⟨side, index⟩
+
 def joinResultColumn (context : JoinContext) : ResultColumn →
     Except String (List CoreJoin.ColumnRef)
   | { expr := .column qualifier name, .. } =>
       return [← joinColumn context qualifier name]
   | { expr := .star none, .. } =>
-      .ok (joinSideColumns .left context.leftSchema.columns.length ++
-        joinSideColumns .right context.rightSchema.columns.length)
+      .ok (joinVisibleColumns .left context.leftSchema ++
+        joinVisibleColumns .right context.rightSchema)
   | { expr := .star (some qualifier), .. } =>
       let owner := canonical qualifier
       if owner == context.leftName then
-        .ok (joinSideColumns .left context.leftSchema.columns.length)
+        .ok (joinVisibleColumns .left context.leftSchema)
       else if owner == context.rightName then
-        .ok (joinSideColumns .right context.rightSchema.columns.length)
+        .ok (joinVisibleColumns .right context.rightSchema)
       else .error s!"no such table or alias: {qualifier}"
   | _ => unsupported "join projection"
 

@@ -64,7 +64,7 @@ theorem execute_insert_to_bytes (utf8 : CoreDecode.UTF8Roundtrips)
     (encoded : CorePageCodec.encodeBulk next.database = some image) :
     (∃ table replacement row,
       state.database.findTable? tableName = some table ∧
-      Core.Row.create table.schema values = .ok row ∧
+      table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
       replacement.rows = Core.orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
@@ -84,7 +84,7 @@ theorem execute_replace_to_bytes (utf8 : CoreDecode.UTF8Roundtrips)
     (encoded : CorePageCodec.encodeBulk next.database = some image) :
     (∃ table replacement row,
       state.database.findTable? tableName = some table ∧
-      Core.Row.create table.schema values = .ok row ∧
+      table.createReplacementRow values = .ok row ∧
       replacement.rows = Core.orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
       next.transactionSnapshot = state.transactionSnapshot ∧
