@@ -40,6 +40,108 @@ theorem TablesDecode.mapM
   | cons head tail induction =>
       simp [head, induction]
 
+/-- Exact physical-index certificates aligned with one table's contiguous
+canonical catalog run.  `decodeIndexSubtreeFrom` includes promoted interior
+entries, so this relation cannot accidentally certify a leaf-only abstraction. -/
+inductive IndexesDecode (source : CoreDecode.PageSource)
+    (table : Core.Table) : List CoreDecode.CatalogEntry → Prop where
+  | nil : IndexesDecode source table []
+  | cons {entry : CoreDecode.CatalogEntry}
+      {entries : List CoreDecode.CatalogEntry} {index : Core.Index}
+      (sameTable : entry.table = table.schema.name)
+      (metadata : CoreDecode.decodeCanonicalIndex table.schema
+        table.schema.name entry = some index)
+      (physical : CoreDecode.decodeIndexSubtreeFrom source
+        (source.pageCount + 1) entry.rootPage =
+          some (CoreDecode.expectedIndexEntries table index))
+      (tail : IndexesDecode source table entries) :
+      IndexesDecode source table (entry :: entries)
+
+/-- Per-index exactness is precisely what the generated-file validator needs;
+no complete index re-encoding or fallback comparison is required. -/
+theorem IndexesDecode.validateForTable
+    {source : CoreDecode.PageSource} {table : Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (decoded : IndexesDecode source table entries)
+    (suffix : List CoreDecode.CatalogEntry)
+    (boundary : ∀ entry ∈ suffix,
+      entry.table ≠ table.schema.name) :
+    CoreDecode.validateCanonicalIndexesForTableFrom source table
+      (entries ++ suffix) = some suffix := by
+  induction decoded with
+  | nil =>
+      simp only [List.nil_append]
+      cases suffix with
+      | nil => rfl
+      | cons entry entries =>
+          unfold CoreDecode.validateCanonicalIndexesForTableFrom
+          rw [dif_neg (boundary entry (by simp))]
+  | cons sameTable metadata physical tail induction =>
+      simp only [List.cons_append]
+      unfold CoreDecode.validateCanonicalIndexesForTableFrom
+      rw [dif_pos sameTable, metadata]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [physical]
+      simp only
+      rw [dif_pos True.intro]
+      exact induction
+
+/-- Canonical index runs for all tables, retaining the catalog partition that
+the executable validator consumes. -/
+inductive IndexGroupsDecode (source : CoreDecode.PageSource) :
+    List Core.Table → List CoreDecode.CatalogEntry → Prop where
+  | nil : IndexGroupsDecode source [] []
+  | cons {table : Core.Table} {tables : List Core.Table}
+      {entries remaining : List CoreDecode.CatalogEntry}
+      (current : IndexesDecode source table entries)
+      (boundary : ∀ entry ∈ remaining,
+        entry.table ≠ table.schema.name)
+      (tail : IndexGroupsDecode source tables remaining) :
+      IndexGroupsDecode source (table :: tables) (entries ++ remaining)
+
+theorem IndexGroupsDecode.validateGroups
+    {source : CoreDecode.PageSource} {tables : List Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (decoded : IndexGroupsDecode source tables entries) :
+    CoreDecode.validateCanonicalIndexGroupsFrom source tables entries =
+      some [] := by
+  induction decoded with
+  | nil => rfl
+  | cons current boundary tail induction =>
+      unfold CoreDecode.validateCanonicalIndexGroupsFrom
+      rw [current.validateForTable _ boundary]
+      simp only [Option.bind_eq_bind, Option.bind]
+      exact induction
+
+theorem IndexGroupsDecode.validate
+    {source : CoreDecode.PageSource} {tables : List Core.Table}
+    {entries : List CoreDecode.CatalogEntry}
+    (decoded : IndexGroupsDecode source tables entries) :
+    CoreDecode.validateCanonicalIndexesFrom source tables entries = some () := by
+  unfold CoreDecode.validateCanonicalIndexesFrom
+  rw [decoded.validateGroups]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [dif_pos True.intro]
+
+/-- Exact per-index page certificates plus exact catalog metadata reconstruction
+close the `PageSourceRepresents.indexesRead` field.  The two obligations are
+kept separate because a localized mutation changes physical pages while most
+catalog metadata remains byte-identical. -/
+theorem applyIndexesForOpen_of_indexGroups
+    (source : CoreDecode.PageSource) (database : Core.Database)
+    (entries : List CoreDecode.CatalogEntry)
+    (decoded : IndexGroupsDecode source
+      (database.tables.map Core.Table.withoutIndexes) entries)
+    (rebuilt : CoreDecode.rebuildCanonicalDatabase
+      (database.tables.map Core.Table.withoutIndexes) entries =
+        some database.canonicalize) :
+    CoreDecode.applyIndexesForOpen source database.withoutIndexes entries =
+      some database.canonicalize := by
+  unfold CoreDecode.applyIndexesForOpen
+  simp only [Core.Database.withoutIndexes]
+  rw [decoded.validate]
+  exact rebuilt
+
 /-- Every encoded page covered by one member of a distinct write set is
 present in the page source obtained after applying that write set. -/
 theorem pageSourceContains_applyWrites_of_covered

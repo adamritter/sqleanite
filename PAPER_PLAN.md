@@ -146,6 +146,10 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   structurally into the database-wide `mapM` table equation through
   `CoreLocalizedRepresentation.TablesDecode`; the changed table can use the
   local tree theorem while unchanged tables retain their prior witnesses.
+  Exact physical-index certificates, including promoted interior entries, now
+  fold through the executable canonical index validator table-by-table via
+  `IndexesDecode` and `IndexGroupsDecode`; only the unchanged catalog metadata
+  reconstruction equation remains to close `indexesRead`.
 - Milestone 4's growable page-level rollback protocol, concrete journal codec,
   returned-commit result, finite recovery-crash trace, and conditional syscall
   contract are present.  Crash atomicity now lifts over an arbitrary exact
