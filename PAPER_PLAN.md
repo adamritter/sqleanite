@@ -326,6 +326,16 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   therefore has neither a caller-selected general encoding nor a raw
   no-overflow premise; it consumes the bytes the localized writer actually
   encoded.
+  Full post-tree encodability is now preserved structurally as well.
+  `exists_encodeChunkNode_of_pathAgrees` and
+  `exists_encodeChunkNode_of_changed` combine the successfully encoded local
+  descriptors with the already represented pre-tree; the result is threaded
+  through every table mutation, recursive alignment, and `updateState?`.
+  Consequently
+  `executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic`
+  has no full-tree or general-encoder premise at all. Its remaining physical
+  inputs are the old represented image/header, semantic inline row bounds,
+  and the explicit VFS read/refinement facts.
 
 The latest three-run 2,000-row medians after multi-row write refinement are
 293/10/19/76/98/12 ms for bulk load, primary lookup, secondary lookup, bulk

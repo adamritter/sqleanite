@@ -232,6 +232,8 @@ if grep -q 'CoreSQLTraceText.executeText_commit_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic' \
      SQLeanite/ProofAxioms.lean &&
+   grep -q 'executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
    grep -q 'CommittedLocalizedDelta.trace_eq_commitPlan' \
      SQLeanite/ProofAxioms.lean &&
    grep -q 'LocalizedRepresentation.representsDatabase' \

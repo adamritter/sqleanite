@@ -875,6 +875,46 @@ theorem mapM_encodePhysicalChunkPage_output (schema : Core.Schema) :
                 candidate later with ⟨source, sourceMember, sourceResult⟩
             exact ⟨source, by simp [sourceMember], sourceResult⟩
 
+private theorem exists_mapM_of_forall_some (encode : α → Option β) :
+    ∀ (input : List α),
+      (∀ value ∈ input, ∃ output, encode value = some output) →
+      ∃ output, input.mapM encode = some output
+  | [], _ => ⟨[], rfl⟩
+  | value :: input, total => by
+      rcases total value (by simp) with ⟨head, headResult⟩
+      rcases exists_mapM_of_forall_some encode input (by
+          intro candidate member
+          exact total candidate (by simp [member])) with ⟨tail, tailResult⟩
+      exact ⟨head :: tail, by simp [headResult, tailResult]⟩
+
+/-- A successfully encoded exact changed-descriptor set, together with an
+encodable pre-state, proves that the entire post-tree is encodable.  This is
+an existence theorem only: it never executes the full post-tree encoder on the
+localized runtime path. -/
+theorem exists_encodeChunkNode_of_changed
+    (schema : Core.Schema)
+    (before after : PersistentPageTree.Node CoreChunkPageState.Chunk)
+    (beforePages changedPages : List NumberedPage)
+    (beforeEncoded : encodeChunkNode schema before = some beforePages)
+    (changedEncoded : encodeChangedChunkPages schema before after =
+      some changedPages) :
+    ∃ afterPages, encodeChunkNode schema after = some afterPages := by
+  rw [encodeChunkNode_eq_mapM] at beforeEncoded ⊢
+  unfold encodeChangedChunkPages at changedEncoded
+  apply exists_mapM_of_forall_some
+  intro descriptor descriptorMember
+  by_cases changed : descriptor ∈ changedPhysicalChunkPages before after
+  · rcases mapM_encodePhysicalChunkPage_input schema changedEncoded
+        descriptor changed with ⟨page, _, encoded⟩
+    exact ⟨page, encoded⟩
+  · have found := not_mem_changedPhysicalChunkPages before after descriptor
+      descriptorMember changed
+    have oldMember : descriptor ∈ physicalChunkPages before :=
+      List.mem_of_find?_eq_some found
+    rcases mapM_encodePhysicalChunkPage_input schema beforeEncoded descriptor
+        oldMember with ⟨page, _, encoded⟩
+    exact ⟨page, encoded⟩
+
 /-- A byte-exact changed-page encoding accounts for every page in the full
 post-state: selected pages occur in the delta, and every omitted page occurs
 byte-for-byte in the full pre-state encoding. -/
@@ -2919,6 +2959,30 @@ theorem physicalChunkPages_accounted_of_pathAgrees (key : Nat)
             rw [physicalChunkPages]
             exact List.mem_cons.mpr
               (.inr (List.mem_append.mpr (.inr inBefore))))
+
+/-- Search-path counterpart of `exists_encodeChunkNode_of_changed`.  A local
+path encoder proves every changed descriptor encodable; `PathAgrees` supplies
+the unchanged subtrees from the successful pre-state encoding. -/
+theorem exists_encodeChunkNode_of_pathAgrees
+    (schema : Core.Schema) (key : Nat)
+    {before after : PersistentPageTree.Node CoreChunkPageState.Chunk}
+    (path beforePages : List NumberedPage)
+    (agrees : PersistentPageTree.Node.PathAgrees key before after)
+    (pathEncoded : encodeChunkPath schema key after = some path)
+    (beforeEncoded : encodeChunkNode schema before = some beforePages) :
+    ∃ afterPages, encodeChunkNode schema after = some afterPages := by
+  rw [encodeChunkPath_eq_mapM] at pathEncoded
+  rw [encodeChunkNode_eq_mapM] at beforeEncoded ⊢
+  apply exists_mapM_of_forall_some
+  intro descriptor descriptorMember
+  rcases physicalChunkPages_accounted_of_pathAgrees key agrees descriptor
+      descriptorMember with inPath | inBefore
+  · rcases mapM_encodePhysicalChunkPage_input schema pathEncoded descriptor
+        inPath with ⟨page, _, encoded⟩
+    exact ⟨page, encoded⟩
+  · rcases mapM_encodePhysicalChunkPage_input schema beforeEncoded descriptor
+        inBefore with ⟨page, _, encoded⟩
+    exact ⟨page, encoded⟩
 
 /-- If two persistent trees differ only along one search path, encoding that
 post-state path accounts for every new byte image.  Pages off the path are
