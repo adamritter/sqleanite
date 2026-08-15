@@ -204,6 +204,16 @@ else
   fail "multi-row SQL write refinement is detached from the live executor"
 fi
 
+if grep -q 'CoreSQLTraceText.executeText_commit_crash_atomic' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'runStatements_eq_commands' SQLeanite/CoreSQLTraceText.lean &&
+   grep -q '| begin : TranslatedBlock' SQLeanite/CoreSQLTraceText.lean &&
+   grep -q '| rollback : TranslatedBlock' SQLeanite/CoreSQLTraceText.lean; then
+  ok "transactional SQL statement lists compose with crash recovery"
+else
+  fail "transactional SQL statement-list proof is detached"
+fi
+
 if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_count_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_sum_refines' SQLeanite/ProofAxioms.lean &&

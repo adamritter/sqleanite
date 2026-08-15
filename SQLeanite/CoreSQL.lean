@@ -254,6 +254,46 @@ def runCoreCommands : Core.State → List Core.Command →
       let (finalState, results) ← runCoreCommands next commands
       return (finalState, result :: results)
 
+theorem runCoreCommands_append (state : Core.State)
+    (left right : List Core.Command) :
+    runCoreCommands state (left ++ right) =
+      match runCoreCommands state left with
+      | .error message => .error message
+      | .ok (middle, leftResults) =>
+          match runCoreCommands middle right with
+          | .error message => .error message
+          | .ok (next, rightResults) =>
+              .ok (next, leftResults ++ rightResults) := by
+  induction left generalizing state with
+  | nil =>
+      cases outcome : runCoreCommands state right with
+      | error message => simp [runCoreCommands, outcome]
+      | ok pair =>
+          rcases pair with ⟨next, results⟩
+          simp [runCoreCommands, outcome]
+  | cons command commands induction =>
+      simp only [List.cons_append, runCoreCommands]
+      cases head : Core.execute state command with
+      | error message =>
+          simp [head, Except.instMonad, Except.bind]
+      | ok outcome =>
+          rcases outcome with ⟨middle, result⟩
+          simp only [head, Except.instMonad, Except.bind]
+          rw [induction middle]
+          cases prefixRun : runCoreCommands middle commands with
+          | error message =>
+              simp [prefixRun, Except.instMonad, Except.bind]
+          | ok outcome =>
+              rcases outcome with ⟨afterPrefix, prefixResults⟩
+              cases suffix : runCoreCommands afterPrefix right with
+              | error message =>
+                  simp [prefixRun, suffix, Except.instMonad, Except.bind,
+                    Except.pure, pure]
+              | ok outcome =>
+                  rcases outcome with ⟨next, suffixResults⟩
+                  simp [prefixRun, suffix, List.append_assoc, Except.instMonad,
+                    Except.bind, Except.pure, pure]
+
 /-- The live recursive INSERT executor is exactly command-trace execution
 once every VALUES row has translated. -/
 theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)

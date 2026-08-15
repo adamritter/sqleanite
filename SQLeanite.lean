@@ -72,6 +72,7 @@ import SQLeanite.CoreDurability
 import SQLeanite.CoreEndToEnd
 import SQLeanite.CoreSQLWriteText
 import SQLeanite.CoreSQLReadText
+import SQLeanite.CoreSQLTraceText
 import SQLeanite.CoreWAL
 import SQLeanite.CoreFileEngine
 import SQLeanite.PhysicalFileAdapter

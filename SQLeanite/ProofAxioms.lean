@@ -55,6 +55,7 @@ import SQLeanite.CoreDurability
 import SQLeanite.CoreEndToEnd
 import SQLeanite.CoreSQLWriteText
 import SQLeanite.CoreSQLReadText
+import SQLeanite.CoreSQLTraceText
 import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.QuerySemantics.predicatePushdown_eval
@@ -470,6 +471,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_commit_crash_atomic
 #print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_returned_recovers_new
 #print axioms SQLeanite.CoreSQLWriteText.executeText_insertRows_recovery_crash_trace_atomic
+#print axioms SQLeanite.CoreSQLTraceText.execute_exact
+#print axioms SQLeanite.CoreSQLTraceText.runStatements_eq_commands
+#print axioms SQLeanite.CoreSQLTraceText.executeCommands_exact
+#print axioms SQLeanite.CoreSQLTraceText.executeText_commit_crash_atomic
+#print axioms SQLeanite.CoreSQLTraceText.executeText_returned_recovers_new
+#print axioms SQLeanite.CoreSQLTraceText.executeText_recovery_crash_trace_atomic
 #print axioms SQLeanite.CoreSQLReadText.executeStatement_eq_core
 #print axioms SQLeanite.CoreSQLReadText.execute_eq_core
 #print axioms SQLeanite.CoreSQLReadText.executeSelectBase_eq_core

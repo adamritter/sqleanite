@@ -103,12 +103,15 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   joins, and binary UNION ALL/UNION/INTERSECT/EXCEPT.  Each form reaches its
   independent bag/three-valued denotation from an actual SQL string.  The
   compound theorem retains both arm denotations, explicit empty-result width,
-  and the duplicate-sensitive bag operator.  An independent token grammar
-  with lexer/parser correctness, arbitrarily nested compound chains, and
-  general statement-list traces remain open. Multi-row INSERT/REPLACE now
+  and the duplicate-sensitive bag operator.  An independent lexer/parser
+  correctness characterization and arbitrarily nested compound chains remain
+  open. Multi-row INSERT/REPLACE now
   translates to the exact live recursive Core command trace; every row keeps
   its command-specific logical effect, and the whole statement composes with
-  returned-commit and repeated-recovery crash theorems.
+  returned-commit and repeated-recovery crash theorems. Transactional
+  statement lists now thread translation through every possible successful
+  intermediate state, retain explicit BEGIN/ROLLBACK snapshot effects, and
+  compose the full parsed text with the same recovery theorems.
 - Milestone 2's read constructors, bag/three-valued denotations, optimizer
   bridge, and cost-safe rewrite set are present and on both live file paths.
 - Milestone 3's seven bulk command-to-byte theorems are complete.  The
@@ -185,13 +188,98 @@ Exit gate: a theorem beginning with supported SQL `String`, not a pre-parsed
 
 ## Milestone 2: POPL'10 semantic and optimizer parity
 
-Give every live Core read form one denotational interpretation over bags and
-SQLite three-valued predicates:
+### What POPL'10 actually did
 
-- projection, filtering, DISTINCT, ordering and LIMIT;
-- COUNT, SUM, MIN/MAX and grouped aggregation;
-- inner and left-outer join;
-- UNION ALL, UNION, INTERSECT and EXCEPT.
+Recorded here so "parity" is checkable rather than rhetorical. Quotations and
+definitions are from the paper (`usefulreading/papers/priorart-verified-rdbms-popl10.pdf`),
+sections 3.4, 4.2 and 4.4. Their Coq development does not appear to be
+publicly archived -- it predates the ACM artifact-evaluation era and the Ynot
+repository (`ynot-harvard/ynot`) does not contain the RDBMS -- so the paper is
+the citable ground truth.
+
+Their algebra has a **six-operator basis**: selection, projection,
+**permutation** (permutes a relation's columns), union, **difference**, and
+cartesian product. They state this basis is "relationally complete, and equal
+in expressive power to other relational formalisms, like relational calculus",
+and note the choice is "somewhat arbitrary; for example, we could have chosen
+to use join and recovered cartesian product as a degenerate case".
+
+Their relations are **finite sets**:
+`Definition Relation (I : Schema) := FSetInterface (Tuple I)`, with union,
+difference and selection implemented by `FSetInterface`'s `union`, `difference`
+and `filter`. There are no bags and no three-valued NULL logic.
+
+Their optimizer runs as a distinct phase and implements **three**
+transformations from a standard textbook: selection fusion
+(`select P2 (select P1 Q)` to `select (P1 and P2) Q`), projection fusion
+(composing the two permutations), and selection-projection re-ordering. They
+report "several dozen algebraic identities that we have proven", any of which
+could drive a transformation, "although not all will be beneficial". Their cost
+model makes conservative assumptions -- selection and projection iterate every
+tuple -- and they proved that **several** transformations are not
+cost-increasing, not all of them.
+
+Their parser is **verified**: Ynot's packrat PEG parser, "implemented as a
+verified compiler", where a PEG grammar plus semantic actions yields an
+imperative computation whose result "agrees with the specification". Note the
+scope: the theorem relates the parser to a PEG grammar, not the grammar to SQL.
+
+Three consequences for this plan:
+
+1. **Permutation and cartesian product are parity items** and are not in the
+   list below. Add them, or state explicitly that DISTINCT-preserving
+   projection plus join subsumes them and prove the subsumption.
+2. **INTERSECT is not one of their primitives** (it is derivable from
+   difference), and UNION ALL cannot exist in set semantics. Our bag plus
+   three-valued denotation is strictly harder than theirs and closer to real
+   SQL, so on this axis the goal is not parity but a stated improvement. Do not
+   describe it as matching them.
+3. **A verified parser is parity, not a reach goal.** Milestone 1 is therefore
+   required for the POPL'10 comparison, and the relative form -- correct
+   against an explicit grammar rather than against SQL at large -- is the same
+   standard they met. Our per-rewrite cost obligation below is stronger than
+   their "several transformations".
+
+### The parity work
+
+Give every live Core read form one denotational interpretation over bags and
+SQLite three-valued predicates.
+
+Items marked **[parity]** are needed to claim POPL'10 coverage. Items marked
+**[superset]** go beyond their algebra; keep them, and present them as an
+improvement rather than as parity.
+
+- projection, filtering, DISTINCT, ordering and LIMIT -- **[parity]** for
+  projection and filtering; **[superset]** for ordering and LIMIT, which their
+  set-based algebra cannot express at all;
+- **column permutation** -- **[parity]**, one of their six primitives. Either
+  give it its own denotation and refinement, or prove that our projection
+  subsumes it by producing an explicitly reordered column list, and cite that
+  subsumption theorem where the parity claim is made. Do not leave it implicit:
+  reordering is the operator most easily assumed rather than proved.
+- **cartesian product** -- **[parity]**, their sixth primitive. Our join is
+  primitive rather than derived, so prove `product = join with a constant-true
+  predicate` and treat that lemma as the parity witness. State the direction
+  honestly: they derive join from product, we derive product from join.
+- COUNT, SUM, MIN/MAX and grouped aggregation -- **[superset]**. Their algebra
+  has no aggregation.
+- inner and left-outer join -- **[parity]** via the product lemma above for the
+  inner case; **[superset]** for left-outer, which is not derivable in their
+  basis.
+- UNION and EXCEPT -- **[parity]**. These are their `union` and `difference`.
+- UNION ALL and INTERSECT -- **[superset]**. UNION ALL has no meaning in set
+  semantics, and INTERSECT is not one of their primitives. Both are worth
+  having: UNION ALL is the duplicate-preserving operator real SQL actually
+  uses, and a primitive INTERSECT avoids the double-difference encoding. Keep
+  them and say why.
+
+The set-versus-bag difference is the important one and should be stated once,
+prominently, rather than repeated per operator: POPL'10 denotes queries into
+finite sets of tuples, so duplicates and NULL comparison never arise. Our
+denotation is a bag with SQLite three-valued predicates. Every operator above
+is therefore proved against a strictly harder and more SQL-faithful target than
+theirs, which is a result in its own right and must not be described as
+matching them.
 
 Prove that each live executor result refines this interpretation.  Existing
 `QuerySemantics`, `RelationalAlgebra`, `KRelation`, `CoreJoin`, and
@@ -209,7 +297,15 @@ Exit gates:
 - every live read constructor has an execute-to-denotation theorem;
 - every live optimizer transformation has semantic and cost theorems;
 - the optimizer bridge remains on both rollback-journal and WAL paths;
-- no validating full execution is added to justify an optimized result.
+- no validating full execution is added to justify an optimized result;
+- every **[parity]** item above is discharged, including the permutation and
+  product subsumption lemmas, so the POPL'10 claim rests on named theorems
+  rather than on the two developments looking similar.
+
+Our cost obligation is deliberately stronger than theirs: they proved *several*
+transformations non-cost-increasing, we require a semantic and a cost theorem
+for *every* live rewrite. Say so in the comparison; it is a cheap, defensible
+improvement and it is already the exit gate above.
 
 ## Milestone 3: logical writes to SQLite bytes
 
