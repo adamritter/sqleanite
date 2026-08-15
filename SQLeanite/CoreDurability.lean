@@ -458,6 +458,73 @@ def SQLiteHeaderMatches.FreelistEmpty
     header.firstFreelistTrunk.val = 0 ∧
     header.freelistPageCount.val = 0
 
+/-- The canonical bulk encoder establishes the exact SQLite framing consumed
+by the first localized transaction.  This is derived from the emitted schema
+page; no reopen or whole-file decoder is run to manufacture the proof. -/
+theorem sqliteHeaderMatches_storageImage_encodeBulk
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image) :
+    SQLiteHeaderMatches (CoreFileAdapter.storageImage image) := by
+  rcases CorePageCodec.encodeBulk_header encoded with
+    ⟨count, schema, remaining, body, pagesEqual, countEqual, headerEqual⟩
+  let header := CoreFile.databaseHeader count
+  let suffix := body ++ remaining.flatMap CoreFile.Page.bytes
+  refine .intro header suffix ?_ ?_ (by rfl) (by rfl) (by rfl)
+  · rw [imageBytes_storageImage]
+    unfold CoreFile.Image.fileBytes
+    rw [pagesEqual]
+    simp only [List.flatMap_cons]
+    rw [headerEqual]
+    simpa [header, suffix, List.append_assoc] using
+      FileFormat.decodeDatabaseHeader_encode header suffix
+  · simpa [header, CoreFile.databaseHeader, CoreFileAdapter.storageImage,
+      CoreFile.Image.pageCount] using countEqual.symm
+
+/-- Canonical bulk images begin with no freelist.  The proposition decodes
+the same emitted header independently, so it remains meaningful even when
+paired with a different proof term for `SQLiteHeaderMatches`. -/
+theorem sqliteHeaderMatches_storageImage_encodeBulk_freelistEmpty
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image)
+    (validHeader : SQLiteHeaderMatches
+      (CoreFileAdapter.storageImage image)) :
+    validHeader.FreelistEmpty := by
+  rcases CorePageCodec.encodeBulk_header encoded with
+    ⟨count, schema, remaining, body, pagesEqual, countEqual, headerEqual⟩
+  let header := CoreFile.databaseHeader count
+  let suffix := body ++ remaining.flatMap CoreFile.Page.bytes
+  refine ⟨header, suffix, ?_, by rfl, by rfl⟩
+  rw [imageBytes_storageImage]
+  unfold CoreFile.Image.fileBytes
+  rw [pagesEqual]
+  simp only [List.flatMap_cons]
+  rw [headerEqual]
+  simpa [header, suffix, List.append_assoc] using
+    FileFormat.decodeDatabaseHeader_encode header suffix
+
+/-- One canonical bulk encode supplies the complete proof-carrying starting
+state for localized transactions: logical allocator state, table/index page
+ownership, SQLite header framing, and an empty freelist all refer to the same
+concrete storage image. -/
+theorem exists_framedDatabaseOnStorage_encodeBulk
+    (utf8 : CoreDecode.UTF8Roundtrips)
+    (database : Core.Database) (image : CoreFile.Image)
+    (encoded : CorePageCodec.encodeBulk database = some image) :
+    ∃ state : CoreChunkPageState.State,
+      CoreChunkPageState.State.build? database = some state ∧
+      CoreLocalizedRepresentation.DatabaseOnSource
+        (CorePageSource.ofStorageImage
+          (CoreFileAdapter.storageImage image)) state ∧
+      ∃ header : SQLiteHeaderMatches (CoreFileAdapter.storageImage image),
+        header.FreelistEmpty := by
+  rcases exists_databaseOnStorage_encodeBulk utf8 database image encoded with
+    ⟨state, built, physical⟩
+  let header := sqliteHeaderMatches_storageImage_encodeBulk database image
+    encoded
+  exact ⟨state, built, physical, header,
+    sqliteHeaderMatches_storageImage_encodeBulk_freelistEmpty database image
+      encoded header⟩
+
 /-- Exact first-page decomposition including the empty-freelist fields. -/
 theorem SQLiteHeaderMatches.firstPage_of_freelistEmpty
     {image : GrowableStorage.Image PhysicalCodec.pageSize}
