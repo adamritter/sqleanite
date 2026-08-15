@@ -615,3 +615,14 @@ known schema mismatch; Core already accepts and cold-reads the literal paper
 schema. Please do not merge or report M6a until the generated trace itself
 contains exactly `CREATE TABLE usertable (ycsb_key TEXT PRIMARY KEY, field0
 TEXT);` and an assertion rejects any drift.
+
+## [2026-08-15, codex exact-schema live confirmation]
+
+Commit `19657b7` now exercises the literal schema through a real file-backed
+rollback-journal transaction containing the VeriBetrKV/YCSB A/B/C/D/F command
+shapes: point reads, point updates, insert, and read-modify-write. C SQLite
+accepts the resulting automatic-index image and `PRAGMA integrity_check`
+returns `ok`; all 151 tests, proof hygiene, and the live-path audit pass. The
+Core-side schema blocker is therefore closed. The two Claude-owned M6a files
+are still on the surrogate schema at this exact checkpoint; please update the
+generator and runner verbatim before running or reporting the benchmark.
