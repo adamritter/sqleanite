@@ -322,6 +322,41 @@ theorem localizedIndexReadable_of_encodedOnStorage
   refine ⟨oldImage, .encoded certificate reads rootPositive pageBound ?_⟩
   simpa [localizedSource] using withinSource
 
+/-- A prepared live index mutation retains enough erased evidence to install
+its physical entry into the exact catalog run.  In particular, this theorem
+uses the catalog table/root/SQL fields carried by the preparation result; an
+index byte certificate alone cannot be attached to an unrelated entry. -/
+theorem localizedLastIndexDelta_cons
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.LocalizedLastIndexDelta delta) :
+    ∃ oldImage : GrowableStorage.Image PhysicalCodec.pageSize,
+      ∀ {entries : List CoreDecode.CatalogEntry},
+        CoreLocalizedRepresentation.IndexesDecode
+            (localizedSource oldImage prepared.writes)
+            delta.table.after.table entries →
+          CoreLocalizedRepresentation.IndexesDecode
+            (localizedSource oldImage prepared.writes)
+            delta.table.after.table (prepared.entry :: entries) := by
+  cases certificateEq : prepared.certificate with
+  | encoded certificate =>
+      have onStorage : certificate.OnStorage prepared.writes := by
+        simpa [certificateEq] using prepared.storage
+      rcases localizedIndexReadable_of_encodedOnStorage certificate onStorage with
+        ⟨oldImage, readable⟩
+      refine ⟨oldImage, ?_⟩
+      intro entries tail
+      exact indexesDecode_consLocalized prepared.entryTable prepared.entryRoot
+        prepared.entryMetadata readable tail
+  | decoded certificate =>
+      have onStorage : certificate.OnStorage prepared.writes := by
+        simpa [certificateEq] using prepared.storage
+      rcases localizedIndexReadable_of_onStorage certificate onStorage with
+        ⟨oldImage, readable⟩
+      refine ⟨oldImage, ?_⟩
+      intro entries tail
+      exact indexesDecode_consLocalized prepared.entryTable prepared.entryRoot
+        prepared.entryMetadata readable tail
+
 /-- A nonempty growable image starts with the bytes returned by page zero.
 The suffix is intentionally abstract: SQLite header decoding consumes exactly
 the first 100 bytes and does not need to inspect the remaining pages. -/

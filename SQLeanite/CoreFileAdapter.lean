@@ -716,6 +716,12 @@ structure LocalizedLastIndexDelta
   state : CoreChunkPageState.State
   index : Core.Index
   rootPage : Nat
+  entry : CoreDecode.CatalogEntry
+  entryTable : entry.table = delta.table.after.table.schema.name
+  entryRoot : entry.rootPage = rootPage
+  entryMetadata : CoreDecode.decodeCanonicalIndex
+    delta.table.after.table.schema delta.table.after.table.schema.name entry =
+      some index
   expectedBefore : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   certificate : LocalizedIndexCertificate rootPage
@@ -726,6 +732,13 @@ structure LocalizedLastIndexDelta
   writesDistinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
   allocation : state.AllocationWellFormed
   validated : ValidatedOpenState
+
+/-- Turn one small decidable boundary check into erased evidence retained by a
+prepared delta.  This is used only for catalog identity, never to validate a
+table or index by re-running its logical operation. -/
+private def decideProof? (proposition : Prop) [Decidable proposition] :
+    Option proposition :=
+  if proof : proposition then some proof else none
 
 private def storagePage? (bytes : List UInt8) :
     Option (Storage.Page PhysicalCodec.pageSize) :=
@@ -1265,7 +1278,7 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
           let after := delta.table.after.table
           if _sameSchema : before.schema = after.schema then
             if _sameRows : before.rows = after.rows then
-              match after.indexes with
+              match afterIndexes : after.indexes with
               | index :: previous =>
                   if _oneAdded : previous = before.indexes then
                     let source := byteArrayPageSource input count
@@ -1298,6 +1311,49 @@ def prepareAppendedIndex? (validated : ValidatedOpenState)
                                 state
                                 index
                                 rootPage
+                                entry := CoreDecode.CatalogEntry.ofEncoded
+                                  encoding.catalogEntry
+                                entryTable := by
+                                  have identity := CoreOverflow.encodeIndex_identity
+                                    certified.encoded
+                                  change encoding.table.schema.name =
+                                    after.schema.name
+                                  dsimp only [encoding]
+                                  rw [identity.1]
+                                entryRoot := by
+                                  have identity := CoreOverflow.encodeIndex_identity
+                                    certified.encoded
+                                  change encoding.rootPage = rootPage
+                                  dsimp only [encoding]
+                                  exact identity.2.2
+                                entryMetadata := by
+                                  have member : index ∈ after.indexes := by
+                                    rw [afterIndexes]
+                                    simp
+                                  have decoded := CoreDecode.decodeCanonicalIndex_encoded
+                                    after index member rootPage
+                                  have identity := CoreOverflow.encodeIndex_identity
+                                    certified.encoded
+                                  have tableEq : encoding.table = after := by
+                                    simpa only [encoding] using identity.1
+                                  have indexEq : encoding.index = index := by
+                                    simpa only [encoding] using identity.2.1
+                                  have rootEq : encoding.rootPage = rootPage := by
+                                    simpa only [encoding] using identity.2.2
+                                  have encodingMember :
+                                      encoding.index ∈ encoding.table.indexes := by
+                                    rw [tableEq, indexEq]
+                                    exact member
+                                  have encodingDecoded :=
+                                    CoreDecode.decodeCanonicalIndex_encoded
+                                      encoding.table encoding.index encodingMember
+                                      encoding.rootPage
+                                  change CoreDecode.decodeCanonicalIndex
+                                    after.schema after.schema.name
+                                    (CoreDecode.CatalogEntry.ofEncoded
+                                      encoding.catalogEntry) = some index
+                                  simpa [CoreOverflow.IndexEncoding.catalogEntry,
+                                    tableEq, indexEq, rootEq] using encodingDecoded
                                 certificate := .encoded certified
                                 expectedBefore := [⟨0, oldPage⟩]
                                 writes
@@ -1403,10 +1459,21 @@ def preparePageDirectedIndexInsert? (validated : ValidatedOpenState)
                               if distinct : writes.Pairwise
                                   (fun left right => left.pageId ≠ right.pageId) then
                                 if allocation : delta.after.AllocationWellFormed then
+                                  let entryTable ← decideProof? (entry.table =
+                                    delta.table.after.table.schema.name)
+                                  let entryMetadata ← decideProof?
+                                    (CoreDecode.decodeCanonicalIndex
+                                      delta.table.after.table.schema
+                                      delta.table.after.table.schema.name entry =
+                                        some index)
                                   some {
                                     state := delta.after
                                     index
                                     rootPage := entry.rootPage
+                                    entry
+                                    entryTable
+                                    entryRoot := rfl
+                                    entryMetadata
                                     certificate := .decoded certified.certificate
                                     expectedBefore
                                     writes
@@ -1495,10 +1562,21 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
                             if distinct : writes.Pairwise
                                 (fun left right => left.pageId ≠ right.pageId) then
                               if allocation : delta.after.AllocationWellFormed then
+                                let entryTable ← decideProof? (entry.table =
+                                  delta.table.after.table.schema.name)
+                                let entryMetadata ← decideProof?
+                                  (CoreDecode.decodeCanonicalIndex
+                                    delta.table.after.table.schema
+                                    delta.table.after.table.schema.name entry =
+                                      some index)
                                 some {
                                   state := delta.after
                                   index
                                   rootPage := entry.rootPage
+                                  entry
+                                  entryTable
+                                  entryRoot := rfl
+                                  entryMetadata
                                   certificate := .decoded certified.certificate
                                   expectedBefore
                                   writes
@@ -1616,10 +1694,21 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                               if distinct : writes.Pairwise
                                   (fun left right => left.pageId ≠ right.pageId) then
                                 if allocation : state.AllocationWellFormed then
+                                  let entryTable ← decideProof? (entry.table =
+                                    delta.table.after.table.schema.name)
+                                  let entryMetadata ← decideProof?
+                                    (CoreDecode.decodeCanonicalIndex
+                                      delta.table.after.table.schema
+                                      delta.table.after.table.schema.name entry =
+                                        some index)
                                   some {
                                   state
                                   index
                                   rootPage := entry.rootPage
+                                  entry
+                                  entryTable
+                                  entryRoot := rfl
+                                  entryMetadata
                                   certificate := .encoded certified
                                   expectedBefore
                                   writes

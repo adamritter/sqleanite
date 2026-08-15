@@ -200,6 +200,11 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   whenever the certified overflow run is empty. Both ordinary table deltas and
   changed-index candidates use that result to construct the complete changed
   `TableOnSource` directly over the actual post-write storage image.
+  Prepared changed-index deltas now retain the exact decoded catalog entry
+  together with proofs of its table, root-page, and canonical SQL metadata;
+  `localizedLastIndexDelta_cons` installs either routed or rebuilt index bytes
+  into the physical catalog run without permitting the certificate to be
+  attached to an unrelated entry.
   `CoreDurability.LocalizedRepresentation` now exposes their catalog/table/
   index equations and header framing as one erased certificate, and
   `executeText_localized_commit_crash_atomic` derives the public whole-byte
