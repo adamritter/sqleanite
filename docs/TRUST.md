@@ -1006,7 +1006,11 @@ deletion-sync requests;
 `run_commitPlan` proves interpreting those requests is exactly
 `GrowableStorage.rollbackCommitState ... committed`.
 `PhysicalJournalCodec.lean` encodes the original page count plus page-numbered
-preimages and has a suffix-preserving roundtrip theorem.  The IO adapter syncs
+preimages and has a suffix-preserving roundtrip theorem.
+`decodeChecked_makeJournal_exact` additionally proves that the checksummed
+bytes emitted by the live adapter decode to no invented records and to a
+recoverable preimage for every overwritten page that existed before the
+transaction.  The IO adapter syncs
 that journal, writes the complete new multi-page image, syncs the main file,
 deletes and syncs the journal deletion, and reopens through the verified
 decoder.  Tests cover a two-to-five-page live commit accepted by C SQLite and

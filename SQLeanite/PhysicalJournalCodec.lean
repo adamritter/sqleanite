@@ -129,6 +129,18 @@ theorem ofJournal?_roundtrip {journal : GrowableStorage.Journal PhysicalCodec.pa
   subst encoded
   exact decoded
 
+theorem ofJournal?_journal {journal :
+    GrowableStorage.Journal PhysicalCodec.pageSize} {encoded : Encodable}
+    (accepted : ofJournal? journal = some encoded) :
+    encoded.journal = journal := by
+  unfold ofJournal? at accepted
+  split at accepted <;> try contradiction
+  split at accepted <;> try contradiction
+  split at accepted <;> try contradiction
+  injection accepted with equal
+  subst encoded
+  rfl
+
 /-! ## Checksummed live journal envelope
 
 The legacy `encode`/`decode` pair remains available for format-level proofs.
@@ -173,6 +185,23 @@ theorem decodeChecked_encode (journal : Encodable) :
   rw [show encode journal = encode journal ++ [] by simp,
     decode_encode journal []]
   simp [checksumValue]
+
+/-- The exact checked bytes emitted by the live adapter decode to a journal
+containing precisely the old pre-images required by its page delta. -/
+theorem decodeChecked_makeJournal_exact
+    (old : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (encoded : Encodable)
+    (accepted : ofJournal? (GrowableStorage.makeJournal old writes) =
+      some encoded) :
+    decodeChecked (encodeChecked encoded) =
+        some (GrowableStorage.makeJournal old writes) ∧
+      encoded.journal.ExactPreimages old writes := by
+  have journalEqual := ofJournal?_journal accepted
+  constructor
+  · rw [decodeChecked_encode, journalEqual]
+  · rw [journalEqual]
+    exact GrowableStorage.makeJournal_exactPreimages old writes
 
 /-- Acceptance proves that the stored checksum equals the checksum recomputed
 over the entire remaining byte stream. This is deliberately weaker than a

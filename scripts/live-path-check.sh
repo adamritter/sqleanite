@@ -144,7 +144,13 @@ if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreFileAdapter.commit_crash_atomic' \
      SQLeanite/CoreDurability.lean &&
    grep -q 'CorePageCodec.decode_encodeBulk' \
-     SQLeanite/CoreDurability.lean; then
+     SQLeanite/CoreDurability.lean &&
+   grep -q 'decodeChecked_makeJournal_exact' \
+     SQLeanite/ProofAxioms.lean &&
+   grep -q 'PhysicalJournalCodec.encodeChecked encodable' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'PhysicalJournalCodec.decodeChecked encoded.data.toList' \
+     SQLeanite/CoreFileAdapter.lean; then
   ok "rollback crash atomicity reaches concrete Core SQLite bytes"
 else
   fail "Core database durability detached from the codec or journal theorem"

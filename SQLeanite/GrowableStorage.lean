@@ -323,6 +323,19 @@ def undoLookup (pageId : Nat) : List (UndoRecord pageSize) →
       if record.pageId = pageId then some record.before
       else undoLookup pageId records
 
+/-- Exact page-level meaning of a rollback journal.  Every stored record is a
+pre-image of a page actually targeted by the transaction, and every targeted
+page that existed in the old image is recoverable through `undoLookup`. -/
+def Journal.ExactPreimages (journal : Journal pageSize) (old : Image pageSize)
+    (writes : List (PageWrite pageSize)) : Prop :=
+  journal.originalPageCount = old.pageCount ∧
+    (∀ record ∈ journal.undo,
+      record.pageId < old.pageCount ∧
+      record.before = old.read record.pageId ∧
+      ∃ write ∈ writes, write.pageId = record.pageId) ∧
+    (∀ write ∈ writes, write.pageId < old.pageCount →
+      undoLookup write.pageId journal.undo = some (old.read write.pageId))
+
 theorem undoLookup_buildUndo_of_mem (old : Image pageSize)
     (writes : List (PageWrite pageSize)) (write : PageWrite pageSize)
     (member : write ∈ writes) (withinOld : write.pageId < old.pageCount) :
@@ -370,6 +383,39 @@ theorem undoLookup_buildUndo_some_implies_mem (old : Image pageSize)
       next outside =>
         rcases induction lookup with ⟨witness, member, equal⟩
         exact ⟨witness, by simp [member], equal⟩
+
+private theorem buildUndo_record_exact (old : Image pageSize)
+    (writes : List (PageWrite pageSize))
+    (record : UndoRecord pageSize) (member : record ∈ buildUndo old writes) :
+    record.pageId < old.pageCount ∧
+      record.before = old.read record.pageId ∧
+      ∃ write ∈ writes, write.pageId = record.pageId := by
+  induction writes with
+  | nil => simp [buildUndo] at member
+  | cons write writes induction =>
+      unfold buildUndo at member
+      split at member
+      next withinOld =>
+        simp only [List.mem_cons] at member
+        rcases member with equal | tail
+        · subst record
+          exact ⟨withinOld, rfl, write, by simp⟩
+        · rcases induction tail with ⟨within, before, witness, inTail, page⟩
+          exact ⟨within, before, witness, by simp [inTail], page⟩
+      next outside =>
+        rcases induction member with ⟨within, before, witness, inTail, page⟩
+        exact ⟨within, before, witness, by simp [inTail], page⟩
+
+theorem makeJournal_exactPreimages (old : Image pageSize)
+    (writes : List (PageWrite pageSize)) :
+    (makeJournal old writes).ExactPreimages old writes := by
+  constructor
+  · rfl
+  constructor
+  · intro record member
+    exact buildUndo_record_exact old writes record member
+  · intro write member withinOld
+    exact undoLookup_buildUndo_of_mem old writes write member withinOld
 
 /-- Recovery copies recorded page pre-images and then truncates to the page
 count saved in the journal header. -/

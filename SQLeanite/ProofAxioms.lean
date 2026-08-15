@@ -428,6 +428,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_crash_atomic
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_returned_recovers_new
 #print axioms SQLeanite.CoreDurability.rollbackCommit_core_repeated_recovery_atomic
+#print axioms SQLeanite.GrowableStorage.makeJournal_exactPreimages
+#print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_makeJournal_exact
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedIndexEntries
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedValue_exact
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedRange_exact
