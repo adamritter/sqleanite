@@ -573,6 +573,7 @@ structure OrdinaryLocalizedCommit
         (GrowableStorage.applyWrites oldImage writes)).readPage 1 >>=
           CoreDecode.decodeCatalogForOpen = some catalog)
   retained : ∀ (old : CoreChunkPageState.TableState)
+    (_member : old ∈ state.tables)
     (table : Core.Table) (equivalent : old.table.Equiv table),
     old ≠ delta.table.before →
     CoreLocalizedRepresentation.TableOnSource
@@ -599,6 +600,7 @@ def OrdinaryLocalizedCommit.databaseOnSource
         (GrowableStorage.applyWrites oldImage writes)) delta.after := by
   rcases commit.changed with ⟨changed, inline⟩
   have retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       CoreLocalizedRepresentation.TableOnSource
@@ -607,9 +609,9 @@ def OrdinaryLocalizedCommit.databaseOnSource
           (CorePageSource.ofStorageImage
             (GrowableStorage.applyWrites oldImage writes))
           (old.retarget table equivalent) := by
-    intro old table equivalent different physical
+    intro old member table equivalent different physical
     exact Classical.choose
-      (commit.retained old table equivalent different physical)
+      (commit.retained old member table equivalent different physical)
   rcases commit.preservationMode with indexed | indexless
   · exact commit.physical.updateStateApplyWritesBelow oldImage writes
       commit.distinct commit.allocation commit.updated commit.catalogPreserved
@@ -768,6 +770,7 @@ def CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
           (GrowableStorage.applyWrites oldImage prepared.writes)).readPage 1 >>=
             CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       CoreLocalizedRepresentation.TableOnSource
@@ -791,6 +794,43 @@ def CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
   retained
   changed
   preservationMode := prepared.preservationMode }
+
+/-- A one-table localized commit has no retained-table premise to supply.
+This is the exact shape of the paper's YCSB database: the one logical table
+may change, while the membership-aware frame theorem proves there cannot be a
+second old table hidden behind the universal callback.  The result is still
+schema-generic; in particular, it does not replace the literal TEXT primary
+key with an integer surrogate. -/
+def CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommitSingle
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (single : state.tables = [delta.table.before])
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (header : SQLiteHeaderMatches
+      (GrowableStorage.applyWrites oldImage prepared.writes))
+    (catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites oldImage prepared.writes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog))
+    (changed : ∃ changedPhysical :
+        CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites oldImage prepared.writes))
+          delta.table.after,
+        changedPhysical.encoding.overflowPages = []) :
+    OrdinaryLocalizedCommit oldImage prepared.writes state database delta := by
+  apply SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
+    prepared oldImage physical header catalogPreserved
+  · intro old member table equivalent different oldPhysical
+    rw [single] at member
+    simp only [List.mem_singleton] at member
+    exact False.elim (different member)
+  · exact changed
 
 /-- Constructive alternatives for the post-image premise of the public crash
 theorem.  Every constructor exposes how the bytes were justified: an ordinary

@@ -309,9 +309,10 @@ table and installs the supplied exact certificate for the changed table.
 This is the table-list frame theorem used by localized commits. -/
 theorem TablesOnSource.alignTables_changed
     {oldSource newSource : CoreDecode.PageSource}
+    {scopeStates : List CoreChunkPageState.TableState}
     {changed : CoreChunkPageDelta.TableDelta}
-    (retained : ∀ (state : CoreChunkPageState.TableState)
-      (table : Core.Table) (equivalent : state.table.Equiv table),
+    (retained : ∀ (state : CoreChunkPageState.TableState), state ∈ scopeStates →
+      ∀ (table : Core.Table) (equivalent : state.table.Equiv table),
       state ≠ changed.before →
       TableOnSource oldSource state →
         TableOnSource newSource (state.retarget table equivalent))
@@ -320,6 +321,7 @@ theorem TablesOnSource.alignTables_changed
       {target : List Core.Table}
       {aligned : CoreChunkPageDelta.AlignedTables target}
       {entries : List CoreDecode.CatalogEntry},
+      (∀ state ∈ states, state ∈ scopeStates) →
       states.Nodup →
       CoreChunkPageDelta.alignTables? nextPage states target = some aligned →
       aligned.delta = some changed →
@@ -327,12 +329,13 @@ theorem TablesOnSource.alignTables_changed
       TablesOnSource newSource
         (aligned.tables.map fun state => CoreDecode.CatalogEntry.ofEncoded
           (CorePageCodec.chunkTableCatalogEntry state)) aligned.tables
-  | _, [], target, aligned, entries, nodup, success, selected, physical => by
+  | _, [], target, aligned, entries, subset, nodup, success, selected,
+      physical => by
       cases target <;> simp [CoreChunkPageDelta.alignTables?] at success
       subst aligned
       simp at selected
-  | nextPage, state :: states, target, aligned, entries, nodup, success,
-      selected, physical => by
+  | nextPage, state :: states, target, aligned, entries, subset, nodup,
+      success, selected, physical => by
       simp only [List.nodup_cons] at nodup
       cases target with
       | nil => simp [CoreChunkPageDelta.alignTables?] at success
@@ -353,10 +356,15 @@ theorem TablesOnSource.alignTables_changed
               apply nodup.1
               rw [equal]
               exact selectedTail.1
+            have tailSubset : ∀ candidate ∈ states,
+                candidate ∈ scopeStates := by
+              intro candidate member
+              exact subset candidate (by simp [member])
             have tailPhysical := alignTables_changed retained changedPhysical
-              nodup.2 tailResult selected tail
+              tailSubset nodup.2 tailResult selected tail
             exact .cons rfl
-              (retained state table equivalent stateDifferent head) tailPhysical
+              (retained state (subset state (by simp)) table equivalent
+                stateDifferent head) tailPhysical
           next =>
             split at success
             next => contradiction
@@ -383,7 +391,8 @@ theorem TablesOnSource.alignTables_changed
                         TableOnSource newSource
                           (old.retarget table equivalent) := by
                     intro old member table equivalent oldPhysical
-                    apply retained old table equivalent
+                    apply retained old (subset old (by simp [member])) table
+                      equivalent
                     · intro equalOld
                       apply nodup.1
                       have oldEqual : old = state := equalOld.trans changedBefore
@@ -409,6 +418,7 @@ theorem TablesOnSource.updateStateCandidate
       (state.tables.map fun table => CoreDecode.CatalogEntry.ofEncoded
         (CorePageCodec.chunkTableCatalogEntry table)) state.tables)
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       TableOnSource oldSource old →
@@ -419,8 +429,9 @@ theorem TablesOnSource.updateStateCandidate
         (CorePageCodec.chunkTableCatalogEntry table)) delta.after.tables := by
   rcases CoreChunkPageDelta.updateStateCandidate?_alignment updated with
     ⟨aligned, alignedResult, alignedTables, selected⟩
-  have transported := alignTables_changed retained changed state.tables_nodup
-    alignedResult selected physical
+  have transported := alignTables_changed retained changed
+    (by intro candidate member; exact member) state.tables_nodup alignedResult
+    selected physical
   rw [alignedTables] at transported
   exact transported
 
@@ -435,6 +446,7 @@ theorem TablesOnSource.updateState
       (state.tables.map fun table => CoreDecode.CatalogEntry.ofEncoded
         (CorePageCodec.chunkTableCatalogEntry table)) state.tables)
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       TableOnSource oldSource old →
@@ -445,8 +457,9 @@ theorem TablesOnSource.updateState
         (CorePageCodec.chunkTableCatalogEntry table)) delta.after.tables := by
   rcases CoreChunkPageDelta.updateState?_alignment updated with
     ⟨aligned, alignedResult, alignedTables, selected⟩
-  have transported := alignTables_changed retained changed state.tables_nodup
-    alignedResult selected physical
+  have transported := alignTables_changed retained changed
+    (by intro candidate member; exact member) state.tables_nodup alignedResult
+    selected physical
   rw [alignedTables] at transported
   exact transported
 
@@ -1580,6 +1593,7 @@ def DatabaseOnSource.updateState
       (oldSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog) →
       (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       TableOnSource oldSource old →
@@ -1645,6 +1659,7 @@ def DatabaseOnSource.updateStateIndexless
       (oldSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog) →
       (newSource.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       TableOnSource oldSource old →
@@ -2111,6 +2126,7 @@ def DatabaseOnSource.updateStateApplyWritesBelow
           (GrowableStorage.applyWrites image writes)).readPage 1 >>=
             CoreDecode.decodeCatalogForOpen = some catalog))
     (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
       (table : Core.Table) (equivalent : old.table.Equiv table),
       old ≠ delta.table.before →
       TableOnSource (CorePageSource.ofStorageImage image) old →

@@ -807,6 +807,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.databaseOnSource
 #print axioms SQLeanite.CoreDurability.OrdinaryLocalizedCommit.localizedRepresentation
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommit
+#print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.ordinaryLocalizedCommitSingle
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed
 #print axioms SQLeanite.CoreDurability.CoreFileAdapter.LocalizedLastIndexDelta.liveDeltaEquations
