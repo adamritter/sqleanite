@@ -496,6 +496,25 @@ theorem PreparedLocalizedWrites.sources
         ∃ trunk ∈ freePages, write.pageId = trunk - 1 :=
   planLocalizedWrites?_sources prepared.planned
 
+/-- With no free pages, the localized planner can add only the SQLite header
+write at page zero.  This is the common point-update/YCSB shape and is the
+exact framing fact needed to extend table/index noninterference from the base
+delta to the final journaled write list. -/
+theorem PreparedLocalizedWrites.added_pageZero_of_noFreePages
+    {freePages : List Nat} {baseWrites : List
+      (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
+    (prepared : PreparedLocalizedWrites freePages baseWrites)
+    (noFree : freePages = [])
+    {write : GrowableStorage.PageWrite PhysicalCodec.pageSize}
+    (member : write ∈ prepared.writes) (notBase : write ∉ baseWrites) :
+    write.pageId = 0 := by
+  rcases prepared.sources write member with base | pageZero | trunk
+  · exact False.elim (notBase base)
+  · exact pageZero
+  · rcases trunk with ⟨trunk, member, equal⟩
+    rw [noFree] at member
+    simp at member
+
 /-- Header/freelist framing added after the logical delta cannot alias any
 table-tree page owned by the allocator state. This closes the table-page part
 of the frame argument without inspecting bytes at runtime. -/

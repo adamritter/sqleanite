@@ -747,6 +747,94 @@ noncomputable def
       prepared.allocation prepared.updated indexed)
     beforeInline afterEncoding afterEncoded afterInline heightBound
 
+/-- Complete the table/index part of a one-table indexed commit over the
+planner's exact final write list.  The no-freelist premise is the ordinary
+point-update/YCSB case: every non-delta write is then page zero, whose page
+number is strictly below every table and index root. -/
+noncomputable def
+    CoreFileAdapter.PreparedOrdinaryDelta.databaseOnFinalWritesIndexedSingle
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (prepared : CoreFileAdapter.PreparedOrdinaryDelta state database delta)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (single : state.tables = [delta.table.before])
+    (final : CoreFileAdapter.PreparedLocalizedWrites delta.after.freePages
+      prepared.writes)
+    (noFree : delta.after.freePages = [])
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (physical : CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage oldImage) state)
+    (catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage oldImage).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites oldImage final.writes)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog))
+    (beforeInline :
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem
+          prepared.updated).1)).encoding.overflowPages = [])
+    (afterEncoding : CorePageCodec.OverflowEncoding)
+    (afterEncoded : CorePageCodec.encodeChunkNodeWithOverflow
+      delta.table.after.table.schema delta.table.after.tree.root
+      (Classical.choose (physical.exists_table delta.table.before
+        (CoreChunkPageDelta.updateState?_selected_mem prepared.updated).1)).nextOverflow =
+        some afterEncoding)
+    (afterInline : afterEncoding.overflowPages = []) :
+    CoreLocalizedRepresentation.DatabaseOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites oldImage final.writes)) delta.after := by
+  let changed :=
+    SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed
+      prepared indexed final oldImage physical beforeInline afterEncoding
+        afterEncoded afterInline
+  have retained : ∀ (old : CoreChunkPageState.TableState),
+      old ∈ state.tables → ∀ (table : Core.Table)
+        (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
+      CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage oldImage) old →
+        CoreLocalizedRepresentation.TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites oldImage final.writes))
+          (old.retarget table equivalent) := by
+    intro old member table equivalent different oldPhysical
+    rw [single] at member
+    simp only [List.mem_singleton] at member
+    exact False.elim (different member)
+  have addedBelow : ∀ entries,
+      CoreLocalizedRepresentation.TablePagesBeforeIndexRoots
+        state.tables entries →
+      ∀ write ∈ final.writes, write ∉ prepared.writes →
+        ∀ entry ∈ entries, write.pageId + 1 < entry.rootPage := by
+    intro entries separation write writeMember notBase entry entryMember
+    have pageZero := final.added_pageZero_of_noFreePages noFree writeMember
+      notBase
+    have selected := CoreChunkPageDelta.updateState?_selected_mem
+      prepared.updated
+    have rootActive : delta.table.before.tree.root.rootId ∈
+        state.activePageIds := by
+      unfold CoreChunkPageState.State.activePageIds
+        CoreChunkPageState.tablePageIds
+      exact List.mem_flatMap.mpr ⟨delta.table.before, selected.1,
+        PersistentPageTree.Node.rootId_mem_pageIds
+          delta.table.before.tree.root⟩
+    have rootBelow := separation delta.table.before.tree.root.rootId
+      rootActive entry entryMember
+    have rootAfterCatalog := prepared.allocation.active_after_catalog
+      delta.table.before.tree.root.rootId rootActive
+    rw [pageZero]
+    omega
+  have changedInline : changed.encoding.overflowPages = [] := by
+    simpa [changed,
+      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed,
+      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites]
+      using afterInline
+  exact physical.updateStateApplyWritesBelowExtension oldImage prepared.writes
+    final.writes final.distinct prepared.allocation prepared.updated
+    catalogPreserved retained changed indexed prepared.writesEq addedBelow
+    changedInline
+
 /-- The dependent object selected by the live ordinary-delta branch supplies
 all executable equations of `OrdinaryLocalizedCommit`.  The remaining
 arguments are precisely the erased physical component witnesses: the old

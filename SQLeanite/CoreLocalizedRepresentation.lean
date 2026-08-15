@@ -2105,6 +2105,97 @@ def IndexGroupsOnSource.applyWritesBelow
         boundary
         (induction (fun entry member => below entry (by simp [member])))
 
+/-- Extend an indexed table delta across a larger final write list.  Base
+writes retain their provenance in the changed table; every framing write added
+afterward is handled by a separate below-index proof.  This is the exact shape
+of the live planner, which adds page zero (and, on shrinking commits, a
+freelist trunk) before journaling. -/
+def DatabaseOnSource.updateStateApplyWritesBelowExtension
+    (image : GrowableStorage.Image PhysicalCodec.pageSize)
+    (baseWrites finalWrites :
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (distinct : finalWrites.Pairwise
+      (fun left right => left.pageId ≠ right.pageId))
+    {state : CoreChunkPageState.State} {database : Core.Database}
+    {delta : CoreChunkPageDelta.StateDelta}
+    (physical : DatabaseOnSource (CorePageSource.ofStorageImage image) state)
+    (allocation : state.AllocationWellFormed)
+    (updated : CoreChunkPageDelta.updateState? state database = some delta)
+    (catalogPreserved : ∀ catalog,
+      ((CorePageSource.ofStorageImage image).readPage 1 >>=
+          CoreDecode.decodeCatalogForOpen = some catalog) →
+      ((CorePageSource.ofStorageImage
+          (GrowableStorage.applyWrites image finalWrites)).readPage 1 >>=
+            CoreDecode.decodeCatalogForOpen = some catalog))
+    (retained : ∀ (old : CoreChunkPageState.TableState)
+      (_member : old ∈ state.tables)
+      (table : Core.Table) (equivalent : old.table.Equiv table),
+      old ≠ delta.table.before →
+      TableOnSource (CorePageSource.ofStorageImage image) old →
+        TableOnSource
+          (CorePageSource.ofStorageImage
+            (GrowableStorage.applyWrites image finalWrites))
+          (old.retarget table equivalent))
+    (changed : TableOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) delta.table.after)
+    (indexed : delta.table.before.table.indexes ≠ [])
+    (converted : CoreChunkPageDelta.writes delta.table = some baseWrites)
+    (addedBelow : ∀ entries,
+      TablePagesBeforeIndexRoots state.tables entries →
+      ∀ write ∈ finalWrites, write ∉ baseWrites →
+        ∀ entry ∈ entries, write.pageId + 1 < entry.rootPage)
+    (inline : changed.encoding.overflowPages = []) :
+    DatabaseOnSource
+      (CorePageSource.ofStorageImage
+        (GrowableStorage.applyWrites image finalWrites)) delta.after := by
+  refine physical.updateState allocation updated catalogPreserved retained
+    changed ?_ ?_
+  · intro entries metadata owned separation
+    have afterEncoded := changed.inlineEncoded inline
+    have selectedPages := CoreChunkPageDelta.updateState?_treePagesSelected
+      updated changed.encoding.treePages afterEncoded
+    have selectedTable :=
+      CoreChunkPageDelta.updateState?_selected_mem updated
+    have activePages :=
+      CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
+        indexed
+    have below : ∀ entry ∈ entries, ∀ write ∈ finalWrites,
+        write.pageId + 1 < entry.rootPage := by
+      intro entry entryMember write writeMember
+      by_cases base : write ∈ baseWrites
+      · rcases CoreChunkPageDelta.writes_sources_pages converted write base
+            with ⟨page, pageMember, pageNumber, pageBytes⟩
+        have selectedPage := selectedPages page pageMember
+        have pageNumberMember : page.pageNumber ∈
+            delta.table.after.tree.root.pageIds := by
+          rw [← CorePageCodec.encodeChunkNodeWithOverflow_pageNumbers
+            delta.table.after.table.schema delta.table.after.tree.root
+            changed.nextOverflow changed.encoding changed.encoded]
+          exact List.mem_map_of_mem selectedPage
+        have afterActive : page.pageNumber ∈ delta.after.activePageIds := by
+          unfold CoreChunkPageState.State.activePageIds
+            CoreChunkPageState.tablePageIds
+          exact List.mem_flatMap.mpr ⟨delta.table.after, selectedTable.2,
+            by simpa [CoreChunkPageState.TableState.pageIds] using
+              pageNumberMember⟩
+        have beforeActive : page.pageNumber ∈ state.activePageIds := by
+          rw [← activePages]
+          exact afterActive
+        rw [pageNumber]
+        exact separation page.pageNumber beforeActive entry entryMember
+      · exact addedBelow entries separation write writeMember base entry
+          entryMember
+    exact (owned.applyWritesBelow image finalWrites distinct below).retarget
+      (updateState?_indexImagesAligned updated)
+  · intro entries metadata separation
+    unfold TablePagesBeforeIndexRoots at separation ⊢
+    intro pageId pageMember entry entryMember
+    have active : pageId ∈ delta.after.activePageIds := pageMember
+    rw [CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
+      indexed] at active
+    exact separation pageId active entry entryMember
+
 /-- Storage-image specialization of `updateState`.  It derives—rather than
 assumes—that every emitted indexed-table write is below every catalogued index
 root. Exact index bytes and the separation invariant are then transported by
@@ -2143,50 +2234,12 @@ def DatabaseOnSource.updateStateApplyWritesBelow
     DatabaseOnSource
       (CorePageSource.ofStorageImage
         (GrowableStorage.applyWrites image writes)) delta.after := by
-  refine physical.updateState allocation updated catalogPreserved retained
-    changed ?_ ?_
-  · intro entries metadata owned separation
-    have afterEncoded := changed.inlineEncoded inline
-    have selectedPages := CoreChunkPageDelta.updateState?_treePagesSelected
-      updated changed.encoding.treePages afterEncoded
-    have selectedTable :=
-      CoreChunkPageDelta.updateState?_selected_mem updated
-    have activePages :=
-      CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
-        indexed
-    have below : ∀ entry ∈ entries, ∀ write ∈ writes,
-        write.pageId + 1 < entry.rootPage := by
-      intro entry entryMember write writeMember
-      rcases CoreChunkPageDelta.writes_sources_pages converted write writeMember
-          with ⟨page, pageMember, pageNumber, pageBytes⟩
-      have selectedPage := selectedPages page pageMember
-      have pageNumberMember : page.pageNumber ∈
-          delta.table.after.tree.root.pageIds := by
-        rw [← CorePageCodec.encodeChunkNodeWithOverflow_pageNumbers
-          delta.table.after.table.schema delta.table.after.tree.root
-          changed.nextOverflow changed.encoding changed.encoded]
-        exact List.mem_map_of_mem selectedPage
-      have afterActive : page.pageNumber ∈ delta.after.activePageIds := by
-        unfold CoreChunkPageState.State.activePageIds
-          CoreChunkPageState.tablePageIds
-        exact List.mem_flatMap.mpr ⟨delta.table.after, selectedTable.2,
-          by simpa [CoreChunkPageState.TableState.pageIds] using
-            pageNumberMember⟩
-      have beforeActive : page.pageNumber ∈ state.activePageIds := by
-        rw [← activePages]
-        exact afterActive
-      rw [pageNumber]
-      exact separation page.pageNumber beforeActive entry entryMember
-    exact (owned.applyWritesBelow image writes distinct
-      below).retarget
-        (updateState?_indexImagesAligned updated)
-  · intro entries metadata separation
-    unfold TablePagesBeforeIndexRoots at separation ⊢
-    intro pageId pageMember entry entryMember
-    have active : pageId ∈ delta.after.activePageIds := pageMember
-    rw [CoreChunkPageDelta.updateState?_activePageIds_eq_of_indexed updated
-      indexed] at active
-    exact separation pageId active entry entryMember
+  apply physical.updateStateApplyWritesBelowExtension image writes writes
+    distinct allocation updated catalogPreserved retained changed indexed
+    converted
+  · intro entries separation write member notBase
+    exact False.elim (notBase member)
+  · exact inline
 
 /-- A successfully encoded index run plus exact post-write page reads gives
 the physical index premise consumed by `IndexGroupsDecode`. -/
