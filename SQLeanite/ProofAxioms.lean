@@ -372,6 +372,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Database.updateTable_target
 #print axioms SQLeanite.Core.Database.updateTable_frame
 #print axioms SQLeanite.Core.Table.patchRowid_exact
+#print axioms SQLeanite.Core.Table.findDeclaredTextRowid?_some_mem
 #print axioms SQLeanite.Core.Table.updateWhere_exact
 #print axioms SQLeanite.Core.Query.eval_width
 #print axioms SQLeanite.Core.deduplicate_nodup

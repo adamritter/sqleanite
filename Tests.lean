@@ -2109,6 +2109,12 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
   unless table.schema.hasHiddenRowid && table.schema.catalogColumns.length == 2 &&
       implicitIndex do
     fail "TEXT PRIMARY KEY was not lowered through its proof-carrying automatic index"
+  let routedUpdate := table.pointUpdateRowid?
+    [(1, .text ⟨[117, 112, 100, 97, 116, 101, 100], by decide⟩)]
+    (some (.equal table.schema.declaredPrimaryKey
+      (.text ⟨[117, 115, 101, 114, 49], by decide⟩)))
+  unless routedUpdate.isSome do
+    fail "TEXT PRIMARY KEY UPDATE did not use the declared-key point route"
   let image ← match CoreFile.encode state.database with
     | some image => pure image
     | none => fail "TEXT PRIMARY KEY physical encoder rejected a valid row"

@@ -557,13 +557,55 @@ theorem Database.modifyTable_exact {database next : Database} {name : String}
               subst next
               exact ⟨table, replacement, rfl, operated, updated⟩
 
-/-- Recognize the UPDATE shape that can safely use one primary-tree lookup. -/
+/-- Resolve a declared TEXT primary key through its proof-carrying balanced
+map.  Keeping this operation separate makes the trust argument explicit: the
+map is not an opportunistic cache, but an exact abstraction of the logical row
+list established by `declaredKeyMapRepresents`. -/
+def Table.findDeclaredTextRowid? (table : Table) (text : PhysicalCodec.Text) :
+    Option Integer :=
+  if table.schema.hasHiddenRowid then
+    (table.declaredKeyMap.get? (.text text)).map (·.rowid)
+  else none
+
+/-- A successful declared-key route names a real logical row with precisely
+that key.  Thus the point updater cannot be sent to an unrelated row by stale
+or merely advisory index data. -/
+theorem Table.findDeclaredTextRowid?_some_mem {table : Table}
+    {text : PhysicalCodec.Text} {rowid : Integer}
+    (found : table.findDeclaredTextRowid? text = some rowid) :
+    ∃ row, row ∈ table.rows ∧ row.rowid = rowid ∧
+      row.declaredKey table.schema = .text text := by
+  unfold Table.findDeclaredTextRowid? at found
+  split at found
+  next hidden =>
+    rcases Option.map_eq_some'.mp found with ⟨row, owner, rowidEqual⟩
+    have represented := table.declaredKeyMapRepresents hidden (.text text)
+    rw [owner] at represented
+    have logical : table.rows.find? (fun candidate =>
+        candidate.declaredKey table.schema == .text text) = some row :=
+      represented.symm
+    refine ⟨row, List.mem_of_find?_eq_some logical, ?_, ?_⟩
+    · exact rowidEqual
+    · simpa only [beq_iff_eq] using List.find?_some logical
+  next => contradiction
+
+/-- Recognize the UPDATE shapes that can safely use one primary-tree lookup.
+Besides the INTEGER PRIMARY KEY alias, a declared TEXT PRIMARY KEY first
+routes through its exact key map and then uses the returned hidden rowid. -/
 def Table.pointUpdateRowid? (table : Table)
     (assignments : List (Nat × Value)) : Option Predicate → Option Integer
-  | some (.equal column (.integer rowid)) =>
-      if column == table.schema.primaryKey &&
-          assignments.all (fun assignment => assignment.1 != column) then
-        some rowid
+  | some (.equal column value) =>
+      if assignments.all (fun assignment => assignment.1 != column) then
+        if column == table.schema.primaryKey then
+          match value with
+          | .integer rowid => some rowid
+          | _ => none
+        else if table.schema.hasHiddenRowid &&
+            column == table.schema.declaredPrimaryKey then
+          match value with
+          | .text text => table.findDeclaredTextRowid? text
+          | _ => none
+        else none
       else none
   | _ => none
 
