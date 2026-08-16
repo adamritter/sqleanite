@@ -1,4 +1,7 @@
 import SQLeanite.CoreDecode
+import SQLeanite.CorePageSource
+import SQLeanite.CoreOverflow
+import SQLeanite.CoreFileAdapter
 
 /-!
 # Page-local writes
@@ -86,6 +89,127 @@ theorem mem_subtreePages_self {source : CoreDecode.PageSource} :
         · simp only [Option.some.injEq] at enumerated
           subst enumerated
           exact List.mem_singleton_self pageNumber
+
+/-- Interior table cells as `(child page, largest key in that child)`, plus the
+rightmost child. `CoreDecode.interiorChildren?` discards the separator keys, but a
+write needs them: routing to the wrong leaf still produces a well-formed file. -/
+def interiorEntries? (page : List UInt8) :
+    Option (List (Nat × Nat) × Nat) :=
+  if page.length == PhysicalCodec.pageSize then
+    match page with
+    | 5 :: _ :: _ :: countHigh :: countLow :: _ :: _ :: _ ::
+        first :: second :: third :: fourth :: afterHeader =>
+        match CoreDecode.decodeOffsetList (FileFormat.decodeU16 countHigh countLow)
+            afterHeader with
+        | none => none
+        | some offsets =>
+            match offsets.mapM (fun offset =>
+              match (page.drop offset).take 4 with
+              | [a, b, c, d] =>
+                  match FileFormat.decodeVarint ((page.drop offset).drop 4) with
+                  | some (key, _) => some (FileFormat.decodeU32 ⟨a, b, c, d⟩, key.val)
+                  | none => none
+              | _ => none) with
+            | none => none
+            | some entries =>
+                some (entries, FileFormat.decodeU32 ⟨first, second, third, fourth⟩)
+    | _ => none
+  else none
+
+/-- The leaf a key routes to, by descending interior separators. -/
+def locateLeaf? (source : CoreDecode.PageSource) (key : Nat) :
+    Nat → Nat → Option Nat
+  | 0, _ => none
+  | fuel + 1, pageNumber =>
+      match source.readPage pageNumber with
+      | none => none
+      | some page =>
+          match interiorEntries? page with
+          | none => some pageNumber
+          | some (entries, rightmost) =>
+              let child :=
+                match entries.find? (fun entry => key ≤ entry.2) with
+                | some entry => entry.1
+                | none => rightmost
+              locateLeaf? source key fuel child
+
+/-- Re-encode one leaf's rows. `none` when the result would not fit a page or
+would need an overflow page, which sends the caller to the whole-database path. -/
+def encodeLeaf? (schema : Core.Schema) (rows : List Core.Row) :
+    Option CoreFile.Page :=
+  match rows.mapM (CoreOverflow.tableCellPlan? schema) with
+  | none => none
+  | some plans =>
+      match CoreOverflow.resolvePlans 0 plans with
+      | none => none
+      | some resolved =>
+          if resolved.pages.isEmpty then CoreFile.tableLeafPage? resolved.cells
+          else none
+
+/-- The page-local effect of inserting `row`: which leaf changes, and its new
+bytes. Reads only the pages on the root-to-leaf path. -/
+def insertPlan? (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (rootPage : Nat) (row : Core.Row) : Option (Nat × CoreFile.Page) :=
+  match locateLeaf? source row.treeKey (source.pageCount + 1) rootPage with
+  | none => none
+  | some leafPage =>
+      match source.readPage leafPage with
+      | none => none
+      | some page =>
+          match CoreDecode.decodeRowsFrom schema source page with
+          | none => none
+          | some rows =>
+              -- A duplicate primary key must raise a constraint error, which is
+              -- the verified executor's job. `orderedUpsert` would silently
+              -- replace, so hand the statement back instead.
+              if rows.any (fun existing => existing.rowid = row.rowid) then none
+              else
+              match encodeLeaf? schema (Core.orderedUpsert row rows) with
+              | none => none
+              | some encoded => some (leafPage, encoded)
+
+/-- Page-local `INSERT`, reading only the root-to-leaf path.
+
+Narrow on purpose: one statement, an explicit `INTEGER PRIMARY KEY` so no rowid has
+to be generated, no secondary indexes, and a leaf that still fits after the insert.
+Anything else returns `none` and the caller uses the whole-database path, exactly as
+`CoreLazyFileEngine` does for reads.
+
+**Unproved.** This is the executable half of the design in
+`docs/LAZY_WRITE_DESIGN.md`; the refinement showing it agrees with `Core.execute`
+is not yet discharged, so it must not be reachable from the shipped CLI until it
+is. -/
+def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
+    (paths : CoreFileAdapter.Paths) (tableName : String)
+    (columns : Option (Array String)) (expressions : Array Expr) :
+    IO (Option Core.Result) := do
+  let some geometry ← CoreFileAdapter.readFileGeometry paths | return none
+  let input ← IO.FS.readBinFile paths.main
+  let source := CoreFileAdapter.byteArrayPageSource input geometry.pageCount
+  let some entry := geometry.catalog.find? (fun entry =>
+    entry.kind == "table" && entry.name == tableName) | return none
+  -- Any index on this table would also need updating; out of scope for now.
+  if geometry.catalog.any (fun other =>
+      other.kind == "index" && other.table == tableName) then return none
+  let some sql := entry.sql | return none
+  let some schema := CoreDecode.parseTableSchema sql | return none
+  if schema.hasHiddenRowid then return none
+  let some values := (CoreSQL.rowValues schema columns expressions).toOption |
+    return none
+  let some row := (Core.Row.create schema values).toOption | return none
+  let some (leafPage, encoded) := insertPlan? schema source entry.rootPage row |
+    return none
+  let some oldBytes := source.readPage leafPage | return none
+  if oldLength : oldBytes.length = PhysicalCodec.pageSize then
+    let oldPage : CoreFile.Page := ⟨oldBytes, oldLength⟩
+    let before : GrowableStorage.PageWrite PhysicalCodec.pageSize :=
+      ⟨leafPage - 1, oldPage.storage⟩
+    let after : GrowableStorage.PageWrite PhysicalCodec.pageSize :=
+      ⟨leafPage - 1, encoded.storage⟩
+    match ← CoreFileAdapter.commitLocalized syncOps paths [before] [after] with
+    | none => return none
+    | some _ => return some { changes := 1 }
+  else return none
 
 end CoreLazyWrite
 end SQLeanite

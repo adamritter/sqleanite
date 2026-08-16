@@ -1,3 +1,4 @@
+import SQLeanite.CoreLazyWrite
 import SQLeanite.CoreRuntime
 
 open SQLeanite
@@ -124,6 +125,26 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     let fileExists ← mainPath.pathExists
     let prepared := prepareLineScript? sql
     if fileExists then requireWritableFor mainPath sql prepared
+    -- SPIKE, unproved: try the page-local insert first so its cost can be
+    -- measured. Must not survive into a shipped build until the refinement in
+    -- docs/LAZY_WRITE_DESIGN.md is discharged.
+    let lazyWrite ← if fileExists then
+        match parse sql with
+        | .ok parsed =>
+            match parsed.toList with
+            | [.insert table columns rows] =>
+                match rows.toList with
+                | [expressions] =>
+                    CoreLazyWrite.executeInsert? .system paths
+                      (CoreSQL.canonical table) columns expressions
+                | _ => pure none
+            | _ => pure none
+        | .error _ => pure none
+      else pure none
+    if let some result := lazyWrite then
+      let text := renderCoreResult result
+      unless text.isEmpty do IO.println text
+      return 0
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
       | some result => pure result
