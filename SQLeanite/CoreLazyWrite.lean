@@ -512,5 +512,51 @@ theorem decodeRowsFrom_congr (schema : Core.Schema)
   · simp only [canonical, if_neg]
     exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
 
+/-! ## Routing
+
+Frame says a page write leaves other subtrees alone. Routing says the write lands in
+the *right* subtree: the key belongs to exactly one leaf, so the whole table changes
+by exactly one ordered insert. The two lemmas below are the arithmetic core --
+`orderedUpsert` only disturbs the segment a key belongs to.
+-/
+
+/-- An insert whose key precedes every row in the tail only disturbs the head. -/
+theorem orderedUpsert_append_of_beforeAll (row : Core.Row) :
+    ∀ (front back : List Core.Row),
+      (∀ later ∈ back, row.rowid.value < later.rowid.value) →
+      Core.orderedUpsert row (front ++ back)
+        = Core.orderedUpsert row front ++ back
+  | [], back, beforeAll => by
+      cases back with
+      | nil => rfl
+      | cons later rest =>
+          have rowBefore : row.rowid.value < later.rowid.value :=
+            beforeAll later List.mem_cons_self
+          simp [Core.orderedUpsert, rowBefore]
+  | existing :: front, back, beforeAll => by
+      by_cases rowFirst : row.rowid.value < existing.rowid.value
+      · simp [Core.orderedUpsert, rowFirst]
+      · by_cases existingFirst : existing.rowid.value < row.rowid.value
+        · simp only [List.cons_append, Core.orderedUpsert, if_neg rowFirst,
+            if_pos existingFirst, List.cons_append, List.cons.injEq, true_and]
+          exact orderedUpsert_append_of_beforeAll row front back beforeAll
+        · simp [Core.orderedUpsert, rowFirst, existingFirst]
+
+/-- An insert whose key follows every row in the head only disturbs the tail. -/
+theorem orderedUpsert_append_of_afterAll (row : Core.Row) :
+    ∀ (front back : List Core.Row),
+      (∀ earlier ∈ front, earlier.rowid.value < row.rowid.value) →
+      Core.orderedUpsert row (front ++ back)
+        = front ++ Core.orderedUpsert row back
+  | [], _, _ => rfl
+  | existing :: front, back, afterAll => by
+      have existingBefore : existing.rowid.value < row.rowid.value :=
+        afterAll existing List.mem_cons_self
+      have rowNotFirst : ¬row.rowid.value < existing.rowid.value := by omega
+      simp only [List.cons_append, Core.orderedUpsert, if_neg rowNotFirst,
+        if_pos existingBefore, List.cons_append, List.cons.injEq, true_and]
+      exact orderedUpsert_append_of_afterAll row front back
+        fun earlier member => afterAll earlier (List.mem_cons_of_mem existing member)
+
 end CoreLazyWrite
 end SQLeanite
