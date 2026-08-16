@@ -174,6 +174,49 @@ def changedWrites (old target : Image pageSize) :
       else
         ⟨count, target.read count⟩ :: changedWrites old target count
 
+/-- Tail-recursive implementation of `changedWrites` used by compiled commits.
+
+The proof-facing definition above retains the direct descending-page
+specification.  Its changed-page branch, however, waits to cons the current
+write until the recursive call returns and therefore consumes one native stack
+frame per page.  Large initial images reached that limit around 160,000 YCSB
+rows.  This loop accumulates the same descending write sequence in reverse and
+performs one tail-recursive reversal at the end. -/
+def changedWritesGo (old target : Image pageSize) :
+    Nat → List (PageWrite pageSize) → List (PageWrite pageSize)
+  | 0, reversed => reversed.reverse
+  | count + 1, reversed =>
+      if _unchanged : count < old.pageCount ∧
+          old.read count = target.read count then
+        changedWritesGo old target count reversed
+      else
+        changedWritesGo old target count
+          (⟨count, target.read count⟩ :: reversed)
+
+def changedWritesTR (old target : Image pageSize)
+    (count : Nat) : List (PageWrite pageSize) :=
+  changedWritesGo old target count []
+
+theorem changedWritesGo_eq (old target : Image pageSize) (count : Nat)
+    (reversed : List (PageWrite pageSize)) :
+    changedWritesGo old target count reversed =
+      reversed.reverse ++ changedWrites old target count := by
+  induction count generalizing reversed with
+  | zero => simp [changedWritesGo, changedWrites]
+  | succ count induction =>
+      simp only [changedWritesGo, changedWrites]
+      split
+      next => exact induction reversed
+      next =>
+        rw [induction]
+        simp [List.reverse_cons, List.append_assoc]
+
+@[csimp] theorem changedWrites_eq_changedWritesTR :
+    @changedWrites = @changedWritesTR := by
+  funext pageSize old target count
+  rw [changedWritesTR, changedWritesGo_eq]
+  simp
+
 theorem changedWrites_pageId_lt (old target : Image pageSize) :
     ∀ {count : Nat} {write : PageWrite pageSize},
       write ∈ changedWrites old target count → write.pageId < count

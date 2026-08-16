@@ -352,6 +352,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PhysicalFreelist.Layout.fileBytes_length
 #print axioms SQLeanite.GrowableStorage.apply_replaceWrites_equiv
 #print axioms SQLeanite.GrowableStorage.apply_deltaWrites_equiv
+#print axioms SQLeanite.GrowableStorage.changedWritesGo_eq
+#print axioms SQLeanite.GrowableStorage.changedWrites_eq_changedWritesTR
 #print axioms SQLeanite.GrowableStorage.recoverWithJournal_idempotent
 #print axioms SQLeanite.GrowableStorage.rollbackCommit_repeated_recovery_crash_atomic
 #print axioms SQLeanite.POSIXVFS.run_commitPlan

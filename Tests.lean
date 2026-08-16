@@ -1729,6 +1729,19 @@ private def expectGrowableRollbackJournal : IO Unit := do
       (appliedDelta.read 0).bytes == oldPage.bytes &&
       (appliedDelta.read 1).bytes == grownPage.bytes do
     fail "changed-page transaction did not refine the target image"
+  -- This count is deliberately above the former native-stack ceiling.  Bulk
+  -- creation compares an empty image with one write per physical page, so the
+  -- old direct recursion crashed before it could return this list.
+  let empty : GrowableStorage.Image 4 := {
+    pageCount := 0
+    read := fun _ => oldPage }
+  let largeTarget : GrowableStorage.Image 4 := {
+    pageCount := 200000
+    read := fun _ => grownPage }
+  let largeDelta := GrowableStorage.deltaWrites empty largeTarget
+  unless largeDelta.length == 200000 &&
+      largeDelta.head?.map (·.pageId) == some 199999 do
+    fail "changed-page transaction did not remain stack-safe at 200,000 pages"
 
 private def expectTornSectorModel : IO Unit := do
   unless TornStorage.tornWitnessPage.bytes == #[1, 1, 0, 0] do

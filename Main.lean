@@ -2,6 +2,10 @@ import SQLeanite.CoreRuntime
 
 open SQLeanite
 
+/- The executable is deliberately a thin shell over `CoreRuntime`; verified
+runtime substitutions (including stack-safe page-delta construction) remain
+owned by the imported core modules. -/
+
 /-- Read a stream to EOF under an explicit chunk budget.
 
 Written with `IO.iterate` rather than `partial def` so the project keeps zero
