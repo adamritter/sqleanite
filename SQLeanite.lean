@@ -16,6 +16,7 @@ import SQLeanite.CoreWidePageState
 import SQLeanite.CoreWidePageCodec
 import SQLeanite.CoreWidePageLoad
 import SQLeanite.CoreWidePageDelta
+import SQLeanite.CoreWidePageInverse
 import SQLeanite.SyscallVFS
 import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad

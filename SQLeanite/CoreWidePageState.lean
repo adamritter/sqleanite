@@ -94,6 +94,21 @@ theorem TableState.build?_represents {startPage : Nat} {table : Core.Table}
     Store.rows state.tree = table.rows := by
   rw [state.represents, TableState.build?_table built]
 
+theorem TableState.build?_nextPage_ge {startPage : Nat} {table : Core.Table}
+    {state : TableState}
+    (built : TableState.build? startPage table = some state) :
+    startPage ≤ state.tree.nextPage := by
+  simp only [TableState.build?] at built
+  split at built
+  next => contradiction
+  next entries entriesResult =>
+    split at built
+    next => contradiction
+    next tree treeResult =>
+      injection built with equal
+      rw [← congrArg (fun candidate : TableState => candidate.tree.nextPage) equal]
+      exact WidePageTree.Store.build?_nextPage_ge treeResult
+
 def buildTables? : Nat → List Core.Table →
     Option (List TableState × Nat)
   | nextPage, [] => some ([], nextPage)
@@ -124,6 +139,28 @@ theorem buildTables?_tables : ∀ (nextPage : Nat) (tables : List Core.Table)
               simp only [List.map_cons, List.cons.injEq]
               exact ⟨TableState.build?_table headResult,
                 buildTables?_tables head.tree.nextPage tables tail tailResult⟩
+
+theorem buildTables?_nextPage_ge : ∀ (nextPage : Nat)
+    (tables : List Core.Table) (result : List TableState × Nat),
+    buildTables? nextPage tables = some result → nextPage ≤ result.2
+  | nextPage, [], result, built => by
+      simp only [buildTables?, Option.some.injEq] at built
+      subst result
+      exact Nat.le_refl nextPage
+  | nextPage, table :: tables, result, built => by
+      simp only [buildTables?, Option.bind_eq_bind, Option.bind] at built
+      cases headResult : TableState.build? nextPage table with
+      | none => simp [headResult] at built
+      | some head =>
+          simp only [headResult] at built
+          cases tailResult : buildTables? head.tree.nextPage tables with
+          | none => simp [tailResult] at built
+          | some tail =>
+              simp only [tailResult, Option.some.injEq] at built
+              subst result
+              exact Nat.le_trans (TableState.build?_nextPage_ge headResult)
+                (buildTables?_nextPage_ge head.tree.nextPage tables tail
+                  tailResult)
 
 structure State where
   database : Core.Database
@@ -157,6 +194,16 @@ theorem State.build?_represents {database : Core.Database} {state : State}
     refine ⟨rfl, buildTables?_tables 2 database.tables buildResult result, ?_⟩
     intro table _
     exact table.represents
+
+theorem State.build?_nextPage_ge {database : Core.Database} {state : State}
+    (built : State.build? database = some state) : 2 ≤ state.nextPage := by
+  unfold State.build? at built
+  split at built
+  next => contradiction
+  next result resultEq =>
+    injection built with equal
+    rw [← congrArg State.nextPage equal]
+    exact buildTables?_nextPage_ge 2 database.tables result resultEq
 
 end CoreWidePageState
 end SQLeanite

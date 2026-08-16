@@ -13,7 +13,7 @@ def encodeLeaf (schema : Core.Schema)
   let cells ← entries.mapM fun entry => CoreRecord.encodeCell? schema entry.2
   CoreFile.tableLeafPage? cells
 
-private theorem mapM_map_entry_values
+theorem mapM_map_entry_values
     (entries : List (PagedBTree.Entry Core.Row))
     (encode : Core.Row → Option (List UInt8)) :
     (entries.map fun entry => entry.2).mapM encode =
@@ -3372,7 +3372,7 @@ private theorem tableCellPlan_cellBytes_none_encodeCell
       next => simp at built
     next => contradiction
 
-private theorem tableCellPlan_cellBytes_none_of_inline_encodeCell
+theorem tableCellPlan_cellBytes_none_of_inline_encodeCell
     {schema : Core.Schema} {row : Core.Row} {cell : List UInt8}
     (inline : CoreOverflow.RowInline schema row)
     (encoded : CoreRecord.encodeCell? schema row = some cell) :
@@ -3400,7 +3400,7 @@ private theorem tableCellPlan_cellBytes_none_of_inline_encodeCell
             inline record recordResult, plan, List.append_assoc]
       next => contradiction
 
-private theorem tableCellPlans_of_inline_encodeCells
+theorem tableCellPlans_of_inline_encodeCells
     (schema : Core.Schema) : ∀ (rows : List Core.Row)
       (cells : List (List UInt8)),
       rows.mapM (CoreRecord.encodeCell? schema) = some cells →

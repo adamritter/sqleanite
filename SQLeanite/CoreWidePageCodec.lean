@@ -145,6 +145,27 @@ def encodeTables (tables : List CoreWidePageState.TableState) :
   let pages ← tables.mapM encodeTable
   some pages.flatten
 
+/-- Executable, linear check for the first high-fanout codec slice.  Keeping
+this as a Boolean fold avoids constructing a quadratic membership decider for
+the logically equivalent nested universal proposition. -/
+def tableRowsInline (state : CoreWidePageState.TableState) : Bool :=
+  state.table.rows.all fun row => decide
+    (CoreOverflow.RowInline state.table.schema row)
+
+def rowsInline (tables : List CoreWidePageState.TableState) : Bool :=
+  tables.all tableRowsInline
+
+theorem rowsInline_spec {tables : List CoreWidePageState.TableState}
+    (success : rowsInline tables = true) :
+    ∀ state ∈ tables, ∀ row ∈ state.table.rows,
+      CoreOverflow.RowInline state.table.schema row := by
+  intro state stateMember row rowMember
+  have tableTrue : tableRowsInline state = true :=
+    (List.all_eq_true.mp success) state stateMember
+  have rowTrue : decide (CoreOverflow.RowInline state.table.schema row) =
+      true := (List.all_eq_true.mp tableTrue) row rowMember
+  exact of_decide_eq_true rowTrue
+
 /-- Bulk inline image used to validate the new representation before live
 cutover.  Numbered tree pages are ordered by their already-assigned identities;
 secondary indexes remain in the established packed index codec and begin
@@ -152,21 +173,23 @@ after the wide table allocation interval. -/
 def encodeBulkInlineWithState (database : Core.Database) :
     Option (CoreFile.Image × CoreWidePageState.State) := do
   let state ← CoreWidePageState.State.build? database
-  let numbered ← encodeTables state.tables
-  let ordered := CorePageCodec.orderNumberedPages numbered
-  if _numbers : ordered.map CorePageCodec.NumberedPage.pageNumber =
-      List.range' 2 (state.nextPage - 2) then
-    let indexEncodings ← CoreOverflow.encodeIndexTableGroups
-      state.nextPage database.tables
-    let entries := state.tables.map tableCatalogEntry ++
-      CoreOverflow.indexEntriesOf indexEncodings
-    let remaining := ordered.map CorePageCodec.NumberedPage.page ++
-      CoreOverflow.indexPagesOf indexEncodings
-    let total := 1 + remaining.length
-    if countBound : total + 1 < 2 ^ 32 then
-      let count : FileFormat.U32Value := ⟨total, by omega⟩
-      let schema ← CoreFile.schemaPageForEntries? entries count
-      some (⟨database, schema :: remaining⟩, state)
+  if _inline : rowsInline state.tables then
+    let numbered ← encodeTables state.tables
+    let ordered := CorePageCodec.orderNumberedPages numbered
+    if _numbers : ordered.map CorePageCodec.NumberedPage.pageNumber =
+        List.range' 2 (state.nextPage - 2) then
+      let indexEncodings ← CoreOverflow.encodeIndexTableGroups
+        state.nextPage database.tables
+      let entries := state.tables.map tableCatalogEntry ++
+        CoreOverflow.indexEntriesOf indexEncodings
+      let remaining := ordered.map CorePageCodec.NumberedPage.page ++
+        CoreOverflow.indexPagesOf indexEncodings
+      let total := 1 + remaining.length
+      if countBound : total + 1 < 2 ^ 32 then
+        let count : FileFormat.U32Value := ⟨total, by omega⟩
+        let schema ← CoreFile.schemaPageForEntries? entries count
+        some (⟨database, schema :: remaining⟩, state)
+      else none
     else none
   else none
 
@@ -179,18 +202,23 @@ theorem encodeBulkInlineWithState_represents {database : Core.Database}
     result.2.Represents database := by
   unfold encodeBulkInlineWithState at encoded
   rcases Option.bind_eq_some.mp encoded with ⟨state, stateResult, encoded⟩
-  rcases Option.bind_eq_some.mp encoded with ⟨numbered, numberedResult, encoded⟩
-  dsimp only at encoded
   split at encoded
   next =>
     rcases Option.bind_eq_some.mp encoded with
-      ⟨indexEncodings, indexResult, encoded⟩
+      ⟨numbered, numberedResult, encoded⟩
+    dsimp only at encoded
     split at encoded
     next =>
-      rcases Option.bind_eq_some.mp encoded with ⟨schema, schemaResult, encoded⟩
-      simp only [Option.some.injEq, Prod.mk.injEq] at encoded
-      subst result
-      exact CoreWidePageState.State.build?_represents stateResult
+      rcases Option.bind_eq_some.mp encoded with
+        ⟨indexEncodings, indexResult, encoded⟩
+      split at encoded
+      next =>
+        rcases Option.bind_eq_some.mp encoded with
+          ⟨schema, schemaResult, encoded⟩
+        simp only [Option.some.injEq, Prod.mk.injEq] at encoded
+        subst result
+        exact CoreWidePageState.State.build?_represents stateResult
+      next => contradiction
     next => contradiction
   next => contradiction
 

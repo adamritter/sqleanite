@@ -498,6 +498,28 @@ theorem buildNumberedFrom_toList :
           simpa [buildNumberedFrom, next] using built)
       rw [recursive, numberedBranches_toList]
 
+theorem buildNumberedFrom_after_ge :
+    ∀ (fuel nextPage : Nat) (nodes : List (Node Value))
+      (root : Node Value) (after : Nat),
+      buildNumberedFrom fuel nextPage nodes = some (root, after) →
+      nextPage ≤ after
+  | 0, _, [], _, _, built => by simp [buildNumberedFrom] at built
+  | 0, nextPage, [root], result, after, built => by
+      simp only [buildNumberedFrom, Option.some.injEq, Prod.mk.injEq] at built
+      omega
+  | 0, _, first :: second :: nodes, _, _, built => by
+      simp [buildNumberedFrom] at built
+  | fuel + 1, _, [], _, _, built => by simp [buildNumberedFrom] at built
+  | fuel + 1, nextPage, [root], result, after, built => by
+      simp only [buildNumberedFrom, Option.some.injEq, Prod.mk.injEq] at built
+      omega
+  | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
+      let next := numberedBranches nextPage (first :: second :: nodes)
+      have recursive := buildNumberedFrom_after_ge fuel
+        (nextPage + next.length) next root after (by
+          simpa [buildNumberedFrom, next] using built)
+      omega
+
 theorem buildNumbered_toList {startPage : Nat}
     {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
     (built : buildNumbered startPage entries = some (root, after)) :
@@ -515,6 +537,23 @@ theorem buildNumbered_toList {startPage : Nat}
       (startPage + (numberedLeaves startPage entries).length)
       (numberedLeaves startPage entries) root after built,
       numberedLeaves_toList]
+
+theorem buildNumbered_after_ge {startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
+    (built : buildNumbered startPage entries = some (root, after)) :
+    startPage ≤ after := by
+  unfold buildNumbered at built
+  split at built
+  next =>
+    have bound := buildNumberedFrom_after_ge 1 (startPage + 1)
+      [.leaf startPage []] root after built
+    omega
+  next =>
+    have bound := buildNumberedFrom_after_ge
+      (numberedLeaves startPage entries).length
+      (startPage + (numberedLeaves startPage entries).length)
+      (numberedLeaves startPage entries) root after built
+    omega
 
 /-- The live owner of a wide physical topology.  `represents` is erased by the
 compiler; it prevents callers from attaching the page graph to a different
@@ -553,6 +592,20 @@ theorem Store.build?_toList {startPage : Nat}
     change store.root.toList = entries
     rw [← congrArg Store.root equal]
     exact buildNumbered_toList numbered
+
+theorem Store.build?_nextPage_ge {startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)}
+    {ordered : entries.Pairwise (fun left right => left.1 < right.1)}
+    {store : Store Value}
+    (built : Store.build? startPage entries ordered = some store) :
+    startPage ≤ store.nextPage := by
+  unfold Store.build? at built
+  split at built
+  next => contradiction
+  next root nextPage numbered =>
+    injection built with equal
+    rw [← congrArg Store.nextPage equal]
+    exact buildNumbered_after_ge numbered
 
 /-! ## Linear admission of ordered entry streams
 

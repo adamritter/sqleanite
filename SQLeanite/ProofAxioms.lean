@@ -17,6 +17,7 @@ import SQLeanite.CoreWidePageState
 import SQLeanite.CoreWidePageCodec
 import SQLeanite.CoreWidePageLoad
 import SQLeanite.CoreWidePageDelta
+import SQLeanite.CoreWidePageInverse
 import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad
 import SQLeanite.RecursivePageBTree
@@ -234,6 +235,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreWidePageDelta.replaceLast_rows
 #print axioms SQLeanite.CoreWidePageDelta.append_rows
 #print axioms SQLeanite.CoreWidePageDelta.append?_represents
+#print axioms SQLeanite.CoreWidePageInverse.interiorChildren_interiorPage
+#print axioms SQLeanite.CoreWidePageInverse.decodeSubtreeRowsFrom_encodeChunkNode
+#print axioms SQLeanite.CoreWidePageInverse.decodeTableFrom_encodeTable
+#print axioms SQLeanite.CoreWidePageInverse.pageSourceRepresents_encodeBulkInlineWithState
+#print axioms SQLeanite.CoreWidePageInverse.decode_encodeBulkInline
 #print axioms SQLeanite.CorePageCodec.decodeCanonicalRows_encodeLeaf
 #print axioms SQLeanite.CorePageCodec.encodeChunkNode_eq_mapM
 #print axioms SQLeanite.CorePageCodec.changedPhysicalChunkPagesFast_eq
