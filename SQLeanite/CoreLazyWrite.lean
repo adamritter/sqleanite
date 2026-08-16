@@ -691,90 +691,44 @@ theorem unique_child_owns {target : Nat} {nested : List (List Nat)}
             exact ⟨head :: before, childList, after, by rw [shape]; rfl, found,
               notAfter⟩
 
-/-- **Multi-level routing.** A page-local write inside a subtree changes that
-subtree's decoded rows by exactly one ordered insert.
+/-- What routing has to establish: the subtree's rows split around the target leaf,
+with the inserted key strictly between the two sides.
 
-Composes over interior levels: `foldlM_acc` exposes the children's rows as a
-concatenation, `unique_child_owns` picks out the one containing the write,
-`decodeSubtreeRowsFrom_congr` leaves the siblings alone, and
-`orderedUpsert_append_of_beforeAll`/`_afterAll` place the key in the right segment
-using the ordering carried by `WellFormedTree`.
+This is the premise the interior induction actually needs, and stating it explicitly
+is the third correction to `subtree_write_refines`. The previous version assumed
+`rows.Pairwise keyLess` plus "the write is somewhere in this subtree" was enough. It
+is not: those say the table is sorted and the write is *somewhere*, not that the
+inserted key belongs in *that* leaf. Writing an upserted leaf 1 when the key belongs
+in leaf 5 satisfies every earlier premise and falsifies the conclusion.
 
-**Correction to an earlier revision of this statement**, recorded because a `sorry`
-on a false statement is worse than no statement at all: the first version concluded
-the ordered insert without any hypothesis about *what* was written, so a garbage
-page would have falsified it. The `writeEffect` premise below supplies the missing
-link -- the written page is a leaf, and it decodes to the target leaf's old rows with
-`row` inserted -- which is exactly what `insertPlan?` computes. -/
-theorem subtree_write_refines (schema : Core.Schema)
-    (source : CoreDecode.PageSource)
-    (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize)
-    (row : Core.Row)
-    (writeEffect : ∀ oldLeaf leafRows,
-      source.readPage (pageWrite.pageId + 1) = some oldLeaf →
-      CoreDecode.decodeRowsFrom schema source oldLeaf = some leafRows →
-      CoreDecode.interiorChildren? pageWrite.page.bytes.toList = none ∧
-        CoreDecode.decodeRowsFrom schema
-            (CorePageSource.write source pageWrite)
-            pageWrite.page.bytes.toList
-          = some (Core.orderedUpsert row leafRows))
-    (targetIsLeaf : ∀ oldLeaf,
-      source.readPage (pageWrite.pageId + 1) = some oldLeaf →
-      CoreDecode.interiorChildren? oldLeaf = none)
-    (leafInline : ∀ leafBytes, LeafInline schema source leafBytes) :
-    ∀ (fuel rootPage : Nat) (rows : List Core.Row) (pageList : List Nat),
-      subtreePages source fuel rootPage = some pageList →
-      CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows →
-      rows.Pairwise Core.Row.keyLess →
-      (pageWrite.pageId + 1) ∈ pageList →
-      CoreDecode.decodeSubtreeRowsFrom schema
-          (CorePageSource.write source pageWrite) fuel rootPage
-        = some (Core.orderedUpsert row rows) := by
-  intro fuel
-  induction fuel with
-  | zero => intro _ _ _ enumerated; simp [subtreePages] at enumerated
-  | succ fuel induction =>
-      intro rootPage rows pageList enumerated decoded ordered owned
-      rw [subtreePages] at enumerated
-      split at enumerated
-      · exact absurd enumerated (by simp)
-      · rename_i page pageResult
-        cases interiorResult : CoreDecode.interiorChildren? page with
-        | none =>
-            -- Leaf: the subtree is one page, so the write must target it.
-            simp only [interiorResult] at enumerated
-            have listShape : pageList = [rootPage] :=
-              (Option.some.inj enumerated).symm
-            have targetEq : rootPage = pageWrite.pageId + 1 := by
-              rw [listShape] at owned
-              simpa using (List.mem_singleton.mp owned).symm
-            have leafRows : CoreDecode.decodeRowsFrom schema source page
-                = some rows := by
-              rw [CoreDecode.decodeSubtreeRowsFrom, pageResult] at decoded
-              simpa [interiorResult] using decoded
-            have effect := writeEffect page rows (targetEq ▸ pageResult) leafRows
-            exact singleLeaf_write_refines schema source pageWrite fuel rootPage
-              page row rows targetEq effect.1 effect.2
-        | some children =>
-            -- Interior: the children's rows concatenate, the write lands in exactly
-            -- one of them, and the ordering puts `row` in that segment.
-            simp only [interiorResult] at enumerated
-            cases nestedResult : children.mapM (subtreePages source fuel) with
-            | none => rw [nestedResult] at enumerated; simp at enumerated
-            | some nested =>
-                rw [nestedResult] at enumerated
-                have listShape : pageList = rootPage :: nested.flatten :=
-                  (Option.some.inj enumerated).symm
-                have ownedNested : (pageWrite.pageId + 1) ∈ nested.flatten := by
-                  rw [listShape] at owned
-                  rcases List.mem_cons.mp owned with here | later
-                  · -- The write targets a leaf, so it cannot be this interior page.
-                    exfalso
-                    have isLeaf := targetIsLeaf page (here ▸ pageResult)
-                    rw [interiorResult] at isLeaf
-                    exact absurd isLeaf (by simp)
-                  · exact later
-                sorry
+Deriving this from `locateLeaf?` -- proving the descent lands where the separators
+say it should -- is routing correctness proper, and is the remaining work. Splitting
+it out here means the interior induction can be proved against a premise that is
+true, rather than against one that quietly is not. -/
+structure RoutedSplit (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (target : Nat) (row : Core.Row) (rows : List Core.Row) where
+  before : List Core.Row
+  leafRows : List Core.Row
+  after : List Core.Row
+  decomposition : rows = before ++ leafRows ++ after
+  leafDecodes : ∀ oldLeaf, source.readPage target = some oldLeaf →
+    CoreDecode.decodeRowsFrom schema source oldLeaf = some leafRows
+  beforeBelow : ∀ earlier ∈ before, earlier.rowid.value < row.rowid.value
+  afterAbove : ∀ later ∈ after, row.rowid.value < later.rowid.value
+
+/-- The ordered insert on a routed split touches only the target leaf's segment.
+
+This is the arithmetic content of routing, and it is proved: given the split, the
+whole-table insert equals the leaf-local insert spliced back in place. What remains
+unproved is only that `locateLeaf?` produces such a split. -/
+theorem orderedUpsert_routedSplit (row : Core.Row)
+    (before leafRows after : List Core.Row)
+    (beforeBelow : ∀ earlier ∈ before, earlier.rowid.value < row.rowid.value)
+    (afterAbove : ∀ later ∈ after, row.rowid.value < later.rowid.value) :
+    Core.orderedUpsert row (before ++ leafRows ++ after)
+      = before ++ Core.orderedUpsert row leafRows ++ after := by
+  rw [orderedUpsert_append_of_beforeAll row (before ++ leafRows) after afterAbove,
+    orderedUpsert_append_of_afterAll row before leafRows beforeBelow]
 
 /-- **The top-level refinement.** The plan the executable computes, applied to the
 file, denotes exactly the table with the row inserted -- which is what
