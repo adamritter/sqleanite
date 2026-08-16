@@ -1673,6 +1673,24 @@ private def expectPhysicalMVPTableBTree : IO Unit := do
   let corrupted := checked.modify 20 (fun byte => byte + 1)
   unless PhysicalJournalCodec.decodeChecked corrupted |>.isNone do
     fail "checksummed rollback journal accepted a changed covered byte"
+  let persistent ← match PhysicalJournalCodec.ofEncodable? encodable with
+    | some value => pure value
+    | none => fail "rollback journal exceeded persistent length bounds"
+  let active := PhysicalJournalCodec.encodePersistentActive persistent ++
+    List.replicate 4096 0
+  match PhysicalJournalCodec.decodePersistent active with
+  | some (some decoded) =>
+      unless decoded.originalPageCount == journal.originalPageCount &&
+          decoded.undo.map (fun record => record.pageId) ==
+            journal.undo.map (fun record => record.pageId) &&
+          decoded.undo.map (fun record => record.before.bytes) ==
+            journal.undo.map (fun record => record.before.bytes) do
+        fail "persistent rollback journal changed an active undo record"
+  | _ => fail "persistent rollback journal rejected an active record with spare capacity"
+  match PhysicalJournalCodec.decodePersistent
+      PhysicalJournalCodec.initialInactiveBytes.data.toList with
+  | some none => pure ()
+  | _ => fail "persistent rollback journal rejected its durable inactive marker"
   let path : System.FilePath := ".lake/build/sqleanite-mvp-multipage.db"
   IO.FS.writeBinFile path (ByteArray.mk fileBytes.toArray)
   let output ← IO.Process.output {
@@ -2888,6 +2906,31 @@ private def expectCoreDirtyPageCommit : IO Unit := do
       CoreFileAdapter.preparedCommitPlan committed.journal
         committed.prepared.writes := committed.trace_eq
   let plan := committed.requests
+  -- Materialize the persistent protocol's crash checkpoint after the new main
+  -- pages reached disk but before the active journal was retired. The live
+  -- recovery path must restore the exact old logical database and then leave
+  -- the retained inode in its non-hot inactive state.
+  let encodableJournal ← match
+      PhysicalJournalCodec.ofJournal? committed.journal with
+    | some value => pure value
+    | none => fail "localized recovery journal exceeded its encoded bounds"
+  let persistentJournal ← match
+      PhysicalJournalCodec.ofEncodable? encodableJournal with
+    | some value => pure value
+    | none => fail "localized recovery journal exceeded its persistent bounds"
+  IO.FS.writeBinFile paths.journal
+    (PhysicalJournalCodec.encodePersistentActiveBytes persistentJournal)
+  CoreFileAdapter.recoverInPlace .system paths
+  let recoveredOld ← CoreFileAdapter.reopen paths
+  unless recoveredOld.Equiv oldState.database do
+    fail "persistent active journal did not restore the old Core database"
+  let retiredJournal ← IO.FS.readBinFile paths.journal
+  match PhysicalJournalCodec.decodePersistent retiredJournal.data.toList with
+  | some none => pure ()
+  | _ => fail "persistent recovery did not retire the journal inode"
+  unless (← CoreFileAdapter.commitLocalizedCertified
+      .system paths before writes).isSome do
+    fail "localized commit did not replay after persistent recovery"
   let (deletedState, _) ← match CoreSQL.execute newState
       "DELETE FROM dirty_rows WHERE id=51;" with
     | .ok outcome => pure outcome

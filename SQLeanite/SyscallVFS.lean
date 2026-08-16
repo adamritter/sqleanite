@@ -6,10 +6,11 @@ namespace SyscallVFS
 /-!
 # Concrete POSIX durability boundary
 
-These are the only two durability calls the rollback adapter asks the host to
-implement.  Their C bodies contain no database logic: open a named file and
-`fdatasync` it, or open its parent directory and `fsync` it.  The conditional
-refinement assumptions for these calls are stated in `POSIXVFS`.
+These are the narrow host operations used by the rollback adapter. Their C
+bodies contain no database logic: they perform positional byte transfers,
+verify transferred bytes, synchronize a named file or parent directory, and
+rename or unlink a journal entry. The conditional refinement assumptions for
+every operation are stated explicitly below and in `POSIXVFS`.
 -/
 
 @[extern "sqleanite_fdatasync_path"]
@@ -89,6 +90,14 @@ structure Contract (pageSize : Nat) where
   fsyncDirectoryRefines : ∀ state response next,
     step state .fsyncDirectory response next →
       view next = POSIXVFS.modelStep (view state) .fsyncDirectory
+  writePersistentJournalRefines : ∀ state journal response next,
+    step state (.writePersistentJournal journal) response next →
+      view next = POSIXVFS.modelStep (view state)
+        (.writePersistentJournal journal)
+  fdatasyncPersistentJournalRefines : ∀ state response next,
+    step state .fdatasyncPersistentJournal response next →
+      view next = POSIXVFS.modelStep (view state)
+        .fdatasyncPersistentJournal
   crashRefines : ∀ state recoveredMain recoveredJournal,
     crash state recoveredMain recoveredJournal →
       Nonempty (GrowableStorage.JournaledCrashOutcome
@@ -113,6 +122,10 @@ def Contract.toAbstract (contract : Contract pageSize) :
     | renameJournal => exact contract.renameatRefines _ _ _ completed
     | unlinkJournal => exact contract.unlinkatRefines _ _ _ completed
     | fsyncDirectory => exact contract.fsyncDirectoryRefines _ _ _ completed
+    | writePersistentJournal journal =>
+        exact contract.writePersistentJournalRefines _ _ _ _ completed
+    | fdatasyncPersistentJournal =>
+        exact contract.fdatasyncPersistentJournalRefines _ _ _ completed
   readMainRefines := by
     intro state pageId page next completed
     exact contract.preadValueRefines _ _ _ _ completed
@@ -128,6 +141,17 @@ theorem completedCommit_refines (contract : Contract pageSize)
     (contract.view final).abstract =
       GrowableStorage.rollbackCommitState old writes .committed :=
   POSIXVFS.Execution.commit_refines old writes initialView executed
+
+theorem completedPersistentCommit_refines (contract : Contract pageSize)
+    {initial final : contract.ConcreteState}
+    (old : GrowableStorage.Image pageSize)
+    (writes : List (GrowableStorage.PageWrite pageSize))
+    (initialView : contract.view initial = POSIXVFS.State.initial old)
+    (executed : POSIXVFS.Execution contract.toAbstract initial
+      (POSIXVFS.persistentCommitPlan old writes) final) :
+    (contract.view final).abstract =
+      GrowableStorage.rollbackCommitState old writes .committed :=
+  POSIXVFS.Execution.persistentCommit_refines old writes initialView executed
 
 end SyscallVFS
 end SQLeanite

@@ -295,7 +295,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreChunkPageDelta.expectedIndexEntries_eq_sortSource
 #print axioms SQLeanite.CoreChunkPageDelta.TableDelta.tablePagesSufficient_indexImage
 #print axioms SQLeanite.CorePageLoad.load?_represents
-#print axioms SQLeanite.CoreFileAdapter.preparedCommitPlan_eq_commitPlan
+#print axioms SQLeanite.CoreFileAdapter.preparedCommitPlan_eq_persistentCommitPlan
+#print axioms SQLeanite.POSIXVFS.run_persistentCommitPlan
+#print axioms SQLeanite.SyscallVFS.completedPersistentCommit_refines
 #print axioms SQLeanite.Core.Row.treeKey_lt_iff
 #print axioms SQLeanite.Core.Table.findRowid?_some_eq
 #print axioms SQLeanite.Core.Table.findRowid?_eq_some_iff
@@ -409,6 +411,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_encode
 #print axioms SQLeanite.PhysicalJournalCodec.encodeCheckedBytes_toList
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_encodeBytes
+#print axioms SQLeanite.PhysicalJournalCodec.decodePersistent_inactive
+#print axioms SQLeanite.PhysicalJournalCodec.decodePersistent_initialInactive
+#print axioms SQLeanite.PhysicalJournalCodec.decodePersistent_encode
+#print axioms SQLeanite.PhysicalJournalCodec.decodePersistent_encodeBytes
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_accepts_only_matching
 #print axioms SQLeanite.PhysicalJournalRecovery.decodeImage_imageBytes
 #print axioms SQLeanite.PhysicalJournalRecovery.rollbackCommit_recovery_bytes_atomic

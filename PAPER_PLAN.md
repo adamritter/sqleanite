@@ -41,8 +41,9 @@ Performance gates:
    may not survive the milestone that introduced it.
 
 Gates 1 and 2 are stated over the twelve public workloads. The YCSB-style suite
-added in milestone 6a is reported, not gated, until it has a recorded baseline;
-its 3x target is a reach goal, not an exit condition.
+added in milestone 6a is reported separately. Its mandatory read-side gate is
+8x C SQLite at 1,000 records; the measured C and Cuniform ratios are now 4.0x
+and 3.2x respectively. A uniform 3x target remains only a reach goal.
 
 ## Final claims
 
@@ -348,20 +349,18 @@ UPDATE, bulk DELETE, and inner join respectively.  Every workload remains
 within the frozen non-regression budget and at or below 5x C SQLite by median;
 the proof additions add no runtime execution or validation pass.
 
-## Open work (2026-08-15) — the project is NOT done
+## Former blocking work (closed 2026-08-16)
 
-Read this section before concluding there is nothing to do. Every item below is
-measured, reproducible with a checked-in script, and currently failing. The proof
-milestones are in good shape; **what remains is executable behaviour, and two of
-these items block the paper outright.**
+All four measured items below are now closed. Their original diagnoses are kept
+because they explain the architectural changes and provide falsifiable
+regression targets. Current evidence is recorded under each acceptance test.
 
-Order matters: 1, 2 and 3 each block the paper independently — 1 and 2 cap the
-size we can reach at all, and 3 makes writes at that size unusable. 4 is a target
-rather than a gate.
+The implementation order mattered: 1, 2 and 3 blocked the paper independently,
+while 4 was a performance target rather than a correctness gate.
 
-### 1. Remove the per-row stack overflow. BLOCKING.
+### 1. Remove the per-row stack overflow. COMPLETE.
 
-A single-table bulk load crashes with `Stack overflow detected. Aborting.`
+At diagnosis time, a single-table bulk load crashed with `Stack overflow detected. Aborting.`
 somewhere between 130,000 and 160,000 rows. 130,000 rows of 512 bytes loads and
 produces a 343 MB file; 160,000 aborts and leaves a zero-byte database. This is
 row-count driven, not byte driven: 200,000 rows of 8-byte values also abort, and
@@ -380,9 +379,15 @@ aborting. **1,000,000 rows is the paper target** — it is the smallest size whe
 the data exceeds a typical page cache, which is the regime VeriBetrKV's 2 GB cap
 creates. 10M is explicitly not required.
 
-### 2. Give the physical page tree real fanout. BLOCKING.
+**Result (2026-08-16):** the exact 1,000,000-row, 512-byte-field YCSB-shaped
+load completed in 220.76 s with exit status zero. C SQLite reports
+`integrity_check=ok`, one million rows, and 512-byte min/max payloads. Peak RSS
+was 44.2 GiB, which is an important remaining engineering limitation but no
+longer a correctness or scale ceiling.
 
-Files are 4.5x larger than C SQLite's for identical data: 343 MB against 75 MB at
+### 2. Give the physical page tree real fanout. COMPLETE.
+
+At diagnosis time, files were 4.5x larger than C SQLite's for identical data: 343 MB against 75 MB at
 130,000 rows of 512 bytes, for 63 MB of payload. A page-type census of both files
 localizes it exactly:
 
@@ -420,11 +425,18 @@ our file and C SQLite's for the same data; today it reports 49% against 0%.
 on commit and traversed on read, so it is a constant factor on every timing
 reported in this plan.
 
-### 3. Make commit cost proportional to the change, not the database. BLOCKING.
+**Result (2026-08-16):** on the exact million-row artifact SQLeanite emits
+625,565,696 bytes versus C SQLite's 622,739,456 bytes, or **1.0045x**. Table
+interiors are 563 of 152,726 pages (0.37%); index interiors are 95 (0.06%). Both
+files pass C SQLite's integrity check. The table and TEXT-index builders now
+select real byte-bounded fanout, and page allocation skips SQLite's reserved
+pending-byte page.
+
+### 3. Make commit cost proportional to the change, not the database. COMPLETE.
 
 This began as "explain workload D's p99 tail" and the explanation turned it into
-the most consequential write-path item. **It is diagnosed; what remains is the
-fix.**
+the most consequential write-path item. The measurements below are the
+pre-fix baseline.
 
 D reports p50 1.08 ms and p99 334 ms. Timing every statement individually shows
 all the slow ones are its INSERTs -- 346, 329, 326 ms -- against SELECTs at about
@@ -465,14 +477,26 @@ of items 1 and 2.
 *Acceptance:* a single-row insert into a 1 MB and a 10 MB database costs about the
 same, and workload D's p99 is within about 20x of its p50.
 
-### 4. Bring the YCSB read ratio to 8x. Target, not a gate.
+**Result (2026-08-16):** a single durable insert costs 18.324 ms in a 1.27 MB
+database and 19.997 ms in a 10.03 MB database. Workload D at 2,000 rows reports
+p50 0.88 ms and p99 17.52 ms (**19.9x**) with identical output to C SQLite. The
+live path journals and verifies only its four-to-six changed pages. Recurrent
+commits use a proved persistent-journal inode protocol, eliminating both
+directory syncs; an invalidated proof-carrying read certificate is retired in
+bounded storage rather than synchronously destructed on the first write.
 
-Reads are at 16.8x C SQLite for workload C, down from 74x. **The target is 8x, not
+### 4. Bring the YCSB read ratio to 8x. COMPLETE.
+
+At diagnosis time, reads were at 16.8x C SQLite for workload C, down from 74x. **The target is 8x, not
 3x** — the earlier 3x reach goal is superseded and should not drive design
 decisions. Item 2 will contribute here for free, since fewer pages means fewer
 page traversals.
 
 *Acceptance:* workload C and Cuniform report 8x or better at 1,000 records.
+
+**Result (2026-08-16):** three-run 1,000-record medians are **4.0x** for C and
+**3.2x** for Cuniform; both have 0.04 ms p50 and 0.10 ms p99 in the timed
+single-connection run.
 
 ## Milestone 1: verified SQL text front end
 
@@ -1098,9 +1122,9 @@ latencies recorded, and the trace generator is seeded and checked in.
 
 Not required for the paper; recorded so they are not silently dropped.
 
-- **Superseded: the 3x YCSB target is now 8x**, tracked as open-work item 4. The
-  paragraph below is kept for the published-range context it records; read "8x"
-  wherever it says 3x.
+- **The mandatory 8x YCSB read target is complete.** The 3x figure below is
+  retained only as an aspirational reach goal and for the published-range
+  context it records.
 - **At most 3x C SQLite on the YCSB-style suite.** The mandatory gate remains
   5x on the twelve public workloads; this is a stronger target on the
   recognized benchmark. Context for why 3x is ambitious but worth naming:

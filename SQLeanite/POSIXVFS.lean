@@ -48,6 +48,12 @@ inductive Request (pageSize : Nat) where
   | renameJournal
   | unlinkJournal
   | fsyncDirectory
+  /-- Rewrite the already-durable persistent journal inode.  Unlike
+  `renameJournal`, this changes file contents without changing a directory
+  entry. -/
+  | writePersistentJournal
+      (journal : Option (GrowableStorage.Journal pageSize))
+  | fdatasyncPersistentJournal
 
 inductive Response (pageSize : Nat) where
   | page (value : Storage.Page pageSize)
@@ -74,6 +80,10 @@ def modelStep (state : State pageSize) (request : Request pageSize) :
       { state with journalName := state.journalName.write none }
   | .fsyncDirectory =>
       { state with journalName := state.journalName.sync }
+  | .writePersistentJournal journal =>
+      { state with journalName := state.journalName.write journal }
+  | .fdatasyncPersistentJournal =>
+      { state with journalName := state.journalName.sync }
 
 def runPlan : State pageSize → List (Request pageSize) → State pageSize
   | state, [] => state
@@ -86,6 +96,19 @@ def commitPlan (old : GrowableStorage.Image pageSize)
   [.writeJournalTemp journal, .fdatasyncJournalTemp, .renameJournal,
     .fsyncDirectory] ++ writes.map Request.pwriteMain ++
     [.fdatasyncMain, .unlinkJournal, .fsyncDirectory]
+
+/-- Recurrent commit plan for a journal inode whose inactive state was made
+durable when the database was created (or during one-time migration).  It is
+the same abstract rollback protocol as `commitPlan`, but file contents—not
+directory entries—publish and retire the journal. -/
+def persistentCommitPlan (old : GrowableStorage.Image pageSize)
+    (writes : List (GrowableStorage.PageWrite pageSize)) :
+    List (Request pageSize) :=
+  let journal := GrowableStorage.makeJournal old writes
+  [.writePersistentJournal (some journal), .fdatasyncPersistentJournal] ++
+    writes.map Request.pwriteMain ++
+      [.fdatasyncMain, .writePersistentJournal none,
+        .fdatasyncPersistentJournal]
 
 theorem runPlan_pwriteMain_append (state : State pageSize)
     (writes : List (GrowableStorage.PageWrite pageSize))
@@ -110,6 +133,26 @@ theorem run_commitPlan (old : GrowableStorage.Image pageSize)
   unfold commitPlan
   simp only [List.cons_append, List.nil_append, runPlan, modelStep,
     TempJournalCache.write, TempJournalCache.sync]
+  rw [runPlan_pwriteMain_append]
+  simp [runPlan, modelStep, State.initial, State.abstract,
+    GrowableStorage.rollbackCommitState,
+    GrowableStorage.JournaledState.initial,
+    GrowableStorage.JournaledState.writeJournal,
+    GrowableStorage.JournaledState.syncJournal,
+    GrowableStorage.JournaledState.stageMainWrites,
+    GrowableStorage.JournaledState.syncMain,
+    GrowableStorage.JournaledState.deleteJournal,
+    GrowableStorage.Cache.writeAll, GrowableStorage.Cache.write,
+    GrowableStorage.JournalCache.write, GrowableStorage.JournalCache.sync]
+
+/-- The persistent-inode sequence refines the identical committed checkpoint
+without relying on a directory operation during the transaction. -/
+theorem run_persistentCommitPlan (old : GrowableStorage.Image pageSize)
+    (writes : List (GrowableStorage.PageWrite pageSize)) :
+    (runPlan (State.initial old) (persistentCommitPlan old writes)).abstract =
+      GrowableStorage.rollbackCommitState old writes .committed := by
+  unfold persistentCommitPlan
+  simp only [List.cons_append, List.nil_append, runPlan, modelStep]
   rw [runPlan_pwriteMain_append]
   simp [runPlan, modelStep, State.initial, State.abstract,
     GrowableStorage.rollbackCommitState,
@@ -178,6 +221,16 @@ theorem Execution.commit_refines {contract : Contract pageSize}
     (contract.view final).abstract =
       GrowableStorage.rollbackCommitState old writes .committed := by
   rw [executed.refines, initialView, run_commitPlan]
+
+theorem Execution.persistentCommit_refines {contract : Contract pageSize}
+    {initial final : contract.ConcreteState}
+    (old : GrowableStorage.Image pageSize)
+    (writes : List (GrowableStorage.PageWrite pageSize))
+    (initialView : contract.view initial = State.initial old)
+    (executed : Execution contract initial (persistentCommitPlan old writes) final) :
+    (contract.view final).abstract =
+      GrowableStorage.rollbackCommitState old writes .committed := by
+  rw [executed.refines, initialView, run_persistentCommitPlan]
 
 end POSIXVFS
 end SQLeanite

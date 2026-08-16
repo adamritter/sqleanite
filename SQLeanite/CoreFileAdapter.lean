@@ -244,22 +244,24 @@ private def writeMainPages (path : System.FilePath)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : IO Unit := do
   SyscallVFS.pwritePages path.toString (pageTransfers writes)
 
-/-- The syscall trace used when page pre-images have already been read from
-the concrete file.  It is the same rollback protocol as `POSIXVFS.commitPlan`;
-the separate argument makes the concrete read boundary explicit. -/
+/-- The recurrent syscall trace used when page pre-images have already been
+read from the concrete file.  The journal inode is initialized once, outside
+the transaction; each commit changes only its contents.  The separate journal
+argument makes the concrete read boundary explicit. -/
 def preparedCommitPlan
     (journal : GrowableStorage.Journal PhysicalCodec.pageSize)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
     List (POSIXVFS.Request PhysicalCodec.pageSize) :=
-  [.writeJournalTemp journal, .fdatasyncJournalTemp, .renameJournal,
-    .fsyncDirectory] ++ writes.map POSIXVFS.Request.pwriteMain ++
-    [.fdatasyncMain, .unlinkJournal, .fsyncDirectory]
+  [.writePersistentJournal (some journal), .fdatasyncPersistentJournal] ++
+    writes.map POSIXVFS.Request.pwriteMain ++
+      [.fdatasyncMain, .writePersistentJournal none,
+        .fdatasyncPersistentJournal]
 
-theorem preparedCommitPlan_eq_commitPlan
+theorem preparedCommitPlan_eq_persistentCommitPlan
     (old : GrowableStorage.Image PhysicalCodec.pageSize)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
     preparedCommitPlan (GrowableStorage.makeJournal old writes) writes =
-      POSIXVFS.commitPlan old writes := rfl
+      POSIXVFS.persistentCommitPlan old writes := rfl
 
 private def readPageCount (handle : IO.FS.Handle)
     (path : System.FilePath) : IO Nat := do
@@ -4099,8 +4101,34 @@ def create (syncOps : SyncOps) (paths : Paths)
   if ← paths.journal.pathExists then
     SyscallVFS.unlinkPath paths.journal.toString
   IO.FS.writeBinFile paths.main (bytes image.fileBytes)
+  IO.FS.writeBinFile paths.journal PhysicalJournalCodec.initialInactiveBytes
   syncOps.syncFile paths.main
+  syncOps.syncFile paths.journal
   syncOps.syncDeletion paths.main
+
+/-- Establish the durable inactive journal inode once.  A temporary name and
+directory sync make this migration safe even for databases created by an
+older SQLeanite version; recurrent commits never mutate the directory. -/
+private def initializePersistentJournal (syncOps : SyncOps) (paths : Paths) :
+    IO Unit := do
+  unless ← paths.journal.pathExists do
+    IO.FS.writeBinFile paths.journalTemp
+      PhysicalJournalCodec.initialInactiveBytes
+    syncOps.syncFile paths.journalTemp
+    SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
+    syncOps.syncDeletion paths.main
+
+private def activatePersistentJournal (syncOps : SyncOps) (paths : Paths)
+    (journal : PhysicalJournalCodec.PersistentEncodable) : IO Unit := do
+  SyscallVFS.pwriteBytes paths.journal.toString 0
+    (PhysicalJournalCodec.encodePersistentActiveBytes journal)
+  syncOps.syncFile paths.journal
+
+private def retirePersistentJournal (syncOps : SyncOps) (paths : Paths) :
+    IO Unit := do
+  SyscallVFS.pwriteBytes paths.journal.toString 0
+    PhysicalJournalCodec.inactiveBytes
+  syncOps.syncFile paths.journal
 
 /-- Roll back a leftover journal, without reading the database back.
 
@@ -4112,22 +4140,26 @@ def recoverInPlace (syncOps : SyncOps) (paths : Paths) : IO Unit := do
     syncOps.syncDeletion paths.main
   if ← paths.journal.pathExists then
     let encoded ← IO.FS.readBinFile paths.journal
-    let journal ← match PhysicalJournalCodec.decodeChecked encoded.data.toList with
-      | some journal => pure journal
-      | _ => throw (IO.userError "invalid general MVP rollback journal")
-    let current ← IO.FS.readBinFile paths.main
-    let currentPageCount := current.size / PhysicalCodec.pageSize
-    unless current.size = currentPageCount * PhysicalCodec.pageSize do
-      throw (IO.userError "misaligned general MVP main file during recovery")
-    let recoveredMain ← match PhysicalJournalRecovery.decodeImage
-        currentPageCount current.data.toList with
-      | some image => pure image
-      | none => throw (IO.userError "invalid paged general MVP main file during recovery")
-    let restored := PhysicalJournalRecovery.recoverBytes recoveredMain (some journal)
-    IO.FS.writeBinFile paths.main (bytes restored)
-    syncOps.syncFile paths.main
-    SyscallVFS.unlinkPath paths.journal.toString
-    syncOps.syncDeletion paths.main
+    match PhysicalJournalCodec.decodePersistent encoded.data.toList with
+    | none => throw (IO.userError "invalid general MVP rollback journal")
+    | some none => pure ()
+    | some (some journal) =>
+        let current ← IO.FS.readBinFile paths.main
+        let currentPageCount := current.size / PhysicalCodec.pageSize
+        unless current.size = currentPageCount * PhysicalCodec.pageSize do
+          throw (IO.userError "misaligned general MVP main file during recovery")
+        let recoveredMain ← match PhysicalJournalRecovery.decodeImage
+            currentPageCount current.data.toList with
+          | some image => pure image
+          | none => throw (IO.userError
+              "invalid paged general MVP main file during recovery")
+        let restored := PhysicalJournalRecovery.recoverBytes recoveredMain
+          (some journal)
+        IO.FS.writeBinFile paths.main (bytes restored)
+        syncOps.syncFile paths.main
+        retirePersistentJournal syncOps paths
+  else
+    initializePersistentJournal syncOps paths
 
 def recover (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   recoverInPlace syncOps paths
@@ -4163,9 +4195,10 @@ theorem CommittedLocalizedDelta.trace_eq_commitPlan
     (journalExact : committed.journal =
       GrowableStorage.makeJournal oldImage committed.prepared.writes) :
     committed.requests =
-      POSIXVFS.commitPlan oldImage committed.prepared.writes := by
+      POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes := by
   rw [committed.trace_eq, journalExact]
-  exact preparedCommitPlan_eq_commitPlan oldImage committed.prepared.writes
+  exact preparedCommitPlan_eq_persistentCommitPlan oldImage
+    committed.prepared.writes
 
 /-- Commit an already proved page delta. Only the final pages selected by the
 pure preparation are read for journal pre-images, written, and read back. No
@@ -4191,16 +4224,14 @@ def commitLocalizedCertified (syncOps : SyncOps) (paths : Paths)
   let encodable ← match PhysicalJournalCodec.ofJournal? journal with
     | some value => pure value
     | none => throw (IO.userError "localized rollback journal exceeds encoded bounds")
-  IO.FS.writeBinFile paths.journalTemp
-    (PhysicalJournalCodec.encodeCheckedBytes encodable)
-  syncOps.syncFile paths.journalTemp
-  SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
-  syncOps.syncDeletion paths.main
+  let persistent ← match PhysicalJournalCodec.ofEncodable? encodable with
+    | some value => pure value
+    | none => throw (IO.userError "localized rollback journal exceeds persistent bounds")
+  activatePersistentJournal syncOps paths persistent
   writeMainPages paths.main writes
   syncOps.syncFile paths.main
   verifyWrittenPages paths.main writes
-  SyscallVFS.unlinkPath paths.journal.toString
-  syncOps.syncDeletion paths.main
+  retirePersistentJournal syncOps paths
   let requests := preparedCommitPlan journal writes
   return some { prepared, journal, requests, requestsEq := rfl }
 
@@ -4232,16 +4263,14 @@ def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   let encodable ← match PhysicalJournalCodec.ofJournal? journal with
     | some value => pure value
     | none => throw (IO.userError "general MVP rollback journal exceeds encoded bounds")
-  IO.FS.writeBinFile paths.journalTemp
-    (PhysicalJournalCodec.encodeCheckedBytes encodable)
-  syncOps.syncFile paths.journalTemp
-  SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
-  syncOps.syncDeletion paths.main
+  let persistent ← match PhysicalJournalCodec.ofEncodable? encodable with
+    | some value => pure value
+    | none => throw (IO.userError "general MVP rollback journal exceeds persistent bounds")
+  activatePersistentJournal syncOps paths persistent
   writeMainPages paths.main writes
   syncOps.syncFile paths.main
   verifyWrittenPages paths.main writes
-  SyscallVFS.unlinkPath paths.journal.toString
-  syncOps.syncDeletion paths.main
+  retirePersistentJournal syncOps paths
   let retained := prepared.state.reserveThrough (prepared.image.pageCount + 1)
   have builtRepresents :=
     CoreWidePageCodec.encodeBulkInlineWithState_represents
@@ -4252,7 +4281,7 @@ def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     rw [builtRepresents.1] at reserved
     exact reserved
   return some (⟨retained, retainedRepresents⟩,
-    POSIXVFS.commitPlan oldImage writes)
+    POSIXVFS.persistentCommitPlan oldImage writes)
 
 def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do
@@ -4274,22 +4303,20 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   let encodable ← match PhysicalJournalCodec.ofJournal? journal with
     | some value => pure value
     | none => throw (IO.userError "general MVP rollback journal exceeds encoded bounds")
-  IO.FS.writeBinFile paths.journalTemp
-    (PhysicalJournalCodec.encodeCheckedBytes encodable)
-  syncOps.syncFile paths.journalTemp
-  SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
-  syncOps.syncDeletion paths.main
+  let persistent ← match PhysicalJournalCodec.ofEncodable? encodable with
+    | some value => pure value
+    | none => throw (IO.userError "general MVP rollback journal exceeds persistent bounds")
+  activatePersistentJournal syncOps paths persistent
   writeMainPages paths.main writes
   syncOps.syncFile paths.main
   verifyWrittenPages paths.main writes
-  SyscallVFS.unlinkPath paths.journal.toString
-  syncOps.syncDeletion paths.main
+  retirePersistentJournal syncOps paths
   let validated ← match retainGeneratedState? prepared.state
       newImage.pageCount prepared.freePages with
     | some value => pure value
     | none => throw (IO.userError
         "generated commit did not retain a proof-carrying state")
-  return (validated, POSIXVFS.commitPlan oldImage writes)
+  return (validated, POSIXVFS.persistentCommitPlan oldImage writes)
 
 end CoreFileAdapter
 end SQLeanite

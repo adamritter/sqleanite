@@ -9,6 +9,40 @@ def magic : List UInt8 := [76, 83, 81, 76, 74, 82, 78, 76]
 
 theorem magic_length : magic.length = 8 := rfl
 
+/-- Durable marker stored in the persistent rollback-journal inode when no
+transaction is active.  It is deliberately not a prefix of a checked active
+journal. The leading zero also makes the retained file non-hot to C SQLite's
+rollback-journal detector, so an inactive SQLeanite journal does not interfere
+with ordinary SQLite readers. -/
+def inactiveMarker : List UInt8 := [0, 83, 81, 76, 73, 78, 65, 67, 84, 73, 86, 69]
+
+def activeMarker : List UInt8 := [76, 83, 81, 76, 65, 67, 84, 73, 86, 69, 74, 49]
+
+theorem activeMarker_length : activeMarker.length = 12 := rfl
+
+def inactiveBytes : ByteArray := ByteArray.mk inactiveMarker.toArray
+
+/-- One-time inode capacity for ordinary point mutations.  Keeping this space
+allocated avoids a metadata-growing write on the first transaction while the
+length-delimited active envelope continues to support larger journals. -/
+def initialPersistentCapacity : Nat := 65536
+
+def initialInactiveBytes : ByteArray := ByteArray.mk
+  ((inactiveMarker ++ List.replicate
+    (initialPersistentCapacity - inactiveMarker.length) 0).toArray)
+
+theorem inactiveBytes_toList : inactiveBytes.data.toList = inactiveMarker := by
+  simp [inactiveBytes]
+
+theorem initialInactiveBytes_prefix :
+    initialInactiveBytes.data.toList.take inactiveMarker.length =
+      inactiveMarker := by
+  change (inactiveMarker ++ List.replicate
+    (initialPersistentCapacity - inactiveMarker.length) 0).take
+      inactiveMarker.length = inactiveMarker
+  rw [List.take_append_of_le_length (Nat.le_refl _)]
+  simp
+
 structure Encodable where
   journal : GrowableStorage.Journal PhysicalCodec.pageSize
   originalPageCountFits : journal.originalPageCount < 2 ^ 32
@@ -223,6 +257,33 @@ theorem encodeCheckedBytes_toList (journal : Encodable) :
   simp [encodeCheckedBytes, encodeChecked, checksumArrayValue,
     checksumValue, checksumArray_eq_checksumBytes, encodeArray_toList]
 
+/-- Evidence that the checked journal length fits the persistent envelope's
+eight-byte length field.  This is checked once before any journal syscall. -/
+structure PersistentEncodable where
+  checked : Encodable
+  lengthFits : (encodeChecked checked).length < 256 ^ 8
+
+def ofEncodable? (journal : Encodable) : Option PersistentEncodable :=
+  if fits : (encodeChecked journal).length < 256 ^ 8 then
+    some ⟨journal, fits⟩
+  else none
+
+def encodePersistentActive (journal : PersistentEncodable) : List UInt8 :=
+  activeMarker ++ encodeUnsignedFixed 8 (encodeChecked journal.checked).length ++
+    encodeChecked journal.checked
+
+def encodePersistentActiveBytes (journal : PersistentEncodable) : ByteArray :=
+  let checked := encodeCheckedBytes journal.checked
+  ByteArray.mk (((activeMarker.toArray.append
+    (encodeUnsignedFixed 8 (encodeChecked journal.checked).length).toArray).append
+      checked.data))
+
+theorem encodePersistentActiveBytes_toList (journal : PersistentEncodable) :
+    (encodePersistentActiveBytes journal).data.toList =
+      encodePersistentActive journal := by
+  simp [encodePersistentActiveBytes, encodePersistentActive,
+    encodeCheckedBytes_toList]
+
 def decodeChecked (input : List UInt8) :
     Option (GrowableStorage.Journal PhysicalCodec.pageSize) := do
   let (storedChecksum, payload) ← decodeU32Bytes input
@@ -232,6 +293,38 @@ def decodeChecked (input : List UInt8) :
       some journal
     else none
   else none
+
+/-- Decode a length-delimited active record from the beginning of a persistent
+journal inode.  Bytes beyond the record are deliberately ignored, allowing the
+inode to retain its high-water size across transactions. -/
+def decodePersistentActive (input : List UInt8) :
+    Option (GrowableStorage.Journal PhysicalCodec.pageSize) := do
+  let (decodedMarker, afterMarker) ←
+    decodeSizedBytes activeMarker.length input
+  if _active : decodedMarker.bytes = activeMarker then
+    let (length, afterLength) ← decodeUnsignedFixed 8 afterMarker
+    let (payload, _) ← decodeSizedBytes length afterLength
+    decodeChecked payload.bytes
+  else none
+
+/-- Decode the stable persistent-journal file.  `some none` is the durable
+inactive state; `some (some journal)` is an active rollback record; `none`
+rejects torn or otherwise malformed contents.  The final fallback accepts an
+active journal left by the former rename/delete protocol during migration. -/
+def decodePersistent (input : List UInt8) :
+    Option (Option (GrowableStorage.Journal PhysicalCodec.pageSize)) :=
+  if _inactive : input.take inactiveMarker.length = inactiveMarker then some none
+  else match decodePersistentActive input with
+    | some journal => some (some journal)
+    | none => (decodeChecked input).map some
+
+theorem decodePersistent_inactive :
+    decodePersistent inactiveMarker = some none := by
+  simp [decodePersistent]
+
+theorem decodePersistent_initialInactive :
+    decodePersistent initialInactiveBytes.data.toList = some none := by
+  simp [decodePersistent, initialInactiveBytes_prefix]
 
 theorem decodeChecked_encode (journal : Encodable) :
     decodeChecked (encodeChecked journal) = some journal.journal := by
@@ -246,6 +339,49 @@ theorem decodeChecked_encodeBytes (journal : Encodable) :
     decodeChecked (encodeCheckedBytes journal).data.toList =
       some journal.journal := by
   rw [encodeCheckedBytes_toList, decodeChecked_encode]
+
+theorem decodePersistentActive_encode (journal : PersistentEncodable)
+    (suffix : List UInt8) :
+    decodePersistentActive (encodePersistentActive journal ++ suffix) =
+      some journal.checked.journal := by
+  let markerBytes : SizedBytes activeMarker.length := ⟨activeMarker, rfl⟩
+  let checkedBytes : SizedBytes (encodeChecked journal.checked).length :=
+    ⟨encodeChecked journal.checked, rfl⟩
+  unfold encodePersistentActive decodePersistentActive
+  change (do
+    let (decodedMarker, afterMarker) ← decodeSizedBytes activeMarker.length
+      (markerBytes.bytes ++
+        (encodeUnsignedFixed 8 (encodeChecked journal.checked).length ++
+          (checkedBytes.bytes ++ suffix)))
+    if _active : decodedMarker.bytes = activeMarker then
+      let (length, afterLength) ← decodeUnsignedFixed 8 afterMarker
+      let (payload, _) ← decodeSizedBytes length afterLength
+      decodeChecked payload.bytes
+    else none) = some journal.checked.journal
+  rw [decodeSizedBytes_append]
+  simp only [Option.bind_eq_bind, Option.bind]
+  simp [markerBytes]
+  rw [decodeUnsignedFixed_encode _ journal.lengthFits]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [decodeSizedBytes_append]
+  simp [checkedBytes, decodeChecked_encode]
+
+theorem decodePersistent_encode (journal : PersistentEncodable)
+    (suffix : List UInt8) :
+    decodePersistent (encodePersistentActive journal ++ suffix) =
+      some (some journal.checked.journal) := by
+  have notInactive :
+      (encodePersistentActive journal ++ suffix).take inactiveMarker.length ≠
+        inactiveMarker := by
+    simp [encodePersistentActive, inactiveMarker, activeMarker]
+  simp [decodePersistent, notInactive,
+    decodePersistentActive_encode journal suffix]
+
+theorem decodePersistent_encodeBytes (journal : PersistentEncodable) :
+    decodePersistent (encodePersistentActiveBytes journal).data.toList =
+      some (some journal.checked.journal) := by
+  rw [encodePersistentActiveBytes_toList]
+  simpa using decodePersistent_encode journal []
 
 /-- The exact checked bytes emitted by the live adapter decode to a journal
 containing precisely the old pre-images required by its page delta. -/

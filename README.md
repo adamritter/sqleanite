@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 74,769 lines in 85 library modules, 1,806
-theorems/lemmas, 818 explicitly audited headline theorems, and 151 executable
+At this snapshot it contains 81,939 lines in 92 library modules, 1,973
+theorems/lemmas, 872 explicitly audited headline theorems, and 151 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`.
 
@@ -56,6 +56,10 @@ printf '%s\n' \
   'SELECT * FROM items;' > demo.sql
 .lake/build/bin/sqleanite --verified-file demo.db demo.sql
 ```
+
+This path keeps a pre-created, non-hot journal inode. Ordinary commits sync an
+active undo record, the changed database pages, and an inactive marker; the
+proved persistent-journal trace avoids per-commit directory operations.
 
 The CLI also exposes `--verified-wal-file` and
 `--verified-wal-checkpoint`; run it with `--help` for the exact syntax.

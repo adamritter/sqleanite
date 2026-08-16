@@ -169,9 +169,9 @@ if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
      SQLeanite/CoreDurability.lean &&
    grep -q 'decodeChecked_makeJournal_exact' \
      SQLeanite/ProofAxioms.lean &&
-   grep -q 'PhysicalJournalCodec.encodeCheckedBytes encodable' \
+   grep -q 'PhysicalJournalCodec.encodePersistentActiveBytes journal' \
      SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'PhysicalJournalCodec.decodeChecked encoded.data.toList' \
+   grep -q 'PhysicalJournalCodec.decodePersistent encoded.data.toList' \
      SQLeanite/CoreFileAdapter.lean; then
   ok "rollback crash atomicity reaches concrete Core SQLite bytes"
 else
@@ -343,6 +343,14 @@ if grep -q 'GrowableStorage.deltaWrites old (storageImage image)' SQLeanite/Core
    grep -q 'WidePageTree.buildNumberedWithFanout fanout startPage' \
      SQLeanite/CoreWideIndex.lean &&
    grep -q 'interiorFanoutFor cells' SQLeanite/CoreWideIndex.lean &&
+   grep -q 'POSIXVFS.persistentCommitPlan oldImage' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'activatePersistentJournal syncOps paths' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'retirePersistentJournal syncOps paths' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'decodePersistent_encode' SQLeanite/ProofAxioms.lean &&
+   grep -q 'run_persistentCommitPlan' SQLeanite/ProofAxioms.lean &&
    grep -q 'pageTransfers_toList' SQLeanite/ProofAxioms.lean &&
    grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'PreparedBulkCommit.postImageCertificate' \
@@ -350,6 +358,15 @@ if grep -q 'GrowableStorage.deltaWrites old (storageImage image)' SQLeanite/Core
   ok "rollback commits publish the proved changed-page transaction"
 else
   fail "Core rollback commits bypass changed-page publication"
+fi
+
+if grep -q 'LiveState.invalidateCertificates result.1' \
+     SQLeanite/CoreFileEngine.lean &&
+   grep -q 'retiredCertificates.set' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'certificates := some \[\]' SQLeanite/CoreFileEngine.lean; then
+  ok "writes invalidate read certificates without rescanning or destructor tails"
+else
+  fail "write path reattached stale read certificates or lost bounded retirement"
 fi
 
 if grep -q 'prepareOrdinaryDelta? state next.database' \

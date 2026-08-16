@@ -339,7 +339,7 @@ theorem executeText_committedLocalizedIndexedSingle_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   have postImage : CoreDurability.PostImageCertificate oldImage
       committed.prepared.writes next.database := by
     have certificate :=
@@ -406,7 +406,7 @@ theorem executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
   let before := Classical.choose
     (physical.exists_table delta.table.before selected.1)
@@ -473,7 +473,7 @@ theorem executeText_committedLocalizedIndexedInlineTables_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   have postImage : CoreDurability.PostImageCertificate oldImage
       committed.prepared.writes next.database := by
     have certificate :=
@@ -537,7 +537,7 @@ theorem executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   let selected := CoreChunkPageDelta.updateState?_selected_mem prepared.updated
   let before := Classical.choose
     (physical.exists_table delta.table.before selected.1)
@@ -604,7 +604,7 @@ theorem executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   have postImage : CoreDurability.PostImageCertificate oldImage
       committed.prepared.writes next.database := by
     have certificate :=
@@ -663,7 +663,7 @@ theorem executeText_committedLocalizedIndexedSingleYCSB_crash_atomic
             (PhysicalJournalRecovery.recoverBytes recoveredMain
               recoveredJournal) = some next.database.canonicalize) ∧
        committed.requests =
-         POSIXVFS.commitPlan oldImage committed.prepared.writes) := by
+         POSIXVFS.persistentCommitPlan oldImage committed.prepared.writes) := by
   exact executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic
     text commands state next results chunkState delta prepared committed
       oldImage supported success oldRepresents indexed single noFree physical

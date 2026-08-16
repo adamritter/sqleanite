@@ -454,21 +454,24 @@ files. There is no project axiom asserting that a real filesystem satisfies
 either contract. If such an assertion is added for Linux, macOS, or Windows, it
 belongs in this TCB.
 
-`SQLeanite/POSIXVFS.lean` further splits the previously conflated journal
-operation into temporary-file write, journal-file `fdatasync`, atomic rename,
-directory `fsync`, main-file writes and `fdatasync`, unlink, and a final
-directory `fsync`. `run_commitPlan` proves that this complete request sequence
-refines exactly the committed growable rollback state. Its `Contract` requires
-a concrete adapter to refine every operation and joint crash outcome. No host
-filesystem is asserted to implement that contract, so syscall, filesystem,
-device-cache, and directory-durability behavior remains in the TCB.
-Both live rollback adapters now execute this ordering: write and sync a
-checksummed `.tmp` journal, rename it to the recovery name, invoke the directory
-sync hook, publish and sync the main pages, unlink the journal, and invoke the
-directory sync hook again. The legacy physical adapter publishes a complete
-image. The arbitrary-schema Core adapter uses `GrowableStorage.deltaWrites` and
-writes only pages that are new or byte-different. They return the exact
-`POSIXVFS.commitPlan` trace.
+`SQLeanite/POSIXVFS.lean` exposes two refinements of the same rollback state
+machine. `run_commitPlan` covers temporary-file write, journal `fdatasync`,
+rename, directory `fsync`, main writes/`fdatasync`, unlink, and final directory
+`fsync`. `run_persistentCommitPlan` covers a durable, pre-created journal inode:
+write and sync an active undo record, publish and sync main pages, then write and
+sync an inactive marker. Both prove exactly the committed growable rollback
+state. The latter removes recurrent directory operations without weakening the
+abstract ordering. Its inode is installed once through the former rename and
+directory-sync sequence. `SyscallVFS.Contract` requires a concrete adapter to
+refine every operation and joint crash outcome. No host filesystem is asserted
+to implement that contract, so syscall, filesystem, device-cache, and
+directory-durability behavior remains in the TCB.
+
+The legacy physical adapter retains the rename/delete protocol and publishes a
+complete image. The arbitrary-schema Core adapter executes the persistent-inode
+protocol, uses `GrowableStorage.deltaWrites`, and writes only pages that are new
+or byte-different. Its returned trace is exactly
+`POSIXVFS.persistentCommitPlan`.
 An orphan temporary journal is ignored and durably removed on reopen because
 the protocol never starts main-file writes before publication of the final
 journal name.
@@ -1140,17 +1143,21 @@ UPDATE/DELETE shrink case, is green.
 
 The localized live adapter now crosses an explicit C syscall boundary for
 `pread`, `pwrite`, `fdatasync`, parent-directory `fsync`, `renameat`, and
-`unlinkat`; it returns the exact `POSIXVFS.commitPlan` trace that those calls
-are intended to implement. `SyscallVFS.Contract` has one conditional refinement
-field per syscall class, and `completedCommit_refines` proves any execution
+`unlinkat`; recurrent Core commits return the exact
+`POSIXVFS.persistentCommitPlan` trace that those calls are intended to
+implement. `SyscallVFS.Contract` has one conditional refinement field per
+syscall class, and `completedPersistentCommit_refines` proves any execution
 satisfying those fields reaches the abstract committed state. This still does
 **not** prove that Linux, a particular filesystem, or a storage device satisfies
 the contract. Journal-temp creation and host error reporting also remain in
 the executable TCB. The MVP journal is a SQLeanite-specific format, not SQLite's
-rollback-journal byte format. Its live encoding now carries a checksum over
-every journal byte; round-trip and "accepted implies stored checksum equals
-recomputation" are kernel-proved, without assuming collision freedom. It still
-has no sector padding, and checksum collisions remain possible. Consequently
+rollback-journal byte format. Its persistent envelope has proved active and
+inactive round trips, a checked length, and spare inode capacity; the inactive
+marker starts with zero so C SQLite treats the retained file as non-hot. The
+active record carries a checksum over every covered journal byte; round-trip
+and "accepted implies stored checksum equals recomputation" are kernel-proved,
+without assuming collision freedom. It still has no sector padding, and
+checksum collisions remain possible. Consequently
 the stated host assumptions remain required for an end-to-end durability claim
 about executed SQL. Crash injection, device-level power-loss injection, and the
 missing-journal-sync mutation validate those assumptions empirically without

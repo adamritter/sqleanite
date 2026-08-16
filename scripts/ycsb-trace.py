@@ -141,11 +141,10 @@ def main():
     parser.add_argument("--insert-batch", type=int, default=1,
                         help="rows per INSERT in the load phase. 1 matches "
                              "YCSB one-record-at-a-time. Larger values exist "
-                             "only because the batch SQL path overflows the "
-                             "stack somewhere between 50k and 60k statements "
-                             "in one invocation; batching keeps the same rows "
-                             "and the same data, and both engines replay the "
-                             "identical script")
+                             "for lower parser and retained-AST overhead in "
+                             "scale runs; batching keeps the same rows and "
+                             "data, and both engines replay the identical "
+                             "script")
     parser.add_argument("--field-length", type=int, default=FIELD_LENGTH,
                         help="512 matches VeriBetrKV; lower values are a "
                              "reduced-fidelity triage mode, not paper numbers")

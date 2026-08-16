@@ -25,9 +25,29 @@ def LiveState.retarget (live : LiveState) (state : Core.State) : LiveState := {
   certificates := live.certificates.map fun certificates =>
     CoreFileAdapter.retargetIntegerIndexCertificates certificates state.database }
 
+/-- A write changes the logical index image, so retaining a read certificate
+would require comparing that entire image with the post-state.  Drop the cache
+instead; the physical wide-state certificate is maintained independently by
+the write path and the read certificate is reloaded only if a later query can
+use it. -/
+def LiveState.invalidateCertificates (state : Core.State) : LiveState := {
+  state
+  -- `none` means "not loaded" and would make the next indexed read rescan the
+  -- physical index to rebuild certificates.  `some []` means deliberately
+  -- invalidated: use the generated-image page-directed path instead.
+  certificates := some [] }
+
 structure WideLiveState where
   state : CoreWidePageState.State
   textState : Option state.SingleIndexTextCertificate
+
+/-- Existential keepalive for an invalidated decoded-index certificate.  Lean's
+deterministic reference counting would otherwise free the entire old index on
+the first write after a read batch, charging that O(index) destructor walk to
+the write's tail latency.  At most one retired generation is retained. -/
+structure RetiredIndexCertificates where
+  database : Core.Database
+  certificates : List (CoreFileAdapter.StoredIntegerIndex database)
 
 def WideLiveState.ofState (state : CoreWidePageState.State) : WideLiveState := {
   state
@@ -44,6 +64,7 @@ structure Connection where
   -- alongside the other caches on every write.
   private fileGeometry : IO.Ref (Option CoreFileAdapter.FileGeometry)
   private provenance : IO.Ref FileProvenance
+  private retiredCertificates : IO.Ref (Option RetiredIndexCertificates)
 
 def databaseContents (database : Core.Database) :=
   database.contents
@@ -72,7 +93,8 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
       WideLiveState.ofState loaded.state)
     validatedOpen := ← IO.mkRef opened
     fileGeometry := ← IO.mkRef none
-    provenance := ← IO.mkRef (if generated then .generated else .foreign) }
+    provenance := ← IO.mkRef (if generated then .generated else .foreign)
+    retiredCertificates := ← IO.mkRef none }
 
 def create (syncOps : CoreFileAdapter.SyncOps)
     (paths : CoreFileAdapter.Paths) : IO Connection := do
@@ -306,8 +328,18 @@ private def executeStatement (connection : Connection) (live : LiveState)
           return (live, (CoreSQL.executeStatement state statement).map
             fun result => (live.retarget result.1, result.2))
   | _ =>
-      return (live, (CoreSQL.executeStatement state statement).map
-        fun result => (live.retarget result.1, result.2))
+      match CoreSQL.executeStatement state statement with
+      | .error message => return (live, .error message)
+      | .ok result =>
+          match live.certificates with
+          | some certificates =>
+              unless certificates.isEmpty do
+                connection.retiredCertificates.set (some {
+                  database := state.database
+                  certificates })
+          | none => pure ()
+          return (live, .ok
+            (LiveState.invalidateCertificates result.1, result.2))
 
 private def runStatementsGo (connection : Connection) : LiveState →
     List Statement → List Core.Result →
