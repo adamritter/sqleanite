@@ -1679,6 +1679,11 @@ inductive PostImageCertificate
       (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
         (CoreFileAdapter.storageImage layout.paddedImage)) :
       PostImageCertificate oldImage writes database
+  | wideBulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CoreWidePageCodec.encodeBulkInline database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
 
 /-- The value returned by the live localized writer carries the exact final
 write list consumed by both the syscall trace and the component proof.  This
@@ -2066,6 +2071,19 @@ def CoreFileAdapter.PreparedBulkCommit.postImageCertificate
     (CorePageCodec.encodeBulkWithState_image prepared.encodedWithState)
     prepared.choice prepared.doesNotShrink prepared.writesEq
 
+def CoreFileAdapter.PreparedWideBulkCommit.postImageCertificate
+    {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
+    {database : Core.Database}
+    (prepared : CoreFileAdapter.PreparedWideBulkCommit oldImage database)
+    (utf8 : CoreDecode.UTF8Roundtrips) :
+    PostImageCertificate oldImage prepared.writes database := by
+  apply PostImageCertificate.wideBulk utf8 prepared.image
+    (CoreWidePageCodec.encodeBulkInlineWithState_image
+      prepared.encodedWithState)
+  rw [prepared.writesEq]
+  exact GrowableStorage.apply_deltaWrites_equiv oldImage
+    (CoreFileAdapter.storageImage prepared.image) prepared.doesNotShrink
+
 theorem PostImageCertificate.representsDatabase
     {oldImage : GrowableStorage.Image PhysicalCodec.pageSize}
     {writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)}
@@ -2095,6 +2113,11 @@ theorem PostImageCertificate.representsDatabase
       rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv applied,
         imageBytes_storageImage]
       exact CoreFreelistCodec.decode_paddedImage utf8 database layout encoded
+  | wideBulk utf8 image encoded applied =>
+      unfold RepresentsDatabase
+      rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv applied,
+        imageBytes_storageImage]
+      exact CoreWidePageInverse.decode_encodeBulkInline utf8 database image encoded
 
 /-- Build the complete component certificate from one exact schema-page write
 and the separately compositional table/index decoder facts. -/

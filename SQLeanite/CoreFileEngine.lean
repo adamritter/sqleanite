@@ -30,6 +30,7 @@ structure Connection where
   syncOps : CoreFileAdapter.SyncOps
   private state : Std.Mutex LiveState
   private pageState : IO.Ref (Option CoreChunkPageState.State)
+  private widePageState : IO.Ref (Option CoreWidePageState.State)
   private validatedOpen : IO.Ref (Option CoreFileAdapter.ValidatedOpenState)
   -- Page count and catalog, decoded once rather than per statement. Cleared
   -- alongside the other caches on every write.
@@ -53,11 +54,13 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
         let database ← CoreFileAdapter.reopen paths
         let pageState ← CoreFileAdapter.loadPageState paths database
         pure (database, pageState)
+  let widePageState ← CoreFileAdapter.loadWidePageState paths database
   return {
     paths
     syncOps
     state := ← Std.Mutex.new { state := { database := database } }
     pageState := ← IO.mkRef pageState
+    widePageState := ← IO.mkRef (widePageState.map (·.state))
     validatedOpen := ← IO.mkRef opened
     fileGeometry := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign) }
@@ -86,20 +89,62 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
-  let (validated, _) ← CoreFileAdapter.commit connection.syncOps
-    connection.paths next.database
-  let reopened := validated.state.database
-  unless databaseContents reopened == databaseContents next.database do
-    throw (IO.userError "general MVP commit reopened different logical contents")
-  connection.pageState.set (some validated.state)
-  connection.validatedOpen.set (some validated)
-  connection.fileGeometry.set none
-  connection.provenance.set .generated
-  return { next with database := reopened }
+  match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
+      next.database with
+  | some (wideState, _) =>
+      connection.widePageState.set (some wideState.state)
+      connection.pageState.set none
+      connection.validatedOpen.set none
+      connection.fileGeometry.set none
+      connection.provenance.set .generated
+      return next
+  | none =>
+      let (validated, _) ← CoreFileAdapter.commit connection.syncOps
+        connection.paths next.database
+      let reopened := validated.state.database
+      unless databaseContents reopened == databaseContents next.database do
+        throw (IO.userError "general MVP commit reopened different logical contents")
+      connection.pageState.set (some validated.state)
+      connection.widePageState.set none
+      connection.validatedOpen.set (some validated)
+      connection.fileGeometry.set none
+      connection.provenance.set .generated
+      return { next with database := reopened }
+
+private def persistWideInsert? (connection : Connection) (current : Core.State)
+    (statement : Statement) : IO (Option Core.State) := do
+  let some wide ← connection.widePageState.get | return none
+  match statement with
+  | .insert table columns rows conflict =>
+      unless conflict == .default || conflict == .abort do return none
+      let [expressions] := rows.toList | return none
+      let tableName := CoreSQL.canonical table
+      let some stored := wide.database.findTable? tableName | return none
+      let .ok values := CoreSQL.rowValues stored.schema columns expressions |
+        return none
+      let some executed := CoreWidePageDelta.executeInsert? wide
+        current.transactionSnapshot tableName values | return none
+      let input ← IO.FS.readBinFile connection.paths.main
+      let some prepared := CoreFileAdapter.prepareWideAppend? input executed |
+        return none
+      match ← CoreFileAdapter.commitLocalizedCertified connection.syncOps
+          connection.paths prepared.expectedBefore prepared.writes with
+      | none => return none
+      | some _ =>
+          connection.widePageState.set (some prepared.state)
+          connection.pageState.set none
+          connection.validatedOpen.set none
+          connection.fileGeometry.set none
+          connection.provenance.set .generated
+          return some executed.next
+  | _ => return none
 
 private def persistIfNeeded (connection : Connection) (current next : Core.State)
     (statement : Statement) : IO Core.State := do
   if requiresPersistence current statement then
+    match ← persistWideInsert? connection current statement with
+    | some persisted => return persisted
+    | none => pure ()
     let physical ← connection.pageState.get
     match candidate : physical.bind fun state =>
         CoreChunkPageDelta.updateStateCandidate? state next.database with

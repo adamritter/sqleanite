@@ -196,6 +196,14 @@ def encodeBulkInlineWithState (database : Core.Database) :
 def encodeBulkInline (database : Core.Database) : Option CoreFile.Image :=
   (encodeBulkInlineWithState database).map Prod.fst
 
+theorem encodeBulkInlineWithState_image {database : Core.Database}
+    {result : CoreFile.Image × CoreWidePageState.State}
+    (encoded : encodeBulkInlineWithState database = some result) :
+    encodeBulkInline database = some result.1 := by
+  unfold encodeBulkInline
+  rw [encoded]
+  rfl
+
 theorem encodeBulkInlineWithState_represents {database : Core.Database}
     {result : CoreFile.Image × CoreWidePageState.State}
     (encoded : encodeBulkInlineWithState database = some result) :

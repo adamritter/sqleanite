@@ -37,6 +37,17 @@ def TableState.rootPage (state : TableState) : Nat :=
 def TableState.pageIds (state : TableState) : List Nat :=
   state.tree.root.pageIds
 
+def TableState.withNextPage (state : TableState) (nextPage : Nat) : TableState := {
+  state with tree := { state.tree with nextPage := nextPage } }
+
+@[simp] theorem TableState.withNextPage_table (state : TableState)
+    (nextPage : Nat) : (state.withNextPage nextPage).table = state.table := rfl
+
+@[simp] theorem TableState.withNextPage_rows (state : TableState)
+    (nextPage : Nat) :
+    Store.rows (state.withNextPage nextPage).tree = state.table.rows :=
+  state.represents
+
 theorem buildTree_rows (capacity startPage : Nat) (table : Core.Table)
     {entries : List (PagedBTree.Entry Chunk)}
     (entriesResult : CoreChunkPageState.entries?
@@ -204,6 +215,23 @@ theorem State.build?_nextPage_ge {database : Core.Database} {state : State}
     injection built with equal
     rw [← congrArg State.nextPage equal]
     exact buildTables?_nextPage_ge 2 database.tables result resultEq
+
+/-- Reserve page identities through an external tail (currently generated
+secondary indexes) without changing any table topology or abstraction. -/
+def State.reserveThrough (state : State) (nextPage : Nat) : State := {
+  database := state.database
+  tables := state.tables.map (·.withNextPage nextPage)
+  tables_eq := by simpa [List.map_map, Function.comp_def] using state.tables_eq
+  nextPage }
+
+theorem State.reserveThrough_represents (state : State) (nextPage : Nat) :
+    (state.reserveThrough nextPage).Represents state.database := by
+  refine ⟨rfl, ?_, ?_⟩
+  · simpa [State.reserveThrough, List.map_map, Function.comp_def] using
+      state.tables_eq
+  · intro table member
+    rcases List.mem_map.mp member with ⟨old, oldMember, rfl⟩
+    exact old.represents
 
 end CoreWidePageState
 end SQLeanite

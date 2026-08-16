@@ -6,6 +6,9 @@ import SQLeanite.CoreChunkPageDelta
 import SQLeanite.CorePageLoad
 import SQLeanite.CorePageSource
 import SQLeanite.CoreLocalizedRepresentation
+import SQLeanite.CoreWidePageInverse
+import SQLeanite.CoreWidePageLoad
+import SQLeanite.CoreWidePageDelta
 import SQLeanite.PhysicalFileAdapter
 
 namespace SQLeanite
@@ -100,6 +103,41 @@ def prepareBulkCommit? (old : GrowableStorage.Image PhysicalCodec.pageSize)
                   CoreMultiFreelist.ofImageTotal?_totalPageCount layoutResult]
                 exact Nat.le_refl _
               writesEq := rfl }
+
+/-- Growing bulk commits for the high-fanout representation.  Shrinking keeps
+using the established freelist-aware path until the wide state owns freelist
+metadata as well. -/
+structure PreparedWideBulkCommit
+    (old : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) where
+  state : CoreWidePageState.State
+  image : CoreFile.Image
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  encodedWithState : CoreWidePageCodec.encodeBulkInlineWithState database =
+    some (image, state)
+  doesNotShrink : old.pageCount ≤ (storageImage image).pageCount
+  writesEq : writes = transactionWrites old image
+
+structure ValidatedWideState (database : Core.Database) where
+  state : CoreWidePageState.State
+  represents : state.Represents database
+
+def prepareWideBulkCommit?
+    (old : GrowableStorage.Image PhysicalCodec.pageSize)
+    (database : Core.Database) : Option (PreparedWideBulkCommit old database) :=
+  match encoded : CoreWidePageCodec.encodeBulkInlineWithState database with
+  | none => none
+  | some (image, state) =>
+      if grows : old.pageCount ≤ image.pageCount then
+        some {
+          state
+          image
+          writes := transactionWrites old image
+          encodedWithState := encoded
+          doesNotShrink := by
+            simpa [storageImage, CoreFile.Image.pageCount] using grows
+          writesEq := rfl }
+      else none
 
 def commitPlan (old : GrowableStorage.Image PhysicalCodec.pageSize)
     (new : CoreFile.Image) : List Request :=
@@ -936,6 +974,19 @@ def loadPageState (paths : Paths) (database : Core.Database) :
   unless input.size = count * PhysicalCodec.pageSize do return none
   let pages := CoreDecode.pages count bytes
   return CorePageLoad.load? (.ofList pages) database
+
+def loadWidePageState (paths : Paths) (database : Core.Database) :
+    IO (Option (ValidatedWideState database)) := do
+  let input ← IO.FS.readBinFile paths.main
+  let bytes := input.data.toList
+  let some (header, _) := FileFormat.decodeDatabaseHeader bytes | return none
+  let count := header.databaseSizePages.val
+  unless input.size = count * PhysicalCodec.pageSize do return none
+  let pages := CoreDecode.pages count bytes
+  let source := CoreDecode.PageSource.ofList pages
+  match loaded : CoreWidePageLoad.load? source database with
+  | none => return none
+  | some state => return some ⟨state, CoreWidePageLoad.load?_represents loaded⟩
 
 structure ValidatedOpenState where
   state : CoreChunkPageState.State
@@ -1896,6 +1947,95 @@ def mutationPageWrites? (mutated : IndexPageMutations) :
         (⟨pageNumber - 1, newPage⟩ :
           GrowableStorage.PageWrite PhysicalCodec.pageSize))
   some (pairs.map (fun pair => pair.1), pairs.map (fun pair => pair.2))
+
+private def currentWritesFor? (source : CoreDecode.PageSource) (count : Nat) :
+    List (GrowableStorage.PageWrite PhysicalCodec.pageSize) →
+      Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+  | [] => some []
+  | write :: writes => do
+      let tail ← currentWritesFor? source count writes
+      if write.pageId < count then
+        let bytes ← source.readPage (write.pageId + 1)
+        let page ← storagePage? bytes
+        some (⟨write.pageId, page⟩ :: tail)
+      else some tail
+
+structure PreparedWideAppend {state : CoreWidePageState.State}
+    {snapshot : Option Core.Database} {tableName : String}
+    {values : List Core.Value}
+    (executed : CoreWidePageDelta.ExecutedInsert state snapshot tableName values) where
+  state : CoreWidePageState.State
+  expectedBefore : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
+  index : Core.Index
+  rootPage : Nat
+  certificate : DecodedIndexCertificate rootPage
+    executed.append.mutation.after.table index
+  writesDistinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
+
+/-- Prepare the live one-row wide append.  Table pages come only from the
+changed right spine; the generated TEXT-primary index follows one routed path.
+Any page-fit or index-split miss returns `none` to the proved bulk fallback. -/
+def prepareWideAppend? {state : CoreWidePageState.State}
+    {snapshot : Option Core.Database} {tableName : String}
+    {values : List Core.Value}
+    (input : ByteArray)
+    (executed : CoreWidePageDelta.ExecutedInsert state snapshot tableName values) :
+    Option (PreparedWideAppend executed) := do
+  let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
+  let (header, _) ← FileFormat.decodeDatabaseHeader firstPageBytes
+  let count := header.databaseSizePages.val
+  if _generated : CoreFile.hasGeneratedImageStamp header then
+    if _noFree : header.freelistPageCount.val = 0 then
+      if _length : input.size = count * PhysicalCodec.pageSize then
+        let source := byteArrayPageSource input count
+        let firstPage ← source.readPage 1
+        let catalog ← CoreDecode.decodeCatalogForOpen firstPage
+        let before := executed.append.table
+        let after := executed.append.mutation.after
+        if _sameSchema : before.table.schema = after.table.schema then
+          if _sameIndexes : before.table.indexes = after.table.indexes then
+            match after.table.indexes with
+            | [index] => do
+                let entry ← catalog.find? fun entry =>
+                  entry.kind == "index" && entry.name == index.name &&
+                    entry.table == after.table.schema.name
+                if _rootRange : 1 < entry.rootPage ∧ entry.rootPage ≤ count then
+                  let tablePages ← match executed.append.mutation.mode with
+                    | .extendedTerminalChunk =>
+                        CoreWidePageCodec.encodeTerminalReplacement
+                          after.table.schema after.tree
+                    | .appendedChunk =>
+                        CoreWidePageCodec.encodeTerminalAppend after.table.schema
+                          before.tree after.tree
+                  let tableWrites ← tablePages.mapM
+                    CoreChunkPageDelta.numberedWrite?
+                  let tableBefore ← currentWritesFor? source count tableWrites
+                  let mutated ← insertIndexRowIntoPages? entry.rootPage index
+                    executed.row source
+                  let indexDelta ← mutationPageWrites? mutated
+                  let expectedBefore := tableBefore ++ indexDelta.1
+                  let writes := tableWrites ++ indexDelta.2
+                  let certified ← certifyDecodedIndexAt? entry.rootPage after.table
+                    index (CorePageSource.applyWrites source writes)
+                  if distinct : writes.Pairwise
+                      (fun left right => left.pageId ≠ right.pageId) then
+                    some {
+                      state := executed.append.after
+                      expectedBefore
+                      writes
+                      index
+                      rootPage := entry.rootPage
+                      certificate := certified.certificate
+                      writesDistinct := distinct }
+                  else none
+                else none
+            | _ => none
+          else none
+        else none
+      else none
+    else none
+  else none
 
 def physicalCatalogEntry? (entry : CoreDecode.CatalogEntry) :
     Option CoreFile.CatalogEntry := do
@@ -3509,6 +3649,45 @@ def commitLocalized (syncOps : SyncOps) (paths : Paths)
     IO (Option (List (POSIXVFS.Request PhysicalCodec.pageSize))) := do
   return (← commitLocalizedCertified syncOps paths expectedBefore writes
     freePages).map (fun committed => committed.requests)
+
+/-- Commit a proved high-fanout bulk image and retain the exact topology that
+was serialized.  The syscall protocol is identical to `commit`; only the
+proof-owned post-state differs. -/
+def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
+    IO (Option (ValidatedWideState new ×
+      List (POSIXVFS.Request PhysicalCodec.pageSize))) := do
+  recoverInPlace syncOps paths
+  let current ← IO.FS.readBinFile paths.main
+  let oldImage ← match physicalImage? current.data.toList with
+    | some image => pure image
+    | none => throw (IO.userError "could not page the current general MVP image")
+  let some prepared := prepareWideBulkCommit? oldImage new | return none
+  let writes := prepared.writes
+  let journal := GrowableStorage.makeJournal oldImage writes
+  let encodable ← match PhysicalJournalCodec.ofJournal? journal with
+    | some value => pure value
+    | none => throw (IO.userError "general MVP rollback journal exceeds encoded bounds")
+  IO.FS.writeBinFile paths.journalTemp
+    (bytes (PhysicalJournalCodec.encodeChecked encodable))
+  syncOps.syncFile paths.journalTemp
+  SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
+  syncOps.syncDeletion paths.main
+  writeMainPages paths.main writes
+  syncOps.syncFile paths.main
+  verifyWrittenPages paths.main writes
+  SyscallVFS.unlinkPath paths.journal.toString
+  syncOps.syncDeletion paths.main
+  let retained := prepared.state.reserveThrough (prepared.image.pageCount + 1)
+  have builtRepresents :=
+    CoreWidePageCodec.encodeBulkInlineWithState_represents
+      prepared.encodedWithState
+  have retainedRepresents : retained.Represents new := by
+    have reserved := prepared.state.reserveThrough_represents
+      (prepared.image.pageCount + 1)
+    rw [builtRepresents.1] at reserved
+    exact reserved
+  return some (⟨retained, retainedRepresents⟩,
+    POSIXVFS.commitPlan oldImage writes)
 
 def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do
