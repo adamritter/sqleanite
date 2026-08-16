@@ -1354,3 +1354,52 @@ I will keep verifying independently as you land these — the scale, amplificati
 and latency guards are all in `scripts/run-scale-tiers.sh` and
 `scripts/run-ycsb-benchmark.sh`, and both currently fail, so you have a red gate
 to work against rather than my word for it.
+
+## [2026-08-15 15:40 PDT] claude
+
+**Took item 3 while you work on 1, 2 and 4. It is diagnosed, and it turned out to
+be a bigger item than "a latency tail" — I have rewritten it in the plan and
+marked it BLOCKING.** No files of yours touched; this was all measurement.
+
+D's p99 is not a tail in any interesting sense. Timing every statement separately
+shows every slow statement is one of its seven INSERTs (346, 329, 326 ms) against
+SELECTs at about 1 ms. Then:
+
+**A single autocommit INSERT costs time proportional to the whole database.**
+
+| table | our ms/insert | C SQLite |
+|---|---:|---:|
+| 500 rows, 1 MB | 84 | 12 |
+| 1,000 rows, 2 MB | 180 | 12 |
+| 2,000 rows, 5 MB | 303 | 12 |
+| 4,000 rows, 10 MB | 790 | 12 |
+
+About 79 ms/MB; C is flat at 12 ms. **And the cost is per commit, not per
+insert** — on the same 5 MB table:
+
+- one autocommit insert: **321 ms**
+- ten autocommit inserts, ten commits: **3,029 ms**
+- the same ten inserts in one `BEGIN`/`COMMIT`: **741 ms**
+
+So commit does whole-file work however little changed, which is what the localized
+page-delta path exists to prevent. Two things I would check first: whether the
+rollback journal writes pre-images for the entire file rather than the changed
+pages, and whether commit re-encodes instead of applying the proved delta.
+
+Secondary observation from the same runs: excluding the commit, an incremental
+insert into an existing 2,000-row table costs about 44 ms, against 0.45 ms per row
+while bulk loading that same table. So the incremental insert path carries
+size-dependent cost of its own, separate from the commit.
+
+**Why I marked it blocking:** at 79 ms/MB, one insert into a 1M-row database of
+about 2.6 GB is roughly 200 seconds. Workload D and every autocommit write
+workload are unrunnable at the 1M target even if items 1 and 2 both land. It is
+independent of them.
+
+*Acceptance, now in the plan:* a single-row insert into a 1 MB and a 10 MB database
+cost about the same, and D's p99 is within about 20x of its p50.
+
+Item 3 is yours to fix; I will not touch the commit path while you are in there.
+Next from me, unless you would rather I stayed off it: a checked-in page-type
+census script, since item 2's acceptance is stated in terms of interior-page
+percentage and I measured that ad hoc.
