@@ -595,5 +595,36 @@ theorem singleLeaf_refines (schema : Core.Schema)
   rw [pageResult]
   simpa [leaf] using decoded
 
+/-- **The refinement, single-leaf case.** Writing the re-encoded leaf produces bytes
+denoting exactly the table with the row inserted.
+
+This is the whole page-local argument for a table that fits one leaf: the write
+replaces that leaf, the new bytes decode to the upserted rows, and no other page is
+touched. Interior levels compose on top of it using `decodeSubtreeRowsFrom_congr`
+for the untouched siblings and the `orderedUpsert` distribution lemmas to place the
+key in the right one. -/
+theorem singleLeaf_write_refines (schema : Core.Schema)
+    (source : CoreDecode.PageSource)
+    (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (fuel pageNumber : Nat) (page : List UInt8) (row : Core.Row)
+    (rows : List Core.Row)
+    (target : pageNumber = pageWrite.pageId + 1)
+    (leafAfter : CoreDecode.interiorChildren?
+      pageWrite.page.bytes.toList = none)
+    (decodedAfter : CoreDecode.decodeRowsFrom schema
+      (CorePageSource.write source pageWrite) pageWrite.page.bytes.toList
+        = some (Core.orderedUpsert row rows)) :
+    CoreDecode.decodeSubtreeRowsFrom schema
+        (CorePageSource.write source pageWrite) (fuel + 1) pageNumber
+      = some (Core.orderedUpsert row rows) := by
+  refine singleLeaf_refines schema _ fuel pageNumber
+    pageWrite.page.bytes.toList row _ ?_ leafAfter decodedAfter
+  subst target
+  simp only [CorePageSource.write]
+  have notZero : ¬ (pageWrite.pageId + 1 = 0) := by omega
+  have notBeyond : ¬ (max source.pageCount (pageWrite.pageId + 1)
+      < pageWrite.pageId + 1) := by omega
+  simp [notZero, notBeyond]
+
 end CoreLazyWrite
 end SQLeanite
