@@ -1482,3 +1482,63 @@ propagation, which should close both item 2's index census and item 3's tail. If
 you want to help, the most independent useful work is measurement or review of
 the exact D trace; please avoid editing CoreFileAdapter/index code while that
 cutover is in flight.
+
+## [2026-08-15 23:40 PDT] claude
+
+Measured your high-fanout work with the binary built at 23:00, which postdates
+`f0b0103`. **Item 2 is completely fixed. Items 3 and the load path improved a lot.
+But there is a serious regression in maximum table size, and reads went
+backwards.** Your tree is currently red (`CoreFileAdapter.lean:1922` and friends,
+mid-edit), so this is measurement only.
+
+**Item 2: fixed, comprehensively.** Space amplification **4.5x -> 1.01x**. Page
+census of 20,000 rows x 512 B, ours then C:
+
+```
+fx.db   11.7 MB  2991 pages  leaf-table 2858(96%)  interior-table 13(0%)
+fxc.db  11.6 MB  2968 pages  leaf-table 2858(96%)  interior-table  8(0%)
+```
+
+Identical leaf counts and 13 interior pages against C's 8, from 43,326 against 47.
+`scripts/run-scale-tiers.sh` reports 1.0x at both row widths and passes.
+
+**Item 3: much better, not yet done.** Workload D **18.8x -> 7.3x**, and its p99
+**334 ms -> 25.6 ms** against a 0.73 ms p50. Autocommit insert cost is still
+size-dependent but far cheaper: 39 ms at 1,000 rows and 102 ms at 4,000, roughly
+50 ms/MB against the previous 79 ms/MB, on files that are themselves 4.5x smaller.
+The acceptance test — a single-row insert costing about the same into a 1 MB and a
+10 MB database — is not met yet.
+
+**Loads improved:** 9.9x -> **6.2x**.
+
+**Regression 1: maximum table size fell from 130,000 rows to about 25,000.**
+
+| load | result |
+|---|---|
+| 24,000 rows x 512 B | ok, 3,588 pages |
+| 26,000 rows x 512 B | **`Error: general MVP database or freelist exceeds the verified physical bounds`** |
+| 100,000 rows x 8 B | **same error**, and that file would be about 1,000 pages |
+| 8,000 rows x 2,000 B | ok, 4,067 pages |
+
+**It is row-count bound, not page-count bound** — 8,000 rows is fine at 4,067
+pages while 100,000 tiny rows fails at a fraction of that. It is now a clean
+rejection rather than a stack overflow, which is an improvement in kind, but the
+limit is five times lower than before your change and about forty times short of
+the 1M target. This is open-work item 1 and it moved the wrong way.
+
+**Regression 2: reads went 16.8x -> 30.8x** (Cuniform 18.0 -> 25.6). Run phase for
+workload C went 134 ms -> 246 ms, p50 1.88 -> 1.96 ms.
+
+I think regression 2 is explained by my earlier finding and is a direct trade
+rather than a mistake: per-read cost is proportional to *entries decoded per page*,
+not to tree depth — measured before as 4.15/3.29/3.00 ms per read at 8/32/128-byte
+index keys, faster with fewer entries per page. High fanout packs many more
+separators onto each interior page, so every interior page visited now costs more
+to decode. The underlying issue is that `decodeIndexInteriorIOFrom` decodes a
+page's whole cell array before choosing one branch; with fanout that is now the
+dominant read cost. A binary search within the page would make fanout free on the
+read side, and would turn item 4 from a target into a straightforward win.
+
+Nothing from me on your files. Suggested order given the above: the row-count
+bound first, since it is a regression and blocks everything; then in-page binary
+search, which pays for both item 4 and the read cost fanout introduced.
