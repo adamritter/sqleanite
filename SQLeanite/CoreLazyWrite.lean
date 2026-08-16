@@ -384,6 +384,23 @@ theorem decodeRowCellFrom_congr (schema : Core.Schema)
   rw [decodeTablePayloadBytesFrom_inline left right fuelLeft fuelRight _
     afterRowid (inline payloadSize afterSize sizeResult)]
 
+/-- An inline cell decodes to the same row *and suffix* from any source. -/
+theorem decodeRowCellWithSuffixFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (fuelLeft fuelRight : Nat)
+    (input : List UInt8) (inline : CellInline input) :
+    CoreDecode.decodeRowCellWithSuffixFrom schema left fuelLeft input
+      = CoreDecode.decodeRowCellWithSuffixFrom schema right fuelRight input := by
+  unfold CoreDecode.decodeRowCellWithSuffixFrom
+  refine bind_congr' ?_
+  intro sizePair sizeResult
+  obtain ⟨payloadSize, afterSize⟩ := sizePair
+  refine bind_congr' ?_
+  intro rowidPair _
+  obtain ⟨rowidBits, afterRowid⟩ := rowidPair
+  dsimp only
+  rw [decodeTablePayloadBytesFrom_inline left right fuelLeft fuelRight _
+    afterRowid (inline payloadSize afterSize sizeResult)]
+
 /-- Congruence for `List.mapM` in `Option`. -/
 theorem mapM_congr {α β : Type} {f g : α → Option β} :
     ∀ {elements : List α},
@@ -394,6 +411,43 @@ theorem mapM_congr {α β : Type} {f g : α → Option β} :
       rw [List.mapM_cons, List.mapM_cons,
         pointwise a List.mem_cons_self,
         mapM_congr fun a' member => pointwise a' (List.mem_cons_of_mem a member)]
+
+/-- The induction invariant for the packed leaf decoder: this cell is inline, and
+whatever suffix it leaves behind satisfies the same condition for the remaining
+cells. Stated over one source because an inline cell's decode -- suffix included --
+does not depend on the source, which is exactly
+`decodeRowCellWithSuffixFrom_congr`. -/
+def PackedInline (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (fuel : Nat) : Nat → List UInt8 → Prop
+  | 0, _ => True
+  | count + 1, input =>
+      CellInline input ∧
+        ∀ row afterRow,
+          CoreDecode.decodeRowCellWithSuffixFrom schema source fuel input
+              = some (row, afterRow) →
+            PackedInline schema source fuel count afterRow
+
+/-- The packed leaf decoder is source-independent on inline content. -/
+theorem decodePackedRowCellsFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (fuelLeft fuelRight : Nat) :
+    ∀ (count : Nat) (input : List UInt8),
+      PackedInline schema left fuelLeft count input →
+      CoreDecode.decodePackedRowCellsFrom schema left fuelLeft count input
+        = CoreDecode.decodePackedRowCellsFrom schema right fuelRight count input
+  | 0, _, _ => rfl
+  | count + 1, input, invariant => by
+      unfold CoreDecode.decodePackedRowCellsFrom
+      rw [decodeRowCellWithSuffixFrom_congr schema left right fuelLeft fuelRight
+        input invariant.1]
+      refine bind_congr' ?_
+      intro rowPair pairResult
+      obtain ⟨row, afterRow⟩ := rowPair
+      dsimp only
+      rw [decodePackedRowCellsFrom_congr schema left right fuelLeft fuelRight
+        count afterRow (invariant.2 row afterRow (by
+          rw [decodeRowCellWithSuffixFrom_congr schema left right fuelLeft
+            fuelRight input invariant.1]
+          exact pairResult))]
 
 /-- Every cell on the page fits inline. -/
 def PageInline (page : List UInt8) : Prop :=
@@ -413,6 +467,50 @@ theorem decodeRowsByPointersFrom_congr (schema : Core.Schema)
   exact mapM_congr fun cell member =>
     decodeRowCellFrom_congr schema left right _ _ cell
       (inline cells cellsResult cell member)
+
+/-- A leaf whose cells are all inline, on both decoding routes. -/
+def LeafInline (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (page : List UInt8) : Prop :=
+  PageInline page ∧
+    ∀ count content, CoreDecode.canonicalLeafContent? 0 page = some (count, content) →
+      PackedInline schema source (source.pageCount + 1) count content
+
+/-- **The leaf premise, discharged.** A leaf of inline cells decodes identically
+from any source, so a page write elsewhere in the file cannot change it. This is
+what `decodeSubtreeRowsFrom_congr` needs, and together with it the frame half of
+the page-local write argument is complete for tables whose rows fit inline. -/
+theorem decodeRowsFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (page : List UInt8)
+    (inlineLeft : LeafInline schema left page)
+    (inlineRight : LeafInline schema right page) :
+    CoreDecode.decodeRowsFrom schema left page
+      = CoreDecode.decodeRowsFrom schema right page := by
+  unfold CoreDecode.decodeRowsFrom
+  by_cases canonical : CoreDecode.canonicalPointersBeginAtContent page
+  · simp only [canonical, if_pos]
+    cases contentResult : CoreDecode.canonicalLeafContent? 0 page with
+    | none =>
+        simp only [contentResult]
+        exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
+    | some pair =>
+        obtain ⟨count, content⟩ := pair
+        simp only [contentResult]
+        rw [decodePackedRowCellsFrom_congr schema left right
+          (left.pageCount + 1) (right.pageCount + 1) count content
+          (inlineLeft.2 count content contentResult)]
+        cases packedResult : CoreDecode.decodePackedRowCellsFrom schema right
+            (right.pageCount + 1) count content with
+        | none =>
+            exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
+        | some rowsPair =>
+            obtain ⟨rows, suffix⟩ := rowsPair
+            cases suffix with
+            | nil => rfl
+            | cons a rest =>
+                exact decodeRowsByPointersFrom_congr schema left right page
+                  inlineLeft.1
+  · simp only [canonical, if_neg]
+    exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
 
 end CoreLazyWrite
 end SQLeanite
