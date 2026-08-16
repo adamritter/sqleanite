@@ -369,30 +369,53 @@ widths in the tier guard. Interior pages 13 against C's 8, from 43,326 against 4
 3.9x, D 4.5x, C's p50 at 0.04 ms. 100 reads at 1M rows: 90 ms against C's 6 ms,
 15x. Write-heavy A, B and F remain 9.9--13.3x.
 
-**Item 3, commit cost: PARTLY CLOSED.** Per-statement insert cost is fixed and
-flat — ten inserts on one connection are 18--20 ms each, and one insert costs the
-same as ten (5,849 ms against 5,604 ms at 11 MB), so it is not per statement.
+**Item 3, write-open cost: IMPROVED 2.2x, NOT CLOSED.** Per-statement insert cost
+was never the problem — ten inserts on one connection are 18--20 ms each and one
+insert costs the same as ten. The cost is the *open*: an empty script costs the
+same as a script containing an insert, so it is `CoreFileEngine.reopen`.
 
-**What remains: opening a database for writing is O(database); opening for reading
-is not.**
+Two defects fixed (`buffer the general open and stop listifying whole databases`):
 
-| database | one read | one autocommit insert |
+- `loadPageState` and `loadWidePageState` each converted the entire file to a
+  `List UInt8`, one cons cell per byte of database, on every write open.
+  `loadPageState` went from roughly 450 ms/MB to 3 ms.
+- the general decoder read one page per syscall through `filePageSourceFor`;
+  buffering the file once and slicing it cut that step from 3.4 s to about 1.3 s
+  at 11 MB.
+
+| database | one autocommit insert, before | after |
 |---|---:|---:|
-| 2 MB | 11 ms | **992 ms** |
-| 11 MB | 12 ms | **5,394 ms** |
+| 2 MB | 992 ms | **633 ms** |
+| 11 MB | 5,394 ms | **2,499 ms** |
 
-About 490 ms/MB on the write path against a flat 11 ms on the read path. Workload
-D hides this because its hundred statements amortize a single open, and the
-percentiles from `--verified-file-timed` exclude the open by construction.
+*Care needed here:* the buffered source must take its page size from the
+validated header. Substituting the fixed-size `byteArrayPageSource` silently broke
+the 1024-byte differential case; `scripts/live-path-check.sh` now asserts both the
+positive and the negative form of that.
 
-*Acceptance, restated:* a single-row insert into a 1 MB and an 11 MB database cost
-about the same. They are 5.4x apart today.
+**Why it is still not closed, and what would close it.** `loadOpenState`, the fast
+validated open, returns `none` in 5 ms on every file the engine now writes — for
+both TEXT and INTEGER primary keys — because `CorePageLoad.open?` does not
+understand the high-fanout page format introduced for item 2. Every write open
+therefore falls through to the general decoder, which reconstructs the entire
+`Core.Database` from bytes, and then `loadWidePageState` validates the whole
+database again. At 11 MB that is about 1.3 s plus 0.95 s, and both are O(database)
+by construction.
+
+The single change that closes item 3 is a **wide fast open**: teach the validated
+open path to construct state directly from high-fanout pages, so a one-row insert
+never reconstructs the database. Everything else is a constant factor on top of an
+O(database) open.
+
+*Acceptance, unchanged:* a single-row insert into a 1 MB and an 11 MB database cost
+about the same. They are 3.9x apart today, down from 5.4x.
 
 ### Remaining work, in order
 
-1. **Write-path open at ~490 ms/MB.** The dominant cost of any short write session
-   and the last blocking performance item. It is also what rules out 10M rows: one
-   insert into a 5.8 GB database would take roughly 47 minutes.
+1. **Wide fast open.** The write open is now about 210 ms/MB, down from 490, but
+   still O(database) because `CorePageLoad.open?` cannot read high-fanout pages and
+   every write falls back to the general decoder. This is the last blocking
+   performance item and the only one that changes the asymptotics.
 2. **`REPLACE`/`UPDATE` growth at 512-byte rows is 2.4x per doubling**, at the
    guard threshold, so `scripts/run-scale-tiers.sh` **currently exits 1**. Narrow
    rows are 1.7x. Confirm whether this is a real superlinear term or threshold
