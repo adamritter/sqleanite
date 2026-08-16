@@ -7,6 +7,7 @@ import SQLeanite.RelationalAlgebra
 import SQLeanite.PagedBTree
 import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
+import SQLeanite.WidePageTree
 import SQLeanite.CorePageCodec
 import SQLeanite.CorePageSource
 import SQLeanite.CoreLocalizedRepresentation
@@ -205,6 +206,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PersistentPageTree.Store.reuseFresh?_toList
 #print axioms SQLeanite.PersistentPageTree.Store.build_represents
 #print axioms SQLeanite.PersistentPageTree.identifyFrom_pageIds
+#print axioms SQLeanite.WidePageTree.interiorFanout_pageFit
+#print axioms SQLeanite.WidePageTree.flatten_groups
+#print axioms SQLeanite.WidePageTree.groups_eq_groupsTR
+#print axioms SQLeanite.WidePageTree.build_toList
+#print axioms SQLeanite.WidePageTree.build_valid
 #print axioms SQLeanite.CorePageCodec.decodeCanonicalRows_encodeLeaf
 #print axioms SQLeanite.CorePageCodec.encodeChunkNode_eq_mapM
 #print axioms SQLeanite.CorePageCodec.changedPhysicalChunkPagesFast_eq

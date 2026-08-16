@@ -6,6 +6,7 @@ import SQLeanite.POSIXVFS
 import SQLeanite.PagedBTree
 import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
+import SQLeanite.WidePageTree
 import SQLeanite.CorePageCodec
 import SQLeanite.CorePageSource
 import SQLeanite.CoreLocalizedRepresentation

@@ -3435,6 +3435,17 @@ private def expectPersistentPageTree : IO Unit := do
       "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
   unless check.exitCode == 0 && check.stdout == "ok\n3\n1\n" do
     fail s!"sqlite3 rejected stable-page bulk encoding: {check.stderr}{check.stdout}"
+  -- The 130k-row YCSB census contained exactly 43,333 byte-budgeted chunks.
+  -- A physical 2-3 topology used 43,326 interior pages for them.  The wide
+  -- topology packs two chunks per leaf and up to 256 children per interior.
+  let censusEntries : List (PagedBTree.Entry Nat) :=
+    (List.range 43333).map fun key => (key, key)
+  let wide ← match WidePageTree.build censusEntries with
+    | some plan => pure plan
+    | none => fail "high-fanout physical builder exhausted its total fuel"
+  unless wide.toList == censusEntries && wide.leafCount == 21667 &&
+      wide.interiorCount == 86 && wide.pageCount == 21753 do
+    fail "high-fanout physical builder regressed to sparse 2-3 page topology"
 
 private def expectCertifiedCoreTokenGrammar : IO Unit := do
   let sql := "CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT);\n    BEGIN; INSERT INTO usertable VALUES('user0001','payload');\n    SELECT field0 FROM usertable WHERE (ycsb_key='user0001'); COMMIT;"
