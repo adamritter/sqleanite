@@ -298,6 +298,15 @@ theorem mapM_subtreePages_mem {source : CoreDecode.PageSource} {fuel : Nat} :
           simp only [List.flatten_cons]
           exact List.mem_append_right _ (subset p mem)⟩
 
+/-- `bind_congr` in the `>>=` form the `do`-notation actually elaborates to.
+
+`do let x ← e; rest` produces `Bind.bind e f`, not `Option.bind e f`. The two are
+definitionally equal but do not unify during `refine`, which is why applying
+`bind_congr` directly to an unfolded decoder failed. -/
+theorem bind_congr' {α β : Type} {value : Option α} {f g : α → Option β}
+    (pointwise : ∀ a, value = some a → f a = g a) :
+    (value >>= f) = (value >>= g) := bind_congr pointwise
+
 /-- Each child's pages are among the parent's. -/
 theorem subtreePages_cons {source : CoreDecode.PageSource}
     {fuel pageNumber : Nat} {page : List UInt8}
@@ -351,6 +360,29 @@ theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
             ⟨childList, located, subset⟩
           rw [induction located (fun p mem =>
             agree p (List.mem_cons_of_mem pageNumber (subset p mem)))]
+
+/-- A cell whose payload fits in the leaf and so needs no overflow page. -/
+def CellInline (input : List UInt8) : Prop :=
+  ∀ payloadSize afterSize, FileFormat.decodeVarint input
+      = some (payloadSize, afterSize) →
+    payloadSize.val ≤ FileFormat.tableLeafMaxLocal PhysicalCodec.usablePageSize
+
+/-- An inline cell decodes without consulting the source. -/
+theorem decodeRowCellFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (fuel : Nat) (input : List UInt8)
+    (inline : CellInline input) :
+    CoreDecode.decodeRowCellFrom schema left fuel input
+      = CoreDecode.decodeRowCellFrom schema right fuel input := by
+  unfold CoreDecode.decodeRowCellFrom
+  refine bind_congr' ?_
+  intro sizePair sizeResult
+  obtain ⟨payloadSize, afterSize⟩ := sizePair
+  refine bind_congr' ?_
+  intro rowidPair _
+  obtain ⟨rowidBits, afterRowid⟩ := rowidPair
+  dsimp only
+  rw [decodeTablePayloadBytesFrom_inline left right fuel _ afterRowid
+    (inline payloadSize afterSize sizeResult)]
 
 end CoreLazyWrite
 end SQLeanite
