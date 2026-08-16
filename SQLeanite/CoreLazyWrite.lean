@@ -512,6 +512,36 @@ theorem decodeRowsFrom_congr (schema : Core.Schema)
   · simp only [canonical, if_neg]
     exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
 
+/-- `Option.some_bind` in the `>>=` form the `do`-notation elaborates to. Same
+mismatch as `bind_congr'`: the library lemma is stated for `Option.bind` and does not
+fire on `Bind.bind`. -/
+@[simp] theorem some_bind' {α β : Type} (a : α) (f : α → Option β) :
+    (some a >>= f) = f a := rfl
+
+/-- The accumulator factors out of the interior fold.
+
+`decodeSubtreeRowsFrom` accumulates children's rows with `foldlM`, so reasoning about
+where a key lands means reasoning about that accumulator. Factoring it out turns the
+fold into "decode the children, then prepend" and makes the `orderedUpsert`
+distribution lemmas applicable. -/
+theorem foldlM_acc {α β : Type} (f : α → Option (List β)) :
+    ∀ (elements : List α) (acc : List β),
+      elements.foldlM (fun a x => (f x).bind (fun r => some (a ++ r))) acc
+        = (elements.foldlM (fun a x => (f x).bind (fun r => some (a ++ r)))
+            []).map (fun tail => acc ++ tail)
+  | [], acc => by simp
+  | x :: rest, acc => by
+      simp only [List.foldlM_cons]
+      cases headResult : f x with
+      | none => simp
+      | some head =>
+          simp only [some_bind', Option.some_bind, List.nil_append]
+          rw [foldlM_acc f rest (acc ++ head), foldlM_acc f rest head]
+          cases restResult : rest.foldlM
+              (fun a x => (f x).bind (fun r => some (a ++ r))) [] with
+          | none => simp
+          | some tail => simp [List.append_assoc]
+
 /-! ## Routing
 
 Frame says a page write leaves other subtrees alone. Routing says the write lands in
