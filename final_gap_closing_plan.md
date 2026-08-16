@@ -274,6 +274,98 @@ That is the FSCQ-shaped result.
 
 ---
 
+## Workstream G — close the write-side semantic gap (priority 3)
+
+Added 2026-08-16 after a second audit. The read side has a denotational story
+(`CoreReadSemantics.lean`: `execute_query_denotes`, `execute_join_denotes`, and
+the rest). The write side has no analogue, and the two never meet.
+
+### G1. Membership iff for `orderedUpsert`
+
+`mem_orderedUpsert` is forward only: `candidate ∈ orderedUpsert row rows →
+candidate = row ∨ candidate ∈ rows`. Missing the converse — that `row` is in the
+result, and that non-colliding rows are retained. Nothing needs it today; G2 and
+G3 do. **Hours.**
+
+### G2. Rowid freshness in the insert postcondition
+
+Prerequisite for G3 and G4. The insert path knows the rowid is fresh -- see the
+private `Table.findRowid?_fresh_of_not_isSome` -- but does not expose it in the
+postcondition, so no downstream theorem can use it. **~1 day.**
+
+### G3. A bag-level insert theorem
+
+New `CoreWriteSemantics.lean`, mirroring `CoreReadSemantics.lean`:
+`⟦after⟧ = ⟦before⟧ ⊎ {row}` over `KRelation`. Today `Core.orderedUpsert` serves
+as both specification and implementation -- it is a list function with
+insertion-order semantics -- so there is no statement of what an insert *means*
+that is independent of how it is performed. **2–4 days.**
+
+### G4. Close the loop: write → bytes → reopen → read
+
+The theorem that a row inserted by the write path is the row a later read
+observes, *through the encoded bytes and a reopen*. This is rated higher here
+than in the source list, because it is close to the statement a
+byte-compatibility paper actually wants, and because PAPER_PLAN's milestone 5
+("end-to-end composition") currently has two headline theorems and nothing
+crossing the write/read seam. The reopen leg is the hard part: it crosses
+`encodeBulk`/`decode`, so it should compose the existing whole-image inverse
+rather than re-prove it. **3–5 days.**
+
+*Acceptance:* one named theorem, reached from a live write text and a live read
+text, registered in `ProofAxioms.lean` and pinned by `live-path-check.sh`.
+
+---
+
+## Workstream H — progress (priority 3)
+
+Every headline theorem is conditional on success. `executeText_commit_crash_atomic`
+takes `success : CoreSQL.execute state text = .ok (next, [result])` as a
+hypothesis; there is no theorem anywhere that a valid statement *succeeds*. This
+is the standard objection to a verified system and it currently lands.
+
+The subtlety the work has to respect: `execute` legitimately fails -- duplicate
+primary key, type error, missing table, value out of bounds. So the theorem is
+not totality. It is:
+
+> a supported statement, on a well-formed state, whose stated preconditions hold
+> (schema conformance, no key collision, values in range), returns `.ok`.
+
+Characterizing those failure modes *is* the work. Scope it to `INSERT` and
+`SELECT` in the pure core; do not attempt the whole command set for a first
+submission. **3–5 days.**
+
+*Acceptance:* a progress theorem for insert and for select, and a stated list of
+the failure modes each one excludes.
+
+---
+
+## Workstream I — assumption hygiene (priority 4)
+
+### I1. `UTF8Roundtrips` stays a documented assumption
+
+`CoreDecode.UTF8Roundtrips : ∀ value : String, TextRoundtrips value` is a
+hypothesis on `decode_encodeBulk` and 64 other sites. It exists because the Lean
+standard library exposes no theorem for its own UTF-8 implementation. `TRUST.md`
+already discloses it.
+
+**Decision: do not thread a per-value witness through 65 sites for a first
+submission.** But state one thing in the paper that costs nothing: `TextRoundtrips
+value` has a `Decidable` instance, so the universal law *could* be replaced by a
+per-string check at the boundary. Naming that turns an assumption into a
+disclosed, checkable one. **Hours.**
+
+### I2. Correction to record
+
+`PostImageCertificate` is *not* an assumed decoder equation. It is an inductive
+with five constructive alternatives and the explicit comment "There is
+deliberately no constructor accepting an opaque decoder equation"; the live
+localized path uses `.components`/`.ordinary`, which `CoreDurability` builds from
+the live writer. Only the `bulk`/`padded`/`wideBulk` constructors mention
+`encodeBulk … = some image`. Do not list this as an assumption; it is discharged.
+
+---
+
 ## Explicitly not doing
 
 - `WITHOUT ROWID`, subqueries, views, triggers, `ALTER`, savepoints, `ATTACH`,
@@ -283,6 +375,10 @@ That is the FSCQ-shaped result.
 - Runtime checkers for the page-local write premises (`TreeSound`,
   `TreeDisjoint`), and linking `commitLocalized` to `insertPlan_refines`.
   1–2 weeks and 2–4 days respectively; not needed for a non-deployed path.
+  This is the item to pick up first if the write path is ever to ship enabled.
+- Threading a checked `TextRoundtrips` witness through the 65 `UTF8Roundtrips`
+  sites. See I1: disclose and note decidability instead.
+- Progress for the full command set. H is scoped to insert and select.
 - The IO↔pure source lemma (C5), unless promoted.
 - General parser correctness. `parseCertified_agrees_parse` covers admitted
   ASTs, which is the same relative standard POPL'10 met against their PEG
@@ -296,10 +392,17 @@ That is the FSCQ-shaped result.
 2. **A** — the top-priority claim, and A1 is its weakest joint.
 3. **B** — the claim with no prior art and the thinnest evidence.
 4. **C** — depends on nothing; can run in parallel with B.
-5. **F** — hours.
-6. **E** — last, because it snapshots everything above.
+5. **H** — the standard reviewer objection; independent of everything else.
+6. **G** — G1 is hours and can land any time; G2→G3→G4 are sequential.
+7. **F**, **I** — hours each.
+8. **E** — last, because it snapshots everything above.
 
-Rough total: **two to three weeks** of focused work, with B and C parallelizable.
+Rough total: **four to five weeks** of focused work with B/C and G/H
+parallelizable — roughly double the original estimate, which covered only A–F.
+If the schedule will not take that, cut in this order: G3 and G4 first (they
+strengthen the story but nothing currently claimed depends on them), then H
+(disclose partial correctness instead of fixing it), then B1 down to a smaller
+matrix. Do not cut A or D.
 
 A note on these estimates: mine ran consistently low during the work that
 produced this plan. I called the last refinement "plumbing" and it took a full
