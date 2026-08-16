@@ -438,6 +438,54 @@ What is actually left, in increasing difficulty:
 *Acceptance, unchanged:* a single-row insert into a 1 MB and an 11 MB database cost
 about the same. They are 3.9x apart today, down from 5.4x.
 
+### The write open at 1M rows: 144 seconds for one insert
+
+The single most important performance fact in this plan, measured on the 583 MB
+1,000,000-row database:
+
+| operation | cost |
+|---|---:|
+| one `SELECT` by primary key | **12 ms** |
+| one autocommit `INSERT` | **143,671 ms** |
+
+A four-order-of-magnitude gap on the same file. Reads are page-directed through
+`CoreLazyFileEngine` and touch a handful of pages; a write reconstructs and
+re-validates the entire database first. Every write workload at the paper scale is
+therefore unusable per invocation, and this is what item 3 has to fix.
+
+### Why a lazy write path is an architecture change, not a patch
+
+The write side's correctness argument is founded on a *materialized* database, so
+there is nowhere to put a lazy write without re-founding it:
+
+- `CoreWidePageState.State` carries `database : Core.Database` together with
+  `tables_eq : tables.map TableState.table = database.tables`;
+- `CoreWidePageState.TableState` carries `table : Core.Table` and
+  `represents : Store.rows tree = table.rows`;
+- `CoreWidePageDelta.executeInsert?` computes the physical delta by *running*
+  `Core.execute beforeState (.insert ..)` on that materialized database and
+  proving the byte-level delta refines it.
+
+So the physical write is correct *because* it agrees with the logical executor on a
+fully decoded database. Removing the decode removes the reference the proof is
+stated against. `Core.Table` stores every row in `rowTree`, so constructing one is
+inherently O(rows) whichever loader is used — which is also why the wide-format
+constructor measured identical to the general decoder.
+
+Closing item 3 therefore needs a byte-level refinement that never mentions a
+materialized `Core.Database`: "these pages denote some table T" and "after this
+page write they denote T with this row inserted". That is the same shape as
+milestone 3's localized representation, extended to stand alone rather than sit on
+top of a decoded reference, and the durability theorems above it
+(`executeText_commit_crash_atomic` in particular) have to be re-derived on the new
+foundation.
+
+*How to do it safely:* additively. Define the lazy representation and prove the
+single-row insert refinement in a new module beside the existing path, leave every
+current theorem untouched, and switch the executable over only once the new
+refinement is proved end to end. Doing it in place would break the headline
+durability theorem partway through, which is the project's central claim.
+
 ### Remaining work, in order
 
 1. **Wide fast open.** The write open is now about 210 ms/MB, down from 490, but
