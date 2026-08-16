@@ -762,6 +762,56 @@ theorem locateLeaf_entries_none (source : CoreDecode.PageSource) (key : Nat) :
             rw [equal]; exact pageResult, entriesResult⟩
         · exact locateLeaf_entries_none source key fuel _ leafPage located
 
+/-- The leaf `locateLeaf?` selects is one of the subtree's own pages.
+
+Uses the bridge: the descent picks a child from `interiorEntries?`, and
+`interiorEntries_children` says those are exactly the children `subtreePages`
+enumerates, so the chosen child's page set is part of the parent's. Needs nothing
+about whether the separators are *meaningful* -- only that the descent follows real
+child pointers. This discharges the "the write is somewhere in this subtree" premise
+that the routing induction carries. -/
+theorem locateLeaf_mem_subtreePages (source : CoreDecode.PageSource) (key : Nat) :
+    ∀ (fuel pageNumber : Nat) (pageList : List Nat) (leafPage : Nat),
+      subtreePages source fuel pageNumber = some pageList →
+      locateLeaf? source key fuel pageNumber = some leafPage →
+      leafPage ∈ pageList
+  | 0, _, _, _, _, located => by simp [locateLeaf?] at located
+  | fuel + 1, pageNumber, pageList, leafPage, enumerated, located => by
+      rw [locateLeaf?] at located
+      split at located
+      · exact absurd located (by simp)
+      · rename_i page pageResult
+        split at located
+        · -- Stops here, so this page is the answer and roots the enumeration.
+          have equal : leafPage = pageNumber := (Option.some.inj located).symm
+          rw [equal]
+          exact mem_subtreePages_self enumerated
+        · rename_i entries rightmost entriesResult
+          have childrenResult := interiorEntries_children entriesResult
+          simp only [subtreePages, pageResult, childrenResult] at enumerated
+          cases nestedResult :
+              (entries.map Prod.fst ++ [rightmost]).mapM (subtreePages source fuel) with
+          | none => rw [nestedResult] at enumerated; simp at enumerated
+          | some nested =>
+              rw [nestedResult] at enumerated
+              have listShape : pageList = pageNumber :: nested.flatten :=
+                (Option.some.inj enumerated).symm
+              have childMem : (match entries.find? (fun entry => key ≤ entry.2) with
+                  | some entry => entry.1
+                  | none => rightmost) ∈ entries.map Prod.fst ++ [rightmost] := by
+                cases found : entries.find? (fun entry => key ≤ entry.2) with
+                | none => simp [found]
+                | some entry =>
+                    have member := List.mem_of_find?_eq_some found
+                    simp only [found]
+                    exact List.mem_append_left _ (List.mem_map_of_mem member)
+              rcases mapM_subtreePages_mem nestedResult _ childMem with
+                ⟨childList, childEnumerated, subset⟩
+              rw [listShape]
+              exact List.mem_cons_of_mem pageNumber
+                (subset leafPage (locateLeaf_mem_subtreePages source key fuel _
+                  childList leafPage childEnumerated located))
+
 /-- What routing has to establish: the subtree's rows split around the target leaf,
 with the inserted key strictly between the two sides.
 
