@@ -90,31 +90,78 @@ theorem mem_subtreePages_self {source : CoreDecode.PageSource} :
           subst enumerated
           exact List.mem_singleton_self pageNumber
 
-/-- Interior table cells as `(child page, largest key in that child)`, plus the
-rightmost child. `CoreDecode.interiorChildren?` discards the separator keys, but a
-write needs them: routing to the wrong leaf still produces a well-formed file. -/
-def interiorEntries? (page : List UInt8) :
-    Option (List (Nat × Nat) × Nat) :=
+/-- The separator keys on an interior page, in cell order.
+
+`CoreDecode.interiorChildren?` discards these, but a write needs them: routing to the
+wrong leaf still produces a well-formed file. -/
+def interiorSeparators? (page : List UInt8) : Option (List Nat) :=
   if page.length == PhysicalCodec.pageSize then
     match page with
     | 5 :: _ :: _ :: countHigh :: countLow :: _ :: _ :: _ ::
-        first :: second :: third :: fourth :: afterHeader =>
-        match CoreDecode.decodeOffsetList (FileFormat.decodeU16 countHigh countLow)
-            afterHeader with
+        _ :: _ :: _ :: _ :: afterHeader =>
+        match CoreDecode.decodeOffsetList
+            (FileFormat.decodeU16 countHigh countLow) afterHeader with
         | none => none
         | some offsets =>
-            match offsets.mapM (fun offset =>
-              match (page.drop offset).take 4 with
-              | [a, b, c, d] =>
-                  match FileFormat.decodeVarint ((page.drop offset).drop 4) with
-                  | some (key, _) => some (FileFormat.decodeU32 ⟨a, b, c, d⟩, key.val)
-                  | none => none
-              | _ => none) with
-            | none => none
-            | some entries =>
-                some (entries, FileFormat.decodeU32 ⟨first, second, third, fourth⟩)
+            offsets.mapM fun offset =>
+              match FileFormat.decodeVarint ((page.drop offset).drop 4) with
+              | some (key, _) => some key.val
+              | none => none
     | _ => none
   else none
+
+/-- Interior cells as `(child page, largest key in that child)`, plus the rightmost
+child.
+
+Derived *from* `CoreDecode.interiorChildren?` rather than by parsing the page a second
+time. An earlier version parsed independently, and then a fact about the descent could
+not be transferred to a fact about the enumerated page set without matching two
+separate `do`-notation parsers step for step. Taking the children from the same
+decoder the rest of the module uses makes `interiorEntries_children` a short
+structural proof instead. -/
+def interiorEntries? (page : List UInt8) :
+    Option (List (Nat × Nat) × Nat) :=
+  match CoreDecode.interiorChildren? page with
+  | none => none
+  | some children =>
+      match interiorSeparators? page with
+      | none => none
+      | some keys =>
+          match children.reverse with
+          | rightmost :: reversedInner =>
+              if keys.length = reversedInner.length then
+                some (reversedInner.reverse.zip keys, rightmost)
+              else none
+          | [] => none
+
+/-- Both interior decoders agree on the children, by construction. -/
+theorem interiorEntries_children {page : List UInt8}
+    {entries : List (Nat × Nat)} {rightmost : Nat}
+    (decoded : interiorEntries? page = some (entries, rightmost)) :
+    CoreDecode.interiorChildren? page
+      = some (entries.map Prod.fst ++ [rightmost]) := by
+  unfold interiorEntries? at decoded
+  split at decoded
+  · exact absurd decoded (by simp)
+  · rename_i children childrenResult
+    split at decoded
+    · exact absurd decoded (by simp)
+    · rename_i keys _
+      split at decoded
+      · rename_i rightmost' reversedInner revShape
+        split at decoded
+        · rename_i lengths
+          have pairEq := Option.some.inj decoded
+          have fstEq : reversedInner.reverse.zip keys = entries :=
+            congrArg Prod.fst pairEq
+          have sndEq : rightmost' = rightmost := congrArg Prod.snd pairEq
+          have shape : children = reversedInner.reverse ++ [rightmost'] := by
+            have reversed := congrArg List.reverse revShape
+            simpa using reversed
+          rw [childrenResult, shape, sndEq, ← fstEq,
+            List.map_fst_zip (by simp [lengths])]
+        · exact absurd decoded (by simp)
+      · exact absurd decoded (by simp)
 
 /-- The leaf a key routes to, by descending interior separators. -/
 def locateLeaf? (source : CoreDecode.PageSource) (key : Nat) :
@@ -714,29 +761,6 @@ theorem locateLeaf_entries_none (source : CoreDecode.PageSource) (key : Nat) :
             have equal : leafPage = pageNumber := (Option.some.inj located).symm
             rw [equal]; exact pageResult, entriesResult⟩
         · exact locateLeaf_entries_none source key fuel _ leafPage located
-
-/-- Both interior decoders agree on the children.
-
-`subtreePages` and `decodeSubtreeRowsFrom` use `CoreDecode.interiorChildren?`, while
-`locateLeaf?` uses `interiorEntries?` because it needs the separator keys that
-`interiorChildren?` discards. Relating the two is what lets a fact about the descent
-transfer to a fact about the enumerated page set. Both read the same cell pointers
-from the same header; `interiorEntries?` merely parses one varint more per cell. -/
-theorem interiorEntries_children {page : List UInt8}
-    {entries : List (Nat × Nat)} {rightmost : Nat}
-    (decoded : interiorEntries? page = some (entries, rightmost)) :
-    CoreDecode.interiorChildren? page
-      = some (entries.map Prod.fst ++ [rightmost]) := by
-  -- True by inspection: both read the same cell pointers from the same header, and
-  -- `interiorEntries?` only parses one varint more per cell. Proving it as stated
-  -- means matching two independent `do`-notation parsers step for step, which is
-  -- avoidable: define `interiorEntries?` *in terms of* `CoreDecode.interiorChildren?`
-  -- -- take the children from it, parse the separator keys separately, and zip --
-  -- and this bridge becomes true by construction rather than by a structural
-  -- induction over two parsers. That refactor is the right next step; it touches only
-  -- `interiorEntries?` and `locateLeaf?`, both of which are local to this module, and
-  -- the executable is covered by the differential suite if its behaviour shifts.
-  sorry
 
 /-- What routing has to establish: the subtree's rows split around the target leaf,
 with the inserted key strictly between the two sides.
