@@ -211,5 +211,49 @@ def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
     | some _ => return some { changes := 1 }
   else return none
 
+/-! ## Refinement obligations
+
+The executable above meets item 3's acceptance criterion and agrees with C SQLite on
+every case exercised, but it is **not proved** to agree with `Core.execute`. Until
+these are discharged it must not be reachable from a shipped build.
+
+The decomposition is in `docs/LAZY_WRITE_DESIGN.md`: frame (other pages unchanged),
+concatenation (a table's rows are its leaves' rows in page order), and routing (a
+key belongs to exactly one leaf).
+
+**Where the proof is stuck.** Both `CoreDecode.decodeSubtreeRowsFrom` and
+`CoreDecode.decodeRowsFrom` are written with `do`-notation. Its `Option` bind is not
+reduced by `dsimp`, `Option.bind_some`, `Option.some_bind` or `Option.bind`, and
+`split` cannot see through it, so case analysis on the recursion is impractical as
+written. The way forward is an explicit-match restatement of
+`decodeSubtreeRowsFrom` proved by `rfl` -- attempted, and the restatement needs its
+`foldlM` types pinned down -- after which the induction follows the shape below.
+Restating the definitions themselves with explicit matches, as `subtreePages` does,
+would remove the obstacle for good. -/
+
+/-- Each child's pages are among the parent's. -/
+theorem subtreePages_cons {source : CoreDecode.PageSource}
+    {fuel pageNumber : Nat} {page : List UInt8}
+    {children : List Nat} {nested : List (List Nat)}
+    (pageResult : source.readPage pageNumber = some page)
+    (interiorResult : CoreDecode.interiorChildren? page = some children)
+    (nestedResult : children.mapM (subtreePages source fuel) = some nested) :
+    subtreePages source (fuel + 1) pageNumber
+      = some (pageNumber :: nested.flatten) := by
+  simp only [subtreePages, pageResult, interiorResult, nestedResult]
+
+/-- **Frame.** Two sources agreeing on every page of a subtree, and whose leaf
+decoding agrees, decode that subtree identically. -/
+theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource)
+    (leafAgrees : ∀ page, CoreDecode.decodeRowsFrom schema left page
+      = CoreDecode.decodeRowsFrom schema right page)
+    {fuel pageNumber : Nat} {pageList : List Nat}
+    (enumerated : subtreePages left fuel pageNumber = some pageList)
+    (agree : ∀ p ∈ pageList, left.readPage p = right.readPage p) :
+    CoreDecode.decodeSubtreeRowsFrom schema left fuel pageNumber
+      = CoreDecode.decodeSubtreeRowsFrom schema right fuel pageNumber := by
+  sorry
+
 end CoreLazyWrite
 end SQLeanite
