@@ -691,6 +691,30 @@ theorem unique_child_owns {target : Nat} {nested : List (List Nat)}
             exact ⟨head :: before, childList, after, by rw [shape]; rfl, found,
               notAfter⟩
 
+/-- `locateLeaf?` always lands on a page that has no interior entries -- i.e. it
+descends to a leaf and never stops early.
+
+This is the `targetIsLeaf` premise the routing induction carries, discharged rather
+than assumed. It needs nothing about whether the separators are meaningful: the
+descent only stops where `interiorEntries?` fails, so wherever it stops is a
+non-interior page by construction. -/
+theorem locateLeaf_entries_none (source : CoreDecode.PageSource) (key : Nat) :
+    ∀ (fuel pageNumber leafPage : Nat),
+      locateLeaf? source key fuel pageNumber = some leafPage →
+      ∃ page, source.readPage leafPage = some page ∧ interiorEntries? page = none
+  | 0, _, _, located => by simp [locateLeaf?] at located
+  | fuel + 1, pageNumber, leafPage, located => by
+      rw [locateLeaf?] at located
+      split at located
+      · exact absurd located (by simp)
+      · rename_i page pageResult
+        split at located
+        · rename_i entriesResult
+          exact ⟨page, by
+            have equal : leafPage = pageNumber := (Option.some.inj located).symm
+            rw [equal]; exact pageResult, entriesResult⟩
+        · exact locateLeaf_entries_none source key fuel _ leafPage located
+
 /-- What routing has to establish: the subtree's rows split around the target leaf,
 with the inserted key strictly between the two sides.
 
