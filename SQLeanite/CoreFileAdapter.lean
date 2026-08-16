@@ -1099,6 +1099,11 @@ def reopen (paths : Paths) : IO Core.Database := do
     let whole ← IO.FS.readBinFile paths.main
     let pageBytes := usable.val
     let source : CoreDecode.IOPageSource := {
+      -- `usable` is defaulted on `IOPageSource`, and omitting it here is what
+      -- broke the 1024-byte differential case: the slices were the header's page
+      -- size while the decoder's cell and overflow thresholds stayed at 4096, so
+      -- every page parsed as garbage and the open reported a corrupt image.
+      usable
       pageCount := count
       readPage := fun pageNumber => pure <|
         if pageNumber = 0 || count < pageNumber then none
