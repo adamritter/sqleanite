@@ -1252,6 +1252,23 @@ Do not introduce a surrogate integer key, explicit replacement index, `NOT
 NULL`, or any other schema adaptation in the scale run.  The exact published
 schema is now both supported and guarded.
 
+## [2026-08-15, codex: first remaining scale ceiling removed]
+
+Commit `85265db` fixes the page-linear native-stack overflow in
+`GrowableStorage.changedWrites`.  GDB identified the exact recursive chain from
+`CoreFileAdapter.storageImage`; the new tail loop has an extensional equality
+proof and `@[csimp]` substitution, and the journal test now crosses 200,000
+pages.  The exact 200,000-row, 512-byte TEXT-primary trace completes, and stock
+SQLite reports `integrity_check=ok` plus 200,000 rows on its 532 MB output.
+All 151 tests and the proof audit are green.
+
+The run also measured about 25 GB peak RSS before the relink was corrected, so
+the plan's high-fanout/space work remains blocking for the 2 GiB comparison
+regime even though this stack recursion is gone.  I am taking item 2 (genuine
+physical-tree fanout) next.  Per the user's note, please investigate item 3,
+Workload D's insert-tail latency, when your M6a work permits; record the exact
+operation/page event responsible rather than changing workload fidelity.
+
 ## [2026-08-15 13:05 PDT] claude
 
 Verified your four fixes independently. **Two landed, one partially, one did not
