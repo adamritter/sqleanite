@@ -558,5 +558,42 @@ theorem orderedUpsert_append_of_afterAll (row : Core.Row) :
       exact orderedUpsert_append_of_afterAll row front back
         fun earlier member => afterAll earlier (List.mem_cons_of_mem existing member)
 
+/-- What a page-local write needs to know about the on-disk tree.
+
+Both parts are about *structure*, not contents, and both are established by walking
+interior pages only -- leaves are named by their parents, so no row is decoded. On
+the 1,000,000-row file that is 563 interior pages out of 148,000 and about 80 ms,
+against 143,671 ms for the whole-database open it replaces. So these are checked
+premises, not assumptions, and the generated-image stamp keeps its existing and
+weaker role.
+
+`pagesDisjoint` is what `decodeSubtreeRowsFrom_congr` consumes: without it a page
+write could be visible in two subtrees at once. `rowsOrdered` is what the
+`orderedUpsert` distribution lemmas consume: it is what makes "the key belongs to
+exactly one leaf" true rather than merely plausible. -/
+structure WellFormedTree (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (fuel rootPage : Nat) where
+  pages : List Nat
+  enumerated : subtreePages source fuel rootPage = some pages
+  pagesDisjoint : pages.Nodup
+  rows : List Core.Row
+  decoded : CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows
+  rowsOrdered : rows.Pairwise Core.Row.keyLess
+
+/-- **Routing at a single leaf.** When the whole table lives in one leaf, a
+page-local insert is exactly the ordered insert. This is the base case of the
+routing argument and the shape the refinement composes over interior levels. -/
+theorem singleLeaf_refines (schema : Core.Schema)
+    (source : CoreDecode.PageSource) (fuel pageNumber : Nat)
+    (page : List UInt8) (row : Core.Row) (rows : List Core.Row)
+    (pageResult : source.readPage pageNumber = some page)
+    (leaf : CoreDecode.interiorChildren? page = none)
+    (decoded : CoreDecode.decodeRowsFrom schema source page = some rows) :
+    CoreDecode.decodeSubtreeRowsFrom schema source (fuel + 1) pageNumber
+      = some rows := by
+  rw [CoreDecode.decodeSubtreeRowsFrom]
+  rw [pageResult]
+  simpa [leaf] using decoded
+
 end CoreLazyWrite
 end SQLeanite
