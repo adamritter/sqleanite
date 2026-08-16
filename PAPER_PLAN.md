@@ -355,8 +355,9 @@ measured, reproducible with a checked-in script, and currently failing. The proo
 milestones are in good shape; **what remains is executable behaviour, and two of
 these items block the paper outright.**
 
-Order matters: 1 and 2 block any scale claim, 3 is the last unexplained number,
-4 is a target rather than a gate.
+Order matters: 1, 2 and 3 each block the paper independently — 1 and 2 cap the
+size we can reach at all, and 3 makes writes at that size unusable. 4 is a target
+rather than a gate.
 
 ### 1. Remove the per-row stack overflow. BLOCKING.
 
@@ -418,21 +419,50 @@ percentage of total pages, not half.
 on commit and traversed on read, so it is a constant factor on every timing
 reported in this plan.
 
-### 3. Explain and fix workload D's latency tail.
+### 3. Make commit cost proportional to the change, not the database. BLOCKING.
 
-Workload D reports p50 1.08 ms and **p99 334 ms** — three orders of magnitude, and
-it got worse over the last round of changes (242 ms before). D is 95% read and 5%
-insert on the `latest` distribution, so the tail is in the insert path. A and F
-show ~50 ms p99s with mutations in the mix, so the pattern is consistent rather
-than a measurement artefact.
+This began as "explain workload D's p99 tail" and the explanation turned it into
+the most consequential write-path item. **It is diagnosed; what remains is the
+fix.**
 
-This is the only unexplained number left in the read and write results, and an
-unexplained three-orders-of-magnitude tail is exactly what a reviewer will probe.
-Candidates worth checking first: page splits, a commit boundary, or freelist
-growth.
+D reports p50 1.08 ms and p99 334 ms. Timing every statement individually shows
+all the slow ones are its INSERTs -- 346, 329, 326 ms -- against SELECTs at about
+1 ms. D is 95% read and 5% insert, so seven inserts dominate its whole run.
 
-*Acceptance:* D's p99 is within about 20x of its p50, or the tail has a recorded
-explanation in this plan.
+**A single autocommit INSERT costs time proportional to the entire database:**
+
+| table | our ms per insert | C SQLite |
+|---|---:|---:|
+| 500 rows, 1 MB | 84 | 12 |
+| 1,000 rows, 2 MB | 180 | 12 |
+| 2,000 rows, 5 MB | 303 | 12 |
+| 4,000 rows, 10 MB | 790 | 12 |
+
+Roughly 79 ms/MB, while C SQLite is flat at 12 ms. **The cost is per commit, not
+per insert.** On a 5 MB table:
+
+- one autocommit insert: **321 ms**
+- ten autocommit inserts, so ten commits: **3,029 ms** — linear in commits
+- the same ten inserts inside one `BEGIN`/`COMMIT`: **741 ms**
+
+So commit does work proportional to the whole file however little changed, which
+is precisely what the localized page-delta path was built to avoid. Note the
+secondary effect too: an incremental insert into an existing 2,000-row table costs
+about 44 ms once the commit is excluded, against 0.45 ms per row while bulk
+loading the same table, so the incremental insert path is also carrying
+size-dependent cost.
+
+Worth checking first: whether the rollback journal is writing pre-images for the
+whole file rather than the changed pages, and whether the commit re-encodes rather
+than applying the proved delta.
+
+**Why this blocks the 1M target.** At 79 ms/MB, one insert into a 1M-row database
+of about 2.6 GB would take roughly 200 seconds. Workload D and any autocommit
+write workload are unrunnable at the paper scale until this is fixed, independently
+of items 1 and 2.
+
+*Acceptance:* a single-row insert into a 1 MB and a 10 MB database costs about the
+same, and workload D's p99 is within about 20x of its p50.
 
 ### 4. Bring the YCSB read ratio to 8x. Target, not a gate.
 
