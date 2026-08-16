@@ -211,6 +211,21 @@ def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
     | some _ => return some { changes := 1 }
   else return none
 
+/-- A payload that fits in the leaf is decoded without consulting the source.
+
+This is what makes the leaf premise of `decodeSubtreeRowsFrom_congr` dischargeable:
+`decodeTablePayloadBytesFrom` branches on whether the payload fits locally, and only
+the overflow branch reads pages. So for a table whose rows all fit inline, leaf
+decoding cannot observe a page write anywhere. -/
+theorem decodeTablePayloadBytesFrom_inline
+    (left right : CoreDecode.PageSource) (fuel payloadSize : Nat)
+    (input : List UInt8)
+    (fits : payloadSize ≤
+      FileFormat.tableLeafMaxLocal PhysicalCodec.usablePageSize) :
+    CoreDecode.decodeTablePayloadBytesFrom left fuel payloadSize input
+      = CoreDecode.decodeTablePayloadBytesFrom right fuel payloadSize input := by
+  simp only [CoreDecode.decodeTablePayloadBytesFrom, fits, dif_pos]
+
 /-! ## Refinement obligations
 
 The executable above meets item 3's acceptance criterion and agrees with C SQLite on
@@ -298,8 +313,8 @@ theorem subtreePages_cons {source : CoreDecode.PageSource}
 decoding agrees, decode that subtree identically. -/
 theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
     (left right : CoreDecode.PageSource)
-    (leafAgrees : ∀ page, CoreDecode.decodeRowsFrom schema left page
-      = CoreDecode.decodeRowsFrom schema right page)
+    (leafAgrees : ∀ leafBytes, CoreDecode.decodeRowsFrom schema left leafBytes
+      = CoreDecode.decodeRowsFrom schema right leafBytes)
     {fuel pageNumber : Nat} {pageList : List Nat}
     (enumerated : subtreePages left fuel pageNumber = some pageList)
     (agree : ∀ p ∈ pageList, left.readPage p = right.readPage p) :
