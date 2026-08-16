@@ -349,7 +349,73 @@ UPDATE, bulk DELETE, and inner join respectively.  Every workload remains
 within the frozen non-regression budget and at or below 5x C SQLite by median;
 the proof additions add no runtime execution or validation pass.
 
-## Former blocking work (closed 2026-08-16)
+## Status 2026-08-16, independently measured
+
+Measured after `8184bca` with a binary built from it. Build green, 151 tests,
+audit clean. **Three of the four open items are genuinely closed; the fourth is
+partly closed and what remains is now precisely located.** The section below
+titled "Former blocking work" is accurate for items 1, 2 and 4 and premature for
+item 3.
+
+**Item 1, scale ceiling: CLOSED.** A **1,000,000-row** load completes — 194 s and
+583 MB, against C SQLite's 3 s and 580 MB. 500,000 rows takes 92 s. The paper
+target is met. Note the load ratio at scale is about 65x C, because our per-row
+cost is flat at roughly 190 us while C's falls with size.
+
+**Item 2, space amplification: CLOSED.** **1.01x** at 1M rows, 1.0x at both row
+widths in the tier guard. Interior pages 13 against C's 8, from 43,326 against 47.
+
+**Item 4, reads to 8x: MET on read-only workloads.** Workload C **3.6x**, Cuniform
+3.9x, D 4.5x, C's p50 at 0.04 ms. 100 reads at 1M rows: 90 ms against C's 6 ms,
+15x. Write-heavy A, B and F remain 9.9--13.3x.
+
+**Item 3, commit cost: PARTLY CLOSED.** Per-statement insert cost is fixed and
+flat — ten inserts on one connection are 18--20 ms each, and one insert costs the
+same as ten (5,849 ms against 5,604 ms at 11 MB), so it is not per statement.
+
+**What remains: opening a database for writing is O(database); opening for reading
+is not.**
+
+| database | one read | one autocommit insert |
+|---|---:|---:|
+| 2 MB | 11 ms | **992 ms** |
+| 11 MB | 12 ms | **5,394 ms** |
+
+About 490 ms/MB on the write path against a flat 11 ms on the read path. Workload
+D hides this because its hundred statements amortize a single open, and the
+percentiles from `--verified-file-timed` exclude the open by construction.
+
+*Acceptance, restated:* a single-row insert into a 1 MB and an 11 MB database cost
+about the same. They are 5.4x apart today.
+
+### Remaining work, in order
+
+1. **Write-path open at ~490 ms/MB.** The dominant cost of any short write session
+   and the last blocking performance item. It is also what rules out 10M rows: one
+   insert into a 5.8 GB database would take roughly 47 minutes.
+2. **`REPLACE`/`UPDATE` growth at 512-byte rows is 2.4x per doubling**, at the
+   guard threshold, so `scripts/run-scale-tiers.sh` **currently exits 1**. Narrow
+   rows are 1.7x. Confirm whether this is a real superlinear term or threshold
+   noise before acting.
+3. **A, B and F p99 is about 113 ms** against p50s of 0.6--1.7 ms — the same shape
+   as the tail item 3 explained, so probably the write open appearing once per
+   connection.
+4. **Trusted bindings rose from 7 to 9.** Two new allowlisted `opaque` host
+   bindings entered the TCB during this work. The size of that surface is a
+   headline property of the project, so each needs a recorded reason in
+   `docs/TRUST.md`.
+
+### On 10M rows: not yet, and 1M is not quite the intended regime either
+
+VeriBetrKV's 10M-record configuration exists to exceed a 2 GB memory cap. Our 1M
+database is 583 MB, so it fits in ordinary RAM and does not reproduce the
+out-of-cache behaviour their numbers describe. Two cheaper and more faithful
+options than 10M: run the 1M configuration under the same 2 GB cap, or raise the
+record count until the database passes 2 GB, which is roughly 4M rows. Both are
+better uses of machine time than 10M, and both want item 1 above fixed first,
+because a multi-gigabyte database with a 490 ms/MB write open is not usable.
+
+## Former blocking work (items 1, 2 and 4 closed 2026-08-16; item 3 partly)
 
 All four measured items below are now closed. Their original diagnoses are kept
 because they explain the architectural changes and provide falsifiable
