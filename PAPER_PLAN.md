@@ -412,8 +412,9 @@ fanout should subsume this, but if it does not, pack two chunks per leaf in the
 bulk builder or split by bytes at emit time.
 
 *Acceptance:* `scripts/run-scale-tiers.sh` reports amplification under 1.5x at
-both 40-byte and 512-byte row widths. Interior pages should be a low single-digit
-percentage of total pages, not half.
+both 40-byte and 512-byte row widths, and `scripts/page-census.py` shows interior
+pages as a low single-digit percentage of total pages rather than half. Run it on
+our file and C SQLite's for the same data; today it reports 49% against 0%.
 
 *Note:* amplification is not only a disk cost. Every extra page is a page written
 on commit and traversed on read, so it is a constant factor on every timing
