@@ -251,3 +251,81 @@ state, which is a different crash shape.
   The work either completes or is not committed.
 - The narrow scope means `INSERT` into a full leaf, and all of
   `REPLACE`/`UPDATE`/`DELETE`, keep the old cost until follow-up work widens it.
+
+
+## Implementation plan and attempt log (2026-08-16)
+
+Landed and sound: `SQLeanite/CoreLazyWrite.lean` with `subtreePages` and
+`mem_subtreePages_self`. Everything below is the remaining work, in order, with
+what was learned attempting it.
+
+### Phase 1 — leaf-read agreement (the blocker)
+
+`CoreDecode.decodeRowsFrom` takes the page source and follows overflow chains
+through `decodeRowsByPointersFrom` / `decodePackedRowCellsFrom`, so a subtree's
+decoded rows can depend on pages `subtreePages` does not name.
+
+**Do not fix this by enumerating overflow pages.** Predicting which pages the
+decoder reads means reimplementing its cell parsing, and an enumeration that
+disagrees with the decoder produces a frame lemma that compiles and is false.
+
+Discharge it with a *counting* check instead: if the enumerated tree pages, plus
+page one, plus the freelist, account for every page in the file, then no overflow
+page exists and leaf reads cannot leave the enumeration. The check is cheap — the
+enumeration already costs about 80 ms at 1M rows — and it is a check, so the
+fallback stays total.
+
+### Phase 2 — the frame lemma
+
+State it as a *source congruence*, not over `CorePageSource.write` directly:
+
+```lean
+theorem decodeSubtreeRowsFrom_congr (schema) (left right : PageSource)
+    (leafAgrees : ∀ page, decodeRowsFrom schema left page
+      = decodeRowsFrom schema right page) :
+    subtreePages left fuel pageNumber = some pageList →
+    (∀ p ∈ pageList, left.readPage p = right.readPage p) →
+    decodeSubtreeRowsFrom schema left fuel pageNumber
+      = decodeSubtreeRowsFrom schema right fuel pageNumber
+```
+
+The `write` case is then a corollary via the primitives that already exist in
+`CorePageSource`: `readPage_write_same`, `readPage_write_other`, `applyWrites`.
+Stating it over `write` directly drags in a bounds obligation — `write` returns
+`none` above `max source.pageCount (pageWrite.pageId + 1)` — which the congruence
+form avoids entirely.
+
+Two practical notes from the attempt:
+
+- **`subtreePages` must be written with explicit `match`, not `do`.** With
+  do-notation the hypothesis is an `Option` bind that `split` cannot see through,
+  and neither `dsimp`, `Option.bind_some` nor `Option.some_bind` reduces it. The
+  committed definition already uses explicit matches for this reason.
+- The induction's interior case needs *child pages are among the parent's*, which
+  comes from `pageList = pageNumber :: nested.flatten` plus membership reasoning
+  through `List.mapM`. `subtreePages_children` is the lemma to write first; the
+  induction is straightforward once it exists.
+
+### Phase 3 — routing exclusivity
+
+That the key belongs to leaf `p` and no other, from the interior separators along
+the descent. `locateLeafPath?` should record the separators as it descends so
+exclusivity is available as a proof rather than re-derived. This is the one part
+with no existing analogue: the read path *uses* routing to find candidates but
+never needs exclusivity, whereas a write does — inserting into the wrong leaf still
+produces a well-formed file.
+
+### Phase 4 — engine
+
+`CoreLazyWrite.execute?` mirroring `CoreLazyFileEngine.execute?`, tried from
+`Main.lean` before `CoreFileEngine.reopen`, with `none` meaning "optimization
+miss" and never a partial result. Journal the single page's pre-image, sync, write,
+sync, unlink; because exactly one page changes, the existing crash-atomicity
+theorem over an arbitrary exact page-write list applies unchanged.
+
+### Status
+
+Phases 1--4 are not done. The zero-`sorry` gate means partial proof work cannot be
+committed, so the only thing that lands is what is fully proved; a draft of the
+Phase 2 induction was written, left unproved, and reverted rather than parked in
+the tree.
