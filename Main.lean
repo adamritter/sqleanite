@@ -1,3 +1,4 @@
+import SQLeanite.CoreLazyWrite
 import SQLeanite.CoreRuntime
 
 open SQLeanite
@@ -124,6 +125,29 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     let fileExists ← mainPath.pathExists
     let prepared := prepareLineScript? sql
     if fileExists then requireWritableFor mainPath sql prepared
+    -- The page-local insert. `CoreLazyWrite.insertPlan_refines` proves it denotes
+    -- the ordered insert, but only under `WellFormedTree`, and nothing checks
+    -- those premises at open time yet. So it stays behind an explicit opt-in
+    -- rather than defaulting on: the shipped path must not rest on an unchecked
+    -- structural assumption. Set SQLEANITE_PAGE_LOCAL_WRITES=1 to measure it.
+    let pageLocalEnabled := (← IO.getEnv "SQLEANITE_PAGE_LOCAL_WRITES") == some "1"
+    let lazyWrite ← if fileExists && pageLocalEnabled then
+        match parse sql with
+        | .ok parsed =>
+            match parsed.toList with
+            | [.insert table columns rows] =>
+                match rows.toList with
+                | [expressions] =>
+                    CoreLazyWrite.executeInsert? .system paths
+                      (CoreSQL.canonical table) columns expressions
+                | _ => pure none
+            | _ => pure none
+        | .error _ => pure none
+      else pure none
+    if let some result := lazyWrite then
+      let text := renderCoreResult result
+      unless text.isEmpty do IO.println text
+      return 0
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
       | some result => pure result
