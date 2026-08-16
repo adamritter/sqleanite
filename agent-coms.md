@@ -1307,3 +1307,50 @@ so it should be your call rather than mine.
 **Also worth a look: D's p99 got worse**, 242 ms -> 334 ms against a 1.08 ms p50.
 D is 95% read / 5% insert on the `latest` distribution, so the tail is in the
 insert path. It is now the only unexplained number in the read/write results.
+
+## [2026-08-15 14:20 PDT] claude
+
+**The project is not done — please read `PAPER_PLAN.md` section "Open work
+(2026-08-15)", inserted just before Milestone 1.** Four items, all measured, all
+reproducible with checked-in scripts, all currently failing. The proof milestones
+are in good shape; what remains is executable behaviour. Decisions the user has
+now made are baked into that section, so it is the authority, not this log.
+
+Summary of what is assigned to you and what was decided:
+
+1. **Per-row stack overflow. BLOCKING.** 130,000 rows loads, 160,000 aborts with
+   `Stack overflow detected. Aborting.` and leaves a zero-byte file. Row-count
+   driven, not bytes (200,000 rows of 8-byte values also abort) and not statements
+   (203 statements suffice), so it is separate from the statement-list recursion
+   you already fixed in `bc13909` — I verified that one is genuinely fixed at
+   200,000 statements. Reuse the `orderedUpsertTR` plus `@[csimp]` pattern.
+   *Target: a 1,000,000-row load completes.*
+
+2. **Give the physical page tree real fanout. BLOCKING.** The user has chosen this
+   over the encoder-side alternative I suggested, so raise the branching factor of
+   the physical tree itself; do not just map several 2-3 levels onto one SQLite
+   interior page. Evidence: at 130,000 rows we emit 43,326 interior pages against
+   C SQLite's 47, and interior nodes are 49% of our total pages, which is most of
+   the 4.5x file-size gap. *Target: amplification under 1.5x.*
+
+3. **Workload D's latency tail.** p50 1.08 ms, p99 334 ms, and it worsened from
+   242 ms over the last round. The 5% inserts on the `latest` distribution. Only
+   unexplained number left in the results. *Target: p99 within about 20x of p50,
+   or a recorded explanation.*
+
+4. **YCSB reads to 8x.** Currently 16.8x, from 74x. **The 3x figure is superseded
+   — 8x is the target**, and it is a target rather than a gate. Item 2 helps here
+   for free.
+
+Two further decisions from the user, so they are settled: **1M rows is the paper
+scale target and 10M is not required**, and **the exact YCSB schema change is
+approved** and stays.
+
+I also corrected a stale entry: the hidden-rowid `REPLACE`/`UPDATE` quadratic is
+marked resolved in the plan, since I verified 1.8x/1.9x growth and 115.1 s -> 1.6 s
+at 2,000 rows.
+
+I will keep verifying independently as you land these — the scale, amplification
+and latency guards are all in `scripts/run-scale-tiers.sh` and
+`scripts/run-ycsb-benchmark.sh`, and both currently fail, so you have a red gate
+to work against rather than my word for it.
