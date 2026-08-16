@@ -605,7 +605,10 @@ structure WellFormedTree (schema : Core.Schema) (source : CoreDecode.PageSource)
     (fuel rootPage : Nat) where
   pages : List Nat
   enumerated : subtreePages source fuel rootPage = some pages
-  pagesDisjoint : pages.Nodup
+  childrenDisjoint : ∀ nested : List (List Nat),
+    ∀ children : List Nat, subtreePages source fuel rootPage = some pages →
+      children.mapM (subtreePages source fuel) = some nested →
+      nested.Pairwise (fun left right => ∀ p ∈ left, p ∉ right)
   rows : List Core.Row
   decoded : CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows
   rowsOrdered : rows.Pairwise Core.Row.keyLess
@@ -655,6 +658,83 @@ theorem singleLeaf_write_refines (schema : Core.Schema)
   have notBeyond : ¬ (max source.pageCount (pageWrite.pageId + 1)
       < pageWrite.pageId + 1) := by omega
   simp [notZero, notBeyond]
+
+/-- Exactly one child owns the written page, when the children's page sets are
+pairwise disjoint.
+
+Disjointness is stated directly as a `Pairwise` rather than as `Nodup` on the
+flattened list: without Mathlib there is no `nodup_append` to take apart, and the
+`Pairwise` form is both what the interior walk naturally checks and what this
+induction consumes. -/
+theorem unique_child_owns {target : Nat} {nested : List (List Nat)}
+    (disjoint : nested.Pairwise (fun left right => ∀ p ∈ left, p ∉ right))
+    (owned : target ∈ nested.flatten) :
+    ∃ before childList after,
+      nested = before ++ childList :: after ∧
+        target ∈ childList ∧
+        (∀ other ∈ after, target ∉ other) := by
+  induction nested with
+  | nil => simp at owned
+  | cons head rest induction =>
+      rw [List.flatten_cons] at owned
+      cases disjoint with
+      | cons headDisjoint restDisjoint =>
+          by_cases inHead : target ∈ head
+          · exact ⟨[], head, rest, rfl, inHead,
+              fun other member => headDisjoint other member target inHead⟩
+          · have inRest : target ∈ rest.flatten := by
+              rcases List.mem_append.mp owned with here | later
+              · exact absurd here inHead
+              · exact later
+            rcases induction restDisjoint inRest with
+              ⟨before, childList, after, shape, found, notAfter⟩
+            exact ⟨head :: before, childList, after, by rw [shape]; rfl, found,
+              notAfter⟩
+
+/-- **Multi-level routing.** A page-local write inside a subtree changes that
+subtree's decoded rows by exactly one ordered insert.
+
+Composes over interior levels: `foldlM_acc` exposes the children's rows as a
+concatenation, `unique_child_owns` picks out the one containing the write,
+`decodeSubtreeRowsFrom_congr` leaves the siblings alone, and
+`orderedUpsert_append_of_beforeAll`/`_afterAll` place the key in the right segment
+using the ordering carried by `WellFormedTree`.
+
+Every ingredient above is proved; this is the induction that assembles them. -/
+theorem subtree_write_refines (schema : Core.Schema)
+    (source : CoreDecode.PageSource)
+    (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize)
+    (row : Core.Row) :
+    ∀ (fuel rootPage : Nat) (rows : List Core.Row) (pageList : List Nat),
+      subtreePages source fuel rootPage = some pageList →
+      pageList.Nodup →
+      CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows →
+      rows.Pairwise Core.Row.keyLess →
+      (pageWrite.pageId + 1) ∈ pageList →
+      LeafInline schema source pageWrite.page.bytes.toList →
+      CoreDecode.decodeSubtreeRowsFrom schema
+          (CorePageSource.write source pageWrite) fuel rootPage
+        = some (Core.orderedUpsert row rows) := by
+  sorry
+
+/-- **The top-level refinement.** The plan the executable computes, applied to the
+file, denotes exactly the table with the row inserted -- which is what
+`Core.execute` produces for that `INSERT`.
+
+This is the statement `executeInsert?` must be gated on before the page-local path
+may be reachable from a shipped build. -/
+theorem insertPlan_refines (schema : Core.Schema)
+    (source : CoreDecode.PageSource) (rootPage : Nat) (row : Core.Row)
+    (leafPage : Nat) (encoded : CoreFile.Page) (rows : List Core.Row)
+    (wellFormed : WellFormedTree schema source (source.pageCount + 1) rootPage)
+    (decoded : CoreDecode.decodeSubtreeRowsFrom schema source
+      (source.pageCount + 1) rootPage = some rows)
+    (planned : insertPlan? schema source rootPage row = some (leafPage, encoded)) :
+    CoreDecode.decodeSubtreeRowsFrom schema
+        (CorePageSource.write source ⟨leafPage - 1, encoded.storage⟩)
+        (source.pageCount + 1) rootPage
+      = some (Core.orderedUpsert row rows) := by
+  sorry
 
 end CoreLazyWrite
 end SQLeanite
