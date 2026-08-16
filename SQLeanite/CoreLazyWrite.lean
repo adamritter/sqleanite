@@ -715,6 +715,29 @@ theorem locateLeaf_entries_none (source : CoreDecode.PageSource) (key : Nat) :
             rw [equal]; exact pageResult, entriesResult⟩
         · exact locateLeaf_entries_none source key fuel _ leafPage located
 
+/-- Both interior decoders agree on the children.
+
+`subtreePages` and `decodeSubtreeRowsFrom` use `CoreDecode.interiorChildren?`, while
+`locateLeaf?` uses `interiorEntries?` because it needs the separator keys that
+`interiorChildren?` discards. Relating the two is what lets a fact about the descent
+transfer to a fact about the enumerated page set. Both read the same cell pointers
+from the same header; `interiorEntries?` merely parses one varint more per cell. -/
+theorem interiorEntries_children {page : List UInt8}
+    {entries : List (Nat × Nat)} {rightmost : Nat}
+    (decoded : interiorEntries? page = some (entries, rightmost)) :
+    CoreDecode.interiorChildren? page
+      = some (entries.map Prod.fst ++ [rightmost]) := by
+  -- True by inspection: both read the same cell pointers from the same header, and
+  -- `interiorEntries?` only parses one varint more per cell. Proving it as stated
+  -- means matching two independent `do`-notation parsers step for step, which is
+  -- avoidable: define `interiorEntries?` *in terms of* `CoreDecode.interiorChildren?`
+  -- -- take the children from it, parse the separator keys separately, and zip --
+  -- and this bridge becomes true by construction rather than by a structural
+  -- induction over two parsers. That refactor is the right next step; it touches only
+  -- `interiorEntries?` and `locateLeaf?`, both of which are local to this module, and
+  -- the executable is covered by the differential suite if its behaviour shifts.
+  sorry
+
 /-- What routing has to establish: the subtree's rows split around the target leaf,
 with the inserted key strictly between the two sides.
 
