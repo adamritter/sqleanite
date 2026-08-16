@@ -3446,6 +3446,19 @@ private def expectPersistentPageTree : IO Unit := do
   unless wide.toList == censusEntries && wide.leafCount == 21667 &&
       wide.interiorCount == 86 && wide.pageCount == 21753 do
     fail "high-fanout physical builder regressed to sparse 2-3 page topology"
+  have censusOrdered : censusEntries.Pairwise
+      (fun left right => left.1 < right.1) := by
+    simpa [censusEntries, List.pairwise_map] using
+      (List.pairwise_lt_range (n := 43333))
+  let wideStore ← match WidePageTree.Store.build? 2 censusEntries
+      censusOrdered with
+    | some store => pure store
+    | none => fail "numbered high-fanout store exhausted its total fuel"
+  unless wideStore.toList == censusEntries &&
+      wideStore.root.leafCount == 21667 &&
+      wideStore.root.interiorCount == 86 &&
+      wideStore.root.pageCount == 21753 do
+    fail "numbered high-fanout store changed contents or page topology"
 
 private def expectCertifiedCoreTokenGrammar : IO Unit := do
   let sql := "CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT);\n    BEGIN; INSERT INTO usertable VALUES('user0001','payload');\n    SELECT field0 FROM usertable WHERE (ycsb_key='user0001'); COMMIT;"

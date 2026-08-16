@@ -331,5 +331,186 @@ theorem build_valid {entries : List (PagedBTree.Entry Value)}
   exact buildFromNodes_valid (leafLayer entries).length
     (leafLayer entries) plan ⟨0, leafLayer_layer entries⟩ built
 
+/-! ## Stable page identities
+
+`Plan` is the proof-facing bulk topology.  The live store below gives every
+page a persistent identity.  Bulk construction allocates leaves first and
+then one contiguous interval for each interior layer; consequently the root
+is the last allocated page, not an artificial page placed before its
+children.  SQLite permits that layout, and later mutations can keep the root
+identity fixed without renumbering an unchanged sibling.
+-/
+
+inductive Node (Value : Type) where
+  | leaf (pageId : Nat) (entries : List (PagedBTree.Entry Value))
+  | branch (pageId : Nat) (children : List (Node Value))
+  deriving Repr
+
+def Node.rootId : Node Value → Nat
+  | .leaf pageId _ | .branch pageId _ => pageId
+
+def Node.toList : Node Value → List (PagedBTree.Entry Value)
+  | .leaf _ entries => entries
+  | .branch _ children => children.flatMap Node.toList
+
+def Node.pageIds : Node Value → List Nat
+  | .leaf pageId _ => [pageId]
+  | .branch pageId children =>
+      pageId :: children.flatMap Node.pageIds
+
+def Node.pageCount : Node Value → Nat
+  | .leaf _ _ => 1
+  | .branch _ children => 1 + (children.map Node.pageCount).sum
+
+def Node.leafCount : Node Value → Nat
+  | .leaf _ _ => 1
+  | .branch _ children => (children.map Node.leafCount).sum
+
+def Node.interiorCount : Node Value → Nat
+  | .leaf _ _ => 0
+  | .branch _ children => 1 + (children.map Node.interiorCount).sum
+
+def Node.height : Node Value → Nat
+  | .leaf _ _ => 0
+  | .branch _ [] => 1
+  | .branch _ (child :: _) => child.height + 1
+
+def Node.erase : Node Value → Plan Value
+  | .leaf _ entries => .leaf entries
+  | .branch _ children => .branch (children.map Node.erase)
+
+def numberedLeaves (startPage : Nat)
+    (entries : List (PagedBTree.Entry Value)) : List (Node Value) :=
+  (groups leafCapacity entries).mapIdx fun offset group =>
+    .leaf (startPage + offset) group
+
+theorem numberedLeaves_toList (startPage : Nat)
+    (entries : List (PagedBTree.Entry Value)) :
+    (numberedLeaves startPage entries).flatMap Node.toList = entries := by
+  unfold numberedLeaves
+  rw [List.mapIdx_eq_zipIdx_map, List.flatMap_map]
+  simp only [Function.comp_apply, Node.toList]
+  change ((groups leafCapacity entries).zipIdx.map Prod.fst).flatten = entries
+  rw [List.zipIdx_map_fst]
+  exact flatten_groups leafCapacity entries
+
+def numberedBranches (startPage : Nat) (nodes : List (Node Value)) :
+    List (Node Value) :=
+  (groups interiorFanout nodes).mapIdx fun offset children =>
+    .branch (startPage + offset) children
+
+theorem numberedBranches_toList (startPage : Nat)
+    (nodes : List (Node Value)) :
+    (numberedBranches startPage nodes).flatMap Node.toList =
+      nodes.flatMap Node.toList := by
+  unfold numberedBranches
+  rw [List.mapIdx_eq_zipIdx_map, List.flatMap_map]
+  simp only [Function.comp_apply, Node.toList]
+  have zipped : (groups interiorFanout nodes).zipIdx.flatMap Prod.fst =
+      (groups interiorFanout nodes).flatten := by
+    change ((groups interiorFanout nodes).zipIdx.map Prod.fst).flatten = _
+    rw [List.zipIdx_map_fst]
+  rw [← List.flatMap_assoc, zipped]
+  rw [flatten_groups]
+
+/-- Build successive numbered interior layers.  The initial node count is a
+simple totality fuel; every recursive layer has strictly fewer nodes when it
+contains at least two. -/
+def buildNumberedFrom : Nat → Nat → List (Node Value) →
+    Option (Node Value × Nat)
+  | 0, nextPage, [root] => some (root, nextPage)
+  | 0, _, _ => none
+  | _ + 1, _, [] => none
+  | _ + 1, nextPage, [root] => some (root, nextPage)
+  | fuel + 1, nextPage, first :: second :: nodes =>
+      let next := numberedBranches nextPage (first :: second :: nodes)
+      buildNumberedFrom fuel (nextPage + next.length) next
+
+def buildNumbered (startPage : Nat)
+    (entries : List (PagedBTree.Entry Value)) : Option (Node Value × Nat) :=
+  let leaves := if entries.isEmpty then [.leaf startPage []]
+    else numberedLeaves startPage entries
+  buildNumberedFrom leaves.length (startPage + leaves.length) leaves
+
+theorem buildNumberedFrom_toList :
+    ∀ (fuel nextPage : Nat) (nodes : List (Node Value))
+      (root : Node Value) (after : Nat),
+      buildNumberedFrom fuel nextPage nodes = some (root, after) →
+      root.toList = nodes.flatMap Node.toList
+  | 0, _, [], _, _, built => by simp [buildNumberedFrom] at built
+  | 0, _, [root], result, after, built => by
+      simp only [buildNumberedFrom, Option.some.injEq, Prod.mk.injEq] at built
+      rcases built with ⟨rfl, rfl⟩
+      simp
+  | 0, _, first :: second :: nodes, _, _, built => by
+      simp [buildNumberedFrom] at built
+  | fuel + 1, _, [], _, _, built => by simp [buildNumberedFrom] at built
+  | fuel + 1, _, [root], result, after, built => by
+      simp only [buildNumberedFrom, Option.some.injEq, Prod.mk.injEq] at built
+      rcases built with ⟨rfl, rfl⟩
+      simp
+  | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
+      let next := numberedBranches nextPage (first :: second :: nodes)
+      have recursive := buildNumberedFrom_toList fuel
+        (nextPage + next.length) next root after (by
+          simpa [buildNumberedFrom, next] using built)
+      rw [recursive, numberedBranches_toList]
+
+theorem buildNumbered_toList {startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
+    (built : buildNumbered startPage entries = some (root, after)) :
+    root.toList = entries := by
+  unfold buildNumbered at built
+  split at built
+  next empty =>
+    have entriesEmpty : entries = [] := List.isEmpty_iff.mp empty
+    simpa [entriesEmpty, Node.toList] using
+      buildNumberedFrom_toList 1 (startPage + 1)
+        [.leaf startPage []] root after built
+  next notEmpty =>
+    rw [buildNumberedFrom_toList
+      (numberedLeaves startPage entries).length
+      (startPage + (numberedLeaves startPage entries).length)
+      (numberedLeaves startPage entries) root after built,
+      numberedLeaves_toList]
+
+/-- The live owner of a wide physical topology.  `represents` is erased by the
+compiler; it prevents callers from attaching the page graph to a different
+logical sequence. -/
+structure Store (Value : Type) where
+  root : Node Value
+  nextPage : Nat
+  represents : root.toList.Pairwise (fun left right => left.1 < right.1)
+
+def Store.toList (store : Store Value) := store.root.toList
+
+def Store.build? (startPage : Nat)
+    (entries : List (PagedBTree.Entry Value))
+    (ordered : entries.Pairwise (fun left right => left.1 < right.1)) :
+    Option (Store Value) :=
+  match numbered : buildNumbered startPage entries with
+  | none => none
+  | some (root, nextPage) => some {
+      root
+      nextPage
+      represents := by
+        rw [buildNumbered_toList numbered]
+        exact ordered }
+
+theorem Store.build?_toList {startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)}
+    {ordered : entries.Pairwise (fun left right => left.1 < right.1)}
+    {store : Store Value}
+    (built : Store.build? startPage entries ordered = some store) :
+    store.toList = entries := by
+  unfold Store.build? at built
+  split at built
+  next => contradiction
+  next root nextPage numbered =>
+    injection built with equal
+    change store.root.toList = entries
+    rw [← congrArg Store.root equal]
+    exact buildNumbered_toList numbered
+
 end WidePageTree
 end SQLeanite
