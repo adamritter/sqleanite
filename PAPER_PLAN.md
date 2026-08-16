@@ -393,19 +393,47 @@ validated header. Substituting the fixed-size `byteArrayPageSource` silently bro
 the 1024-byte differential case; `scripts/live-path-check.sh` now asserts both the
 positive and the negative form of that.
 
-**Why it is still not closed, and what would close it.** `loadOpenState`, the fast
-validated open, returns `none` in 5 ms on every file the engine now writes — for
-both TEXT and INTEGER primary keys — because `CorePageLoad.open?` does not
-understand the high-fanout page format introduced for item 2. Every write open
-therefore falls through to the general decoder, which reconstructs the entire
-`Core.Database` from bytes, and then `loadWidePageState` validates the whole
-database again. At 11 MB that is about 1.3 s plus 0.95 s, and both are O(database)
-by construction.
+**Why it is still not closed, and one candidate fix that is now disproved.**
 
-The single change that closes item 3 is a **wide fast open**: teach the validated
-open path to construct state directly from high-fanout pages, so a one-row insert
-never reconstructs the database. Everything else is a constant factor on top of an
-O(database) open.
+`loadOpenState`, the fast validated open, returns `none` in 5 ms on every file the
+engine writes, for both TEXT and INTEGER primary keys, because
+`CorePageLoad.open?` builds a 2-3 `PersistentPageTree` and cannot read the
+high-fanout pages introduced for item 2. So each write open does two full passes:
+
+| pass | cost at 11 MB |
+|---|---:|
+| construct `Core.Database` from bytes (general decoder) | ~1,243 ms |
+| `loadWidePageState` validates the whole database again | ~950 ms |
+
+**Disproved: a wide-format constructor does not help.** The obvious fix is to
+teach the open path to construct from high-fanout pages, skipping the general
+compatibility decoder. This was implemented and measured: the wide constructor is
+reached (`hit=true`) and costs **1,243 ms**, i.e. exactly what the general decoder
+cost. Building a `Core.Database` from bytes is inherently about 1.2 s at 11 MB on
+either path, because every row is decoded into `Core.Row` with list-backed values.
+The change was reverted rather than carried for no gain. **Do not retry this.**
+
+What is actually left, in increasing difficulty:
+
+1. **Fuse the two passes.** Construction already walks every page and decodes
+   every row; the validation pass then does it again. Producing the wide state
+   during construction would save roughly 38% of the open. The obstacle is a
+   chicken-and-egg in `CoreWidePageLoad`: the chunk capacity is
+   `chunkCapacityFor schema rows`, so it needs the rows, but the rows come from
+   the decode whose grouping depends on the capacity. `loadNode` would have to
+   return per-leaf rows so the node can be regrouped without re-reading pages,
+   and `loadNodeCertified`'s `wellKeyed` obligation has to survive that. Still
+   O(database).
+2. **Make the write open lazy, which is the actual close.** The read path is
+   already O(1) in database size — one read costs 11 ms at 2 MB and 12 ms at 11 MB
+   — because `CoreLazyFileEngine` serves reads page-directed and never
+   reconstructs anything. A write currently cannot do this because
+   `Core.execute` needs a materialized `Core.Database` to produce the new table
+   value. Closing item 3 means a page-directed write path: locate the leaf, mutate
+   it, emit the proved delta, without building the database. That is an
+   architecture addition of the same kind as `CoreLazyFileEngine`, plus the
+   localized-commit proofs it must preserve, and it is the only route that removes
+   the O(database) term.
 
 *Acceptance, unchanged:* a single-row insert into a 1 MB and an 11 MB database cost
 about the same. They are 3.9x apart today, down from 5.4x.
