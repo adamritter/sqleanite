@@ -231,7 +231,7 @@ def loadNodeCertified (schema : Core.Schema) (capacity : Nat)
 
 def loadTable? (source : CoreDecode.PageSource) (rootPage : Nat)
     (table : Core.Table) : Option CoreWidePageState.TableState := do
-  let capacity := CoreChunkPageState.chunkCapacityFor table.rows
+  let capacity := CoreChunkPageState.chunkCapacityFor table.schema table.rows
   let loadedRoot ← loadNodeCertified table.schema capacity source
     (source.pageCount + 1) rootPage
   let root := loadedRoot.node
@@ -249,7 +249,7 @@ def loadTable? (source : CoreDecode.PageSource) (rootPage : Nat)
           represents
           wellKeyed := loadedRoot.wellKeyed
           capacity
-          capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.rows }
+          capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.schema table.rows }
       else none
 
 theorem loadTable?_table {source : CoreDecode.PageSource} {rootPage : Nat}
@@ -293,7 +293,7 @@ theorem loadTable?_decodes {source : CoreDecode.PageSource} {rootPage : Nat}
       split at loaded
       next represents =>
         have decoded := loadNode_decodes table.schema
-          (CoreChunkPageState.chunkCapacityFor table.rows) source
+          (CoreChunkPageState.chunkCapacityFor table.schema table.rows) source
             loadedRoot.loaded
         rw [show CoreWidePageState.Node.rows loadedRoot.node = table.rows by
           simp [CoreWidePageState.Store.rows] at represents

@@ -65,7 +65,7 @@ theorem buildTree_rows (capacity startPage : Nat) (table : Core.Table)
 
 def TableState.build? (startPage : Nat) (table : Core.Table) :
     Option TableState :=
-  let capacity := CoreChunkPageState.chunkCapacityFor table.rows
+  let capacity := CoreChunkPageState.chunkCapacityFor table.schema table.rows
   let rowChunks := CoreChunkPageState.chunks capacity table.rows
   match entriesResult : CoreChunkPageState.entries? rowChunks with
   | none => none
@@ -82,7 +82,7 @@ def TableState.build? (startPage : Nat) (table : Core.Table) :
             rw [WidePageTree.Store.build?_toList built]
             exact CoreChunkPageState.entries?_wellKeyed entriesResult
           capacity
-          capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.rows }
+          capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.schema table.rows }
 
 theorem TableState.build?_table {startPage : Nat} {table : Core.Table}
     {state : TableState}

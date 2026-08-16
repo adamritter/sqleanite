@@ -20,27 +20,30 @@ abbrev Chunk := List Core.Row
 
 def chunkCapacity : Nat := 16
 
-/-- Cheap upper bound on one value's serialized length.
+/-- Exact arithmetic size of one serial-type varint and its payload.  Unlike
+encoding a `RecordField`, this only inspects already-materialized byte-list
+lengths and allocates no payload bytes. -/
+def fieldSizes : FileFormat.RecordField → Nat × Nat
+  | .null => (1, 0)
+  | .integer width _ => (1, width.bytes)
+  | .floatBits _ => (1, 8)
+  | .constantZero | .constantOne => (1, 0)
+  | .blob metadata payload | .text metadata payload =>
+      (FileFormat.sqliteVarintSize metadata.code.val, payload.bytes.length)
 
-Deliberately arithmetic: it must not build the encoded bytes. Computing a real
-`CoreOverflow.tableCellPlan?` per row costs a full payload materialization, and
-doing that for every row on every `TableState.build?` regressed bulk load by
-80%. This walks the already-materialized byte lists to count them but allocates
-nothing.
-
-Bounds: a serial-type varint is at most 9 bytes; an integer body at most 8; a
-real is exactly 8; text and blob bodies are their own byte length. -/
-def valueSizeBound : Core.Value → Nat
-  | .null => 9
-  | .integer _ => 9 + 8
-  | .realBits _ => 9 + 8
-  | .text value => 9 + value.bytes.length
-  | .blob value => 9 + value.bytes.length
-
-/-- Upper bound on the encoded cell length for one row: the record header, the
-column bodies, the payload-length varint and the rowid varint. -/
-def rowCellBound (row : Core.Row) : Nat :=
-  9 + 9 + 9 + row.values.foldl (fun bound value => bound + valueSizeBound value) 0
+/-- Exact encoded length of an inline table cell.  `rowRecordFields` matters:
+it omits a hidden rowid and substitutes NULL for an INTEGER PRIMARY KEY, so a
+schema-blind estimator wastes roughly half of each narrow-row leaf.  Overflow
+cells occupy no more space than this inline length, making it a safe capacity
+input for both cases. -/
+def rowCellBound (schema : Core.Schema) (row : Core.Row) : Nat :=
+  let sizes := (CoreRecord.rowRecordFields schema row).foldl
+    (fun total field =>
+      let size := fieldSizes field
+      (total.1 + size.1, total.2 + size.2)) (0, 0)
+  let recordBytes := FileFormat.recordHeaderSize sizes.1 + sizes.2
+  FileFormat.sqliteVarintSize recordBytes +
+    FileFormat.sqliteVarintSize row.rowid.toUnsigned + recordBytes
 
 /-- Rows per chunk for one table, chosen so the encoder can always place a
 leaf's cells on one page.
@@ -59,12 +62,13 @@ unloadable, and so was a table of 130-byte rows at exactly 32, 48 or 64 rows --
 the counts that give some leaf a full sixteen-row pair. Narrow rows keep the
 sixteen-row cap also left narrow-row pages mostly empty.  Capacity is now
 limited only by the proved byte bound. -/
-def chunkCapacityFor (rows : List Core.Row) : Nat :=
-  let widest := rows.foldl (fun bound row => max bound (rowCellBound row)) 0
+def chunkCapacityFor (schema : Core.Schema) (rows : List Core.Row) : Nat :=
+  let widest := rows.foldl
+    (fun bound row => max bound (rowCellBound schema row)) 0
   max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2)))
 
-theorem chunkCapacityFor_pos (rows : List Core.Row) :
-    0 < chunkCapacityFor rows := by
+theorem chunkCapacityFor_pos (schema : Core.Schema) (rows : List Core.Row) :
+    0 < chunkCapacityFor schema rows := by
   simp only [chunkCapacityFor, chunkCapacity]
   omega
 
@@ -382,7 +386,7 @@ theorem buildTree_rows (capacity : Nat) (rootPage : Nat) (table : Core.Table)
 
 def TableState.build? (rootPage : Nat) (table : Core.Table) :
     Option TableState :=
-  let capacity := chunkCapacityFor table.rows
+  let capacity := chunkCapacityFor table.schema table.rows
   let rowChunks := chunks capacity table.rows
   match result : entries? rowChunks with
   | none => none
@@ -393,7 +397,7 @@ def TableState.build? (rootPage : Nat) (table : Core.Table) :
       let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
         built.rootValid
       some ⟨table, tree, buildTree_rows _ rootPage table result, capacity,
-        chunkCapacityFor_pos table.rows⟩
+        chunkCapacityFor_pos table.schema table.rows⟩
 
 def buildTables? : Nat → List Core.Table →
     Option (List TableState × Nat)
