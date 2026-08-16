@@ -313,7 +313,15 @@ else
   fail "the decoder no longer tries the proved canonical schema recognizer"
 fi
 
-if grep -q 'filePageSourceFor handle usable count position' \
+# The general open must derive its page geometry from the validated header, not
+# from the 4096-byte constant. It previously did this by passing `usable` to
+# `filePageSourceFor`; it now slices a single buffered read using `usable.val`,
+# which is faster but just as easy to get wrong -- substituting the fixed-size
+# `byteArrayPageSource` here silently broke the 1024-byte differential case, so
+# both the positive and the negative check are asserted.
+if grep -q 'let pageBytes := usable.val' \
+     SQLeanite/CoreFileAdapter.lean &&
+   ! grep -q 'byteArrayPageSource whole count' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'decodeCatalogForPageSize source.usable.val firstPage' \
      SQLeanite/CoreDecode.lean &&

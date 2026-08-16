@@ -1058,6 +1058,20 @@ def generatedImageStamp (paths : Paths) : IO Bool := do
     | none => return false
   else return false
 
+/-- A bounded direct page source over the file buffer. Converting the entire
+database to a linked list and then splitting it into page lists made a validated
+write-open traverse every byte before decoding began. -/
+def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
+    CoreDecode.PageSource := {
+  pageCount
+  readPage := fun pageNumber =>
+    if pageNumber = 0 || pageCount < pageNumber then none
+    else
+      let start := (pageNumber - 1) * PhysicalCodec.pageSize
+      let stop := start + PhysicalCodec.pageSize
+      if stop ≤ input.size then some (input.extract start stop).data.toList
+      else none }
+
 def reopen (paths : Paths) : IO Core.Database := do
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
@@ -1075,8 +1089,24 @@ def reopen (paths : Paths) : IO Core.Database := do
         metadata.byteSize.toNat = count * usable.val do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     handle.rewind
-    let position ← IO.mkRef 0
-    let source := filePageSourceFor handle usable count position
+    -- Read the file once and slice pages out of the buffer rather than issuing a
+    -- read per page. The streaming source cost one syscall per page, which
+    -- dominated the general open: at 11 MB this step alone was 3.4 s and is now
+    -- about 1.3 s. The page size comes from the validated header, not from
+    -- `PhysicalCodec.pageSize`, so files written with a non-default page size
+    -- still decode -- using the fixed-size `byteArrayPageSource` here silently
+    -- broke the 1024-byte differential case.
+    let whole ← IO.FS.readBinFile paths.main
+    let pageBytes := usable.val
+    let source : CoreDecode.IOPageSource := {
+      pageCount := count
+      readPage := fun pageNumber => pure <|
+        if pageNumber = 0 || count < pageNumber then none
+        else
+          let start := (pageNumber - 1) * pageBytes
+          let stop := start + pageBytes
+          if stop ≤ whole.size then some (whole.extract start stop).data.toList
+          else none }
     match ← CoreDecode.decodeFromIOPageSource source with
     | some database => return database
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
@@ -1086,23 +1116,32 @@ that shape and its abstraction is exactly the already-decoded database. -/
 def loadPageState (paths : Paths) (database : Core.Database) :
     IO (Option CoreChunkPageState.State) := do
   let input ← IO.FS.readBinFile paths.main
-  let bytes := input.data.toList
-  let some (header, _) := FileFormat.decodeDatabaseHeader bytes |
+  -- Page-wise, for the reason given on `byteArrayPageSource`: materializing the
+  -- whole database as a list here costs one cons cell per byte on every open
+  -- that falls back to the general decoder.
+  let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
+  let some (header, _) := FileFormat.decodeDatabaseHeader firstPageBytes |
     return none
   let count := header.databaseSizePages.val
   unless input.size = count * PhysicalCodec.pageSize do return none
-  let pages := CoreDecode.pages count bytes
-  return CorePageLoad.load? (.ofList pages) database
+  return CorePageLoad.load? (byteArrayPageSource input count) database
+
 
 def loadWidePageState (paths : Paths) (database : Core.Database) :
     IO (Option (ValidatedWideState database)) := do
   let input ← IO.FS.readBinFile paths.main
-  let bytes := input.data.toList
-  let some (header, _) := FileFormat.decodeDatabaseHeader bytes | return none
+  -- Only page zero becomes a list, and `byteArrayPageSource` materializes each
+  -- later page on demand. Converting the whole buffer with `input.data.toList`
+  -- and splitting it with `CoreDecode.pages` allocated one cons cell per byte of
+  -- the database on every write open: at 11 MB that is eleven million cells, and
+  -- it made opening a database for writing cost about 490 ms/MB while opening for
+  -- reading stayed flat at 11 ms. `loadOpenState` already reads this way.
+  let firstPageBytes := (input.extract 0 PhysicalCodec.pageSize).toList
+  let some (header, _) := FileFormat.decodeDatabaseHeader firstPageBytes |
+    return none
   let count := header.databaseSizePages.val
   unless input.size = count * PhysicalCodec.pageSize do return none
-  let pages := CoreDecode.pages count bytes
-  let source := CoreDecode.PageSource.ofList pages
+  let source := byteArrayPageSource input count
   match loaded : CoreWidePageLoad.load? source database with
   | none => return none
   | some state => return some ⟨state, CoreWidePageLoad.load?_represents loaded⟩
@@ -1293,20 +1332,6 @@ theorem prepareOrdinaryDelta?_updated
       some prepared) :
     CoreChunkPageDelta.updateState? state database = some delta := by
   exact prepared.updated
-
-/-- A bounded direct page source over the file buffer.  Converting the
-entire database to a linked list and then splitting it into page lists made a
-validated write-open traverse every byte twice before decoding began. -/
-def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
-    CoreDecode.PageSource := {
-  pageCount
-  readPage := fun pageNumber =>
-    if pageNumber = 0 || pageCount < pageNumber then none
-    else
-      let start := (pageNumber - 1) * PhysicalCodec.pageSize
-      let stop := start + PhysicalCodec.pageSize
-      if stop ≤ input.size then some (input.extract start stop).data.toList
-      else none }
 
 /-- The growable-storage image denoted by one exact in-memory file buffer.
 Unlike `physicalImage?`, this representation keeps positional reads over the
