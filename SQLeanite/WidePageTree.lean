@@ -353,6 +353,39 @@ def Node.toList : Node Value → List (PagedBTree.Entry Value)
   | .leaf _ entries => entries
   | .branch _ children => children.flatMap Node.toList
 
+/-- Greatest entry by right-spine descent.  Physical interior encoding uses
+this view instead of flattening every child subtree whenever one separator
+page changes. -/
+def lastEntryStep : Nat → Node Value → Option (PagedBTree.Entry Value)
+  | 0, _ => none
+  | _ + 1, .leaf _ entries => entries.getLast?
+  | fuel + 1, .branch _ children =>
+      match children.reverse with
+      | [] => none
+      | last :: _ => lastEntryStep fuel last
+
+theorem lastEntryStep_witness {fuel : Nat} {node : Node Value}
+    {entry : PagedBTree.Entry Value}
+    (success : lastEntryStep fuel node = some entry) :
+    node.toList.getLast? = some entry := by
+  induction fuel generalizing node with
+  | zero => simp [lastEntryStep] at success
+  | succ fuel induction =>
+      cases node with
+      | leaf pageId entries =>
+          simpa [lastEntryStep, Node.toList] using success
+      | branch pageId children =>
+          simp only [lastEntryStep] at success
+          cases reversed : children.reverse with
+          | nil => simp [reversed] at success
+          | cons last initialReversed =>
+              simp only [reversed] at success
+              have child := induction success
+              have restored := congrArg List.reverse reversed
+              rw [show children = initialReversed.reverse ++ [last] by
+                simpa using restored]
+              simp [Node.toList, child]
+
 def Node.pageIds : Node Value → List Nat
   | .leaf pageId _ => [pageId]
   | .branch pageId children =>
@@ -374,6 +407,15 @@ def Node.height : Node Value → Nat
   | .leaf _ _ => 0
   | .branch _ [] => 1
   | .branch _ (child :: _) => child.height + 1
+
+def Node.lastEntry? (node : Node Value) : Option (PagedBTree.Entry Value) :=
+  lastEntryStep (node.height + 1) node
+
+theorem Node.lastEntry?_witness {node : Node Value}
+    {entry : PagedBTree.Entry Value}
+    (success : node.lastEntry? = some entry) :
+    node.toList.getLast? = some entry :=
+  lastEntryStep_witness success
 
 def Node.erase : Node Value → Plan Value
   | .leaf _ entries => .leaf entries
@@ -511,6 +553,58 @@ theorem Store.build?_toList {startPage : Nat}
     change store.root.toList = entries
     rw [← congrArg Store.root equal]
     exact buildNumbered_toList numbered
+
+/-! ## Linear admission of ordered entry streams
+
+`List.Pairwise` is the proof-facing invariant, but its generic decision
+procedure checks every pair.  For a transitive key order, adjacent comparisons
+are equivalent and linear.  Validating open uses this decision procedure so a
+million-row image does not pay a quadratic proof-construction tax. -/
+
+def KeysAdjacent : List (PagedBTree.Entry Value) → Prop
+  | [] | [_] => True
+  | first :: second :: entries =>
+      first.1 < second.1 ∧ KeysAdjacent (second :: entries)
+
+def decideKeysAdjacent :
+    (entries : List (PagedBTree.Entry Value)) → Decidable (KeysAdjacent entries)
+  | [] | [_] => isTrue trivial
+  | first :: second :: entries =>
+      let head : Decidable (first.1 < second.1) := inferInstance
+      let tail := decideKeysAdjacent (second :: entries)
+      @instDecidableAnd (first.1 < second.1)
+        (KeysAdjacent (second :: entries)) head tail
+termination_by entries => entries.length
+
+instance (entries : List (PagedBTree.Entry Value)) :
+    Decidable (KeysAdjacent entries) := decideKeysAdjacent entries
+
+theorem keysAdjacent_iff_pairwise : ∀ (entries : List
+    (PagedBTree.Entry Value)),
+    KeysAdjacent entries ↔
+      entries.Pairwise (fun left right => left.1 < right.1)
+  | [] => by simp [KeysAdjacent]
+  | [entry] => by simp [KeysAdjacent]
+  | first :: second :: entries => by
+      simp only [KeysAdjacent]
+      rw [List.pairwise_cons, keysAdjacent_iff_pairwise (second :: entries)]
+      constructor
+      · intro adjacent
+        refine ⟨?_, adjacent.2⟩
+        intro candidate member
+        simp only [List.mem_cons] at member
+        rcases member with equal | later
+        · simpa [equal] using adjacent.1
+        · have secondBefore := (List.pairwise_cons.mp adjacent.2).1
+            candidate later
+          exact Nat.lt_trans adjacent.1 secondBefore
+      · intro pairwise
+        exact ⟨pairwise.1 second (by simp), pairwise.2⟩
+
+def decideKeysPairwise
+    (entries : List (PagedBTree.Entry Value)) :
+    Decidable (entries.Pairwise (fun left right => left.1 < right.1)) :=
+  decidable_of_iff (KeysAdjacent entries) (keysAdjacent_iff_pairwise entries)
 
 /-! ## Local right-spine insertion
 

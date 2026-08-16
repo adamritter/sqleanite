@@ -16,7 +16,7 @@ overflow allocator is threaded through this traversal.
 
 def maximumChunkRowid? (node : WidePageTree.Node
     CoreWidePageState.Chunk) : Option Nat :=
-  node.toList.getLast?.bind fun entry =>
+  node.lastEntry?.bind fun entry =>
     entry.2.getLast?.map fun row => row.rowid.toUnsigned
 
 def interiorCells? (children : List (WidePageTree.Node

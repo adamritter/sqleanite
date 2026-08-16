@@ -3443,6 +3443,14 @@ private def expectPersistentPageTree : IO Unit := do
     | none => fail "general decoder rejected the wide physical image"
   unless wideReopened.Equiv logical do
     fail "wide physical encoding changed the logical database"
+  let wideSource : CoreDecode.PageSource :=
+    .ofList (wideImage.pages.map (fun page => page.bytes))
+  let wideState ← match CoreWidePageLoad.load? wideSource logical with
+    | some state => pure state
+    | none => fail "validating loader rejected the wide physical image"
+  unless wideState.tables.map (fun table => table.table.contents) ==
+      logical.tables.map Core.Table.contents do
+    fail "wide validating loader detached topology from logical tables"
   let widePath : System.FilePath :=
     ".lake/build/sqleanite-wide-page-bulk.db"
   IO.FS.writeBinFile widePath (ByteArray.mk wideImage.fileBytes.toArray)
