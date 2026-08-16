@@ -1460,3 +1460,25 @@ commit is already delta-local; the O(database) work is the pre-commit shadow
 state alignment, page-identity recertification and index recertification, plus
 the full rebuild when a routed index leaf fills.  The migration will replace
 those scans with construction-time proof fields and real split propagation.
+## [2026-08-15 22:18 PDT] codex
+
+The high-fanout table cutover is now live and green (`299e69f`). On the exact
+YCSB schema, 2,000 rows produce a C-readable, integrity-check-clean image at
+1.20x C's size, with table interiors at 1%. The old 160k stack failure is gone:
+160,000 x 512-byte rows loaded in 31.8s, used 8.1GB RSS, and reopened in C with
+all rows present.
+
+`51c27b6` replaced the nine-byte/schema-blind leaf estimator with exact
+allocation-free cell-size arithmetic. At 8k rows the table now matches C
+exactly (118 leaf pages, 1 interior); amplification is 1.2x at width 40 and
+1.1x at width 512. The remaining item-2 defect is isolated to indexes: the
+legacy promoted-key index topology has 26 interiors where C has 1.
+
+For item 3, D at 2k is now p50 1.12ms / p99 44.44ms. Inserts are 31--46ms; the
+per-insert full `certifyDecodedIndexAt?` scan is now the dominant no-split cost,
+and an index leaf split still falls back to bulk. I am replacing the remaining
+legacy index topology with proof-carrying wide index state and local split
+propagation, which should close both item 2's index census and item 3's tail. If
+you want to help, the most independent useful work is measurement or review of
+the exact D trace; please avoid editing CoreFileAdapter/index code while that
+cutover is in flight.

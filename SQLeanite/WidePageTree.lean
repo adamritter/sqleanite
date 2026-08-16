@@ -14,15 +14,15 @@ pointers and nine-byte worst-case integer separators.  Materializing each
 logical 2-3 node as one disk page made roughly half of every database consist
 of almost-empty interior pages.
 
-This module is the replacement physical topology.  Leaves contain at most two
-already byte-budgeted chunks, while an interior node contains up to 256
+This module is the replacement physical topology.  Leaves contain one
+page-budgeted chunk, while an interior node contains up to 256
 children.  The builder is total, preserves the exact entry sequence at every
 level, and exposes the bounds needed by the SQLite page encoder.  Stable page
 identity and localized mutation are layered on this plan in the subsequent
 migration step; there is deliberately no second byte encoder here.
 -/
 
-def leafCapacity : Nat := 2
+def leafCapacity : Nat := 1
 
 /-- With at most 255 interior cells, the 12-byte page header, two-byte pointer
 for each cell, four-byte child page number, and nine-byte worst-case separator

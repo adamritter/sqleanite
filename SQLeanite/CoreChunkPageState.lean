@@ -10,8 +10,8 @@ namespace CoreChunkPageState
 The generic verified 2-3 tree stores *page chunks*, not individual rows.  This
 keeps its small, fully proved branching algorithm while making physical page
 count proportional to SQLite leaf capacity rather than row count.  A chunk is
-bounded at the byte-aware `chunkCapacityFor`, so a tree leaf's two chunks fit
-one SQLite leaf page.  The selected positive capacity is retained in each
+bounded at the byte-aware `chunkCapacityFor`, so one chunk fills at most one
+SQLite leaf page.  The selected positive capacity is retained in each
 proof-carrying `TableState`; bulk construction and later local splits therefore
 use one policy rather than silently reverting to a fixed row count.
 -/
@@ -48,10 +48,10 @@ def rowCellBound (schema : Core.Schema) (row : Core.Row) : Nat :=
 /-- Rows per chunk for one table, chosen so the encoder can always place a
 leaf's cells on one page.
 
-A tree leaf holds up to two chunks, so up to `2 * capacity` cells must satisfy
+A wide physical leaf holds one chunk, so up to `capacity` cells must satisfy
 `PhysicalCodec.PageFit 0`, which is
 `8 + 2 * cells.length + totalCellBytes ≤ pageSize`. Bounding every cell by
-`widest` makes `8 + 2 * capacity * (widest + 2) ≤ pageSize` sufficient, which is
+`widest` makes `8 + capacity * (widest + 2) ≤ pageSize` sufficient, which is
 what the division below solves for.
 
 Chunking at a fixed sixteen rows was byte-blind. The module comment claimed the
@@ -65,7 +65,7 @@ limited only by the proved byte bound. -/
 def chunkCapacityFor (schema : Core.Schema) (rows : List Core.Row) : Nat :=
   let widest := rows.foldl
     (fun bound row => max bound (rowCellBound schema row)) 0
-  max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2)))
+  max 1 ((PhysicalCodec.pageSize - 8) / (widest + 2))
 
 theorem chunkCapacityFor_pos (schema : Core.Schema) (rows : List Core.Row) :
     0 < chunkCapacityFor schema rows := by

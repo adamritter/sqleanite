@@ -706,9 +706,9 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
       split at encoded
       next countBound =>
         let tableEntries := state.tables.map CoreWidePageCodec.tableCatalogEntry
-        let indexEntries := CoreOverflow.indexEntriesOf indexEncodings
+        let indexEntries := CoreWideIndex.indexEntriesOf indexEncodings
         let entries := tableEntries ++ indexEntries
-        let indexPages := CoreOverflow.indexPagesOf indexEncodings
+        let indexPages := CoreWideIndex.indexPagesOf indexEncodings
         let remaining := ordered.map CorePageCodec.NumberedPage.page ++ indexPages
         let count : FileFormat.U32Value := ⟨1 + remaining.length, by
           change 1 + remaining.length < 2 ^ 32
@@ -792,51 +792,62 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
               (right := indexPages)
               (by simpa [remaining] using remainingReads)
             simpa [startEqual] using afterTables
-          have individualIndexReads : ∀ encoding ∈ indexEncodings,
-              CoreDecode.ReadsPagesFrom source encoding.rootPage
-                encoding.pages :=
-            CoreDecode.ReadsPagesFrom.encodeOverflowIndexTableGroups source
-              state.nextPage database.tables indexEncodings indexResult indexReads
-          have indexRange : ∀ encoding ∈ indexEncodings,
-              state.nextPage ≤ encoding.rootPage ∧
-              encoding.rootPage + encoding.pages.length ≤
-                state.nextPage + indexPages.length := by
-            simpa [indexPages] using
-              CoreOverflow.encodeIndexTableGroups_member_range state.nextPage
+          let indexNumbered := CoreWideIndex.numberedPagesOf indexEncodings
+          have indexNumbers : indexNumbered.map
+                CorePageCodec.NumberedPage.pageNumber =
+              List.range' state.nextPage indexPages.length := by
+            simpa [indexNumbered, indexPages] using
+              CoreWideIndex.encodeIndexTableGroups_numbers state.nextPage
                 database.tables indexEncodings indexResult
-          have endBound : state.nextPage + indexPages.length =
-              remaining.length + 2 := by
-            simp only [remaining, List.length_append, List.length_map]
-            omega
-          have indexPositive : ∀ encoding ∈ indexEncodings,
-              0 < encoding.rootPage := by
+          have indexPageMap : indexNumbered.map
+                CorePageCodec.NumberedPage.page = indexPages := by
+            simpa [indexNumbered, indexPages] using
+              (CoreWideIndex.indexPagesOf_eq_map indexEncodings).symm
+          have indexNumberedLength : indexNumbered.length =
+              indexPages.length := by
+            have equal := congrArg List.length indexPageMap
+            simpa using equal
+          have indexNumbers' : indexNumbered.map
+                CorePageCodec.NumberedPage.pageNumber =
+              List.range' state.nextPage indexNumbered.length := by
+            simpa [indexNumberedLength] using indexNumbers
+          have indexNumberedReads : CoreDecode.ReadsPagesFrom source
+              state.nextPage
+              (indexNumbered.map CorePageCodec.NumberedPage.page) := by
+            simpa [indexPageMap] using indexReads
+          have allIndexesContain : CorePageCodec.PageSourceContains source
+              indexNumbered :=
+            CorePageCodec.PageSourceContains.ofReadsRange source
+              state.nextPage indexNumbered indexNumbers' indexNumberedReads
+          have individualIndexContains : ∀ encoding ∈ indexEncodings,
+              CorePageCodec.PageSourceContains source
+                encoding.numberedPages := by
+            intro encoding member page pageMember
+            apply allIndexesContain page
+            unfold indexNumbered CoreWideIndex.numberedPagesOf
+            simp only [List.mem_flatMap]
+            exact ⟨encoding, member, List.mem_mergeSort.mpr pageMember⟩
+          have individualIndexBound : ∀ encoding ∈ indexEncodings,
+              encoding.numberedPages.length < source.pageCount + 1 := by
             intro encoding member
-            have range := indexRange encoding member
-            omega
-          have indexPageBound : ∀ encoding ∈ indexEncodings,
-              encoding.rootPage + encoding.pages.length < 2 ^ 32 := by
-            intro encoding member
-            have range := indexRange encoding member
-            rw [endBound] at range
-            change 1 + remaining.length + 1 < 2 ^ 32 at countBound
-            omega
-          have indexSourceBound : ∀ encoding ∈ indexEncodings,
-              encoding.rootPage + encoding.pages.length ≤
-                source.pageCount + 1 := by
-            intro encoding member
-            have range := indexRange encoding member
-            rw [endBound] at range
+            have lengthBound :=
+              CoreWideIndex.numberedPages_length_le_of_mem member
+            unfold indexNumbered at indexNumberedLength
+            rw [indexNumberedLength] at lengthBound
+            have indexWithinRemaining : indexPages.length ≤
+                remaining.length := by
+              simp [remaining]
             rw [sourceCount]
             omega
           have indexesApplied :=
-            CoreDecode.applyIndexesForOpen_overflowEncoded source database
-              state.nextPage indexEncodings indexResult individualIndexReads
-              indexPositive indexPageBound indexSourceBound
+            CoreWideIndex.applyIndexesForOpen_encoded source database
+              state.nextPage indexEncodings indexResult
+              individualIndexContains individualIndexBound
           have indexesApplied' :
               CoreDecode.applyIndexesForOpen source database.withoutIndexes
                 (indexEntries.map CoreDecode.CatalogEntry.ofEncoded) =
                   some database.canonicalize := by
-            simpa [indexEntries, CoreOverflow.indexEntriesOf, List.map_map,
+            simpa [indexEntries, CoreWideIndex.indexEntriesOf, List.map_map,
               Function.comp_def] using indexesApplied
           have safe : ∀ entry ∈ entries,
               CoreDecode.CatalogTextRoundtrips entry := by
@@ -871,7 +882,7 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
               intro entry member
               rcases List.mem_map.mp member with ⟨encodedEntry, encodedMember, rfl⟩
               rcases List.mem_map.mp encodedMember with ⟨encoding, _, rfl⟩
-              simp [CoreOverflow.IndexEncoding.catalogEntry,
+              simp [CoreWideIndex.IndexEncoding.catalogEntry,
                 CoreDecode.CatalogEntry.ofEncoded]
             rw [tablesKept, indexesRemoved, List.append_nil]
           have indexFilter :
@@ -972,9 +983,9 @@ theorem encodeBulkInline_header {database : Core.Database}
         next countBound =>
           let ordered := CorePageCodec.orderNumberedPages numbered
           let entries := state.tables.map CoreWidePageCodec.tableCatalogEntry ++
-            CoreOverflow.indexEntriesOf indexEncodings
+            CoreWideIndex.indexEntriesOf indexEncodings
           let remaining := ordered.map CorePageCodec.NumberedPage.page ++
-            CoreOverflow.indexPagesOf indexEncodings
+            CoreWideIndex.indexPagesOf indexEncodings
           let count : FileFormat.U32Value := ⟨1 + remaining.length, by
             have stronger : 1 + remaining.length + 1 < 2 ^ 32 := by
               simpa [remaining, ordered] using countBound

@@ -3462,14 +3462,15 @@ private def expectPersistentPageTree : IO Unit := do
     fail s!"sqlite3 rejected wide physical encoding: {wideCheck.stderr}{wideCheck.stdout}"
   -- The 130k-row YCSB census contained exactly 43,333 byte-budgeted chunks.
   -- A physical 2-3 topology used 43,326 interior pages for them.  The wide
-  -- topology packs two chunks per leaf and up to 256 children per interior.
+  -- topology gives each full-page chunk one leaf and up to 256 children per
+  -- interior; the schema-aware chunker fills that leaf's byte budget.
   let censusEntries : List (PagedBTree.Entry Nat) :=
     (List.range 43333).map fun key => (key, key)
   let wide ← match WidePageTree.build censusEntries with
     | some plan => pure plan
     | none => fail "high-fanout physical builder exhausted its total fuel"
-  unless wide.toList == censusEntries && wide.leafCount == 21667 &&
-      wide.interiorCount == 86 && wide.pageCount == 21753 do
+  unless wide.toList == censusEntries && wide.leafCount == 43333 &&
+      wide.interiorCount == 171 && wide.pageCount == 43504 do
     fail "high-fanout physical builder regressed to sparse 2-3 page topology"
   have censusOrdered : censusEntries.Pairwise
       (fun left right => left.1 < right.1) := by
@@ -3480,32 +3481,32 @@ private def expectPersistentPageTree : IO Unit := do
     | some store => pure store
     | none => fail "numbered high-fanout store exhausted its total fuel"
   unless wideStore.toList == censusEntries &&
-      wideStore.root.leafCount == 21667 &&
-      wideStore.root.interiorCount == 86 &&
-      wideStore.root.pageCount == 21753 do
+      wideStore.root.leafCount == 43333 &&
+      wideStore.root.interiorCount == 171 &&
+      wideStore.root.pageCount == 43504 do
     fail "numbered high-fanout store changed contents or page topology"
   -- Fill a complete 256-child root, then append once.  This forces both a
   -- leaf split and root split, and checks that the public root page remains
   -- stable while three fresh physical pages are allocated.
   let splitEntries : List (PagedBTree.Entry Nat) :=
-    (List.range 512).map fun key => (key, key)
+    (List.range 256).map fun key => (key, key)
   have splitOrdered : splitEntries.Pairwise
       (fun left right => left.1 < right.1) := by
     simpa [splitEntries, List.pairwise_map] using
-      (List.pairwise_lt_range (n := 512))
+      (List.pairwise_lt_range (n := 256))
   match splitBuilt : WidePageTree.Store.build? 2 splitEntries splitOrdered with
   | none => fail "wide split fixture exhausted its total fuel"
   | some splitStore =>
-      have afterSplitEntries : ∀ old ∈ splitStore.toList, old.1 < 512 := by
+      have afterSplitEntries : ∀ old ∈ splitStore.toList, old.1 < 256 := by
         intro old member
         rw [WidePageTree.Store.build?_toList splitBuilt] at member
         rcases List.mem_map.mp member with ⟨key, keyMember, rfl⟩
         simpa using keyMember
-      let appended ← match splitStore.append? (512, 512)
+      let appended ← match splitStore.append? (256, 256)
           afterSplitEntries with
         | some result => pure result
         | none => fail "wide append failed to propagate a full-root split"
-      unless appended.value.toList == splitEntries ++ [(512, 512)] &&
+      unless appended.value.toList == splitEntries ++ [(256, 256)] &&
           appended.value.root.rootId == splitStore.root.rootId &&
           appended.value.root.leafCount == 257 &&
           appended.value.root.interiorCount == 3 &&

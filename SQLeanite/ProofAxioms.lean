@@ -240,6 +240,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreWidePageInverse.decodeTableFrom_encodeTable
 #print axioms SQLeanite.CoreWidePageInverse.pageSourceRepresents_encodeBulkInlineWithState
 #print axioms SQLeanite.CoreWidePageInverse.decode_encodeBulkInline
+#print axioms SQLeanite.CoreWideIndex.NodeDecodes.ofCells
+#print axioms SQLeanite.CoreWideIndex.decodeIndexSubtreeFrom_encodePages
+#print axioms SQLeanite.CoreWideIndex.IndexEncoding.decode_exact
+#print axioms SQLeanite.CoreWideIndex.applyIndexesForOpen_encoded
 #print axioms SQLeanite.CorePageCodec.decodeCanonicalRows_encodeLeaf
 #print axioms SQLeanite.CorePageCodec.encodeChunkNode_eq_mapM
 #print axioms SQLeanite.CorePageCodec.changedPhysicalChunkPagesFast_eq

@@ -1,5 +1,6 @@
 import SQLeanite.CoreWidePageState
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreWideIndex
 
 namespace SQLeanite
 namespace CoreWidePageCodec
@@ -178,12 +179,12 @@ def encodeBulkInlineWithState (database : Core.Database) :
     let ordered := CorePageCodec.orderNumberedPages numbered
     if _numbers : ordered.map CorePageCodec.NumberedPage.pageNumber =
         List.range' 2 (state.nextPage - 2) then
-      let indexEncodings ← CoreOverflow.encodeIndexTableGroups
+      let indexEncodings ← CoreWideIndex.encodeIndexTableGroups
         state.nextPage database.tables
       let entries := state.tables.map tableCatalogEntry ++
-        CoreOverflow.indexEntriesOf indexEncodings
+        CoreWideIndex.indexEntriesOf indexEncodings
       let remaining := ordered.map CorePageCodec.NumberedPage.page ++
-        CoreOverflow.indexPagesOf indexEncodings
+        CoreWideIndex.indexPagesOf indexEncodings
       let total := 1 + remaining.length
       if countBound : total + 1 < 2 ^ 32 then
         let count : FileFormat.U32Value := ⟨total, by omega⟩
