@@ -718,6 +718,9 @@ theorem subtree_write_refines (schema : Core.Schema)
             (CorePageSource.write source pageWrite)
             pageWrite.page.bytes.toList
           = some (Core.orderedUpsert row leafRows))
+    (targetIsLeaf : ∀ oldLeaf,
+      source.readPage (pageWrite.pageId + 1) = some oldLeaf →
+      CoreDecode.interiorChildren? oldLeaf = none)
     (leafInline : ∀ leafBytes, LeafInline schema source leafBytes) :
     ∀ (fuel rootPage : Nat) (rows : List Core.Row) (pageList : List Nat),
       subtreePages source fuel rootPage = some pageList →
@@ -753,7 +756,25 @@ theorem subtree_write_refines (schema : Core.Schema)
             exact singleLeaf_write_refines schema source pageWrite fuel rootPage
               page row rows targetEq effect.1 effect.2
         | some children =>
-            sorry
+            -- Interior: the children's rows concatenate, the write lands in exactly
+            -- one of them, and the ordering puts `row` in that segment.
+            simp only [interiorResult] at enumerated
+            cases nestedResult : children.mapM (subtreePages source fuel) with
+            | none => rw [nestedResult] at enumerated; simp at enumerated
+            | some nested =>
+                rw [nestedResult] at enumerated
+                have listShape : pageList = rootPage :: nested.flatten :=
+                  (Option.some.inj enumerated).symm
+                have ownedNested : (pageWrite.pageId + 1) ∈ nested.flatten := by
+                  rw [listShape] at owned
+                  rcases List.mem_cons.mp owned with here | later
+                  · -- The write targets a leaf, so it cannot be this interior page.
+                    exfalso
+                    have isLeaf := targetIsLeaf page (here ▸ pageResult)
+                    rw [interiorResult] at isLeaf
+                    exact absurd isLeaf (by simp)
+                  · exact later
+                sorry
 
 /-- **The top-level refinement.** The plan the executable computes, applied to the
 file, denotes exactly the table with the row inserted -- which is what
