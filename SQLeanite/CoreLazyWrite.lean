@@ -700,18 +700,30 @@ concatenation, `unique_child_owns` picks out the one containing the write,
 `orderedUpsert_append_of_beforeAll`/`_afterAll` place the key in the right segment
 using the ordering carried by `WellFormedTree`.
 
-Every ingredient above is proved; this is the induction that assembles them. -/
+**Correction to an earlier revision of this statement**, recorded because a `sorry`
+on a false statement is worse than no statement at all: the first version concluded
+the ordered insert without any hypothesis about *what* was written, so a garbage
+page would have falsified it. The `writeEffect` premise below supplies the missing
+link -- the written page is a leaf, and it decodes to the target leaf's old rows with
+`row` inserted -- which is exactly what `insertPlan?` computes. -/
 theorem subtree_write_refines (schema : Core.Schema)
     (source : CoreDecode.PageSource)
     (pageWrite : GrowableStorage.PageWrite PhysicalCodec.pageSize)
-    (row : Core.Row) :
+    (row : Core.Row)
+    (writeEffect : ∀ oldLeaf leafRows,
+      source.readPage (pageWrite.pageId + 1) = some oldLeaf →
+      CoreDecode.decodeRowsFrom schema source oldLeaf = some leafRows →
+      CoreDecode.interiorChildren? pageWrite.page.bytes.toList = none ∧
+        CoreDecode.decodeRowsFrom schema
+            (CorePageSource.write source pageWrite)
+            pageWrite.page.bytes.toList
+          = some (Core.orderedUpsert row leafRows))
+    (leafInline : ∀ leafBytes, LeafInline schema source leafBytes) :
     ∀ (fuel rootPage : Nat) (rows : List Core.Row) (pageList : List Nat),
       subtreePages source fuel rootPage = some pageList →
-      pageList.Nodup →
       CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows →
       rows.Pairwise Core.Row.keyLess →
       (pageWrite.pageId + 1) ∈ pageList →
-      LeafInline schema source pageWrite.page.bytes.toList →
       CoreDecode.decodeSubtreeRowsFrom schema
           (CorePageSource.write source pageWrite) fuel rootPage
         = some (Core.orderedUpsert row rows) := by
