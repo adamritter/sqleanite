@@ -401,6 +401,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PhysicalMultiPageCodec.rollbackCommit_database_crash_atomic
 #print axioms SQLeanite.PhysicalJournalCodec.decode_encode
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_encode
+#print axioms SQLeanite.PhysicalJournalCodec.encodeCheckedBytes_toList
+#print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_encodeBytes
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_accepts_only_matching
 #print axioms SQLeanite.PhysicalJournalRecovery.decodeImage_imageBytes
 #print axioms SQLeanite.PhysicalJournalRecovery.rollbackCommit_recovery_bytes_atomic
@@ -821,6 +823,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.decodeWideAbstractIndexTreeFrom_toList
 #print axioms SQLeanite.CoreDecode.CertifiedWideIntegerIndex.valueEntries_exact
 #print axioms SQLeanite.CoreDecode.CertifiedWideIntegerIndex.rangeEntries_exact
+#print axioms SQLeanite.CoreDecode.CertifiedWideTextIndex.valueEntries_exact
+#print axioms SQLeanite.CoreDecode.CertifiedWideTextIndex.rangeEntries_exact
 #print axioms SQLeanite.CoreDecode.CertifiedAllValueIndex.valueEntries_exact
 #print axioms SQLeanite.CoreDecode.CertifiedAllValueIndex.rangeEntries_exact
 #print axioms SQLeanite.CoreFileAdapter.IntegerIndexRouting.valueEntries_exact
@@ -832,6 +836,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.lookupIndexValueFrom_decodeAbstract_exact
 #print axioms SQLeanite.CoreDecode.lookupIndexValueFrom_refines_full_decode
 #print axioms SQLeanite.CoreDecode.lookupIndexValueFrom_all_matches
+#print axioms SQLeanite.CoreDecode.indexValueCandidatesDecodedWith_eq_from
+#print axioms SQLeanite.CoreDecode.lookupIndexValueDecodedWith_eq_from
 #print axioms SQLeanite.CoreDecode.AbstractIndexTree.rangeCandidates_exact
 #print axioms SQLeanite.CoreDecode.AbstractIndexTree.IntegerOrdered.rangeWellRouted
 #print axioms SQLeanite.CoreDecode.indexRangeCandidatesFrom_decodeAbstract

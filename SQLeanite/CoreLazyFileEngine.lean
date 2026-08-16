@@ -51,6 +51,7 @@ private def coldQuery? (schema : Core.Schema) (select : Select) :
 /-- Execute one read-only SELECT entirely through certified page traversal.
 `none` is an optimization miss, never a partial result. -/
 private def executeSelect? (paths : CoreFileAdapter.Paths)
+    (geometry : Option CoreFileAdapter.GeneratedFileGeometry)
     (cache : CoreFileAdapter.PageReadCache) (select : Select) :
     IO (Option Core.Result) := do
   if let some (leftName, rightName) := joinSourceNames? select then
@@ -65,7 +66,10 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
     return some ({ rows := (optimized.evalPrimaryKeyCandidates
       lookup.leftCandidates lookup.rightRows) } : Core.Result)
   let some tableName := selectSource? select | return none
-  let some schema ← CoreFileAdapter.readTableSchema paths tableName | return none
+  let schema? ← match geometry with
+    | some generated => pure (generated.tableSchema? tableName)
+    | none => CoreFileAdapter.readTableSchema paths tableName
+  let some schema := schema? | return none
   let some query := coldQuery? schema select | return none
   let optimized := CoreOptimizerBridge.optimize tableName query
   match query.predicate with
@@ -80,8 +84,9 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
           | .generatedMissing => []
         return some ({ rows := optimized.eval physicalRows } : Core.Result)
       else
-        let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-            paths tableName schema query (some cache) | return none
+        let some geometry := geometry | return none
+        let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidatesWith
+            geometry paths tableName schema query (some cache) | return none
         return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | some (.equal ..) | some (.compare ..) =>
       match query.predicate with
@@ -91,12 +96,14 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
                 paths tableName schema operation target | return none
             return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
           else
-            let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-                paths tableName schema query (some cache) | return none
+            let some geometry := geometry | return none
+            let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidatesWith
+                geometry paths tableName schema query (some cache) | return none
             return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
       | _ =>
-          let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidates
-              paths tableName schema query (some cache) | return none
+          let some geometry := geometry | return none
+          let some lookup ← CoreFileAdapter.lookupGeneratedIndexCandidatesWith
+              geometry paths tableName schema query (some cache) | return none
           return some ({ rows := optimized.eval lookup.candidates } : Core.Result)
   | none =>
       let some lookup ← CoreFileAdapter.lookupGeneratedOrderedPrefix paths
@@ -105,20 +112,22 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
   | _ => return none
 
 private def executeReadStatementsGo? (paths : CoreFileAdapter.Paths)
+    (geometry : Option CoreFileAdapter.GeneratedFileGeometry)
     (cache : CoreFileAdapter.PageReadCache) :
     List Statement → List Core.Result → IO (Option (List Core.Result))
   | [], reversed => pure (some reversed.reverse)
   | .select select :: statements, reversed => do
-      let some result ← executeSelect? paths cache select | return none
-      executeReadStatementsGo? paths cache statements (result :: reversed)
+      let some result ← executeSelect? paths geometry cache select | return none
+      executeReadStatementsGo? paths geometry cache statements (result :: reversed)
   | _, _ => pure none
 
 /-- Stack-safe execution of a page-directed read batch. -/
 private def executeReadStatements? (paths : CoreFileAdapter.Paths)
     (statements : List Statement) : IO (Option (List Core.Result)) :=
   do
+    let geometry ← CoreFileAdapter.readGeneratedFileGeometry paths
     let cache ← CoreFileAdapter.PageReadCache.create
-    executeReadStatementsGo? paths cache statements []
+    executeReadStatementsGo? paths geometry cache statements []
 
 /-- `some result` means the cold path handled the complete SQL input. `none`
 is an optimization miss and must be followed by ordinary execution.  A batch

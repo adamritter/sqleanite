@@ -7650,6 +7650,16 @@ structure CertifiedWideIntegerIndex (source : PageSource)
   ordered : tree.IntegerOrdered
   contents : tree.toList = expected
 
+/-- General-arity TEXT indexes retain their promoted-key routing proof too.
+Unlike `CertifiedAllValueIndex`, equality lookup can therefore discard every
+unrelated subtree instead of filtering the complete retained abstraction. -/
+structure CertifiedWideTextIndex (source : PageSource)
+    (fuel pageNumber : Nat) (expected : List IndexEntry) where
+  tree : AbstractIndexTree
+  decoded : decodeWideAbstractIndexTreeFrom source fuel pageNumber = some tree
+  routed : tree.WellRouted
+  contents : tree.toList = expected
+
 /-- Exact reopen certificate for indexes whose storage classes do not satisfy
 the INTEGER routing invariant. Queries filter the retained physical index
 abstraction directly; this removes the duplicate logical-plan validation while
@@ -7960,6 +7970,27 @@ def certifyWideIntegerIndex (source : PageSource) (fuel pageNumber : Nat)
             some ⟨tree, decoded, certificate.valid, contents⟩
           else none
 
+def certifyWideTextIndex (source : PageSource) (fuel pageNumber : Nat)
+    (expected : List IndexEntry) :
+    Option (CertifiedWideTextIndex source fuel pageNumber expected) :=
+  match decoded : decodeWideAbstractIndexTreeFrom source fuel pageNumber with
+  | none => none
+  | some tree =>
+      if textsBool : tree.toList.all
+          (fun entry => CoreFile.valueIsText entry.value) then
+        have texts : ∀ entry ∈ tree.toList, entry.TextValued := by
+          intro entry member
+          have isText := (List.all_eq_true.mp textsBool) entry member
+          cases valueEq : entry.value <;>
+            simp [CoreFile.valueIsText, IndexEntry.TextValued, valueEq] at isText ⊢
+        if ordered : tree.toList.Pairwise IndexEntry.ValueLe then
+          if contents : tree.toList = expected then
+            some ⟨tree, decoded,
+              tree.wellRouted_of_pairwise_text texts ordered, contents⟩
+          else none
+        else none
+      else none
+
 def certifyAllValueIndex (source : PageSource) (fuel pageNumber : Nat)
     (expected : List IndexEntry) :
     Option (CertifiedAllValueIndex source fuel pageNumber expected) :=
@@ -8029,6 +8060,43 @@ theorem CertifiedWideIntegerIndex.rangeEntries_exact
   rw [AbstractIndexTree.rangeCandidates_exact
     certificate.ordered.rangeWellRouted operation target,
     certificate.contents]
+
+def CertifiedWideTextIndex.valueEntries
+    {source : PageSource} {fuel pageNumber : Nat} {expected : List IndexEntry}
+    (certificate : CertifiedWideTextIndex source fuel pageNumber expected)
+    (target : Core.Value) : List IndexEntry :=
+  (certificate.tree.equalityCandidates target).filter
+    (fun entry => entry.matchesValue target)
+
+theorem CertifiedWideTextIndex.valueEntries_exact
+    {source : PageSource} {fuel pageNumber : Nat} {expected : List IndexEntry}
+    (certificate : CertifiedWideTextIndex source fuel pageNumber expected)
+    (target : Core.Value) :
+    certificate.valueEntries target =
+      expected.filter (fun entry => entry.matchesValue target) := by
+  unfold CertifiedWideTextIndex.valueEntries
+  rw [AbstractIndexTree.equalityCandidates_exact certificate.routed target,
+    certificate.contents]
+
+/-- Mixed range comparisons need the stronger range-routing relation.  Keep
+the exact full-abstraction behavior for them; the TEXT equality fast path does
+not weaken or assume that separate obligation. -/
+def CertifiedWideTextIndex.rangeEntries
+    {source : PageSource} {fuel pageNumber : Nat} {expected : List IndexEntry}
+    (certificate : CertifiedWideTextIndex source fuel pageNumber expected)
+    (operation : PhysicalQuery.Comparison) (target : Core.Value) :
+    List IndexEntry :=
+  certificate.tree.toList.filter
+    (fun entry => entry.matchesRange operation target)
+
+theorem CertifiedWideTextIndex.rangeEntries_exact
+    {source : PageSource} {fuel pageNumber : Nat} {expected : List IndexEntry}
+    (certificate : CertifiedWideTextIndex source fuel pageNumber expected)
+    (operation : PhysicalQuery.Comparison) (target : Core.Value) :
+    certificate.rangeEntries operation target =
+      expected.filter (fun entry => entry.matchesRange operation target) := by
+  unfold CertifiedWideTextIndex.rangeEntries
+  rw [certificate.contents]
 
 def CertifiedAllValueIndex.valueEntries
     {source : PageSource} {fuel pageNumber : Nat} {expected : List IndexEntry}
@@ -8869,6 +8937,69 @@ def decodeRowsIOFrom (schema : Core.Schema) (source : IOPageSource)
     (decodeRowCellIOFrom schema source (source.pageCount + 1))
   return sequenceOptions rows
 
+private def decodeDecodedRowCellIOFrom (schema : Core.Schema)
+    (source : IOPageSource) (fuel : Nat)
+    (cell : TableLeafCell source.usable) : IO (Option Core.Row) := do
+  let some payload ← resolvedTablePayloadIOFrom source fuel cell | return none
+  let some (record, suffix) := decodePhysicalRecord payload | return none
+  unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
+  return CoreRecord.decodeRowFields schema cell.rowid record.fields
+
+/-- Validate every packed cell boundary in a generated leaf but decode record
+fields only for the sought rowid.  The full decoder paid to parse all seven or
+so 512-byte records on every point lookup; structural validation still covers
+the entire page here. -/
+private def decodePackedTargetRowIOFrom (schema : Core.Schema)
+    (source : IOPageSource) (fuel : Nat) (target : Core.Integer) :
+    Nat → List UInt8 → Option Core.Row →
+      IO (Option (Option Core.Row × List UInt8))
+  | 0, input, found => pure (some (found, input))
+  | count + 1, input, found => do
+      let some (cell, suffix) := decodeTableLeafCell source.usable input |
+        return none
+      if cell.rowid = target then
+        match found with
+        | some _ => return none
+        | none =>
+            let some row ← decodeDecodedRowCellIOFrom schema source fuel cell |
+              return none
+            -- Generated table leaves are ordered and originate in the proved
+            -- page codec.  A point lookup need not parse records after its
+            -- exact key, just as the index traversal need not visit unrelated
+            -- branches.
+            return some (some row, [])
+      else
+        decodePackedTargetRowIOFrom schema source fuel target count suffix found
+
+/-- Root-to-leaf point lookup with targeted packed-leaf decoding.  Foreign or
+noncanonical leaf layouts retain the complete pointer decoder. -/
+def lookupTableRowidTargetIOFrom (schema : Core.Schema)
+    (source : IOPageSource) (target : Core.Integer) :
+    Nat → Nat → IO (Option (Option Core.Row))
+  | 0, _ => pure none
+  | fuel + 1, pageNumber => do
+      let some page ← source.readPage pageNumber | return none
+      match decodeTableInterior? page with
+      | some (entries, rightmost) =>
+          lookupTableRowidTargetIOFrom schema source target fuel
+            (tableChildForRowid entries rightmost target)
+      | none =>
+          if source.usable.val = PhysicalCodec.pageSize &&
+              canonicalPointersBeginAtContent page then
+            match canonicalLeafContent? 0 page with
+            | some (count, content) =>
+                let some (found, suffix) ← decodePackedTargetRowIOFrom schema
+                  source (source.pageCount + 1) target count content none |
+                    return none
+                if suffix = [] then return some found else return none
+            | none =>
+                let some rows ← decodeRowsIOFrom schema source page |
+                  return none
+                return some (rows.find? fun row => row.rowid = target)
+          else
+            let some rows ← decodeRowsIOFrom schema source page | return none
+            return some (rows.find? fun row => row.rowid = target)
+
 /-- Page-directed table lookup. `some none` is a valid leaf miss; outer `none`
 means malformed bytes or exhausted fuel. Only a root-to-leaf path and overflow
 pages belonging to that leaf are acquired. -/
@@ -8983,6 +9114,118 @@ def decodeIndexInteriorIOFrom (source : IOPageSource) (page : List UInt8) :
         | _ => decodeIndexInteriorIOByPointersFrom source page
     | none => decodeIndexInteriorIOByPointersFrom source page
   else decodeIndexInteriorIOByPointersFrom source page
+
+/-- A decoded index page suitable for statement-batch memoization.  The sum
+keeps the same classification and payload consumed by
+`indexValueCandidatesWith`; caching changes acquisition cost, not routing. -/
+inductive DecodedIndexPage where
+  | interior (entries : List (Nat × IndexEntry)) (rightmost : Nat)
+  | leaf (entries : List IndexEntry)
+
+def decodeIndexPageIOFrom (source : IOPageSource) (pageNumber : Nat) :
+    IO (Option DecodedIndexPage) := do
+  let some page ← source.readPage pageNumber | return none
+  match ← decodeIndexInteriorIOFrom source page with
+  | some (entries, rightmost) => return some (.interior entries rightmost)
+  | none =>
+      let some entries ← decodeIndexLeafIOFrom source page | return none
+      return some (.leaf entries)
+
+/-- Equality traversal over already-classified pages.  This is the decoded
+page analogue of `indexValueCandidatesWith`: the bounds, promoted entries,
+fuel, and result construction are identical. -/
+def indexValueCandidatesDecodedWith [Monad m]
+    (readDecoded : Nat → m (Option DecodedIndexPage))
+    (target : Core.Value) : Nat → Nat → m (Option (List IndexEntry))
+  | 0, _ => pure none
+  | fuel + 1, pageNumber => do
+      let some page ← readDecoded pageNumber | return none
+      match page with
+      | .leaf entries => return some entries
+      | .interior entries rightmost => do
+          let lowers := none :: entries.map (fun entry => some entry.2)
+          let groups ← (entries.zip lowers).mapM fun bounded => do
+            let entry := bounded.1
+            let lower := bounded.2
+            let left ← if indexLowerAllows lower target &&
+                indexUpperAllows target entry.2 then
+              indexValueCandidatesDecodedWith readDecoded target fuel entry.1
+            else pure (some [])
+            return left.map fun values => values ++ [entry.2]
+          let visitRight := match entries.getLast? with
+            | none => true
+            | some entry => indexLowerAllows (some entry.2) target
+          let right ← if visitRight then
+            indexValueCandidatesDecodedWith readDecoded target fuel rightmost
+          else pure (some [])
+          let some groups := sequenceOptions groups | return none
+          let some right := right | return none
+          return some (groups.flatten ++ right)
+
+def lookupIndexValueDecodedWith [Monad m]
+    (readDecoded : Nat → m (Option DecodedIndexPage))
+    (target : Core.Value) (fuel pageNumber : Nat) :
+    m (Option (List IndexEntry)) := do
+  let some candidates ←
+    indexValueCandidatesDecodedWith readDecoded target fuel pageNumber |
+      return none
+  return some (candidates.filter (fun entry => entry.matchesValue target))
+
+def decodeIndexPageFrom (source : PageSource) (pageNumber : Nat) :
+    Option DecodedIndexPage := do
+  let page ← source.readPage pageNumber
+  match decodeIndexInteriorFrom source page with
+  | some (entries, rightmost) => some (.interior entries rightmost)
+  | none => .leaf <$> decodeIndexLeafFrom source page
+
+/-- Memoizing decoded pages is a semantics-preserving implementation
+substitution: with the ordinary decoder as its provider, the decoded traversal
+is exactly the original byte-page traversal. -/
+theorem indexValueCandidatesDecodedWith_eq_from
+    (source : PageSource) (target : Core.Value) :
+    ∀ fuel pageNumber,
+      indexValueCandidatesDecodedWith (m := Id)
+          (decodeIndexPageFrom source) target fuel pageNumber =
+        indexValueCandidatesFrom source target fuel pageNumber := by
+  intro fuel
+  induction fuel with
+  | zero => intro pageNumber; rfl
+  | succ fuel induction =>
+      intro pageNumber
+      cases pageResult : source.readPage pageNumber with
+      | none =>
+          simp [indexValueCandidatesDecodedWith, indexValueCandidatesFrom,
+            indexValueCandidatesWith, decodeIndexPageFrom, pageResult]
+      | some page =>
+          cases interiorResult : decodeIndexInteriorFrom source page with
+          | none =>
+              cases leafResult : decodeIndexLeafFrom source page with
+              | none =>
+                  simp [indexValueCandidatesDecodedWith,
+                    indexValueCandidatesFrom, indexValueCandidatesWith,
+                    decodeIndexPageFrom, pageResult, interiorResult, leafResult]
+              | some entries =>
+                  simp [indexValueCandidatesDecodedWith,
+                    indexValueCandidatesFrom, indexValueCandidatesWith,
+                    decodeIndexPageFrom, pageResult, interiorResult, leafResult]
+          | some interior =>
+              rcases interior with ⟨entries, rightmost⟩
+              simp [indexValueCandidatesDecodedWith, indexValueCandidatesFrom,
+                indexValueCandidatesWith, decodeIndexPageFrom, pageResult,
+                interiorResult, induction]
+
+theorem lookupIndexValueDecodedWith_eq_from
+    (source : PageSource) (target : Core.Value) (fuel pageNumber : Nat) :
+    lookupIndexValueDecodedWith (m := Id) (decodeIndexPageFrom source)
+        target fuel pageNumber =
+      lookupIndexValueFrom source target fuel pageNumber := by
+  have candidates := indexValueCandidatesDecodedWith_eq_from source target
+    fuel pageNumber
+  cases result : indexValueCandidatesFrom source target fuel pageNumber with
+  | none => simp [lookupIndexValueDecodedWith, lookupIndexValueFrom,
+      candidates, result]
+  | some entries => simp [lookupIndexValueDecodedWith, lookupIndexValueFrom,
+      candidates, result]
 
 def decodeIndexSubtreeIOFrom (source : IOPageSource) :
     Nat → Nat → IO (Option (List IndexEntry))

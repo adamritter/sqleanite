@@ -25,12 +25,20 @@ def LiveState.retarget (live : LiveState) (state : Core.State) : LiveState := {
   certificates := live.certificates.map fun certificates =>
     CoreFileAdapter.retargetIntegerIndexCertificates certificates state.database }
 
+structure WideLiveState where
+  state : CoreWidePageState.State
+  textState : Option state.SingleIndexTextCertificate
+
+def WideLiveState.ofState (state : CoreWidePageState.State) : WideLiveState := {
+  state
+  textState := state.singleIndexValuesText? }
+
 structure Connection where
   paths : CoreFileAdapter.Paths
   syncOps : CoreFileAdapter.SyncOps
   private state : Std.Mutex LiveState
   private pageState : IO.Ref (Option CoreChunkPageState.State)
-  private widePageState : IO.Ref (Option CoreWidePageState.State)
+  private widePageState : IO.Ref (Option WideLiveState)
   private validatedOpen : IO.Ref (Option CoreFileAdapter.ValidatedOpenState)
   -- Page count and catalog, decoded once rather than per statement. Cleared
   -- alongside the other caches on every write.
@@ -60,7 +68,8 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
     syncOps
     state := ← Std.Mutex.new { state := { database := database } }
     pageState := ← IO.mkRef pageState
-    widePageState := ← IO.mkRef (widePageState.map (·.state))
+    widePageState := ← IO.mkRef (widePageState.map fun loaded =>
+      WideLiveState.ofState loaded.state)
     validatedOpen := ← IO.mkRef opened
     fileGeometry := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign) }
@@ -92,7 +101,7 @@ private def commitFull (connection : Connection) (next : Core.State) :
   match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
       next.database with
   | some (wideState, _) =>
-      connection.widePageState.set (some wideState.state)
+      connection.widePageState.set (some (WideLiveState.ofState wideState.state))
       connection.pageState.set none
       connection.validatedOpen.set none
       connection.fileGeometry.set none
@@ -119,19 +128,22 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
       unless conflict == .default || conflict == .abort do return none
       let [expressions] := rows.toList | return none
       let tableName := CoreSQL.canonical table
-      let some stored := wide.database.findTable? tableName | return none
+      let some stored := wide.state.database.findTable? tableName | return none
       let .ok values := CoreSQL.rowValues stored.schema columns expressions |
         return none
-      let some executed := CoreWidePageDelta.executeInsert? wide
+      let some textState := wide.textState | return none
+      let some executed := CoreWidePageDelta.executeInsert? wide.state
         current.transactionSnapshot tableName values | return none
-      let input ← IO.FS.readBinFile connection.paths.main
-      let some prepared := CoreFileAdapter.prepareWideAppend? input executed |
+      let some prepared ← CoreFileAdapter.prepareWideAppendIO?
+          connection.paths.main executed textState.exact |
         return none
       match ← CoreFileAdapter.commitLocalizedCertified connection.syncOps
           connection.paths prepared.expectedBefore prepared.writes with
       | none => return none
       | some _ =>
-          connection.widePageState.set (some prepared.state)
+          connection.widePageState.set (some {
+            state := prepared.state
+            textState := some ⟨prepared.textState⟩ })
           connection.pageState.set none
           connection.validatedOpen.set none
           connection.fileGeometry.set none
@@ -226,7 +238,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
 
 private def executeStatement (connection : Connection) (live : LiveState)
     (statement : Statement) :
-    IO (LiveState × Except String (Core.State × List Core.Result)) := do
+    IO (LiveState × Except String (LiveState × List Core.Result)) := do
   let state := live.state
   match statement with
   | .select select =>
@@ -252,7 +264,7 @@ private def executeStatement (connection : Connection) (live : LiveState)
               match CoreFileAdapter.lookupCertifiedIndexCandidates certificates
                   table tableMember optimized with
               | some lookup =>
-                  return (live, .ok (state, [lookup.result]))
+                  return (live, .ok (live, [lookup.result]))
               | none =>
                   let geometry ← match ← connection.fileGeometry.get with
                     | some cached => pure (some cached)
@@ -275,21 +287,27 @@ private def executeStatement (connection : Connection) (live : LiveState)
                           -- directly without the foreign-byte comparison.
                           return (live,
                             (Core.execute state (.query tableName optimized)).map
-                              fun result => (result.1, [result.2]))
+                              fun result => (live, [result.2]))
                       | .foreign =>
                           -- This is the sole validating comparison boundary:
                           -- arbitrary external bytes carry no encoder witness.
                           return (live,
                             (Core.executeUncertifiedQueryWithCandidates state
                               tableName optimized lookup.candidates).map fun result =>
-                                (result.1, [result.2]))
+                                (live, [result.2]))
                   | none =>
                       return (live,
                         (Core.execute state (.query tableName optimized)).map
-                          fun result => (result.1, [result.2]))
-          | none => return (live, CoreSQL.executeStatement state statement)
-      | none => return (live, CoreSQL.executeStatement state statement)
-  | _ => return (live, CoreSQL.executeStatement state statement)
+                          fun result => (live, [result.2]))
+          | none =>
+              return (live, (CoreSQL.executeStatement state statement).map
+                fun result => (live.retarget result.1, result.2))
+      | none =>
+          return (live, (CoreSQL.executeStatement state statement).map
+            fun result => (live.retarget result.1, result.2))
+  | _ =>
+      return (live, (CoreSQL.executeStatement state statement).map
+        fun result => (live.retarget result.1, result.2))
 
 private def runStatementsGo (connection : Connection) : LiveState →
     List Statement → List Core.Result →
@@ -299,9 +317,18 @@ private def runStatementsGo (connection : Connection) : LiveState →
       let (cached, execution) ← executeStatement connection live statement
       match execution with
       | .error message => pure (cached, .error message)
-      | .ok (next, results) => do
-          let persisted ← persistIfNeeded connection live.state next statement
-          let advanced := cached.retarget persisted
+      | .ok (executed, results) => do
+          let advanced ← if requiresPersistence live.state statement then
+            let persisted ← persistIfNeeded connection live.state
+              executed.state statement
+            pure (executed.retarget persisted)
+          else
+            -- Read-only statements already return a `LiveState` whose
+            -- dependent certificates name their unchanged database.  Keep it
+            -- verbatim: retargeting here would re-compare every logical index
+            -- entry after every SELECT, turning a routed lookup back into an
+            -- O(table) operation.
+            pure executed
           runStatementsGo connection advanced statements
             (results.foldl (fun acc result => result :: acc) reversed)
 

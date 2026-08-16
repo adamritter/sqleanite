@@ -805,13 +805,13 @@ private def journalFromFile (path : System.FilePath)
         let bytes ← SyscallVFS.preadBytes path.toString
           (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
           (USize.ofNat PhysicalCodec.pageSize)
-        unless bytes.size = PhysicalCodec.pageSize do
+        if exact : bytes.size = PhysicalCodec.pageSize then
+          let before : Storage.Page PhysicalCodec.pageSize := {
+            bytes := bytes.data
+            sizeInvariant := exact }
+          undo := undo ++ [⟨write.pageId, before⟩]
+        else
           throw (IO.userError s!"short read for main page {write.pageId}")
-        let before ← match DiskFormat.decodeStoragePage
-            PhysicalCodec.pageSize bytes.toList with
-          | some (page, []) => pure page
-          | _ => throw (IO.userError s!"could not decode main page {write.pageId}")
-        undo := undo ++ [⟨write.pageId, before⟩]
     return ⟨count, undo⟩
 
 private def verifyWrittenPages (path : System.FilePath)
@@ -822,11 +822,7 @@ private def verifyWrittenPages (path : System.FilePath)
         (USize.ofNat PhysicalCodec.pageSize)
       unless bytes.size = PhysicalCodec.pageSize do
         throw (IO.userError s!"short read for main page {write.pageId}")
-      let actual ← match DiskFormat.decodeStoragePage
-          PhysicalCodec.pageSize bytes.toList with
-        | some (page, []) => pure page
-        | _ => throw (IO.userError s!"could not decode main page {write.pageId}")
-      unless actual == write.page do
+      unless bytes.data == write.page.bytes do
         throw (IO.userError s!"dirty-page read-back mismatch at {write.pageId}")
 
 /-- A bounded, file-backed page source. It remembers only the current page
@@ -875,28 +871,136 @@ exact page bytes returned by `preadPageSource`; decoder results and proof
 certificates are unchanged.  The bound prevents a long random-read workload
 from retaining one linked-list page per lookup. -/
 structure PageReadCache where
-  pages : IO.Ref (Std.HashMap Nat (List UInt8))
+  pages : IO.Ref (Std.HashMap Nat ByteArray)
+  decodedIndexPages : IO.Ref (Std.HashMap Nat CoreDecode.DecodedIndexPage)
   capacity : Nat
 
 def PageReadCache.create (capacity : Nat := 512) : BaseIO PageReadCache := do
-  return ⟨← IO.mkRef (Std.HashMap.emptyWithCapacity capacity), capacity⟩
+  return ⟨← IO.mkRef (Std.HashMap.emptyWithCapacity capacity),
+    ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity), capacity⟩
 
 private def preadPageSourceCached (path : System.FilePath)
     (pageCount : Nat) (cache : PageReadCache) : CoreDecode.IOPageSource :=
-  let source := preadPageSource path pageCount
   { pageCount
     readPage := fun pageNumber => do
       let pages ← cache.pages.get
       match pages.get? pageNumber with
-      | some page => return some page
+      | some page => return some page.toList
       | none =>
-          let result ← source.readPage pageNumber
-          match result with
-          | some page =>
+          if pageNumber = 0 ∨ pageCount < pageNumber then return none
+          let bytes ← SyscallVFS.preadBytes path.toString
+            (UInt64.ofNat ((pageNumber - 1) * PhysicalCodec.pageSize))
+            (USize.ofNat PhysicalCodec.pageSize)
+          if bytes.size = PhysicalCodec.pageSize then
               if pages.size < cache.capacity then
-                cache.pages.set (pages.insert pageNumber page)
-              return some page
-          | none => return none }
+                cache.pages.set (pages.insert pageNumber bytes)
+              return some bytes.toList
+          else return none }
+
+private def bytePageCached (path : System.FilePath) (pageCount : Nat)
+    (cache : PageReadCache) (pageNumber : Nat) : IO (Option ByteArray) := do
+  if pageNumber = 0 ∨ pageCount < pageNumber then return none
+  let pages ← cache.pages.get
+  match pages.get? pageNumber with
+  | some page => return some page
+  | none =>
+      let bytes ← SyscallVFS.preadBytes path.toString
+        (UInt64.ofNat ((pageNumber - 1) * PhysicalCodec.pageSize))
+        (USize.ofNat PhysicalCodec.pageSize)
+      unless bytes.size = PhysicalCodec.pageSize do return none
+      if pages.size < cache.capacity then
+        cache.pages.set (pages.insert pageNumber bytes)
+      return some bytes
+
+private def decodeUnsignedAt? (width offset : Nat) (bytes : ByteArray) :
+    Option Nat := do
+  if _bound : offset + width ≤ bytes.size then
+    let window := (bytes.extract offset (offset + width)).toList
+    let (value, suffix) ← FileFormat.decodeUnsignedFixed width window
+    if suffix = [] then some value else none
+  else none
+
+private def decodeVarintAt? (offset : Nat) (bytes : ByteArray) :
+    Option (FileFormat.U64Value × Nat) := do
+  if _bound : offset < bytes.size then
+    let stop := min bytes.size (offset + 9)
+    let window := (bytes.extract offset stop).toList
+    let (value, suffix) ← FileFormat.decodeVarint window
+    some (value, offset + (window.length - suffix.length))
+  else none
+
+private def tableChildAtLoop (bytes : ByteArray) (target : Core.Integer)
+    (rightmost : Nat) : Nat → Nat → Option Nat
+  | 0, _ => some rightmost
+  | remaining + 1, index => do
+      let offset ← decodeUnsignedAt? 2 (12 + 2 * index) bytes
+      let child ← decodeUnsignedAt? 4 offset bytes
+      let (keyBits, _) ← decodeVarintAt? (offset + 4) bytes
+      let key := FileFormat.signedIntegerFromUnsigned .eight keyBits
+      if target.value ≤ key.value then some child
+      else tableChildAtLoop bytes target rightmost remaining (index + 1)
+
+private def tableChildAt? (bytes : ByteArray) (target : Core.Integer) :
+    Option Nat := do
+  if bytes[0]? = some 5 then
+    let count ← decodeUnsignedAt? 2 3 bytes
+    let rightmost ← decodeUnsignedAt? 4 8 bytes
+    tableChildAtLoop bytes target rightmost count 0
+  else none
+
+private def tableRowOffsetLoop (bytes : ByteArray) (target : Core.Integer) :
+    Nat → Nat → Option (Option Nat)
+  | 0, _ => some none
+  | remaining + 1, index => do
+      let offset ← decodeUnsignedAt? 2 (8 + 2 * index) bytes
+      let (_, afterSize) ← decodeVarintAt? offset bytes
+      let (rowidBits, _) ← decodeVarintAt? afterSize bytes
+      let rowid := FileFormat.signedIntegerFromUnsigned .eight rowidBits
+      if rowid = target then some (some offset)
+      else tableRowOffsetLoop bytes target remaining (index + 1)
+
+private def tableRowOffset? (bytes : ByteArray) (target : Core.Integer) :
+    Option (Option Nat) := do
+  if bytes[0]? = some 13 then
+    let count ← decodeUnsignedAt? 2 3 bytes
+    tableRowOffsetLoop bytes target count 0
+  else none
+
+private def lookupTableRowidBytesCached (path : System.FilePath)
+    (schema : Core.Schema) (source : CoreDecode.IOPageSource)
+    (cache : PageReadCache) (target : Core.Integer) :
+    Nat → Nat → IO (Option (Option Core.Row))
+  | 0, _ => pure none
+  | fuel + 1, pageNumber => do
+      let some page ← bytePageCached path source.pageCount cache pageNumber |
+        return none
+      match tableChildAt? page target with
+      | some child =>
+          lookupTableRowidBytesCached path schema source cache target fuel child
+      | none =>
+          let some offset := tableRowOffset? page target | return none
+          match offset with
+          | none => return some none
+          | some offset =>
+              let input := (page.extract offset page.size).toList
+              let some row ← CoreDecode.decodeRowCellIOFrom schema source
+                (source.pageCount + 1) input | return none
+              if row.rowid = target then return some (some row) else return none
+
+private def decodedIndexPageCached (cache : PageReadCache)
+    (source : CoreDecode.IOPageSource) (pageNumber : Nat) :
+    IO (Option CoreDecode.DecodedIndexPage) := do
+  let pages ← cache.decodedIndexPages.get
+  match pages.get? pageNumber with
+  | some page => return some page
+  | none =>
+      let decoded ← CoreDecode.decodeIndexPageIOFrom source pageNumber
+      match decoded with
+      | some page =>
+          if pages.size < cache.capacity then
+            cache.decodedIndexPages.set (pages.insert pageNumber page)
+          return some page
+      | none => return none
 
 /-- Turn the semantic SQLite page size in a validated zero-reserved-byte
 header into the proof-carrying geometry consumed by the general decoder. -/
@@ -1646,6 +1750,15 @@ structure IndexPageMutations where
   source : CoreDecode.PageSource
   changed : List (Nat × List UInt8) := []
 
+/-- The file-backed counterpart of `IndexPageMutations`.  It retains only the
+pages on the routed index path; unchanged pages are fetched positionally from
+the main file instead of materializing the whole database before every
+autocommit insert. -/
+structure IOIndexPageMutations where
+  source : CoreDecode.IOPageSource
+  changed : List (Nat × List UInt8) := []
+  nextPage : Nat
+
 def replaceChangedPage (pageNumber : Nat) (bytes : List UInt8) :
     List (Nat × List UInt8) → List (Nat × List UInt8)
   | [] => [(pageNumber, bytes)]
@@ -1669,6 +1782,34 @@ def IndexPageMutations.writePage? (state : IndexPageMutations)
   if _valid : 0 < pageNumber ∧ pageNumber ≤ state.source.pageCount then
     some { state with
       changed := replaceChangedPage pageNumber page.bytes state.changed }
+  else none
+
+def IOIndexPageMutations.readPage? (state : IOIndexPageMutations)
+    (pageNumber : Nat) : IO (Option (List UInt8)) :=
+  match state.changed.find? (fun changed => changed.1 == pageNumber) with
+  | some changed => pure (some changed.2)
+  | none => state.source.readPage pageNumber
+
+def IOIndexPageMutations.pageSource (state : IOIndexPageMutations) :
+    CoreDecode.IOPageSource := {
+  usable := state.source.usable
+  pageCount := state.nextPage - 1
+  readPage := state.readPage? }
+
+def IOIndexPageMutations.writePage? (state : IOIndexPageMutations)
+    (pageNumber : Nat) (page : CoreFile.Page) : Option IOIndexPageMutations := do
+  if _valid : 0 < pageNumber ∧ pageNumber < state.nextPage then
+    some { state with
+      changed := replaceChangedPage pageNumber page.bytes state.changed }
+  else none
+
+def IOIndexPageMutations.allocatePage? (state : IOIndexPageMutations)
+    (page : CoreFile.Page) : Option (Nat × IOIndexPageMutations) := do
+  if _fits : state.nextPage < 2 ^ 32 then
+    some (state.nextPage, {
+      state with
+      changed := replaceChangedPage state.nextPage page.bytes state.changed
+      nextPage := state.nextPage + 1 })
   else none
 
 /-- Split exactly `count` elements in one traversal, rejecting a short input. -/
@@ -1810,6 +1951,164 @@ def insertIndexEntryNoSplit? : Nat → Nat → CoreDecode.IndexEntry →
           let rewritten ← CoreFile.indexLeafPage? inserted
           state.writePage? pageNumber rewritten
 
+/-- Page-directed I/O implementation of `insertIndexEntryNoSplit?`.  Its
+control decisions and leaf rewrite are identical; only the unchanged-page
+reads are performed through `pread`. -/
+def insertIndexEntryNoSplitIO? : Nat → Nat → CoreDecode.IndexEntry →
+    List UInt8 → IOIndexPageMutations → IO (Option IOIndexPageMutations)
+  | 0, _, _, _, _ => pure none
+  | fuel + 1, pageNumber, target, targetCell, state => do
+      let some page ← state.readPage? pageNumber | return none
+      let source := state.pageSource
+      match ← CoreDecode.decodeIndexInteriorIOFrom source page with
+      | some (entries, rightmost) =>
+          let rec descend : List (Nat × CoreDecode.IndexEntry) →
+              IO (Option IOIndexPageMutations)
+            | [] =>
+                insertIndexEntryNoSplitIO? fuel rightmost target targetCell state
+            | (child, separator) :: remaining =>
+                if target = separator then pure none
+                else if CoreChunkPageDelta.indexEntryLess target separator then
+                  insertIndexEntryNoSplitIO? fuel child target targetCell state
+                else descend remaining
+          descend entries
+      | none =>
+          match inlineIndexLeafCells? page with
+          | none => pure none
+          | some cells =>
+              match insertSortedIndexCell? target targetCell cells with
+              | none => pure none
+              | some inserted =>
+                  match CoreFile.indexLeafPage? inserted with
+                  | none => pure none
+                  | some rewritten => pure (state.writePage? pageNumber rewritten)
+
+inductive IOIndexInsertResult where
+  | done (state : IOIndexPageMutations)
+  | split (state : IOIndexPageMutations) (leftPage : Nat)
+      (promoted : CoreDecode.IndexEntry) (rightPage : Nat)
+
+private def coreFilePage? (bytes : List UInt8) : Option CoreFile.Page :=
+  if exact : bytes.length = PhysicalCodec.pageSize then
+    some ⟨bytes, exact⟩
+  else none
+
+/-- Encode an enlarged interior node, splitting it around one promoted entry
+when its exact byte representation no longer fits.  Promoted entries are
+removed from both children, matching SQLite index-B-tree semantics. -/
+private def rewriteOrSplitIndexInteriorIO?
+    (pageNumber : Nat) (entries : List (Nat × CoreDecode.IndexEntry))
+    (rightmost : Nat) (state : IOIndexPageMutations) :
+    Option IOIndexInsertResult :=
+  match indexInteriorPageFromEntries? entries rightmost with
+  | some page => (state.writePage? pageNumber page).map IOIndexInsertResult.done
+  | none => do
+      let middleIndex := entries.length / 2
+      let middle ← entries[middleIndex]?
+      let leftEntries := entries.take middleIndex
+      let rightEntries := entries.drop (middleIndex + 1)
+      let leftPage ← indexInteriorPageFromEntries? leftEntries middle.1
+      let rightPage ← indexInteriorPageFromEntries? rightEntries rightmost
+      let leftState ← state.writePage? pageNumber leftPage
+      let (rightNumber, finalState) ← leftState.allocatePage? rightPage
+      some (.split finalState pageNumber middle.2 rightNumber)
+
+private structure IndexInsertRoute where
+  child : Nat
+  prior : List (Nat × CoreDecode.IndexEntry)
+  boundary : Option (Nat × CoreDecode.IndexEntry)
+  remaining : List (Nat × CoreDecode.IndexEntry)
+
+private def indexInsertRoute? (target : CoreDecode.IndexEntry)
+    (rightmost : Nat) : List (Nat × CoreDecode.IndexEntry) →
+      List (Nat × CoreDecode.IndexEntry) → Option IndexInsertRoute
+  | [], reversed => some {
+      child := rightmost
+      prior := reversed.reverse
+      boundary := none
+      remaining := [] }
+  | current :: remaining, reversed =>
+      if target = current.2 then none
+      else if CoreChunkPageDelta.indexEntryLess target current.2 then
+        some {
+          child := current.1
+          prior := reversed.reverse
+          boundary := some current
+          remaining }
+      else indexInsertRoute? target rightmost remaining (current :: reversed)
+
+/-- Full high-fanout index insertion.  A leaf split promotes one cell; an
+interior page either absorbs that promotion or splits recursively. -/
+def insertIndexEntryIO? : Nat → Nat → CoreDecode.IndexEntry → List UInt8 →
+    IOIndexPageMutations → IO (Option IOIndexInsertResult)
+  | 0, _, _, _, _ => pure none
+  | fuel + 1, pageNumber, target, targetCell, state => do
+      let some page ← state.readPage? pageNumber | return none
+      let source := state.pageSource
+      match ← CoreDecode.decodeIndexInteriorIOFrom source page with
+      | some (entries, rightmost) =>
+          let some route := indexInsertRoute? target rightmost entries [] |
+            return none
+          let some child ← insertIndexEntryIO? fuel route.child target
+            targetCell state | return none
+          match child with
+          | .done next => return some (.done next)
+          | .split next left promoted right =>
+              match route.boundary with
+              | none =>
+                  return rewriteOrSplitIndexInteriorIO? pageNumber
+                    (route.prior ++ [(left, promoted)]) right next
+              | some current =>
+                  return rewriteOrSplitIndexInteriorIO? pageNumber
+                    (route.prior ++ [(left, promoted), (right, current.2)] ++
+                      route.remaining) rightmost next
+      | none =>
+          match inlineIndexLeafCells? page with
+          | none => return none
+          | some cells =>
+              match insertSortedIndexCell? target targetCell cells with
+              | none => return none
+              | some inserted =>
+                  match CoreFile.indexLeafPage? inserted with
+                  | some rewritten =>
+                      return (state.writePage? pageNumber rewritten).map
+                        IOIndexInsertResult.done
+                  | none =>
+                      let middleIndex := inserted.length / 2
+                      let some middleCell := inserted[middleIndex]? | return none
+                      let some (promoted, suffix) :=
+                        CoreDecode.decodeIndexCellWithSuffix middleCell |
+                          return none
+                      unless suffix = [] do return none
+                      let some leftPage :=
+                        CoreFile.indexLeafPage? (inserted.take middleIndex) |
+                          return none
+                      let some rightPage := CoreFile.indexLeafPage?
+                        (inserted.drop (middleIndex + 1)) | return none
+                      let some leftState := state.writePage? pageNumber leftPage |
+                        return none
+                      let some (rightNumber, finalState) :=
+                        leftState.allocatePage? rightPage | return none
+                      return some (.split finalState pageNumber promoted rightNumber)
+
+/-- Keep the catalog root page stable.  When the old root splits, its left
+image is copied to a fresh page and the old root becomes a one-separator
+interior node. -/
+def insertIndexEntryAtRootIO? (rootPage : Nat)
+    (target : CoreDecode.IndexEntry) (targetCell : List UInt8)
+    (state : IOIndexPageMutations) : IO (Option IOIndexPageMutations) := do
+  let some result ← insertIndexEntryIO? (state.source.pageCount + 1)
+    rootPage target targetCell state | return none
+  match result with
+  | .done next => return some next
+  | .split next _ promoted rightPage =>
+      let some leftBytes ← next.readPage? rootPage | return none
+      let some leftPage := coreFilePage? leftBytes | return none
+      let some (leftNumber, allocated) := next.allocatePage? leftPage | return none
+      let some newRoot := indexInteriorPageFromEntries?
+        [(leftNumber, promoted)] rightPage | return none
+      return allocated.writePage? rootPage newRoot
+
 /-- Delete a batch of exact encoded entries by partitioning them at the same
 promoted separators used by SQLite routing. Each affected leaf is unpacked and
 rewritten once, regardless of how many target rows it contains. -/
@@ -1933,6 +2232,15 @@ def insertIndexRowIntoPages? (rootPage : Nat) (index : Core.Index)
   let cell ← indexEntryCell? entry
   insertIndexEntryNoSplit? (source.pageCount + 1) rootPage entry cell { source }
 
+def insertIndexRowIntoPagesIO? (rootPage : Nat) (index : Core.Index)
+    (row : Core.Row) (source : CoreDecode.IOPageSource) (nextPage : Nat) :
+    IO (Option IOIndexPageMutations) := do
+  let entry := CoreChunkPageDelta.indexEntryOfRow index row
+  let some cell := indexEntryCell? entry | return none
+  insertIndexEntryAtRootIO? rootPage entry cell {
+    source
+    nextPage }
+
 def mutationPageWrites? (mutated : IndexPageMutations) :
     Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize) ×
       List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) := do
@@ -1948,6 +2256,24 @@ def mutationPageWrites? (mutated : IndexPageMutations) :
           GrowableStorage.PageWrite PhysicalCodec.pageSize))
   some (pairs.map (fun pair => pair.1), pairs.map (fun pair => pair.2))
 
+def mutationPageWritesIO? (mutated : IOIndexPageMutations) :
+    IO (Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize) ×
+      List (GrowableStorage.PageWrite PhysicalCodec.pageSize))) := do
+  let mut oldWrites := []
+  let mut newWrites := []
+  for changed in mutated.changed do
+    let pageNumber := changed.1
+    let newBytes := changed.2
+    let some newPage := storagePage? newBytes | return none
+    if pageNumber ≤ mutated.source.pageCount then
+      let some oldBytes ← mutated.source.readPage pageNumber | return none
+      let some oldPage := storagePage? oldBytes | return none
+      oldWrites := (⟨pageNumber - 1, oldPage⟩ :
+        GrowableStorage.PageWrite PhysicalCodec.pageSize) :: oldWrites
+    newWrites := (⟨pageNumber - 1, newPage⟩ :
+      GrowableStorage.PageWrite PhysicalCodec.pageSize) :: newWrites
+  return some (oldWrites.reverse, newWrites.reverse)
+
 private def currentWritesFor? (source : CoreDecode.PageSource) (count : Nat) :
     List (GrowableStorage.PageWrite PhysicalCodec.pageSize) →
       Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
@@ -1960,17 +2286,33 @@ private def currentWritesFor? (source : CoreDecode.PageSource) (count : Nat) :
         some (⟨write.pageId, page⟩ :: tail)
       else some tail
 
+private def currentWritesForIO? (source : CoreDecode.IOPageSource)
+    (count : Nat) : List (GrowableStorage.PageWrite PhysicalCodec.pageSize) →
+      IO (Option (List (GrowableStorage.PageWrite PhysicalCodec.pageSize)))
+  | [] => pure (some [])
+  | write :: writes => do
+      let some tail ← currentWritesForIO? source count writes | return none
+      if write.pageId < count then
+        let some bytes ← source.readPage (write.pageId + 1) | return none
+        let some page := storagePage? bytes | return none
+        return some (⟨write.pageId, page⟩ :: tail)
+      else return some tail
+
 structure PreparedWideAppend {state : CoreWidePageState.State}
     {snapshot : Option Core.Database} {tableName : String}
     {values : List Core.Value}
     (executed : CoreWidePageDelta.ExecutedInsert state snapshot tableName values) where
   state : CoreWidePageState.State
+  textState : state.SingleIndexValuesText
   expectedBefore : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)
   index : Core.Index
   rootPage : Nat
-  certificate : DecodedIndexCertificate rootPage
-    executed.append.mutation.after.table index
+  logicalIndexExact : CoreDecode.expectedIndexEntries
+      executed.append.mutation.after.table index =
+    CoreChunkPageDelta.insertIndexEntry
+      (CoreChunkPageDelta.indexEntryOfRow index executed.row)
+      (CoreDecode.expectedIndexEntries executed.append.table.table index)
   writesDistinct : writes.Pairwise (fun left right => left.pageId ≠ right.pageId)
 
 /-- Prepare the live one-row wide append.  Table pages come only from the
@@ -1995,40 +2337,62 @@ def prepareWideAppend? {state : CoreWidePageState.State}
         let after := executed.append.mutation.after
         if _sameSchema : before.table.schema = after.table.schema then
           if _sameIndexes : before.table.indexes = after.table.indexes then
-            match after.table.indexes with
+            match afterIndexes : after.table.indexes with
             | [index] => do
-                let entry ← catalog.find? fun entry =>
-                  entry.kind == "index" && entry.name == index.name &&
-                    entry.table == after.table.schema.name
-                if _rootRange : 1 < entry.rootPage ∧ entry.rootPage ≤ count then
-                  let tablePages ← match executed.append.mutation.mode with
-                    | .extendedTerminalChunk =>
-                        CoreWidePageCodec.encodeTerminalReplacement
-                          after.table.schema after.tree
-                    | .appendedChunk =>
-                        CoreWidePageCodec.encodeTerminalAppend after.table.schema
-                          before.tree after.tree
-                  let tableWrites ← tablePages.mapM
-                    CoreChunkPageDelta.numberedWrite?
-                  let tableBefore ← currentWritesFor? source count tableWrites
-                  let mutated ← insertIndexRowIntoPages? entry.rootPage index
-                    executed.row source
-                  let indexDelta ← mutationPageWrites? mutated
-                  let expectedBefore := tableBefore ++ indexDelta.1
-                  let writes := tableWrites ++ indexDelta.2
-                  let certified ← certifyDecodedIndexAt? entry.rootPage after.table
-                    index (CorePageSource.applyWrites source writes)
-                  if distinct : writes.Pairwise
-                      (fun left right => left.pageId ≠ right.pageId) then
-                    some {
-                      state := executed.append.after
-                      expectedBefore
-                      writes
-                      index
-                      rootPage := entry.rootPage
-                      certificate := certified.certificate
-                      writesDistinct := distinct }
-                  else none
+                if beforeText : CoreFile.indexValuesText before.table index = true then
+                  match rowValue : executed.row.value index.column with
+                  | .text _ => do
+                      let entry ← catalog.find? fun entry =>
+                        entry.kind == "index" && entry.name == index.name &&
+                          entry.table == after.table.schema.name
+                      if _rootRange :
+                          1 < entry.rootPage ∧ entry.rootPage ≤ count then
+                        let tablePages ←
+                          match executed.append.mutation.mode with
+                          | .extendedTerminalChunk =>
+                              CoreWidePageCodec.encodeTerminalReplacement
+                                after.table.schema after.tree
+                          | .appendedChunk =>
+                              CoreWidePageCodec.encodeTerminalAppend
+                                after.table.schema before.tree after.tree
+                        let tableWrites ← tablePages.mapM
+                          CoreChunkPageDelta.numberedWrite?
+                        let tableBefore ← currentWritesFor? source count tableWrites
+                        let mutated ← insertIndexRowIntoPages? entry.rootPage index
+                          executed.row source
+                        let indexDelta ← mutationPageWrites? mutated
+                        let expectedBefore := tableBefore ++ indexDelta.1
+                        let writes := tableWrites ++ indexDelta.2
+                        if distinct : writes.Pairwise
+                            (fun left right => left.pageId ≠ right.pageId) then
+                          have rowsEq : after.table.rows =
+                              before.table.rows ++ [executed.row] := by
+                            rw [← after.represents,
+                              executed.append.mutation.logicalRows]
+                          have logicalIndexExact :=
+                            CoreChunkPageDelta.expectedIndexEntries_append_text
+                              before.table after.table index executed.row rowsEq
+                              beforeText rowValue
+                          have afterText :=
+                            CoreChunkPageDelta.indexValuesText_append_text
+                              before.table after.table index executed.row rowsEq
+                              beforeText rowValue
+                          have textState :
+                              executed.append.after.SingleIndexValuesText :=
+                            CoreWidePageState.State.singleIndexValuesText_of_exact
+                              executed.append.after_tables afterIndexes afterText
+                          some {
+                            state := executed.append.after
+                            textState
+                            expectedBefore
+                            writes
+                            index
+                            rootPage := entry.rootPage
+                            logicalIndexExact
+                            writesDistinct := distinct }
+                        else none
+                      else none
+                  | _ => none
                 else none
             | _ => none
           else none
@@ -2036,6 +2400,137 @@ def prepareWideAppend? {state : CoreWidePageState.State}
       else none
     else none
   else none
+
+/-- File-backed preparation for the same proof-carrying append.  Only the
+catalog page, the changed table spine, and one routed index path are read.  In
+particular this function performs no `readBinFile`, so an autocommit insert is
+independent of the total database byte size when no split is required. -/
+def prepareWideAppendIO? {state : CoreWidePageState.State}
+    {snapshot : Option Core.Database} {tableName : String}
+    {values : List Core.Value}
+    (path : System.FilePath)
+    (executed : CoreWidePageDelta.ExecutedInsert state snapshot tableName values)
+    (stateText : state.SingleIndexValuesText) :
+    IO (Option (PreparedWideAppend executed)) := do
+  let firstBytes ← SyscallVFS.preadBytes path.toString 0
+    (USize.ofNat PhysicalCodec.pageSize)
+  unless firstBytes.size = PhysicalCodec.pageSize do return none
+  let firstPage := firstBytes.toList
+  let some (header, _) := FileFormat.decodeDatabaseHeader firstPage |
+    return none
+  let count := header.databaseSizePages.val
+  let metadata ← path.metadata
+  unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
+      metadata.byteSize.toNat = count * PhysicalCodec.pageSize do return none
+  if _generated : CoreFile.hasGeneratedImageStamp header then
+    if _noFree : header.freelistPageCount.val = 0 then
+      -- The index mutator decodes each routed page and the write preparation
+      -- subsequently asks for that page's old pre-image.  Retain the handful
+      -- of pages touched by this one statement so the latter request neither
+      -- issues another syscall nor converts the same 4 KiB array to a list a
+      -- second time.  Page one is already in hand for the header.
+      let base := preadPageSource path count
+      let cache ← IO.mkRef [(1, firstPage)]
+      let source : CoreDecode.IOPageSource := {
+        usable := base.usable
+        pageCount := base.pageCount
+        readPage := fun pageNumber => do
+          let retained ← cache.get
+          match retained.find? (fun entry => entry.1 == pageNumber) with
+          | some entry => return some entry.2
+          | none =>
+              let read ← base.readPage pageNumber
+              match read with
+              | some bytes =>
+                  cache.modify ((pageNumber, bytes) :: ·)
+                  return some bytes
+              | none => return none }
+      let some catalog := CoreDecode.decodeCatalogForOpen firstPage | return none
+      let before := executed.append.table
+      let after := executed.append.mutation.after
+      if _sameSchema : before.table.schema = after.table.schema then
+        if _sameIndexes : before.table.indexes = after.table.indexes then
+          match afterIndexes : after.table.indexes with
+          | [index] =>
+              have beforeIndexes : before.table.indexes = [index] := by
+                rw [_sameIndexes]
+                exact afterIndexes
+              have beforeText :=
+                CoreWidePageState.State.singleIndexValuesText_exact stateText
+                  executed.append.before_eq beforeIndexes
+              match rowValue : executed.row.value index.column with
+              | .text _ => do
+                  let some entry := catalog.find? fun entry =>
+                    entry.kind == "index" && entry.name == index.name &&
+                      entry.table == after.table.schema.name | return none
+                  if _rootRange :
+                      1 < entry.rootPage ∧ entry.rootPage ≤ count then
+                    let some tablePages :=
+                      (match executed.append.mutation.mode with
+                      | .extendedTerminalChunk =>
+                          CoreWidePageCodec.encodeTerminalReplacement
+                            after.table.schema after.tree
+                      | .appendedChunk =>
+                          CoreWidePageCodec.encodeTerminalAppend
+                            after.table.schema before.tree after.tree) |
+                      return none
+                    let some tableWrites := tablePages.mapM
+                      CoreChunkPageDelta.numberedWrite? | return none
+                    let some tableBefore ←
+                      currentWritesForIO? source count tableWrites | return none
+                    let indexNextPage := targetPageCount count tableWrites + 1
+                    let some mutated ← insertIndexRowIntoPagesIO?
+                      entry.rootPage index executed.row source indexNextPage |
+                        return none
+                    let some indexDelta ← mutationPageWritesIO? mutated |
+                      return none
+                    let expectedBefore := tableBefore ++ indexDelta.1
+                    let writes := tableWrites ++ indexDelta.2
+                    if distinct : writes.Pairwise
+                        (fun left right => left.pageId ≠ right.pageId) then
+                      have rowsEq : after.table.rows =
+                          before.table.rows ++ [executed.row] := by
+                        rw [← after.represents,
+                          executed.append.mutation.logicalRows]
+                      have logicalIndexExact :=
+                        CoreChunkPageDelta.expectedIndexEntries_append_text
+                          before.table after.table index executed.row rowsEq
+                          beforeText rowValue
+                      have afterText :=
+                        CoreChunkPageDelta.indexValuesText_append_text
+                          before.table after.table index executed.row rowsEq
+                          beforeText rowValue
+                      let nextState := executed.append.after.reserveThrough
+                        mutated.nextPage
+                      have nextTables : nextState.tables =
+                          [executed.append.mutation.after.withNextPage
+                            mutated.nextPage] := by
+                        simp [nextState, CoreWidePageState.State.reserveThrough,
+                          executed.append.after_tables]
+                      have nextIndexes :
+                          (executed.append.mutation.after.withNextPage
+                            mutated.nextPage).table.indexes = [index] := by
+                        exact afterIndexes
+                      have textState : nextState.SingleIndexValuesText :=
+                        CoreWidePageState.State.singleIndexValuesText_of_exact
+                          nextTables nextIndexes afterText
+                      return some {
+                        state := nextState
+                        textState
+                        expectedBefore
+                        writes
+                        index
+                        rootPage := entry.rootPage
+                        logicalIndexExact
+                        writesDistinct := distinct }
+                    else return none
+                  else return none
+              | _ => return none
+          | _ => return none
+        else return none
+      else return none
+    else return none
+  else return none
 
 def physicalCatalogEntry? (entry : CoreDecode.CatalogEntry) :
     Option CoreFile.CatalogEntry := do
@@ -2660,6 +3155,8 @@ inductive IntegerIndexRouting (source : CoreDecode.PageSource)
       source fuel rootPage expected)
   | general (certificate : CoreDecode.CertifiedWideIntegerIndex
       source fuel rootPage expected)
+  | text (certificate : CoreDecode.CertifiedWideTextIndex
+      source fuel rootPage expected)
   | allValues (certificate : CoreDecode.CertifiedAllValueIndex
       source fuel rootPage expected)
 
@@ -2672,6 +3169,7 @@ def IntegerIndexRouting.valueEntries
   | .generated _certificate =>
       (CoreDecode.lookupIndexValueFrom source target fuel rootPage).getD []
   | .general certificate => certificate.valueEntries target
+  | .text certificate => certificate.valueEntries target
   | .allValues certificate => certificate.valueEntries target
 
 theorem IntegerIndexRouting.valueEntries_exact
@@ -2686,6 +3184,7 @@ theorem IntegerIndexRouting.valueEntries_exact
       simp [IntegerIndexRouting.valueEntries,
         CoreDecode.lookupIndexValueFrom_certified_exact certificate target]
   | general certificate => exact certificate.valueEntries_exact target
+  | text certificate => exact certificate.valueEntries_exact target
   | allValues certificate => exact certificate.valueEntries_exact target
 
 def IntegerIndexRouting.rangeEntries
@@ -2699,6 +3198,7 @@ def IntegerIndexRouting.rangeEntries
       (CoreDecode.lookupIndexRangeFrom source operation target fuel rootPage)
         |>.getD []
   | .general certificate => certificate.rangeEntries operation target
+  | .text certificate => certificate.rangeEntries operation target
   | .allValues certificate => certificate.rangeEntries operation target
 
 theorem IntegerIndexRouting.rangeEntries_exact
@@ -2714,6 +3214,7 @@ theorem IntegerIndexRouting.rangeEntries_exact
         CoreDecode.lookupIndexRangeFrom_certified_exact certificate operation
           target]
   | general certificate => exact certificate.rangeEntries_exact operation target
+  | text certificate => exact certificate.rangeEntries_exact operation target
   | allValues certificate => exact certificate.rangeEntries_exact operation target
 
 /-- A certificate retained by a live connection.  Its dependent proof ties a
@@ -2835,13 +3336,20 @@ def certifyIntegerIndexes (physicalPages : List (List UInt8))
               match CoreDecode.certifyWideIntegerIndex source fuel
                   catalogEntry.rootPage expected with
               | none =>
-                  match CoreDecode.certifyAllValueIndex source fuel
+                  match CoreDecode.certifyWideTextIndex source fuel
                       catalogEntry.rootPage expected with
-                  | none => none
+                  | none =>
+                      match CoreDecode.certifyAllValueIndex source fuel
+                          catalogEntry.rootPage expected with
+                      | none => none
+                      | some certificate =>
+                          some ⟨table, attached.property, index, source, fuel,
+                            catalogEntry.rootPage,
+                            expected, rfl, .allValues certificate⟩
                   | some certificate =>
                       some ⟨table, attached.property, index, source, fuel,
                         catalogEntry.rootPage,
-                        expected, rfl, .allValues certificate⟩
+                        expected, rfl, .text certificate⟩
               | some certificate =>
                   some ⟨table, attached.property, index, source, fuel,
                     catalogEntry.rootPage,
@@ -3332,6 +3840,41 @@ structure FileGeometry where
   pageCount : Nat
   catalog : List CoreDecode.CatalogEntry
 
+/-- Header/catalog facts checked once for a read-only batch over a stamped
+Lean-generated image.  Reusing this value does not cache mutable table pages;
+it only removes repeated file opens and repeated catalog decoding while the
+outer process lock keeps the batch image stable. -/
+structure GeneratedFileGeometry where
+  pageCount : Nat
+  catalog : List CoreDecode.CatalogEntry
+  schemas : List (String × Core.Schema)
+
+def readGeneratedFileGeometry (paths : Paths) :
+    IO (Option GeneratedFileGeometry) := do
+  IO.FS.withFile paths.main .read fun handle => do
+    let metadata ← paths.main.metadata
+    let some firstPage ← readPageBytes handle | return none
+    let some (header, _) := FileFormat.decodeDatabaseHeader firstPage |
+      return none
+    let count := header.databaseSizePages.val
+    unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
+        header.headerPrefix.reservedSpace = 0 && header.textEncoding.val = 1 &&
+        metadata.byteSize.toNat = count * PhysicalCodec.pageSize &&
+        CoreFile.hasGeneratedImageStamp header do return none
+    let some catalog := CoreDecode.decodeCatalog firstPage | return none
+    let schemas := catalog.filterMap fun entry =>
+      if entry.kind == "table" then do
+        let sql ← entry.sql
+        let schema ← CoreDecode.parseTableSchema sql
+        if schema.name = entry.name then some (entry.name, schema) else none
+      else none
+    return some ⟨count, catalog, schemas⟩
+
+def GeneratedFileGeometry.tableSchema? (geometry : GeneratedFileGeometry)
+    (tableName : String) : Option Core.Schema := do
+  let entry ← geometry.schemas.find? fun entry => entry.1 == tableName
+  some entry.2
+
 /-- Validate the header and decode the catalog. The header checks are exactly
 those `lookupIndexCandidates` performed inline, so a cached geometry carries the
 same premises a fresh read would. -/
@@ -3419,7 +3962,8 @@ of `lookupIndexValueFrom_encodeIndex_exact` and
 `lookupIndexRangeFrom_encodeIndex_exact`. Only selected index branches and
 the corresponding primary-tree paths are read; every returned rowid/value
 link is checked locally before it reaches SQL evaluation. -/
-def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
+def lookupGeneratedIndexCandidatesWith (geometry : GeneratedFileGeometry)
+    (paths : Paths) (tableName : String)
     (schema : Core.Schema) (query : Core.Query)
     (cache : Option PageReadCache := none) : IO (Option IndexLookup) := do
   let selected := match query.predicate with
@@ -3430,50 +3974,58 @@ def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
     | _ => none
   let some (column, target) := selected | return none
   let some columnSpec := schema.columns[column]? | return none
-  IO.FS.withFile paths.main .read fun handle => do
-    let metadata ← paths.main.metadata
-    let some firstPage ← readPageBytes handle | return none
-    let some (header, _) := FileFormat.decodeDatabaseHeader firstPage |
-      return none
-    let count := header.databaseSizePages.val
-    unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
-        header.headerPrefix.reservedSpace = 0 && header.textEncoding.val = 1 &&
-        metadata.byteSize.toNat = count * PhysicalCodec.pageSize &&
-        CoreFile.hasGeneratedImageStamp header do return none
-    let some catalog := CoreDecode.decodeCatalog firstPage | return none
-    let some tableEntry := catalog.find? fun entry =>
-      entry.kind == "table" && entry.name == tableName | return none
-    let some tableSql := tableEntry.sql | return none
-    let some decodedSchema := CoreDecode.parseTableSchema tableSql | return none
-    unless decodedSchema = schema && schema.name = tableName do return none
-    let some indexEntry := catalog.find? (generatedIndexEntryMatches schema
-      tableName column columnSpec.name) | return none
-    let reads ← IO.mkRef 0
-    let base := match cache with
-      | some cache => preadPageSourceCached paths.main count cache
-      | none => preadPageSource paths.main count
-    let source : CoreDecode.IOPageSource := {
-      pageCount := count
-      readPage := fun pageNumber => do
-        reads.modify (· + 1)
-        base.readPage pageNumber }
-    let entries ← match target with
-      | .equality value =>
-          CoreDecode.lookupIndexValueIOFrom source value
-            (count + 1) indexEntry.rootPage
-      | .range operation value =>
-          CoreDecode.lookupIndexRangeIOFrom source operation value
-            (count + 1) indexEntry.rootPage
-    let some entries := entries | return none
-    let mut candidates := []
-    for entry in entries do
-      let some resolved ← CoreDecode.lookupTableRowidIOFrom schema source
-          entry.rowid (count + 1) tableEntry.rootPage | return none
-      let some row := resolved | return none
-      unless row.rowid = entry.rowid && row.WellFormed schema &&
-          row.value column = entry.value do return none
-      candidates := row :: candidates
-    return some ⟨candidates.mergeSort rowidLe, ← reads.get⟩
+  let count := geometry.pageCount
+  let some tableEntry := geometry.catalog.find? fun entry =>
+    entry.kind == "table" && entry.name == tableName | return none
+  let some decodedSchema := geometry.tableSchema? tableName | return none
+  unless decodedSchema = schema do return none
+  let some indexEntry := geometry.catalog.find? (generatedIndexEntryMatches schema
+    tableName column columnSpec.name) | return none
+  let reads ← IO.mkRef 0
+  let base := match cache with
+    | some cache => preadPageSourceCached paths.main count cache
+    | none => preadPageSource paths.main count
+  let source : CoreDecode.IOPageSource := {
+    pageCount := count
+    readPage := fun pageNumber => do
+      reads.modify (· + 1)
+      base.readPage pageNumber }
+  let entries ← match target with
+    | .equality value =>
+        match cache with
+        | some cache =>
+            CoreDecode.lookupIndexValueDecodedWith
+              (decodedIndexPageCached cache source) value
+              (count + 1) indexEntry.rootPage
+        | none =>
+            CoreDecode.lookupIndexValueIOFrom source value (count + 1)
+              indexEntry.rootPage
+    | .range operation value =>
+        CoreDecode.lookupIndexRangeIOFrom source operation value
+          (count + 1) indexEntry.rootPage
+  let some entries := entries | return none
+  let mut candidates := []
+  for entry in entries do
+    let resolve : IO (Option (Option Core.Row)) := match cache with
+      | some retained =>
+          lookupTableRowidBytesCached paths.main schema source retained
+            entry.rowid (count + 1) tableEntry.rootPage
+      | none =>
+          CoreDecode.lookupTableRowidTargetIOFrom schema source entry.rowid
+            (count + 1) tableEntry.rootPage
+    let resolved ← resolve
+    let some resolved := resolved | return none
+    let some row := resolved | return none
+    unless row.rowid = entry.rowid && row.WellFormed schema &&
+        row.value column = entry.value do return none
+    candidates := row :: candidates
+  return some ⟨candidates.mergeSort rowidLe, ← reads.get⟩
+
+def lookupGeneratedIndexCandidates (paths : Paths) (tableName : String)
+    (schema : Core.Schema) (query : Core.Query)
+    (cache : Option PageReadCache := none) : IO (Option IndexLookup) := do
+  let some geometry ← readGeneratedFileGeometry paths | return none
+  lookupGeneratedIndexCandidatesWith geometry paths tableName schema query cache
 
 /-- Cold ascending `ORDER BY indexed_column LIMIT n` for a stamped generated
 image. The bounded cursor crosses as many leaves and promoted interior records
@@ -3627,7 +4179,7 @@ def commitLocalizedCertified (syncOps : SyncOps) (paths : Paths)
     | some value => pure value
     | none => throw (IO.userError "localized rollback journal exceeds encoded bounds")
   IO.FS.writeBinFile paths.journalTemp
-    (bytes (PhysicalJournalCodec.encodeChecked encodable))
+    (PhysicalJournalCodec.encodeCheckedBytes encodable)
   syncOps.syncFile paths.journalTemp
   SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
   syncOps.syncDeletion paths.main
@@ -3668,7 +4220,7 @@ def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     | some value => pure value
     | none => throw (IO.userError "general MVP rollback journal exceeds encoded bounds")
   IO.FS.writeBinFile paths.journalTemp
-    (bytes (PhysicalJournalCodec.encodeChecked encodable))
+    (PhysicalJournalCodec.encodeCheckedBytes encodable)
   syncOps.syncFile paths.journalTemp
   SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
   syncOps.syncDeletion paths.main
@@ -3710,7 +4262,7 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
     | some value => pure value
     | none => throw (IO.userError "general MVP rollback journal exceeds encoded bounds")
   IO.FS.writeBinFile paths.journalTemp
-    (bytes (PhysicalJournalCodec.encodeChecked encodable))
+    (PhysicalJournalCodec.encodeCheckedBytes encodable)
   syncOps.syncFile paths.journalTemp
   SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
   syncOps.syncDeletion paths.main

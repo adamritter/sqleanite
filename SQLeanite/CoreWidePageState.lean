@@ -179,6 +179,47 @@ structure State where
   tables_eq : tables.map (fun state => state.table) = database.tables
   nextPage : Nat
 
+/-- Cached homogeneous-index fact for the one-table/one-index live shape.
+It is decided once when the physical state is loaded and then transported by
+localized inserts.  Keeping the equation in `Prop` lets the executable reuse
+the result without rescanning every logical row. -/
+def State.SingleIndexValuesText (state : State) : Prop :=
+  match state.tables with
+  | [table] =>
+      match table.table.indexes with
+      | [index] => CoreFile.indexValuesText table.table index = true
+      | _ => True
+  | _ => True
+
+instance (state : State) : Decidable state.SingleIndexValuesText := by
+  unfold State.SingleIndexValuesText
+  split
+  next table =>
+    split <;> infer_instance
+  next => exact isTrue trivial
+
+structure State.SingleIndexTextCertificate (state : State) : Type where
+  exact : state.SingleIndexValuesText
+
+def State.singleIndexValuesText? (state : State) :
+    Option (state.SingleIndexTextCertificate) :=
+  if exact : state.SingleIndexValuesText then some ⟨exact⟩ else none
+
+theorem State.singleIndexValuesText_exact {state : State}
+    (text : state.SingleIndexValuesText) {table : TableState}
+    (tables : state.tables = [table]) {index : Core.Index}
+    (indexes : table.table.indexes = [index]) :
+    CoreFile.indexValuesText table.table index = true := by
+  unfold State.SingleIndexValuesText at text
+  simpa [tables, indexes] using text
+
+theorem State.singleIndexValuesText_of_exact {state : State}
+    {table : TableState} (tables : state.tables = [table])
+    {index : Core.Index} (indexes : table.table.indexes = [index])
+    (text : CoreFile.indexValuesText table.table index = true) :
+    state.SingleIndexValuesText := by
+  simpa [State.SingleIndexValuesText, tables, indexes] using text
+
 def State.build? (database : Core.Database) : Option State :=
   match result : buildTables? 2 database.tables with
   | none => none

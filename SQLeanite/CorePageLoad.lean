@@ -188,9 +188,10 @@ def loadTable? (source : CoreDecode.PageSource) (rootPage : Nat)
       nextPage := source.pageCount + 1
       rootValid := (RecursiveBPlusTree.Node.checkRootValid_iff root.erase).mp valid }
     if represents : CoreChunkPageState.Store.rows tree = table.rows then
-      let capacity := CoreChunkPageState.chunkCapacityFor table.schema table.rows
+      let capacity := CoreChunkPageState.legacyChunkCapacityFor
+        table.schema table.rows
       some ⟨table, tree, represents, capacity,
-        CoreChunkPageState.chunkCapacityFor_pos table.schema table.rows⟩
+        CoreChunkPageState.legacyChunkCapacityFor_pos table.schema table.rows⟩
     else none
   else none
 
@@ -302,8 +303,10 @@ def loadOpenTable? (source : CoreDecode.PageSource)
               table
               tree
               represents := (Core.Table.rebuild_exact rebuilt).2.2.symm
-              capacity := CoreChunkPageState.chunkCapacityFor table.schema table.rows
-              capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.schema table.rows }
+              capacity := CoreChunkPageState.legacyChunkCapacityFor
+                table.schema table.rows
+              capacity_pos := CoreChunkPageState.legacyChunkCapacityFor_pos
+                table.schema table.rows }
       else none
     else none
   else none

@@ -169,7 +169,7 @@ if grep -q 'rollbackCommit_core_crash_atomic' SQLeanite/ProofAxioms.lean &&
      SQLeanite/CoreDurability.lean &&
    grep -q 'decodeChecked_makeJournal_exact' \
      SQLeanite/ProofAxioms.lean &&
-   grep -q 'PhysicalJournalCodec.encodeChecked encodable' \
+   grep -q 'PhysicalJournalCodec.encodeCheckedBytes encodable' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'PhysicalJournalCodec.decodeChecked encoded.data.toList' \
      SQLeanite/CoreFileAdapter.lean; then
@@ -421,7 +421,7 @@ fi
 
 if grep -q 'CoreFileAdapter.lookupCertifiedIndexCandidates certificates' \
      SQLeanite/CoreFileEngine.lean &&
-   grep -q 'return (live, .ok (state, \[lookup.result\]))' \
+   grep -q 'return (live, .ok (live, \[lookup.result\]))' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'retargetIntegerIndexCertificates certificates' \
      SQLeanite/CoreFileEngine.lean &&

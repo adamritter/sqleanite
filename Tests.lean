@@ -2665,6 +2665,8 @@ private def expectWideCIndexCertificate : IO Unit := do
       fail "wide C-produced index unexpectedly used the generated 2-3 decoder"
   | .allValues _ =>
       fail "integer-only wide index received a conservative mixed certificate"
+  | .text _ =>
+      fail "integer-only wide index received a text certificate"
   let target : Core.Value := .integer ⟨20000, by decide, by decide⟩
   let query : Core.Query := {
     columns := [0, index.column]

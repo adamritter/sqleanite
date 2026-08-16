@@ -9,11 +9,11 @@ namespace CoreChunkPageState
 
 The generic verified 2-3 tree stores *page chunks*, not individual rows.  This
 keeps its small, fully proved branching algorithm while making physical page
-count proportional to SQLite leaf capacity rather than row count.  A chunk is
-bounded at the byte-aware `chunkCapacityFor`, so one chunk fills at most one
-SQLite leaf page.  The selected positive capacity is retained in each
-proof-carrying `TableState`; bulk construction and later local splits therefore
-use one policy rather than silently reverting to a fixed row count.
+count proportional to SQLite leaf capacity rather than row count.
+`chunkCapacityFor` is the one-chunk page budget used by the high-fanout tree.
+The retained 2-3 compatibility tree uses `legacyChunkCapacityFor`, since one of
+its leaves may contain two chunks.  Both positive capacities are carried in
+their proof-carrying table states.
 -/
 
 abbrev Chunk := List Core.Row
@@ -70,6 +70,18 @@ def chunkCapacityFor (schema : Core.Schema) (rows : List Core.Row) : Nat :=
 theorem chunkCapacityFor_pos (schema : Core.Schema) (rows : List Core.Row) :
     0 < chunkCapacityFor schema rows := by
   simp only [chunkCapacityFor, chunkCapacity]
+  omega
+
+/-- Compatibility capacity for the proof-oriented 2-3 physical tree.  A leaf
+can contain two entries, so each chunk receives half the page byte budget. -/
+def legacyChunkCapacityFor (schema : Core.Schema) (rows : List Core.Row) : Nat :=
+  let widest := rows.foldl
+    (fun bound row => max bound (rowCellBound schema row)) 0
+  max 1 ((PhysicalCodec.pageSize - 8) / (2 * (widest + 2)))
+
+theorem legacyChunkCapacityFor_pos (schema : Core.Schema)
+    (rows : List Core.Row) : 0 < legacyChunkCapacityFor schema rows := by
+  simp only [legacyChunkCapacityFor]
   omega
 
 def chunks : Nat → List α → List (List α)
@@ -386,7 +398,7 @@ theorem buildTree_rows (capacity : Nat) (rootPage : Nat) (table : Core.Table)
 
 def TableState.build? (rootPage : Nat) (table : Core.Table) :
     Option TableState :=
-  let capacity := chunkCapacityFor table.schema table.rows
+  let capacity := legacyChunkCapacityFor table.schema table.rows
   let rowChunks := chunks capacity table.rows
   match result : entries? rowChunks with
   | none => none
@@ -397,7 +409,7 @@ def TableState.build? (rootPage : Nat) (table : Core.Table) :
       let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
         built.rootValid
       some ⟨table, tree, buildTree_rows _ rootPage table result, capacity,
-        chunkCapacityFor_pos table.schema table.rows⟩
+        legacyChunkCapacityFor_pos table.schema table.rows⟩
 
 def buildTables? : Nat → List Core.Table →
     Option (List TableState × Nat)

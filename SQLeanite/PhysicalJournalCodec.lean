@@ -167,6 +167,62 @@ def encodeChecked (journal : Encodable) : List UInt8 :=
   let payload := encode journal
   encodeU32Bytes (checksumValue payload) ++ payload
 
+/-! The live writer should not have to turn every 4 KiB page into a linked
+list and then immediately copy that list back into an array.  The array codec
+below is definitionally the same wire format as `encodeChecked`; the theorems
+make that optimization part of the checked format boundary rather than a
+second, unverified encoder. -/
+
+def encodeUndoArray :
+    List (GrowableStorage.UndoRecord PhysicalCodec.pageSize) → Array UInt8
+  | [] => #[]
+  | record :: records =>
+      ((encodeUnsignedFixed 4 record.pageId).toArray.append
+        record.before.bytes).append (encodeUndoArray records)
+
+theorem encodeUndoArray_toList
+    (records : List (GrowableStorage.UndoRecord PhysicalCodec.pageSize)) :
+    (encodeUndoArray records).toList = encodeUndo records := by
+  induction records with
+  | nil => rfl
+  | cons record records induction =>
+      simp [encodeUndoArray, encodeUndo, encodeUndoRecord, induction]
+
+def encodeArray (journal : Encodable) : Array UInt8 :=
+  ((((magic.toArray.append
+    (encodeUnsignedFixed 4 journal.journal.originalPageCount).toArray).append
+      (encodeUnsignedFixed 4 journal.journal.undo.length).toArray).append
+        (encodeUndoArray journal.journal.undo)))
+
+theorem encodeArray_toList (journal : Encodable) :
+    (encodeArray journal).toList = encode journal := by
+  simp [encodeArray, encode, encodeUndoArray_toList]
+
+def checksumArray (input : Array UInt8) : Nat :=
+  (input.foldl checksumStep 2166136261) % checksumModulus
+
+theorem checksumArray_eq_checksumBytes (input : Array UInt8) :
+    checksumArray input = checksumBytes input.toList := by
+  simp [checksumArray, checksumBytes]
+
+theorem checksumArray_lt (input : Array UInt8) :
+    checksumArray input < checksumModulus := by
+  unfold checksumArray
+  exact Nat.mod_lt _ (by decide)
+
+def checksumArrayValue (input : Array UInt8) : U32Value :=
+  ⟨checksumArray input,
+    by simpa [checksumModulus] using checksumArray_lt input⟩
+
+def encodeCheckedBytes (journal : Encodable) : ByteArray :=
+  let payload := encodeArray journal
+  ⟨(encodeU32Bytes (checksumArrayValue payload)).toArray.append payload⟩
+
+theorem encodeCheckedBytes_toList (journal : Encodable) :
+    (encodeCheckedBytes journal).data.toList = encodeChecked journal := by
+  simp [encodeCheckedBytes, encodeChecked, checksumArrayValue,
+    checksumValue, checksumArray_eq_checksumBytes, encodeArray_toList]
+
 def decodeChecked (input : List UInt8) :
     Option (GrowableStorage.Journal PhysicalCodec.pageSize) := do
   let (storedChecksum, payload) ← decodeU32Bytes input
@@ -185,6 +241,11 @@ theorem decodeChecked_encode (journal : Encodable) :
   rw [show encode journal = encode journal ++ [] by simp,
     decode_encode journal []]
   simp [checksumValue]
+
+theorem decodeChecked_encodeBytes (journal : Encodable) :
+    decodeChecked (encodeCheckedBytes journal).data.toList =
+      some journal.journal := by
+  rw [encodeCheckedBytes_toList, decodeChecked_encode]
 
 /-- The exact checked bytes emitted by the live adapter decode to a journal
 containing precisely the old pre-images required by its page delta. -/

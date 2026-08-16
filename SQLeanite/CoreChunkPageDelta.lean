@@ -2285,6 +2285,213 @@ def textIndexEntrySortKey (entry : CoreDecode.IndexEntry) :
 def textIndexEntryLe (left right : CoreDecode.IndexEntry) : Bool :=
   (compare (textIndexEntrySortKey left) (textIndexEntrySortKey right)).isLE
 
+theorem indexEntryLess_eq_textCompare
+    (left right : CoreDecode.IndexEntry)
+    {leftText rightText : PhysicalCodec.Text}
+    (leftEq : left.value = .text leftText)
+    (rightEq : right.value = .text rightText) :
+    indexEntryLess left right =
+      (compare (textIndexEntrySortKey left)
+        (textIndexEntrySortKey right)).isLT := by
+  unfold indexEntryLess textIndexEntrySortKey
+  simp only [leftEq, rightEq, PhysicalQuery.compareValue]
+  change (match compare leftText.bytes rightText.bytes with
+    | .lt => true
+    | .gt => false
+    | .eq => decide (left.rowid.value < right.rowid.value)) =
+      ((compare leftText.bytes rightText.bytes).then
+        (compare left.rowid.value right.rowid.value)).isLT
+  cases comparison : compare leftText.bytes rightText.bytes <;>
+    simp [comparison]
+  by_cases less : left.rowid.value < right.rowid.value
+  · have ordered : compare left.rowid.value right.rowid.value = .lt :=
+      compareOfLessAndEq_eq_lt.mpr less
+    simp [less, ordered]
+  · have notOrdered : compare left.rowid.value right.rowid.value ≠ .lt :=
+      fun ordered => less (compareOfLessAndEq_eq_lt.mp ordered)
+    cases ordered : compare left.rowid.value right.rowid.value <;> simp_all
+
+theorem insertIndexEntry_perm (entry : CoreDecode.IndexEntry) :
+    ∀ entries, (insertIndexEntry entry entries).Perm (entry :: entries)
+  | [] => List.Perm.refl _
+  | candidate :: entries => by
+      unfold insertIndexEntry
+      split
+      · exact List.Perm.refl _
+      · exact (insertIndexEntry_perm entry entries).cons candidate |>.trans
+          (List.Perm.swap entry candidate entries)
+
+theorem textKey_reverse_le_of_not_lt
+    (left right : CoreDecode.IndexEntry)
+    (notLess : (compare (textIndexEntrySortKey left)
+      (textIndexEntrySortKey right)).isLT = false) :
+    textIndexEntryLe right left = true := by
+  unfold textIndexEntryLe
+  cases comparison : compare (textIndexEntrySortKey left)
+      (textIndexEntrySortKey right) with
+  | lt => simp [comparison] at notLess
+  | eq =>
+      have reverse := Std.OrientedCmp.eq_comm.mp comparison
+      simp [reverse]
+  | gt =>
+      have reverse := Std.OrientedCmp.lt_of_gt comparison
+      simp [reverse]
+
+theorem insertIndexEntry_pairwise_text
+    (entry : CoreDecode.IndexEntry) {entryText : PhysicalCodec.Text}
+    (entryEq : entry.value = .text entryText) : ∀ entries,
+    (∀ candidate ∈ entries, ∃ text : PhysicalCodec.Text,
+      candidate.value = .text text) →
+    entries.Pairwise (fun left right => textIndexEntryLe left right = true) →
+    (insertIndexEntry entry entries).Pairwise
+      (fun left right => textIndexEntryLe left right = true)
+  | [], _, _ => by simp [insertIndexEntry]
+  | candidate :: entries, allText, sorted => by
+      rcases allText candidate (by simp) with ⟨candidateText, candidateEq⟩
+      have tailText : ∀ current ∈ entries,
+          ∃ text : PhysicalCodec.Text, current.value = .text text := by
+        intro current member
+        exact allText current (by simp [member])
+      have candidateBefore : ∀ current ∈ entries,
+          textIndexEntryLe candidate current = true :=
+        (List.pairwise_cons.mp sorted).1
+      have tailSorted := (List.pairwise_cons.mp sorted).2
+      unfold insertIndexEntry
+      split
+      next less =>
+        have lessCompare := indexEntryLess_eq_textCompare entry candidate
+          entryEq candidateEq
+        rw [lessCompare] at less
+        have entryBeforeCandidate :
+            textIndexEntryLe entry candidate = true := by
+          unfold textIndexEntryLe
+          cases comparison : compare (textIndexEntrySortKey entry)
+              (textIndexEntrySortKey candidate) <;> simp_all
+        apply List.pairwise_cons.mpr
+        constructor
+        · intro current member
+          rcases List.mem_cons.mp member with rfl | member
+          · exact entryBeforeCandidate
+          · unfold textIndexEntryLe at entryBeforeCandidate ⊢
+            exact Std.TransOrd.isLE_trans entryBeforeCandidate
+              (candidateBefore current member)
+        · exact sorted
+      next notLess =>
+        have notLessFalse : indexEntryLess entry candidate = false :=
+          (Bool.not_eq_true _).mp notLess
+        have compareEq := indexEntryLess_eq_textCompare entry candidate
+          entryEq candidateEq
+        rw [compareEq] at notLessFalse
+        have candidateEntry := textKey_reverse_le_of_not_lt entry candidate
+          notLessFalse
+        apply List.pairwise_cons.mpr
+        constructor
+        · intro current member
+          have sourceMember : current ∈ entry :: entries :=
+            (insertIndexEntry_perm entry entries).subset member
+          rcases List.mem_cons.mp sourceMember with rfl | sourceMember
+          · exact candidateEntry
+          · exact candidateBefore current sourceMember
+        · exact insertIndexEntry_pairwise_text entry entryEq entries
+            tailText tailSorted
+
+theorem textIndexEntryLe_trans (left middle right : CoreDecode.IndexEntry)
+    (leftMiddle : textIndexEntryLe left middle = true)
+    (middleRight : textIndexEntryLe middle right = true) :
+    textIndexEntryLe left right = true := by
+  unfold textIndexEntryLe at leftMiddle middleRight ⊢
+  exact Std.TransOrd.isLE_trans leftMiddle middleRight
+
+theorem textIndexEntryLe_total (left right : CoreDecode.IndexEntry) :
+    (textIndexEntryLe left right || textIndexEntryLe right left) = true := by
+  unfold textIndexEntryLe
+  cases comparison : compare (textIndexEntrySortKey left)
+      (textIndexEntrySortKey right) with
+  | lt => simp [comparison]
+  | eq => simp [comparison]
+  | gt =>
+      have reverse := Std.OrientedCmp.lt_of_gt comparison
+      simp [comparison, reverse]
+
+theorem textIndexEntryLe_antisymm
+    (left right : CoreDecode.IndexEntry)
+    {leftText rightText : PhysicalCodec.Text}
+    (leftEq : left.value = .text leftText)
+    (rightEq : right.value = .text rightText)
+    (leftRight : textIndexEntryLe left right = true)
+    (rightLeft : textIndexEntryLe right left = true) : left = right := by
+  unfold textIndexEntryLe at leftRight rightLeft
+  have comparison := Std.TransCmp.isLE_antisymm leftRight rightLeft
+  have keyBeq := Std.LawfulBEqOrd.compare_eq_iff_beq.mp comparison
+  have keyEq := LawfulBEq.eq_of_beq keyBeq
+  simp only [textIndexEntrySortKey, leftEq, rightEq,
+    Prod.mk.injEq] at keyEq
+  rcases keyEq with ⟨bytesEq, rowidValueEq⟩
+  have textEq : leftText = rightText := by
+    cases leftText
+    cases rightText
+    simp_all
+  have rowidEq : left.rowid = right.rowid := by
+    cases leftRow : left.rowid with
+    | mk leftRowid leftLower leftUpper =>
+      cases rightRow : right.rowid with
+      | mk rightRowid rightLower rightUpper =>
+        have rowidValues : leftRowid = rightRowid := by
+          simpa [leftRow, rightRow] using rowidValueEq
+        subst rightRowid
+        congr
+  cases left
+  cases right
+  simp_all
+
+theorem mergeSort_append_text_insert
+    (entries : List CoreDecode.IndexEntry) (entry : CoreDecode.IndexEntry)
+    {entryText : PhysicalCodec.Text}
+    (entryEq : entry.value = .text entryText)
+    (allText : ∀ candidate ∈ entries,
+      ∃ text : PhysicalCodec.Text, candidate.value = .text text) :
+    (entries ++ [entry]).mergeSort textIndexEntryLe =
+      insertIndexEntry entry (entries.mergeSort textIndexEntryLe) := by
+  apply List.Perm.eq_of_sorted
+  · intro left right leftMember rightMember leftRight rightLeft
+    have leftSource : left ∈ entries ++ [entry] :=
+      (List.mergeSort_perm (entries ++ [entry]) textIndexEntryLe).subset
+        leftMember
+    have textOfSource : ∀ candidate ∈ entries ++ [entry],
+        ∃ text : PhysicalCodec.Text, candidate.value = .text text := by
+      intro candidate member
+      simp only [List.mem_append, List.mem_singleton] at member
+      rcases member with old | rfl
+      · exact allText candidate old
+      · exact ⟨entryText, entryEq⟩
+    rcases textOfSource left leftSource with ⟨leftText, leftEq⟩
+    rcases textOfSource right (by
+      have permSource := (insertIndexEntry_perm entry
+        (entries.mergeSort textIndexEntryLe)).subset rightMember
+      rcases List.mem_cons.mp permSource with rfl | sortedMember
+      · simp
+      · have oldMember := List.mem_mergeSort.mp sortedMember
+        exact List.mem_append_left _ oldMember) with ⟨rightText, rightEq⟩
+    exact textIndexEntryLe_antisymm left right leftEq rightEq
+      leftRight rightLeft
+  · exact List.sorted_mergeSort textIndexEntryLe_trans
+      textIndexEntryLe_total (entries ++ [entry])
+  · apply insertIndexEntry_pairwise_text entry entryEq
+    · intro candidate member
+      exact allText candidate (List.mem_mergeSort.mp member)
+    · exact List.sorted_mergeSort textIndexEntryLe_trans
+        textIndexEntryLe_total entries
+  · have insertedPerm := insertIndexEntry_perm entry
+      (entries.mergeSort textIndexEntryLe)
+    have sortedPerm := List.mergeSort_perm entries textIndexEntryLe
+    have moved := List.perm_middle (a := entry) (l₁ := entries) (l₂ := [])
+    have moved' : (entries ++ [entry]).Perm (entry :: entries) := by
+      simp only [List.append_nil] at moved
+      exact moved
+    have finalPerm := List.mergeSort_perm (entries ++ [entry]) textIndexEntryLe
+    exact finalPerm.trans
+      (moved'.trans ((sortedPerm.cons entry).symm.trans insertedPerm.symm))
+
 def indexEntriesText (entries : List CoreDecode.IndexEntry) : Bool :=
   entries.all fun entry => CoreFile.valueIsText entry.value
 
@@ -2295,6 +2502,43 @@ def sortIndexEntries (entries : List CoreDecode.IndexEntry) :
   else if indexEntriesText entries then
     entries.mergeSort textIndexEntryLe
   else entries.foldl (fun sorted entry => insertIndexEntry entry sorted) []
+
+theorem sortIndexEntries_append_text_insert
+    (entries : List CoreDecode.IndexEntry) (entry : CoreDecode.IndexEntry)
+    {entryText : PhysicalCodec.Text}
+    (entryEq : entry.value = .text entryText)
+    (allText : ∀ candidate ∈ entries,
+      ∃ text : PhysicalCodec.Text, candidate.value = .text text) :
+    sortIndexEntries (entries ++ [entry]) =
+      insertIndexEntry entry (sortIndexEntries entries) := by
+  cases entries with
+  | nil =>
+      simp [sortIndexEntries, indexEntriesInteger, indexEntriesText,
+        entryEq, insertIndexEntry]
+  | cons head tail =>
+      rcases allText head (by simp) with ⟨headText, headEq⟩
+      have oldNotInteger : indexEntriesInteger (head :: tail) ≠ true := by
+        simp [indexEntriesInteger, headEq, CoreFile.valueIsInteger]
+      have newNotInteger :
+          indexEntriesInteger ((head :: tail) ++ [entry]) ≠ true := by
+        simp [indexEntriesInteger, headEq, CoreFile.valueIsInteger]
+      have oldText : indexEntriesText (head :: tail) = true := by
+        apply List.all_eq_true.mpr
+        intro candidate member
+        rcases allText candidate member with ⟨text, equal⟩
+        simp [indexEntriesText, CoreFile.valueIsText, equal]
+      have newText : indexEntriesText ((head :: tail) ++ [entry]) = true := by
+        apply List.all_eq_true.mpr
+        intro candidate member
+        simp only [List.mem_append, List.mem_singleton] at member
+        rcases member with old | rfl
+        · rcases allText candidate old with ⟨text, equal⟩
+          simp [CoreFile.valueIsText, equal]
+        · simp [CoreFile.valueIsText, entryEq]
+      unfold sortIndexEntries
+      rw [if_neg newNotInteger, if_pos newText,
+        if_neg oldNotInteger, if_pos oldText]
+      exact mergeSort_append_text_insert (head :: tail) entry entryEq allText
 
 theorem integerIndexRowLe_entry (index : Core.Index)
     (left right : Core.Row) :
@@ -2395,6 +2639,41 @@ theorem expectedIndexEntries_eq_sortSource (table : Core.Table)
         exact texts
       rw [if_neg sourceNotTexts]
       simpa using map_foldInsertIndexRow index table.rows []
+
+theorem expectedIndexEntries_append_text
+    (before after : Core.Table) (index : Core.Index) (row : Core.Row)
+    (rowsEq : after.rows = before.rows ++ [row])
+    (beforeText : CoreFile.indexValuesText before index = true)
+    {rowText : PhysicalCodec.Text}
+    (rowTextEq : row.value index.column = .text rowText) :
+    CoreDecode.expectedIndexEntries after index =
+      insertIndexEntry (indexEntryOfRow index row)
+        (CoreDecode.expectedIndexEntries before index) := by
+  rw [expectedIndexEntries_eq_sortSource,
+    expectedIndexEntries_eq_sortSource, rowsEq, List.map_append]
+  simp only [List.map_singleton]
+  apply sortIndexEntries_append_text_insert
+  · exact rowTextEq
+  · intro candidate member
+    rcases List.mem_map.mp member with ⟨sourceRow, sourceMember, rfl⟩
+    rcases (CoreFile.indexValuesText_iff before index).mp beforeText sourceRow
+      sourceMember with ⟨text, equal⟩
+    exact ⟨text, equal⟩
+
+theorem indexValuesText_append_text
+    (before after : Core.Table) (index : Core.Index) (row : Core.Row)
+    (rowsEq : after.rows = before.rows ++ [row])
+    (beforeText : CoreFile.indexValuesText before index = true)
+    {rowText : PhysicalCodec.Text}
+    (rowTextEq : row.value index.column = .text rowText) :
+    CoreFile.indexValuesText after index = true := by
+  unfold CoreFile.indexValuesText at beforeText ⊢
+  rw [rowsEq, List.all_eq_true]
+  intro candidate member
+  simp only [List.mem_append, List.mem_singleton] at member
+  rcases member with old | rfl
+  · exact (List.all_eq_true.mp beforeText) candidate old
+  · simp [CoreFile.valueIsText, rowTextEq]
 
 /-- Primary-order index inputs. Equality is linear to decide; unlike
 `indexImage`, it does not sort every index twice on each table mutation. -/
