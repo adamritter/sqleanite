@@ -1,0 +1,158 @@
+import SQLeanite.CoreChunkPageState
+import SQLeanite.WidePageTree
+
+namespace SQLeanite
+namespace CoreWidePageState
+
+/-!
+# Proof-carrying high-fanout Core table state
+
+This is the migration target for the live physical representation.  It reuses
+the byte-budgeted chunks from `CoreChunkPageState`, but one `WidePageTree`
+branch corresponds to one SQLite interior page and can own 256 children.
+The former 2-3 store remains live until the matching byte codec and localized
+mutation proofs are complete; keeping this state separate makes that cutover
+atomic and leaves the public path green throughout the migration.
+-/
+
+abbrev Chunk := CoreChunkPageState.Chunk
+
+def Node.rows (node : WidePageTree.Node Chunk) : List Core.Row :=
+  node.toList.flatMap fun entry => entry.2
+
+def Store.rows (store : WidePageTree.Store Chunk) : List Core.Row :=
+  Node.rows store.root
+
+structure TableState where
+  table : Core.Table
+  tree : WidePageTree.Store Chunk
+  represents : Store.rows tree = table.rows
+  capacity : Nat
+  capacity_pos : 0 < capacity
+
+def TableState.rootPage (state : TableState) : Nat :=
+  state.tree.root.rootId
+
+def TableState.pageIds (state : TableState) : List Nat :=
+  state.tree.root.pageIds
+
+theorem buildTree_rows (capacity startPage : Nat) (table : Core.Table)
+    {entries : List (PagedBTree.Entry Chunk)}
+    (entriesResult : CoreChunkPageState.entries?
+      (CoreChunkPageState.chunks capacity table.rows) = some entries)
+    {tree : WidePageTree.Store Chunk}
+    (built : WidePageTree.Store.build? startPage entries
+      (CoreChunkPageState.entries?_sorted capacity table entriesResult) =
+        some tree) :
+    Store.rows tree = table.rows := by
+  unfold Store.rows Node.rows
+  change tree.toList.flatMap (fun entry => entry.2) = table.rows
+  rw [WidePageTree.Store.build?_toList built,
+    List.flatMap_def, (CoreChunkPageState.entries?_projections entriesResult).1,
+    CoreChunkPageState.flatten_chunks]
+
+def TableState.build? (startPage : Nat) (table : Core.Table) :
+    Option TableState :=
+  let capacity := CoreChunkPageState.chunkCapacityFor table.rows
+  let rowChunks := CoreChunkPageState.chunks capacity table.rows
+  match entriesResult : CoreChunkPageState.entries? rowChunks with
+  | none => none
+  | some entries =>
+      let ordered := CoreChunkPageState.entries?_sorted capacity table
+        entriesResult
+      match built : WidePageTree.Store.build? startPage entries ordered with
+      | none => none
+      | some tree => some {
+          table
+          tree
+          represents := buildTree_rows capacity startPage table entriesResult built
+          capacity
+          capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.rows }
+
+theorem TableState.build?_table {startPage : Nat} {table : Core.Table}
+    {state : TableState}
+    (built : TableState.build? startPage table = some state) :
+    state.table = table := by
+  simp only [TableState.build?] at built
+  split at built
+  next => contradiction
+  next entries =>
+    split at built
+    next => contradiction
+    next tree =>
+      injection built with equal
+      subst state
+      rfl
+
+theorem TableState.build?_represents {startPage : Nat} {table : Core.Table}
+    {state : TableState}
+    (built : TableState.build? startPage table = some state) :
+    Store.rows state.tree = table.rows := by
+  rw [state.represents, TableState.build?_table built]
+
+def buildTables? : Nat → List Core.Table →
+    Option (List TableState × Nat)
+  | nextPage, [] => some ([], nextPage)
+  | nextPage, table :: tables => do
+      let head ← TableState.build? nextPage table
+      let tail ← buildTables? head.tree.nextPage tables
+      some (head :: tail.1, tail.2)
+
+theorem buildTables?_tables : ∀ (nextPage : Nat) (tables : List Core.Table)
+    (result : List TableState × Nat),
+    buildTables? nextPage tables = some result →
+      result.1.map (fun state => state.table) = tables
+  | _, [], result, built => by
+      simp only [buildTables?, Option.some.injEq] at built
+      subst result
+      rfl
+  | nextPage, table :: tables, result, built => by
+      simp only [buildTables?, Option.bind_eq_bind, Option.bind] at built
+      cases headResult : TableState.build? nextPage table with
+      | none => simp [headResult] at built
+      | some head =>
+          simp only [headResult] at built
+          cases tailResult : buildTables? head.tree.nextPage tables with
+          | none => simp [tailResult] at built
+          | some tail =>
+              simp only [tailResult, Option.some.injEq] at built
+              subst result
+              simp only [List.map_cons, List.cons.injEq]
+              exact ⟨TableState.build?_table headResult,
+                buildTables?_tables head.tree.nextPage tables tail tailResult⟩
+
+structure State where
+  database : Core.Database
+  tables : List TableState
+  tables_eq : tables.map (fun state => state.table) = database.tables
+  nextPage : Nat
+
+def State.build? (database : Core.Database) : Option State :=
+  match result : buildTables? 2 database.tables with
+  | none => none
+  | some built => some {
+      database
+      tables := built.1
+      tables_eq := buildTables?_tables 2 database.tables built result
+      nextPage := built.2 }
+
+def State.Represents (state : State) (database : Core.Database) : Prop :=
+  state.database = database ∧
+    state.tables.map (fun table => table.table) = database.tables ∧
+    ∀ table ∈ state.tables, Store.rows table.tree = table.table.rows
+
+theorem State.build?_represents {database : Core.Database} {state : State}
+    (built : State.build? database = some state) :
+    state.Represents database := by
+  unfold State.build? at built
+  split at built
+  next => contradiction
+  next buildResult result =>
+    simp only [Option.some.injEq] at built
+    subst state
+    refine ⟨rfl, buildTables?_tables 2 database.tables buildResult result, ?_⟩
+    intro table _
+    exact table.represents
+
+end CoreWidePageState
+end SQLeanite

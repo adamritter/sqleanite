@@ -3435,6 +3435,23 @@ private def expectPersistentPageTree : IO Unit := do
       "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
   unless check.exitCode == 0 && check.stdout == "ok\n3\n1\n" do
     fail s!"sqlite3 rejected stable-page bulk encoding: {check.stderr}{check.stdout}"
+  let wideImage ← match CoreWidePageCodec.encodeBulkInline logical with
+    | some image => pure image
+    | none => fail "wide physical codec rejected inline Core tables"
+  let wideReopened ← match CoreDecode.decode wideImage.fileBytes with
+    | some database => pure database
+    | none => fail "general decoder rejected the wide physical image"
+  unless wideReopened.Equiv logical do
+    fail "wide physical encoding changed the logical database"
+  let widePath : System.FilePath :=
+    ".lake/build/sqleanite-wide-page-bulk.db"
+  IO.FS.writeBinFile widePath (ByteArray.mk wideImage.fileBytes.toArray)
+  let wideCheck ← IO.Process.output {
+    cmd := "/usr/bin/sqlite3"
+    args := #[widePath.toString, "-batch", "-noheader",
+      "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
+  unless wideCheck.exitCode == 0 && wideCheck.stdout == "ok\n3\n1\n" do
+    fail s!"sqlite3 rejected wide physical encoding: {wideCheck.stderr}{wideCheck.stdout}"
   -- The 130k-row YCSB census contained exactly 43,333 byte-budgeted chunks.
   -- A physical 2-3 topology used 43,326 interior pages for them.  The wide
   -- topology packs two chunks per leaf and up to 256 children per interior.
