@@ -221,15 +221,67 @@ The decomposition is in `docs/LAZY_WRITE_DESIGN.md`: frame (other pages unchange
 concatenation (a table's rows are its leaves' rows in page order), and routing (a
 key belongs to exactly one leaf).
 
-**Where the proof is stuck.** Both `CoreDecode.decodeSubtreeRowsFrom` and
-`CoreDecode.decodeRowsFrom` are written with `do`-notation. Its `Option` bind is not
-reduced by `dsimp`, `Option.bind_some`, `Option.some_bind` or `Option.bind`, and
-`split` cannot see through it, so case analysis on the recursion is impractical as
-written. The way forward is an explicit-match restatement of
-`decodeSubtreeRowsFrom` proved by `rfl` -- attempted, and the restatement needs its
-`foldlM` types pinned down -- after which the induction follows the shape below.
-Restating the definitions themselves with explicit matches, as `subtreePages` does,
-would remove the obstacle for good. -/
+**Frame is proved.** The obstacle was that the decoders are written with
+`do`-notation, whose `Option` bind is not reduced by `dsimp`, `Option.bind_some`,
+`Option.some_bind` or `Option.bind`, and which `split` cannot see through. The way
+around it is `bind_congr` below: every such block *is* a bind, so a congruence lemma
+reduces the obligation to the `some` case without ever reducing the notation. The
+same trick gives `foldlM_congr` for the interior fold.
+
+Still open: routing exclusivity, and the leaf-decode premise of
+`decodeSubtreeRowsFrom_congr` (see the module header on overflow). -/
+
+/-- Congruence for `Option` bind. Case analysis on `do`-notation in the decoders is
+impractical directly -- neither `split` nor the `bind` simp lemmas see through it --
+but every such block is a bind, and this reduces the obligation to the `some` case.
+-/
+theorem bind_congr {α β : Type} {value : Option α} {f g : α → Option β}
+    (pointwise : ∀ a, value = some a → f a = g a) :
+    value.bind f = value.bind g := by
+  cases valueResult : value with
+  | none => simp
+  | some a => simpa using pointwise a valueResult
+
+/-- Congruence for `List.foldlM` in `Option`: step functions agreeing on the
+elements give equal folds. -/
+theorem foldlM_congr {α β : Type} {f g : β → α → Option β} :
+    ∀ {elements : List α} {init : β},
+      (∀ acc a, a ∈ elements → f acc a = g acc a) →
+      elements.foldlM f init = elements.foldlM g init
+  | [], _, _ => rfl
+  | a :: rest, init, pointwise => by
+      simp only [List.foldlM_cons]
+      rw [pointwise init a List.mem_cons_self]
+      refine bind_congr ?_
+      intro acc _
+      exact foldlM_congr fun acc' a' member =>
+        pointwise acc' a' (List.mem_cons_of_mem a member)
+
+/-- Every child enumerated by `mapM` has its own page list, and those pages are
+among the flattened result. -/
+theorem mapM_subtreePages_mem {source : CoreDecode.PageSource} {fuel : Nat} :
+    ∀ {children : List Nat} {nested : List (List Nat)},
+      children.mapM (subtreePages source fuel) = some nested →
+      ∀ child ∈ children, ∃ childList,
+        subtreePages source fuel child = some childList ∧
+          ∀ p ∈ childList, p ∈ nested.flatten
+  | [], nested, mapped, child, member => by simp at member
+  | c :: rest, nested, mapped, child, member => by
+      rw [List.mapM_cons] at mapped
+      rcases Option.bind_eq_some.mp mapped with ⟨headList, headResult, mapped⟩
+      rcases Option.bind_eq_some.mp mapped with ⟨tailLists, tailResult, mapped⟩
+      injection mapped with mapped
+      subst mapped
+      rcases List.mem_cons.mp member with equal | later
+      · subst equal
+        exact ⟨headList, headResult, fun p mem => by
+          simp only [List.flatten_cons]
+          exact List.mem_append_left _ mem⟩
+      · rcases mapM_subtreePages_mem tailResult child later with
+          ⟨childList, located, subset⟩
+        exact ⟨childList, located, fun p mem => by
+          simp only [List.flatten_cons]
+          exact List.mem_append_right _ (subset p mem)⟩
 
 /-- Each child's pages are among the parent's. -/
 theorem subtreePages_cons {source : CoreDecode.PageSource}
@@ -253,7 +305,37 @@ theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
     (agree : ∀ p ∈ pageList, left.readPage p = right.readPage p) :
     CoreDecode.decodeSubtreeRowsFrom schema left fuel pageNumber
       = CoreDecode.decodeSubtreeRowsFrom schema right fuel pageNumber := by
-  sorry
+  induction fuel generalizing pageNumber pageList with
+  | zero => simp [subtreePages] at enumerated
+  | succ fuel induction =>
+      have readEq : left.readPage pageNumber = right.readPage pageNumber :=
+        agree pageNumber (mem_subtreePages_self enumerated)
+      simp only [CoreDecode.decodeSubtreeRowsFrom, readEq]
+      refine bind_congr ?_
+      intro page pageResult
+      cases interiorResult : CoreDecode.interiorChildren? page with
+      | none => simpa [interiorResult] using leafAgrees page
+      | some children =>
+          simp only [interiorResult]
+          have leftPage : left.readPage pageNumber = some page := by
+            rw [readEq]; exact pageResult
+          cases nestedResult : children.mapM (subtreePages left fuel) with
+          | none =>
+              simp only [subtreePages, leftPage, interiorResult, nestedResult]
+                at enumerated
+              exact absurd enumerated (by simp)
+          | some nested =>
+          have listEq : pageList = pageNumber :: nested.flatten := by
+            have viaCons := subtreePages_cons leftPage interiorResult nestedResult
+            rw [enumerated] at viaCons
+            exact Option.some.inj viaCons
+          subst listEq
+          refine foldlM_congr ?_
+          intro acc child member
+          rcases mapM_subtreePages_mem nestedResult child member with
+            ⟨childList, located, subset⟩
+          rw [induction located (fun p mem =>
+            agree p (List.mem_cons_of_mem pageNumber (subset p mem)))]
 
 end CoreLazyWrite
 end SQLeanite
