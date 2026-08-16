@@ -215,6 +215,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.WidePageTree.Store.build?_toList
 #print axioms SQLeanite.WidePageTree.appendStep_toList
 #print axioms SQLeanite.WidePageTree.appendStep_firstRootId
+#print axioms SQLeanite.WidePageTree.Store.replaceLast?_toList
+#print axioms SQLeanite.WidePageTree.Store.replaceLast?_rootId
 #print axioms SQLeanite.CorePageCodec.decodeCanonicalRows_encodeLeaf
 #print axioms SQLeanite.CorePageCodec.encodeChunkNode_eq_mapM
 #print axioms SQLeanite.CorePageCodec.changedPhysicalChunkPagesFast_eq

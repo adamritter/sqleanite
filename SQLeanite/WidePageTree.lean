@@ -761,5 +761,121 @@ def Store.append? (store : Store Value) (entry : PagedBTree.Entry Value)
           appendStep_toList appended, by
         rfl⟩
 
+/-! ## Identity-preserving terminal replacement
+
+Appending a row usually changes the last byte-budgeted chunk rather than
+creating a new chunk.  This operation rewrites exactly the right spine and
+keeps every page identity.  Its theorem exposes both the removed terminal
+entry and the exact replacement sequence, so callers never validate the
+result by flattening and comparing the complete table. -/
+
+structure NodeReplacedLast (node : Node Value)
+    (entry : PagedBTree.Entry Value) where
+  value : Node Value
+  initial : List (PagedBTree.Entry Value)
+  old : PagedBTree.Entry Value
+  before_eq : node.toList = initial ++ [old]
+  after_eq : value.toList = initial ++ [entry]
+  rootId_eq : value.rootId = node.rootId
+
+def replaceLastStep : Nat → (node : Node Value) →
+    (entry : PagedBTree.Entry Value) →
+    Option (NodeReplacedLast node entry)
+  | 0, _, _ => none
+  | _ + 1, node@(.leaf pageId entries), entry =>
+      match splitResult : splitLast? entries with
+      | none => none
+      | some (initial, old) =>
+          let value := Node.leaf pageId (initial ++ [entry])
+          some {
+            value
+            initial
+            old
+            before_eq := by
+              simpa [Node.toList] using
+                (splitLast?_reconstruct splitResult).symm
+            after_eq := by simp [value, Node.toList]
+            rootId_eq := rfl }
+  | fuel + 1, node@(.branch pageId children), entry =>
+      match splitResult : splitLast? children with
+      | none => none
+      | some (initialChildren, last) =>
+          match replaceLastStep fuel last entry with
+          | none => none
+          | some child =>
+              let value := Node.branch pageId
+                (initialChildren ++ [child.value])
+              some {
+                value
+                initial := initialChildren.flatMap Node.toList ++ child.initial
+                old := child.old
+                before_eq := by
+                  simp only [Node.toList, List.flatMap_append,
+                    List.flatMap_singleton]
+                  rw [← splitLast?_reconstruct splitResult,
+                    List.flatMap_append, List.flatMap_singleton,
+                    child.before_eq, List.append_assoc]
+                after_eq := by
+                  simp only [value, Node.toList, List.flatMap_append,
+                    List.flatMap_singleton, child.after_eq,
+                    List.append_assoc]
+                rootId_eq := rfl }
+
+def Node.replaceLast? (node : Node Value)
+    (entry : PagedBTree.Entry Value) :
+    Option (NodeReplacedLast node entry) :=
+  replaceLastStep (node.height + 1) node entry
+
+structure ReplacedLast (store : Store Value)
+    (entry : PagedBTree.Entry Value) where
+  value : Store Value
+  initial : List (PagedBTree.Entry Value)
+  old : PagedBTree.Entry Value
+  before_eq : store.toList = initial ++ [old]
+  after_eq : value.toList = initial ++ [entry]
+  rootId_eq : value.root.rootId = store.root.rootId
+
+def Store.replaceLast? (store : Store Value)
+    (entry : PagedBTree.Entry Value)
+    (ordered : ∀ initial old, store.toList = initial ++ [old] →
+      (initial ++ [entry]).Pairwise (fun left right => left.1 < right.1)) :
+    Option (ReplacedLast store entry) :=
+  match store.root.replaceLast? entry with
+  | none => none
+  | some replaced =>
+      let value : Store Value := {
+        root := replaced.value
+        nextPage := store.nextPage
+        represents := by
+          rw [replaced.after_eq]
+          exact ordered replaced.initial replaced.old replaced.before_eq }
+      some {
+        value
+        initial := replaced.initial
+        old := replaced.old
+        before_eq := replaced.before_eq
+        after_eq := by
+          change replaced.value.toList = replaced.initial ++ [entry]
+          exact replaced.after_eq
+        rootId_eq := replaced.rootId_eq }
+
+theorem Store.replaceLast?_toList {store : Store Value}
+    {entry : PagedBTree.Entry Value}
+    {ordered : ∀ initial old, store.toList = initial ++ [old] →
+      (initial ++ [entry]).Pairwise (fun left right => left.1 < right.1)}
+    {result : ReplacedLast store entry}
+    (_success : store.replaceLast? entry ordered = some result) :
+    result.value.toList = result.initial ++ [entry] := by
+  exact result.after_eq
+
+theorem Store.replaceLast?_rootId {store : Store Value}
+    {entry : PagedBTree.Entry Value}
+    {ordered : ∀ initial old, store.toList = initial ++ [old] →
+      (initial ++ [entry]).Pairwise (fun left right => left.1 < right.1)}
+    {result : ReplacedLast store entry}
+    (_success : store.replaceLast? entry ordered = some result) :
+    result.value.root.rootId = store.root.rootId := by
+  exact result.rootId_eq
+
 end WidePageTree
 end SQLeanite
