@@ -2,6 +2,7 @@ import SQLeanite.CoreDecode
 import SQLeanite.CorePageSource
 import SQLeanite.CoreOverflow
 import SQLeanite.CoreFileAdapter
+import SQLeanite.CoreWidePageInverse
 
 /-!
 # Page-local writes
@@ -185,18 +186,16 @@ def locateLeaf? (source : CoreDecode.PageSource) (key : Nat) :
                     | none => rightmost
                   locateLeaf? source key fuel child
 
-/-- Re-encode one leaf's rows. `none` when the result would not fit a page or
-would need an overflow page, which sends the caller to the whole-database path. -/
+/-- Re-encode one leaf's rows.
+
+Built on `CorePageCodec.encodeChunkLeaf` rather than on a private encoder so that
+`CoreWidePageInverse.decodeRowsFrom_encodeChunkLeaf` -- the inverse the wide-page
+work already proved -- applies directly. A single chunk holds the whole leaf. The
+encoder returns `none` when the result would not fit a page, which sends the caller
+to the whole-database path. -/
 def encodeLeaf? (schema : Core.Schema) (rows : List Core.Row) :
     Option CoreFile.Page :=
-  match rows.mapM (CoreOverflow.tableCellPlan? schema) with
-  | none => none
-  | some plans =>
-      match CoreOverflow.resolvePlans 0 plans with
-      | none => none
-      | some resolved =>
-          if resolved.pages.isEmpty then CoreFile.tableLeafPage? resolved.cells
-          else none
+  CorePageCodec.encodeChunkLeaf schema [(0, rows)]
 
 /-- The page-local effect of inserting `row`: which leaf changes, and its new
 bytes. Reads only the pages on the root-to-leaf path. -/
@@ -227,10 +226,13 @@ to be generated, no secondary indexes, and a leaf that still fits after the inse
 Anything else returns `none` and the caller uses the whole-database path, exactly as
 `CoreLazyFileEngine` does for reads.
 
-**Unproved.** This is the executable half of the design in
-`docs/LAZY_WRITE_DESIGN.md`; the refinement showing it agrees with `Core.execute`
-is not yet discharged, so it must not be reachable from the shipped CLI until it
-is. -/
+**Proved, but not yet gated.** `insertPlan_refines` shows the plan this computes
+denotes exactly the ordered insert, so the refinement is discharged. It is
+*conditional* on `WellFormedTree` -- sound separators, disjoint sibling page sets,
+inline leaves and in-range page numbers -- and this engine does not yet run those
+checks at open time. Until decidable checkers for `TreeSound` and `TreeDisjoint`
+exist and are proved sound, the premises are unverified at runtime, so the CLI
+reaches this path only under an explicit opt-in. -/
 def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
     (paths : CoreFileAdapter.Paths) (tableName : String)
     (columns : Option (Array String)) (expressions : Array Expr) :
@@ -374,8 +376,9 @@ theorem subtreePages_cons {source : CoreDecode.PageSource}
 decoding agrees, decode that subtree identically. -/
 theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
     (left right : CoreDecode.PageSource)
-    (leafAgrees : ∀ leafBytes, CoreDecode.decodeRowsFrom schema left leafBytes
-      = CoreDecode.decodeRowsFrom schema right leafBytes)
+    (leafAgrees : ∀ p bytes, left.readPage p = some bytes →
+      CoreDecode.decodeRowsFrom schema left bytes
+        = CoreDecode.decodeRowsFrom schema right bytes)
     {fuel pageNumber : Nat} {pageList : List Nat}
     (enumerated : subtreePages left fuel pageNumber = some pageList)
     (agree : ∀ p ∈ pageList, left.readPage p = right.readPage p) :
@@ -389,12 +392,12 @@ theorem decodeSubtreeRowsFrom_congr (schema : Core.Schema)
       simp only [CoreDecode.decodeSubtreeRowsFrom, readEq]
       refine bind_congr ?_
       intro page pageResult
+      have leftPage : left.readPage pageNumber = some page := by
+        rw [readEq]; exact pageResult
       cases interiorResult : CoreDecode.interiorChildren? page with
-      | none => simpa [interiorResult] using leafAgrees page
+      | none => simpa [interiorResult] using leafAgrees pageNumber page leftPage
       | some children =>
           simp only [interiorResult]
-          have leftPage : left.readPage pageNumber = some page := by
-            rw [readEq]; exact pageResult
           cases nestedResult : children.mapM (subtreePages left fuel) with
           | none =>
               simp only [subtreePages, leftPage, interiorResult, nestedResult]
@@ -501,6 +504,23 @@ theorem decodePackedRowCellsFrom_congr (schema : Core.Schema)
             fuelRight input invariant.1]
           exact pairResult))]
 
+/-- Inlineness transports between sources, because the only thing the decoder
+consults the source for is an overflow chain, and there is none. -/
+theorem PackedInline_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (fuelLeft fuelRight : Nat) :
+    ∀ (count : Nat) (input : List UInt8),
+      PackedInline schema left fuelLeft count input →
+      PackedInline schema right fuelRight count input
+  | 0, _, _ => trivial
+  | count + 1, input, invariant =>
+      ⟨invariant.1, by
+        intro row afterRow decodedRight
+        refine PackedInline_congr schema left right fuelLeft fuelRight count afterRow
+          (invariant.2 row afterRow ?_)
+        rw [decodeRowCellWithSuffixFrom_congr schema left right fuelLeft fuelRight
+          input invariant.1]
+        exact decodedRight⟩
+
 /-- Every cell on the page fits inline. -/
 def PageInline (page : List UInt8) : Prop :=
   ∀ cells, CoreDecode.cellInputs? 0 page = some cells →
@@ -526,6 +546,13 @@ def LeafInline (schema : Core.Schema) (source : CoreDecode.PageSource)
   PageInline page ∧
     ∀ count content, CoreDecode.canonicalLeafContent? 0 page = some (count, content) →
       PackedInline schema source (source.pageCount + 1) count content
+
+theorem LeafInline_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (page : List UInt8)
+    (inline : LeafInline schema left page) : LeafInline schema right page :=
+  ⟨inline.1, fun count content content? =>
+    PackedInline_congr schema left right _ _ count content
+      (inline.2 count content content?)⟩
 
 /-- **The leaf premise, discharged.** A leaf of inline cells decodes identically
 from any source, so a page write elsewhere in the file cannot change it. This is
@@ -639,31 +666,6 @@ theorem orderedUpsert_append_of_afterAll (row : Core.Row) :
         if_pos existingBefore, List.cons_append, List.cons.injEq, true_and]
       exact orderedUpsert_append_of_afterAll row front back
         fun earlier member => afterAll earlier (List.mem_cons_of_mem existing member)
-
-/-- What a page-local write needs to know about the on-disk tree.
-
-Both parts are about *structure*, not contents, and both are established by walking
-interior pages only -- leaves are named by their parents, so no row is decoded. On
-the 1,000,000-row file that is 563 interior pages out of 148,000 and about 80 ms,
-against 143,671 ms for the whole-database open it replaces. So these are checked
-premises, not assumptions, and the generated-image stamp keeps its existing and
-weaker role.
-
-`pagesDisjoint` is what `decodeSubtreeRowsFrom_congr` consumes: without it a page
-write could be visible in two subtrees at once. `rowsOrdered` is what the
-`orderedUpsert` distribution lemmas consume: it is what makes "the key belongs to
-exactly one leaf" true rather than merely plausible. -/
-structure WellFormedTree (schema : Core.Schema) (source : CoreDecode.PageSource)
-    (fuel rootPage : Nat) where
-  pages : List Nat
-  enumerated : subtreePages source fuel rootPage = some pages
-  childrenDisjoint : ∀ nested : List (List Nat),
-    ∀ children : List Nat, subtreePages source fuel rootPage = some pages →
-      children.mapM (subtreePages source fuel) = some nested →
-      nested.Pairwise (fun left right => ∀ p ∈ left, p ∉ right)
-  rows : List Core.Row
-  decoded : CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows
-  rowsOrdered : rows.Pairwise Core.Row.keyLess
 
 /-- **Routing at a single leaf.** When the whole table lives in one leaf, a
 page-local insert is exactly the ordered insert. This is the base case of the
@@ -888,6 +890,23 @@ theorem foldlM_split {α β : Type} (f : α → Option (List β))
           rw [rightResult] at folded
           exact ⟨leftRows, rightRows, rfl, rfl, by simpa using folded.symm⟩
 
+/-- The converse of `foldlM_split`: two halves' results concatenate.
+
+Needed in the write direction, where each group's rows are known separately and the
+parent's fold has to be reassembled from them. -/
+theorem foldlM_join {α β : Type} (f : α → Option (List β))
+    (left right : List α) (leftRows rightRows : List β)
+    (leftFold : left.foldlM
+      (fun a x => (f x).bind (fun r => some (a ++ r))) [] = some leftRows)
+    (rightFold : right.foldlM
+      (fun a x => (f x).bind (fun r => some (a ++ r))) [] = some rightRows) :
+    (left ++ right).foldlM (fun a x => (f x).bind (fun r => some (a ++ r))) []
+      = some (leftRows ++ rightRows) := by
+  rw [List.foldlM_append, leftFold]
+  simp only [some_bind']
+  rw [foldlM_acc f right leftRows, rightFold]
+  simp
+
 /-- Every element of a fold's result came from some element of the input.
 
 This is what turns a per-child bound into a bound on the concatenated rows: to show
@@ -916,6 +935,21 @@ theorem foldlM_mem {α β : Type} (f : α → Option (List β)) :
       · rcases induction tailRows tailFold b inTail with ⟨y, memY, ys, fy, inYs⟩
         exact ⟨y, List.mem_cons_of_mem x memY, ys, fy, inYs⟩
 
+/-- A bound that holds of every child's rows holds of their concatenation. -/
+theorem foldRows_bound (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (fuel : Nat) (P : Core.Row → Prop) (group : List Nat) (groupRows : List Core.Row)
+    (childBound : ∀ child ∈ group, ∀ childRows,
+      CoreDecode.decodeSubtreeRowsFrom schema source fuel child = some childRows →
+      ∀ candidate ∈ childRows, P candidate)
+    (folded : group.foldlM
+      (fun a x => (CoreDecode.decodeSubtreeRowsFrom schema source fuel x).bind
+        (fun r => some (a ++ r))) ([] : List Core.Row) = some groupRows) :
+    ∀ candidate ∈ groupRows, P candidate := by
+  intro candidate member
+  rcases foldlM_mem _ group groupRows folded candidate member with
+    ⟨child, childMem, childRows, childDecoded, rowMem⟩
+  exact childBound child childMem childRows childDecoded candidate rowMem
+
 /-- The subtree's separators really bound its children's rows.
 
 This is the one premise that is about *meaning* rather than structure, and it is what
@@ -937,13 +971,41 @@ def TreeSound (schema : Core.Schema) (source : CoreDecode.PageSource) :
             (∀ entry ∈ entries, ∀ childRows,
               CoreDecode.decodeSubtreeRowsFrom schema source fuel entry.1
                   = some childRows →
-                ∀ candidate ∈ childRows, candidate.rowid.value ≤ entry.2) ∧
+                ∀ candidate ∈ childRows, candidate.treeKey ≤ entry.2) ∧
             (∀ (pre : List (Nat × Nat)) (entry : Nat × Nat)
                 (post : List (Nat × Nat)), entries = pre ++ entry :: post →
               ∀ later ∈ rightmost :: post.map Prod.fst, ∀ laterRows,
                 CoreDecode.decodeSubtreeRowsFrom schema source fuel later
                     = some laterRows →
-                ∀ candidate ∈ laterRows, entry.2 < candidate.rowid.value)
+                ∀ candidate ∈ laterRows, entry.2 < candidate.treeKey)
+
+/-- The routing key is the rowid biased by a fixed midpoint, so it orders rows the
+same way. Separators are compared in key space; `orderedUpsert` in rowid space. -/
+theorem value_lt_of_treeKey_lt {left right : Core.Row}
+    (less : left.treeKey < right.treeKey) :
+    left.rowid.value < right.rowid.value :=
+  (Core.Row.treeKey_lt_iff left right).mp less
+
+/-- Sibling subtrees own disjoint page sets.
+
+Stated recursively, in the shape routing consumes: the child the descent enters owns
+its pages, so a write inside it is invisible to its siblings. Without this the frame
+step is simply false -- a page reachable from two subtrees would change both.
+
+This is what the 80 ms interior-only walk checks. Page identities live in interior
+pages, so enumerating every page id and finding no duplicate needs no row decode. -/
+def TreeDisjoint (source : CoreDecode.PageSource) : Nat → Nat → Prop
+  | 0, _ => False
+  | fuel + 1, pageNumber =>
+      ∀ page, source.readPage pageNumber = some page →
+        ∀ children, CoreDecode.interiorChildren? page = some children →
+          (∀ child ∈ children, TreeDisjoint source fuel child) ∧
+            ∀ (pre : List Nat) (chosen : Nat) (post : List Nat),
+              children = pre ++ chosen :: post →
+              ∀ other ∈ pre ++ post, ∀ otherList chosenList,
+                subtreePages source fuel other = some otherList →
+                subtreePages source fuel chosen = some chosenList →
+                ∀ p ∈ chosenList, p ∉ otherList
 
 /-- **The remaining obligation.** A sound tree routes a key to the leaf whose segment
 it belongs in, which is exactly a `RoutedSplit`.
@@ -959,7 +1021,7 @@ and `.increasing` place the chosen child between them, and the recursive call su
 the split one level down. -/
 theorem locateLeaf_routedSplit (schema : Core.Schema)
     (source : CoreDecode.PageSource) (key : Nat) (row : Core.Row)
-    (keyIsRow : row.rowid.value = key) :
+    (keyIsRow : row.treeKey = key) :
     ∀ (fuel pageNumber leafPage : Nat) (rows : List Core.Row),
       TreeSound schema source fuel pageNumber →
       CoreDecode.decodeSubtreeRowsFrom schema source fuel pageNumber = some rows →
@@ -1037,6 +1099,7 @@ theorem locateLeaf_routedSplit (schema : Core.Schema)
             have missed := (List.find?_eq_none).mp found entry entryMem
             simp at missed
             omega
+          refine value_lt_of_treeKey_lt ?_
           rw [keyIsRow]
           omega
         · exact tailBelow earlier inSplit
@@ -1080,6 +1143,7 @@ theorem locateLeaf_routedSplit (schema : Core.Schema)
               have missed := preFails earlierEntry entryMem
               simp at missed
               omega
+            refine value_lt_of_treeKey_lt ?_
             rw [keyIsRow]
             omega
           · exact midBelow earlier inSplit
@@ -1095,8 +1159,272 @@ theorem locateLeaf_routedSplit (schema : Core.Schema)
                 simp [isRightmost]
             have gt := above pre entry post rfl child memAlt childRows childDecoded
               later rowMem
+            refine value_lt_of_treeKey_lt ?_
             rw [keyIsRow]
             omega
+
+/-- What a page-local write needs to know about the on-disk tree.
+
+Every field is a *checked* premise, not an assumption, and none of them decodes a
+row. `separators` and `disjoint` are established by walking interior pages and each
+leaf's first and last cell -- 653 ms on the 1,000,000-row file, against 143,671 ms
+for the whole-database open they replace. `inline` is the counting check: if the
+enumerated tree pages, page one and the freelist account for every page in the file,
+no overflow page exists. So the generated-image stamp keeps its existing weaker
+role. -/
+structure WellFormedTree (schema : Core.Schema) (source : CoreDecode.PageSource)
+    (fuel rootPage : Nat) where
+  pages : List Nat
+  enumerated : subtreePages source fuel rootPage = some pages
+  separators : TreeSound schema source fuel rootPage
+  disjoint : TreeDisjoint source fuel rootPage
+  inline : ∀ p bytes, source.readPage p = some bytes → LeafInline schema source bytes
+  bounded : ∀ p, (p = 0 ∨ source.pageCount < p) → source.readPage p = none
+  rows : List Core.Row
+  decoded : CoreDecode.decodeSubtreeRowsFrom schema source fuel rootPage = some rows
+
+/-- **The write, routed through the tree.** Rewriting the located leaf changes the
+subtree's rows by exactly the ordered insert, and changes nothing else.
+
+Frame and routing have to be one induction rather than two lemmas: the frame step
+needs to know *which* child owns the written page, and that is what the descent
+decides. Siblings are carried by `decodeSubtreeRowsFrom_congr`, the chosen child by
+the induction hypothesis, and `orderedUpsert_routedSplit` splices the three groups
+back together. -/
+theorem locateLeaf_write_refines (schema : Core.Schema)
+    (source new : CoreDecode.PageSource) (key : Nat) (row : Core.Row)
+    (keyIsRow : row.treeKey = key)
+    (leafPage : Nat) (oldLeafRows : List Core.Row)
+    (leafAgrees : ∀ p bytes, source.readPage p = some bytes →
+      CoreDecode.decodeRowsFrom schema source bytes
+        = CoreDecode.decodeRowsFrom schema new bytes)
+    (offTarget : ∀ p, p ≠ leafPage → source.readPage p = new.readPage p)
+    (oldTarget : ∀ oldLeaf, source.readPage leafPage = some oldLeaf →
+      CoreDecode.decodeRowsFrom schema source oldLeaf = some oldLeafRows)
+    (newLeaf : List UInt8)
+    (newRead : new.readPage leafPage = some newLeaf)
+    (newIsLeaf : CoreDecode.interiorChildren? newLeaf = none)
+    (newDecoded : CoreDecode.decodeRowsFrom schema new newLeaf
+      = some (Core.orderedUpsert row oldLeafRows)) :
+    ∀ (fuel pageNumber : Nat) (rows : List Core.Row) (pageList : List Nat),
+      TreeSound schema source fuel pageNumber →
+      TreeDisjoint source fuel pageNumber →
+      subtreePages source fuel pageNumber = some pageList →
+      CoreDecode.decodeSubtreeRowsFrom schema source fuel pageNumber = some rows →
+      locateLeaf? source key fuel pageNumber = some leafPage →
+      CoreDecode.decodeSubtreeRowsFrom schema new fuel pageNumber
+        = some (Core.orderedUpsert row rows) := by
+  intro fuel
+  induction fuel with
+  | zero => intro _ _ _ sound _ _ _ _; simp [TreeSound] at sound
+  | succ fuel induction =>
+    intro pageNumber rows pageList sound disjoint enumerated decoded located
+    have located₀ := located
+    rw [locateLeaf?] at located
+    split at located
+    · exact absurd located (by simp)
+    rename_i page pageResult
+    simp only [CoreDecode.decodeSubtreeRowsFrom, pageResult, some_bind'] at decoded
+    split at located
+    · -- The descent stops here, so the subtree is this one leaf and the write is
+      -- the whole of it.
+      rename_i childrenResult
+      simp only [childrenResult] at decoded
+      have equal : leafPage = pageNumber := (Option.some.inj located).symm
+      have oldEq : oldLeafRows = rows :=
+        Option.some.inj
+          ((oldTarget page (by rw [equal]; exact pageResult)).symm.trans decoded)
+      refine singleLeaf_refines schema new fuel pageNumber newLeaf row _
+        (by rw [← equal]; exact newRead) newIsLeaf ?_
+      rw [newDecoded, oldEq]
+    rename_i children childrenResult
+    split at located
+    · exact absurd located (by simp)
+    rename_i entries rightmost entriesResult
+    have childrenShape : children = entries.map Prod.fst ++ [rightmost] := by
+      have viaEntries := interiorEntries_children entriesResult
+      rw [childrenResult] at viaEntries
+      exact Option.some.inj viaEntries
+    subst childrenShape
+    simp only [childrenResult] at decoded
+    obtain ⟨soundChildren, bounded, above⟩ :=
+      sound page pageResult entries rightmost entriesResult
+    obtain ⟨disjointChildren, siblingsDisjoint⟩ :=
+      disjoint page pageResult _ childrenResult
+    -- This page has children, so it is not the leaf that was written.
+    have pageNe : pageNumber ≠ leafPage := by
+      intro same
+      rcases locateLeaf_entries_none source key (fuel + 1) pageNumber leafPage located₀
+        with ⟨leafBytes, leafRead, leafNoChildren⟩
+      rw [← same, pageResult] at leafRead
+      rw [← Option.some.inj leafRead, childrenResult] at leafNoChildren
+      exact absurd leafNoChildren (by simp)
+    have newPage : new.readPage pageNumber = some page := by
+      rw [← offTarget pageNumber pageNe]; exact pageResult
+    -- Split the children into those wholly below the key, the one it routes to, and
+    -- those wholly above it.  Both `find?` outcomes give the same shape.
+    obtain ⟨preChildren, chosen, postChildren, split, preBelow, postAbove, chosenEq⟩ :
+        ∃ preChildren chosen postChildren,
+          entries.map Prod.fst ++ [rightmost]
+              = preChildren ++ chosen :: postChildren ∧
+          (∀ child ∈ preChildren, ∀ childRows,
+            CoreDecode.decodeSubtreeRowsFrom schema source fuel child
+                = some childRows →
+            ∀ candidate ∈ childRows,
+              candidate.rowid.value < row.rowid.value) ∧
+          (∀ child ∈ postChildren, ∀ childRows,
+            CoreDecode.decodeSubtreeRowsFrom schema source fuel child
+                = some childRows →
+            ∀ candidate ∈ childRows,
+              row.rowid.value < candidate.rowid.value) ∧
+          chosen = (match entries.find? (fun entry => key ≤ entry.2) with
+            | some entry => entry.1
+            | none => rightmost) := by
+      cases found : entries.find? (fun entry => key ≤ entry.2) with
+      | none =>
+          refine ⟨entries.map Prod.fst, rightmost, [], by simp, ?_, by simp,
+            by simp [found]⟩
+          intro child childMem childRows childDecoded candidate rowMem
+          rcases List.mem_map.mp childMem with ⟨entry, entryMem, entryEq⟩
+          rw [← entryEq] at childDecoded
+          have le := bounded entry entryMem childRows childDecoded candidate rowMem
+          have missed := (List.find?_eq_none).mp found entry entryMem
+          simp at missed
+          refine value_lt_of_treeKey_lt ?_
+          rw [keyIsRow]
+          omega
+      | some entry =>
+          rcases List.find?_eq_some_iff_append.mp found with
+            ⟨keyLe, pre, post, entriesShape, preFails⟩
+          simp at keyLe
+          subst entriesShape
+          refine ⟨pre.map Prod.fst, entry.1, post.map Prod.fst ++ [rightmost],
+            by simp, ?_, ?_, by simp [found]⟩
+          · intro child childMem childRows childDecoded candidate rowMem
+            rcases List.mem_map.mp childMem with ⟨earlier, earlierMem, earlierEq⟩
+            rw [← earlierEq] at childDecoded
+            have le := bounded earlier (List.mem_append_left _ earlierMem) childRows
+              childDecoded candidate rowMem
+            have missed := preFails earlier earlierMem
+            simp at missed
+            refine value_lt_of_treeKey_lt ?_
+            rw [keyIsRow]
+            omega
+          · intro child childMem childRows childDecoded candidate rowMem
+            have memAlt : child ∈ rightmost :: post.map Prod.fst := by
+              rcases List.mem_append.mp childMem with inPost | isRightmost
+              · exact List.mem_cons_of_mem _ inPost
+              · simp at isRightmost
+                simp [isRightmost]
+            have gt := above pre entry post rfl child memAlt childRows childDecoded
+              candidate rowMem
+            refine value_lt_of_treeKey_lt ?_
+            rw [keyIsRow]
+            omega
+    have chosenMemChildren : chosen ∈ entries.map Prod.fst ++ [rightmost] := by
+      rw [split]; simp
+    have chosenSound : TreeSound schema source fuel chosen := by
+      refine soundChildren chosen ?_
+      rcases List.mem_append.mp chosenMemChildren with inEntries | isRightmost
+      · exact List.mem_cons_of_mem _ inEntries
+      · simp at isRightmost
+        simp [isRightmost]
+    rw [split] at childrenResult decoded
+    cases nestedResult :
+        (preChildren ++ chosen :: postChildren).mapM (subtreePages source fuel) with
+    | none =>
+        simp only [subtreePages, pageResult, childrenResult, nestedResult] at enumerated
+        exact absurd enumerated (by simp)
+    | some nested =>
+    rcases foldlM_split _ preChildren (chosen :: postChildren) rows decoded with
+      ⟨preRows, tailRows, preFold, tailFold, shape₁⟩
+    rcases foldlM_split _ [chosen] postChildren tailRows (by simpa using tailFold) with
+      ⟨chosenRows, postRows, chosenFold, postFold, shape₂⟩
+    have chosenDecoded :
+        CoreDecode.decodeSubtreeRowsFrom schema source fuel chosen
+          = some chosenRows := by simpa using chosenFold
+    have locatedChosen : locateLeaf? source key fuel chosen = some leafPage := by
+      rw [chosenEq]; exact located
+    rcases mapM_subtreePages_mem nestedResult chosen (by simp) with
+      ⟨chosenList, chosenEnum, _⟩
+    have targetMem : leafPage ∈ chosenList :=
+      locateLeaf_mem_subtreePages source key fuel chosen chosenList leafPage
+        chosenEnum locatedChosen
+    -- Siblings cannot see the written page, so their rows are unchanged.
+    have siblingSame : ∀ child ∈ preChildren ++ postChildren,
+        CoreDecode.decodeSubtreeRowsFrom schema source fuel child
+          = CoreDecode.decodeSubtreeRowsFrom schema new fuel child := by
+      intro child childMem
+      have childMem' : child ∈ preChildren ++ chosen :: postChildren := by
+        rcases List.mem_append.mp childMem with inPre | inPost
+        · exact List.mem_append_left _ inPre
+        · exact List.mem_append_right _ (List.mem_cons_of_mem _ inPost)
+      rcases mapM_subtreePages_mem nestedResult child childMem' with
+        ⟨childList, childEnum, _⟩
+      refine decodeSubtreeRowsFrom_congr schema source new leafAgrees childEnum ?_
+      intro p pMem
+      refine offTarget p ?_
+      intro same
+      exact (siblingsDisjoint preChildren chosen postChildren split child childMem
+        childList chosenList childEnum chosenEnum leafPage targetMem) (same ▸ pMem)
+    have preNew : preChildren.foldlM
+        (fun a x => (CoreDecode.decodeSubtreeRowsFrom schema new fuel x).bind
+          (fun r => some (a ++ r))) ([] : List Core.Row) = some preRows := by
+      rw [← preFold]
+      exact foldlM_congr fun _ child member => by
+        rw [siblingSame child (List.mem_append_left _ member)]
+    have postNew : postChildren.foldlM
+        (fun a x => (CoreDecode.decodeSubtreeRowsFrom schema new fuel x).bind
+          (fun r => some (a ++ r))) ([] : List Core.Row) = some postRows := by
+      rw [← postFold]
+      exact foldlM_congr fun _ child member => by
+        rw [siblingSame child (List.mem_append_right _ member)]
+    have chosenNew : CoreDecode.decodeSubtreeRowsFrom schema new fuel chosen
+        = some (Core.orderedUpsert row chosenRows) :=
+      induction chosen chosenRows chosenList chosenSound
+        (disjointChildren chosen chosenMemChildren) chosenEnum chosenDecoded
+        locatedChosen
+    have wholeNew : (preChildren ++ ([chosen] ++ postChildren)).foldlM
+        (fun a x => (CoreDecode.decodeSubtreeRowsFrom schema new fuel x).bind
+          (fun r => some (a ++ r))) ([] : List Core.Row)
+        = some (preRows ++ (Core.orderedUpsert row chosenRows ++ postRows)) :=
+      foldlM_join _ preChildren _ _ _ preNew
+        (foldlM_join _ [chosen] postChildren _ _ (by simpa using chosenNew) postNew)
+    have preRowsBelow : ∀ earlier ∈ preRows, earlier.rowid.value < row.rowid.value :=
+      foldRows_bound schema source fuel _ preChildren preRows preBelow preFold
+    have postRowsAbove : ∀ later ∈ postRows, row.rowid.value < later.rowid.value :=
+      foldRows_bound schema source fuel _ postChildren postRows postAbove postFold
+    have rowsShape : rows = preRows ++ chosenRows ++ postRows := by
+      rw [shape₁, shape₂]; simp
+    rw [CoreDecode.decodeSubtreeRowsFrom, newPage]
+    simp only [some_bind', childrenResult]
+    rw [rowsShape,
+      orderedUpsert_routedSplit row preRows chosenRows postRows preRowsBelow
+        postRowsAbove]
+    simpa using wholeNew
+
+/-- The ordered insert introduces no row other than the one being inserted. -/
+theorem mem_orderedUpsert (row : Core.Row) :
+    ∀ (rows : List Core.Row) (candidate : Core.Row),
+      candidate ∈ Core.orderedUpsert row rows → candidate = row ∨ candidate ∈ rows
+  | [], candidate, member => by
+      simp only [Core.orderedUpsert, List.mem_singleton] at member
+      exact Or.inl member
+  | existing :: rows, candidate, member => by
+      rw [Core.orderedUpsert] at member
+      split at member
+      · rcases List.mem_cons.mp member with isRow | rest
+        · exact Or.inl isRow
+        · exact Or.inr rest
+      · split at member
+        · rcases List.mem_cons.mp member with isExisting | rest
+          · exact Or.inr (isExisting ▸ List.mem_cons_self)
+          · rcases mem_orderedUpsert row rows candidate rest with isRow | inRows
+            · exact Or.inl isRow
+            · exact Or.inr (List.mem_cons_of_mem _ inRows)
+        · rcases List.mem_cons.mp member with isRow | rest
+          · exact Or.inl isRow
+          · exact Or.inr (List.mem_cons_of_mem _ rest)
 
 /-- **The top-level refinement.** The plan the executable computes, applied to the
 file, denotes exactly the table with the row inserted -- which is what
@@ -1110,12 +1438,119 @@ theorem insertPlan_refines (schema : Core.Schema)
     (wellFormed : WellFormedTree schema source (source.pageCount + 1) rootPage)
     (decoded : CoreDecode.decodeSubtreeRowsFrom schema source
       (source.pageCount + 1) rootPage = some rows)
+    (rowsEncodable : ∀ candidate ∈ rows,
+      candidate.WellFormed schema ∧ CoreOverflow.RowInline schema candidate)
+    (rowEncodable : row.WellFormed schema ∧ CoreOverflow.RowInline schema row)
     (planned : insertPlan? schema source rootPage row = some (leafPage, encoded)) :
     CoreDecode.decodeSubtreeRowsFrom schema
         (CorePageSource.write source ⟨leafPage - 1, encoded.storage⟩)
         (source.pageCount + 1) rootPage
       = some (Core.orderedUpsert row rows) := by
-  sorry
+  rw [insertPlan?] at planned
+  split at planned
+  · exact absurd planned (by simp)
+  rename_i planLeaf locatedPlan
+  split at planned
+  · exact absurd planned (by simp)
+  rename_i oldLeaf oldRead
+  split at planned
+  · exact absurd planned (by simp)
+  rename_i leafRows leafDecoded
+  split at planned
+  · exact absurd planned (by simp)
+  split at planned
+  · exact absurd planned (by simp)
+  rename_i encodedPage encodedResult
+  obtain ⟨targetEq, encodedEq⟩ : planLeaf = leafPage ∧ encodedPage = encoded := by
+    have injected := Option.some.inj planned
+    exact ⟨congrArg Prod.fst injected, congrArg Prod.snd injected⟩
+  subst targetEq
+  subst encodedEq
+  -- The written page is a real page of the file, which fixes the renumbering.
+  have leafPos : 0 < planLeaf := by
+    rcases Nat.eq_zero_or_pos planLeaf with zero | positive
+    · rw [zero, wellFormed.bounded 0 (Or.inl rfl)] at oldRead
+      exact absurd oldRead (by simp)
+    · exact positive
+  have leafLe : planLeaf ≤ source.pageCount := by
+    rcases Nat.lt_or_ge source.pageCount planLeaf with beyond | within
+    · rw [wellFormed.bounded planLeaf (Or.inr beyond)] at oldRead
+      exact absurd oldRead (by simp)
+    · exact within
+  have countEq : max source.pageCount (planLeaf - 1 + 1) = source.pageCount := by omega
+  -- Inline leaves decode the same from either source, which is the frame premise.
+  have leafAgrees : ∀ p bytes, source.readPage p = some bytes →
+      CoreDecode.decodeRowsFrom schema source bytes
+        = CoreDecode.decodeRowsFrom schema
+            (CorePageSource.write source ⟨planLeaf - 1, encodedPage.storage⟩) bytes := by
+    intro p bytes read
+    exact decodeRowsFrom_congr schema source _ bytes (wellFormed.inline p bytes read)
+      (LeafInline_congr schema source _ bytes (wellFormed.inline p bytes read))
+  have offTarget : ∀ p, p ≠ planLeaf → source.readPage p
+      = (CorePageSource.write source ⟨planLeaf - 1, encodedPage.storage⟩).readPage p := by
+    intro p notTarget
+    simp only [CorePageSource.write, countEq]
+    by_cases zero : p = 0
+    · simp [zero, wellFormed.bounded 0 (Or.inl rfl)]
+    by_cases beyond : source.pageCount < p
+    · simp [zero, beyond, wellFormed.bounded p (Or.inr beyond)]
+    · have notWritten : ¬ (p = planLeaf - 1 + 1) := by omega
+      simp [zero, beyond, notWritten]
+  have newRead :
+      (CorePageSource.write source ⟨planLeaf - 1, encodedPage.storage⟩).readPage planLeaf
+        = some encodedPage.bytes := by
+    simp only [CorePageSource.write, countEq]
+    have notZero : ¬ (planLeaf = 0) := by omega
+    have notBeyond : ¬ (source.pageCount < planLeaf) := by omega
+    have isWritten : planLeaf = planLeaf - 1 + 1 := by omega
+    simp [notZero, notBeyond, ← isWritten, CoreFile.Page.storage]
+  -- The leaf's rows are a segment of the table's, so they inherit encodability.
+  rcases locateLeaf_routedSplit schema source row.treeKey row rfl
+      (source.pageCount + 1) rootPage planLeaf rows wellFormed.separators decoded
+      locatedPlan with ⟨routed⟩
+  have leafSubset : ∀ candidate ∈ leafRows, candidate ∈ rows := by
+    intro candidate member
+    have leafEq : routed.leafRows = leafRows :=
+      Option.some.inj ((routed.leafDecodes oldLeaf oldRead).symm.trans leafDecoded)
+    rw [routed.decomposition, leafEq]
+    exact List.mem_append_left _ (List.mem_append_right _ member)
+  have newRowsEncodable : ∀ candidate ∈ Core.orderedUpsert row leafRows,
+      candidate.WellFormed schema ∧ CoreOverflow.RowInline schema candidate := by
+    intro candidate member
+    rcases mem_orderedUpsert row leafRows candidate member with isRow | inLeaf
+    · rw [isRow]; exact rowEncodable
+    · exact rowsEncodable candidate (leafSubset candidate inLeaf)
+  have chunkEncoded : CorePageCodec.encodeChunkLeaf schema
+      [(0, Core.orderedUpsert row leafRows)] = some encodedPage := encodedResult
+  have newIsLeaf : CoreDecode.interiorChildren? encodedPage.bytes = none :=
+    CorePageCodec.interiorChildren_encodeChunkLeaf schema _ encodedPage chunkEncoded
+  have newDecoded : CoreDecode.decodeRowsFrom schema
+      (CorePageSource.write source ⟨planLeaf - 1, encodedPage.storage⟩) encodedPage.bytes
+        = some (Core.orderedUpsert row leafRows) := by
+    have inverse := CoreWidePageInverse.decodeRowsFrom_encodeChunkLeaf schema
+      [(0, Core.orderedUpsert row leafRows)] encodedPage
+      (by
+        intro entry entryMem candidate candidateMem
+        simp only [List.mem_singleton] at entryMem
+        subst entryMem
+        exact (newRowsEncodable candidate candidateMem).1)
+      (by
+        intro entry entryMem candidate candidateMem
+        simp only [List.mem_singleton] at entryMem
+        subst entryMem
+        exact (newRowsEncodable candidate candidateMem).2)
+      chunkEncoded
+      (CorePageSource.write source ⟨planLeaf - 1, encodedPage.storage⟩)
+    simpa using inverse
+  exact locateLeaf_write_refines schema source _ row.treeKey row rfl planLeaf leafRows
+    leafAgrees offTarget
+    (fun candidate read => by
+      rw [oldRead] at read
+      rw [← Option.some.inj read]
+      exact leafDecoded)
+    encodedPage.bytes newRead newIsLeaf newDecoded
+    (source.pageCount + 1) rootPage rows wellFormed.pages wellFormed.separators
+    wellFormed.disjoint wellFormed.enumerated decoded locatedPlan
 
 end CoreLazyWrite
 end SQLeanite

@@ -323,12 +323,59 @@ miss" and never a partial result. Journal the single page's pre-image, sync, wri
 sync, unlink; because exactly one page changes, the existing crash-atomicity
 theorem over an arbitrary exact page-write list applies unchanged.
 
-### Status
+### Status: the refinement is proved (2026-08-16)
 
-Phases 1--4 are not done. The zero-`sorry` gate means partial proof work cannot be
-committed, so the only thing that lands is what is fully proved; a draft of the
-Phase 2 induction was written, left unproved, and reverted rather than parked in
-the tree.
+`SQLeanite/CoreLazyWrite.lean` is sorry-free. `insertPlan_refines` depends only on
+`propext`, `Classical.choice` and `Quot.sound`.
+
+| phase | outcome |
+|---|---|
+| 1 overflow enumeration | discharged as `LeafInline`, transported between sources by `LeafInline_congr` |
+| 2 frame | `decodeSubtreeRowsFrom_congr`, stated as a source congruence with a page-indexed leaf premise |
+| 3 routing | `TreeSound` + `locateLeaf_routedSplit`; `orderedUpsert_routedSplit` supplies the arithmetic |
+| 4 engine | `executeInsert?`, behind an explicit opt-in -- see below |
+
+Frame and routing had to become **one** induction, `locateLeaf_write_refines`, not
+two lemmas composed. The frame step needs to know which child owns the written page,
+and that is exactly what the descent decides; splitting them leaves the frame half
+with no way to name the owner.
+
+Three further corrections the proofs forced:
+
+- `locateLeaf?` treated any page with undecodable separators as a leaf, so a corrupt
+  interior page could have been rewritten as one. It now fails closed.
+- The separator contract has to be stated in `treeKey` space. Rowids are biased by a
+  midpoint before being compared, so bounding `rowid.value` by a separator compares
+  across two different spaces. `Core.Row.treeKey_lt_iff` converts where needed.
+- `WellFormedTree.childrenDisjoint` was not inhabitable as written -- it quantified
+  over arbitrary child lists, so `[c, c]` forced the subtree empty. Replaced by
+  `TreeDisjoint`, stated recursively in the shape routing consumes.
+
+### What is not done: runtime checking of the premises
+
+The refinement is *conditional* on `WellFormedTree`. Nothing checks those premises at
+open time yet, so the CLI reaches the page-local path only under
+`SQLEANITE_PAGE_LOCAL_WRITES=1`. Making it the default needs decidable checkers for
+`TreeSound` and `TreeDisjoint` plus soundness proofs; the measurements above show
+both are cheap to compute (653 ms at 1M rows), but computing them is not the same as
+proving the checker implies the proposition.
+
+### Measured
+
+With the opt-in set, a single insert is flat in database size:
+
+| rows | size | one insert |
+|---:|---:|---:|
+| 5,000 | <1 MB | 30 ms |
+| 50,000 | <1 MB | 35 ms |
+| 200,000 | 3 MB | 30 ms |
+
+against 992 / 5,394 ms before, and 143,671 ms for one insert at 1M rows.
+`PRAGMA integrity_check` is clean and the row count matches.
+
+The path applies only when the target leaf has room. With 512-byte rows a leaf holds
+eight, so most inserts need a split and fall back to the whole-database path at the
+old cost -- the scope limit stated above, now measured rather than assumed.
 
 
 ## Cost decomposition of the open (2026-08-16)

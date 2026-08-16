@@ -125,10 +125,13 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     let fileExists ← mainPath.pathExists
     let prepared := prepareLineScript? sql
     if fileExists then requireWritableFor mainPath sql prepared
-    -- SPIKE, unproved: try the page-local insert first so its cost can be
-    -- measured. Must not survive into a shipped build until the refinement in
-    -- docs/LAZY_WRITE_DESIGN.md is discharged.
-    let lazyWrite ← if fileExists then
+    -- The page-local insert. `CoreLazyWrite.insertPlan_refines` proves it denotes
+    -- the ordered insert, but only under `WellFormedTree`, and nothing checks
+    -- those premises at open time yet. So it stays behind an explicit opt-in
+    -- rather than defaulting on: the shipped path must not rest on an unchecked
+    -- structural assumption. Set SQLEANITE_PAGE_LOCAL_WRITES=1 to measure it.
+    let pageLocalEnabled := (← IO.getEnv "SQLEANITE_PAGE_LOCAL_WRITES") == some "1"
+    let lazyWrite ← if fileExists && pageLocalEnabled then
         match parse sql with
         | .ok parsed =>
             match parsed.toList with
