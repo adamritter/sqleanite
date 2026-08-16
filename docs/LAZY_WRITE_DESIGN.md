@@ -358,3 +358,37 @@ meet the acceptance criterion by itself, but it attacks the same 83% and is
 mechanical rather than novel proof work. The two routes compose: the lazy path
 removes the O(database) term, and a ByteArray decoder shrinks what remains for the
 fallback path that foreign files still take.
+
+
+## The routing premise is checkable too (measured 2026-08-16)
+
+Routing correctness needs more than page disjointness: it needs the separators to be
+trustworthy, i.e. the leaves genuinely in key order. That is what `RoutedSplit`
+demands and what `WellFormedTree.rowsOrdered` supplies.
+
+The concern was that global key ordering could only be established by decoding every
+row -- exactly the cost being removed. It cannot, and it does not have to be. Every
+leaf's key *range* is its first and last cell, so ordering across the whole table is
+verifiable by reading each leaf and parsing two cells, without decoding a single row.
+
+Measured on the 1,000,000-row, 583 MB file:
+
+| step | cost |
+|---|---:|
+| tree-order walk of interior pages | 148 ms |
+| first/last cell of all 142,858 leaves | 504 ms |
+| **total structural check** | **653 ms** |
+| ordering violations found | **0** |
+| one autocommit insert today | 143,671 ms |
+
+So both premises the refinement needs -- disjointness and ordering -- are **checked**
+in about 0.65 s, some 220x cheaper than the whole-database open they replace, and
+paid once per open rather than per statement. No trust change, and the
+generated-image stamp keeps its existing weaker role.
+
+Two implementation notes, both mistakes made while measuring this and worth not
+repeating: leaves must be visited in *tree order* (a DFS through interior children),
+not page-number order, since page numbering does not follow key order; and leaf cell
+pointers start at byte 8, where interior pages start at 12. Getting either wrong
+makes the check report every leaf as a violation, which reads as a corrupt file
+rather than as a broken checker.
