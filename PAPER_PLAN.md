@@ -348,6 +348,101 @@ UPDATE, bulk DELETE, and inner join respectively.  Every workload remains
 within the frozen non-regression budget and at or below 5x C SQLite by median;
 the proof additions add no runtime execution or validation pass.
 
+## Open work (2026-08-15) — the project is NOT done
+
+Read this section before concluding there is nothing to do. Every item below is
+measured, reproducible with a checked-in script, and currently failing. The proof
+milestones are in good shape; **what remains is executable behaviour, and two of
+these items block the paper outright.**
+
+Order matters: 1 and 2 block any scale claim, 3 is the last unexplained number,
+4 is a target rather than a gate.
+
+### 1. Remove the per-row stack overflow. BLOCKING.
+
+A single-table bulk load crashes with `Stack overflow detected. Aborting.`
+somewhere between 130,000 and 160,000 rows. 130,000 rows of 512 bytes loads and
+produces a 343 MB file; 160,000 aborts and leaves a zero-byte database. This is
+row-count driven, not byte driven: 200,000 rows of 8-byte values also abort, and
+the statement count is irrelevant here (203 statements is enough to trigger it),
+so this is a separate limit from the statement-list recursion already fixed in
+`bc13909`.
+
+Some recursion on the commit or encode path is once-per-row and not tail
+recursive. The pattern to reuse is the one this project already used for the
+earlier 60k crash: keep the clean recursive definition for the proofs and swap in
+a tail-recursive implementation with `@[csimp]`, as `orderedUpsertTR` does.
+
+*Acceptance:* a 1,000,000-row single-table load completes and produces a readable
+database, and `scripts/run-scale-tiers.sh` runs a tier at 200,000 rows without
+aborting. **1,000,000 rows is the paper target** — it is the smallest size where
+the data exceeds a typical page cache, which is the regime VeriBetrKV's 2 GB cap
+creates. 10M is explicitly not required.
+
+### 2. Give the physical page tree real fanout. BLOCKING.
+
+Files are 4.5x larger than C SQLite's for identical data: 343 MB against 75 MB at
+130,000 rows of 512 bytes, for 63 MB of payload. A page-type census of both files
+localizes it exactly:
+
+| | leaf-table | interior-table | total pages |
+|---|---:|---:|---:|
+| SQLeanite | 43,333 (49%) | **43,326 (49%)** | 87,811 |
+| C SQLite | 18,572 (96%) | **47 (0.2%)** | 19,301 |
+
+**Half of our pages are interior nodes.** The physical page tree is a 2-3 tree, so
+an interior node carries two or three child pointers and then occupies a whole
+4096-byte page — roughly six useful bytes out of 4096. SQLite packs hundreds of
+separators per interior page and needs 47 interior pages where we need 43,326.
+
+**The decision has been made: give the page tree real fanout.** Do not merely map
+several 2-3 levels onto one SQLite interior page in the encoder; raise the
+branching factor of the physical tree itself so an interior page holds as many
+separators as it has room for. This is the larger change and the larger payoff,
+and it is the intended direction.
+
+The second, smaller factor is that leaves hold one chunk while
+`chunkCapacityFor` reserves half of each page for a second chunk the bulk builder
+never emits — there are exactly 43,333 chunks and 43,333 leaf pages. Removing the
+`/ 2` naively is unsafe, because `PersistentPageTree.Node.leaf` carries an
+arbitrary entry list, so a two-chunk leaf is representable and would fail to
+encode; that is the defect the byte-aware capacity was introduced to fix. Raising
+fanout should subsume this, but if it does not, pack two chunks per leaf in the
+bulk builder or split by bytes at emit time.
+
+*Acceptance:* `scripts/run-scale-tiers.sh` reports amplification under 1.5x at
+both 40-byte and 512-byte row widths. Interior pages should be a low single-digit
+percentage of total pages, not half.
+
+*Note:* amplification is not only a disk cost. Every extra page is a page written
+on commit and traversed on read, so it is a constant factor on every timing
+reported in this plan.
+
+### 3. Explain and fix workload D's latency tail.
+
+Workload D reports p50 1.08 ms and **p99 334 ms** — three orders of magnitude, and
+it got worse over the last round of changes (242 ms before). D is 95% read and 5%
+insert on the `latest` distribution, so the tail is in the insert path. A and F
+show ~50 ms p99s with mutations in the mix, so the pattern is consistent rather
+than a measurement artefact.
+
+This is the only unexplained number left in the read and write results, and an
+unexplained three-orders-of-magnitude tail is exactly what a reviewer will probe.
+Candidates worth checking first: page splits, a commit boundary, or freelist
+growth.
+
+*Acceptance:* D's p99 is within about 20x of its p50, or the tail has a recorded
+explanation in this plan.
+
+### 4. Bring the YCSB read ratio to 8x. Target, not a gate.
+
+Reads are at 16.8x C SQLite for workload C, down from 74x. **The target is 8x, not
+3x** — the earlier 3x reach goal is superseded and should not drive design
+decisions. Item 2 will contribute here for free, since fewer pages means fewer
+page traversals.
+
+*Acceptance:* workload C and Cuniform report 8x or better at 1,000 records.
+
 ## Milestone 1: verified SQL text front end
 
 **This milestone is POPL'10 parity, not a reach goal.** Their RDBMS parses user
@@ -737,7 +832,8 @@ commit and a page to traverse on read, so amplification is also a constant facto
 on the timings reported elsewhere in this section.
 
 *Acceptance:* `scripts/run-scale-tiers.sh` reports amplification under 1.5x at
-both row widths.
+both row widths. **The chosen fix is to give the physical page tree real fanout**
+— see open-work item 2, which supersedes the options discussion above.
 
 ### Scale ceiling: two stack overflows near 100,000 rows (measured 2026-08-15)
 
@@ -769,7 +865,10 @@ for the earlier 60k crash kept the clean definition for proofs while making the
 executable tail recursive. That is the pattern to reuse for both sites.
 
 *Acceptance:* a 1,000,000-row load completes, and `scripts/run-scale-tiers.sh`
-extends to a tier above 200,000 rows without a crash.
+extends to a tier above 200,000 rows without a crash. **1,000,000 rows is the
+paper target; 10M is not required.** The statement-count half of this ceiling was
+fixed in `bc13909` and verified at 200,000 statements; the per-row half remains
+open as open-work item 1.
 
 **Harness mitigation, already landed.** `scripts/ycsb-trace.py --insert-batch N`
 emits multi-row INSERTs and clears the statement ceiling. It defaults to 1 so
@@ -778,8 +877,9 @@ output-identical to C. It cannot help with the per-row ceiling.
 
 ### Scale ramp, and why it is currently blocked
 
-The ramp is 1k -> 100k -> **1M** -> 10M records, and 1M is a required reporting
-point, not optional: it is the smallest size where the database (about 512 MB at
+The ramp is 1k -> 100k -> **1M**, and 1M is the paper target rather than a
+waypoint; 10M is explicitly not required. 1M is a required reporting point, not
+optional: it is the smallest size where the database (about 512 MB at
 512 bytes per record) exceeds a typical page cache, which is the regime
 VeriBetrKV's 2 GB cap is designed to create.
 
@@ -967,6 +1067,9 @@ latencies recorded, and the trace generator is seeded and checked in.
 
 Not required for the paper; recorded so they are not silently dropped.
 
+- **Superseded: the 3x YCSB target is now 8x**, tracked as open-work item 4. The
+  paragraph below is kept for the published-range context it records; read "8x"
+  wherever it says 3x.
 - **At most 3x C SQLite on the YCSB-style suite.** The mandatory gate remains
   5x on the twelve public workloads; this is a stronger target on the
   recognized benchmark. Context for why 3x is ambitious but worth naming:
