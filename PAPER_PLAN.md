@@ -701,6 +701,44 @@ Two honest deviations, to be stated in the paper rather than papered over:
 - **We compare against C SQLite, they compared against RocksDB and
   BerkeleyDB.** The ratio is to a different baseline; the workload is the same.
 
+### Space amplification: 4.5x C SQLite, and why (measured 2026-08-15)
+
+Files are 4.4--6.0x larger than C SQLite's for identical data: at 130,000 rows of
+512 bytes, 343 MB against C's 75 MB for 63 MB of payload. A page-type census of
+the two files decomposes it exactly:
+
+| | leaf-table | interior-table | total pages |
+|---|---:|---:|---:|
+| SQLeanite | 43,333 (49%) | **43,326 (49%)** | 87,811 |
+| C SQLite | 18,572 (96%) | **47 (0.2%)** | 19,301 |
+
+**Interior nodes are half of all pages.** The physical page tree is a 2-3 tree, so
+an interior node carries two or three child pointers and then occupies a whole
+4096-byte page -- roughly six useful bytes out of 4096. SQLite packs hundreds of
+separators per interior page and needs 47 where we need 43,326. This is inherent
+to using a 2-3 tree as the *physical* tree and is the larger of the two factors.
+The verified 2-3 tree is what makes the branching proofs small, so raising fanout
+is a real design decision, not a tuning constant: either the physical encoder maps
+several 2-3 levels onto one SQLite interior page, or the page tree itself gains
+fanout.
+
+**Leaves hold one chunk where the budget reserves two.** There are exactly 43,333
+chunks and 43,333 leaf pages, so the `/ 2` in `chunkCapacityFor`, which reserves
+half of each page for a second chunk the bulk builder never emits, wastes half of
+every leaf. Removing it naively is unsafe: `PersistentPageTree.Node.leaf` carries
+an arbitrary entry list, so a two-chunk leaf is representable and would fail to
+encode -- exactly the defect the byte-aware capacity was introduced to fix. The
+safe forms are to pack two chunks per leaf in the bulk builder, or to split by
+bytes at emit time instead of fixing chunk size up front. Both change tree shape
+and therefore interact with the milestone 3 page-identity proofs.
+
+*Why it matters for the paper beyond disk:* every extra page is a page to write on
+commit and a page to traverse on read, so amplification is also a constant factor
+on the timings reported elsewhere in this section.
+
+*Acceptance:* `scripts/run-scale-tiers.sh` reports amplification under 1.5x at
+both row widths.
+
 ### Scale ceiling: two stack overflows near 100,000 rows (measured 2026-08-15)
 
 **The ramp does not fail on performance. It crashes.** Superseding the earlier
