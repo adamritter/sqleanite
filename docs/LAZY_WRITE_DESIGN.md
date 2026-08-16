@@ -126,8 +126,43 @@ does not derive it from a page source.
 Establishing disjointness from bytes means walking the whole tree — which is
 precisely the O(database) validating open this design exists to remove. So:
 
-**The lazy write path is achievable only by *assuming* the on-disk structure from
-the generated-image provenance stamp instead of checking it.**
+**First conclusion, later shown wrong:** that the lazy write path is achievable
+only by *assuming* the on-disk structure from the generated-image stamp instead of
+checking it. See the next section — the check is cheap after all.
+
+### Resolved: disjointness can be checked cheaply, so no trust change is needed
+
+The reasoning above is wrong in one important step. It assumed that establishing
+disjointness means walking the whole tree, and therefore costs O(database). It does
+not: **disjointness is a property of page identities, and page identities live in
+interior pages only.** Leaves are named by their parents, so every page id in a
+table can be enumerated by reading interior pages alone — without decoding a single
+row.
+
+With real fanout, interior pages are a rounding error. Measured on the 1M-row,
+583 MB file:
+
+| | value |
+|---|---:|
+| total pages | 148,000 |
+| interior pages | **563** (0.4%) |
+| page ids enumerated by walking interiors only | 143,421 |
+| duplicate page id found | none |
+| **wall time for the whole check** | **80 ms** |
+| one autocommit insert today | 143,671 ms |
+
+So the premise the frame theorem needs can be *established*, not assumed, for about
+80 ms — roughly 1,800x cheaper than the open it replaces, and about six times the
+cost of a single read. The expensive part of today's open was never the structural
+check; it was decoding every row to build `Core.Database`, which the structural
+check does not require.
+
+**Option 1's trust change is therefore unnecessary, and this design does not take
+it.** The stamp keeps its current role: choosing a decoding strategy, not standing
+in for verification. The three options below are retained only as a record of the
+reasoning; the design proceeds with a checked structural premise.
+
+### Why the trust change was considered, and rejected
 
 ### Why that is a decision rather than an implementation detail
 
