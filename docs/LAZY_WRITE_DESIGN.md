@@ -329,3 +329,32 @@ Phases 1--4 are not done. The zero-`sorry` gate means partial proof work cannot 
 committed, so the only thing that lands is what is fully proved; a draft of the
 Phase 2 induction was written, left unproved, and reverted rather than parked in
 the tree.
+
+
+## Cost decomposition of the open (2026-08-16)
+
+Fitting two independent experiments — same file size with different row counts, and
+same row count with different widths — gives the open cost as:
+
+```
+open ≈ 180 ms per MB  +  21 µs per row
+```
+
+| shape | rows | size | open |
+|---|---:|---:|---:|
+| 512-byte rows | 20,000 | 11 MB | 2,510 ms |
+| 56-byte rows | 160,000 | 15 MB | 6,869 ms |
+| 64-byte rows | 20,000 | 2 MB | 836 ms |
+
+At the YCSB shape the per-MB term is 83% of the cost. 180 ms/MB is 180 ns per
+byte, which is one to two orders of magnitude slower than a byte parse should be,
+and it is spent turning page bytes into `Core.Row` values whose TEXT payloads are
+`List UInt8`.
+
+That gives a **second, independent route to item 3's acceptance**, if the lazy write
+path proves too slow to land: decode from `ByteArray` rather than `List UInt8`.
+It does not change the asymptotics — the open stays O(database) — so it does not
+meet the acceptance criterion by itself, but it attacks the same 83% and is
+mechanical rather than novel proof work. The two routes compose: the lazy path
+removes the O(database) term, and a ByteArray decoder shrinks what remains for the
+fallback path that foreign files still take.
