@@ -212,6 +212,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PersistentPageTree.Store.build_represents
 #print axioms SQLeanite.PersistentPageTree.identifyFrom_pageIds
 #print axioms SQLeanite.WidePageTree.interiorFanout_pageFit
+#print axioms SQLeanite.WidePageTree.allocatedPage_ne_pendingBytePage
+#print axioms SQLeanite.WidePageTree.numberedLeaves_root_ne_pendingBytePage
+#print axioms SQLeanite.WidePageTree.numberedBranches_root_ne_pendingBytePage
+#print axioms SQLeanite.WidePageTree.buildNumberedWithFanout_toList
+#print axioms SQLeanite.WidePageTree.buildNumberedWithFanout_after_ge
+#print axioms SQLeanite.CoreWideIndex.interiorFanoutFor_pos
 #print axioms SQLeanite.WidePageTree.flatten_groups
 #print axioms SQLeanite.WidePageTree.groups_eq_groupsTR
 #print axioms SQLeanite.WidePageTree.build_toList
@@ -602,6 +608,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.GrowableStorage.recoverWithJournal_after_recovery_trace
 #print axioms SQLeanite.GrowableStorage.rollbackCommit_recovery_crash_trace_atomic
 #print axioms SQLeanite.PhysicalJournalCodec.decodeChecked_makeJournal_exact
+#print axioms SQLeanite.CoreFileAdapter.pageTransfers_toList
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedIndexEntries
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedValue_exact
 #print axioms SQLeanite.CoreFileAdapter.rowsForExpectedRange_exact

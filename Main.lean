@@ -30,20 +30,84 @@ private def renderCoreResult (result : Core.Result) : String :=
   String.intercalate "\n" <| result.rows.map fun row =>
     String.intercalate "|" (row.map coreValueText)
 
+/-- A preflighted line from a script whose physical lines are independently
+parseable statements.  Keeping only the source and write bit lets large load
+files discard each statement AST before parsing the next one. -/
+private structure PreparedLine where
+  sql : String
+  writes : Bool
+
+private inductive LineQuote where
+  | none
+  | single
+  | double
+deriving BEq
+
+/-- A physical line is a safe script boundary only when it ends in a
+semicolon outside any SQL string or quoted identifier.  Toggling on each quote
+also handles SQL's doubled-quote escape: the two adjacent toggles cancel. -/
+private def standaloneSQLLine (line : String) : Bool :=
+  let finalQuote := line.foldl (init := LineQuote.none) fun quote char =>
+    match quote, char with
+    | .none, '\'' => .single
+    | .none, '"' => .double
+    | .single, '\'' => .none
+    | .double, '"' => .none
+    | current, _ => current
+  finalQuote == .none && line.trim.endsWith ";"
+
+/-- Conservative write classification for the read-only-file diagnostic.
+Ambiguous statements are treated as writes; actual statement classification
+inside the engine still comes from the parsed `Statement`. -/
+private def lineMightWrite (line : String) : Bool :=
+  let normalized := line.trim.toUpper
+  !(normalized.startsWith "SELECT" || normalized.startsWith "PRAGMA" ||
+    normalized.startsWith "EXPLAIN")
+
+/-- Recognize the line-oriented format emitted by the benchmark and import
+tools.  This is only an execution-space optimization: every nonempty line must
+end at an unquoted semicolon, and the ordinary parser still processes that
+line before execution.  Any multiline or otherwise general SQL script returns
+`none` and follows the original whole-script path. -/
+private def prepareLineScript? (sql : String) : Option (Array PreparedLine) :=
+  let lines := (sql.splitOn "\n").filter fun line => !line.trim.isEmpty
+  if lines.all standaloneSQLLine then
+    some <| lines.toArray.map fun line => {
+      sql := line
+      writes := lineMightWrite line }
+  else none
+
 /-- Fail before logical execution when a mutating batch targets a file the OS
 will not open read/write.  Besides producing the SQLite-style diagnostic, this
 prevents an earlier semantic error in a multi-statement batch from masking the
 more fundamental read-only condition.  Opening in `readWrite` does not truncate
 or otherwise modify the file. -/
-private def requireWritableFor (path : System.FilePath) (sql : String) : IO Unit := do
-  let writes := match parse sql with
-    | .ok statements => statements.toList.any CoreFileEngine.statementWrites
-    | .error _ => false
+private def requireWritableFor (path : System.FilePath) (sql : String)
+    (prepared : Option (Array PreparedLine) := none) : IO Unit := do
+  let writes := match prepared with
+    | some lines => lines.any (fun line => line.writes)
+    | none => match parse sql with
+      | .ok statements => statements.toList.any CoreFileEngine.statementWrites
+      | .error _ => false
   if writes && (← path.pathExists) then
     try
       IO.FS.withFile path .readWrite fun _ => pure ()
     catch _ =>
       throw (IO.userError "attempt to write a readonly database")
+
+/-- Execute a preflighted line script while retaining neither the complete
+parser AST nor completed statement results.  Results are accumulated in the
+same order as `CoreFileEngine.execute`; load statements ordinarily contribute
+empty results, so this remains constant-space in the number of loaded rows. -/
+private def executePreparedLines (connection : CoreFileEngine.Connection)
+    (lines : Array PreparedLine) : IO (Except String (List Core.Result)) := do
+  let mut reversed : List Core.Result := []
+  for line in lines do
+    match ← CoreFileEngine.execute connection line.sql with
+    | .error message => return .error message
+    | .ok results =>
+        reversed := results.foldl (fun acc result => result :: acc) reversed
+  return .ok reversed.reverse
 
 private def coreBatch (databasePath : String) (args : List String) : IO UInt32 := do
   let sql ←
@@ -58,16 +122,21 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     directory := databasePath ++ ".sqleanite-lock", process }
   ProcessLock.withLock lock do
     let fileExists ← mainPath.pathExists
-    requireWritableFor mainPath sql
+    let prepared := prepareLineScript? sql
+    if fileExists then requireWritableFor mainPath sql prepared
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
       | some result => pure result
       | none => do
           let connection ← CoreFileEngine.reopen .system paths
-          CoreFileEngine.execute connection sql
+          match prepared with
+          | some lines => executePreparedLines connection lines
+          | none => CoreFileEngine.execute connection sql
     else do
       let connection ← CoreFileEngine.create .system paths
-      CoreFileEngine.execute connection sql
+      match prepared with
+      | some lines => executePreparedLines connection lines
+      | none => CoreFileEngine.execute connection sql
     match outcome with
     | .error message =>
         IO.eprintln s!"Error: {message}"

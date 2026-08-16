@@ -84,7 +84,7 @@ The executable deliberately declares opaque `extern` functions for the narrow
 host boundary: positional page reads/writes, `fdatasync`, parent-directory
 `fsync`, `renameat`, `unlinkat`, and process-liveness probing. They are not used
 to prove pure database theorems and are listed in the executable TCB below.
-The verification audit admits exactly the six named declarations in
+The verification audit admits exactly the eight named declarations in
 `SyscallVFS.lean` and `ProcessLock.processAlive`; every other project `opaque`
 declaration remains a hard failure.
 
@@ -102,7 +102,8 @@ Running the produced binary additionally trusts:
   point operations;
 - `Std.Mutex`, its opaque platform lock operations, runtime task scheduling,
   and `IO.asTask` for the serialized-connection shell and stress test;
-- journal-temp creation through `IO.FS`, the explicit C syscall boundary, and
+- journal-temp creation through `IO.FS`, the explicit C syscall boundary
+  (including constant-stack batched positional page write/read-back loops), and
   the operating system/filesystem/device behavior named by `SyscallVFS.Contract`;
 - the generated-image header stamp as a provenance boundary for sub-linear
   cold primary and certified-index misses. It combines the `LSQL` application
@@ -1550,5 +1551,5 @@ asserts that a real filesystem implements the modeled write/sync behavior.
 
 Run `scripts/lean-verification-audit.sh` from the repository root. The audit fails
 if `sorry`, `native_decide`, project axioms, `unsafe`, bare `extern`, or any
-`opaque` declaration outside the exact seven-binding host allowlist enters the
+`opaque` declaration outside the exact nine-binding host allowlist enters the
 Lean library, and prints the current `partial def` inventory.

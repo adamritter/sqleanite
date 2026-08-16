@@ -222,14 +222,27 @@ private def skipPagesOf (handle : IO.FS.Handle) (pageSize : Nat) : Nat → IO Bo
 private def skipPages (handle : IO.FS.Handle) : Nat → IO Bool :=
   skipPagesOf handle PhysicalCodec.pageSize
 
+def pageTransfer
+    (write : GrowableStorage.PageWrite PhysicalCodec.pageSize) :
+    SyscallVFS.PageTransfer := {
+  bytes := ByteArray.mk write.page.bytes
+  offset := UInt64.ofNat (write.pageId * PhysicalCodec.pageSize) }
+
+def pageTransfers
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    Array SyscallVFS.PageTransfer :=
+  writes.toArray.map pageTransfer
+
+theorem pageTransfers_toList
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    (pageTransfers writes).toList = writes.map pageTransfer := by
+  simp [pageTransfers]
+
 /-- Publish exactly the pages represented by the verified transaction. The C
 boundary performs only positional writes; ordering and page bytes stay Lean. -/
 private def writeMainPages (path : System.FilePath)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : IO Unit := do
-  for write in writes do
-    SyscallVFS.pwriteBytes path.toString
-      (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
-      (ByteArray.mk write.page.bytes)
+  SyscallVFS.pwritePages path.toString (pageTransfers writes)
 
 /-- The syscall trace used when page pre-images have already been read from
 the concrete file.  It is the same rollback protocol as `POSIXVFS.commitPlan`;
@@ -799,31 +812,31 @@ private def journalFromFile (path : System.FilePath)
     IO (GrowableStorage.Journal PhysicalCodec.pageSize) :=
   IO.FS.withFile path .read fun handle => do
     let count ← readPageCount handle path
-    let mut undo := []
-    for write in writes do
-      if write.pageId < count then
-        let bytes ← SyscallVFS.preadBytes path.toString
-          (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
-          (USize.ofNat PhysicalCodec.pageSize)
-        if exact : bytes.size = PhysicalCodec.pageSize then
-          let before : Storage.Page PhysicalCodec.pageSize := {
-            bytes := bytes.data
-            sizeInvariant := exact }
-          undo := undo ++ [⟨write.pageId, before⟩]
+    let writes := writes.toArray
+    let reversedUndo ← IO.iterate (0, []) fun state => do
+      let index := state.1
+      if bound : index < writes.size then
+        let write := writes[index]
+        if write.pageId < count then
+          let bytes ← SyscallVFS.preadBytes path.toString
+            (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
+            (USize.ofNat PhysicalCodec.pageSize)
+          if exact : bytes.size = PhysicalCodec.pageSize then
+            let before : Storage.Page PhysicalCodec.pageSize := {
+              bytes := bytes.data
+              sizeInvariant := exact }
+            return .inl (index + 1, ⟨write.pageId, before⟩ :: state.2)
+          else
+            throw (IO.userError s!"short read for main page {write.pageId}")
         else
-          throw (IO.userError s!"short read for main page {write.pageId}")
-    return ⟨count, undo⟩
+          return .inl (index + 1, state.2)
+      else
+        return .inr state.2
+    return ⟨count, reversedUndo.reverse⟩
 
 private def verifyWrittenPages (path : System.FilePath)
     (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) : IO Unit := do
-    for write in writes do
-      let bytes ← SyscallVFS.preadBytes path.toString
-        (UInt64.ofNat (write.pageId * PhysicalCodec.pageSize))
-        (USize.ofNat PhysicalCodec.pageSize)
-      unless bytes.size = PhysicalCodec.pageSize do
-        throw (IO.userError s!"short read for main page {write.pageId}")
-      unless bytes.data == write.page.bytes do
-        throw (IO.userError s!"dirty-page read-back mismatch at {write.pageId}")
+  SyscallVFS.verifyPages path.toString (pageTransfers writes)
 
 /-- A bounded, file-backed page source. It remembers only the current page
 position. Forward traversal discards skipped pages instead of materializing the

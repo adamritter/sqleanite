@@ -3487,6 +3487,22 @@ private def expectPersistentPageTree : IO Unit := do
       wideStore.root.interiorCount == 171 &&
       wideStore.root.pageCount == 43504 do
     fail "numbered high-fanout store changed contents or page topology"
+  -- SQLite reserves page 262145 for the POSIX pending-byte lock.  Exercise
+  -- the otherwise million-row-only boundary with a tiny, shifted fixture.
+  let pending := WidePageTree.pendingBytePage
+  unless WidePageTree.allocatedPage (pending - 1) 0 == pending - 1 &&
+      WidePageTree.allocatedPage (pending - 1) 1 == pending + 1 &&
+      WidePageTree.allocatedPage (pending - 1) 2 == pending + 2 do
+    fail "wide allocator did not skip SQLite's pending-byte page"
+  let boundaryEntries : List (PagedBTree.Entry Nat) := [(0, 0), (1, 1)]
+  have boundaryOrdered : boundaryEntries.Pairwise
+      (fun left right => left.1 < right.1) := by decide
+  let boundaryStore ← match WidePageTree.Store.build? (pending - 1)
+      boundaryEntries boundaryOrdered with
+    | some store => pure store
+    | none => fail "wide pending-byte boundary fixture failed to build"
+  if boundaryStore.root.pageIds.contains pending then
+    fail "wide topology assigned SQLite's pending-byte page"
   -- Fill a complete 256-child root, then append once.  This forces both a
   -- leaf split and root split, and checks that the public root page remains
   -- stable while three fresh physical pages are allocated.

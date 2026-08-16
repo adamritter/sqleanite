@@ -65,7 +65,7 @@ The CLI also exposes `--verified-wal-file` and
 - `SQLeanite/`: implementation, specifications, and proofs;
 - `Main.lean`: small file/CLI boundary for the verified core;
 - `Tests.lean`: executable regression and interoperability tests;
-- `native/`: seven narrow syscall bindings plus a test-only fault VFS;
+- `native/`: nine narrow syscall bindings plus a test-only fault VFS;
 - `tests/sql/`: differential, workload, and upstream-adapter inputs;
 - `mutations/`: proof and C-SQLite mutation experiments;
 - `scripts/`: audits, reproduction, benchmarks, and crash tests;

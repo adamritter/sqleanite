@@ -335,6 +335,15 @@ fi
 
 if grep -q 'GrowableStorage.deltaWrites old (storageImage image)' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'writeMainPages paths.main writes' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'SyscallVFS.pwritePages path.toString (pageTransfers writes)' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'SyscallVFS.verifyPages path.toString (pageTransfers writes)' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'allocatedPage startPage offset' SQLeanite/WidePageTree.lean &&
+   grep -q 'WidePageTree.buildNumberedWithFanout fanout startPage' \
+     SQLeanite/CoreWideIndex.lean &&
+   grep -q 'interiorFanoutFor cells' SQLeanite/CoreWideIndex.lean &&
+   grep -q 'pageTransfers_toList' SQLeanite/ProofAxioms.lean &&
    grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'PreparedBulkCommit.postImageCertificate' \
      SQLeanite/ProofAxioms.lean; then

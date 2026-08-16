@@ -146,6 +146,26 @@ def encodeTables (tables : List CoreWidePageState.TableState) :
   let pages ← tables.mapM encodeTable
   some pages.flatten
 
+/-- SQLite reserves its pending-byte lock page inside the ordinary page-number
+space.  It is intentionally materialized as an all-zero page in a bulk image:
+the topology allocator proves that no logical page owns the number, while the
+placeholder keeps the file image and database-header page count contiguous. -/
+def pendingBytePlaceholder : CorePageCodec.NumberedPage := {
+  pageNumber := WidePageTree.pendingBytePage
+  page := {
+    bytes := List.replicate PhysicalCodec.pageSize 0
+    length_eq := by simp } }
+
+def includePendingBytePlaceholder (nextPage : Nat)
+    (pages : List CorePageCodec.NumberedPage) :
+    List CorePageCodec.NumberedPage :=
+  if WidePageTree.pendingBytePage < nextPage then
+    pendingBytePlaceholder :: pages
+  else pages
+
+@[simp] theorem pendingBytePlaceholder_pageNumber :
+    pendingBytePlaceholder.pageNumber = WidePageTree.pendingBytePage := rfl
+
 /-- Executable, linear check for the first high-fanout codec slice.  Keeping
 this as a Boolean fold avoids constructing a quadratic membership decider for
 the logically equivalent nested universal proposition. -/
@@ -176,7 +196,8 @@ def encodeBulkInlineWithState (database : Core.Database) :
   let state ← CoreWidePageState.State.build? database
   if _inline : rowsInline state.tables then
     let numbered ← encodeTables state.tables
-    let ordered := CorePageCodec.orderNumberedPages numbered
+    let ordered := CorePageCodec.orderNumberedPages
+      (includePendingBytePlaceholder state.nextPage numbered)
     if _numbers : ordered.map CorePageCodec.NumberedPage.pageNumber =
         List.range' 2 (state.nextPage - 2) then
       let indexEncodings ← CoreWideIndex.encodeIndexTableGroups

@@ -697,7 +697,8 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
   next inlineResult =>
     rcases Option.bind_eq_some.mp encoded with
       ⟨numbered, numberedResult, encoded⟩
-    let ordered := CorePageCodec.orderNumberedPages numbered
+    let ordered := CorePageCodec.orderNumberedPages
+      (CoreWidePageCodec.includePendingBytePlaceholder state.nextPage numbered)
     dsimp only at encoded
     split at encoded
     next numbers =>
@@ -756,9 +757,13 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
               CorePageCodec.PageSourceContains source numbered := by
             intro page member
             apply orderedContains page
-            exact List.mem_mergeSort.mpr member
-          have numberedLength : numbered.length = ordered.length := by
-            simp [ordered, CorePageCodec.orderNumberedPages]
+            apply List.mem_mergeSort.mpr
+            unfold CoreWidePageCodec.includePendingBytePlaceholder
+            split <;> simp_all
+          have numberedLengthLe : numbered.length ≤ ordered.length := by
+            simp [ordered, CorePageCodec.orderNumberedPages,
+              CoreWidePageCodec.includePendingBytePlaceholder]
+            split <;> simp
           have sourceCount : source.pageCount = 1 + remaining.length := by
             simp [source, CoreDecode.PageSource.ofList, Nat.add_comm]
           have tablesDecoded := decodeTablesFrom_encodeTables source state.tables
@@ -981,7 +986,9 @@ theorem encodeBulkInline_header {database : Core.Database}
           ⟨indexEncodings, indexResult, resultEq⟩
         split at resultEq
         next countBound =>
-          let ordered := CorePageCodec.orderNumberedPages numbered
+          let ordered := CorePageCodec.orderNumberedPages
+            (CoreWidePageCodec.includePendingBytePlaceholder state.nextPage
+              numbered)
           let entries := state.tables.map CoreWidePageCodec.tableCatalogEntry ++
             CoreWideIndex.indexEntriesOf indexEncodings
           let remaining := ordered.map CorePageCodec.NumberedPage.page ++

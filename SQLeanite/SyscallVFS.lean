@@ -26,6 +26,21 @@ opaque preadBytes (path : @& String) (offset : UInt64) (length : USize) :
 opaque pwriteBytes (path : @& String) (offset : UInt64)
     (bytes : @& ByteArray) : IO Unit
 
+/-- One byte-exact positional transfer selected by the verified page planner.
+The native VFS batch functions only iterate this array; page identity, order,
+and contents remain Lean values. -/
+structure PageTransfer where
+  bytes : ByteArray
+  offset : UInt64
+
+@[extern "sqleanite_pwrite_pages"]
+opaque pwritePages (path : @& String)
+    (writes : @& Array PageTransfer) : IO Unit
+
+@[extern "sqleanite_verify_pages"]
+opaque verifyPages (path : @& String)
+    (writes : @& Array PageTransfer) : IO Unit
+
 @[extern "sqleanite_rename_path"]
 opaque renamePath (source target : @& String) : IO Unit
 

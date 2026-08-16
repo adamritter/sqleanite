@@ -18,6 +18,19 @@ once.
 abbrev Cell := List UInt8
 abbrev Leaf := List Cell
 
+/-- Child capacity for promoted-key interior pages.  Unlike table rowid
+separators, index separators contain the full encoded key.  An interior cell
+costs its record bytes plus a four-byte child pointer and a two-byte cell-array
+pointer; the 12-byte interior header is paid once. -/
+def interiorFanoutFor (cells : List Cell) : Nat :=
+  let widest := cells.foldl (fun width cell => max width cell.length) 0
+  max 2 (1 + (PhysicalCodec.pageSize - 12) / (widest + 6))
+
+theorem interiorFanoutFor_pos (cells : List Cell) :
+    0 < interiorFanoutFor cells := by
+  simp only [interiorFanoutFor]
+  omega
+
 /-- Decoder evidence for the promoted cells of one arbitrary-fanout interior
 page.  The child bound is also exactly the premise needed by SQLite's four-byte
 page-number field. -/
@@ -596,7 +609,9 @@ structure Store where
 
 def Store.build? (startPage : Nat) (cells : List Cell) : Option Store := do
   let leaves := CellPagination.paginateCells cells
-  match built : WidePageTree.buildNumbered startPage (leafEntries leaves) with
+  let fanout := interiorFanoutFor cells
+  match built : WidePageTree.buildNumberedWithFanout fanout startPage
+      (leafEntries leaves) with
   | none => none
   | some (wide, nextPage) =>
       match converted : fromWideStep (wide.height + 1) wide with
@@ -606,10 +621,11 @@ def Store.build? (startPage : Nat) (cells : List Cell) : Option Store := do
           startPage
           nextPage
           cells
-          startLeNext := WidePageTree.buildNumbered_after_ge built
+          startLeNext := WidePageTree.buildNumberedWithFanout_after_ge built
           represents := by
             rw [fromWideStep_toCells _ wide root converted,
-              WidePageTree.buildNumbered_toList built, leafEntries_values,
+              WidePageTree.buildNumberedWithFanout_toList built,
+              leafEntries_values,
               CellPagination.flatten_paginateCells] }
 
 theorem Store.build?_cells {startPage : Nat} {cells : List Cell}

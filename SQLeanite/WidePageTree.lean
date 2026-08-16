@@ -29,6 +29,31 @@ for each cell, four-byte child page number, and nine-byte worst-case separator
 fit in a 4096-byte SQLite page. -/
 def interiorFanout : Nat := 256
 
+/-- SQLite page number containing the POSIX pending-byte lock.  The file
+format reserves this page even when locking is implemented outside the file;
+no B-tree, overflow, pointer-map, or freelist page may own it.  Page numbers
+in this module are the one-based numbers stored in SQLite page headers. -/
+def pendingBytePage : Nat := 262145
+
+/-- The `offset`th allocatable SQLite page at or after `startPage`.  There is
+one architectural hole in the page-number space, `pendingBytePage`.  Keeping
+the rule in the topology owner prevents encoders and VFS writers from having
+to repair an already-invalid graph. -/
+def allocatedPage (startPage offset : Nat) : Nat :=
+  let raw := startPage + offset
+  if startPage ≤ pendingBytePage ∧ pendingBytePage ≤ raw then raw + 1
+  else raw
+
+theorem allocatedPage_ne_pendingBytePage (startPage offset : Nat) :
+    allocatedPage startPage offset ≠ pendingBytePage := by
+  simp only [allocatedPage, pendingBytePage]
+  split <;> omega
+
+theorem allocatedPage_ge (startPage offset : Nat) :
+    startPage ≤ allocatedPage startPage offset := by
+  simp only [allocatedPage]
+  split <;> omega
+
 theorem leafCapacity_pos : 0 < leafCapacity := by decide
 
 theorem interiorFanout_pos : 0 < interiorFanout := by decide
@@ -424,7 +449,7 @@ def Node.erase : Node Value → Plan Value
 def numberedLeaves (startPage : Nat)
     (entries : List (PagedBTree.Entry Value)) : List (Node Value) :=
   (groups leafCapacity entries).mapIdx fun offset group =>
-    .leaf (startPage + offset) group
+    .leaf (allocatedPage startPage offset) group
 
 theorem numberedLeaves_toList (startPage : Nat)
     (entries : List (PagedBTree.Entry Value)) :
@@ -436,10 +461,20 @@ theorem numberedLeaves_toList (startPage : Nat)
   rw [List.zipIdx_map_fst]
   exact flatten_groups leafCapacity entries
 
+theorem numberedLeaves_root_ne_pendingBytePage (startPage : Nat)
+    (entries : List (PagedBTree.Entry Value))
+    (node : Node Value) (member : node ∈ numberedLeaves startPage entries) :
+    node.rootId ≠ pendingBytePage := by
+  unfold numberedLeaves at member
+  rw [List.mem_mapIdx] at member
+  rcases member with ⟨offset, bound, equal⟩
+  rw [← equal]
+  exact allocatedPage_ne_pendingBytePage startPage offset
+
 def numberedBranches (startPage : Nat) (nodes : List (Node Value)) :
     List (Node Value) :=
   (groups interiorFanout nodes).mapIdx fun offset children =>
-    .branch (startPage + offset) children
+    .branch (allocatedPage startPage offset) children
 
 theorem numberedBranches_toList (startPage : Nat)
     (nodes : List (Node Value)) :
@@ -455,6 +490,16 @@ theorem numberedBranches_toList (startPage : Nat)
   rw [← List.flatMap_assoc, zipped]
   rw [flatten_groups]
 
+theorem numberedBranches_root_ne_pendingBytePage (startPage : Nat)
+    (nodes : List (Node Value))
+    (node : Node Value) (member : node ∈ numberedBranches startPage nodes) :
+    node.rootId ≠ pendingBytePage := by
+  unfold numberedBranches at member
+  rw [List.mem_mapIdx] at member
+  rcases member with ⟨offset, bound, equal⟩
+  rw [← equal]
+  exact allocatedPage_ne_pendingBytePage startPage offset
+
 /-- Build successive numbered interior layers.  The initial node count is a
 simple totality fuel; every recursive layer has strictly fewer nodes when it
 contains at least two. -/
@@ -466,13 +511,14 @@ def buildNumberedFrom : Nat → Nat → List (Node Value) →
   | _ + 1, nextPage, [root] => some (root, nextPage)
   | fuel + 1, nextPage, first :: second :: nodes =>
       let next := numberedBranches nextPage (first :: second :: nodes)
-      buildNumberedFrom fuel (nextPage + next.length) next
+      buildNumberedFrom fuel (allocatedPage nextPage next.length) next
 
 def buildNumbered (startPage : Nat)
     (entries : List (PagedBTree.Entry Value)) : Option (Node Value × Nat) :=
-  let leaves := if entries.isEmpty then [.leaf startPage []]
+  let leaves := if entries.isEmpty then
+      [.leaf (allocatedPage startPage 0) []]
     else numberedLeaves startPage entries
-  buildNumberedFrom leaves.length (startPage + leaves.length) leaves
+  buildNumberedFrom leaves.length (allocatedPage startPage leaves.length) leaves
 
 theorem buildNumberedFrom_toList :
     ∀ (fuel nextPage : Nat) (nodes : List (Node Value))
@@ -494,7 +540,7 @@ theorem buildNumberedFrom_toList :
   | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
       let next := numberedBranches nextPage (first :: second :: nodes)
       have recursive := buildNumberedFrom_toList fuel
-        (nextPage + next.length) next root after (by
+        (allocatedPage nextPage next.length) next root after (by
           simpa [buildNumberedFrom, next] using built)
       rw [recursive, numberedBranches_toList]
 
@@ -516,9 +562,9 @@ theorem buildNumberedFrom_after_ge :
   | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
       let next := numberedBranches nextPage (first :: second :: nodes)
       have recursive := buildNumberedFrom_after_ge fuel
-        (nextPage + next.length) next root after (by
+        (allocatedPage nextPage next.length) next root after (by
           simpa [buildNumberedFrom, next] using built)
-      omega
+      exact Nat.le_trans (allocatedPage_ge nextPage next.length) recursive
 
 theorem buildNumbered_toList {startPage : Nat}
     {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
@@ -529,12 +575,12 @@ theorem buildNumbered_toList {startPage : Nat}
   next empty =>
     have entriesEmpty : entries = [] := List.isEmpty_iff.mp empty
     simpa [entriesEmpty, Node.toList] using
-      buildNumberedFrom_toList 1 (startPage + 1)
-        [.leaf startPage []] root after built
+      buildNumberedFrom_toList 1 (allocatedPage startPage 1)
+        [.leaf (allocatedPage startPage 0) []] root after built
   next notEmpty =>
     rw [buildNumberedFrom_toList
       (numberedLeaves startPage entries).length
-      (startPage + (numberedLeaves startPage entries).length)
+      (allocatedPage startPage (numberedLeaves startPage entries).length)
       (numberedLeaves startPage entries) root after built,
       numberedLeaves_toList]
 
@@ -545,15 +591,159 @@ theorem buildNumbered_after_ge {startPage : Nat}
   unfold buildNumbered at built
   split at built
   next =>
-    have bound := buildNumberedFrom_after_ge 1 (startPage + 1)
-      [.leaf startPage []] root after built
-    omega
+    have bound := buildNumberedFrom_after_ge 1 (allocatedPage startPage 1)
+      [.leaf (allocatedPage startPage 0) []] root after built
+    exact Nat.le_trans (allocatedPage_ge startPage 1) bound
   next =>
     have bound := buildNumberedFrom_after_ge
       (numberedLeaves startPage entries).length
-      (startPage + (numberedLeaves startPage entries).length)
+      (allocatedPage startPage (numberedLeaves startPage entries).length)
       (numberedLeaves startPage entries) root after built
-    omega
+    exact Nat.le_trans
+      (allocatedPage_ge startPage (numberedLeaves startPage entries).length)
+      bound
+
+/-! ## Byte-selected interior fanout
+
+Table separators are fixed-width rowids, so `interiorFanout` is exact there.
+Index separators are promoted records whose byte widths depend on the indexed
+value.  The generic builder below lets the index codec select a smaller, proved
+page-fitting fanout without returning to a 2-3 physical topology. -/
+
+def numberedBranchesWithFanout (fanout startPage : Nat)
+    (nodes : List (Node Value)) : List (Node Value) :=
+  (groups fanout nodes).mapIdx fun offset children =>
+    .branch (allocatedPage startPage offset) children
+
+theorem numberedBranchesWithFanout_toList (fanout startPage : Nat)
+    (nodes : List (Node Value)) :
+    (numberedBranchesWithFanout fanout startPage nodes).flatMap Node.toList =
+      nodes.flatMap Node.toList := by
+  unfold numberedBranchesWithFanout
+  rw [List.mapIdx_eq_zipIdx_map, List.flatMap_map]
+  simp only [Function.comp_apply, Node.toList]
+  have zipped : (groups fanout nodes).zipIdx.flatMap Prod.fst =
+      (groups fanout nodes).flatten := by
+    change ((groups fanout nodes).zipIdx.map Prod.fst).flatten = _
+    rw [List.zipIdx_map_fst]
+  rw [← List.flatMap_assoc, zipped, flatten_groups]
+
+def buildNumberedFromWithFanout (fanout : Nat) :
+    Nat → Nat → List (Node Value) → Option (Node Value × Nat)
+  | 0, nextPage, [root] => some (root, nextPage)
+  | 0, _, _ => none
+  | _ + 1, _, [] => none
+  | _ + 1, nextPage, [root] => some (root, nextPage)
+  | fuel + 1, nextPage, first :: second :: nodes =>
+      let next := numberedBranchesWithFanout fanout nextPage
+        (first :: second :: nodes)
+      buildNumberedFromWithFanout fanout fuel
+        (allocatedPage nextPage next.length) next
+
+def buildNumberedWithFanout (fanout startPage : Nat)
+    (entries : List (PagedBTree.Entry Value)) : Option (Node Value × Nat) :=
+  let leaves := if entries.isEmpty then
+      [.leaf (allocatedPage startPage 0) []]
+    else numberedLeaves startPage entries
+  buildNumberedFromWithFanout fanout leaves.length
+    (allocatedPage startPage leaves.length) leaves
+
+theorem buildNumberedFromWithFanout_toList (fanout : Nat) :
+    ∀ (fuel nextPage : Nat) (nodes : List (Node Value))
+      (root : Node Value) (after : Nat),
+      buildNumberedFromWithFanout fanout fuel nextPage nodes =
+          some (root, after) →
+      root.toList = nodes.flatMap Node.toList
+  | 0, _, [], _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | 0, _, [root], result, after, built => by
+      simp only [buildNumberedFromWithFanout, Option.some.injEq,
+        Prod.mk.injEq] at built
+      rcases built with ⟨rfl, rfl⟩
+      simp
+  | 0, _, first :: second :: nodes, _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | fuel + 1, _, [], _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | fuel + 1, _, [root], result, after, built => by
+      simp only [buildNumberedFromWithFanout, Option.some.injEq,
+        Prod.mk.injEq] at built
+      rcases built with ⟨rfl, rfl⟩
+      simp
+  | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
+      let next := numberedBranchesWithFanout fanout nextPage
+        (first :: second :: nodes)
+      have recursive := buildNumberedFromWithFanout_toList fanout fuel
+        (allocatedPage nextPage next.length) next root after (by
+          simpa [buildNumberedFromWithFanout, next] using built)
+      rw [recursive, numberedBranchesWithFanout_toList]
+
+theorem buildNumberedFromWithFanout_after_ge (fanout : Nat) :
+    ∀ (fuel nextPage : Nat) (nodes : List (Node Value))
+      (root : Node Value) (after : Nat),
+      buildNumberedFromWithFanout fanout fuel nextPage nodes =
+          some (root, after) →
+      nextPage ≤ after
+  | 0, _, [], _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | 0, nextPage, [root], result, after, built => by
+      simp only [buildNumberedFromWithFanout, Option.some.injEq,
+        Prod.mk.injEq] at built
+      omega
+  | 0, _, first :: second :: nodes, _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | fuel + 1, _, [], _, _, built => by
+      simp [buildNumberedFromWithFanout] at built
+  | fuel + 1, nextPage, [root], result, after, built => by
+      simp only [buildNumberedFromWithFanout, Option.some.injEq,
+        Prod.mk.injEq] at built
+      omega
+  | fuel + 1, nextPage, first :: second :: nodes, root, after, built => by
+      let next := numberedBranchesWithFanout fanout nextPage
+        (first :: second :: nodes)
+      have recursive := buildNumberedFromWithFanout_after_ge fanout fuel
+        (allocatedPage nextPage next.length) next root after (by
+          simpa [buildNumberedFromWithFanout, next] using built)
+      exact Nat.le_trans (allocatedPage_ge nextPage next.length) recursive
+
+theorem buildNumberedWithFanout_toList {fanout startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
+    (built : buildNumberedWithFanout fanout startPage entries =
+      some (root, after)) : root.toList = entries := by
+  unfold buildNumberedWithFanout at built
+  split at built
+  next empty =>
+    have entriesEmpty : entries = [] := List.isEmpty_iff.mp empty
+    simpa [entriesEmpty, Node.toList] using
+      buildNumberedFromWithFanout_toList fanout 1
+        (allocatedPage startPage 1)
+        [.leaf (allocatedPage startPage 0) []] root after built
+  next =>
+    rw [buildNumberedFromWithFanout_toList fanout
+      (numberedLeaves startPage entries).length
+      (allocatedPage startPage (numberedLeaves startPage entries).length)
+      (numberedLeaves startPage entries) root after built,
+      numberedLeaves_toList]
+
+theorem buildNumberedWithFanout_after_ge {fanout startPage : Nat}
+    {entries : List (PagedBTree.Entry Value)} {root : Node Value} {after : Nat}
+    (built : buildNumberedWithFanout fanout startPage entries =
+      some (root, after)) : startPage ≤ after := by
+  unfold buildNumberedWithFanout at built
+  split at built
+  next =>
+    have bound := buildNumberedFromWithFanout_after_ge fanout 1
+      (allocatedPage startPage 1)
+      [.leaf (allocatedPage startPage 0) []] root after built
+    exact Nat.le_trans (allocatedPage_ge startPage 1) bound
+  next =>
+    have bound := buildNumberedFromWithFanout_after_ge fanout
+      (numberedLeaves startPage entries).length
+      (allocatedPage startPage (numberedLeaves startPage entries).length)
+      (numberedLeaves startPage entries) root after built
+    exact Nat.le_trans
+      (allocatedPage_ge startPage (numberedLeaves startPage entries).length)
+      bound
 
 /-- The live owner of a wide physical topology.  `represents` is erased by the
 compiler; it prevents callers from attaching the page graph to a different
@@ -721,8 +911,9 @@ def appendStep : Nat → Nat → PagedBTree.Entry Value → Node Value →
       if _fits : updated.length ≤ leafCapacity then
         some (.done (.leaf pageId updated), nextPage)
       else if _full : entries.length = leafCapacity then
-        some (.split (.leaf pageId entries) (.leaf nextPage [entry]),
-          nextPage + 1)
+        some (.split (.leaf pageId entries)
+          (.leaf (allocatedPage nextPage 0) [entry]),
+          allocatedPage nextPage 1)
       else none
   | fuel + 1, nextPage, entry, .branch pageId children => do
       let (initial, last) ← splitLast? children
@@ -733,7 +924,8 @@ def appendStep : Nat → Nat → PagedBTree.Entry Value → Node Value →
       else if _full : children.length = interiorFanout then
         let splitAt := updated.length / 2
         some (.split (.branch pageId (updated.take splitAt))
-          (.branch afterChild (updated.drop splitAt)), afterChild + 1)
+          (.branch (allocatedPage afterChild 0) (updated.drop splitAt)),
+            allocatedPage afterChild 1)
       else none
 
 theorem appendStep_toList {fuel nextPage after : Nat}
@@ -882,10 +1074,10 @@ def Store.append? (store : Store Value) (entry : PagedBTree.Entry Value)
           appendStep_firstRootId appended⟩
   | some (.split left right, nextPage) =>
       let root := .branch store.root.rootId
-        [left.setRootId nextPage, right]
+        [left.setRootId (allocatedPage nextPage 0), right]
       let value : Store Value := {
         root
-        nextPage := nextPage + 1
+        nextPage := allocatedPage nextPage 1
         represents := by
           have contents := appendStep_toList appended
           simp only [AppendResult.toList, AppendResult.nodes,
@@ -894,7 +1086,8 @@ def Store.append? (store : Store Value) (entry : PagedBTree.Entry Value)
           dsimp only [root]
           simp only [Node.toList, List.flatMap_cons, List.flatMap_singleton,
             List.flatMap_nil, List.append_nil]
-          change (left.setRootId nextPage).toList ++ right.toList |>.Pairwise
+          change (left.setRootId (allocatedPage nextPage 0)).toList ++
+            right.toList |>.Pairwise
             (fun left right => left.1 < right.1)
           rw [Node.toList_setRootId, contents, List.pairwise_append]
           refine ⟨store.represents, by simp, ?_⟩
