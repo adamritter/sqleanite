@@ -167,6 +167,38 @@ def entries? : List Chunk → Option (List (PagedBTree.Entry Chunk))
     let entries ← entries? rowChunks
     some ((key, chunk) :: entries)
 
+/-- Every physical chunk entry is indexed by the key of its final row.  This
+is retained as erased evidence by the wide store: localized append can then
+raise the terminal separator without rescanning or comparing the table. -/
+def EntriesWellKeyed (entries : List (PagedBTree.Entry Chunk)) : Prop :=
+  ∀ entry ∈ entries, chunkKey? entry.2 = some entry.1
+
+theorem entries?_wellKeyed {rowChunks : List Chunk}
+    {entries : List (PagedBTree.Entry Chunk)}
+    (success : entries? rowChunks = some entries) :
+    EntriesWellKeyed entries := by
+  induction rowChunks generalizing entries with
+  | nil =>
+      simp [entries?] at success
+      subst entries
+      simp [EntriesWellKeyed]
+  | cons chunk rowChunks induction =>
+      simp only [entries?] at success
+      cases keyResult : chunkKey? chunk with
+      | none => simp [keyResult] at success
+      | some key =>
+          simp only [keyResult, Option.bind_eq_bind, Option.bind] at success
+          cases tailResult : entries? rowChunks with
+          | none => simp [tailResult] at success
+          | some tail =>
+              simp only [tailResult, Option.some.injEq] at success
+              subst entries
+              intro entry member
+              simp only [List.mem_cons] at member
+              rcases member with rfl | later
+              · exact keyResult
+              · exact induction tailResult entry later
+
 theorem entries?_projections {rowChunks : List Chunk}
     {entries : List (PagedBTree.Entry Chunk)}
     (success : entries? rowChunks = some entries) :

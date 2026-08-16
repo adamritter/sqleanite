@@ -76,6 +76,35 @@ private theorem loadChildren_decodes (schema : Core.Schema) (capacity : Nat)
                 tailResult]
               simp [List.append_assoc]
 
+private theorem mapM_output_has_input (encode : α → Option β) :
+    ∀ {input : List α} {output : List β},
+      input.mapM encode = some output →
+      ∀ value ∈ output, ∃ source ∈ input, encode source = some value
+  | [], output, success => by
+      simp only [List.mapM_nil, pure, Option.pure_def,
+        Option.some.injEq] at success
+      subst output
+      simp
+  | source :: input, output, success => by
+      simp only [List.mapM_cons] at success
+      cases headResult : encode source with
+      | none => simp [headResult] at success
+      | some head =>
+          simp only [headResult, Option.bind_eq_bind, Option.bind] at success
+          cases tailResult : input.mapM encode with
+          | none => simp [tailResult] at success
+          | some tail =>
+              simp only [tailResult, pure, Option.pure_def,
+                Option.some.injEq] at success
+              subst output
+              intro value member
+              simp only [List.mem_cons] at member
+              rcases member with rfl | later
+              · exact ⟨source, by simp, headResult⟩
+              · rcases mapM_output_has_input encode tailResult value later with
+                  ⟨candidate, candidateMember, candidateResult⟩
+                exact ⟨candidate, by simp [candidateMember], candidateResult⟩
+
 /-- The validating topology loader and the public logical decoder traverse the
 same pages and recover the same row stream for arbitrary interior fanout. -/
 theorem loadNode_decodes (schema : Core.Schema) (capacity : Nat)
@@ -136,11 +165,76 @@ theorem loadNode_decodes (schema : Core.Schema) (capacity : Nat)
                     List.flatMap_assoc]
                   rfl
 
+theorem loadNode_wellKeyed (schema : Core.Schema) (capacity : Nat)
+    (source : CoreDecode.PageSource) :
+    ∀ {fuel pageNumber : Nat}
+      {node : WidePageTree.Node CoreWidePageState.Chunk},
+      loadNode schema capacity source fuel pageNumber = some node →
+      CoreChunkPageState.EntriesWellKeyed node.toList := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro pageNumber node loaded
+      simp [loadNode] at loaded
+  | succ fuel induction =>
+      intro pageNumber node loaded
+      simp only [loadNode] at loaded
+      cases pageResult : source.readPage pageNumber with
+      | none => simp [pageResult] at loaded
+      | some page =>
+          simp only [pageResult, Option.bind_eq_bind, Option.bind] at loaded
+          cases interiorResult : CoreDecode.interiorChildren? page with
+          | none =>
+              simp only [interiorResult] at loaded
+              rcases Option.bind_eq_some.mp loaded with
+                ⟨rows, rowsResult, loaded⟩
+              rcases Option.bind_eq_some.mp loaded with
+                ⟨entries, entriesResult, loaded⟩
+              simp only [Option.some.injEq] at loaded
+              subst node
+              simpa [WidePageTree.Node.toList] using
+                CoreChunkPageState.entries?_wellKeyed entriesResult
+          | some children =>
+              simp only [interiorResult] at loaded
+              cases children with
+              | nil => simp at loaded
+              | cons child children =>
+                  rcases Option.bind_eq_some.mp loaded with
+                    ⟨nodes, nodesResult, loaded⟩
+                  simp only [Option.some.injEq] at loaded
+                  subst node
+                  intro entry member
+                  simp only [WidePageTree.Node.toList,
+                    List.mem_flatMap] at member
+                  rcases member with ⟨candidate, candidateMember, entryMember⟩
+                  have nodeResult := mapM_output_has_input
+                    (loadNode schema capacity source fuel) nodesResult
+                      candidate candidateMember
+                  rcases nodeResult with ⟨pageNumber, pageMember, loaded⟩
+                  exact induction loaded entry entryMember
+
+structure LoadedNode (schema : Core.Schema) (capacity : Nat)
+    (source : CoreDecode.PageSource) (fuel pageNumber : Nat) where
+  node : WidePageTree.Node CoreWidePageState.Chunk
+  loaded : loadNode schema capacity source fuel pageNumber = some node
+  wellKeyed : CoreChunkPageState.EntriesWellKeyed node.toList
+
+def loadNodeCertified (schema : Core.Schema) (capacity : Nat)
+    (source : CoreDecode.PageSource) (fuel pageNumber : Nat) :
+    Option (LoadedNode schema capacity source fuel pageNumber) :=
+  match loaded : loadNode schema capacity source fuel pageNumber with
+  | none => none
+  | some node => some {
+      node
+      loaded
+      wellKeyed := loadNode_wellKeyed schema capacity source loaded }
+
 def loadTable? (source : CoreDecode.PageSource) (rootPage : Nat)
     (table : Core.Table) : Option CoreWidePageState.TableState := do
   let capacity := CoreChunkPageState.chunkCapacityFor table.rows
-  let root ← loadNode table.schema capacity source
+  let loadedRoot ← loadNodeCertified table.schema capacity source
     (source.pageCount + 1) rootPage
+  let root := loadedRoot.node
   match WidePageTree.decideKeysPairwise root.toList with
   | isFalse _ => none
   | isTrue ordered =>
@@ -153,6 +247,7 @@ def loadTable? (source : CoreDecode.PageSource) (rootPage : Nat)
           table
           tree
           represents
+          wellKeyed := loadedRoot.wellKeyed
           capacity
           capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.rows }
       else none
@@ -162,9 +257,10 @@ theorem loadTable?_table {source : CoreDecode.PageSource} {rootPage : Nat}
     (loaded : loadTable? source rootPage table = some state) :
     state.table = table := by
   unfold loadTable? at loaded
-  rcases Option.bind_eq_some.mp loaded with ⟨root, rootResult, loaded⟩
+  rcases Option.bind_eq_some.mp loaded with
+    ⟨loadedRoot, rootResult, loaded⟩
   dsimp only at loaded
-  cases orderResult : WidePageTree.decideKeysPairwise root.toList with
+  cases orderResult : WidePageTree.decideKeysPairwise loadedRoot.node.toList with
   | isFalse rejected => simp [orderResult] at loaded
   | isTrue ordered =>
       simp only [orderResult] at loaded
@@ -187,17 +283,19 @@ theorem loadTable?_decodes {source : CoreDecode.PageSource} {rootPage : Nat}
     CoreDecode.decodeSubtreeRowsFrom table.schema source
       (source.pageCount + 1) rootPage = some table.rows := by
   unfold loadTable? at loaded
-  rcases Option.bind_eq_some.mp loaded with ⟨root, rootResult, loaded⟩
+  rcases Option.bind_eq_some.mp loaded with
+    ⟨loadedRoot, rootResult, loaded⟩
   dsimp only at loaded
-  cases orderResult : WidePageTree.decideKeysPairwise root.toList with
+  cases orderResult : WidePageTree.decideKeysPairwise loadedRoot.node.toList with
   | isFalse rejected => simp [orderResult] at loaded
   | isTrue ordered =>
       simp only [orderResult] at loaded
       split at loaded
       next represents =>
         have decoded := loadNode_decodes table.schema
-          (CoreChunkPageState.chunkCapacityFor table.rows) source rootResult
-        rw [show CoreWidePageState.Node.rows root = table.rows by
+          (CoreChunkPageState.chunkCapacityFor table.rows) source
+            loadedRoot.loaded
+        rw [show CoreWidePageState.Node.rows loadedRoot.node = table.rows by
           simp [CoreWidePageState.Store.rows] at represents
           exact represents] at decoded
         exact decoded

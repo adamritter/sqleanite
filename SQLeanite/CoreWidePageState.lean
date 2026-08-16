@@ -27,6 +27,7 @@ structure TableState where
   table : Core.Table
   tree : WidePageTree.Store Chunk
   represents : Store.rows tree = table.rows
+  wellKeyed : CoreChunkPageState.EntriesWellKeyed tree.toList
   capacity : Nat
   capacity_pos : 0 < capacity
 
@@ -66,6 +67,9 @@ def TableState.build? (startPage : Nat) (table : Core.Table) :
           table
           tree
           represents := buildTree_rows capacity startPage table entriesResult built
+          wellKeyed := by
+            rw [WidePageTree.Store.build?_toList built]
+            exact CoreChunkPageState.entries?_wellKeyed entriesResult
           capacity
           capacity_pos := CoreChunkPageState.chunkCapacityFor_pos table.rows }
 

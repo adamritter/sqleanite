@@ -49,6 +49,89 @@ def encodeTable (state : CoreWidePageState.TableState) :
   encodeChunkNode (state.tree.root.height + 1) state.table.schema
     state.tree.root
 
+/-- Encode one identified node without descending into its children. -/
+def encodeChunkRoot (schema : Core.Schema) :
+    WidePageTree.Node CoreWidePageState.Chunk →
+      Option CorePageCodec.NumberedPage
+  | .leaf pageId entries => do
+      let page ← CorePageCodec.encodeChunkLeaf schema entries
+      some ⟨pageId, page⟩
+  | .branch pageId children => do
+      let (cells, rightmost) ← interiorCells? children
+      let page ← RecursivePageBTree.interiorPage? cells rightmost.rootId
+      some ⟨pageId, page⟩
+
+theorem encodeChunkRoot_pageNumber {schema : Core.Schema}
+    {node : WidePageTree.Node CoreWidePageState.Chunk}
+    {page : CorePageCodec.NumberedPage}
+    (success : encodeChunkRoot schema node = some page) :
+    page.pageNumber = node.rootId := by
+  cases node with
+  | leaf pageId entries =>
+      simp only [encodeChunkRoot] at success
+      rcases Option.bind_eq_some.mp success with ⟨built, _, success⟩
+      exact congrArg CorePageCodec.NumberedPage.pageNumber
+        (Option.some.inj success).symm
+  | branch pageId children =>
+      simp only [encodeChunkRoot] at success
+      rcases Option.bind_eq_some.mp success with ⟨parts, _, success⟩
+      rcases parts with ⟨cells, rightmost⟩
+      rcases Option.bind_eq_some.mp success with ⟨built, _, success⟩
+      exact congrArg CorePageCodec.NumberedPage.pageNumber
+        (Option.some.inj success).symm
+
+def rightSpineStep : Nat → WidePageTree.Node CoreWidePageState.Chunk →
+    List (WidePageTree.Node CoreWidePageState.Chunk)
+  | 0, _ => []
+  | _ + 1, node@(.leaf _ _) => [node]
+  | fuel + 1, node@(.branch _ children) =>
+      node :: match children.getLast? with
+        | none => []
+        | some last => rightSpineStep fuel last
+
+def rightSpine (node : WidePageTree.Node CoreWidePageState.Chunk) :
+    List (WidePageTree.Node CoreWidePageState.Chunk) :=
+  rightSpineStep (node.height + 1) node
+
+def rightSpineIds (node : WidePageTree.Node CoreWidePageState.Chunk) :
+    List Nat := (rightSpine node).map WidePageTree.Node.rootId
+
+/-- Nodes changed by terminal append.  Existing nodes are selected precisely
+when they belonged to the old right spine; every freshly allocated node is
+selected by its allocator watermark.  At most one interior page's child list
+is inspected per selected level, so this is independent of table size. -/
+def appendChangedNodesStep (oldRightIds : List Nat) (firstFresh : Nat) :
+    Nat → WidePageTree.Node CoreWidePageState.Chunk →
+      List (WidePageTree.Node CoreWidePageState.Chunk)
+  | 0, _ => []
+  | _ + 1, node@(.leaf _ _) => [node]
+  | fuel + 1, node@(.branch _ children) =>
+      node :: children.flatMap fun child =>
+        if oldRightIds.contains child.rootId || firstFresh ≤ child.rootId then
+          appendChangedNodesStep oldRightIds firstFresh fuel child
+        else []
+
+def appendChangedNodes (oldRightIds : List Nat) (firstFresh : Nat)
+    (node : WidePageTree.Node CoreWidePageState.Chunk) :
+    List (WidePageTree.Node CoreWidePageState.Chunk) :=
+  appendChangedNodesStep oldRightIds firstFresh (node.height + 1) node
+
+def encodeNodes (schema : Core.Schema)
+    (nodes : List (WidePageTree.Node CoreWidePageState.Chunk)) :
+    Option (List CorePageCodec.NumberedPage) :=
+  nodes.mapM (encodeChunkRoot schema)
+
+def encodeTerminalReplacement (schema : Core.Schema)
+    (after : WidePageTree.Store CoreWidePageState.Chunk) :
+    Option (List CorePageCodec.NumberedPage) :=
+  encodeNodes schema (rightSpine after.root)
+
+def encodeTerminalAppend (schema : Core.Schema)
+    (before after : WidePageTree.Store CoreWidePageState.Chunk) :
+    Option (List CorePageCodec.NumberedPage) :=
+  encodeNodes schema
+    (appendChangedNodes (rightSpineIds before.root) before.nextPage after.root)
+
 def tableCatalogEntry (state : CoreWidePageState.TableState) :
     CoreFile.CatalogEntry := {
   kind := "table"
