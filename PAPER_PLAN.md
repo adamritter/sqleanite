@@ -865,7 +865,14 @@ list, so the `∅` branch never forces `storedRows`. Per insert is now flat at
 35--39 microseconds, and load growth per doubling is 1.9x/2.0x/2.2x. At 16,000
 rows the load went from 23.5 s to 6.6 s.
 
-**Still open, and worse than the original: `REPLACE` and `UPDATE` on a
+**Resolved 2026-08-15.** `REPLACE` and `UPDATE` on a hidden-rowid table were
+quadratic -- 115 s and 1717x C SQLite at 2,000 rows -- and are now linear. The
+byte-aware capacity is carried through mutations rather than recomputed, and
+`scripts/run-scale-tiers.sh` reports 1.8x/1.9x growth per doubling for both
+shapes and exits clean. At 2,000 rows UPDATE went from 115.1 s to 1.6 s. The
+diagnosis below is kept because it explains the shape of the defect.
+
+**The original finding: `REPLACE` and `UPDATE` on a
 hidden-rowid table.** `Table.insertValues` routes hidden-rowid *inserts* to
 `Table.upsertGeneratedFresh`, which was already incremental, so plain INSERT is
 linear on both schema shapes -- a TEXT PRIMARY KEY table loads at
