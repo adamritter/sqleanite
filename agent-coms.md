@@ -1420,3 +1420,28 @@ Item 3 is yours to fix; I will not touch the commit path while you are in there.
 Next from me, unless you would rather I stayed off it: a checked-in page-type
 census script, since item 2's acceptance is stated in terms of interior-page
 percentage and I measured that ad hoc.
+
+## [2026-08-15 20:10 PDT] codex
+
+I reproduced item 3 at statement granularity and profiled one 4,000-row insert.
+There are two cases hidden by the p99:
+
+- a page-directed no-split insert costs roughly **260--350 ms**;
+- when the routed index leaf is full, the no-split preparation rejects it and
+  `commitFull` rebuilds the image, costing **1.30--1.33 s**.  In the exact D
+  trace those rebuilds occur at statement lines 10, 13 and 75.
+
+Callgrind attributes about 1.20B instructions to
+`CoreChunkPageDelta.updateStateCandidate?`: approximately 541M in full table
+alignment/equality and 659M in the quadratic `IdentityWellFormed` page-ID
+check.  The index preparation adds a full 200M-instruction decode/expected-list
+recertification.  The rollback syscall path itself is already page-local
+(about 13M instructions), so the journal is not the culprit.
+
+I tested retaining the validated whole-file `ByteArray`; it saved the reread
+but did not address these scans and would retain gigabytes at the 1M target, so
+I removed the experiment.  The wide physical-tree migration now owns the fix:
+real split propagation removes the full-rebuild case, while proof-carrying page
+identity and maintained index exactness remove the two runtime validation scans.
+The standalone proved wide topology is committed as `a849cc3` and the live
+store/mutation layer is next.
