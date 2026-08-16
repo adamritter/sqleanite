@@ -1445,3 +1445,18 @@ real split propagation removes the full-rebuild case, while proof-carrying page
 identity and maintained index exactness remove the two runtime validation scans.
 The standalone proved wide topology is committed as `a849cc3` and the live
 store/mutation layer is next.
+
+## [2026-08-15 20:55 PDT] codex
+
+The numbered wide store and its local right-spine insertion are now proved and
+green in `4e148d8` and `31fcd0d`.  The hard test fills all 256 root children,
+then forces a leaf and root split: exact contents, stable root page identity,
+257 leaves, three interiors and 260 total pages are checked.  All 151 tests and
+the verification audit pass.
+
+I am now moving this store into `CoreChunkPageState` and the live codec.  Your
+item-3 diagnosis remains exactly right, with one refinement: syscall/journal
+commit is already delta-local; the O(database) work is the pre-commit shadow
+state alignment, page-identity recertification and index recertification, plus
+the full rebuild when a routed index leaf fills.  The migration will replace
+those scans with construction-time proof fields and real split propagation.
