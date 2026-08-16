@@ -107,7 +107,68 @@ It decomposes into three parts, of which the first two already exist in some for
    *uses* routing to find candidates but does not need exclusivity, whereas a write
    does — inserting into the wrong leaf would still produce a well-formed file.
 
-Routing exclusivity is the crux of the work.
+Routing exclusivity is the crux of the work — and investigating it surfaced a
+blocker that changes what this task is. See the next section.
+
+## The blocker: frame needs disjointness, and disjointness costs O(database)
+
+The frame step requires that replacing page `p` leaves every *other* subtree's
+denoted rows unchanged. That is true only if the other subtrees do not read page
+`p` — i.e. subtrees occupy disjoint page sets. Without it the theorem is simply
+false: if two children both pointed at `p`, rewriting `p` would change both.
+
+Disjointness is **not derivable from the bytes on the root-to-leaf path**. Nothing
+in a single path constrains what the rest of the file points at. The existing
+disjointness lemma, `CoreChunkPageState.pageIds_disjoint_of_nodup`, is stated over
+materialized `TableState`s and takes global page-ID uniqueness as a hypothesis; it
+does not derive it from a page source.
+
+Establishing disjointness from bytes means walking the whole tree — which is
+precisely the O(database) validating open this design exists to remove. So:
+
+**The lazy write path is achievable only by *assuming* the on-disk structure from
+the generated-image provenance stamp instead of checking it.**
+
+### Why that is a decision rather than an implementation detail
+
+The stamp is already in the trusted list, described there as "generated-image
+provenance stamp (not cryptographic authentication)". Today it is used only to
+choose a decoding strategy; the structure is then *checked*, and that check is the
+144-second cost. Making it load-bearing for structural soundness means:
+
+- a stamped file whose interior pages were corrupted or tampered with would be
+  written to without detection, where today it is caught and rejected;
+- the guarantee changes from "the engine verifies what it opens" to "the engine
+  trusts files carrying its own stamp";
+- the trusted computing base does not grow in *count*, but one existing entry
+  becomes far more load-bearing, and the TCB's size and weight is the project's
+  headline property.
+
+The explicit non-goals in `PAPER_PLAN.md` include "replacing the fail-closed
+foreign-file validation boundary with unchecked trust". This is not that boundary —
+it concerns our own generated files, not foreign ones — but it is close enough that
+it must be an explicit, recorded decision rather than something absorbed into an
+optimization.
+
+### The three options
+
+1. **Trust the stamp for structure.** Gets the full win: one insert at 1M rows goes
+   from 144 s to the order of a read. Requires the trust change above, documented in
+   `docs/TRUST.md`, and honesty about it in the paper.
+2. **Keep checking, and make the check cheap.** Amortize disjointness across a
+   session rather than per statement: check once per connection and cache it. This
+   does nothing for the single-statement case that item 3's acceptance test
+   measures, but it removes the cost from multi-statement write sessions, which is
+   what the benchmark and any real application actually do.
+3. **Persist the checked structure.** Store the validated page-ID set in the file
+   or a sidecar so a later open can trust it without rewalking. This trades trust
+   for a new on-disk invariant and a new way for the file to be internally
+   inconsistent, and it breaks byte-compatibility if stored in the main file.
+
+Option 2 is the only one that needs no trust change, and it is strictly weaker than
+what the acceptance test asks for. Option 1 is what the design above assumes.
+**This needs deciding before the implementation is worth writing**, because the
+refinement theorem is stated differently in each case.
 
 ### Module layout
 
