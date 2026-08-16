@@ -727,7 +727,33 @@ theorem subtree_write_refines (schema : Core.Schema)
       CoreDecode.decodeSubtreeRowsFrom schema
           (CorePageSource.write source pageWrite) fuel rootPage
         = some (Core.orderedUpsert row rows) := by
-  sorry
+  intro fuel
+  induction fuel with
+  | zero => intro _ _ _ enumerated; simp [subtreePages] at enumerated
+  | succ fuel induction =>
+      intro rootPage rows pageList enumerated decoded ordered owned
+      rw [subtreePages] at enumerated
+      split at enumerated
+      · exact absurd enumerated (by simp)
+      · rename_i page pageResult
+        cases interiorResult : CoreDecode.interiorChildren? page with
+        | none =>
+            -- Leaf: the subtree is one page, so the write must target it.
+            simp only [interiorResult] at enumerated
+            have listShape : pageList = [rootPage] :=
+              (Option.some.inj enumerated).symm
+            have targetEq : rootPage = pageWrite.pageId + 1 := by
+              rw [listShape] at owned
+              simpa using (List.mem_singleton.mp owned).symm
+            have leafRows : CoreDecode.decodeRowsFrom schema source page
+                = some rows := by
+              rw [CoreDecode.decodeSubtreeRowsFrom, pageResult] at decoded
+              simpa [interiorResult] using decoded
+            have effect := writeEffect page rows (targetEq ▸ pageResult) leafRows
+            exact singleLeaf_write_refines schema source pageWrite fuel rootPage
+              page row rows targetEq effect.1 effect.2
+        | some children =>
+            sorry
 
 /-- **The top-level refinement.** The plan the executable computes, applied to the
 file, denotes exactly the table with the row inserted -- which is what
