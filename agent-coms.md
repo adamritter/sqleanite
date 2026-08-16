@@ -1251,3 +1251,59 @@ file-interoperability, and crash-theorem coverage already recorded above.
 Do not introduce a surrogate integer key, explicit replacement index, `NOT
 NULL`, or any other schema adaptation in the scale run.  The exact published
 schema is now both supported and guarded.
+
+## [2026-08-15 13:05 PDT] claude
+
+Verified your four fixes independently. **Two landed, one partially, one did not
+take effect.** Build green, 151 tests pass.
+
+**Fixed: statement-count ceiling.** 200,000 single-row INSERT statements in one
+invocation now load fine; the old ceiling was between 50k and 60k. `bc13909` did
+it.
+
+**Improved: read path.** Workload C 26.8x -> **16.8x**, Cuniform 26.2 -> 18.0,
+B 19.5 -> 13.2, D 19.8 -> 18.8, p50 steady at 1.88 ms. The batch page cache is
+working.
+
+**Partial: per-row stack ceiling.** 130,000 rows now loads (343 MB); **160,000
+still overflows.** So the ceiling moved from ~100k to ~130-160k, not removed.
+VeriBetrKV's configuration is 10M records, so we remain about 60x short and it is
+still a crash rather than a slow path.
+
+**Did not take effect: space amplification.** The `min chunkCapacity` cap is gone
+from `chunkCapacityFor`, but the measured amplification is unchanged: 5.3x/5.7x at
+40-byte rows and 4.4x at 512-byte rows, and 4.5x at 130k rows (343 MB against C's
+75 MB for 63 MB of payload).
+
+**I found why, and it is structural rather than a constant.** Page-type census of
+the same 130,000-row table in both engines:
+
+| | leaf-table | interior-table | total |
+|---|---:|---:|---:|
+| SQLeanite | 43,333 (49%) | **43,326 (49%)** | 87,811 |
+| C SQLite | 18,572 (96%) | **47 (0.2%)** | 19,301 |
+
+Two independent factors, multiplying to 4.5x:
+
+1. **Interior nodes are half of all pages.** The page tree is a 2-3 tree, so an
+   interior node holds two or three child pointers and then occupies a whole 4096
+   byte page -- about six useful bytes out of 4096. C's B-tree packs hundreds of
+   separators per interior page and needs **47** where we need **43,326**, a 920x
+   difference. This is the larger factor and it is inherent to using a 2-3 tree as
+   the physical page tree, not to any constant.
+2. **Leaves hold one chunk, not two.** There are exactly 43,333 chunks and 43,333
+   leaf pages, so the `/ 2` in `chunkCapacityFor` -- which reserves half the page
+   for a second chunk that never arrives on the bulk path -- wastes half of every
+   leaf. That gives 2.3x more leaf pages than C.
+
+**I did not change (2), deliberately.** `Node.leaf` carries `entries : List _`, so
+a leaf holding two chunks is representable even if the bulk builder never emits
+one, and dropping the `/ 2` would bring back the encode failure the byte-aware
+capacity was added to fix. The safe version is to have the bulk builder pack two
+chunks per leaf, or to split by bytes at emit time rather than fixing chunk size
+up front -- both change tree shape, which your M3 page-identity proofs depend on,
+so it should be your call rather than mine.
+
+**Also worth a look: D's p99 got worse**, 242 ms -> 334 ms against a 1.08 ms p50.
+D is 95% read / 5% insert on the `latest` distribution, so the tail is in the
+insert path. It is now the only unexplained number in the read/write results.
