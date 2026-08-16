@@ -3459,6 +3459,33 @@ private def expectPersistentPageTree : IO Unit := do
       wideStore.root.interiorCount == 86 &&
       wideStore.root.pageCount == 21753 do
     fail "numbered high-fanout store changed contents or page topology"
+  -- Fill a complete 256-child root, then append once.  This forces both a
+  -- leaf split and root split, and checks that the public root page remains
+  -- stable while three fresh physical pages are allocated.
+  let splitEntries : List (PagedBTree.Entry Nat) :=
+    (List.range 512).map fun key => (key, key)
+  have splitOrdered : splitEntries.Pairwise
+      (fun left right => left.1 < right.1) := by
+    simpa [splitEntries, List.pairwise_map] using
+      (List.pairwise_lt_range (n := 512))
+  match splitBuilt : WidePageTree.Store.build? 2 splitEntries splitOrdered with
+  | none => fail "wide split fixture exhausted its total fuel"
+  | some splitStore =>
+      have afterSplitEntries : ∀ old ∈ splitStore.toList, old.1 < 512 := by
+        intro old member
+        rw [WidePageTree.Store.build?_toList splitBuilt] at member
+        rcases List.mem_map.mp member with ⟨key, keyMember, rfl⟩
+        simpa using keyMember
+      let appended ← match splitStore.append? (512, 512)
+          afterSplitEntries with
+        | some result => pure result
+        | none => fail "wide append failed to propagate a full-root split"
+      unless appended.value.toList == splitEntries ++ [(512, 512)] &&
+          appended.value.root.rootId == splitStore.root.rootId &&
+          appended.value.root.leafCount == 257 &&
+          appended.value.root.interiorCount == 3 &&
+          appended.value.root.pageCount == 260 do
+        fail "wide append changed contents, root identity, or split topology"
 
 private def expectCertifiedCoreTokenGrammar : IO Unit := do
   let sql := "CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT);\n    BEGIN; INSERT INTO usertable VALUES('user0001','payload');\n    SELECT field0 FROM usertable WHERE (ycsb_key='user0001'); COMMIT;"

@@ -512,5 +512,254 @@ theorem Store.build?_toList {startPage : Nat}
     rw [← congrArg Store.root equal]
     exact buildNumbered_toList numbered
 
+/-! ## Local right-spine insertion
+
+SQLite rowids allocated by the Core are strictly increasing.  Appending the
+new terminal chunk therefore needs one right-spine descent, not a comparison
+against every existing chunk.  A full leaf splits into two leaves; a full
+interior page splits into two pages and propagates one level upward. -/
+
+def splitLast? (values : List α) : Option (List α × α) :=
+  match values.reverse with
+  | [] => none
+  | last :: reversed => some (reversed.reverse, last)
+
+theorem splitLast?_reconstruct {values initial : List α} {last : α}
+    (success : splitLast? values = some (initial, last)) :
+    initial ++ [last] = values := by
+  unfold splitLast? at success
+  cases reversed : values.reverse with
+  | nil => simp [reversed] at success
+  | cons final tail =>
+      simp only [reversed, Option.some.injEq, Prod.mk.injEq] at success
+      rcases success with ⟨rfl, rfl⟩
+      have restored := congrArg List.reverse reversed
+      simpa using restored.symm
+
+inductive AppendResult (Value : Type) where
+  | done (node : Node Value)
+  | split (left right : Node Value)
+
+def AppendResult.nodes : AppendResult Value → List (Node Value)
+  | .done node => [node]
+  | .split left right => [left, right]
+
+def AppendResult.toList (result : AppendResult Value) :
+    List (PagedBTree.Entry Value) :=
+  result.nodes.flatMap Node.toList
+
+def AppendResult.firstRootId? : AppendResult Value → Option Nat
+  | .done node => some node.rootId
+  | .split left _ => some left.rootId
+
+def Node.setRootId (pageId : Nat) : Node Value → Node Value
+  | .leaf _ entries => .leaf pageId entries
+  | .branch _ children => .branch pageId children
+
+@[simp] theorem Node.toList_setRootId (node : Node Value) (pageId : Nat) :
+    (node.setRootId pageId).toList = node.toList := by
+  cases node <;> simp [Node.setRootId, Node.toList]
+
+@[simp] theorem Node.rootId_setRootId (node : Node Value) (pageId : Nat) :
+    (node.setRootId pageId).rootId = pageId := by
+  cases node <;> simp [Node.setRootId, Node.rootId]
+
+/-- Fuel is the remaining physical height.  It makes malformed cyclic input
+unrepresentable at the API boundary and keeps the executable total. -/
+def appendStep : Nat → Nat → PagedBTree.Entry Value → Node Value →
+    Option (AppendResult Value × Nat)
+  | 0, _, _, _ => none
+  | _ + 1, nextPage, entry, .leaf pageId entries =>
+      let updated := entries ++ [entry]
+      if _fits : updated.length ≤ leafCapacity then
+        some (.done (.leaf pageId updated), nextPage)
+      else if _full : entries.length = leafCapacity then
+        some (.split (.leaf pageId entries) (.leaf nextPage [entry]),
+          nextPage + 1)
+      else none
+  | fuel + 1, nextPage, entry, .branch pageId children => do
+      let (initial, last) ← splitLast? children
+      let (childResult, afterChild) ← appendStep fuel nextPage entry last
+      let updated := initial ++ childResult.nodes
+      if _fits : updated.length ≤ interiorFanout then
+        some (.done (.branch pageId updated), afterChild)
+      else if _full : children.length = interiorFanout then
+        let splitAt := updated.length / 2
+        some (.split (.branch pageId (updated.take splitAt))
+          (.branch afterChild (updated.drop splitAt)), afterChild + 1)
+      else none
+
+theorem appendStep_toList {fuel nextPage after : Nat}
+    {entry : PagedBTree.Entry Value} {node : Node Value}
+    {result : AppendResult Value}
+    (success : appendStep fuel nextPage entry node = some (result, after)) :
+    result.toList = node.toList ++ [entry] := by
+  induction fuel generalizing nextPage after node result with
+  | zero => simp [appendStep] at success
+  | succ fuel induction =>
+      cases node with
+      | leaf pageId entries =>
+          simp only [appendStep] at success
+          split at success
+          next =>
+            simp only [Option.some.injEq, Prod.mk.injEq] at success
+            rcases success with ⟨rfl, rfl⟩
+            simp [AppendResult.toList, AppendResult.nodes, Node.toList]
+          next =>
+            split at success
+            next =>
+              simp only [Option.some.injEq, Prod.mk.injEq] at success
+              rcases success with ⟨rfl, rfl⟩
+              simp [AppendResult.toList, AppendResult.nodes, Node.toList]
+            next => contradiction
+
+      | branch pageId children =>
+          simp only [appendStep] at success
+          rcases Option.bind_eq_some.mp success with
+            ⟨split, splitResult, success⟩
+          rcases split with ⟨initial, last⟩
+          rcases Option.bind_eq_some.mp success with
+            ⟨recursive, recursiveResult, success⟩
+          rcases recursive with ⟨childResult, afterChild⟩
+          have childContents := induction recursiveResult
+          change childResult.toList = last.toList ++ [entry] at childContents
+          have childrenEq := splitLast?_reconstruct splitResult
+          simp only [splitResult, recursiveResult, Option.bind_eq_bind,
+            Option.bind] at success
+          have updatedContents :
+              (initial ++ childResult.nodes).flatMap Node.toList =
+                children.flatMap Node.toList ++ [entry] := by
+            rw [List.flatMap_append]
+            change initial.flatMap Node.toList ++ childResult.toList = _
+            rw [childContents, ← childrenEq, List.flatMap_append,
+              List.flatMap_singleton, List.append_assoc]
+          split at success
+          next =>
+            simp only [Option.some.injEq, Prod.mk.injEq] at success
+            rcases success with ⟨rfl, rfl⟩
+            simp only [AppendResult.toList, AppendResult.nodes,
+              List.flatMap_singleton, Node.toList]
+            exact updatedContents
+          next =>
+            split at success
+            next =>
+              simp only [Option.some.injEq, Prod.mk.injEq] at success
+              rcases success with ⟨rfl, rfl⟩
+              simp only [AppendResult.toList, AppendResult.nodes,
+                List.flatMap_cons, List.flatMap_singleton, Node.toList]
+              simp only [List.flatMap_nil, List.append_nil]
+              let nodes := initial ++ childResult.nodes
+              change (nodes.take (nodes.length / 2)).flatMap Node.toList ++
+                (nodes.drop (nodes.length / 2)).flatMap Node.toList = _
+              rw [← List.flatMap_append, List.take_append_drop]
+              exact updatedContents
+            next => contradiction
+
+theorem appendStep_firstRootId {fuel nextPage after : Nat}
+    {entry : PagedBTree.Entry Value} {node : Node Value}
+    {result : AppendResult Value}
+    (success : appendStep fuel nextPage entry node = some (result, after)) :
+    result.firstRootId? = some node.rootId := by
+  induction fuel generalizing nextPage after node result with
+  | zero => simp [appendStep] at success
+  | succ fuel induction =>
+      cases node with
+      | leaf pageId entries =>
+          simp only [appendStep] at success
+          split at success
+          next =>
+            simp only [Option.some.injEq, Prod.mk.injEq] at success
+            rcases success with ⟨rfl, rfl⟩
+            rfl
+          next =>
+            split at success
+            next =>
+              simp only [Option.some.injEq, Prod.mk.injEq] at success
+              rcases success with ⟨rfl, rfl⟩
+              rfl
+            next => contradiction
+      | branch pageId children =>
+          simp only [appendStep] at success
+          rcases Option.bind_eq_some.mp success with
+            ⟨split, splitResult, success⟩
+          rcases split with ⟨initial, last⟩
+          rcases Option.bind_eq_some.mp success with
+            ⟨recursive, recursiveResult, success⟩
+          rcases recursive with ⟨childResult, afterChild⟩
+          simp only [splitResult, recursiveResult, Option.bind_eq_bind,
+            Option.bind] at success
+          split at success
+          next =>
+            simp only [Option.some.injEq, Prod.mk.injEq] at success
+            rcases success with ⟨rfl, rfl⟩
+            rfl
+          next =>
+            split at success
+            next =>
+              simp only [Option.some.injEq, Prod.mk.injEq] at success
+              rcases success with ⟨rfl, rfl⟩
+              rfl
+            next => contradiction
+
+structure Appended (store : Store Value) (entry : PagedBTree.Entry Value) where
+  value : Store Value
+  toList_eq : value.toList = store.toList ++ [entry]
+  rootId_eq : value.root.rootId = store.root.rootId
+
+def Store.append? (store : Store Value) (entry : PagedBTree.Entry Value)
+    (after : ∀ old ∈ store.toList, old.1 < entry.1) :
+    Option (Appended store entry) :=
+  match appended : appendStep (store.root.height + 1) store.nextPage entry
+      store.root with
+  | none => none
+  | some (.done root, nextPage) =>
+      let value : Store Value := {
+        root
+        nextPage
+        represents := by
+          have contents := appendStep_toList appended
+          simp only [AppendResult.toList, AppendResult.nodes,
+            List.flatMap_singleton] at contents
+          rw [contents, List.pairwise_append]
+          refine ⟨store.represents, by simp, ?_⟩
+          intro old oldMember new newMember
+          simp only [List.mem_singleton] at newMember
+          subst new
+          exact after old oldMember }
+      some ⟨value, by
+        change root.toList = store.toList ++ [entry]
+        simpa [AppendResult.toList, AppendResult.nodes] using
+          appendStep_toList appended, by
+        change root.rootId = store.root.rootId
+        simpa [AppendResult.firstRootId?] using
+          appendStep_firstRootId appended⟩
+  | some (.split left right, nextPage) =>
+      let root := .branch store.root.rootId
+        [left.setRootId nextPage, right]
+      let value : Store Value := {
+        root
+        nextPage := nextPage + 1
+        represents := by
+          have contents := appendStep_toList appended
+          simp only [AppendResult.toList, AppendResult.nodes,
+            List.flatMap_cons, List.flatMap_singleton, List.flatMap_nil,
+            List.append_nil] at contents
+          dsimp only [root]
+          simp only [Node.toList, List.flatMap_cons, List.flatMap_singleton,
+            List.flatMap_nil, List.append_nil]
+          change (left.setRootId nextPage).toList ++ right.toList |>.Pairwise
+            (fun left right => left.1 < right.1)
+          rw [Node.toList_setRootId, contents, List.pairwise_append]
+          refine ⟨store.represents, by simp, ?_⟩
+          intro old oldMember new newMember
+          simp only [List.mem_singleton] at newMember
+          subst new
+          exact after old oldMember }
+      some ⟨value, by
+        dsimp only [value, Store.toList, root]
+        simpa [AppendResult.toList, AppendResult.nodes, Node.toList] using
+          appendStep_toList appended, by
+        rfl⟩
+
 end WidePageTree
 end SQLeanite
