@@ -218,12 +218,12 @@ This is what makes the leaf premise of `decodeSubtreeRowsFrom_congr` dischargeab
 the overflow branch reads pages. So for a table whose rows all fit inline, leaf
 decoding cannot observe a page write anywhere. -/
 theorem decodeTablePayloadBytesFrom_inline
-    (left right : CoreDecode.PageSource) (fuel payloadSize : Nat)
+    (left right : CoreDecode.PageSource) (fuelLeft fuelRight payloadSize : Nat)
     (input : List UInt8)
     (fits : payloadSize ≤
       FileFormat.tableLeafMaxLocal PhysicalCodec.usablePageSize) :
-    CoreDecode.decodeTablePayloadBytesFrom left fuel payloadSize input
-      = CoreDecode.decodeTablePayloadBytesFrom right fuel payloadSize input := by
+    CoreDecode.decodeTablePayloadBytesFrom left fuelLeft payloadSize input
+      = CoreDecode.decodeTablePayloadBytesFrom right fuelRight payloadSize input := by
   simp only [CoreDecode.decodeTablePayloadBytesFrom, fits, dif_pos]
 
 /-! ## Refinement obligations
@@ -369,10 +369,10 @@ def CellInline (input : List UInt8) : Prop :=
 
 /-- An inline cell decodes without consulting the source. -/
 theorem decodeRowCellFrom_congr (schema : Core.Schema)
-    (left right : CoreDecode.PageSource) (fuel : Nat) (input : List UInt8)
-    (inline : CellInline input) :
-    CoreDecode.decodeRowCellFrom schema left fuel input
-      = CoreDecode.decodeRowCellFrom schema right fuel input := by
+    (left right : CoreDecode.PageSource) (fuelLeft fuelRight : Nat)
+    (input : List UInt8) (inline : CellInline input) :
+    CoreDecode.decodeRowCellFrom schema left fuelLeft input
+      = CoreDecode.decodeRowCellFrom schema right fuelRight input := by
   unfold CoreDecode.decodeRowCellFrom
   refine bind_congr' ?_
   intro sizePair sizeResult
@@ -381,8 +381,38 @@ theorem decodeRowCellFrom_congr (schema : Core.Schema)
   intro rowidPair _
   obtain ⟨rowidBits, afterRowid⟩ := rowidPair
   dsimp only
-  rw [decodeTablePayloadBytesFrom_inline left right fuel _ afterRowid
-    (inline payloadSize afterSize sizeResult)]
+  rw [decodeTablePayloadBytesFrom_inline left right fuelLeft fuelRight _
+    afterRowid (inline payloadSize afterSize sizeResult)]
+
+/-- Congruence for `List.mapM` in `Option`. -/
+theorem mapM_congr {α β : Type} {f g : α → Option β} :
+    ∀ {elements : List α},
+      (∀ a, a ∈ elements → f a = g a) →
+      elements.mapM f = elements.mapM g
+  | [], _ => rfl
+  | a :: rest, pointwise => by
+      rw [List.mapM_cons, List.mapM_cons,
+        pointwise a List.mem_cons_self,
+        mapM_congr fun a' member => pointwise a' (List.mem_cons_of_mem a member)]
+
+/-- Every cell on the page fits inline. -/
+def PageInline (page : List UInt8) : Prop :=
+  ∀ cells, CoreDecode.cellInputs? 0 page = some cells →
+    ∀ cell ∈ cells, CellInline cell
+
+/-- A page of inline cells decodes identically from any source: the pointer-directed
+leaf decoder consults the source only to follow overflow chains. -/
+theorem decodeRowsByPointersFrom_congr (schema : Core.Schema)
+    (left right : CoreDecode.PageSource) (page : List UInt8)
+    (inline : PageInline page) :
+    CoreDecode.decodeRowsByPointersFrom schema left page
+      = CoreDecode.decodeRowsByPointersFrom schema right page := by
+  unfold CoreDecode.decodeRowsByPointersFrom
+  refine bind_congr' ?_
+  intro cells cellsResult
+  exact mapM_congr fun cell member =>
+    decodeRowCellFrom_congr schema left right _ _ cell
+      (inline cells cellsResult cell member)
 
 end CoreLazyWrite
 end SQLeanite
