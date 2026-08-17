@@ -237,8 +237,9 @@ The gate is `scripts/check-paper-floor.sh`; full three-run medians use
   `OrdinaryLocalizedCommit` packages the actual delta, catalog/header frame,
   retained and changed table witnesses, and preservation mode.
   `PostImageCertificate` admits only that certificate, decomposed component
-  evidence, canonical bulk encoding, or verified freelist padding—never a bare
-  post-image decoder equation. `PreparedBulkCommit` is now the exact pure
+  evidence, canonical bulk encoding, verified freelist padding, or wide-page
+  inline bulk encoding—never a bare post-image decoder equation. Those five
+  constructors are why it is a discharged obligation and not an assumption. `PreparedBulkCommit` is now the exact pure
   object consumed by the live rollback writer; it retains its canonical versus
   padded branch and delta-write equation, and
   `PreparedBulkCommit.postImageCertificate` maps it to the public constructor

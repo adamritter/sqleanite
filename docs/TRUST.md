@@ -87,6 +87,50 @@ ext4), which does not transfer to a database's operation mix. Performance
 comparability with a production engine is what YCSB and the workload benchmark
 are for. The two should not be presented as one result.
 
+## What the UTF-8 assumption is, and why it is decidable
+
+The one standard-library law the byte-level proofs quantify over, stated here in
+the same place as the durability condition because it is the other premise a
+reader should be able to find without reading Lean:
+
+> `CoreDecode.TextRoundtrips value` is
+> `String.fromUTF8? (ByteArray.mk value.toUTF8.data.toList.toArray) = some value`
+> (`CoreDecode.lean:579`) — decoding the bytes of `value` returns `value` — and
+> `CoreDecode.UTF8Roundtrips` is that law for every string. It exists because
+> Lean 4.19 ships the executable UTF-8 codec but no kernel theorem for its own
+> inverse.
+
+It is **not** a project `axiom`. It is an explicit hypothesis on the 47
+declarations that need it, so every such theorem carries the premise in its own
+statement, including the two whole-image inverses
+`CorePageCodec.decode_encodeBulk` and
+`CoreWidePageInverse.decode_encodeBulkInline`. Recount with:
+
+```sh
+grep -rhoE '\(utf8 : (CoreDecode\.)?UTF8Roundtrips\)' SQLeanite/*.lean | wc -l
+```
+
+What keeps it from being an unfalsifiable assumption is that its per-string
+instance is *decidable*. `CoreDecode.lean` provides
+
+```lean
+instance (value : String) : Decidable (CoreDecode.TextRoundtrips value)
+```
+
+by `inferInstanceAs` on the underlying decidable equality, and the analogous
+`Decidable (CatalogTextRoundtrips entry)` instance decides all four text fields
+of a catalog entry at once. So the universal law could be replaced by a
+per-string check at the decode boundary: for any *particular* file, the
+obligation its identifiers actually impose is machine-checkable by `decide`, and
+the catalog path already has the decidable per-entry form to check it with.
+
+**Recorded as a decision, not as work done:** a checked `TextRoundtrips` witness
+is not threaded through those 47 sites. That is a mechanical refactor with no new
+mathematical content, and the current state is already the informative one — a
+disclosed, decidable assumption about the standard library's own codec, whose
+executable round trip is tested with ordinary and escaped identifiers. See
+workstream I1 of `final_gap_closing_plan.md`.
+
 ## The page-local write path is proved but not deployed
 
 `CoreLazyWrite.insertPlan_refines` proves that the plan the executable computes
@@ -130,6 +174,16 @@ There are currently:
 - no project `axiom` declarations in `SQLeanite/`;
 - no `unsafe` declarations in `SQLeanite/`;
 - no `native_decide` proofs in `SQLeanite/`.
+
+Two things are occasionally mistaken for assumptions in this project's own notes
+and are not assumptions:
+
+- `CoreDurability.PostImageCertificate` is an inductive with five constructive
+  alternatives and no constructor for an opaque decoder equation. It is a
+  discharged obligation; see the storage and VFS section below.
+- `CoreDecode.UTF8Roundtrips` is an explicit hypothesis on the theorems that need
+  it rather than a project `axiom`, and its per-string instance is decidable; see
+  "What the UTF-8 assumption is, and why it is decidable" above.
 
 The executable deliberately declares opaque `extern` functions for the narrow
 host boundary: positional page reads/writes, `fdatasync`, parent-directory
@@ -800,9 +854,21 @@ and an arbitrary finite crash trace during page-by-page recovery.  The theorem
 does not require the target to have been produced by the bulk encoder, so the
 live-localized obligation is component-wise representation preservation rather
 than another durability proof. `PostImageCertificate` now makes that
-obligation constructive: its constructors are ordinary localized preservation,
-decomposed component evidence, canonical bulk encoding, and verified freelist
-padding. It has no constructor for a bare post-image decoder equation.
+obligation constructive: its five constructors are ordinary localized
+preservation (`ordinary`), decomposed component evidence (`components`),
+canonical bulk encoding (`bulk`), verified freelist padding (`padded`), and
+wide-page inline bulk encoding (`wideBulk`). It has no constructor for a bare
+post-image decoder equation, and is therefore a discharged obligation rather
+than an assumption; it must not be listed as one. Only `bulk`, `padded` and
+`wideBulk` mention an `encodeBulk … = some image` equation, and each of those
+obtains it from the encoder instead of assuming it of an arbitrary decoder:
+`PreparedBulkCommit.postImageCertificate` and
+`PreparedWideBulkCommit.postImageCertificate` build them from the live writer's
+own encoded result. The live localized path builds `components`, via the
+`PreparedOrdinaryDelta.postImageCertificateOfCommittedIndexed*` family that
+`CoreSQLTraceText` consumes. `ordinary` is currently the one alternative with no
+construction site: it is reachable from `OrdinaryLocalizedCommit` but the live
+localized writers go through `components` instead.
 `CoreEndToEnd.WriteCommand` packages all seven persisted Core commands, and
 `execute_write_exact` dispatches to their existing exact postconditions
 without weakening the target-table or other-table frame clauses.
