@@ -84,6 +84,10 @@ printf '    "Std.Mutex and task scheduling for the serialized connection",\n'
 printf '    "generated-image provenance stamp (not cryptographic authentication)",\n'
 printf '    "the operating system and filesystem page-write behaviour"\n'
 printf '  ],\n'
+"$root/scripts/popl-parity.sh" --json
+printf ',\n'
+"$root/scripts/executable-boundary.sh" --json
+printf ',\n'
 printf '  "headline_theorems": [\n'
 first=1
 grep -E "depends on axioms|does not depend" "$normalized" | while IFS= read -r line; do

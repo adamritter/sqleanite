@@ -28,6 +28,15 @@ python3 -c "import json;d=json.load(open('manifest.json'));print('theorems',d['c
 
 scripts/run-core-differential-smoke.sh | tail -1
 
+step "reverse byte compatibility (C writes, we read: feature x page size)"
+scripts/run-reverse-differential.sh | tail -1
+
+step "forward byte compatibility (we write, C reads and checks integrity)"
+scripts/run-forward-compat.sh | tail -1
+
+step "page reclamation after an indexed shrink (the one declared exception)"
+scripts/regress-page-reclaim.sh | tail -1
+
 step "Lean mutation arm"
 scripts/run-lean-mutations.sh | tail -3
 awk -F'\t' 'NR>1 && $3=="passed"{print "UNDETECTED: "$1}' mutations/results.tsv
@@ -58,6 +67,9 @@ if [ -n "${SQLITE_SOURCE_DIR:-}" ]; then
 else
   printf 'skipped: set SQLITE_SOURCE_DIR to a clean SQLite checkout\n'
 fi
+
+step "reverse byte compatibility, full cross (every feature x every page size)"
+scripts/run-reverse-differential.sh --full | tail -1
 
 step "workload benchmark (outputs verified per case)"
 ROWS=${ROWS:-2000} scripts/run-workload-benchmark.sh

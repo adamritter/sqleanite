@@ -45,7 +45,8 @@ fi
 
 # 4. Every theorem named in ProofAxioms must still exist. `lake build` covers
 #    this now that ProofAxioms is imported, but check the report directly too.
-axioms=$(mktemp); trap 'rm -f "$axioms"' EXIT
+axioms=$(mktemp); scratch_parity=$(mktemp)
+trap 'rm -f "$axioms" "$scratch_parity"' EXIT
 if ! "$lake_command" env lean SQLeanite/ProofAxioms.lean > "$axioms" 2>&1; then
   printf 'live-path check FAILED: ProofAxioms did not elaborate\n' >&2
   cat "$axioms" >&2
@@ -589,12 +590,178 @@ else
   fail "live optimizer selected a rewrite without its logical cost certificate"
 fi
 
+# The check above is a spot check on three names. This one is exhaustive over the
+# `Rewrite` enum: every constructor must be either (a) selected by the live root
+# pipeline *and* carrying its own `_cost_le` certificate, or (b) not selected and
+# named in the docstring that says why. A new rewrite constructor then cannot be
+# added silently -- it lands in neither bucket and this fails.
+rewrite_constructors=$(awk '
+  /^inductive Rewrite where/ { inside = 1; next }
+  inside && /^  deriving/ { inside = 0 }
+  inside && /^  \| / { sub(/^  \| /, ""); print $1 }
+' SQLeanite/Optimizer.lean)
+rewrite_total=$(printf '%s\n' "$rewrite_constructors" | grep -c .)
+rewrite_selected=0
+rewrite_excluded=0
+rewrite_broken=""
+root_body=$(grep -A 1 '^def rewriteRoot (plan : Plan)' SQLeanite/Optimizer.lean |
+  tail -n 1)
+for rewrite in $rewrite_constructors; do
+  if printf '%s' "$root_body" | grep -q "$rewrite"; then
+    if grep -q "theorem ${rewrite}_cost_le" SQLeanite/QueryCost.lean &&
+       grep -q "${rewrite}_cost_le" SQLeanite/ProofAxioms.lean; then
+      rewrite_selected=$((rewrite_selected + 1))
+    else
+      rewrite_broken="$rewrite_broken $rewrite(selected,uncertified)"
+    fi
+  else
+    # Not selected. Either a proved negative result or an explicitly stated
+    # exclusion in the docstring above `rewriteRoot`.
+    stated=$(sed -n '/^Predicate pushdown needs a nonempty-right precondition/,/cost certificate\./p' \
+      SQLeanite/Optimizer.lean)
+    case $rewrite in
+      filterFusion)
+        if grep -q "${rewrite}_not_unconditionally_cost_safe" \
+             SQLeanite/ProofAxioms.lean; then
+          rewrite_excluded=$((rewrite_excluded + 1))
+        else
+          rewrite_broken="$rewrite_broken $rewrite(excluded,unjustified)"
+        fi
+        ;;
+      predicatePushdown)
+        if printf '%s' "$stated" | grep -q 'Predicate pushdown'; then
+          rewrite_excluded=$((rewrite_excluded + 1))
+        else
+          rewrite_broken="$rewrite_broken $rewrite(excluded,undocumented)"
+        fi
+        ;;
+      unionDistribution)
+        if printf '%s' "$stated" | grep -q 'join distribution'; then
+          rewrite_excluded=$((rewrite_excluded + 1))
+        else
+          rewrite_broken="$rewrite_broken $rewrite(excluded,undocumented)"
+        fi
+        ;;
+      *)
+        rewrite_broken="$rewrite_broken $rewrite(unaccounted)"
+        ;;
+    esac
+  fi
+done
+if [ -n "$rewrite_broken" ]; then
+  fail "rewrite accounting incomplete:$rewrite_broken"
+elif [ "$((rewrite_selected + rewrite_excluded))" -ne "$rewrite_total" ] ||
+     [ "$rewrite_total" -eq 0 ]; then
+  fail "rewrite accounting does not cover the enum: \
+$rewrite_selected selected + $rewrite_excluded excluded of $rewrite_total"
+else
+  ok "cost accounting is exhaustive over the rewrite enum \
+($rewrite_selected of $rewrite_total selected and certified, \
+$rewrite_excluded excluded with a stated reason)"
+fi
+
 if grep -q 'innerJoin_true_eval' SQLeanite/ProofAxioms.lean &&
    grep -q 'permute_eval' SQLeanite/ProofAxioms.lean &&
    grep -q 'permute_symm_eval' SQLeanite/ProofAxioms.lean; then
   ok "POPL algebra product and permutation parity witnesses are audited"
 else
   fail "POPL algebra parity witness detached from the proof audit"
+fi
+
+# Being *audited* is weaker than being *reached*. `permute_eval` on its own is a
+# theorem about a standalone module: `RelationalAlgebra.lean` is imported only by
+# `CoreReadSemantics` and `ProofAxioms`, so an audit entry proves nothing about
+# the shipped projection. The permutation parity claim therefore additionally
+# requires a bridge stated over the *live* query denotation, and this asserts
+# that bridge exists, is about `Core.Query`, and lands in the audit.
+if grep -q 'theorem permuted_projection_denotes' \
+     SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'RelationalAlgebra.permute (columnBijection perm)' \
+     SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'queryDenotation' SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'ofList_map_permute' SQLeanite/ProofAxioms.lean &&
+   grep -q 'permuted_projection_denotes' SQLeanite/ProofAxioms.lean; then
+  ok "live projection permutation reaches the POPL permutation operator"
+else
+  fail "column permutation parity is audited but not reached from Core.Query"
+fi
+
+# The documented-executable-boundary claim is only honest if the boundary cannot
+# move quietly. This fails when a shipped entry point is unclassified, when a
+# classification cites an unaudited theorem, or when a boundary-listed module
+# acquires theorems and the document understates what is proved.
+if scripts/executable-boundary.sh --check > "$scratch_parity" 2>&1; then
+  ok "$(cat "$scratch_parity")"
+else
+  cat "$scratch_parity" >&2
+  fail "the executable boundary is stale, incomplete or overstated"
+fi
+
+# Byte compatibility is the claim with no prior art, so its evidence must be
+# present and its declarations must be checked rather than remembered. Three
+# things are pinned: the reverse corpus covers the named file features, the
+# out-of-scope shapes are asserted to *fail closed* rather than merely being
+# absent, and the generated compatibility document is current.
+if grep -q 'without-rowid|reject|' scripts/run-reverse-differential.sh &&
+   grep -q 'composite-primary-key|reject|' scripts/run-reverse-differential.sh &&
+   grep -q 'no-primary-key|reject|' scripts/run-reverse-differential.sh; then
+  ok "out-of-scope file shapes are declared and checked to fail closed"
+else
+  fail "an out-of-scope file shape lost its fail-closed declaration"
+fi
+
+if grep -q 'overflow-chain|' scripts/run-reverse-differential.sh &&
+   grep -q 'auto-vacuum|' scripts/run-reverse-differential.sh &&
+   grep -q 'post-vacuum|' scripts/run-reverse-differential.sh &&
+   grep -q 'freelist-after-delete|' scripts/run-reverse-differential.sh &&
+   grep -q 'multipage-interior|' scripts/run-reverse-differential.sh &&
+   grep -q 'wal-mode|' scripts/run-reverse-differential.sh &&
+   grep -q 'real-values|' scripts/run-reverse-differential.sh &&
+   grep -q 'blob-values|' scripts/run-reverse-differential.sh; then
+  ok "reverse corpus covers every file feature claimed as accepted"
+else
+  fail "a file feature is claimed as accepted with no reverse-direction cell"
+fi
+
+if [ -f docs/COMPATIBILITY.md ] &&
+   scripts/run-reverse-differential.sh --markdown > "$scratch_parity" 2>/dev/null &&
+   cmp -s "$scratch_parity" docs/COMPATIBILITY.md; then
+  ok "generated compatibility document is current"
+else
+  fail "docs/COMPATIBILITY.md is stale; regenerate with --markdown"
+fi
+
+# The one declared forward-direction exception has to stay bounded and transient,
+# and the script that pins that has to stay wired into the reproduction run.
+if grep -q 'regress-page-reclaim.sh' scripts/reproduce-all.sh &&
+   grep -q 'run-forward-compat.sh' scripts/reproduce-all.sh &&
+   grep -q 'orphan_bound' scripts/regress-page-reclaim.sh; then
+  ok "declared page-reclaim exception is bounded and reproduced"
+else
+  fail "the declared page-reclaim exception lost its bound or its runner"
+fi
+
+# The parity artifact is generated from the audit, so a witness that is renamed,
+# deleted or dropped from `ProofAxioms.lean` makes the table stale and this fails.
+# A hand-maintained parity table is exactly the kind of claim that rots quietly.
+if scripts/popl-parity.sh --check > "$scratch_parity" 2>&1; then
+  ok "$(cat "$scratch_parity")"
+else
+  cat "$scratch_parity" >&2
+  fail "POPL parity table is stale or names an unaudited witness"
+fi
+
+# The bridge must be about the same projection the executor runs, not a copy of
+# it: `permuted_projection_denotes` is stated over `Core.Query.projectedRows`
+# through `query_eval_denotes`, which is the same route `execute_query_denotes`
+# takes. If the executor's projection stops going through `Query.projectedRows`,
+# this pins that the bridge has to move with it.
+if grep -q 'query.columns.map row.value' SQLeanite/CoreEngine.lean &&
+   grep -q 'permutedColumns_map_value' SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'Core.Query.projectedRows' SQLeanite/CoreReadSemantics.lean; then
+  ok "permutation bridge is stated over the executor's own projection"
+else
+  fail "permutation bridge drifted from the live Query.projectedRows"
 fi
 
 if grep -q 'execute_query_denotes' SQLeanite/ProofAxioms.lean &&
