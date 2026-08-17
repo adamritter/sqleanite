@@ -741,6 +741,44 @@ else
   fail "the declared page-reclaim exception lost its bound or its runner"
 fi
 
+# The one assumed law is disclosed as *checkable*, and that claim rests entirely on
+# `TextRoundtrips` having a `Decidable` instance. If the instance disappears, the
+# assumption silently becomes irreducible and TRUST.md is overstating.
+if grep -q 'instance (value : String) : Decidable (TextRoundtrips value)' \
+     SQLeanite/CoreDecode.lean &&
+   grep -q 'def UTF8Roundtrips' SQLeanite/CoreDecode.lean &&
+   grep -q 'per-string check at the boundary' docs/TRUST.md; then
+  utf8_sites=$(rg -c '\(utf8 : (CoreDecode\.)?UTF8Roundtrips\)' -g '*.lean' \
+    SQLeanite/ | awk -F: '{s+=$2} END {print s+0}')
+  if grep -q "$utf8_sites hypothesis positions" docs/TRUST.md; then
+    ok "the assumed UTF-8 law is decidable and its $utf8_sites sites are counted"
+  else
+    fail "TRUST.md's UTF-8 site count is stale: tree says $utf8_sites"
+  fi
+else
+  fail "the assumed UTF-8 law lost its decidability or its disclosure"
+fi
+
+# `PostImageCertificate` must stay constructive. A new constructor that accepts a
+# bare decoder equation would turn the crash theorem's post-image premise into an
+# assumption, which is exactly what its docstring forbids.
+post_image_block=$(awk '
+  /^inductive PostImageCertificate/ { inside = 1 }
+  inside { print }
+  inside && /^$/ { inside = 0 }
+' SQLeanite/CoreDurability.lean)
+post_image_constructors=$(printf '%s\n' "$post_image_block" | grep -c '^  | ')
+if ! grep -q 'no constructor accepting an opaque decoder equation' \
+       SQLeanite/CoreDurability.lean; then
+  fail "PostImageCertificate lost the docstring stating its design rule"
+elif printf '%s\n' "$post_image_block" | grep -q 'CoreDecode.decode'; then
+  fail "a PostImageCertificate constructor accepts a decoder equation"
+elif [ "$post_image_constructors" -ne 5 ]; then
+  fail "PostImageCertificate has $post_image_constructors constructors, expected 5"
+else
+  ok "PostImageCertificate stays constructive across all 5 alternatives"
+fi
+
 # The write side must reach the same bag algebra the read side denotes into, and
 # it must reach it through the *same* abstraction function -- two abstractions
 # would make the write and read statements incomparable, which is precisely the

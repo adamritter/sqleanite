@@ -31,6 +31,15 @@ Every headline theorem depends only on `propext`, `Classical.choice` and
 `Quot.sound`; none depends on `sorryAx`, which the live-path check asserts
 directly rather than by inspection.
 
+**Assumed laws: one.** `CoreDecode.UTF8Roundtrips` (Lean's own UTF-8 pair
+round-trips every string), carried at 47 hypothesis positions across eight
+modules. It is a *checkable* assumption, not an irreducible one:
+`TextRoundtrips value` is decidable, so the universal law could be replaced by a
+per-string check over the identifiers and TEXT payloads a database actually
+contains. `CoreDurability.PostImageCertificate` is sometimes mistaken for a second
+assumption; it is not — five constructive alternatives, no constructor accepting
+an opaque decoder equation. Both are detailed in [TRUST.md](TRUST.md).
+
 ## Compatibility with C SQLite, both directions
 
 | arm | result | source |

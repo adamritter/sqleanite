@@ -63,6 +63,59 @@ The legacy in-memory SQL interpreter (`Engine.lean`) still exists behind the
 separate test-only `sqleanite_legacy_server` executable and is **not** part of
 the verified core or the production `sqleanite` import graph.
 
+## The one assumed law, and why it is a *checkable* assumption
+
+`CoreDecode.UTF8Roundtrips : ∀ value : String, TextRoundtrips value` is the only
+library-level law this project assumes rather than proves. It says Lean's own
+UTF-8 encode/decode pair round-trips every string, and it exists because the
+standard library exposes no theorem about its own implementation.
+
+Its blast radius, counted rather than estimated: **47 hypothesis positions across
+eight modules** — 44 theorem or definition parameters plus three
+`PostImageCertificate` constructors. By module: `CoreDurability` 18,
+`CoreWriteBytes` 8, `CorePageCodec` 6, `CoreWriteSemantics` 5,
+`CoreWidePageInverse` 4, `CoreFreelistCodec` 3, `CoreDecode` 2,
+`CoreLocalizedRepresentation` 1. Any theorem that lifts a byte-level catalog or
+TEXT fact to *arbitrary* strings takes it; the storage and comparison theorems do
+not, and never perform host UTF-8 operations.
+
+The part worth stating, because it costs nothing and changes what kind of
+assumption this is:
+
+> `TextRoundtrips value` has a `Decidable` instance. The universal law could
+> therefore be replaced by a **per-string check at the boundary** — over the
+> finite set of identifiers and TEXT payloads a given database actually contains
+> — turning an assumed law into a runtime-verified premise, with no change to any
+> proof but the threading of a witness through those 47 positions.
+
+That threading is deliberately not done here: it is mechanical, wide, and buys
+nothing for a bounded claim that already discloses the law. But the distinction
+matters and should be stated: this is a *disclosed and checkable* assumption, not
+an irreducible one. It is not in the same class as trusting the kernel or the
+device.
+
+## `PostImageCertificate` is discharged, not assumed
+
+A correction worth recording explicitly, because the shape invites the opposite
+reading. `CoreDurability.PostImageCertificate` is **not** an assumed decoder
+equation smuggled into the crash theorem. It is an inductive with five
+constructive alternatives, and its docstring says the design rule out loud:
+"There is deliberately no constructor accepting an opaque decoder equation."
+
+| constructor | what it requires |
+|---|---|
+| `ordinary` | an `OrdinaryLocalizedCommit` built by the live writer |
+| `components` | a `LocalizedRepresentation`: the exact catalog read, table decodes and index reconstruction |
+| `bulk` | an actual encoder run, `encodeBulk database = some image`, plus image equivalence |
+| `padded` | the same for a verified freelist-padded layout |
+| `wideBulk` | the same for the wide inline encoder |
+
+The live localized path uses `.components` and `.ordinary`, which `CoreDurability`
+builds from the live writer's own prepared delta — no encoder is re-run and no
+decoder equation is assumed. Only the three bulk-shaped constructors mention
+`encodeBulk`, and each demands that the encoder *actually produced* the image
+rather than positing a decode. Do not list this among the assumptions.
+
 ## What the durability claim is conditional on
 
 Stated once, plainly, because a crash theorem is only as strong as the storage

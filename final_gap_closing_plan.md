@@ -39,10 +39,22 @@ page-local write path is presented as **proved but not deployed**.
 
 ---
 
-## Status of E, F, G (implemented 2026-08-17)
+## Status of E, F, G, I (implemented 2026-08-17)
 
-Workstreams **E, F and G are also done**. Remaining: **H** (progress theorems) and
-**I** (assumption hygiene, hours).
+Workstreams **E, F, G and I are also done**. Remaining: **H** (progress theorems)
+only.
+
+| item | outcome |
+|---|---|
+| I1 | The assumed UTF-8 law is now disclosed *with its measured blast radius and its decidability*: 47 hypothesis positions across eight modules (44 declarations plus three `PostImageCertificate` constructors), and `TextRoundtrips` has a `Decidable` instance, so the universal law could be replaced by a per-string boundary check over the strings a database actually contains. Still deliberately not threaded. A gate recomputes the count from the tree and fails if `TRUST.md` drifts — verified by making it drift |
+| I2 | Correction recorded: `PostImageCertificate` is **not** an assumed decoder equation. Five constructive alternatives, tabulated in `TRUST.md`; the live localized path uses `.components`/`.ordinary` built from the writer's own delta, and only the three bulk-shaped constructors mention `encodeBulk`, each demanding the encoder actually produced the image. A gate fails if a constructor ever accepts a decoder equation, if the count leaves five, or if the docstring rule disappears |
+
+**Correction to this plan's own numbers:** I1 said "a hypothesis on
+`decode_encodeBulk` and 64 other sites" (65). The tree says **47**, and five of
+those are from this session's G4 work, so the pre-existing figure was 42. The plan
+was overstating the threading cost by roughly a third.
+
+Live-path assertions 73 -> 75.
 
 | item | outcome |
 |---|---|
