@@ -39,9 +39,35 @@ page-local write path is presented as **proved but not deployed**.
 
 ---
 
+## Status of E, F, G (implemented 2026-08-17)
+
+Workstreams **E, F and G are also done**. Remaining: **H** (progress theorems) and
+**I** (assumption hygiene, hours).
+
+| item | outcome |
+|---|---|
+| E | One clean **full** `reproduce-all` run, exit 0, 16 steps, including the C mutation arm (10 mutations: 10/10 compile, 9/10 detected, `c-p1-and-as-or` missed), crash injection 25/25 old-or-new, power-loss 20/20, and the power-loss mutation control tearing 20/20. Snapshot in `docs/RESULTS.md` with YCSB reported beside the twelve workloads and the write-heavy A/B/F ratios (9.7x–13.6x) stated as the weakest number rather than buried |
+| F | Durability conditionality on `SyscallVFS.Contract` stated once in `docs/TRUST.md`; the FSCQ comparison scoped to the *shape of the theorem*, with FSCQ's filesystem evaluation explicitly not claimed. No new proof work, as planned |
+| G1 | `mem_orderedUpsert_self`, `mem_orderedUpsert_of_mem`, `mem_orderedUpsert_iff`, `orderedUpsert_perm`, `length_orderedUpsert_of_fresh` |
+| G2 | Rowid freshness and declared-key freshness carried from `Table.insertValues_exact` through `execute_insert_exact`, `CoreEndToEnd.WriteEffect` and `execute_insert_to_bytes` |
+| G3 | New `CoreWriteSemantics`: `⟦after⟧ = ⟦before⟧ ⊎ {row}` over `KRelation`, plus the REPLACE shape, the multiplicity form, and the DELETE case — through the read side's own `coreRow` abstraction |
+| G4 | `insert_bytes_reopen_denotes`, `insert_bytes_reopen_query_denotes`, `insert_bytes_reopen_selects_row` and `insertText_bytes_reopen_readText_denotes`: the write/bytes/reopen/read circuit, entered from SQL text at both ends |
+
+Also found while doing this: the +55.8% / +38.6% write-path slowdown against the
+frozen floor is an O(index) decode-and-compare per commit
+(`CoreFileAdapter.certifyDecodedIndex?`), measured at 38 ms per commit at 1,000
+index entries and 158 ms at 8,000. It is the price of replacing an opaque
+post-image premise with a constructive certificate, not a performance bug, and is
+recorded in `docs/BENCHMARK_HISTORY.md` with the A/B that rules out this work as
+its cause. The fix, if wanted, is the index analogue of the table path's
+containment certificate: certify the delta rather than re-deriving the whole
+post-state.
+
+Live-path assertions 70 -> 73. Theorems 2,019 -> 2,039, headline 878 -> 896.
+
 ## Status of D, A, B, C (implemented 2026-08-16)
 
-Workstreams **D, A, B and C are done**; E, F, G, H, I are not started. What landed:
+Workstreams **D, A, B and C are done**. What landed:
 
 | item | outcome |
 |---|---|

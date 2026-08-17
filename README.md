@@ -158,3 +158,6 @@ project. “SQLite” is used to describe file/protocol compatibility.
 ## License
 
 SQLeanite is dedicated to the public domain; see [LICENSE.md](LICENSE.md).
+
+Paper-facing numbers, from one full reproduction run, are in
+[docs/RESULTS.md](docs/RESULTS.md).
