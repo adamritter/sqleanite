@@ -120,6 +120,11 @@ post-image premise with a constructive one, measured at 38 ms per commit at 1,00
 index entries and 158 ms at 8,000. See
 [BENCHMARK_HISTORY.md](BENCHMARK_HISTORY.md).
 
+That explanation is real but **incomplete**, and it should not be read as the whole
+cause: the same per-commit growth appears on a table with no secondary index at
+all, so index certification is one term and not the dominant one. The commit is
+linear in total database pages regardless of indexing; see "Scaling shape" below.
+
 ### YCSB, VeriBetrKV parameters (one 512-byte field, workloads A/B/C/D/F/Cuniform)
 
 `RECORDS=1000 OPS=100 RUNS=3`. Load and run phases are timed separately because
@@ -137,10 +142,21 @@ when both engines produced identical run-phase output; all six did.
 
 **Stated plainly: the write-heavy workloads A, B and F run 9.7x to 13.6x C
 SQLite, and that is the weakest number in this document.** Read-only C and
-Cuniform are 3.4x–4.0x at 0.04 ms p50. The p99 gap on A/B/F is the same
-per-commit certificate cost as workloads 07 and 08 above, arriving once per
-update rather than amortized. Reporting only the read workloads, or only the
-medians, would hide it.
+Cuniform are 3.4x–4.0x at 0.04 ms p50.
+
+**The A/B/F cost is the median update, not a p99 tail.** Decomposing workload A
+per statement gives a SELECT median of 1.26 ms and an **UPDATE median of
+111.77 ms**. A is 51 reads and 49 updates, so the 1.95 ms p50 above describes the
+read population only and the p99 sits near the *typical* update. About half of
+every operation in A and F costs ~112 ms; nothing here is an outlier. Quoting the
+mixed p50 without this sentence would misdescribe the result.
+
+**These ratios are specific to 1,000 records and get worse with scale.** C SQLite's
+update on this schema is flat — 11.5 / 12.0 / 11.5 ms at 250 / 1,000 / 4,000
+records — while SQLeanite's is 35.7 / 109.0 / 415.6 ms, because the commit is
+linear in database size (see "Scaling shape"). At 4,000 records the per-update
+comparison is roughly 36x, not 10x. 1,000 records is the favourable end of the
+range, not a representative point.
 
 At the exact one-million-row 512-byte load: 220.76 s, 625,565,696 bytes against C
 SQLite's 622,739,456 (1.0045x), `integrity_check=ok`, one million rows, 512-byte
@@ -153,6 +169,30 @@ Cold reads are flat in database size where a certified page-directed path applie
 (12 ms at 250 rows through 4,000 rows for both primary hits and stamped misses),
 and open+`ORDER BY` is not (16 ms at 250 rows to 321 ms at 20,000), because that
 shape still materializes. Capacity probes pass at 60,000 and 100,000 rows.
+
+**Writes are not flat, and the earlier claim that the commit is constant time is
+withdrawn.** `scripts/run-localized-update-scaling.sh`, which excludes open and
+decode from the timed region and so measures the commit alone:
+
+| rows | pages | commit | per page |
+|---:|---:|---:|---:|
+| 250 | 4 | 15 ms | 3.75 ms |
+| 1,000 | 7 | 17 ms | 2.43 ms |
+| 4,000 | 22 | 34 ms | 1.55 ms |
+| 20,000 | 111 | 146 ms | 1.32 ms |
+| 50,000 | 275 | 368 ms | 1.34 ms |
+
+The commit is linear in total database pages at about `10 ms + 1.3 ms/page`. The
+cost does not depend on where the change lands — at 275 pages, mid-table, tail and
+first-row updates and an appending insert are all 369–373 ms — and it is not
+specific to index maintenance, since a table with no secondary index shows the same
+growth. In per-page terms this is a ~20x regression against the 2026-08-13
+measurement, concealed because the space-amplification fix cut page counts ~22x
+over the same period; the two nearly cancel at 4,000 rows. Full accounting in
+[BENCHMARK_HISTORY.md](BENCHMARK_HISTORY.md#localized-point-update-scaling).
+
+This is the root cause of the A/B/F YCSB ratios and of workloads 07 and 08 above.
+Attributing those to an O(index) decode-and-compare alone was incomplete.
 
 ## Maintenance cost
 

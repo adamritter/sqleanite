@@ -79,4 +79,13 @@ scripts/run-scaling.sh
 CHECK_FLAT=1 scripts/run-cold-primary-scaling.sh
 CHECK_FLAT=1 scripts/run-cold-index-scaling.sh
 
+# The localized-commit acceptance criterion. Reported rather than gated: the
+# commit is currently linear in database pages (about 10 ms + 1.3 ms/page), so
+# CHECK_FLAT=1 fails at 20,000 rows and above. That is a real regression, not a
+# harness fault -- see docs/BENCHMARK_HISTORY.md#localized-point-update-scaling.
+# The curve is printed here so the number cannot go unmeasured again, which is
+# how a ~20x per-page regression previously hid behind an unchanged wall clock.
+step "localized single-row commit curve (reported, not gated -- see BENCHMARK_HISTORY.md)"
+SIZES="250 1000 4000 20000" scripts/run-localized-update-scaling.sh
+
 printf '\nall reproduction steps completed\n'

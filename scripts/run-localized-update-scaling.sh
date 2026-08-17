@@ -2,6 +2,14 @@
 # Falsifiable page-local update criterion. Open/decode is deliberately outside
 # the timed region; the result is the SQL update plus journal, page writes,
 # durability barriers and delta-scoped read-back.
+#
+# STATUS 2026-08-17: the criterion is NOT met. The commit is linear in total
+# database pages, about 10 ms + 1.3 ms/page, so `CHECK_FLAT=1` passes at the
+# default SIZES (250-4,000 rows is only 4-22 pages today) and fails from 20,000
+# rows up. Do not widen the envelope to make it pass; the envelope is right and
+# the commit is wrong. See docs/BENCHMARK_HISTORY.md#localized-point-update-scaling
+# for the ~20x per-page regression this measures and why an unchanged wall clock
+# at 4,000 rows concealed it.
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)

@@ -27,5 +27,8 @@ lean_exe sqleanite_tests where
 lean_exe sqleanite_legacy_server where
   root := `LegacyServerMain
 
+-- A default target because `scripts/reproduce-all.sh` reports the localized
+-- commit curve, and that step cannot run without this binary.
+@[default_target]
 lean_exe localized_scaling where
   root := `LocalizedScalingMain

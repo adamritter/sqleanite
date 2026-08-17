@@ -23,7 +23,15 @@ additions in `CoreReadSemantics.lean` and `RelationalAlgebra.lean` are theorems
 and proof-only definitions that no executable path references, which is the
 expected result and is now measured rather than argued.
 
-### Where it comes from: the index certificate, and it is a deliberate trade
+### Where part of it comes from: the index certificate
+
+> **Narrowed 2026-08-17.** What follows measures a real term and originally
+> claimed too much for it. The same per-commit growth appears on a table with **no
+> secondary index** (17 / 28 / 103 / 261 ms at 1,000 / 4,000 / 20,000 / 50,000
+> rows), so index certification is *one* term and not the dominant one; the commit
+> is linear in total database pages regardless of indexing. See "Localized point
+> update scaling" below. The section below stands as the measurement of the index
+> term; it does not stand as the cause of the whole regression.
 
 Measured, not guessed. Holding the *deleted* row count fixed at 10 and varying
 only the index size isolates a per-commit cost that scales with the index rather
@@ -50,7 +58,7 @@ land on 2026-08-15, one day after the floor was frozen — among them "replace
 opaque post-image premise with constructive certificates" and "certify the live
 bulk commit preparation".
 
-So this is not a performance bug. It is the price of removing an assumption: the
+So this term is not a performance bug. It is the price of removing an assumption: the
 *table* path had its decode-and-compare admission removed in favour of a
 containment certificate, while the *index* path gained one, because no lemma yet
 says a localized index write preserves exactness without re-decoding. Roughly 40%
@@ -63,9 +71,11 @@ knows. Until that lemma exists, `docs/BENCHMARKS.md`'s 79 ms and 101 ms rows are
 history, and whoever re-freezes the floor should say which trade the new numbers
 include.
 
-YCSB is unaffected: workload C is 0.04 ms p50 / 0.10 ms p99 at 1,000 records,
-exactly the published figures, and the A/B/F write-heavy ratios measured
-9.7x / 13.6x / 10.0x against the published 9.9-13.3x range.
+YCSB at 1,000 records was unchanged by the gap-closing work: workload C is
+0.04 ms p50 / 0.10 ms p99, and A/B/F measured 9.7x / 13.6x / 10.0x. That is a
+statement about *this branch*, not about YCSB being healthy -- the per-update cost
+grows with database size, and the A/B/F figure is the median update rather than a
+tail. Both are corrected in `docs/BENCHMARKS.md`.
 
 This file preserves development-era measurements and bottleneck analysis. Many
 numbers below predate persistent page deltas and certified page-directed reads;
@@ -178,25 +188,70 @@ refused cleanly at the two-level interior fanout limit.
 one middle row by INTEGER PRIMARY KEY, and reports the best of three real page
 mutations. `CHECK_FLAT=1` enables a deliberately generous regression envelope.
 
-| Rows | Commit | Database pages |
-|---:|---:|---:|
-| 250 | 18 ms | 27 |
-| 500 | 19 ms | 58 |
-| 1,000 | 22 ms | 120 |
-| 2,000 | 25 ms | 244 |
-| 4,000 | 30 ms | 493 |
+> **Corrected 2026-08-17. The commit is not constant time, and the claim that it
+> was is withdrawn.** The table immediately below is retained as the 2026-08-13
+> measurement, but it must not be read as a current result or compared row-for-row
+> with anything newer: its page counts predate the space-amplification fix, so
+> "4,000 rows" meant 493 pages then and means 22 pages now.
 
-This was 63 / 90 / 160 / 332 / 610 ms before persistent page deltas.  A later
-logical-tree migration briefly regressed the curve to 38 / 81 / 243 ms at
+Historical, 2026-08-13:
+
+| Rows | Commit | Database pages | Per page |
+|---:|---:|---:|---:|
+| 250 | 18 ms | 27 | 0.67 ms |
+| 500 | 19 ms | 58 | 0.33 ms |
+| 1,000 | 22 ms | 120 | 0.18 ms |
+| 2,000 | 25 ms | 244 | 0.10 ms |
+| 4,000 | 30 ms | 493 | 0.06 ms |
+
+Current, 2026-08-17, same harness and same machine:
+
+| Rows | Commit | Database pages | Per page |
+|---:|---:|---:|---:|
+| 250 | 15 ms | 4 | 3.75 ms |
+| 500 | 16 ms | 5 | 3.20 ms |
+| 1,000 | 17 ms | 7 | 2.43 ms |
+| 2,000 | 24 ms | 12 | 2.00 ms |
+| 4,000 | 34 ms | 22 | 1.55 ms |
+| 20,000 | 146 ms | 111 | 1.32 ms |
+| 50,000 | 368 ms | 275 | 1.34 ms |
+
+**The regression, stated in the unit that exposes it.** Per page of database, the
+localized commit went from 0.06 ms to about 1.33 ms — roughly 20x worse — while
+the space-amplification fix cut page counts for a given row count by about 22x.
+The two changes very nearly cancel in wall clock at 4,000 rows (30 ms then, 34 ms
+now), which is why no reported number moved and nothing caught it. Extending the
+row range separates them: the current curve is `10 ms + 1.3 ms/page` and reaches
+368 ms at 50,000 rows, where a genuinely delta-scoped commit would still be near
+the 15 ms floor.
+
+`CHECK_FLAT=1` is a correct gate and it fails today at 20,000 rows and above
+(`localized commit curve is not flat: min=33 max=369 limit=76`). It passes at the
+default `SIZES` only because 250–4,000 rows now spans 4–22 pages, which is a 5.5x
+page range rather than the 18x range the same row counts covered in August 13.
+The gate was not wired into `scripts/reproduce-all.sh` and the harness's
+`localized_scaling` binary was not a default build target, so the acceptance
+criterion `plan.md` asked to be kept as a regression test was not being run at
+all. Both are fixed: `reproduce-all.sh` now reports this curve out to 20,000 rows,
+and the binary builds by default.
+
+Prior history, for the shape of the curve rather than its constants: the commit
+was 63 / 90 / 160 / 332 / 610 ms at 250–4,000 rows before persistent page deltas,
+and a logical-tree migration briefly regressed it to 38 / 81 / 243 ms at
 250 / 1,000 / 4,000 rows because `patchRows` rebuilt the new primary tree.
-Primary-key equality UPDATE now uses proved routed lookup plus local upsert, so
-the acceptance curve is flat again.
 
-An independent CLI decomposition measured read-only open at 19 / 31 / 56 /
-106 / 211 ms and open-plus-update at 39 / 50 / 77 / 126 / 235 ms. Their
-difference is 20 / 19 / 21 / 20 / 24 ms, corroborating the direct timer. It
-also isolates the successor bottleneck: fresh open is linear and accounts for
-90% of the 4,000-row CLI update invocation.
+**The CLI decomposition is not a valid commit isolator, and its "flat" reading was
+an artifact.** It measured read-only open at 19 / 31 / 56 / 106 / 211 ms and
+open-plus-update at 39 / 50 / 77 / 126 / 235 ms, and reported the difference
+20 / 19 / 21 / 20 / 24 ms as corroborating the direct timer. The subtraction does
+not isolate the commit: the read invocation takes the certified page-directed cold
+path, which is flat in database size, while the update invocation takes the write
+open, which decodes the whole database. The difference is therefore
+`write_open + commit`, both of which grow. Run as specified on 2026-08-17 it gives
+25 / 67 / 339 / 859 ms at 1,000 / 4,000 / 20,000 / 50,000 rows. Use the direct
+timer, which is what `run-localized-update-scaling.sh` reports. The observation it
+was cited for remains true: fresh write open is linear and dominates a CLI update
+invocation.
 
 ### Cold primary-key scaling
 
