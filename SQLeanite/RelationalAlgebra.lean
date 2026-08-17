@@ -1064,6 +1064,47 @@ theorem permute_symm_eval (equiv : Bijection Input Output)
   change eval input (equiv.backward (equiv.forward row)) = eval input row
   rw [equiv.leftInverse]
 
+/-- Mapping a bijection over an executable list *is* the algebra's permutation
+of that list's relation.  Neither direction is a definitional unfolding: the
+left side reorders concrete tuples, the right side relabels a multiplicity
+function through the inverse map.
+
+This is the lemma that makes the permutation parity claim a statement about the
+shipped read path rather than about a standalone module.  A live projection
+produces a list; `permute` acts on a denotation; without this bridge the two
+never meet, and "we have a permutation primitive" says nothing about what the
+executable computes. -/
+theorem ofList_map_permute [DecidableEq Input] [DecidableEq Output]
+    (equiv : Bijection Input Output) (rows : List Input) :
+    ofList (rows.map equiv.forward) =
+      eval (permute equiv (.relation (ofList rows))) := by
+  apply KRelation.Relation.ext
+  intro output
+  show listMultiplicity output (rows.map equiv.forward) =
+    listMultiplicity (equiv.backward output) rows
+  induction rows with
+  | nil => rfl
+  | cons row rows induction =>
+      simp only [List.map_cons, listMultiplicity]
+      rw [induction]
+      congr 1
+      by_cases hit : row = equiv.backward output
+      · have forwardHit : equiv.forward row = output := by
+          rw [hit, equiv.rightInverse]
+        rw [if_pos hit, if_pos forwardHit]
+      · have forwardMiss : equiv.forward row ≠ output := by
+          intro equal
+          exact hit (by rw [← equal, equiv.leftInverse])
+        rw [if_neg hit, if_neg forwardMiss]
+
+/-- Duplicate elimination commutes with a permutation.  A bijective relabelling
+cannot merge two distinct tuples or split one, so `DISTINCT` is insensitive to
+the column order it is applied in. -/
+theorem distinct_permute (equiv : Bijection Input Output)
+    (relation : Relation Input) :
+    KRelation.distinct (eval (permute equiv (.relation relation))) =
+      eval (permute equiv (.relation (KRelation.distinct relation))) := rfl
+
 def joinedRows (left right : Expr QuerySemantics.Row) :
     Expr QuerySemantics.Row :=
   .embed (fun

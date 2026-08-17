@@ -131,6 +131,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.RelationalAlgebra.innerJoin_true_eval
 #print axioms SQLeanite.RelationalAlgebra.permute_eval
 #print axioms SQLeanite.RelationalAlgebra.permute_symm_eval
+#print axioms SQLeanite.RelationalAlgebra.ofList_map_permute
+#print axioms SQLeanite.RelationalAlgebra.distinct_permute
 #print axioms SQLeanite.RelationalAlgebra.joinedLeftOuterRows_eval
 #print axioms SQLeanite.RelationalAlgebra.listMultiplicity_leftOuterOnRows
 #print axioms SQLeanite.RelationalAlgebra.joinedLeftOuterOn_eval
@@ -178,6 +180,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreReadSemantics.execute_sum_denotes
 #print axioms SQLeanite.CoreReadSemantics.execute_extreme_denotes
 #print axioms SQLeanite.CoreReadSemantics.compound_denotes
+#print axioms SQLeanite.CoreReadSemantics.reorderValues_invert
+#print axioms SQLeanite.CoreReadSemantics.reorderValues_invert_symm
+#print axioms SQLeanite.CoreReadSemantics.permutedColumns_map_value
+#print axioms SQLeanite.CoreReadSemantics.permuted_projection_denotes
 #print axioms SQLeanite.PagedBTree.Tree.toList_insert
 #print axioms SQLeanite.PagedBTree.Tree.toList_delete
 #print axioms SQLeanite.PagedBTree.Tree.toList_sorted

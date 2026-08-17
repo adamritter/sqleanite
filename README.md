@@ -6,10 +6,12 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 81,939 lines in 92 library modules, 1,973
-theorems/lemmas, 872 explicitly audited headline theorems, and 151 executable
+At this snapshot it contains 83,889 lines in 93 library modules, 2,019
+theorems/lemmas, 878 explicitly audited headline theorems, and 151 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
-`unsafe`, or project-local `partial def`.
+`unsafe`, or project-local `partial def`. Every count in this paragraph is
+emitted by `scripts/lean-manifest.sh`; regenerate it rather than editing them by
+hand.
 
 SQLeanite is not a drop-in replacement for SQLite and is not production-ready.
 It deliberately implements a bounded SQL/storage subset so that its claims can
@@ -34,6 +36,24 @@ and finite `REAL`.
 Single-column indexes, transactions, common predicates, ordering, grouping,
 aggregates, and a bounded join subset are supported. Unsupported SQL is
 rejected instead of silently falling back to C SQLite.
+
+## Relation to the POPL'10 verified RDBMS: bags, not sets
+
+The nearest prior verified relational engine (Malecha et al., POPL 2010) verifies
+six relational primitives over finite **sets**: no duplicates, no NULL logic.
+SQLeanite's relations are **bags** — a multiplicity function `Row -> Nat` — under
+SQLite's three-valued predicates, where `UNKNOWN` contributes zero multiplicity
+rather than collapsing into false.
+
+That is a strictly harder target and it must be stated as an improvement in
+target, never as parity: duplicate-sensitive operators are distinct theorems
+here, every operator theorem preserves multiplicity rather than membership, and a
+rewrite that is sound over sets can be unsound over bags — which is why the live
+optimizer selects only rewrites carrying a cost certificate, and why one rewrite
+has a proved *negative* result.
+
+Per-primitive witnesses are in [POPL'10 parity](docs/PARITY.md), generated from
+the audited theorem set by `scripts/popl-parity.sh` and gated so it cannot drift.
 
 ## Build and run
 
@@ -73,7 +93,12 @@ The CLI also exposes `--verified-wal-file` and
 - `tests/sql/`: differential, workload, and upstream-adapter inputs;
 - `mutations/`: proof and C-SQLite mutation experiments;
 - `scripts/`: audits, reproduction, benchmarks, and crash tests;
-- `docs/`: architecture, trust boundary, results, and case studies.
+- `docs/`: architecture, trust boundary, results, and case studies. Four of these
+  are generated and gated so they cannot drift: [`PARITY.md`](docs/PARITY.md)
+  (POPL'10 witnesses), [`COMPATIBILITY.md`](docs/COMPATIBILITY.md) (what is
+  accepted, rejected and untested in both directions),
+  [`BOUNDARY.md`](docs/BOUNDARY.md) (where the proofs stop on the shipped path),
+  and `manifest.json` (theorem, trust and parity counts).
 
 Current comparative timings are in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
