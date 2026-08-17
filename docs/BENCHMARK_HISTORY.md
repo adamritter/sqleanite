@@ -1,5 +1,39 @@
 # Historical SQLeanite benchmark notes
 
+## 2026-08-16: two workloads no longer meet the frozen floor, and it is not new
+
+`scripts/run-benchmark-regression.sh` compares three-run medians against
+`scripts/performance-baseline.tsv`, frozen at commit `1e4aacb` on 2026-08-14.
+Measured today, 204 commits later, two workloads miss it:
+
+| workload | floor | measured (median of 3) | change | vs C SQLite |
+|---|---:|---:|---:|---:|
+| 07 bulk `UPDATE` by predicate | 77 ms | 120 ms | +55.8% | 6.0x |
+| 08 bulk `DELETE` by predicate | 101 ms | 140 ms | +38.6% | 7.0x |
+
+Two other workloads are *faster* than the floor by similar margins — 01 bulk
+load 292 -> 162 ms (-44.5%), 04 secondary-index lookup 18 -> 13 ms (-27.8%) — so
+this is not a uniform machine offset.
+
+This was **not introduced by the gap-closing work** (workstreams D/A/B/C). That
+was checked rather than assumed: the three modified Lean files were reverted, the
+tree rebuilt from scratch, and the same two workloads measured at 119 ms and
+140 ms — identical within 1 ms to the post-change build's 120 ms and 140 ms. The
+additions in `CoreReadSemantics.lean` and `RelationalAlgebra.lean` are theorems
+and proof-only definitions that no executable path references, which is the
+expected result and is now measured rather than argued.
+
+The cause is therefore somewhere in the 204 commits since the floor was frozen,
+and finding it is performance work, which the gap-closing plan explicitly
+excludes. Recorded here so that `docs/BENCHMARKS.md` (which still publishes 79 ms
+and 101 ms for these two workloads) is not read as a current measurement on this
+machine. Whoever next touches the write path should either fix these two or
+re-freeze the floor deliberately, with a note saying which.
+
+YCSB is unaffected: workload C is 0.04 ms p50 / 0.10 ms p99 at 1,000 records,
+exactly the published figures, and the A/B/F write-heavy ratios measured
+9.7x / 13.6x / 10.0x against the published 9.9-13.3x range.
+
 This file preserves development-era measurements and bottleneck analysis. Many
 numbers below predate persistent page deltas and certified page-directed reads;
 they are not current performance claims. See [BENCHMARKS.md](BENCHMARKS.md) for

@@ -13,6 +13,16 @@ The checked-in regression floor is `scripts/performance-baseline.tsv`.
 `scripts/run-benchmark-regression.sh` compares three-run medians against it;
 `FAST=1 RUNS=1` selects six representative workloads for routine commits.
 
+> **Two rows below are stale as of 2026-08-16.** Bulk `UPDATE` and bulk `DELETE`
+> now measure 120 ms and 140 ms rather than 79 ms and 101 ms, and miss the frozen
+> floor by +55.8% and +38.6%. The gap predates the gap-closing work and was
+> verified not to come from it by reverting and rebuilding; bulk load and
+> secondary-index lookup are correspondingly *faster* than the floor. Details and
+> the A/B evidence are in
+> [BENCHMARK_HISTORY.md](BENCHMARK_HISTORY.md#2026-08-16-two-workloads-no-longer-meet-the-frozen-floor-and-it-is-not-new).
+> The YCSB numbers further down this file were re-measured on 2026-08-16 and are
+> current.
+
 | Workload | SQLeanite | C SQLite | Ratio |
 |---|---:|---:|---:|
 | Bulk load, one transaction | 296 ms | 62 ms | 4.8× |
