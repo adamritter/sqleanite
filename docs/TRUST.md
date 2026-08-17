@@ -63,6 +63,30 @@ The legacy in-memory SQL interpreter (`Engine.lean`) still exists behind the
 separate test-only `sqleanite_legacy_server` executable and is **not** part of
 the verified core or the production `sqleanite` import graph.
 
+## What the durability claim is conditional on
+
+Stated once, plainly, because a crash theorem is only as strong as the storage
+model it quantifies over:
+
+> Every crash-atomicity result in this project — `rollbackCommit_crash_atomic`,
+> `rollbackCommit_committed_recovers_new`,
+> `rollbackCommit_recovery_crash_trace_atomic`, the localized-commit family, and
+> the SQL-text level `executeText_commit_crash_atomic` — is **conditional on
+> `SyscallVFS.Contract`**, the refinement obligation for a concrete host adapter.
+> No project axiom asserts that any particular kernel, filesystem or device
+> satisfies that contract. Syscall behaviour, filesystem semantics, device write
+> caches and directory durability therefore remain in the trusted computing base
+> described above, and the crash fault-injection and power-loss experiments are
+> evidence about a real system rather than instances of the theorem.
+
+The comparison to FSCQ is about the *shape of that theorem* — quantifying over
+every checkpoint and every modeled crash outcome, with recovery proved to be the
+old or the new state and never an intermediate one. It is not a comparison of
+evaluations: FSCQ is evaluated as a filesystem (xv6 build, mail server, versus
+ext4), which does not transfer to a database's operation mix. Performance
+comparability with a production engine is what YCSB and the workload benchmark
+are for. The two should not be presented as one result.
+
 ## The page-local write path is proved but not deployed
 
 `CoreLazyWrite.insertPlan_refines` proves that the plan the executable computes
