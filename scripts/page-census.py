@@ -5,8 +5,8 @@ Exists because file size alone does not say *why* a database is large. A census
 localized a 4.5x space gap immediately: at 130,000 rows we emitted 43,326
 interior table pages where C SQLite emitted 47, because the physical page tree is
 a 2-3 tree and each interior node with two or three child pointers occupies a
-whole page. Open-work item 2 in `PAPER_PLAN.md` states its acceptance in terms of
-this percentage, so it needs to be measurable rather than reconstructed by hand.
+whole page. Space amplification is stated as a percentage of interior pages, so it
+needs to be measurable rather than reconstructed by hand.
 
 Page one is the header page and is skipped. A page whose first byte is not a known
 B-tree type is counted as other: freelist trunk and leaf pages, overflow pages and

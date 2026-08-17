@@ -1,9 +1,10 @@
 # Roadmap
 
-The paper-oriented compositional program is specified in
-[`PAPER_PLAN.md`](PAPER_PLAN.md).  It targets POPL'10 verified-RDBMS parity plus
-FSCQ-style durability while preserving the current proof and performance
-floors.
+The programme targets POPL'10 verified-RDBMS parity plus FSCQ-style durability
+while preserving the current proof and performance floors. Per-primitive parity
+witnesses are in [`docs/PARITY.md`](docs/PARITY.md) and the durability scope is in
+[`docs/TRUST.md`](docs/TRUST.md); measured results are in
+[`docs/RESULTS.md`](docs/RESULTS.md).
 
 The near-term objective is to strengthen the existing verified vertical slice,
 not to grow SQL breadth indiscriminately.

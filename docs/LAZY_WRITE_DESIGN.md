@@ -1,7 +1,7 @@
 # Design: a page-local write path
 
 Status: design agreed, implementation in progress. This closes open-work item 3 in
-`PAPER_PLAN.md`.
+the paper programme.
 
 ## The problem, measured
 
@@ -27,7 +27,7 @@ to 2,519 ms. They do not change the shape: the open is still O(database).
 database directly from high-fanout pages was implemented and measured: 1,243 ms at
 11 MB, which is exactly what the general decoder cost. `Core.Table` stores every
 row in `rowTree`, so building one is O(rows) through any loader. Reverted; recorded
-in `PAPER_PLAN.md` as disproved.
+as disproved.
 
 **Validating a fast path defeats the purpose.** The foreign-file boundary works by
 running the verified executor and comparing. Here that means decoding the database,
@@ -179,7 +179,7 @@ choose a decoding strategy; the structure is then *checked*, and that check is t
   becomes far more load-bearing, and the TCB's size and weight is the project's
   headline property.
 
-The explicit non-goals in `PAPER_PLAN.md` include "replacing the fail-closed
+The explicit non-goals of the paper programme include "replacing the fail-closed
 foreign-file validation boundary with unchecked trust". This is not that boundary —
 it concerns our own generated files, not foreign ones — but it is close enough that
 it must be an explicit, recorded decision rather than something absorbed into an
