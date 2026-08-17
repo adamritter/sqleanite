@@ -23,12 +23,45 @@ additions in `CoreReadSemantics.lean` and `RelationalAlgebra.lean` are theorems
 and proof-only definitions that no executable path references, which is the
 expected result and is now measured rather than argued.
 
-The cause is therefore somewhere in the 204 commits since the floor was frozen,
-and finding it is performance work, which the gap-closing plan explicitly
-excludes. Recorded here so that `docs/BENCHMARKS.md` (which still publishes 79 ms
-and 101 ms for these two workloads) is not read as a current measurement on this
-machine. Whoever next touches the write path should either fix these two or
-re-freeze the floor deliberately, with a note saying which.
+### Where it comes from: the index certificate, and it is a deliberate trade
+
+Measured, not guessed. Holding the *deleted* row count fixed at 10 and varying
+only the index size isolates a per-commit cost that scales with the index rather
+than with the work done:
+
+| table rows | indexed delete | unindexed delete | index cost per commit |
+|---:|---:|---:|---:|
+| 1,000 | 86 ms | 48 ms | 38 ms |
+| 2,000 | 145 ms | 72 ms | 73 ms |
+| 4,000 | 191 ms | 121 ms | 70 ms |
+| 8,000 | 382 ms | 224 ms | 158 ms |
+
+Ten deleted rows cost 38 ms of index work at 1,000 entries and 158 ms at 8,000.
+That is an O(index) pass per commit, and the code says exactly which one:
+`CoreFileAdapter.certifyDecodedIndex?` admits a page-directed index image only
+with `CoreDecode.decodeIndexSubtreeFrom ... = CoreDecode.expectedIndexEntries
+table index` — a full decode of the index subtree compared against a freshly
+sorted expected entry list (`CoreFile.sortedIndexRows`). Both sides are O(index).
+
+The live-path gates advertise this in their own names: "indexed bulk DELETE
+carries an exact decoded post-state certificate" and "single-row indexed INSERT
+carries an exact decoded post-state certificate". The commits that introduced it
+land on 2026-08-15, one day after the floor was frozen — among them "replace
+opaque post-image premise with constructive certificates" and "certify the live
+bulk commit preparation".
+
+So this is not a performance bug. It is the price of removing an assumption: the
+*table* path had its decode-and-compare admission removed in favour of a
+containment certificate, while the *index* path gained one, because no lemma yet
+says a localized index write preserves exactness without re-decoding. Roughly 40%
+of indexed write time buys the removal of an opaque post-image premise.
+
+Stated rather than fixed, deliberately. The fix is not tuning: it is the index
+analogue of what the table path already has — certify the *delta* and prove it
+preserves the decoded post-state, so the commit stops re-deriving what it already
+knows. Until that lemma exists, `docs/BENCHMARKS.md`'s 79 ms and 101 ms rows are
+history, and whoever re-freezes the floor should say which trade the new numbers
+include.
 
 YCSB is unaffected: workload C is 0.04 ms p50 / 0.10 ms p99 at 1,000 records,
 exactly the published figures, and the A/B/F write-heavy ratios measured

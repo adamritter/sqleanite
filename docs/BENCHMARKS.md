@@ -14,11 +14,15 @@ The checked-in regression floor is `scripts/performance-baseline.tsv`.
 `FAST=1 RUNS=1` selects six representative workloads for routine commits.
 
 > **Two rows below are stale as of 2026-08-16.** Bulk `UPDATE` and bulk `DELETE`
-> now measure 120 ms and 140 ms rather than 79 ms and 101 ms, and miss the frozen
-> floor by +55.8% and +38.6%. The gap predates the gap-closing work and was
-> verified not to come from it by reverting and rebuilding; bulk load and
-> secondary-index lookup are correspondingly *faster* than the floor. Details and
-> the A/B evidence are in
+> now measure 120 ms and 140 ms rather than 79 ms and 101 ms. The cause is
+> identified and is a deliberate trade, not a performance bug: indexed mutations
+> pay an O(index) decode-and-compare per commit
+> (`CoreFileAdapter.certifyDecodedIndex?`) to admit a page-directed index write
+> with an exact decoded post-state certificate, which is what replaced an opaque
+> post-image premise. Ten deleted rows cost 38 ms of index work at 1,000 entries
+> and 158 ms at 8,000. Bulk load and secondary-index lookup are correspondingly
+> *faster* than the floor. Measurements, the A/B that rules out the gap-closing
+> work, and the lemma that would remove the cost are in
 > [BENCHMARK_HISTORY.md](BENCHMARK_HISTORY.md#2026-08-16-two-workloads-no-longer-meet-the-frozen-floor-and-it-is-not-new).
 > The YCSB numbers further down this file were re-measured on 2026-08-16 and are
 > current.
