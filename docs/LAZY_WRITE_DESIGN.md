@@ -356,9 +356,10 @@ Three further corrections the proofs forced:
 The refinement is *conditional* on `WellFormedTree`. Nothing checks those premises at
 open time yet, so the CLI reaches the page-local path only under
 `SQLEANITE_PAGE_LOCAL_WRITES=1`. Making it the default needs decidable checkers for
-`TreeSound` and `TreeDisjoint` plus soundness proofs; the measurements above show
-both are cheap to compute (653 ms at 1M rows), but computing them is not the same as
-proving the checker implies the proposition.
+`TreeSound` and `TreeDisjoint` plus soundness proofs; the measurements below show
+both are cheap to compute (1,720 ms at 1M rows for the full per-leaf monotonicity
+scan the premise actually requires — see the correction at the end of this file), but
+computing them is not the same as proving the checker implies the proposition.
 
 ### Measured
 
@@ -414,28 +415,63 @@ trustworthy, i.e. the leaves genuinely in key order. That is what `RoutedSplit`
 demands and what `WellFormedTree.rowsOrdered` supplies.
 
 The concern was that global key ordering could only be established by decoding every
-row -- exactly the cost being removed. It cannot, and it does not have to be. Every
-leaf's key *range* is its first and last cell, so ordering across the whole table is
-verifiable by reading each leaf and parsing two cells, without decoding a single row.
+row -- exactly the cost being removed. It cannot, and it does not have to be: keys
+live in the cell headers, so ordering across the whole table is verifiable by reading
+each leaf and parsing cell headers, without decoding a single row or touching a
+payload.
 
-Measured on the 1,000,000-row, 583 MB file:
+### Correction (2026-08-16): first/last is not the premise
+
+The original version of this section measured each leaf's **first and last** cell and
+called the result the structural check. That is weaker than the premise it was cited
+for. First/last bounds every key in a leaf *only if the leaf is internally sorted*,
+and internal leaf ordering is one of the things `TreeSound` asserts rather than
+something a checker may assume. A leaf whose cells are `[5, 99, 7]` passes a
+first/last scan against neighbours holding `[1..4]` and `[100..]`, yet routing a key
+of 8 into it and re-encoding `orderedUpsert` would not preserve the decoded order the
+refinement's conclusion is stated over.
+
+So the honest checker parses **every** cell header of every leaf. That is still a
+header parse, not a row decode: no payload is read, no overflow chain is chased, and
+no `Core.Row` is built.
+
+### Re-measured with full per-leaf monotonicity
+
+`scripts/structural-check-census.py` makes this reproducible; the earlier numbers had
+no tool behind them. Median of three warm passes over a 1,000,000-row, 582.41 MB
+C-SQLite-written file of the YCSB shape (`usertable(ycsb_key TEXT PRIMARY KEY,
+field0 TEXT)`, 512-byte fields, 149,098 pages of 4,096 bytes, 359 interior pages,
+142,858 leaves):
 
 | step | cost |
 |---|---:|
-| tree-order walk of interior pages | 148 ms |
-| first/last cell of all 142,858 leaves | 504 ms |
-| **total structural check** | **653 ms** |
-| ordering violations found | **0** |
-| one autocommit insert today | 143,671 ms |
+| tree-order walk of interior pages | 322 ms |
+| first/last cell of all 142,858 leaves (weak) | 815 ms |
+| **every cell of every leaf (the `TreeSound` shape)** | **1,398 ms** |
+| total, endpoints only (what 653 ms measured) | 1,136 ms |
+| **total structural check, full monotonicity** | **1,720 ms** |
+| ordering violations found, either scan | **0** |
+| one autocommit insert at this scale today | 143,671 ms |
 
-So both premises the refinement needs -- disjointness and ordering -- are **checked**
-in about 0.65 s, some 220x cheaper than the whole-database open they replace, and
-paid once per open rather than per statement. No trust change, and the
-generated-image stamp keeps its existing weaker role.
+Two things changed against the superseded row. The check is **1,720 ms, not 653 ms**:
+about 1.6x of that is the stronger scan, and the rest is that these numbers come from
+an instrumented Python reader on this machine rather than from the earlier untooled
+measurement, so treat the *ratio* as the durable claim and the absolute as
+machine-specific. The ratio: both premises the refinement needs -- disjointness and
+ordering -- are **checked** in about 1.7 s, some **84x** cheaper than the
+whole-database open they replace, and paid once per open rather than per statement.
+Not the 220x previously claimed, and 220x was for the weaker scan.
 
-Two implementation notes, both mistakes made while measuring this and worth not
+No trust change, and the generated-image stamp keeps its existing weaker role. Note
+also that a Lean checker with a soundness theorem is what the engine would actually
+need; this tool measures the cost of that obligation, it does not discharge it.
+
+Three implementation notes, all mistakes made while measuring this and worth not
 repeating: leaves must be visited in *tree order* (a DFS through interior children),
-not page-number order, since page numbering does not follow key order; and leaf cell
-pointers start at byte 8, where interior pages start at 12. Getting either wrong
-makes the check report every leaf as a violation, which reads as a corrupt file
-rather than as a broken checker.
+not page-number order, since page numbering does not follow key order; leaf cell
+pointers start at byte 8, where interior pages start at 12; and a one-cell leaf must
+contribute one key to the endpoint scan rather than the same key twice, or the strict
+comparison fires on `key <= key`. Each of the three makes the check report violations
+that are not in the file, which reads as a corrupt database rather than as a broken
+checker. The third one actually fired during this re-measurement: the endpoint scan
+reported exactly one violation that the full scan did not, and it was the checker.

@@ -63,6 +63,33 @@ The legacy in-memory SQL interpreter (`Engine.lean`) still exists behind the
 separate test-only `sqleanite_legacy_server` executable and is **not** part of
 the verified core or the production `sqleanite` import graph.
 
+## The page-local write path is proved but not deployed
+
+`CoreLazyWrite.insertPlan_refines` proves that the plan the executable computes
+for a single-row `INSERT` -- one located leaf, re-encoded, every other page
+byte-identical -- denotes exactly `Core.orderedUpsert` of that row into the
+table's decoded rows. It is sorry-free and audited.
+
+It is **not on the shipped path**, and the claim must not be stated as if it
+were. Three things separate the theorem from the default binary:
+
+- the refinement is conditional on `WellFormedTree` (sound separators, disjoint
+  sibling page sets, inline leaves, in-range page numbers), and nothing checks
+  those premises at open time;
+- so `Main.lean` reaches it only under `SQLEANITE_PAGE_LOCAL_WRITES=1`, an
+  explicit opt-in that exists precisely so the default cannot rest on an
+  unchecked structural assumption;
+- the opt-in path commits through `commitLocalized` rather than
+  `commitLocalizedCertified`, so even when enabled its journal trace is not the
+  one tied to the proved rollback plan.
+
+`scripts/structural-check-census.py` measures what the missing checkers would
+cost: 1,720 ms once per open at 1,000,000 rows, against 143,671 ms for a single
+insert on the whole-database path. That is a cost measurement for a proof
+obligation, not a discharge of it. Until a Lean checker with a soundness theorem
+exists, the honest description is: proved, audited, reachable only by opt-in, and
+not part of any performance number reported for the default configuration.
+
 ## Proof trusted computing base
 
 Kernel-checked theorems trust:
