@@ -39,6 +39,38 @@ Single-column indexes, transactions, common predicates, ordering, grouping,
 aggregates, and a bounded join subset are supported. Unsupported SQL is
 rejected instead of silently falling back to C SQLite.
 
+## Related work
+
+Two papers set the targets this project measures itself against, and the two
+sections after this one state exactly where it matches them and where it does not.
+
+- **Malecha, Morrisett, Shinnar and Wisnesky, "Toward a verified relational
+  database management system", POPL 2010.**
+  [doi:10.1145/1707801.1706329](https://doi.org/10.1145/1707801.1706329) —
+  the relational-algebra target. Six primitives verified in Coq over finite
+  *sets*. Per-primitive witnesses for the corresponding theorems here are in
+  [docs/PARITY.md](docs/PARITY.md); the difference in target (bags with
+  three-valued predicates, not sets) is stated below and is an improvement in
+  difficulty, never parity.
+- **Chen, Ziegler, Chajed, Chlipala, Kaashoek and Zeldovich, "Using Crash Hoare
+  logic for certifying the FSCQ file system", SOSP 2015.**
+  [doi:10.1145/2815400.2815402](https://doi.org/10.1145/2815400.2815402) — the
+  durability target. The crash theorems here have the same shape (every commit
+  checkpoint, every modeled crash outcome, recovery proved old-or-new) and the
+  same essential caveat: the result is conditional on a storage model, described
+  in [docs/TRUST.md](docs/TRUST.md).
+
+One more supplies the performance comparison's parameters rather than a
+verification target:
+
+- **Hance, Lattuada, Hawblitzel, Howell, Johnson and Parno, "Storage systems are
+  distributed systems (so verify them that way!)", OSDI 2020.**
+  [usenix.org/conference/osdi20/presentation/hance](https://www.usenix.org/conference/osdi20/presentation/hance)
+  — VeriBetrKV. `scripts/run-ycsb-benchmark.sh` follows its YCSB parameters (one
+  512-byte field, the A/B/C/D/F/Cuniform set, load and run phases timed
+  separately) so the numbers in [docs/RESULTS.md](docs/RESULTS.md) are comparable
+  to published ones rather than to a private harness.
+
 ## Relation to the POPL'10 verified RDBMS: bags, not sets
 
 The nearest prior verified relational engine (Malecha et al., POPL 2010) verifies
