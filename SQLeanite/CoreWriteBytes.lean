@@ -66,6 +66,8 @@ theorem execute_insert_to_bytes (utf8 : CoreDecode.UTF8Roundtrips)
       state.database.findTable? tableName = some table ∧
       table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
+      (∀ existing ∈ table.rows, existing.rowid.value ≠ row.rowid.value) ∧
+      table.findDeclaredPrimary? row = none ∧
       replacement.rows = Core.orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
       next.transactionSnapshot = state.transactionSnapshot ∧

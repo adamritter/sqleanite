@@ -15,6 +15,20 @@ sum over source rows.
 abbrev Relation (Row : Type) := Row → Nat
 
 def empty : Relation Row := fun _ => 0
+
+/-- One tuple with multiplicity one.  This is the algebraic object an `INSERT`
+adds, so it exists to let the write side state its effect as bag union rather
+than as a list operation. -/
+def single [DecidableEq Row] (target : Row) : Relation Row :=
+  fun candidate => if candidate = target then 1 else 0
+
+@[simp] theorem single_self [DecidableEq Row] (target : Row) :
+    single target target = 1 := by simp [single]
+
+@[simp] theorem single_of_ne [DecidableEq Row] {target candidate : Row}
+    (different : candidate ≠ target) : single target candidate = 0 := by
+  simp [single, different]
+
 def unionAll (left right : Relation Row) : Relation Row :=
   fun row => left row + right row
 def intersect (left right : Relation Row) : Relation Row :=

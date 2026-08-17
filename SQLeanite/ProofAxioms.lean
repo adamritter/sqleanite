@@ -2,6 +2,7 @@ import SQLeanite.Optimizer
 import SQLeanite.QueryCost
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreReadSemantics
+import SQLeanite.CoreWriteSemantics
 import SQLeanite.KRelation
 import SQLeanite.RelationalAlgebra
 import SQLeanite.PagedBTree
@@ -184,6 +185,19 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreReadSemantics.reorderValues_invert_symm
 #print axioms SQLeanite.CoreReadSemantics.permutedColumns_map_value
 #print axioms SQLeanite.CoreReadSemantics.permuted_projection_denotes
+#print axioms SQLeanite.RelationalAlgebra.ofList_cons
+#print axioms SQLeanite.RelationalAlgebra.ofList_perm
+#print axioms SQLeanite.CoreWriteSemantics.tableDenotation_orderedUpsert
+#print axioms SQLeanite.CoreWriteSemantics.tableDenotation_orderedUpsert_fresh
+#print axioms SQLeanite.CoreWriteSemantics.execute_insert_denotes
+#print axioms SQLeanite.CoreWriteSemantics.execute_insert_multiplicity
+#print axioms SQLeanite.CoreWriteSemantics.execute_deleteWhere_denotes
+#print axioms SQLeanite.CoreWriteSemantics.canonicalize_findTable?
+#print axioms SQLeanite.CoreWriteSemantics.insert_bytes_reopen_denotes
+#print axioms SQLeanite.CoreWriteSemantics.insert_bytes_reopen_query_denotes
+#print axioms SQLeanite.CoreWriteSemantics.insert_bytes_reopen_selects_row
+#print axioms SQLeanite.CoreWriteSemantics.writeEffect_insert_bytes_reopen_denotes
+#print axioms SQLeanite.CoreWriteSemantics.insertText_bytes_reopen_readText_denotes
 #print axioms SQLeanite.PagedBTree.Tree.toList_insert
 #print axioms SQLeanite.PagedBTree.Tree.toList_delete
 #print axioms SQLeanite.PagedBTree.Tree.toList_sorted
@@ -657,6 +671,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CellPagination.paginateCells_fits
 #print axioms SQLeanite.CellPagination.fastFit_iff
 #print axioms SQLeanite.Core.orderedUpsert_eq_orderedUpsertTR
+#print axioms SQLeanite.Core.mem_orderedUpsert_self
+#print axioms SQLeanite.Core.mem_orderedUpsert_of_mem
+#print axioms SQLeanite.Core.mem_orderedUpsert_iff
+#print axioms SQLeanite.Core.orderedUpsert_perm
+#print axioms SQLeanite.Core.length_orderedUpsert_of_fresh
 #print axioms SQLeanite.CoreFile.tableLeaves_storedCells
 #print axioms SQLeanite.CoreFile.tableLeaves_fit
 #print axioms SQLeanite.CoreFile.sortedIndexRows_perm

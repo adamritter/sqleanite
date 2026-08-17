@@ -37,6 +37,21 @@ def listMultiplicity [DecidableEq Row] (target : Row) : List Row → Nat
 def ofList [DecidableEq Row] (rows : List Row) : Relation Row :=
   fun target => listMultiplicity target rows
 
+/-- A list's bag is the singleton of its head unioned with the bag of its tail.
+The write side needs this to turn `row :: rows` into `single row ∪ ofList rows`
+without unfolding multiplicity arithmetic at every use. -/
+theorem ofList_cons [DecidableEq Row] (row : Row) (rows : List Row) :
+    ofList (row :: rows) =
+      KRelation.unionAll (KRelation.single row) (ofList rows) := by
+  apply KRelation.Relation.ext
+  intro target
+  show listMultiplicity target (row :: rows) =
+    KRelation.single row target + listMultiplicity target rows
+  simp only [listMultiplicity, KRelation.single]
+  by_cases hit : row = target
+  · rw [if_pos hit, if_pos hit.symm]
+  · rw [if_neg hit, if_neg (fun equal => hit equal.symm)]
+
 theorem listMultiplicity_eq_count [DecidableEq Row]
     (target : Row) (rows : List Row) :
     listMultiplicity target rows = rows.count target := by
@@ -46,6 +61,16 @@ theorem listMultiplicity_eq_count [DecidableEq Row]
       by_cases equal : row = target <;>
         simp [listMultiplicity, List.count_cons, equal, induction,
           Nat.add_comm]
+
+/-- Reordering a list does not change its bag.  Every write-side statement that
+routes through a permutation lemma needs exactly this to cross from lists to
+multiplicities. -/
+theorem ofList_perm [DecidableEq Row] {left right : List Row}
+    (permuted : left.Perm right) : ofList left = ofList right := by
+  apply KRelation.Relation.ext
+  intro target
+  show listMultiplicity target left = listMultiplicity target right
+  rw [listMultiplicity_eq_count, listMultiplicity_eq_count, permuted.count_eq]
 
 private theorem multiplicity_zero_absent [DecidableEq Row]
     (target : Row) (rows : List Row) (absent : target ∉ rows) :

@@ -1246,6 +1246,12 @@ theorem execute_createIndex_exact {state next : State}
         exact Database.updateTable_frame updated other fun equal =>
           different (equal.trans replacementName)
 
+/-- The exact effect of a successful live `INSERT`.
+
+`freshRowid` and the declared-key freshness are checked by `insertValues` and are
+now carried up: an `INSERT` is an insert, not an upsert, and downstream theorems
+can say so. `execute_replace_exact` deliberately does *not* carry them, which is
+where the two statements differ. -/
 theorem execute_insert_exact {state next : State} {tableName : String}
     {values : List Value} {result : Result}
     (success : execute state (.insert tableName values) = .ok (next, result)) :
@@ -1253,6 +1259,8 @@ theorem execute_insert_exact {state next : State} {tableName : String}
       state.database.findTable? tableName = some table ∧
       table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
+      (∀ existing ∈ table.rows, existing.rowid.value ≠ row.rowid.value) ∧
+      table.findDeclaredPrimary? row = none ∧
       replacement.rows = orderedUpsert row table.rows ∧
       next.database.findTable? tableName = some replacement ∧
       next.transactionSnapshot = state.transactionSnapshot ∧
@@ -1281,12 +1289,12 @@ theorem execute_insert_exact {state next : State} {tableName : String}
               subst next
               subst result
               rcases Table.insertValues_exact inserted with
-                ⟨row, created, valid, replacementRows⟩
+                ⟨row, created, valid, freshRowid, declaredFresh, replacementRows⟩
               have replacementName : replacement.schema.name = tableName :=
                 (congrArg Schema.name (Table.insertValues_schema inserted)).trans
                   (findTable?_some_schemaName found)
-              refine ⟨table, replacement, row, rfl, created, valid,
-                replacementRows, ?_, rfl, rfl, ?_⟩
+              refine ⟨table, replacement, row, rfl, created, valid, freshRowid,
+                declaredFresh, replacementRows, ?_, rfl, rfl, ?_⟩
               · exact Database.updateTable_target found replacementName updated
               · intro other different
                 exact Database.updateTable_frame updated other fun equal =>

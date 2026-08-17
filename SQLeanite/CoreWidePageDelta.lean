@@ -364,8 +364,8 @@ def executeInsert? (state : CoreWidePageState.State)
                 have appendedRows : replacement.rows = table.rows ++ [row] := by
                   rcases Core.execute_insert_exact execution with
                     ⟨old, updated, insertedRow, oldFound, inserted,
-                      rowValid, updatedRows, updatedFound, snapshotEq,
-                      resultEq, frame⟩
+                      rowValid, freshRowid, declaredFresh, updatedRows,
+                      updatedFound, snapshotEq, resultEq, frame⟩
                   have oldEq : old = table := Option.some.inj
                     (oldFound.symm.trans found)
                   subst old

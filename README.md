@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 83,889 lines in 93 library modules, 2,019
-theorems/lemmas, 878 explicitly audited headline theorems, and 151 executable
+At this snapshot it contains 84,486 lines in 94 library modules, 2,039
+theorems/lemmas, 896 explicitly audited headline theorems, and 151 executable
 tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
 `unsafe`, or project-local `partial def`. Every count in this paragraph is
 emitted by `scripts/lean-manifest.sh`; regenerate it rather than editing them by
@@ -23,7 +23,9 @@ remain precise. See [Trust and scope](docs/TRUST.md) before relying on a result.
 - SQLite record, page, varint, freelist, rollback-journal, and WAL codecs;
 - crash-atomic rollback-journal and abstract concurrency protocols;
 - table/index mutation invariants and statement-level refinements;
-- three-valued SQL and bag semantics for the supported query algebra;
+- three-valued SQL and bag semantics for the supported query algebra, on both
+  sides: a `SELECT` denotes a bag query and an `INSERT` denotes bag union with a
+  singleton, through one shared abstraction;
 - sound optimizer rewrites and exact primary/secondary index routing;
 - live-path checks that tie the audited theorems to the shipped executable.
 
@@ -54,6 +56,25 @@ has a proved *negative* result.
 
 Per-primitive witnesses are in [POPL'10 parity](docs/PARITY.md), generated from
 the audited theorem set by `scripts/popl-parity.sh` and gated so it cannot drift.
+
+## Relation to FSCQ: the durability theorem, not the evaluation
+
+The crash-atomicity results here are FSCQ-shaped — `executeText_commit_crash_atomic`
+and its family quantify over every commit checkpoint and every modeled crash
+outcome, and recovery is proved to yield the old or the new database and never an
+intermediate one. Two statements bound that comparison, and both matter:
+
+1. **The durability claim is conditional on `SyscallVFS.Contract`.** No project
+   axiom asserts that a particular kernel, filesystem or device satisfies it, so
+   syscall, filesystem, device-cache and directory-durability behaviour stay in
+   the documented TCB. See [Trust and scope](docs/TRUST.md). A crash theorem is
+   only as strong as the storage model it quantifies over, and ours is a model.
+2. **FSCQ's evaluation does not transfer, and is not being claimed.** FSCQ is
+   evaluated as a filesystem — xv6 builds, a mail server, comparison against
+   ext4 — which says nothing about a database's operation mix. The FSCQ
+   comparison here is about the *shape of the durability theorem*; YCSB is about
+   *performance comparability* with a production engine. Conflating the two would
+   claim an evaluation nobody ran.
 
 ## Build and run
 

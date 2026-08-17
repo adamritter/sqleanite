@@ -741,6 +741,45 @@ else
   fail "the declared page-reclaim exception lost its bound or its runner"
 fi
 
+# The write side must reach the same bag algebra the read side denotes into, and
+# it must reach it through the *same* abstraction function -- two abstractions
+# would make the write and read statements incomparable, which is precisely the
+# gap this closes. `coreRow` is the shared one.
+if grep -q 'CoreReadSemantics.coreRow' SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'KRelation.single' SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'execute_insert_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'tableDenotation_orderedUpsert_fresh' SQLeanite/ProofAxioms.lean; then
+  ok "live INSERT reaches the bag algebra through the read side's abstraction"
+else
+  fail "the write side has no bag denotation, or uses a second abstraction"
+fi
+
+# The round trip has to be reachable from SQL text at both ends, or it presumes a
+# parser step the executable does not perform.
+if grep -q 'insertText_bytes_reopen_readText_denotes' \
+     SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'CoreSQL.execute state insertText' SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'CoreSQL.execute { database := reopened } readText' \
+     SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'CorePageCodec.encodeBulk' SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'CoreDecode.decode image.fileBytes' \
+     SQLeanite/CoreWriteSemantics.lean &&
+   grep -q 'insertText_bytes_reopen_readText_denotes' SQLeanite/ProofAxioms.lean; then
+  ok "write text, bytes, reopen and read text compose into one audited theorem"
+else
+  fail "the write/read round trip is not reachable from live SQL text"
+fi
+
+# Freshness is what separates INSERT from REPLACE at the denotation level. If it
+# stops being carried, the bag statement silently weakens to replace-then-union.
+if grep -q 'existing.rowid.value ≠ row.rowid.value' SQLeanite/CoreEngine.lean &&
+   grep -q 'existing.rowid.value ≠ row.rowid.value' SQLeanite/CoreEndToEnd.lean &&
+   grep -q 'existing.rowid.value ≠ row.rowid.value' SQLeanite/CoreWriteBytes.lean; then
+  ok "INSERT carries rowid freshness from the table through to the byte level"
+else
+  fail "rowid freshness is checked but not carried into the postcondition"
+fi
+
 # The parity artifact is generated from the audit, so a witness that is renamed,
 # deleted or dropped from `ProofAxioms.lean` makes the table stale and this fails.
 # A hand-maintained parity table is exactly the kind of claim that rots quietly.

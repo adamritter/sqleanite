@@ -946,6 +946,136 @@ theorem mem_orderedUpsert {row candidate : Row} {rows : List Row}
           · exact .inl equal
           · exact .inr (.tail existing member)
 
+/-- The inserted row is present.  `mem_orderedUpsert` is the forward direction --
+nothing appears from nowhere -- and this is its converse half, which is what a
+caller actually wants to know about an insert. -/
+theorem mem_orderedUpsert_self (row : Row) :
+    ∀ rows : List Row, row ∈ orderedUpsert row rows
+  | [] => by simp [orderedUpsert]
+  | existing :: rows => by
+      rw [orderedUpsert]
+      split
+      · exact List.mem_cons_self
+      · split
+        · exact List.mem_cons_of_mem existing (mem_orderedUpsert_self row rows)
+        · exact List.mem_cons_self
+
+/-- Rows the insert does not collide with are retained.  Stated with the rowid
+inequality rather than row disequality: an insert replaces by *key*, so a
+different row carrying the same rowid is exactly what does not survive. -/
+theorem mem_orderedUpsert_of_mem {row : Row} :
+    ∀ {candidate : Row} {rows : List Row}, candidate ∈ rows →
+      candidate.rowid.value ≠ row.rowid.value →
+      candidate ∈ orderedUpsert row rows
+  | candidate, existing :: rows, member, different => by
+      rw [orderedUpsert]
+      split
+      · exact List.mem_cons_of_mem row member
+      · split
+        next existingLess =>
+          rcases List.mem_cons.mp member with equal | tail
+          · exact equal ▸ List.mem_cons_self
+          · exact List.mem_cons_of_mem existing
+              (mem_orderedUpsert_of_mem tail different)
+        next existingNotLess =>
+          have same : existing.rowid.value = row.rowid.value := by omega
+          rcases List.mem_cons.mp member with equal | tail
+          · exact absurd (by rw [equal]; exact same) different
+          · exact List.mem_cons_of_mem row tail
+
+/-- The ordered insert as a multiset: exactly the inserted row together with the
+rows it did not displace.  Sortedness is not decoration -- with two rows sharing a
+rowid, `orderedUpsert` replaces only the first and the permutation is false. -/
+theorem orderedUpsert_perm (row : Row) :
+    ∀ rows : List Row, rows.Pairwise Row.keyLess →
+      (orderedUpsert row rows).Perm
+        (row :: rows.filter (fun candidate =>
+          candidate.rowid.value != row.rowid.value))
+  | [], _ => by simp [orderedUpsert]
+  | existing :: rows, sorted => by
+      simp only [List.pairwise_cons] at sorted
+      rw [orderedUpsert]
+      split
+      next rowLess =>
+        have keepExisting : (existing.rowid.value != row.rowid.value) = true := by
+          simp; omega
+        have keepRest : rows.filter (fun candidate =>
+            candidate.rowid.value != row.rowid.value) = rows := by
+          apply List.filter_eq_self.mpr
+          intro candidate member
+          have larger : existing.rowid.value < candidate.rowid.value :=
+            sorted.1 candidate member
+          simp; omega
+        simp only [List.filter_cons, keepExisting, if_pos, keepRest]
+        exact List.Perm.refl _
+      next rowNotLess =>
+        split
+        next existingLess =>
+          have keepExisting : (existing.rowid.value != row.rowid.value) = true := by
+            simp; omega
+          simp only [List.filter_cons, keepExisting, if_pos]
+          exact ((orderedUpsert_perm row rows sorted.2).cons existing).trans
+            (List.Perm.swap _ _ _)
+        next existingNotLess =>
+          have same : existing.rowid.value = row.rowid.value := by omega
+          have dropExisting :
+              (existing.rowid.value != row.rowid.value) = false := by
+            simp [same]
+          have keepRest : rows.filter (fun candidate =>
+              candidate.rowid.value != row.rowid.value) = rows := by
+            apply List.filter_eq_self.mpr
+            intro candidate member
+            have larger : existing.rowid.value < candidate.rowid.value :=
+              sorted.1 candidate member
+            simp; omega
+          simp only [List.filter_cons, dropExisting, if_neg, keepRest,
+            Bool.false_eq_true]
+          exact List.Perm.refl _
+
+/-- Membership after an insert, characterized exactly. -/
+theorem mem_orderedUpsert_iff {row candidate : Row} {rows : List Row}
+    (sorted : rows.Pairwise Row.keyLess) :
+    candidate ∈ orderedUpsert row rows ↔
+      candidate = row ∨
+        (candidate ∈ rows ∧ candidate.rowid.value ≠ row.rowid.value) := by
+  constructor
+  · intro membership
+    rcases mem_orderedUpsert membership with isRow | inRows
+    · exact .inl isRow
+    · by_cases collides : candidate.rowid.value = row.rowid.value
+      · -- A colliding row cannot survive: the permutation drops it, and
+        -- sortedness makes it the only one with that rowid.
+        left
+        have permuted := orderedUpsert_perm row rows sorted
+        have notInFiltered : candidate ∉ rows.filter (fun other =>
+            other.rowid.value != row.rowid.value) := by
+          intro filtered
+          have passes := (List.mem_filter.mp filtered).2
+          simp [collides] at passes
+        have := permuted.mem_iff.mp membership
+        simp only [List.mem_cons] at this
+        rcases this with equal | filtered
+        · exact equal
+        · exact absurd filtered notInFiltered
+      · exact .inr ⟨inRows, collides⟩
+  · intro source
+    rcases source with equal | ⟨member, different⟩
+    · exact equal ▸ mem_orderedUpsert_self row rows
+    · exact mem_orderedUpsert_of_mem member different
+
+/-- A fresh insert adds exactly one row. -/
+theorem length_orderedUpsert_of_fresh (row : Row) (rows : List Row)
+    (sorted : rows.Pairwise Row.keyLess)
+    (fresh : ∀ existing ∈ rows, existing.rowid.value ≠ row.rowid.value) :
+    (orderedUpsert row rows).length = rows.length + 1 := by
+  have permuted := orderedUpsert_perm row rows sorted
+  have kept : rows.filter (fun candidate =>
+      candidate.rowid.value != row.rowid.value) = rows := by
+    apply List.filter_eq_self.mpr
+    intro candidate member
+    simp [fresh candidate member]
+  rw [permuted.length_eq, kept, List.length_cons]
+
 theorem orderedUpsert_sorted (row : Row) (rows : List Row)
     (sorted : rows.Pairwise Row.keyLess) :
     (orderedUpsert row rows).Pairwise Row.keyLess := by
@@ -1392,10 +1522,20 @@ def Table.insertValues (table : Table) (values : List Value) :
               else .ok (table.upsert row valid)
       else .error "internal row validation mismatch"
 
+/-- The exact effect of a successful `INSERT` at table level.
+
+The rowid-freshness conjunct is not decoration. `insertValues` *checks* it -- a
+duplicate `INTEGER PRIMARY KEY` is an error, never a silent replacement -- but
+until it appeared in the postcondition no downstream theorem could use it, so an
+insert was indistinguishable from an upsert to everything above this line. It is
+what lets the bag-level statement in `CoreWriteSemantics` be union with a
+singleton rather than the weaker replace-then-union. -/
 theorem Table.insertValues_exact {table next : Table} {values : List Value}
     (success : table.insertValues values = .ok next) :
     ∃ row, table.createRow values = .ok row ∧
       row.WellFormed table.schema ∧
+      (∀ existing ∈ table.rows, existing.rowid.value ≠ row.rowid.value) ∧
+      table.findDeclaredPrimary? row = none ∧
       next.rows = orderedUpsert row table.rows := by
   cases created : table.createRow values with
   | error message =>
@@ -1408,6 +1548,7 @@ theorem Table.insertValues_exact {table next : Table} {values : List Value}
         split at success
         next duplicate => contradiction
         next fresh =>
+          have freshRowid := table.findRowid?_fresh_of_not_isSome fresh
           split at success
           next duplicate => contradiction
           next declaredFresh =>
@@ -1415,12 +1556,13 @@ theorem Table.insertValues_exact {table next : Table} {values : List Value}
             next hidden =>
               injection success with equal
               subst next
-              exact ⟨row, rfl, valid,
+              exact ⟨row, rfl, valid, freshRowid, declaredFresh,
                 Table.upsertGeneratedFresh_rows table row valid _ _ _⟩
             next visible =>
               injection success with equal
               subst next
-              exact ⟨row, rfl, valid, Table.upsert_rows table row valid⟩
+              exact ⟨row, rfl, valid, freshRowid, declaredFresh,
+                Table.upsert_rows table row valid⟩
       next => contradiction
 
 theorem Table.insertValues_schema {table next : Table} {values : List Value}
