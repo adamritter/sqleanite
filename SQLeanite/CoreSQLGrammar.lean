@@ -13,7 +13,7 @@ cannot escape the advertised grammar without breaking a proof.
 -/
 
 inductive LiteralSyntax : Expr → Prop where
-  | literal (value : Value) : LiteralSyntax (.literal value)
+  | literal (value : Value) (spelling : Option String := none) : LiteralSyntax (.literal value spelling)
   | plus {expression : Expr} : LiteralSyntax expression →
       LiteralSyntax (.unary .plus expression)
   | neg {expression : Expr} : LiteralSyntax expression →
@@ -375,7 +375,7 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
     | ok value => exact .literal (literalSyntax_of_success decoded)
   cases expression with
   | column qualifier name => exact .column qualifier name
-  | literal value => exact .literal (.literal value)
+  | literal value spelling => exact .literal (.literal value spelling)
   | unary | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
       inSubquery | existsSubquery => exact constant _ success
 

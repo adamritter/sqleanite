@@ -304,7 +304,7 @@ mutual
         else pure (.literal (.real (Float.ofInt i)))
       | .real s =>
         match parseDecimal? s with
-        | some f => pure (.literal (.real f))
+        | some f => pure (.literal (.real f) (some s))
         | none => throw s!"invalid real number {s}"
       | .string s => pure (.literal (.text s))
       | .symbol "*" => pure (.star)
@@ -405,7 +405,7 @@ private def constantInt? : Expr → Option Int
   | _ => none
 
 private def skippedLimitLiteral : Expr → Bool
-  | .literal _ => true
+  | .literal _ _ => true
   | .unary .plus expression | .unary .neg expression => skippedLimitLiteral expression
   | _ => false
 

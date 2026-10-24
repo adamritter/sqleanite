@@ -1167,3 +1167,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCompoundTail.mergeFuel_subset
 #print axioms SQLeanite.CoreCompoundTail.merge_subset
 #print axioms SQLeanite.CoreSQL.executeCompoundTail_preserves_state
+
+#print axioms SQLeanite.SQLite.Scalar.evalWith_literal_spelling
+#print axioms SQLeanite.CoreCompoundTail.sameFuel_real_spelling

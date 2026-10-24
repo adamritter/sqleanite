@@ -235,6 +235,17 @@ private def expectLiteral : Value → MatchM Unit
   | .textBytes _ => mismatch "a source literal (raw TEXT requires CAST)"
   | .blob value => expectSource (toString (Value.blob value))
 
+/-- The parser's REAL spelling is independently checked against the original
+significant token. Dropping or changing it cannot forge expression identity. -/
+private def expectLiteralSpelling (value : Value) (spelling : Option String) : MatchM Unit := do
+  match spelling, value, ← peek with
+  | some expected, .real _, .real actual =>
+      unless expected == actual do mismatch "the original REAL token spelling"
+  | none, .real _, .real _ => mismatch "preserved REAL token spelling"
+  | none, _, _ => pure ()
+  | _, _, _ => mismatch "a REAL token carrying its original spelling"
+  expectLiteral value
+
 mutual
   private def matchExprFuel : Nat → Expr → MatchM Unit
     | 0, _ => mismatch "an expression within the grammar depth bound"
@@ -303,7 +314,7 @@ mutual
           | .error _ => matchExprCore fuel expression state
 
   private def matchExprCore : Nat → Expr → MatchM Unit
-    | _, .literal value => expectLiteral value
+    | _, .literal value spelling => expectLiteralSpelling value spelling
     | _, .column none name => expectName name
     | _, .column (some qualifier) name =>
         expectQualifiedName qualifier *> expectSymbol "." *> expectName name

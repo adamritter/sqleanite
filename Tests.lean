@@ -4403,6 +4403,39 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteLiteralSpelling : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 1.0 UNION ALL SELECT 2 ORDER BY 1.0;", [[.real 1.0], [.integer 2]]),
+    ("SELECT 1.0 AS x UNION ALL SELECT 2 ORDER BY x;", [[.real 1.0], [.integer 2]]),
+    ("SELECT 1.0,1.00 UNION ALL SELECT 2,0 ORDER BY 1.00;", [[.integer 2, .integer 0], [.real 1.0, .real 1.0]]),
+    ("SELECT 1.0 UNION SELECT 1.00 ORDER BY 1.00;", [[.real 1.0]]),
+    ("SELECT 1.0 AS x,abs(1.0) UNION ALL SELECT 2,3 ORDER BY abs(x);", [[.real 1.0, .real 1.0], [.integer 2, .integer 3]]),
+    ("SELECT 1.0=1.00,1.0+1.00,-1.25;", [[.integer 1, .real 2.0, .real (-1.25)]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"literal spelling: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"literal spelling mismatch: {sql}"
+  for sql in ["SELECT 0 AND 1.0 UNION ALL SELECT 2 ORDER BY 0 AND 1.00;",
+      "SELECT 1.0 UNION SELECT 2 ORDER BY 1.00;",
+      "SELECT 1e0 UNION SELECT 2 ORDER BY 1E0;",
+      "SELECT abs(1.0) UNION ALL SELECT 2 ORDER BY abs(1.00);",
+      "SELECT CASE WHEN 1 THEN 1.0 END UNION SELECT 2 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "SELECT 1.0 AS x,abs(1.00) UNION ALL SELECT 2,3 ORDER BY abs(x);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"literal token identity lost: {sql}"
+  let tokens ← match lex "SELECT 1.0;" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  let changed ← match parse "SELECT 1.00;" with
+    | .ok statements => pure statements
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens changed).isOk then fail "REAL spelling certificate accepted a changed token"
+  let dropped : Array Statement := #[.select { columns := #[{ expr := .literal (.real 1.0) }] }]
+  if (CoreTokenGrammar.check tokens dropped).isOk then fail "REAL spelling certificate accepted missing provenance"
+
 private def expectSQLiteCompoundTails : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'A'),(2,'a'),(3,'B'),(4,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -5066,6 +5099,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite literal spelling and certified identity", expectSQLiteLiteralSpelling),
   ("SQLite compound ORDER BY and LIMIT", expectSQLiteCompoundTails),
   ("SQLite compound result collations", expectSQLiteCompoundCollations),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),

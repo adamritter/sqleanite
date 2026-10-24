@@ -14,7 +14,9 @@ inductive BinaryOp where
   deriving Repr, DecidableEq
 
 inductive Expr where
-  | literal (value : Value)
+  /-- A parsed REAL token retains its original spelling for SQLite expression
+  identity. Evaluation uses the value; the token checker verifies the spelling. -/
+  | literal (value : Value) (spelling : Option String := none)
   | column (qualifier : Option String) (name : String)
   | star (qualifier : Option String := none)
   | unary (op : UnaryOp) (arg : Expr)
@@ -36,7 +38,7 @@ mutual
   `partial def`, it is available both to generated code and to termination
   proofs for the live evaluator. -/
   def Expr.height : Expr → Nat
-    | .literal _ | .column _ _ | .star _ | .scalarSubquery _ | .existsSubquery _ => 1
+    | .literal _ _ | .column _ _ | .star _ | .scalarSubquery _ | .existsSubquery _ => 1
     | .unary _ argument | .isNull argument _ | .collate argument _ |
         .inSubquery argument _ _ => argument.height + 1
     | .binary _ left right => max left.height right.height + 1
@@ -128,7 +130,7 @@ mutual
   stored in nested arrays and optional branches.  Predicates built from this
   operator inherit one total, kernel-transparent recursion scheme. -/
   def Expr.any (predicate : Expr → Bool) : Expr → Bool
-    | expression@(.literal _) | expression@(.column _ _) | expression@(.star _) |
+    | expression@(.literal _ _) | expression@(.column _ _) | expression@(.star _) |
         expression@(.scalarSubquery _) | expression@(.existsSubquery _) =>
       predicate expression
     | expression@(.unary _ argument) | expression@(.isNull argument _) |
@@ -164,7 +166,7 @@ mutual
   but SQLite's aggregate/default analyses treat the complete node as a
   boundary, matching their existing executable semantics. -/
   def Expr.anyOutsideSubqueries (predicate : Expr → Bool) : Expr → Bool
-    | expression@(.literal _) | expression@(.column _ _) | expression@(.star _) |
+    | expression@(.literal _ _) | expression@(.column _ _) | expression@(.star _) |
         expression@(.scalarSubquery _) | expression@(.inSubquery _ _ _) |
         expression@(.existsSubquery _) => predicate expression
     | expression@(.unary _ argument) | expression@(.isNull argument _) |
@@ -246,9 +248,9 @@ def BinaryOp.sql : BinaryOp → String
 
 private def exprSqlFuel : Nat → Expr → String
   | 0, _ => "..."
-  | _fuel + 1, .literal .null => "NULL"
-  | _fuel + 1, .literal (.text s) => "'" ++ s.replace "'" "''" ++ "'"
-  | _fuel + 1, .literal v => toString v
+  | _fuel + 1, .literal .null _ => "NULL"
+  | _fuel + 1, .literal (.text s) _ => "'" ++ s.replace "'" "''" ++ "'"
+  | _fuel + 1, .literal v spelling => spelling.getD (toString v)
   | _fuel + 1, .column none name => name
   | _fuel + 1, .column (some q) name => q ++ "." ++ name
   | _fuel + 1, .star none => "*"

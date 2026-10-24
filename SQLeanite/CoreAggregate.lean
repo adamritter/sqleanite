@@ -125,7 +125,7 @@ def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
         throw "unsupported aggregate result operator"
       let prepare := prepareResultFuel ctx fuel
       match expression with
-      | .literal _ => return expression
+      | .literal _ _ => return expression
       | .collate arg name => return .collate (← prepare arg) name
       | .unary op arg => return .unary op (← prepare arg)
       | .binary op left right => return .binary op (← prepare left) (← prepare right)

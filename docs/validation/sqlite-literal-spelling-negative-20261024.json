@@ -1,0 +1,5259 @@
+{
+  "seed": 353770,
+  "random_cases": 30,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 886,
+      "matching_errors": 574
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 886,
+      "matching_errors": 574
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0.0 UNION ALL SELECT 99 ORDER BY 00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(0.0) UNION ALL SELECT 99 ORDER BY abs(00.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(0.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(00.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 00.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0.0 UNION ALL SELECT 99 ORDER BY 0.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(0.0) UNION ALL SELECT 99 ORDER BY abs(0.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(0.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 00.0 UNION ALL SELECT 99 ORDER BY 0.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(00.0) UNION ALL SELECT 99 ORDER BY abs(0.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(00.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 00.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 00.0 UNION ALL SELECT 99 ORDER BY 0.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(00.0) UNION ALL SELECT 99 ORDER BY abs(0.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(00.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 00.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0.00 UNION ALL SELECT 99 ORDER BY 0.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(0.00) UNION ALL SELECT 99 ORDER BY abs(0.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(0.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0.00 UNION ALL SELECT 99 ORDER BY 00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(0.00) UNION ALL SELECT 99 ORDER BY abs(00.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(0.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(00.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 00.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.25 UNION ALL SELECT 99 ORDER BY 1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.25) UNION ALL SELECT 99 ORDER BY abs(1.250);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.25 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.250 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.25 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.250 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.25 UNION ALL SELECT 99 ORDER BY 12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.25) UNION ALL SELECT 99 ORDER BY abs(12.5e-1);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.25 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(12.5e-1 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.25 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 12.5e-1 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.250 UNION ALL SELECT 99 ORDER BY 1.25;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.250) UNION ALL SELECT 99 ORDER BY abs(1.25);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.250 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.25 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.250 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.25 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.250 UNION ALL SELECT 99 ORDER BY 12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(1.250) UNION ALL SELECT 99 ORDER BY abs(12.5e-1);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(1.250 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(12.5e-1 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.250 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 12.5e-1 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 12.5e-1 UNION ALL SELECT 99 ORDER BY 1.25;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(12.5e-1) UNION ALL SELECT 99 ORDER BY abs(1.25);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(12.5e-1 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.25 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 12.5e-1 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.25 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 12.5e-1 UNION ALL SELECT 99 ORDER BY 1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(12.5e-1) UNION ALL SELECT 99 ORDER BY abs(1.250);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(12.5e-1 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.250 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 12.5e-1 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.250 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 2.0 UNION ALL SELECT 99 ORDER BY 2e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(2.0) UNION ALL SELECT 99 ORDER BY abs(2e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(2.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(2e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 2.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 2e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 2e0 UNION ALL SELECT 99 ORDER BY 2.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(2e0) UNION ALL SELECT 99 ORDER BY abs(2.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CAST(2e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(2.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 1 THEN 2e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 2.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1e00 AS x FROM t UNION ALL SELECT 1e0 ORDER BY v+1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.0\n2.0\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+2.0 AS x FROM t UNION ALL SELECT 2e0 ORDER BY v+2e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n2.0\n3.0\n4.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1e0 AS x FROM t UNION ALL SELECT 1e+0 ORDER BY v+1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.0\n2.0\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1.25 AS x FROM t UNION ALL SELECT 1.250 ORDER BY v+1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.25\n2.25\n3.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+0.0 AS x FROM t UNION ALL SELECT 00.0 ORDER BY v+00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n0.0\n1.0\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1.25 AS x FROM t UNION ALL SELECT 12.5e-1 ORDER BY v+12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.25\n2.25\n3.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 AS x,abs(1.00) FROM t UNION ALL SELECT 2,3 ORDER BY abs(x);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1.0\n1.0|1.0\n1.0|1.0\n2|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1.0 FROM t UNION SELECT 2 ORDER BY v+1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n2\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT -1.0 UNION SELECT 2 ORDER BY -1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "-1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 COLLATE BINARY UNION ALL SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1e999 UNION ALL SELECT 2 ORDER BY 1E999;",
+      "lean": {
+        "code": 0,
+        "stdout": "2\nInf\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.00 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.00) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1E0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1E0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1E0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1E0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e+0 UNION ALL SELECT 99 ORDER BY 1e00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e+0) UNION ALL SELECT 99 ORDER BY abs(1e00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e+0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e+0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1E0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1E0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1E0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1E0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e00 UNION ALL SELECT 99 ORDER BY 1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1e00) UNION ALL SELECT 99 ORDER BY abs(1e+0);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1e00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1e+0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1e00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1e+0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0.0 UNION ALL SELECT 99 ORDER BY 00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(0.0) UNION ALL SELECT 99 ORDER BY abs(00.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(0.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(00.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 00.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0.0 UNION ALL SELECT 99 ORDER BY 0.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(0.0) UNION ALL SELECT 99 ORDER BY abs(0.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(0.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 00.0 UNION ALL SELECT 99 ORDER BY 0.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(00.0) UNION ALL SELECT 99 ORDER BY abs(0.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(00.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 00.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 00.0 UNION ALL SELECT 99 ORDER BY 0.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(00.0) UNION ALL SELECT 99 ORDER BY abs(0.00);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(00.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.00 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 00.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.00 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0.00 UNION ALL SELECT 99 ORDER BY 0.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(0.00) UNION ALL SELECT 99 ORDER BY abs(0.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(0.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(0.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 0.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0.00 UNION ALL SELECT 99 ORDER BY 00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(0.00) UNION ALL SELECT 99 ORDER BY abs(00.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(0.00 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(00.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n0.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 0.00 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 00.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "0.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.25 UNION ALL SELECT 99 ORDER BY 1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.25) UNION ALL SELECT 99 ORDER BY abs(1.250);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.25 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.250 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.25 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.250 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.25 UNION ALL SELECT 99 ORDER BY 12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.25) UNION ALL SELECT 99 ORDER BY abs(12.5e-1);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.25 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(12.5e-1 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.25 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 12.5e-1 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.250 UNION ALL SELECT 99 ORDER BY 1.25;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.250) UNION ALL SELECT 99 ORDER BY abs(1.25);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.250 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.25 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.250 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.25 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.250 UNION ALL SELECT 99 ORDER BY 12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(1.250) UNION ALL SELECT 99 ORDER BY abs(12.5e-1);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(1.250 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(12.5e-1 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 1.250 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 12.5e-1 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 12.5e-1 UNION ALL SELECT 99 ORDER BY 1.25;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(12.5e-1) UNION ALL SELECT 99 ORDER BY abs(1.25);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(12.5e-1 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.25 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 12.5e-1 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.25 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 12.5e-1 UNION ALL SELECT 99 ORDER BY 1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(12.5e-1) UNION ALL SELECT 99 ORDER BY abs(1.250);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(12.5e-1 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(1.250 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n1.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 12.5e-1 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 1.250 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.25\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 2.0 UNION ALL SELECT 99 ORDER BY 2e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(2.0) UNION ALL SELECT 99 ORDER BY abs(2e0);",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(2.0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(2e0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 2.0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 2e0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 2e0 UNION ALL SELECT 99 ORDER BY 2.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(2e0) UNION ALL SELECT 99 ORDER BY abs(2.0);",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CAST(2e0 AS TEXT) UNION ALL SELECT 99 ORDER BY CAST(2.0 AS TEXT);",
+      "lean": {
+        "code": 0,
+        "stdout": "99\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 1 THEN 2e0 END UNION ALL SELECT 99 ORDER BY CASE WHEN 1 THEN 2.0 END;",
+      "lean": {
+        "code": 0,
+        "stdout": "2.0\n99\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1e00 AS x FROM t UNION ALL SELECT 1e0 ORDER BY v+1e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.0\n2.0\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+2.0 AS x FROM t UNION ALL SELECT 2e0 ORDER BY v+2e0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n2.0\n3.0\n4.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1e0 AS x FROM t UNION ALL SELECT 1e+0 ORDER BY v+1e+0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.0\n2.0\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1.25 AS x FROM t UNION ALL SELECT 1.250 ORDER BY v+1.250;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.25\n2.25\n3.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+0.0 AS x FROM t UNION ALL SELECT 00.0 ORDER BY v+00.0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n0.0\n1.0\n2.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1.25 AS x FROM t UNION ALL SELECT 12.5e-1 ORDER BY v+12.5e-1;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1.25\n2.25\n3.25\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 AS x,abs(1.00) FROM t UNION ALL SELECT 2,3 ORDER BY abs(x);",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1.0\n1.0|1.0\n1.0|1.0\n2|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1.0 FROM t UNION SELECT 2 ORDER BY v+1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n2\n3.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT -1.0 UNION SELECT 2 ORDER BY -1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "-1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 COLLATE BINARY UNION ALL SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1e999 UNION ALL SELECT 2 ORDER BY 1E999;",
+      "lean": {
+        "code": 0,
+        "stdout": "2\nInf\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    }
+  ],
+  "implementation_sha256": "c4af3c7bc1002874a25af3883fc4694b7670cc2c5d1c68e7e276719df46c6407",
+  "executable_sha256": "4b8dddfda1d94bdfed8793a796cbb597c68690986e0800d9ab0941030a191794",
+  "harness_sha256": "fae7d0ea02090af170297658f141faba85a7b3207cddc7e29f9a0a24a85bbb64",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare REAL token spelling in expression identity and ordinary evaluation.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

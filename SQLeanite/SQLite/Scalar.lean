@@ -415,7 +415,7 @@ def scalarFunctionName (name : String) : String :=
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
-  | .literal _ | .unary _ _ | .isNull _ _ | .collate .. => false
+  | .literal _ _ | .unary _ _ | .isNull _ _ | .collate .. => false
   | .case_ base branches _ => base.any fun base =>
       branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
   | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
@@ -551,12 +551,12 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
   | fuel + 1, e =>
     let eval := evalFuelWithConstants lookup operandAffinity constant fuel
     match e with
-    | .literal v => .ok v
+    | .literal v _ => .ok v
     | .column qualifier name => lookup qualifier name
     | .collate argument _ => eval argument
     -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
     -- is used for other operands; only the literal case preserves -0.0.
-    | .unary .neg (.literal (.real r)) => .ok (realResult (-r))
+    | .unary .neg (.literal (.real r) _) => .ok (realResult (-r))
     | .unary op arg => unary op <$> eval arg
     | .binary op a b => do
         if op == .and || op == .or then
@@ -674,6 +674,11 @@ theorem evalWith_column (lookup : Option String → String → Except String Val
 theorem evalWith_literal (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (value : Value) :
     evalWith lookup operandAffinity (.literal value) = .ok value := rfl
+
+/-- Source spelling participates in syntax identity only, never scalar arithmetic. -/
+theorem evalWith_literal_spelling (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (value : Value) (spelling : Option String) :
+    evalWith lookup operandAffinity (.literal value spelling) = .ok value := rfl
 
 theorem checkedInteger_exact {i : Int} (fallback : Unit → Float)
     (lower : Numeric.minInt ≤ i) (upper : i ≤ Numeric.maxInt) :

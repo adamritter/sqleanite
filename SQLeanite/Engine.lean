@@ -1204,7 +1204,7 @@ private def evalScalarFunction (env : Env) (name : String) (args : Array Expr)
 
 private def evalExprFuel : Nat → Env → Expr → Except String Value
   | 0, _, _ => throw "internal error: expression evaluation fuel exhausted"
-  | fuel + 1, env, .literal v => pure v
+  | fuel + 1, env, .literal v _ => pure v
   | fuel + 1, env, .column qualifier name => resolveColumn env qualifier name
   | fuel + 1, env, .star _ => throw "'*' may only appear in a result list or count(*)"
   | fuel + 1, env, .isNull arg negated => do
@@ -1408,7 +1408,7 @@ private def deduplicateColumns (columns : Array Column) : Array Column := Id.run
 
 private def expressionDeclaredType : Expr → String
   | .literal (.integer _) => "INTEGER"
-  | .literal (.real _) => "REAL"
+  | .literal (.real _) _ => "REAL"
   | .literal (.text _) => "TEXT"
   | .literal (.blob _) => "BLOB"
   | .call name _ _ =>

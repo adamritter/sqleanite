@@ -1568,3 +1568,37 @@ merge membership, sorting permutation, zero LIMIT and state preservation; they
 do not establish full SQLite merge/evaluation equivalence. Existing BINARY
 read refinements retain their premises. Native code and the nine-binding audit
 boundary are unchanged. Reports use `sqlite-compound-tail-*20261024.json`.
+
+
+## Preserved REAL literal spelling (2026-10-24)
+
+A literal AST node can now carry its original REAL token spelling. The parser
+retains it, and the independent token checker rejects a changed or omitted
+spelling. Scalar evaluation ignores this syntax metadata; expression identity
+compares it. As a result, compound ORDER BY distinguishes `1.0`, `1.00`, `1e0`
+and `1E0`, including inside functions, CAST, CASE and alias substitutions.
+The two retained failures from the compound-tail checkpoint are closed.
+This change does not preserve lost integer token spellings or add numeric
+underscore syntax; hexadecimal integer edge cases remain separate work.
+
+The initial seed 353770 at source
+`c4af3c7bc1002874a25af3883fc4694b7670cc2c5d1c68e7e276719df46c6407`
+recorded 374 differences in 1,772 outcomes. Fresh final seed 353772 at source
+`a2b4018acd65cfddaa1f9bdb2f1a573382b00fe413d29202a93c1ea3074297b6`
+passes **all 3,692 outcomes**, including **2,116 matching errors**. These errors
+are mostly intentionally different expression spellings, not successful reads.
+The harness compares exact CLI bytes or ordinary positive error status and
+checks that read queries preserve main/WAL bytes. It does not compare error
+wording or SQLite error codes. No SQLite-wide compatibility percentage follows.
+
+Fresh seed 353773 passes all 2,012 compound-tail regression outcomes, including
+134 matching errors. The existing fixed scalar corpus passes 1,121 cases plus
+six matching errors, checking storage classes, binary64 bits and raw TEXT/BLOB
+bytes. All 199 executable tests, the full 262-job build, 1,045 registered
+headline theorems, verification audit and live-path checks pass. Executable
+adversarial cases reject altered and missing REAL spelling in a proposed AST.
+New lemmas show that literal spelling does not change scalar evaluation and
+that REAL syntax identity compares the stored spellings; they are component
+properties, not a proof of complete SQLite expression equivalence. Native code
+and its nine-binding audit boundary are unchanged. Reports use
+`sqlite-literal-spelling-*20261024.json` under `docs/validation/`.

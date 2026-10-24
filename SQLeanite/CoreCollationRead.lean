@@ -33,8 +33,8 @@ private theorem quotedIdentifier_noCollation (expression : Expr) (name : String)
         | cons next rest => simp at success
         | nil =>
           cases first <;> simp at success
-          rename_i value
-          cases value <;> simp at success
+          rename_i value spelling
+          cases value <;> cases spelling <;> simp at success
           cases fuel with
           | zero => rfl
           | succ fuel => cases fuel <;> rfl

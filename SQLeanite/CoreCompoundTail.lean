@@ -106,7 +106,7 @@ def sameFuel : Nat → Expr → Expr → Bool
         | none, none => true | some a, some b => same a b | _, _ => false
       let arguments (a b : Array Expr) := a.size == b.size && (a.zip b).all (fun (a,b) => same a b)
       match left, right with
-      | .literal a, .literal b => literalEqual a b
+      | .literal a as, .literal b bs => literalEqual a b && as == bs
       | .column aq an, .column bq bn => aq == bq && an == bn
       | .star a, .star b => a == b
       | .unary ao a, .unary bo b => ao == bo && same a b
@@ -211,5 +211,10 @@ theorem merge_subset (kinds : List SQLite.Collation.Kind) (operation : CompoundO
   split
   · exact mergeFuel_subset _ _ _ _ _
   · exact List.Subset.trans (adjacentDistinct_subset _ _ _) (mergeFuel_subset _ _ _ _ _)
+
+theorem sameFuel_real_spelling (fuel : Nat) (value : Float) (left right : String) :
+    sameFuel (fuel + 1) (.literal (.real value) (some left))
+      (.literal (.real value) (some right)) = (left == right) := by
+  simp [sameFuel, literalEqual]
 
 end SQLeanite.CoreCompoundTail
