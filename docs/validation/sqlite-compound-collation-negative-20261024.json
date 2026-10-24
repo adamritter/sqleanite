@@ -1,0 +1,3271 @@
+{
+  "seed": 353750,
+  "random_cases": 50,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 596,
+      "matching_errors": 1
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 596,
+      "matching_errors": 1
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' UNION SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' INTERSECT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' EXCEPT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE BINARY FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE BINARY FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v||'' FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1.0\na\nA\na \nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v||'' FROM t INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v||'' FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\na \nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' UNION SELECT '1' COLLATE RTRIM EXCEPT SELECT 'A  ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 COLLATE missing UNION SELECT 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'a' UNION SELECT 'A' COLLATE missing;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' UNION SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' INTERSECT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' EXCEPT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\na \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE BINARY FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t UNION SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\na|0\nA|1\nA|2\nA|0\nA|1\na|2\na |1\na |2\nA  |0\nA  |2\n\u00ffA|0\n\u00ffa|1\n\u00ffA|2\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE NOCASE UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\na\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t INTERSECT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\na|0\na|1\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t INTERSECT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na \nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE,id%2 FROM t EXCEPT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE NOCASE FROM t EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\na \nA  \n\u00ffA\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE BINARY FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE BINARY FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE BINARY,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE NOCASE FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE NOCASE FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE NOCASE,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA  \nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t UNION SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\nA  |0\nA  |2\na|0\na|1\na|2\na |1\na |2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1.0|0\n1.0|1\n1|2\n1|0\n1|1\nA|0\nA|1\nA|2\nA|0\nA|1\na|0\na |1\na |2\na|1\na|2\n\u00ffA|0\n\u00ffA|2\n\u00ffa|0\n\u00ffa|1\nA|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' COLLATE RTRIM UNION SELECT v COLLATE RTRIM FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t UNION SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t INTERSECT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\nA  \na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\nA\nA\na\n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t INTERSECT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA|0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|0\n1|0\n1|1\nA  |0\na|0\na |1\n\u00ffA|0\n\u00ffa|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT v COLLATE RTRIM FROM t WHERE id%2=0;",
+      "lean": {
+        "code": 0,
+        "stdout": "\na\na \nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\na\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM,id%2 FROM t EXCEPT SELECT v COLLATE RTRIM,id%3 FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\nA  |0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0|1\nA|1\nA|0\na|1\n\u00ffa|0\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v COLLATE RTRIM FROM t EXCEPT SELECT 'a' COLLATE RTRIM;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1\nA\nA\na\n\u00ffA\n\u00ffa\nA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v||'' FROM t UNION SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\nA\nA  \na\na\na \n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1.0\na\nA\na \nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v||'' FROM t INTERSECT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v||'' FROM t EXCEPT SELECT 'a' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\nA\nA  \na\na \n\u00ffA\n\u00ffa\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n1.0\nA\na \nA  \n\u00ffA\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' UNION SELECT '1' COLLATE RTRIM EXCEPT SELECT 'A  ' COLLATE NOCASE;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 COLLATE missing UNION SELECT 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'a' UNION SELECT 'A' COLLATE missing;",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    }
+  ],
+  "implementation_sha256": "1483986d381a67d52e16c5e5e4f0dd6b666c9da74508dabe12bcc169b903263e",
+  "executable_sha256": "5d65debff3312a2cd3c60de0a4d595835d3fd555f969c67dafb779182f032ea9",
+  "harness_sha256": "64266a75011832b48ef4e4b4570edfc454fbcbfef11b8b90347f2db0ddd65689",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound result collations and representatives with pinned SQLite.\nExact CLI bytes/rejection status, both live file modes, immutable read inputs.\nAll mismatches are retained, including unsupported outer ORDER BY/LIMIT."
+}

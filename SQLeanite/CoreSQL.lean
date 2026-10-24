@@ -235,27 +235,25 @@ def countTarget? (schema : Core.Schema) :
 
 def sumColumn? (schema : Core.Schema) :
     List ResultColumn → Except String (Option Nat)
-  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
-      if qualifier.isSome then .ok none
-      else if canonical name == "sum" then return some (← column schema columnName)
-      else .ok none
-  | [{ expr := .call name _ _, .. }] =>
-      .ok none
+  | [{ expr := .call name arguments false, .. }] =>
+      match arguments.toList with
+      | [.column qualifier columnName] =>
+          if qualifier.isSome then .ok none
+          else if canonical name == "sum" then return some (← column schema columnName)
+          else .ok none
+      | _ => .ok none
   | _ => .ok none
 
 def extremeColumn? (schema : Core.Schema) :
     List ResultColumn → Except String (Option (Bool × Nat))
-  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
-      if qualifier.isSome then .ok none
-      else if canonical name == "min" then
-        return some (true, ← column schema columnName)
-      else if canonical name == "max" then
-        return some (false, ← column schema columnName)
-      else .ok none
-  | [{ expr := .call name args star, .. }] =>
-      if canonical name == "min" || canonical name == "max" then
-        .ok none
-      else .ok none
+  | [{ expr := .call name arguments false, .. }] =>
+      match arguments.toList with
+      | [.column qualifier columnName] =>
+          if qualifier.isSome then .ok none
+          else if canonical name == "min" then return some (true, ← column schema columnName)
+          else if canonical name == "max" then return some (false, ← column schema columnName)
+          else .ok none
+      | _ => .ok none
   | _ => .ok none
 
 def groupColumns (schema : Core.Schema) : List Expr → Except String (List Nat)
@@ -1403,12 +1401,74 @@ def simpleQuery? (state : Core.State) (select : Select) :
     else none
   else none
 
+/-- Explicit result collations are the only reason the currently supported
+BINARY schemas need a different compound comparator. Predicate collations do
+not affect the result-column collation. -/
+def resultCollationFuel : Nat → Select → Bool
+  | 0, _ => false
+  | fuel + 1, select =>
+      select.columns.any (fun column => (SQLite.ExprCollation.name column.expr).isSome) ||
+        select.compounds.any (fun arm => resultCollationFuel fuel arm.2)
+
+def requiresCompoundCollation (select : Select) : Bool :=
+  !select.compounds.isEmpty && resultCollationFuel select.compoundHeight select
+
+/-- Bind identifiers and expand stars before resolving each output column's
+explicit or declared collation. A supported join projects only stored columns,
+whose admitted schema collation is BINARY. -/
+def baseResultCollations (state : Core.State) (select : Select) :
+    Except String (List (Option String)) := do
+  match select.sources.toList with
+  | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
+  | [source] =>
+      let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      let expanded ← CoreOrder.expandResults ctx select.columns.toList
+      return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
+  | [leftSource, rightSource] =>
+      let some left := state.database.findTable? (canonical leftSource.name) | throw s!"no such table: {leftSource.name}"
+      let some right := state.database.findTable? (canonical rightSource.name) | throw s!"no such table: {rightSource.name}"
+      let query ← joinQuery select (canonical leftSource.name) (canonical rightSource.name) left.schema right.schema
+      return List.replicate query.columns.length (some "binary")
+  | _ => unsupported "compound source shape"
+
+/-- multiSelectCollSeq takes the first arm that supplies a collation for each
+output position. An unused later unknown name must not replace an earlier one. -/
+def resultCollationsFuel : Nat → Core.State → Select → Except String (List (Option String))
+  | 0, _, _ => .error "compound collation depth exhausted"
+  | fuel + 1, state, select => do
+      let first ← baseResultCollations state select
+      select.compounds.toList.foldlM (fun current (_, arm) => do
+        let next ← resultCollationsFuel fuel state arm
+        unless current.length == next.length do
+          throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+        return current.zipWith (fun left right => left.orElse fun _ => right) next) first
+
 def executeSelectFuel : Nat → Core.State → Select → Except String SelectExecution
   | 0, _, _ => .error "compound SELECT exceeds its verified recursion bound"
   | fuel + 1, state, select => do
       unless select.compounds.isEmpty ||
           (select.orderBy.isEmpty && select.limit.isNone && select.offset = 0) do
         throw "unsupported general verified-MVP SQL: compound ORDER BY or LIMIT"
+      if requiresCompoundCollation select then
+        let names ← resultCollationsFuel select.compoundHeight state select
+        let kinds ← if select.compounds.any (fun arm => arm.1 != .unionAll) then
+            names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
+          else pure []
+        let base ← executeSelectBase state { select with compounds := #[] }
+        let rec executeCollatedArms (current : SelectExecution) :
+            List (CompoundOp × Select) → Except String SelectExecution
+          | [] => .ok current
+          | (operation, arm) :: arms => do
+              let next ← executeSelectFuel fuel current.state arm
+              unless current.width == next.width do
+                throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+              let combined : SelectExecution := {
+                state := next.state
+                result := { rows := CoreCompound.combineCollated kinds operation current.result.rows next.result.rows }
+                width := current.width }
+              executeCollatedArms combined arms
+        return ← executeCollatedArms base select.compounds.toList
       let base ← executeSelectBase state { select with compounds := #[] }
       let rec executeArms (current : SelectExecution) :
           List (CompoundOp × Select) → Except String SelectExecution

@@ -23,6 +23,25 @@ def nameFuel : Nat → Expr → Option String
 
 def name (expression : Expr) : Option String := nameFuel expression.height expression
 
+/-- A column's declared BINARY collation propagates through unary plus and
+CAST, even without an explicit COLLATE node. Other supported operators only
+propagate explicit collation metadata. -/
+def columnDefaultFuel : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      match expression with
+      | .column .. => true
+      | .unary .plus arg => columnDefaultFuel fuel arg
+      | .call name args false =>
+          if name.toLower.startsWith "cast_" then
+            match args.toList with | [arg] => columnDefaultFuel fuel arg | _ => false
+          else false
+      | _ => false
+
+def effectiveName (expression : Expr) : Option String :=
+  (name expression).orElse fun _ =>
+    if columnDefaultFuel expression.height expression then some "binary" else none
+
 def ofName (name : Option String) : Option Collation.Kind :=
   match name with | none => some .binary | some name => Collation.named? name
 

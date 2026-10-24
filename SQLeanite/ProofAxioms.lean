@@ -1151,3 +1151,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.executeCollatedGroup_preserves_state
 
 #print axioms SQLeanite.CoreCollatedGroup.evalWindow_limit_zero
+
+#print axioms SQLeanite.SQLite.Scalar.bindNamesFuel_preserves_collation
+#print axioms SQLeanite.CoreCompound.representativesCollated_subset
+#print axioms SQLeanite.CoreCompound.combineCollated_binary
+#print axioms SQLeanite.CoreCompound.combineCollated_unionAll
+#print axioms SQLeanite.CoreCompound.combineCollated_subset
+#print axioms SQLeanite.CoreSQLReadText.translatedRead_noCollation
+#print axioms SQLeanite.CoreSQLReadText.translatedCompound_resultCollation_false

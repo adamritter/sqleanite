@@ -1,4 +1,5 @@
 import SQLeanite.CoreSQLText
+import SQLeanite.CoreCollationRead
 import SQLeanite.CoreReadSemantics
 
 namespace SQLeanite
@@ -158,6 +159,55 @@ inductive TranslatedRead (state : Core.State) :
           (CoreOptimizerBridge.optimizeJoin
             (CoreSQL.canonical leftSource.name)
             (CoreSQL.canonical rightSource.name) query))
+
+theorem translatedRead_noCollation {state : Core.State} {select : Select} {command : Core.Command}
+    (translated : TranslatedRead state (.select select) command) :
+    ∀ column ∈ select.columns.toList, NoExplicitCollation column.expr := by
+  cases translated with
+  | query select source stored predicate columns ordering noCompounds oneSource
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated
+      notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
+      intro column member
+      exact projection_noCollation column (CoreSQL.projectionSyntax_of_success stored.schema projectionTranslated column member)
+  | count select source stored predicate target noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated countTranslated
+      notSum notExtreme notDistinct noOrdering noLimit =>
+      exact count_noCollation stored.schema select.columns.toList target countTranslated
+  | sum select source stored predicate column noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
+      sumTranslated notExtreme notDistinct noOrdering noLimit =>
+      exact sum_noCollation stored.schema select.columns.toList column sumTranslated
+  | extreme select source stored predicate minimum column noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
+      notSum extremeTranslated notDistinct noOrdering noLimit =>
+      exact extreme_noCollation stored.schema select.columns.toList (minimum, column) extremeTranslated
+  | group select source stored predicate groups outputs noCompounds oneSource
+      hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
+      notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
+      exact groups_noCollation stored.schema groups select.columns.toList outputs outputsTranslated
+  | join select leftSource rightSource left right query noCompounds twoSources
+      plainSources noGroups noHaving notDistinct noOffset leftFound rightFound queryTranslated =>
+      exact joinQuery_noCollation select _ _ left.schema right.schema query queryTranslated
+
+theorem translatedRead_columnsCollation_false {state : Core.State} {select : Select}
+    {command : Core.Command} (translated : TranslatedRead state (.select select) command) :
+    select.columns.any (fun column => (SQLite.ExprCollation.name column.expr).isSome) = false := by
+  have absent := translatedRead_noCollation translated
+  simp only [← Array.any_toList, List.any_eq_false]
+  intro column member
+  simp [SQLite.ExprCollation.name, absent column member column.expr.height]
+
+theorem translatedRead_noCompounds {state : Core.State} {select : Select} {command : Core.Command}
+    (translated : TranslatedRead state (.select select) command) : select.compounds = #[] := by
+  cases translated <;> assumption
+
+theorem translatedRead_resultCollation_false {state : Core.State} {select : Select}
+    {command : Core.Command} (translated : TranslatedRead state (.select select) command) (fuel : Nat) :
+    CoreSQL.resultCollationFuel fuel select = false := by
+  cases fuel with
+  | zero => rfl
+  | succ fuel => simp [CoreSQL.resultCollationFuel, translatedRead_noCompounds translated,
+      translatedRead_columnsCollation_false translated]
 
 /-- The number of values produced by a translated read command.  Unsupported
 write commands are assigned zero; `TranslatedRead` ensures they cannot occur
@@ -408,6 +458,11 @@ theorem executeStatement_binary_eq_core
       noOuterOffset armNoCompounds leftTranslated rightTranslated =>
       have height := binaryCompoundHeight_eq_two select arm operation compounds
         armNoCompounds
+      have leftColumns := translatedRead_columnsCollation_false leftTranslated
+      have rightColumns := translatedRead_columnsCollation_false rightTranslated
+      have noCollation : CoreSQL.requiresCompoundCollation select = false := by
+        simp [CoreSQL.requiresCompoundCollation, height, CoreSQL.resultCollationFuel,
+          compounds, leftColumns, rightColumns, armNoCompounds]
       have leftBase := executeSelectBase_eq_core leftTranslated
       have rightBase := executeSelectBase_eq_core rightTranslated
       have armBase : { arm with compounds := #[] } = arm := by
@@ -415,13 +470,13 @@ theorem executeStatement_binary_eq_core
         simp_all
       have rightFuel : CoreSQL.executeSelectFuel 1 state arm =
           selectExecution (readWidth right) (Core.execute state right) := by
-        simp [CoreSQL.executeSelectFuel, armNoCompounds, armBase, rightBase,
+        simp [CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, armNoCompounds, armBase, rightBase,
           bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state right <;>
           simp [execution, selectExecution,
             CoreSQL.executeSelectFuel.executeArms]
       simp only [CoreSQL.executeStatement, CoreSQL.executeSelect, height,
-        CoreSQL.executeSelectFuel]
+        CoreSQL.executeSelectFuel, noCollation, Bool.false_eq_true, ↓reduceIte]
       rw [leftBase]
       simp [compounds, noOuterOrder, noOuterLimit, noOuterOffset,
         executeBinaryPlan, selectExecution, bind, Functor.map,
@@ -494,6 +549,33 @@ mutual
           ((operation, plan) :: planArms)
 end
 
+theorem translatedCompound_resultCollation_false (fuel : Nat) {state : Core.State}
+    {select : Select} {plan : CompoundReadPlan}
+    (translated : TranslatedCompoundRead state select plan) :
+    CoreSQL.resultCollationFuel fuel select = false := by
+  induction fuel generalizing select plan with
+  | zero => rfl
+  | succ fuel ihFuel =>
+      cases translated with
+      | node select base syntaxArms planArms shape syntaxEq baseTranslated armsTranslated =>
+          have head := translatedRead_columnsCollation_false baseTranslated
+          let rec armsDefault {syntaxTail : List (CompoundOp × Select)}
+              {planTail : List (CompoundOp × CompoundReadPlan)}
+              (valid : TranslatedCompoundReadArms state syntaxTail planTail) :
+              ∀ entry ∈ syntaxTail, CoreSQL.resultCollationFuel fuel entry.2 = false := by
+            cases valid with
+            | nil => simp
+            | cons operation arm plan syntaxRest planRest head tail =>
+                intro entry member
+                rcases List.mem_cons.mp member with rfl | member
+                · exact ihFuel head
+                · exact armsDefault tail entry member
+          simp only [CoreSQL.resultCollationFuel, head, Bool.false_or, ← Array.any_toList,
+            syntaxEq, List.any_eq_false]
+          intro entry member
+          rw [armsDefault armsTranslated entry member]
+          decide
+
 mutual
   /-- Independent bag-semantics postcondition for a recursively nested
   compound plan.  Every leaf must satisfy its existing relational denotation;
@@ -550,11 +632,13 @@ theorem executeSelectFuel_compound_refines :
       simp [CoreSQL.executeSelectFuel] at success
   | succ fuel induction =>
       intro state select plan outcome translated success
+      have noCollation : CoreSQL.requiresCompoundCollation select = false := by
+        simp [CoreSQL.requiresCompoundCollation, translatedCompound_resultCollation_false select.compoundHeight translated]
       cases translated with
       | node select base syntaxArms planArms shape syntaxEq baseTranslated
           armsTranslated =>
         have baseExecution := executeSelectBase_eq_core baseTranslated
-        simp only [CoreSQL.executeSelectFuel]
+        simp only [CoreSQL.executeSelectFuel, noCollation, Bool.false_eq_true, ↓reduceIte]
           at success
         simp only [shape, Bool.true_eq, ↓reduceIte] at success
         rw [baseExecution] at success
@@ -658,7 +742,7 @@ theorem executeStatement_eq_core
       notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       have height := compoundHeight_eq_one select noCompounds
       simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase, height,
         noCompounds,
         oneSource, noGroups, noHaving, noOffset, plainSource, found, namesBound,
         predicateTranslated, notCount, notSum, notExtreme,
@@ -681,7 +765,7 @@ theorem executeStatement_eq_core
       notSum notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
       simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, countTranslated, notSum, notExtreme,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
@@ -697,7 +781,7 @@ theorem executeStatement_eq_core
       sumTranslated notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
       simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notCount, sumTranslated, notExtreme,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
@@ -713,7 +797,7 @@ theorem executeStatement_eq_core
       notSum extremeTranslated notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
       simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notCount, notSum, extremeTranslated,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
@@ -729,7 +813,7 @@ theorem executeStatement_eq_core
       notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
       have height := compoundHeight_eq_one select noCompounds
       simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, hasGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notDistinct, noOrdering, noLimit,
         groupsTranslated, outputsTranslated, oneResult, bind, Functor.map,
@@ -778,7 +862,7 @@ theorem executeStatement_eq_core
                 (CoreSQL.canonical rightSource.name) query)) <;>
           simp [execution]
       simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
-        CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase,
+        CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase,
         height, noCompounds, sourceSize, joinExecution, oneResult,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state

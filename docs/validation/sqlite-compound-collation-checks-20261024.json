@@ -1,0 +1,58 @@
+{
+  "implementation_sha256": "772a30c878c89672c1e75aea564ee3ff35b522d3643554d49d115b6cf1e14182",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "log_sha256": "35afe8edee4b57071778319c036d81f473e7b40b275df3436989c199ce0fe0b4",
+      "tail": [
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [259/260] Built Tests:c.o (11s)",
+        "\u2714 [260/260] Built sqleanite_tests:exe (342ms)",
+        "Build completed successfully (260 jobs)."
+      ]
+    },
+    "unit_tests": {
+      "exit_code": 0,
+      "log_sha256": "eb543294e00069465ac0e94427090cfecae2185ae6942e6123774ffcf9da5fbb",
+      "tail": [
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "197 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "log_sha256": "804eebbbaa4b63a76b0b6fcc90042c14cbdad347ef2e78c9da7bfa5c84071c54",
+      "tail": [
+        "ok - C sqlite3 accepts a Lean-written file",
+        "ok - page-directed indexed DELETE is integrity-check clean",
+        "ok - page-directed indexed INSERT is integrity-check clean",
+        "ok - read-only writes produce an ordinary SQLite-style diagnostic",
+        "ok - corrupt input rejection is a normal diagnostic, not a crash"
+      ]
+    },
+    "reverse": {
+      "exit_code": 0,
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  }
+}

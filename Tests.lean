@@ -4403,6 +4403,41 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteCompoundCollations : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'A'),(2,'a'),(3,'B'),(4,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 'A' COLLATE NOCASE UNION SELECT 'a';", [[.text "a"]]),
+    ("SELECT 'A' UNION SELECT 'a' COLLATE NOCASE;", [[.text "a"]]),
+    ("SELECT 'A' COLLATE BINARY UNION SELECT 'a' COLLATE NOCASE;", [[.text "A"], [.text "a"]]),
+    ("SELECT 'a' COLLATE RTRIM INTERSECT SELECT 'a ';", [[.text "a"]]),
+    ("SELECT 'a' COLLATE RTRIM EXCEPT SELECT 'a ';", []),
+    ("SELECT 'A' COLLATE NOCASE,1 UNION SELECT 'a',1.0;", [[.text "a", .real 1.0]]),
+    ("SELECT v FROM t UNION SELECT 'a' COLLATE NOCASE;", [[.null], [.text "A"], [.text "B"], [.text "a"]]),
+    ("SELECT +v FROM t UNION SELECT 'a' COLLATE NOCASE;", [[.null], [.text "A"], [.text "B"], [.text "a"]]),
+    ("SELECT CAST(v AS TEXT) FROM t UNION SELECT 'a' COLLATE NOCASE;", [[.null], [.text "A"], [.text "B"], [.text "a"]]),
+    ("SELECT v||'' FROM t UNION SELECT 'a' COLLATE NOCASE;", [[.null], [.text "a"], [.text "B"]]),
+    ("SELECT v FROM t UNION SELECT 'a' COLLATE missing;", [[.null], [.text "A"], [.text "B"], [.text "a"]]),
+    ("SELECT 1 COLLATE missing UNION ALL SELECT 2;", [[.integer 1], [.integer 2]]),
+    ("SELECT CAST(X'410078' AS TEXT) COLLATE NOCASE UNION SELECT CAST(X'610059' AS TEXT);",
+      [[.textBytes #[97, 0, 89]]]),
+    ("SELECT CAST(X'410078' AS TEXT) COLLATE NOCASE INTERSECT SELECT CAST(X'610059' AS TEXT);",
+      [[.textBytes #[65, 0, 120]]]),
+    ("SELECT CAST(X'FF41' AS TEXT) COLLATE NOCASE UNION SELECT CAST(X'FF61' AS TEXT);",
+      [[.textBytes #[255, 97]]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"compound COLLATE: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"compound COLLATE mismatch: {sql}"
+  for sql in ["SELECT 1 COLLATE missing UNION SELECT 2;", "SELECT 'a' UNION SELECT 'A' COLLATE missing;",
+      "SELECT 'a' COLLATE NOCASE UNION SELECT 1,2;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"compound collation/width error omitted: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteCollatedGroups : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,n); INSERT INTO t VALUES(1,'a',3),(2,'A',1),(3,'a ',2),(4,'B',4),(5,NULL,NULL),(6,NULL,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4990,6 +5025,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite compound result collations", expectSQLiteCompoundCollations),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

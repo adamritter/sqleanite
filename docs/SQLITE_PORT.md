@@ -1484,3 +1484,42 @@ behavior and state preservation; they do not prove full SQLite group semantics.
 The current group enumeration is not claimed to have SQLite's asymptotic
 performance. Native code and its nine-binding audit boundary are unchanged.
 Reports use `sqlite-group-collation-*20261024.json` under `docs/validation/`.
+
+
+## Compound result collations and original representatives (2026-10-24)
+
+UNION, UNION ALL, INTERSECT and EXCEPT now resolve each result column's
+collation across arms. The first arm supplying a collation wins, including an
+implicit BINARY collation on a stored column, unary plus or CAST. Unused later
+unknown collation names do not override it. UNION ALL alone does not require
+an otherwise unused collation. BINARY, NOCASE and RTRIM compare original TEXT
+bytes alongside numeric storage classes; duplicate removal preserves the
+pinned operation's original representative. Stars are expanded and names
+bound before resolution. Supported column-only joins participate as well.
+
+The retained initial seed 353750 recorded 232 differences in 1,192 outcomes at
+source `1483986d381a67d52e16c5e5e4f0dd6b666c9da74508dabe12bcc169b903263e`.
+Final source `772a30c878c89672c1e75aea564ee3ff35b522d3643554d49d115b6cf1e14182`
+with fresh seed 353752 matches **1,932 of 1,936 outcomes**, including six
+matching errors. The four retained failures are outer compound ORDER BY and
+LIMIT in both production file modes; the harness exits nonzero. Read queries
+preserve main/WAL bytes. Error matching compares ordinary exit status, not
+exact diagnostics. CLI comparison cannot observe text beyond an embedded NUL;
+separate Core executable examples check complete representative bytes for
+embedded NUL and invalid UTF-8. Those examples are component evidence.
+
+The existing BINARY read and recursive-compound refinement proofs still hold
+with their original premises. New proofs establish binding preservation of
+explicit collation metadata, absence of that metadata for the translated
+BINARY grammar, preservation of input representatives, and BINARY/UNION ALL
+specializations. They do not prove full SQLite compound equivalence.
+The complete 260-job build, all 197 executable tests, 1,036 registered headline
+theorems, verification audit and live-path checks pass. Fresh seed 353754
+passes 280 BINARY compound queries plus three matching errors; 61 reverse
+file-format cells pass, with two declared unsupported cells. Native code and
+the nine-binding boundary are unchanged. Reports use
+`sqlite-compound-collation-*20261024.json` in `docs/validation/`.
+
+The fresh scalar/group collation regression at seed 353753 passes all 2,854
+read outcomes (30 matching errors) and six writes. This closes the two retained
+NOCASE UNION differences in that bounded corpus; it is not SQLite-wide coverage.

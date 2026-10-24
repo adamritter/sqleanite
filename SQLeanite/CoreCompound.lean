@@ -2,6 +2,7 @@ import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
 import SQLeanite.Syntax
 import SQLeanite.RelationalAlgebra
+import SQLeanite.SQLite.Collation
 
 /-! SQL set operations use BINARY numeric equality and retain original values.
 The older optimizer algebra operates on representation-equal tuples; its
@@ -136,5 +137,70 @@ theorem combine_denotes (op : CompoundOp) (left right : List (List Core.Value)) 
       simp only [combine_keys, inLeft, inRight, not_true_eq_false, not_false_eq_true,
         and_self, true_or, false_or, true_and, false_and, ↓reduceIte, Nat.min_self,
         Nat.zero_sub, Nat.sub_self, Nat.sub_zero, Nat.min_zero, Nat.zero_min]
+
+/-- Collated compound rows retain numeric storage-class comparison. A missing
+trailing specification uses BINARY; the SQL binder separately checks widths. -/
+def compareCollated : List SQLite.Collation.Kind → List Core.Value → List Core.Value → Ordering
+  | [], left, right => rowCompare left right
+  | kind :: kinds, left :: lefts, right :: rights =>
+      let order := SQLite.Collation.compareValue kind left right
+      if order == .eq then compareCollated kinds lefts rights else order
+  | _, left, right => rowCompare left right
+
+def representativesCollated (kinds : List SQLite.Collation.Kind) :
+    List (List Core.Value) → List (List Core.Value)
+  | [] => []
+  | row :: rows => row :: (representativesCollated kinds rows).filter
+      (fun other => compareCollated kinds row other != .eq)
+
+theorem representativesCollated_subset (kinds : List SQLite.Collation.Kind)
+    (rows : List (List Core.Value)) : representativesCollated kinds rows ⊆ rows := by
+  induction rows with
+  | nil => simp [representativesCollated]
+  | cons first rest ih =>
+      intro row member
+      simp only [representativesCollated, List.mem_cons, List.mem_filter] at member
+      rcases member with rfl | ⟨kept, _⟩
+      · simp
+      · exact List.mem_cons_of_mem first (ih kept)
+
+def inputRowsCollated (kinds : List SQLite.Collation.Kind) (op : CompoundOp)
+    (left right : List (List Core.Value)) : List (List Core.Value) :=
+  match op with
+  | .unionAll => left ++ right
+  | .unionDistinct => right ++ left
+  | .intersect => left.filter (fun row => right.any (fun other => compareCollated kinds row other == .eq))
+  | .except => left.filter (fun row => !(right.any (fun other => compareCollated kinds row other == .eq)))
+
+def combineCollated (kinds : List SQLite.Collation.Kind) (op : CompoundOp)
+    (left right : List (List Core.Value)) : List (List Core.Value) :=
+  if kinds.all (· == .binary) then combine op left right
+  else if op == .unionAll then left ++ right
+  else (representativesCollated kinds (inputRowsCollated kinds op left right)).mergeSort
+    (fun left right => compareCollated kinds left right != .gt)
+
+theorem combineCollated_binary (kinds : List SQLite.Collation.Kind) (op : CompoundOp)
+    (left right : List (List Core.Value)) (binary : kinds.all (· == .binary) = true) :
+    combineCollated kinds op left right = combine op left right := by
+  simp [combineCollated, binary]
+
+theorem combineCollated_unionAll (kinds : List SQLite.Collation.Kind)
+    (left right : List (List Core.Value)) :
+    combineCollated kinds .unionAll left right = left ++ right := by
+  simp [combineCollated, combine]
+
+theorem combineCollated_subset (kinds : List SQLite.Collation.Kind) (op : CompoundOp)
+    (left right : List (List Core.Value)) : combineCollated kinds op left right ⊆ left ++ right := by
+  intro row member
+  unfold combineCollated at member
+  split at member
+  · exact combine_subset _ _ _ member
+  · split at member
+    · exact member
+    · have kept := representativesCollated_subset kinds _ ((List.mergeSort_perm _ _).mem_iff.mp member)
+      cases op with
+      | unionAll => exact kept
+      | unionDistinct => simpa only [inputRowsCollated, List.mem_append, or_comm] using kept
+      | intersect | except => exact List.mem_append_left _ (List.mem_filter.mp kept).1
 
 end SQLeanite.CoreCompound

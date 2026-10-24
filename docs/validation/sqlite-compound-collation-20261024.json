@@ -1,0 +1,79 @@
+{
+  "seed": 353752,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 968,
+      "matching_errors": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 968,
+      "matching_errors": 3
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a' LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: compound ORDER BY or LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "772a30c878c89672c1e75aea564ee3ff35b522d3643554d49d115b6cf1e14182",
+  "executable_sha256": "2d3967ff98b8f76502015c463ed2db478672a16dfdde06d369511976a97f92d0",
+  "harness_sha256": "a7052b98aa86dccab47b82e8e8e562729c0cb9405af2e4ad6ae1e12a854ca569",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound result collations and representatives with pinned SQLite.\nExact CLI bytes/rejection status, both live file modes, immutable read inputs.\nAll mismatches are retained, including unsupported outer ORDER BY/LIMIT."
+}
