@@ -95,7 +95,7 @@ theorem indexValuesText_iff (table : Core.Table) (index : Core.Index) :
 def indexSQL (table : Core.Table) (index : Core.Index) : String :=
   let columnName := (table.schema.columns[index.column]?).map (·.name) |>.getD ""
   let spec : CanonicalIndexSQL.Spec :=
-    ⟨index.name, table.schema.name, columnName⟩
+    ⟨index.name, table.schema.name, columnName, index.unique⟩
   if indexValuesInteger table index then
     CanonicalIndexSQL.printIntegerCertified spec
   else if indexValuesText table index then
@@ -106,7 +106,7 @@ theorem parse_indexSQL (table : Core.Table) (index : Core.Index) :
     let columnName :=
       (table.schema.columns[index.column]?).map (·.name) |>.getD ""
     CanonicalIndexSQL.parse (indexSQL table index) =
-      some ⟨index.name, table.schema.name, columnName⟩ := by
+      some ⟨index.name, table.schema.name, columnName, index.unique⟩ := by
   dsimp only
   unfold indexSQL
   split
@@ -127,7 +127,7 @@ theorem parseIntegerCertified_indexSQL (table : Core.Table)
   · rw [if_neg integers]
     let spec : CanonicalIndexSQL.Spec :=
       ⟨index.name, table.schema.name,
-        (table.schema.columns[index.column]?).map (·.name) |>.getD ""⟩
+        (table.schema.columns[index.column]?).map (·.name) |>.getD "", index.unique⟩
     by_cases texts : indexValuesText table index = true
     · rw [if_pos texts]
       simp only [CanonicalIndexSQL.parseIntegerCertified,

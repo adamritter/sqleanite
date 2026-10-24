@@ -50,6 +50,7 @@ succeeding fails this script so the declaration cannot go stale.
 | plain-table | 4096 | accepted | Single-page table, INTEGER PRIMARY KEY |
 | multipage-interior | 4096 | accepted | Multi-level interior nodes (2,000 rows x 800B) |
 | secondary-index | 4096 | accepted | Secondary index B-tree traversal |
+| unique-index | 4096 | accepted | Explicit UNIQUE index with multiple NULL values |
 | text-primary-key | 4096 | accepted | Hidden-rowid table plus implicit autoindex (YCSB shape) |
 | overflow-chain | 4096 | accepted | Overflow chain, 9 KB row beside an inline row |
 | freelist-after-delete | 4096 | accepted | Freelist trunk and leaves after a bulk delete |

@@ -1705,3 +1705,18 @@ the native source/test hashes are recorded in
 `validation/sqlite-page-conversion-host-checkpoint-20261024.json`. Injected I/O
 errors demonstrate complete images at the tested boundaries; they are not a
 physical power-loss evaluation or a machine-checked OS refinement.
+
+
+### Explicit UNIQUE index boundary (2026-10-24)
+
+Core index metadata now carries the explicit uniqueness flag, with an extended
+canonical catalog roundtrip and decoder reconstruction. It does not change the
+physical index-key layout. Checked write methods enforce non-NULL BINARY value
+uniqueness, and the new SQL REPLACE route uses a deletion/insertion Core trace
+for all conflicts. Existing direct REPLACE translation theorems are explicitly
+restricted to tables without these indexes. The general Core table type still
+states its existing row/schema/index representation invariants; it is not a new
+universal proof of all SQLite constraints. Successful INSERT freshness and NULL
+non-conflict have separate registered component proofs. Fresh file/constraint
+evidence and the remaining limits are recorded in [SQLITE_PORT.md](SQLITE_PORT.md).
+No host binding or native source changed in this checkpoint.

@@ -1,4 +1,5 @@
 import SQLeanite.PhysicalCodec
+import SQLeanite.PhysicalQuery
 import SQLeanite.PersistentPageTree
 import SQLeanite.SQLite.PhysicalAffinity
 import Std.Data.TreeMap.Lemmas
@@ -131,12 +132,13 @@ theorem Schema.findIdx?_column_name (schema : Schema)
 structure Index where
   name : String
   column : Nat
+  unique : Bool := false
   deriving DecidableEq, Repr
 
 def Index.isImplicitPrimary (schema : Schema) (index : Index) : Bool :=
   schema.hasHiddenRowid &&
     index.name == "sqlite_autoindex_" ++ schema.name ++ "_1" &&
-    index.column == schema.declaredPrimaryKey
+    index.column == schema.declaredPrimaryKey && !index.unique
 
 def Index.WellFormed (schema : Schema) (index : Index) : Prop :=
   index.name ≠ "" ∧ index.column < schema.columns.length
@@ -1550,12 +1552,40 @@ theorem Table.upsertGeneratedFresh_rows (table : Table) (row : Row)
       orderedUpsert row table.rows := by
   exact storedRows_insert table.rowTree table.rowTreeWellKeyed row
 
+/-- UNIQUE compares BINARY SQL values, treating all NULLs as distinct and
+INTEGER/REAL values by exact numeric order rather than physical encoding. -/
+def uniqueValueConflict : Value → Value → Bool
+  | .null, _ | _, .null => false
+  | left, right => PhysicalQuery.compareValue left right == .eq
+
+def Index.rowConflict (index : Index) (left right : Row) : Bool :=
+  index.unique && uniqueValueConflict
+    ((left.values[index.column]?).getD .null) ((right.values[index.column]?).getD .null)
+
+def Index.acceptsRows (index : Index) : List Row → Bool
+  | [] => true
+  | row :: rows => !(rows.any (index.rowConflict row)) && index.acceptsRows rows
+
+def uniqueIndexesAccept (indexes : List Index) (rows : List Row) : Bool :=
+  indexes.all (fun index => !index.unique || index.acceptsRows rows)
+
+def Table.uniqueConflict (table : Table) (row : Row) (ignoreOwnRowid : Bool := false) : Bool :=
+  table.indexes.any fun index => index.unique && table.rows.any fun other =>
+    (!ignoreOwnRowid || other.rowid != row.rowid) && index.rowConflict row other
+
+theorem uniqueValueConflict_null_left (value : Value) :
+    uniqueValueConflict .null value = false := rfl
+
+theorem uniqueValueConflict_null_right (value : Value) :
+    uniqueValueConflict value .null = false := by cases value <;> rfl
+
 def Table.insertValues (table : Table) (values : List Value) :
     Except String Table :=
   match table.createRow values with
   | .error message => .error message
   | .ok row =>
-      if valid : row.WellFormed table.schema then
+      if table.uniqueConflict row then .error "UNIQUE constraint failed: index"
+      else if valid : row.WellFormed table.schema then
         if duplicate : (table.findRowid? row.rowid).isSome then
           .error "UNIQUE constraint failed: INTEGER PRIMARY KEY"
         else match declared : table.findDeclaredPrimary? row with
@@ -1569,6 +1599,17 @@ def Table.insertValues (table : Table) (values : List Value) :
                 .ok (table.upsertGeneratedFresh row valid hidden freshRowid fresh)
               else .ok (table.upsert row valid)
       else .error "internal row validation mismatch"
+
+theorem Table.insertValues_unique {table next : Table} {values : List Value}
+    (success : table.insertValues values = .ok next) :
+    ∃ row, table.createRow values = .ok row ∧ table.uniqueConflict row = false := by
+  cases created : table.createRow values with
+  | error message => simp [Table.insertValues, created] at success
+  | ok row =>
+      simp only [Table.insertValues, created] at success
+      split at success
+      next conflict => contradiction
+      next fresh => exact ⟨row, rfl, Bool.eq_false_iff.mpr fresh⟩
 
 /-- The exact effect of a successful `INSERT` at table level.
 
@@ -1591,6 +1632,7 @@ theorem Table.insertValues_exact {table next : Table} {values : List Value}
       contradiction
   | ok row =>
       simp only [Table.insertValues, created] at success
+      split at success <;> try contradiction
       split at success
       next valid =>
         split at success
@@ -1625,6 +1667,7 @@ theorem Table.insertValues_schema {table next : Table} {values : List Value}
       split at success <;> try contradiction
       split at success <;> try contradiction
       split at success <;> try contradiction
+      split at success <;> try contradiction
       split at success
       <;> injection success with equal
       <;> subst next
@@ -1638,7 +1681,8 @@ def Table.replaceValues (table : Table) (values : List Value) :
   match table.createReplacementRow values with
   | .error message => .error message
   | .ok row =>
-      if valid : row.WellFormed table.schema then .ok (table.upsert row valid)
+      if table.uniqueConflict row true then .error "UNIQUE constraint failed: index"
+      else if valid : row.WellFormed table.schema then .ok (table.upsert row valid)
       else .error "internal row validation mismatch"
 
 theorem Table.replaceValues_rows {table next : Table} {values : List Value}
@@ -1650,6 +1694,7 @@ theorem Table.replaceValues_rows {table next : Table} {values : List Value}
   | error message => simp [created] at success
   | ok row =>
       simp only [created] at success
+      split at success <;> try contradiction
       split at success
       next valid =>
         injection success with equal
@@ -1666,6 +1711,7 @@ theorem Table.replaceValues_schema {table next : Table} {values : List Value}
   | ok row =>
       simp only [created] at success
       split at success <;> try contradiction
+      split at success <;> try contradiction
       injection success with equal
       subst next
       rfl
@@ -1673,7 +1719,9 @@ theorem Table.replaceValues_schema {table next : Table} {values : List Value}
 def Table.withIndexes (table : Table) (indexes : List Index) :
     Except String Table :=
   if valid : IndexesWellFormed table.schema indexes then
-    .ok { table with indexes, indexesWellFormed := valid }
+    if uniqueIndexesAccept indexes table.rows then
+      .ok { table with indexes, indexesWellFormed := valid }
+    else .error "UNIQUE constraint failed: index"
   else .error "invalid index metadata"
 
 theorem Table.withIndexes_exact {table next : Table} {indexes : List Index}
@@ -1683,6 +1731,7 @@ theorem Table.withIndexes_exact {table next : Table} {indexes : List Index}
   unfold Table.withIndexes at success
   split at success
   next =>
+    split at success <;> try contradiction
     injection success with equal
     subst next
     exact ⟨rfl, rfl, rfl⟩
@@ -2104,7 +2153,8 @@ theorem Table.withPatchedRows_schema {table next : Table} {rows : List Row}
 def Table.patchRows (table : Table) (assignments : List (Nat × Value))
     (selected : Row → Bool) : Except String Table := do
   let rows ← Core.patchRows table.schema assignments selected table.rows
-  table.withPatchedRows rows
+  if uniqueIndexesAccept table.indexes rows then table.withPatchedRows rows
+  else .error "UNIQUE constraint failed: index"
 
 /-- The proof-carrying representation makes the primary-tree lookup exact at
 the rowid boundary: a successful routed lookup cannot return a different
@@ -2181,7 +2231,8 @@ def Table.patchRowid (table : Table) (assignments : List (Nat × Value))
           (applyAssignments row.values assignments) with
       | .error message => .error message
       | .ok patched =>
-          if _samePatched : patched.rowid = rowid then
+          if table.uniqueConflict patched true then .error "UNIQUE constraint failed: index"
+          else if _samePatched : patched.rowid = rowid then
             .ok (table.upsert patched (Row.create_wellFormed created), 1)
           else .error "point UPDATE changed its INTEGER PRIMARY KEY"
 
@@ -2205,6 +2256,7 @@ theorem Table.patchRowid_schema {table next : Table}
       split at success
       next => contradiction
       next patched created =>
+        split at success <;> try contradiction
         split at success <;> try contradiction
         have pairEqual := Except.ok.inj success
         have tableEqual : table.upsert patched (Row.create_wellFormed created) =
@@ -2240,6 +2292,7 @@ theorem Table.patchRowid_exact {table next : Table}
       split at success
       next => contradiction
       next patched created =>
+        split at success <;> try contradiction
         split at success
         next samePatched =>
           have pairEqual := Except.ok.inj success
@@ -2261,6 +2314,8 @@ theorem Table.patchRows_exact {table next : Table}
     next.rows = rows := by
   unfold Table.patchRows at success
   rw [patched] at success
+  simp only [bind, Except.bind] at success
+  split at success <;> try contradiction
   change table.withPatchedRows rows = .ok next at success
   unfold Table.withPatchedRows at success
   split at success
@@ -2284,7 +2339,8 @@ theorem Table.patchRows_schema {table next : Table}
       rw [patched] at success
       contradiction
   | ok rows =>
-      simp only [patched] at success
+      simp only [patched, bind, Except.bind] at success
+      split at success <;> try contradiction
       exact Table.withPatchedRows_schema success
 
 end Core

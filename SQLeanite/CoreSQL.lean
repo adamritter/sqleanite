@@ -1276,12 +1276,39 @@ def executeSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   executeSelectFuel select.compoundHeight state select
 
+/-- Allocate the replacement rowid against the original table, then remove
+all rows conflicting with the primary key or any explicit UNIQUE index. -/
+def uniqueReplacePlan (stored : Core.Table) (values : List Core.Value) :
+    Except String (List Core.Command) := do
+  let row ← stored.createRow values
+  let declared := stored.findDeclaredPrimary? row
+  let conflicts := stored.rows.filter fun existing =>
+    existing.rowid == row.rowid || declared.any (fun old => old.rowid == existing.rowid) ||
+      stored.indexes.any (fun index => index.rowConflict row existing)
+  let deletes := conflicts.map fun old => Core.Command.deleteWhere stored.schema.name
+    (some (.equal stored.schema.primaryKey (.integer old.rowid)))
+  return deletes ++ [.insert stored.schema.name row.values]
+
+def replaceUniqueRows (state : Core.State) (table : String)
+    (schema : Core.Schema) (columns : Option (Array String)) :
+    List (Array Expr) → Except String (Core.State × List Core.Result)
+  | [] => .ok (state, [])
+  | expressions :: rows => do
+      let values ← rowValues schema columns expressions
+      let stored ← match state.database.findTable? table with
+        | some stored => .ok stored
+        | none => .error s!"no such table: {table}"
+      let commands ← uniqueReplacePlan stored values
+      let (next, _) ← runCoreCommands state commands
+      let (finalState, results) ← replaceUniqueRows next table schema columns rows
+      return (finalState, { changes := 1 } :: results)
+
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
   | .createTable name columns constraints _ => do
       executeCommand state (.createTable (← schema name columns constraints))
   | .createIndex name table expressions unique where_ _ => do
-      if unique || where_.isSome then unsupported "UNIQUE or partial index"
+      if where_.isSome then unsupported "partial index"
       else
         let tableName := canonical table
         let stored ← match state.database.findTable? tableName with
@@ -1294,7 +1321,7 @@ def executeStatement (state : Core.State) :
           | _ => unsupported "index expression"
         let columnIndex ← column stored.schema columnName
         executeCommand state (.createIndex tableName {
-          name := canonical name, column := columnIndex })
+          name := canonical name, column := columnIndex, unique })
   | .insert table columns rows conflict => do
       unless conflict == .default || conflict == .abort || conflict == .replace do
         throw "unsupported general verified-MVP SQL: INSERT conflict policy"
@@ -1302,8 +1329,10 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      insertRows state tableName stored.schema columns (conflict == .replace)
-        rows.toList
+      if conflict == .replace && stored.indexes.any (·.unique) then
+        replaceUniqueRows state tableName stored.schema columns rows.toList
+      else
+        insertRows state tableName stored.schema columns (conflict == .replace) rows.toList
   | .delete table alias where_ returning => do
       unless returning.isEmpty do
         throw "unsupported general verified-MVP SQL: DELETE RETURNING"

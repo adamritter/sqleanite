@@ -1089,3 +1089,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Pattern.foldASCII_nonASCII
 #print axioms SQLeanite.SQLite.Pattern.matches_empty
 #print axioms SQLeanite.SQLite.Pattern.evaluate_null_input
+
+#print axioms SQLeanite.Core.uniqueValueConflict_null_left
+#print axioms SQLeanite.Core.uniqueValueConflict_null_right
+#print axioms SQLeanite.Core.Table.insertValues_unique

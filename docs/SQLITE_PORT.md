@@ -893,3 +893,43 @@ both audits passed. Registered component facts cover non-ASCII case preservation
 the empty-pattern boundary and bounded-pattern NULL input. They do not prove
 full equivalence with SQLite's C matcher. The selected feature-gap inventory
 still records 9 explicit rejections; that inventory is not a coverage measure.
+
+
+### Explicit UNIQUE indexes and replacement conflicts (2026-10-24)
+
+Single-column explicit UNIQUE indexes now retain their uniqueness flag in Core
+metadata, canonical CREATE INDEX SQL and both physical decoders. The canonical
+printer/parser inverses include that flag. Existing implicit primary indexes
+keep their separate primary-key interpretation. UNIQUE comparison uses exact
+BINARY SQL value ordering: INTEGER/REAL numeric equals conflict, TEXT/BLOB
+storage classes stay distinct, and multiple NULLs are allowed.
+
+Core INSERT, point/general UPDATE, and index creation check uniqueness before
+returning a changed table. The SQL INSERT OR REPLACE route allocates a rowid
+against the original table, deletes every conflicting primary/unique-key row,
+then inserts the complete row through one atomic Core trace. It counts the
+inserted row once. The older direct-upsert correspondence now explicitly
+requires no explicit UNIQUE indexes; its claim was narrowed instead of being
+silently applied to a multi-row replacement. Component proofs establish NULL
+non-conflict and the successful INSERT's unique-key freshness. Complete SQLite
+constraint semantics remain differential evidence.
+
+Frozen Lean/Main SHA-256:
+`666d6cc22383902dcd3a84e029b99a6e9ef891cd7c95a9ec030a758214b8ded3`.
+Fresh seed 353601 passed **2,268 statement outcomes**, including **897 matching
+errors**, in **12 variants**: both file modes, explicit/implicit rowids, and
+Lean/SQLite-512/SQLite-4096 origins. Every outcome checks independent SQLite
+reads, raw storage values, uniqueness flags, integrity, Lean reopening and
+unchanged main/WAL bytes after errors. Seed 353602 passed **832 rowid UPDATE
+regressions**, including **304 matching errors**. Reports are
+`docs/validation/sqlite-unique-index-20261024.json` and
+`docs/validation/sqlite-unique-rowid-regression-20261024.json`.
+Full build, **182 executable tests**, **992 registered headline theorems**, both
+audits and the expanded reverse matrix (**61 accepted, 2 declared unsupported**)
+passed. The selected gap inventory has 8 explicit rejections, 19 matches and
+1 both-reject; this is not a whole-SQLite compatibility rate.
+
+Multi-column, partial and expression indexes, column/table UNIQUE declarations,
+non-BINARY collations, other conflict policies and broader schema-name rules
+remain separate work. Uniqueness checks currently scan logical rows; large
+unique-index creation can do quadratic comparison work.

@@ -14,10 +14,11 @@ structure Spec where
   name : String
   table : String
   column : String
+  unique : Bool := false
   deriving DecidableEq, Repr
 
 def Spec.chars (spec : Spec) : List Char :=
-  "CREATE INDEX ".toList ++ CanonicalSchemaSQL.quoteChars spec.name ++
+  (if spec.unique then "CREATE UNIQUE INDEX " else "CREATE INDEX ").toList ++ CanonicalSchemaSQL.quoteChars spec.name ++
     " ON ".toList ++ CanonicalSchemaSQL.quoteChars spec.table ++
     '(' :: CanonicalSchemaSQL.quoteChars spec.column ++ [')']
 
@@ -40,7 +41,9 @@ def printTextCertified (spec : Spec) : String :=
   print spec ++ textCertificateMarker
 
 def parseChars (input : List Char) : Option Spec := do
-  let afterCreate ← CanonicalSchemaSQL.stripPrefix "CREATE INDEX ".toList input
+  let (unique, afterCreate) ← match CanonicalSchemaSQL.stripPrefix "CREATE UNIQUE INDEX ".toList input with
+    | some after => some (true, after)
+    | none => (CanonicalSchemaSQL.stripPrefix "CREATE INDEX ".toList input).map (false, ·)
   match afterCreate with
   | '"' :: afterOpenIndex => do
       let (indexName, afterIndex) ← CanonicalSchemaSQL.takeIdent afterOpenIndex
@@ -54,7 +57,7 @@ def parseChars (input : List Char) : Option Spec := do
               if tail = [')'] ∨
                   tail = ')' :: integerCertificateMarker.toList ∨
                   tail = ')' :: textCertificateMarker.toList then
-                some ⟨String.ofList indexName, String.ofList tableName, String.ofList columnName⟩
+                some ⟨String.ofList indexName, String.ofList tableName, String.ofList columnName, unique⟩
               else none
           | _ => none
       | _ => none
@@ -62,27 +65,32 @@ def parseChars (input : List Char) : Option Spec := do
 
 def parse (sql : String) : Option Spec := parseChars sql.toList
 
+private theorem strip_unique_nonunique (suffix : List Char) :
+    CanonicalSchemaSQL.stripPrefix "CREATE UNIQUE INDEX ".toList
+      ("CREATE INDEX ".toList ++ suffix) = none := by rfl
+
 theorem parseChars_chars (spec : Spec) :
     parseChars spec.chars = some spec := by
-  rcases spec with ⟨indexName, tableName, columnName⟩
+  rcases spec with ⟨indexName, tableName, columnName, unique⟩
   change parseChars
-    ("CREATE INDEX ".toList ++ CanonicalSchemaSQL.quoteChars indexName ++
+    ((if unique then "CREATE UNIQUE INDEX " else "CREATE INDEX ").toList ++ CanonicalSchemaSQL.quoteChars indexName ++
       " ON ".toList ++ CanonicalSchemaSQL.quoteChars tableName ++
       '(' :: CanonicalSchemaSQL.quoteChars columnName ++ [')']) =
-    some ⟨indexName, tableName, columnName⟩
+    some ⟨indexName, tableName, columnName, unique⟩
   unfold parseChars
   simp only [List.append_assoc]
-  rw [CanonicalSchemaSQL.stripPrefix_append]
-  simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
+  cases unique <;> simp only [Bool.false_eq_true, if_false, if_true]
+  all_goals simp only [strip_unique_nonunique, CanonicalSchemaSQL.stripPrefix_append, Option.map, Option.bind_eq_bind, Option.bind]
+  all_goals simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
     List.append_assoc,
     Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  simp [CanonicalSchemaSQL.stripPrefix]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals simp [CanonicalSchemaSQL.stripPrefix]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp
 
 theorem parse_print (spec : Spec) :
     parse (print spec) = some spec := by
@@ -93,44 +101,46 @@ theorem parse_print (spec : Spec) :
 theorem parse_printIntegerCertified (spec : Spec) :
     parse (printIntegerCertified spec) = some spec := by
   simp only [parse, printIntegerCertified, print, String.toList_append, String.toList_ofList]
-  rcases spec with ⟨indexName, tableName, columnName⟩
+  rcases spec with ⟨indexName, tableName, columnName, unique⟩
   change parseChars
-    ((⟨indexName, tableName, columnName⟩ : Spec).chars ++
+    ((⟨indexName, tableName, columnName, unique⟩ : Spec).chars ++
       integerCertificateMarker.toList) =
-        some ⟨indexName, tableName, columnName⟩
+        some ⟨indexName, tableName, columnName, unique⟩
   unfold Spec.chars parseChars
   simp only [List.append_assoc]
-  rw [CanonicalSchemaSQL.stripPrefix_append]
-  simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
+  cases unique <;> simp only [Bool.false_eq_true, if_false, if_true]
+  all_goals simp only [strip_unique_nonunique, CanonicalSchemaSQL.stripPrefix_append, Option.map, Option.bind_eq_bind, Option.bind]
+  all_goals simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
     List.append_assoc, Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  simp [CanonicalSchemaSQL.stripPrefix]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals simp [CanonicalSchemaSQL.stripPrefix]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp
 
 theorem parse_printTextCertified (spec : Spec) :
     parse (printTextCertified spec) = some spec := by
   simp only [parse, printTextCertified, print, String.toList_append, String.toList_ofList]
-  rcases spec with ⟨indexName, tableName, columnName⟩
+  rcases spec with ⟨indexName, tableName, columnName, unique⟩
   change parseChars
-    ((⟨indexName, tableName, columnName⟩ : Spec).chars ++
+    ((⟨indexName, tableName, columnName, unique⟩ : Spec).chars ++
       textCertificateMarker.toList) =
-        some ⟨indexName, tableName, columnName⟩
+        some ⟨indexName, tableName, columnName, unique⟩
   unfold Spec.chars parseChars
   simp only [List.append_assoc]
-  rw [CanonicalSchemaSQL.stripPrefix_append]
-  simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
+  cases unique <;> simp only [Bool.false_eq_true, if_false, if_true]
+  all_goals simp only [strip_unique_nonunique, CanonicalSchemaSQL.stripPrefix_append, Option.map, Option.bind_eq_bind, Option.bind]
+  all_goals simp only [CanonicalSchemaSQL.quoteChars, List.cons_append, List.nil_append,
     List.append_assoc, Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  simp [CanonicalSchemaSQL.stripPrefix]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp only [Option.bind_eq_bind, Option.bind]
-  rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
-  simp
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals simp [CanonicalSchemaSQL.stripPrefix]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp only [Option.bind_eq_bind, Option.bind]
+  all_goals rw [CanonicalSchemaSQL.takeIdent_escape _ _ (by simp)]
+  all_goals simp
 
 /-- Decode the marker only when the entire catalog SQL is exactly the
 canonical certified printer. -/

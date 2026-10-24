@@ -1174,10 +1174,10 @@ def decodeCanonicalIndex (schema : Core.Schema) (tableName : String)
           if _metadataMatches : spec.name = entry.name ∧ spec.table = tableName then
             let column ← schema.columns.findIdx?
               (fun candidate => candidate.name = spec.column)
-            some ⟨spec.name, column⟩
+            some ⟨spec.name, column, spec.unique⟩
           else none
       | none =>
-          let index : Core.Index := ⟨entry.name, schema.declaredPrimaryKey⟩
+          let index : Core.Index := ⟨entry.name, schema.declaredPrimaryKey, false⟩
           if index.isImplicitPrimary schema then some index else none
     else none
   else none
@@ -1197,7 +1197,7 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
   unfold decodeCanonicalIndex CatalogEntry.ofEncoded
   rw [dif_pos rfl, dif_pos rfl]
   simp only [Option.bind_eq_bind, Option.bind]
-  have indexEta : (⟨index.name, index.column⟩ : Core.Index) = index := by
+  have indexEta : (⟨index.name, index.column, index.unique⟩ : Core.Index) = index := by
     cases index
     rfl
   by_cases automatic : index.isImplicitPrimary table.schema = true
@@ -1205,20 +1205,22 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
     simp only
     have automatic' := automatic
     unfold Core.Index.isImplicitPrimary at automatic
-    simp only [Bool.and_eq_true, beq_iff_eq] at automatic
+    simp only [Bool.and_eq_true, beq_iff_eq, Bool.not_eq_true] at automatic
     have column : index.column = table.schema.declaredPrimaryKey :=
-      automatic.2
+      automatic.1.2
+    have ordinary : index.unique = false := by
+      cases h : index.unique <;> simp_all
     have indexEq :
-        (⟨index.name, table.schema.declaredPrimaryKey⟩ : Core.Index) = index := by
+        (⟨index.name, table.schema.declaredPrimaryKey, false⟩ : Core.Index) = index := by
       calc
-        _ = (⟨index.name, index.column⟩ : Core.Index) := by rw [column]
+        _ = (⟨index.name, index.column, index.unique⟩ : Core.Index) := by rw [column, ordinary]
         _ = index := indexEta
     rw [indexEq, if_pos automatic']
   · rw [if_neg automatic]
     let columnName :=
       (table.schema.columns[index.column]?).map (·.name) |>.getD ""
     let spec : CanonicalIndexSQL.Spec :=
-      ⟨index.name, table.schema.name, columnName⟩
+      ⟨index.name, table.schema.name, columnName, index.unique⟩
     change (CanonicalIndexSQL.parse (CoreFile.indexSQL table index)).bind _ =
       some index
     rw [CoreFile.parse_indexSQL table index]
@@ -1232,7 +1234,7 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
       index.column indexValid.2
     change (table.schema.columns.findIdx?
       (fun candidate => candidate.name = columnName)).bind
-        (fun column => some (⟨index.name, column⟩ : Core.Index)) = some index
+        (fun column => some (⟨index.name, column, index.unique⟩ : Core.Index)) = some index
     rw [columnNameEq, found]
     rfl
 
@@ -9604,7 +9606,7 @@ def applyIndexesFrom (source : PageSource) :
               if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
                 let column ← table.schema.columns.findIdx? (fun candidate =>
                   candidate.name = spec.column)
-                let index : Core.Index := ⟨spec.name, column⟩
+                let index : Core.Index := ⟨spec.name, column, spec.unique⟩
                 let physical ← decodeIndexSubtreeFrom source
                   (source.pageCount + 1) entry.rootPage
                 if _contentsMatch : physical = expectedIndexEntries table index then
@@ -9691,7 +9693,7 @@ def applyIndexesIOFrom (source : IOPageSource) :
               if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
                 let some column := table.schema.columns.findIdx?
                   (fun candidate => candidate.name = spec.column) | return none
-                let index : Core.Index := ⟨spec.name, column⟩
+                let index : Core.Index := ⟨spec.name, column, spec.unique⟩
                 let some physical ← decodeIndexSubtreeIOFrom source
                   (source.pageCount + 1) entry.rootPage | return none
                 if _contentsMatch : physical = expectedIndexEntries table index then

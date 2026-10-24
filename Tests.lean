@@ -3960,6 +3960,45 @@ private def expectPageSizeConversionFailures : IO Unit := do
     let reopened ← CoreFileAdapter.reopen paths
     unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
 
+private def expectSQLiteUniqueIndexes : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a,b TEXT); INSERT INTO t VALUES(1,1,'a'),(2,2,'b'),(3,NULL,NULL),(4,NULL,NULL); CREATE UNIQUE INDEX ua ON t(a); CREATE UNIQUE INDEX ub ON t(b);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT id,a,b FROM t ORDER BY id;",
+      [[.integer 1,.integer 1,.text "a"],[.integer 2,.integer 2,.text "b"],
+       [.integer 3,.null,.null],[.integer 4,.null,.null]]),
+    ("INSERT OR REPLACE INTO t VALUES(10,2,'a'); SELECT id,a,b FROM t ORDER BY id;",
+      [[.integer 3,.null,.null],[.integer 4,.null,.null],[.integer 10,.integer 2,.text "a"]]),
+    ("UPDATE t SET a=a+10 WHERE id<3; SELECT id,a,b FROM t WHERE id<3 ORDER BY id;",
+      [[.integer 1,.integer 11,.text "a"],[.integer 2,.integer 12,.text "b"]]),
+    ("INSERT INTO t VALUES(10,'1','c'); SELECT id,a,b FROM t WHERE id=10;",
+      [[.integer 10,.text "1",.text "c"]])]
+  for (sql, expected) in cases do
+    let (state, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"UNIQUE index: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"UNIQUE result: {sql}"
+    let some table := state.database.findTable? "t" | fail "UNIQUE lost table"
+    unless table.indexes.length == 2 && table.indexes.all (·.unique) do
+      fail "UNIQUE metadata lost"
+  for sql in ["INSERT INTO t VALUES(10,1.0,'new');", "UPDATE t SET a=2 WHERE id=1;",
+      "UPDATE t SET a=a+1 WHERE id<3;", "UPDATE t SET b='same';",
+      "UPDATE t SET id=10,a=1 WHERE id=2;",
+      "INSERT INTO t VALUES(10,10,'new'),(11,2,'other');"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"UNIQUE accepted duplicate: {sql}"
+    | .error _ => pure ()
+  match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(v); INSERT INTO t VALUES(1),(1.0); CREATE UNIQUE INDEX uv ON t(v);" with
+  | .ok _ => fail "UNIQUE creation accepted numeric duplicates"
+  | .error _ => pure ()
+  for unique in [false, true] do
+    let spec : CanonicalIndexSQL.Spec := { name := "quoted\"index", table := "t", column := "v", unique }
+    unless CanonicalIndexSQL.parse (CanonicalIndexSQL.print spec) == some spec do
+      fail "UNIQUE index SQL failed roundtrip"
+
 private def expectSQLitePatterns : IO Unit := do
   let cases : List (String × List Value) := [
     ("SELECT 'ABC' LIKE 'a%', 'Á' LIKE 'á', 'ABC' GLOB 'a*', 'abc' GLOB '[a-z]*';",
@@ -4477,6 +4516,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite UNIQUE indexes and multi-key replacement", expectSQLiteUniqueIndexes),
   ("SQLite LIKE GLOB ESCAPE and permissive UTF-8", expectSQLitePatterns),
   ("SQLite round fixed-decimal and integral paths", expectSQLiteRound),
   ("SQLite rowid UPDATE binding and changes", expectSQLiteRowidUpdates),

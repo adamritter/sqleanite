@@ -221,6 +221,16 @@ else
   fail "pattern matching detached from its implementation or component proofs"
 fi
 
+if grep -q 'table.uniqueConflict row' SQLeanite/Core.lean &&
+   grep -q 'table.uniqueConflict patched true' SQLeanite/Core.lean &&
+   grep -q 'replaceUniqueRows state tableName' SQLeanite/CoreSQL.lean &&
+   grep -q 'CREATE UNIQUE INDEX' SQLeanite/CanonicalIndexSQL.lean &&
+   grep -q 'Core.Table.insertValues_unique' SQLeanite/ProofAxioms.lean; then
+  ok "UNIQUE metadata and constraints are on the Core write path"
+else
+  fail "UNIQUE constraints detached from production writes or their proof"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

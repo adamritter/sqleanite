@@ -38,15 +38,15 @@ rows_2000="WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x
 
 # name|expect|reader|feature-note|setup SQL|query SQL
 #
-# Queries avoid SQL the frozen surface does not accept (no length(), no IN) and,
-# for REAL and BLOB, avoid *rendering* a value: the CLI's value formatting is an
-# unverified shell concern and differs from C's, which is recorded separately in
-# the generated document rather than mixed into a storage-compatibility cell.
+# These cells focus on decoding stored values, index routing and page topology.
+# The scalar/CLI differential suites separately cover expression evaluation and
+# raw value rendering, so those claims are not inferred from this matrix.
 feature_cases() {
   cat <<ROWS
 plain-table|pass|file|Single-page table, INTEGER PRIMARY KEY|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_200 INSERT INTO t SELECT x, printf('v%04d',x) FROM n;|SELECT id,v FROM t WHERE id>=197 ORDER BY id;
 multipage-interior|pass|file|Multi-level interior nodes (2,000 rows x 800B)|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_2000 INSERT INTO t SELECT x, hex(randomblob(400)) FROM n;|SELECT id,v FROM t WHERE id>=1999 ORDER BY id;
 secondary-index|pass|file|Secondary index B-tree traversal|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_200 INSERT INTO t SELECT x, printf('v%04d',x) FROM n; CREATE INDEX t_v ON t(v);|SELECT id,v FROM t WHERE v='v0100';
+unique-index|pass|file|Explicit UNIQUE index with multiple NULL values|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_200 INSERT INTO t SELECT x, printf('v%04d',x) FROM n; INSERT INTO t VALUES(201,NULL),(202,NULL); CREATE UNIQUE INDEX t_v ON t(v);|SELECT id,v FROM t WHERE v='v0100'; SELECT count(*) FROM t WHERE v IS NULL;
 text-primary-key|pass|file|Hidden-rowid table plus implicit autoindex (YCSB shape)|CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT); $rows_200 INSERT INTO usertable SELECT printf('user%08d',x), printf('f%04d',x) FROM n;|SELECT ycsb_key,field0 FROM usertable WHERE ycsb_key='user00000100';
 overflow-chain|pass|file|Overflow chain, 9 KB row beside an inline row|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO t VALUES(1, hex(randomblob(4500))),(2,'short');|SELECT id,v FROM t ORDER BY id;
 freelist-after-delete|pass|file|Freelist trunk and leaves after a bulk delete|CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_2000 INSERT INTO t SELECT x, hex(randomblob(300)) FROM n; DELETE FROM t WHERE id>100;|SELECT count(*) FROM t;
