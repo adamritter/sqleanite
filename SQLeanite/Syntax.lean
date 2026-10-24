@@ -14,8 +14,9 @@ inductive BinaryOp where
   deriving Repr, DecidableEq
 
 inductive Expr where
-  /-- A parsed REAL token retains its original spelling for SQLite expression
-  identity. Evaluation uses the value; the token checker verifies the spelling. -/
+  /-- Numeric tokens retain non-compact source spellings for SQLite expression
+  identity and signed-literal preparation. The token checker verifies both
+  the spelling and its parsed value. -/
   | literal (value : Value) (spelling : Option String := none)
   | column (qualifier : Option String) (name : String)
   | star (qualifier : Option String := none)

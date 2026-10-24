@@ -1,4 +1,5 @@
 import SQLeanite.Syntax
+import SQLeanite.SQLite.NumericLiteral
 
 namespace SQLeanite
 
@@ -7,7 +8,7 @@ inductive Token where
   | ident (value : String)
   | quotedIdent (value source : String)
   | string (value : String)
-  | integer (value : Int)
+  | integer (value : Int) (source : Option String := none)
   | real (source : String)
   | symbol (value : String)
   | eof
@@ -18,7 +19,7 @@ def Token.render : Token → String
   | .ident s => s
   | .quotedIdent _ source => source
   | .string s => "'" ++ s ++ "'"
-  | .integer i => toString i
+  | .integer i source => source.getD (toString i)
   | .real s => s
   | .symbol s => s
   | .eof => "end of input"
@@ -69,6 +70,68 @@ structure LexStep where
   emitted : List Token
   rest : List Char
 
+private def numericTail (tail : List Char) : Except String Unit :=
+  if tail.head?.any isIdentRest then .error "unrecognized numeric token" else .ok ()
+
+/-- Numeric-token scanning preserves the spelling independently of its value.
+Separator validation is local to numeric literals, never string conversion. -/
+private def numericStep (input : List Char) : Except String LexStep := do
+  let digits (predicate : Char → Bool) (chars : List Char) :=
+    takeWhile (fun c => predicate c || c == '_') chars
+  let validate (predicate : Char → Bool) (chars : List Char) : Except String Unit :=
+    if SQLite.NumericLiteral.digitSeparators predicate false chars then .ok ()
+    else .error "unrecognized numeric separator"
+  match input with
+  | '0' :: marker :: rest =>
+      if marker == 'x' || marker == 'X' then
+        let hex (c : Char) := (hexDigit? c).isSome
+        let (raw, tail) := digits hex rest
+        unless raw.head?.any hex do throw "unrecognized hexadecimal token"
+        validate hex raw
+        numericTail tail
+        let clean := raw.filter (· != '_')
+        let some value := parseHexNat? clean | throw "invalid hexadecimal integer"
+        -- Oversized hex is an expression-preparation error. Keep its token
+        -- so zero-AND folding can discard an unused literal before admission.
+        let interpreted := if value < 18446744073709551616 then SQLite.NumericLiteral.signedHex value
+          else Int.ofNat value
+        return { emitted := [.integer interpreted
+          (some (String.ofList ('0' :: marker :: raw)))], rest := tail }
+      else decimal input digits validate
+  | _ => decimal input digits validate
+where
+  decimal (input : List Char)
+      (digits : (Char → Bool) → List Char → List Char × List Char)
+      (validate : (Char → Bool) → List Char → Except String Unit) : Except String LexStep := do
+    let (whole, rest) := digits Char.isDigit input
+    validate Char.isDigit whole
+    let (fraction, rest) := match rest with
+      | '.' :: rest =>
+          let (fraction, tail) := digits Char.isDigit rest
+          (some fraction, tail)
+      | _ => (none, rest)
+    if let some fraction := fraction then validate Char.isDigit fraction
+    unless !whole.isEmpty || fraction.any (fun chars => !chars.isEmpty) do
+      throw "numeric token has no digits"
+    let (exponent, tail) ← match rest with
+      | marker :: rest =>
+          if marker == 'e' || marker == 'E' then do
+            let (sign, rest) := match rest with
+              | sign :: tail => if sign == '+' || sign == '-' then ([sign], tail) else ([], rest)
+              | [] => ([], [])
+            let (exponent, tail) := digits Char.isDigit rest
+            unless exponent.head?.any Char.isDigit do throw "numeric exponent has no digits"
+            validate Char.isDigit exponent
+            pure (marker :: sign ++ exponent, tail)
+          else pure ([], marker :: rest)
+      | [] => pure ([], [])
+    numericTail tail
+    let source := String.ofList (whole ++ (fraction.map ('.' :: ·)).getD [] ++ exponent)
+    if fraction.isNone && exponent.isEmpty then
+      let some value := (SQLite.NumericLiteral.normalize source).toInt? | throw "invalid integer token"
+      return { emitted := [.integer value (some source)], rest := tail }
+    return { emitted := [.real source], rest := tail }
+
 private def parameterTokens : List Token :=
   [.ident "lean_unbound_parameter", .symbol "(", .symbol ")"]
 
@@ -111,40 +174,8 @@ def lexicalStep : List Char → Except String (Option LexStep)
       else if isIdentStart c then
         let (suffix, tail) := takeWhile isIdentRest rest
         pure (some ⟨[.ident (String.mk (c :: suffix))], tail⟩)
-      else if c == '0' && rest.head?.any (fun x => x == 'x' || x == 'X') then
-        let (digits, tail) :=
-          takeWhile (fun x => (hexDigit? x).isSome) rest.tail!
-        match parseHexNat? digits with
-        | some value => pure (some ⟨[.integer (Int.ofNat value)], tail⟩)
-        | none => throw "unrecognized token: hexadecimal integer"
       else if c.isDigit || (c == '.' && rest.head?.any Char.isDigit) then
-        let (whole, tail₁) := takeWhile (fun x => x.isDigit) rest
-        let numPrefix := c :: whole
-        let (fraction, tail₂) :=
-          match tail₁ with
-          | '.' :: after =>
-            let (digits, tail) := takeWhile (fun x => x.isDigit) after
-            ('.' :: digits, tail)
-          | _ => ([], tail₁)
-        let (exponent, tail₃) :=
-          match tail₂ with
-          | e :: after => if e == 'e' || e == 'E' then
-              match after with
-              | sign :: more => if sign == '+' || sign == '-' then
-                  let (digits, tail) := takeWhile (fun x => x.isDigit) more
-                  (e :: sign :: digits, tail)
-                else
-                  let (digits, tail) := takeWhile (fun x => x.isDigit) after
-                  (e :: digits, tail)
-              | [] => ([e], [])
-            else ([], tail₂)
-          | [] => ([], [])
-        let source := String.mk (numPrefix ++ fraction ++ exponent)
-        if fraction.isEmpty && exponent.isEmpty then
-          match source.toInt? with
-          | some i => pure (some ⟨[.integer i], tail₃⟩)
-          | none => throw s!"invalid integer: {source}"
-        else pure (some ⟨[.real source], tail₃⟩)
+        some <$> numericStep (c :: rest)
       else if c == '#' then
         let (suffix, tail) := takeWhile isIdentRest rest
         pure (some ⟨[.symbol (String.mk (c :: suffix))], tail⟩)

@@ -1602,3 +1602,55 @@ that REAL syntax identity compares the stored spellings; they are component
 properties, not a proof of complete SQLite expression equivalence. Native code
 and its nine-binding audit boundary are unchanged. Reports use
 `sqlite-literal-spelling-*20261024.json` under `docs/validation/`.
+
+
+## Numeric token syntax and signed hexadecimal boundaries (2026-10-24)
+
+The numeric scanner now accepts a single underscore between adjacent decimal
+or hexadecimal digits and rejects malformed separators, incomplete exponents
+and identifier text attached to a number. Hexadecimal values within 64 bits
+use signed two's-complement interpretation; insignificant leading zeros do not
+count against that range. Numeric tokens retain their spelling, and the AST
+retains the normalized spelling except for SQLite's compact positive 31-bit
+integers. REAL identity still distinguishes spellings after underscores are
+removed. Large integer identity now preserves those distinctions as well.
+Stored-string CAST and numeric coercion continue to use their own rules.
+
+Literal preparation preserves the decimal signed INTEGER minimum, including
+parentheses and unary plus. A directly negated minimum hexadecimal literal is
+rejected before evaluation, while a COLLATE-wrapped operand uses ordinary
+runtime subtraction. The independent token checker verifies normalized spelling,
+parsed value and numeric storage class; a forged REAL for a small INTEGER token
+is rejected. Literal-value and source-spelling consistency guards the signed
+minimum special case. Source metadata is therefore relevant to numeric-literal
+preparation as well as expression identity.
+
+Initial seed 353780 at source
+`a2b4018acd65cfddaa1f9bdb2f1a573382b00fe413d29202a93c1ea3074297b6`
+recorded 656 differences in 950 outcomes. The first large checkpoint passed
+5,358 outcomes, but a subsequent independent preparation probe found that
+`0 AND 0x10000000000000000` was rejected too early. SQLite folds that unused
+literal away before reporting its range error. The two file-mode failures in
+the eight-case probe are retained, along with the earlier passing checkpoint;
+range rejection now occurs after expression preparation. Malformed numeric
+syntax still fails lexically, and an oversized LIMIT/OFFSET hex token is rejected.
+
+Final source is
+`231e5c80c96573542e5e41dd8d31d5193dd659d25d84e41dbf6e73234117dcee`.
+Fresh seed 353784 passes **all 5,368 read outcomes**, including **84 matching
+errors**, plus **eight write scenarios**. After each write, the harness compares
+typed/quoted stored values and SQLite independently runs integrity_check on the
+Lean database. Reads preserve main/WAL bytes. Error matching checks ordinary
+positive status, not diagnostics or exact SQLite error codes. Fresh seed 353785
+passes all 2,672 literal-spelling outcomes, including 1,810 matching errors.
+The existing fixed scalar regression passes 1,121 cases plus six matching errors,
+with storage classes, binary64 bits and raw TEXT/BLOB comparisons.
+
+The complete 264-job build, all 200 executable tests, 1,051 registered headline
+theorems, verification audit and live-path checks pass. New component proofs
+bound signed hexadecimal interpretation, characterize its two halves, reject
+a trailing separator, and cover the two signed-minimum preparation rules.
+They do not prove complete tokenizer or SQLite equivalence. These bounded
+corpus results do not establish SQLite-wide compatibility. Native code and its
+nine-binding audit boundary are unchanged. Reports use
+`sqlite-numeric-literal-*20261024.json` under `docs/validation/`.

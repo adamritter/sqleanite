@@ -78,6 +78,10 @@ def normalizeFuel (ctx : Option CoreExpr.Context) : Nat → Expr → Expr
           match ctx.bind (fun c => c.column? qualifier name) with
           | some index => .column none (toString index)
           | none => .column (qualifier.map String.toLower) name.toLower
+      | .unary .neg (.literal (.real value) (some spelling)) =>
+          if value == 9223372036854775808.0 && spelling.toInt? == some 9223372036854775808 then
+            .literal (.integer (-9223372036854775808)) (some ("-" ++ spelling))
+          else .unary .neg (.literal (.real value) (some spelling))
       | .unary op arg => .unary op (norm arg)
       | .binary op left right => .binary op (norm left) (norm right)
       | .call name args star => .call name.toLower (args.map norm) star

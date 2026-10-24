@@ -1,0 +1,148 @@
+{
+  "implementation_sha256": "ceb22cb1a498f760a20202c18e85c7a2d0a00310a874eb793cff635bf347fc1a",
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AND 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0x10000000000000000 WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 0x10000000000000000 WHERE 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0x10000000000000000 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 0x10000000000000000 LIMIT 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 LIMIT 0 OFFSET 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 1 LIMIT 0 OFFSET 0x10000000000000000;\n                          ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AND 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0x10000000000000000 WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 0x10000000000000000 WHERE 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0x10000000000000000 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 0x10000000000000000 LIMIT 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 LIMIT 0 OFFSET 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: hex literal too big: 0x10000000000000000\n  SELECT 1 LIMIT 0 OFFSET 0x10000000000000000;\n                          ^--- error here\n"
+      }
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AND 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AND 0x10000000000000000;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: hex literal too big\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

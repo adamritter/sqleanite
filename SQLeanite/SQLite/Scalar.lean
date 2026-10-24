@@ -412,9 +412,19 @@ def scalarFunctionName (name : String) : String :=
   if isDistinctAggregateName name && base.startsWith "cast_" then name.toLower
   else base
 
+/-- A directly negated minimum hex literal is a preparation error in SQLite.
+Unary plus is skipped; COLLATE and arithmetic form ordinary runtime operands. -/
+def minimumHexLiteral : Expr → Bool
+  | .literal (.integer value) (some source) =>
+      value == Numeric.minInt && source.toLower.startsWith "0x"
+  | .unary .plus expression => minimumHexLiteral expression
+  | _ => false
+
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
+  | .literal (.real _) (some source) => source.toLower.startsWith "0x"
+  | .unary .neg expression => minimumHexLiteral expression
   | .literal _ _ | .unary _ _ | .isNull _ _ | .collate .. => false
   | .case_ base branches _ => base.any fun base =>
       branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
@@ -543,6 +553,17 @@ def minmaxWith (kind : Collation.Kind) (maximum : Bool) (first : Value) (rest : 
     let order := ExprCollation.compare kind best value
     if (if maximum then order == .lt else order != .lt) then value else best) first
 
+/-- Code-generation negation of a numeric literal preserves REAL negative
+zero and the decimal spelling of the signed INTEGER minimum. Unary plus is
+transparent here, while other expression forms use runtime subtraction. -/
+def negatedLiteral? : Expr → Option Value
+  | .literal (.real value) spelling =>
+      if value == 9223372036854775808.0 && spelling.any (fun source => source.toInt? == some 9223372036854775808) then
+        some (.integer Numeric.minInt)
+      else some (realResult (-value))
+  | .unary .plus expression => negatedLiteral? expression
+  | _ => none
+
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
 def evalFuelWithConstants (lookup : Option String → String → Except String Value)
@@ -556,7 +577,10 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
     | .collate argument _ => eval argument
     -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
     -- is used for other operands; only the literal case preserves -0.0.
-    | .unary .neg (.literal (.real r) _) => .ok (realResult (-r))
+    | .unary .neg argument =>
+        match negatedLiteral? argument with
+        | some value => .ok value
+        | none => unary .neg <$> eval argument
     | .unary op arg => unary op <$> eval arg
     | .binary op a b => do
         if op == .and || op == .or then
@@ -675,7 +699,21 @@ theorem evalWith_literal (lookup : Option String → String → Except String Va
     (operandAffinity : Expr → Option Affinity) (value : Value) :
     evalWith lookup operandAffinity (.literal value) = .ok value := rfl
 
-/-- Source spelling participates in syntax identity only, never scalar arithmetic. -/
+/-- The oversized negated hexadecimal literal is rejected before evaluation. -/
+theorem forbidden_negated_minimum_hex (source : String)
+    (hex : source.toLower.startsWith "0x" = true) :
+    forbidden (.unary .neg (.literal (.integer Numeric.minInt) (some source))) = true := by
+  simp [forbidden, minimumHexLiteral, hex]
+
+theorem negatedLiteral_decimal_minimum (value : Float) (source : String)
+    (magnitude : (value == 9223372036854775808.0) = true)
+    (integerToken : (source.toInt? == some 9223372036854775808) = true) :
+    negatedLiteral? (.literal (.real value) (some source)) =
+      some (.integer Numeric.minInt) := by
+  simp [negatedLiteral?, magnitude, integerToken]
+
+/-- Reading a literal itself uses its value, irrespective of source spelling. -/
+
 theorem evalWith_literal_spelling (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (value : Value) (spelling : Option String) :
     evalWith lookup operandAffinity (.literal value spelling) = .ok value := rfl

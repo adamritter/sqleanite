@@ -1170,3 +1170,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.evalWith_literal_spelling
 #print axioms SQLeanite.CoreCompoundTail.sameFuel_real_spelling
+
+#print axioms SQLeanite.SQLite.NumericLiteral.signedHex_bounds
+#print axioms SQLeanite.SQLite.NumericLiteral.signedHex_low
+#print axioms SQLeanite.SQLite.NumericLiteral.signedHex_high
+#print axioms SQLeanite.SQLite.NumericLiteral.digitSeparators_trailing
+#print axioms SQLeanite.SQLite.Scalar.forbidden_negated_minimum_hex
+#print axioms SQLeanite.SQLite.Scalar.negatedLiteral_decimal_minimum

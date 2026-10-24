@@ -1,0 +1,47 @@
+{
+  "implementation_sha256": "231e5c80c96573542e5e41dd8d31d5193dd659d25d84e41dbf6e73234117dcee",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "log_sha256": "03b4e3e93724a81f23fd565252f6bf85d886a143ed4baeece98a4974258763bf",
+      "tail": [
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [263/264] Built Tests:c.o (11s)",
+        "\u2714 [264/264] Built sqleanite_tests:exe (380ms)",
+        "Build completed successfully (264 jobs)."
+      ]
+    },
+    "unit_tests": {
+      "exit_code": 0,
+      "log_sha256": "a37394d8fe3a6df90083f4479f0fc8e01704f1f46014564c3b0e6633ac88e330",
+      "tail": [
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "200 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "log_sha256": "804eebbbaa4b63a76b0b6fcc90042c14cbdad347ef2e78c9da7bfa5c84071c54",
+      "tail": [
+        "ok - C sqlite3 accepts a Lean-written file",
+        "ok - page-directed indexed DELETE is integrity-check clean",
+        "ok - page-directed indexed INSERT is integrity-check clean",
+        "ok - read-only writes produce an ordinary SQLite-style diagnostic",
+        "ok - corrupt input rejection is a normal diagnostic, not a crash"
+      ]
+    }
+  }
+}

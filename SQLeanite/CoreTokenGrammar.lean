@@ -119,17 +119,17 @@ private def expectConflict : ConflictAction → MatchM Unit
   | .default => mismatch "an explicit conflict action"
 
 private def expectInteger (expected : Int) : MatchM Unit := do
-  if expected < 0 then
-    expectSymbol "-"
-    match ← advance with
-    | .integer found =>
-        unless found == -expected do mismatch s!"integer {expected}"
-    | _ => mismatch s!"integer {expected}"
-  else
-    match ← advance with
-    | .integer found =>
-        unless found == expected do mismatch s!"integer {expected}"
-    | _ => mismatch s!"integer {expected}"
+  match ← peek with
+  | .integer found _ =>
+      discard advance
+      unless found == expected do mismatch s!"integer {expected}"
+  | _ =>
+      unless expected < 0 do mismatch s!"integer {expected}"
+      expectSymbol "-"
+      match ← advance with
+      | .integer found _ =>
+          unless found == -expected do mismatch s!"integer {expected}"
+      | _ => mismatch s!"integer {expected}"
 
 private def expectNat (expected : Nat) : MatchM Unit :=
   expectInteger (Int.ofNat expected)
@@ -142,9 +142,12 @@ private def limitValue : MatchM (Option Int) := do
   let negative ← acceptSymbol "-"
   unless negative do discard <| acceptSymbol "+"
   match ← advance with
-  | .integer found => return some (if negative then -found else found)
+  | .integer found source =>
+      if source.any (fun s => s.toLower.startsWith "0x") && found ≥ 18446744073709551616 then
+        mismatch "a hexadecimal literal fitting 64 bits"
+      return some (if negative then -found else found)
   | .real source =>
-      unless (parseDecimal? source).isSome do mismatch "a numeric LIMIT/OFFSET literal"
+      unless (parseDecimal? (SQLite.NumericLiteral.normalize source)).isSome do mismatch "a numeric LIMIT/OFFSET literal"
       return none
   | .string _ => return none
   | .ident name =>
@@ -222,11 +225,11 @@ private def expectLiteral : Value → MatchM Unit
   | .real value => do
       match ← advance with
       | .real source =>
-          match parseDecimal? source with
+          match parseDecimal? (SQLite.NumericLiteral.normalize source) with
           | some found => unless found == value do mismatch "the parsed REAL literal"
           | none => mismatch "a REAL literal"
-      | .integer source =>
-          unless Float.ofInt source == value do mismatch "the parsed REAL literal"
+      | .integer source _ =>
+          unless source > 9223372036854775807 && Float.ofInt source == value do mismatch "the parsed REAL literal"
       | _ => mismatch "a REAL literal"
   | .text value => do
       match ← advance with
@@ -235,15 +238,23 @@ private def expectLiteral : Value → MatchM Unit
   | .textBytes _ => mismatch "a source literal (raw TEXT requires CAST)"
   | .blob value => expectSource (toString (Value.blob value))
 
-/-- The parser's REAL spelling is independently checked against the original
-significant token. Dropping or changing it cannot forge expression identity. -/
+/-- Numeric spelling is checked independently against the original token,
+including SQLite's removal of digit separators and its compact integer form.
+Dropping or changing the retained spelling cannot forge expression identity. -/
 private def expectLiteralSpelling (value : Value) (spelling : Option String) : MatchM Unit := do
-  match spelling, value, ← peek with
-  | some expected, .real _, .real actual =>
-      unless expected == actual do mismatch "the original REAL token spelling"
-  | none, .real _, .real _ => mismatch "preserved REAL token spelling"
-  | none, _, _ => pure ()
-  | _, _, _ => mismatch "a REAL token carrying its original spelling"
+  let expected ← match ← peek with
+    | .real source => pure (some (SQLite.NumericLiteral.normalize source))
+    | .integer value source => pure (SQLite.NumericLiteral.integerSpelling value (source.getD (toString value)))
+    | .symbol "-" =>
+        let tail := (nextSignificant (← get).remaining).2
+        match (nextSignificant tail).1, value with
+        | .integer magnitude source, .integer integer =>
+            if magnitude == 9223372036854775808 && integer == -9223372036854775808 then
+              pure (some ("-" ++ SQLite.NumericLiteral.normalize (source.getD (toString magnitude))))
+            else pure none
+        | _, _ => pure none
+    | _ => pure none
+  unless spelling == expected do mismatch "the normalized numeric token spelling"
   expectLiteral value
 
 mutual

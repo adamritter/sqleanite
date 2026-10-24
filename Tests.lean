@@ -4403,6 +4403,41 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteNumericLiterals : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 0xFFFFFFFFFFFFFFFF,0x8000000000000000,0x7FFFFFFFFFFFFFFF,0x80000000;",
+      [[.integer (-1), .integer (-9223372036854775808), .integer 9223372036854775807, .integer 2147483648]]),
+    ("SELECT 1_000,1_0.0_5,0xA_B,1e1_0;", [[.integer 1000, .real 10.05, .integer 171, .real 10000000000.0]]),
+    ("SELECT 0 AND 0x10000000000000000,0x10000000000000000 AND 0;", [[.integer 0, .integer 0]]),
+    ("SELECT -0xffffffffffffffff,~0xffffffffffffffff;", [[.integer 1, .integer 0]]),
+    ("SELECT 0x0000000000000000000000FFFFFFFFFFFFFFFF;", [[.integer (-1)]]),
+    ("SELECT -(9223372036854775808),typeof(-(9223372036854775808));", [[.integer (-9223372036854775808), .text "integer"]]),
+    ("SELECT -(+9223372036854775808),typeof(-(+9223372036854775808));", [[.integer (-9223372036854775808), .text "integer"]]),
+    ("SELECT -(0x8000000000000000 COLLATE BINARY);", [[.real 9223372036854775808.0]]),
+    ("SELECT 1_0.0 UNION ALL SELECT 2 ORDER BY 10.0;", [[.integer 2], [.real 10.0]]),
+    ("SELECT 214748364_8 UNION ALL SELECT 2 ORDER BY 2147483648;", [[.integer 2], [.integer 2147483648]]),
+    ("SELECT 0xFFFFFFFFFFFFFFFF LIMIT 0xFFFFFFFFFFFFFFFF;", [[.integer (-1)]]),
+    ("SELECT CAST('0xffff' AS INTEGER),CAST('1_000' AS INTEGER);", [[.integer 0, .integer 1]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"numeric literal: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"numeric literal mismatch: {sql}"
+  for sql in ["SELECT 1__0;", "SELECT 1._0;", "SELECT 0x_1;", "SELECT 0x1g;",
+      "SELECT 0x10000000000000000;", "SELECT 0x10000000000000000 LIMIT 0;",
+      "SELECT 1 LIMIT 0 OFFSET 0x10000000000000000;", "SELECT -0x8000000000000000 LIMIT 0;",
+      "SELECT -(+0x8000000000000000);", "SELECT CASE WHEN 0 THEN -0x8000000000000000 ELSE 1 END;",
+      "SELECT 1e+;", "SELECT 123abc;", "SELECT 2147483648 UNION SELECT 2 ORDER BY 02147483648;"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"numeric literal error omitted: {sql}"
+  let tokens ← match lex "SELECT 1;" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  let wrong : Array Statement := #[.select { columns := #[{ expr := .literal (.real 1.0) }] }]
+  if (CoreTokenGrammar.check tokens wrong).isOk then fail "numeric token checker changed INTEGER storage class"
+
 private def expectSQLiteLiteralSpelling : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("SELECT 1.0 UNION ALL SELECT 2 ORDER BY 1.0;", [[.real 1.0], [.integer 2]]),
@@ -5099,6 +5134,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite numeric literal syntax and signed boundaries", expectSQLiteNumericLiterals),
   ("SQLite literal spelling and certified identity", expectSQLiteLiteralSpelling),
   ("SQLite compound ORDER BY and LIMIT", expectSQLiteCompoundTails),
   ("SQLite compound result collations", expectSQLiteCompoundCollations),

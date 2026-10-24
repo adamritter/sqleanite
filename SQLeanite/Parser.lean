@@ -254,10 +254,11 @@ mutual
         -- The negative Int64 endpoint is the one signed literal whose
         -- unsigned magnitude does not fit in a positive Int64.
         match ← peek with
-        | .integer i =>
+        | .integer i source =>
           if i == 9223372036854775808 then
             discard <| advance
-            pure (.literal (.integer (-9223372036854775808)))
+            pure (.literal (.integer (-9223372036854775808))
+              (some ("-" ++ SQLite.NumericLiteral.normalize (source.getD (toString i)))))
           else pure (.unary .neg (← parseUnaryFuel fuel))
         | _ => pure (.unary .neg (← parseUnaryFuel fuel))
       else if ← acceptSymbol "~" then pure (.unary .bitNot (← parseUnaryFuel fuel))
@@ -299,12 +300,13 @@ mutual
     | 0 => throw "parser stack overflow"
     | fuel + 1 => do
       match ← advance with
-      | .integer i =>
-        if i <= 9223372036854775807 then pure (.literal (.integer i))
-        else pure (.literal (.real (Float.ofInt i)))
+      | .integer i source =>
+        let spelling := SQLite.NumericLiteral.integerSpelling i (source.getD (toString i))
+        if i <= 9223372036854775807 then pure (.literal (.integer i) spelling)
+        else pure (.literal (.real (Float.ofInt i)) spelling)
       | .real s =>
-        match parseDecimal? s with
-        | some f => pure (.literal (.real f) (some s))
+        match parseDecimal? (SQLite.NumericLiteral.normalize s) with
+        | some f => pure (.literal (.real f) (some (SQLite.NumericLiteral.normalize s)))
         | none => throw s!"invalid real number {s}"
       | .string s => pure (.literal (.text s))
       | .symbol "*" => pure (.star)
@@ -387,7 +389,7 @@ private def parseUnary : ParserM Expr :=
   parseUnaryFuel (Nat.succ parserExpressionDepth)
 
 private def constantInt? : Expr → Option Int
-  | .literal (.integer value) => some value
+  | .literal (.integer value) _ => some value
   | .call "__sqlean_boolean_true" #[] false => some 1
   | .call "__sqlean_boolean_false" #[] false => some 0
   | .unary .plus expr => constantInt? expr
