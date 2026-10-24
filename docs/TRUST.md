@@ -1853,3 +1853,15 @@ two incorrect UNION outputs. These are outstanding implementation gaps, not
 excluded passing cases. Stored column collations, collated indexes and UTF-16
 remain separate boundaries. See the port report for source hashes and the
 aggregate-slot negative that motivated preserving collation after lowering.
+
+
+### Collated group execution boundary (2026-10-24)
+
+The live `CoreCollatedGroup` path has membership and width proofs and a
+zero-LIMIT lemma; its CoreSQL wrapper preserves state. Fresh execution evidence
+covers original representatives, multiple column keys, exact numeric equality
+and aggregate finalization around LIMIT/OFFSET. Final comparison matches
+1,254 of 1,258 cases and retains grouped ORDER BY/HAVING rejections. The earlier
+six explicit-column GROUP BY mismatches are closed; NOCASE UNION remains a
+separate incorrect-result boundary. The prior BINARY read and compound
+refinement theorems continue to compile without additional assumptions.

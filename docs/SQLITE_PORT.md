@@ -1443,3 +1443,44 @@ Reports use `sqlite-scalar-collation-*20261024.json` and
 `sqlite-aggregate-collation-negative-20261024.json` under `docs/validation/`.
 The new selector and text self-comparison lemmas are component properties;
 they are not a proof of full SQLite expression equivalence.
+
+
+## Collated column groups and bounded finalization (2026-10-24)
+
+`CoreCollatedGroup` adds one- and multi-column grouping under explicit BINARY,
+NOCASE and RTRIM. Group comparison uses original values, including raw TEXT,
+NULL and exact INTEGER/REAL equivalence. Key enumeration preserves a first
+source representative; the existing last-unique-min/max rule independently
+selects the original row used for bare group-key outputs. Count, sum, average,
+total and plain-column extrema run over all rows of the collated group.
+Source predicates can use the row-expression evaluator. The existing proved
+BINARY Core route remains in use for its directly translated shape.
+
+LIMIT bounds the groups whose aggregates are finalized. OFFSET skips only
+after finalization, so an overflowing skipped group still fails while an
+excluded group after the LIMIT does not. LIMIT 0 validates names, collations
+and output shapes without evaluating inputs. This extension does not yet add
+general GROUP BY expressions, grouped result templates, aggregate-argument
+COLLATE, grouped DISTINCT, ORDER BY or HAVING.
+
+Seed 353740 at source
+`31e1f4a94d813ace2235c4140b9b15ac9d1151c79f0eccb286d5606764de0aa7`
+recorded 322 differences in 328 outcomes. Fresh final seed 353742 at source
+`1483986d381a67d52e16c5e5e4f0dd6b666c9da74508dabe12bcc169b903263e`
+matches **1,254 of 1,258 outcomes**, including 12 matching errors. Four retained
+failures are grouped ORDER BY and HAVING, each in both file modes. The harness
+still exits nonzero. The eight-case scalar collation boundary from the prior
+checkpoint is reduced to the two NOCASE UNION failures: fresh seed 353743
+matches **2,958 of 2,960 outcomes**, with 30 matching errors and six writes.
+The six earlier GROUP BY failures now pass. None of these counts measures
+SQLite-wide coverage. Read queries preserve main/WAL bytes; matching errors
+compare ordinary exit status, not diagnostics.
+
+Fresh seed 353744 passes 916 aggregate-result regression outcomes, including
+180 matching errors. The complete 258-job build, all 196 executable tests,
+1,029 registered headline theorems, verification audit and live-path checks
+pass. New proofs establish source-row membership, emitted width, zero-LIMIT
+behavior and state preservation; they do not prove full SQLite group semantics.
+The current group enumeration is not claimed to have SQLite's asymptotic
+performance. Native code and its nine-binding audit boundary are unchanged.
+Reports use `sqlite-group-collation-*20261024.json` under `docs/validation/`.

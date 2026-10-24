@@ -4403,6 +4403,39 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteCollatedGroups : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,n); INSERT INTO t VALUES(1,'a',3),(2,'A',1),(3,'a ',2),(4,'B',4),(5,NULL,NULL),(6,NULL,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE;",
+      [[.null, .integer 2], [.text "a", .integer 2], [.text "a ", .integer 1], [.text "B", .integer 1]]),
+    ("SELECT v,min(n) FROM t GROUP BY v COLLATE NOCASE;",
+      [[.null, .null], [.text "A", .integer 1], [.text "a ", .integer 2], [.text "B", .integer 4]]),
+    ("SELECT v,max(n),min(n),max(n) FROM t GROUP BY v COLLATE NOCASE LIMIT 1 OFFSET 1;",
+      [[.text "A", .integer 3, .integer 1, .integer 3]]),
+    ("SELECT v COLLATE NOCASE,count(*) FROM t WHERE v COLLATE NOCASE='a' GROUP BY v COLLATE NOCASE;",
+      [[.text "a", .integer 2]]),
+    ("SELECT v,count(*) FROM t GROUP BY v COLLATE RTRIM LIMIT 1 OFFSET 3;", [[.text "a", .integer 2]]),
+    ("SELECT v,sum(n) FROM t GROUP BY v COLLATE NOCASE LIMIT 0;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"collated group: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"collated group mismatch: {sql}"
+  let huge := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,n);INSERT INTO t VALUES(1,'a',9223372036854775807),(2,'A',1),(3,'b',0),(4,'c',9223372036854775807),(5,'C',1);"
+  for sql in ["SELECT v,sum(n) FROM t GROUP BY v COLLATE NOCASE LIMIT 0;",
+      "SELECT v,sum(n) FROM t WHERE id>2 GROUP BY v COLLATE NOCASE LIMIT 1;"] do
+    match CoreSQL.execute Core.State.empty (huge ++ sql) with
+    | .error message => fail s!"group LIMIT evaluated excluded accumulator: {message}"
+    | .ok _ => pure ()
+  for sql in ["SELECT v,sum(n) FROM t GROUP BY v COLLATE NOCASE LIMIT 1 OFFSET 1;",
+      "SELECT v,count(*) FROM t GROUP BY v COLLATE missing LIMIT 0;"] do
+    match CoreSQL.execute Core.State.empty (huge ++ sql) with
+    | .ok _ => fail "group OFFSET/metadata omitted required error"
+    | .error _ => pure ()
+
 private def expectSQLiteExpressionCollations : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,txt TEXT); INSERT INTO t VALUES(1,'a',1),(2,'A',2),(3,'a ',3),(4,NULL,4);"
   let cases : List (String × List (List Value)) := [
@@ -4956,6 +4989,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
+  ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

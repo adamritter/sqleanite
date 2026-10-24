@@ -1,0 +1,83 @@
+{
+  "seed": 353743,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1477,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 250,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "aggregate-and-binding-edges": 12,
+        "unknown-collation": 36
+      },
+      "matching_errors": 15,
+      "writes": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1477,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 250,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "aggregate-and-binding-edges": 12,
+        "unknown-collation": 36
+      },
+      "matching_errors": 15,
+      "writes": 3
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "group": "compound",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "compound",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "1483986d381a67d52e16c5e5e4f0dd6b666c9da74508dabe12bcc169b903263e",
+  "executable_sha256": "5d65debff3312a2cd3c60de0a4d595835d3fd555f969c67dafb779182f032ea9",
+  "harness_sha256": "c936abb20569cab6aec54cab76003fdb3ca2e3f598f9c1d3c2addc6fc5d645a1",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare explicit expression collations with pinned SQLite through both live\nfile modes. Exact CLI bytes or ordinary error status are compared; every\nmismatch is retained. Read-only queries must preserve main/WAL bytes."
+}

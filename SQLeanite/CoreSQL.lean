@@ -6,6 +6,7 @@ import SQLeanite.CoreExpr
 import SQLeanite.CoreOrder
 import SQLeanite.CoreAggregate
 import SQLeanite.CoreCompound
+import SQLeanite.CoreCollatedGroup
 
 namespace SQLeanite
 namespace CoreSQL
@@ -1220,13 +1221,58 @@ theorem executeAggregateSelect_preserves_state {state : Core.State} {select : Se
       cases success
       rfl
 
+/-- The ordinary grouped Core path remains authoritative for its BINARY
+column shape. This path adds explicit collation metadata to the same outputs. -/
+def collatedGroupResult (select : Select) (source : TableRef) (stored : Core.Table) :
+    Except String (Core.Result × Nat) := do
+  unless !select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
+      select.orderBy.isEmpty do
+    unsupported "collated GROUP BY shape"
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let terms ← select.groupBy.toList.mapM fun expression => do
+    let expression := ctx.bindNames expression
+    let index ← match SQLite.ExprCollation.strip expression with
+      | .column qualifier name => match ctx.column? qualifier name with
+          | some index => pure index
+          | none => throw "no such grouped column"
+      | _ => unsupported "GROUP BY expression"
+    let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.kind? expression)
+    return (index, kind)
+  let groups := terms.map (·.1)
+  let outputs ← groupOutputs stored.schema groups (select.columns.toList.map fun result =>
+    { result with expr := SQLite.ExprCollation.strip result.expr })
+  let _ ← select.where_.mapM ctx.validate
+  if select.limit == some 0 then return ({}, outputs.length)
+  unless ← ctx.constantMatches select.where_ do return ({}, outputs.length)
+  let rows ← stored.rows.filterM (fun row => ctx.matches row.values select.where_)
+  let query : Core.GroupQuery := { groupBy := groups, outputs }
+  let result ← CoreCollatedGroup.evalWindow query (terms.map (·.2)) rows select.offset select.limit
+  return ({ rows := result }, outputs.length)
+
+def executeCollatedGroup (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> collatedGroupResult select source stored
+
+theorem executeCollatedGroup_preserves_state {state : Core.State} {select : Select}
+    {source : TableRef} {stored : Core.Table} {execution : SelectExecution}
+    (success : executeCollatedGroup state select source stored = .ok execution) :
+    execution.state = state := by
+  unfold executeCollatedGroup at success
+  cases result : collatedGroupResult select source stored with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
+
 /-- Scalar and aggregate projections share bound Core source rows. A recognized
 aggregate anywhere in a result expression selects the aggregate evaluator;
 aggregate arguments and scalar output templates bind before evaluation. -/
 def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) (_wherePredicate : Option Core.Predicate) :
     Except String SelectExecution :=
-  if select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) then
+  if !select.groupBy.isEmpty then executeCollatedGroup state select source stored
+  else if select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) then
     executeAggregateSelect state select source stored
   else executeFilteredSelect state select source stored
 
@@ -1273,15 +1319,17 @@ def executeSelectBase (state : Core.State) (select : Select) :
     | .ok wherePredicate => do
       if !select.groupBy.isEmpty then
         if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
-          unsupported "grouped DISTINCT, ORDER BY, or LIMIT"
+          executeCollatedGroup state select source stored
         else
-          let groups ← groupColumns stored.schema select.groupBy.toList
-          let query : Core.GroupQuery := {
-            groupBy := groups
-            outputs := ← groupOutputs stored.schema groups select.columns.toList
-            predicate := wherePredicate }
-          let (next, result) ← Core.execute state (.group tableName query)
-          return ⟨next, result, query.outputs.length⟩
+          match groupColumns stored.schema select.groupBy.toList with
+          | .error _ => executeCollatedGroup state select source stored
+          | .ok groups =>
+              match groupOutputs stored.schema groups select.columns.toList with
+              | .error _ => executeCollatedGroup state select source stored
+              | .ok outputs => do
+                  let query : Core.GroupQuery := { groupBy := groups, outputs, predicate := wherePredicate }
+                  let (next, result) ← Core.execute state (.group tableName query)
+                  return ⟨next, result, query.outputs.length⟩
       else
         match ← countTarget? stored.schema select.columns.toList,
             ← sumColumn? stored.schema select.columns.toList,

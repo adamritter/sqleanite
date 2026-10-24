@@ -1143,3 +1143,11 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.ExprCollation.name_collate
 #print axioms SQLeanite.SQLite.ExprCollation.compare_text_self
+
+#print axioms SQLeanite.CoreCollatedGroup.keys_subset
+#print axioms SQLeanite.CoreCollatedGroup.members_subset
+#print axioms SQLeanite.CoreCollatedGroup.representative_mem
+#print axioms SQLeanite.CoreCollatedGroup.emit_width
+#print axioms SQLeanite.CoreSQL.executeCollatedGroup_preserves_state
+
+#print axioms SQLeanite.CoreCollatedGroup.evalWindow_limit_zero

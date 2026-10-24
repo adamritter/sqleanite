@@ -89,7 +89,7 @@ abbrev collationNameFuel := SQLite.ExprCollation.nameFuel
 
 /-- Erase metadata only through operations whose values do not depend on a
 collation. Comparisons, IN, CASE and scalar min/max/nullif retain their nested
-wrappers and still require a future collation-aware scalar evaluator. -/
+wrappers for the collation-aware scalar evaluator. -/
 def keyExpressionFuel : Nat → Expr → Expr
   | 0, expression => expression
   | fuel + 1, expression =>

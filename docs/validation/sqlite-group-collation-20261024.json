@@ -1,0 +1,79 @@
+{
+  "seed": 353742,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 629,
+      "matching_errors": 6
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 629,
+      "matching_errors": 6
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE ORDER BY v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|4\n1|2\nA|7\nA  |4\nB|9\na|7\na |4\n\u00c3\u0081|2\n\u00c3\u00a1|3\n\u00ffA|5\nA|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE HAVING count(*)>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4\n1|2\na|7\nA|7\na |4\nA  |4\nB|9\n\u00c3\u0081|2\n\u00c3\u00a1|3\n\u00ffA|5\nA|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE ORDER BY v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|4\n1|2\nA|7\nA  |4\nB|9\na|7\na |4\n\u00c3\u0081|2\n\u00c3\u00a1|3\n\u00ffA|5\nA|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE HAVING count(*)>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4\n1|2\na|7\nA|7\na |4\nA  |4\nB|9\n\u00c3\u0081|2\n\u00c3\u00a1|3\n\u00ffA|5\nA|4\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "1483986d381a67d52e16c5e5e4f0dd6b666c9da74508dabe12bcc169b903263e",
+  "executable_sha256": "5d65debff3312a2cd3c60de0a4d595835d3fd555f969c67dafb779182f032ea9",
+  "harness_sha256": "c71e10232e5e84d1b1eb6cf9c6fe4a9e8399ee857daea4ede60d253af0e5bf48",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare collated column grouping, aggregate values and representative rows.\nUses fresh seeded tables in both production modes, exact CLI bytes, and verifies\nthat all read queries preserve database and WAL bytes. Every mismatch is kept."
+}
