@@ -441,18 +441,22 @@ def updateAssignments (schema : Core.Schema) :
 
 /-- Resolve every UPDATE name even when the row set is empty. SQLite uses
 only the last assignment to a repeated target; earlier expressions are still
-bound, but are not evaluated. Primary-key mutation remains outside this path. -/
-def expressionAssignments (ctx : CoreExpr.Context) : List (String × Expr) →
+bound, but are not evaluated. Rowid changes use a separate delete/insert trace;
+a declared non-rowid key still needs its own constraint implementation. -/
+def expressionAssignmentsWith (allowRowid : Bool) (ctx : CoreExpr.Context) : List (String × Expr) →
     Except String (List (Nat × Expr))
   | [] => .ok []
   | (name, expression) :: rest => do
       let index ← column ctx.schema name
       ctx.validate expression
-      let remaining ← expressionAssignments ctx rest
+      let remaining ← expressionAssignmentsWith allowRowid ctx rest
       if remaining.any (fun next => next.1 == index) then return remaining
-      if index = ctx.schema.primaryKey || index = ctx.schema.declaredPrimaryKey then
-        throw "updating the PRIMARY KEY is outside the verified MVP"
+      if (index = ctx.schema.primaryKey || index = ctx.schema.declaredPrimaryKey) &&
+          !(allowRowid && index = ctx.schema.primaryKey) then
+        throw "updating the declared PRIMARY KEY is outside this path"
       return (index, expression) :: remaining
+
+def expressionAssignments (ctx : CoreExpr.Context) := expressionAssignmentsWith false ctx
 
 /-- All RHS expressions read the same original row; affinity is applied only
 to each completed value. No earlier assignment changes a later RHS binding. -/
@@ -480,6 +484,67 @@ def rowUpdateCommands (tableName : String) (ctx : CoreExpr.Context)
       let commands ← rowUpdateCommands tableName ctx assignments condition rows
       return .updateWhere tableName updates
         (some (.equal ctx.schema.primaryKey (.integer row.rowid))) :: commands
+
+/-- One logical rowid update compiles to a deletion and an insertion. The
+pair count is retained independently of the two Core commands' change counts. -/
+structure RekeyBatch where
+  commands : List Core.Command
+  changes : Nat
+  paired : commands.length = 2 * changes
+
+def RekeyBatch.empty : RekeyBatch := ⟨[], 0, rfl⟩
+
+def RekeyBatch.prepend (tableName : String) (primaryKey : Nat) (old : Core.Integer)
+    (values : List Core.Value) (tail : RekeyBatch) : RekeyBatch := {
+  commands := .deleteWhere tableName (some (.equal primaryKey (.integer old))) ::
+    .insert tableName values :: tail.commands
+  changes := tail.changes + 1
+  paired := by simp only [List.length_cons, tail.paired]; omega }
+
+def rowRekeyBatch (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) :
+    List Core.Row → Except String RekeyBatch
+  | [] => .ok .empty
+  | row :: rows => do
+      unless ← ctx.matches row.values condition do
+        return ← rowRekeyBatch tableName ctx assignments condition rows
+      let updates ← evaluateAssignments ctx row assignments
+      let values := Core.applyAssignments row.values updates
+      -- UPDATE rowid=NULL is a type error; INSERT's automatic allocation must
+      -- not turn it into a new rowid. Validate the completed row first.
+      let _ ← Core.Row.create ctx.schema values
+      let tail ← rowRekeyBatch tableName ctx assignments condition rows
+      return RekeyBatch.prepend tableName ctx.schema.primaryKey row.rowid values tail
+
+theorem rowRekeyBatch_changes_le (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) (rows : List Core.Row)
+    (batch : RekeyBatch)
+    (translated : rowRekeyBatch tableName ctx assignments condition rows = .ok batch) :
+    batch.changes ≤ rows.length := by
+  induction rows generalizing batch with
+  | nil => simp [rowRekeyBatch] at translated; subst batch; simp [RekeyBatch.empty]
+  | cons row rows ih =>
+      simp only [rowRekeyBatch] at translated
+      cases selected : ctx.matches row.values condition with
+      | error message => simp [selected, bind, Except.bind] at translated
+      | ok keep =>
+        cases keep with
+        | false =>
+          simp [selected, bind, Except.bind] at translated
+          exact Nat.le_trans (ih _ translated) (by simp)
+        | true =>
+          cases updates : evaluateAssignments ctx row assignments with
+          | error message => simp [selected, updates, bind, Except.bind] at translated
+          | ok values =>
+            cases created : Core.Row.create ctx.schema (Core.applyAssignments row.values values) with
+            | error message => simp [selected, updates, created, bind, Except.bind] at translated
+            | ok patched =>
+              cases tail : rowRekeyBatch tableName ctx assignments condition rows with
+              | error message => simp [selected, updates, created, tail, bind, Except.bind] at translated
+              | ok rest =>
+                simp [selected, updates, created, tail, bind, Except.bind, pure, Except.pure] at translated
+                subst batch
+                simpa [RekeyBatch.prepend] using Nat.succ_le_succ (ih _ tail)
 
 /-- Plan the bounded equality/IN searches needed by expression scans. A
 primary-key equality takes precedence over IN membership; otherwise a constant
@@ -560,6 +625,36 @@ def expressionUpdatePlan (tableName : String) (alias : Option String) (stored : 
   let ctx := expressionSearchContext ctx search
   unless ← expressionSearchReady ctx search condition do return []
   rowUpdateCommands tableName ctx bound condition (stored.rows.filter (Core.selects search))
+
+def rekeyUpdatePlan (tableName : String) (alias : Option String) (stored : Core.Table)
+    (assignments : List (String × Expr)) (condition : Option Expr) : Except String RekeyBatch := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let bound ← expressionAssignmentsWith true ctx assignments
+  let _ ← condition.mapM ctx.validate
+  unless ← ctx.constantMatches condition do return .empty
+  let search ← expressionSearch ctx stored condition
+  let ctx := expressionSearchContext ctx search
+  unless ← expressionSearchReady ctx search condition do return .empty
+  rowRekeyBatch tableName ctx bound condition (stored.rows.filter (Core.selects search))
+
+def executeRekeyUpdate (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let batch ← rekeyUpdatePlan tableName alias stored assignments condition
+  let (next, _) ← runCoreCommands state batch.commands
+  return (next, [{ changes := batch.changes }])
+
+theorem executeRekeyUpdate_eq_runCoreCommands
+    (state : Core.State) (tableName : String) (alias : Option String) (stored : Core.Table)
+    (assignments : List (String × Expr)) (condition : Option Expr) (batch : RekeyBatch)
+    (translated : rekeyUpdatePlan tableName alias stored assignments condition = .ok batch) :
+    executeRekeyUpdate state tableName alias stored assignments condition =
+      (fun outcome => (outcome.1, [{ changes := batch.changes }])) <$>
+        runCoreCommands state batch.commands := by
+  simp only [executeRekeyUpdate, translated, bind, Except.bind]
+  cases executed : runCoreCommands state batch.commands with
+  | error message => rfl
+  | ok outcome => rfl
 
 def executeExpressionUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
@@ -1230,7 +1325,11 @@ def executeStatement (state : Core.State) :
           where_.mapM (predicate stored.schema) with
       | .ok updates, .ok condition =>
           executeCommand state (.updateWhere tableName updates condition)
-      | _, _ => executeExpressionUpdate state tableName alias stored assignments.toList where_
+      | _, _ =>
+          if assignments.any (fun assignment =>
+              findColumn? stored.schema assignment.1 == some stored.schema.primaryKey) then
+            executeRekeyUpdate state tableName alias stored assignments.toList where_
+          else executeExpressionUpdate state tableName alias stored assignments.toList where_
   | .select select => do
       let execution ← executeSelect state select
       return (execution.state, [execution.result])

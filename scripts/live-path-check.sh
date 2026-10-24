@@ -111,6 +111,15 @@ else
   fail "page-size conversion lost its publication route or component contract"
 fi
 
+# Rowid changes preserve the original snapshot and publish one Core trace.
+if grep -q 'executeRekeyUpdate state tableName alias stored assignments.toList where_' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.executeRekeyUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.rowRekeyBatch_changes_le' SQLeanite/ProofAxioms.lean; then
+  ok "rowid UPDATE uses a bounded atomic Core delete/insert trace"
+else
+  fail "rowid updates are detached from their Core trace contract"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

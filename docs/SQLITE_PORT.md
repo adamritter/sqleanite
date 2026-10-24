@@ -796,3 +796,37 @@ declared unsupported. Reports are
 Allocation after the maximum signed rowid, AUTOINCREMENT, rowid updates, nullable
 non-integer primary keys and general constraints remain separate SQL work.
 The selected diagnostic inventory still has 11 explicit rejections.
+
+
+### Rowid and INTEGER PRIMARY KEY UPDATE (2026-10-24)
+
+UPDATE now binds rowid aliases and INTEGER PRIMARY KEY targets, evaluates all
+right-hand sides against the original rows, and applies each row change as a
+Core deletion/insertion pair. The entire command trace must succeed before a
+new state can be published. A completed row is validated before the pair, so
+NULL and non-integral rowids cannot invoke INSERT's automatic allocation.
+Duplicate assignment targets retain the last expression while binding every
+expression. Reported changes count logical rows, not the two Core commands.
+The batch carries a proof of its paired command count; registered theorems
+bound selected-row changes and connect the SQL path to the Core trace. These
+are component facts, not a SQLite equivalence proof.
+
+At frozen Lean/Main SHA-256
+`820f0dc89c2378136838161f2ba0300f35aee304ac7bb7ed477cd7c88e05c041`,
+fresh seed 353571 passed **1,472 independent UPDATE outcomes**, including
+**549 matching errors**. Eight phases cover explicit/implicit rowids,
+indexed/unindexed tables and both file modes. Each checks resulting rows,
+SQLite reads and integrity of an independent image, and unchanged main/WAL
+bytes after errors. Negative rowids, INTEGER limits, original-row binding,
+duplicate assignments, aliases, collisions and transaction rollback are included.
+Seed 353572 also passed **186 ordinary UPDATE regressions**, **18 expected
+errors**, and rollback in both modes. Reports are
+`docs/validation/sqlite-rowid-update-20261024.json` and
+`docs/validation/sqlite-rowid-update-regression-20261024.json`.
+
+Full build, **179 executable tests**, **983 registered headline theorems**, both
+audits and the full reverse matrix (**57 accepted, 2 declared unsupported**)
+passed. The selected gap inventory now has **10 explicit rejections**,
+**17 matches** and **1 both-reject** case; it is not a coverage percentage.
+Declared non-rowid primary-key changes, conflict policies beyond ABORT,
+triggers and foreign-key actions still need separate implementations.

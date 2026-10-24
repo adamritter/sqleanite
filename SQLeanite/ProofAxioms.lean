@@ -1078,3 +1078,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Row.create_set_rowid
 #print axioms SQLeanite.AtomicFileReplacement.committed
 #print axioms SQLeanite.AtomicFileReplacement.prefix_atomic
+
+#print axioms SQLeanite.CoreSQL.rowRekeyBatch_changes_le
+#print axioms SQLeanite.CoreSQL.executeRekeyUpdate_eq_runCoreCommands

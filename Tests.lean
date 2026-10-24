@@ -3960,6 +3960,38 @@ private def expectPageSizeConversionFailures : IO Unit := do
     let reopened ← CoreFileAdapter.reopen paths
     unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
 
+private def expectSQLiteRowidUpdates : IO Unit := do
+  let cases : List (String × Nat × List (List Value)) := [
+    ("CREATE TABLE t(v); INSERT INTO t(rowid,v) VALUES(-5,'a'),(2,'b'); UPDATE t SET rowid=rowid+20,v=v||rowid; SELECT rowid,v FROM t ORDER BY rowid;",
+      2, [[.integer 15,.text "a-5"],[.integer 22,.text "b2"]]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,'a'),(2,'b'); UPDATE t SET id=-id,v=id; SELECT id,v FROM t ORDER BY id;",
+      2, [[.integer (-2),.integer 2],[.integer (-1),.integer 1]]),
+    ("CREATE TABLE t(v); INSERT INTO t VALUES('a'); UPDATE t SET rowid=abs(-9223372036854775808),_rowid_=rowid+20; SELECT rowid,v FROM t;",
+      1, [[.integer 21,.text "a"]]),
+    ("CREATE TABLE t(v); INSERT INTO t VALUES('a'); UPDATE t SET rowid='9223372036854775807'; SELECT rowid,v FROM t;",
+      1, [[.integer 9223372036854775807,.text "a"]]),
+    ("CREATE TABLE t(v); INSERT INTO t VALUES('a'); UPDATE t SET rowid=NULL WHERE 0; SELECT rowid,v FROM t;",
+      0, [[.integer 1,.text "a"]]),
+    ("CREATE TABLE t(v); UPDATE t SET rowid=NULL; SELECT rowid,v FROM t;", 0, [])]
+  for (sql, changed, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"rowid UPDATE: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"rowid UPDATE result: {sql}"
+    unless (results.reverse[1]?).map (·.changes) == some changed do
+      fail s!"rowid UPDATE changes count: {sql}"
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v NOT NULL); INSERT INTO t VALUES(1,'a'),(2,'b');"
+  for sql in ["UPDATE t SET id=id+1;", "UPDATE t SET id=NULL;", "UPDATE t SET id=1.5;",
+      "UPDATE t SET id='42x';", "UPDATE t SET id=id+10,v=NULL;",
+      "UPDATE t SET id=missing,id=id+10;",
+      "UPDATE t SET id=CASE WHEN id=2 THEN abs(-9223372036854775808) ELSE 100 END;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"rowid UPDATE accepted invalid input: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteImplicitRowid : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("CREATE TABLE t(v); INSERT INTO t VALUES('a'),('a'); SELECT rowid,v FROM t ORDER BY rowid;",
@@ -4387,6 +4419,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite rowid UPDATE binding and changes", expectSQLiteRowidUpdates),
   ("SQLite implicit rowid allocation and DEFAULT VALUES", expectSQLiteImplicitRowid),
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

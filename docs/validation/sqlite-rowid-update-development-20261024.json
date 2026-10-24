@@ -1,0 +1,76 @@
+{
+  "seed": 353570,
+  "random_cases": 40,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": false,
+      "indexed": false,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 28
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": false,
+      "indexed": true,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 26
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": true,
+      "indexed": false,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 27
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": true,
+      "indexed": true,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 21
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": false,
+      "indexed": false,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 28
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": false,
+      "indexed": true,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 28
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": true,
+      "indexed": false,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 29
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": true,
+      "indexed": true,
+      "updates": 64,
+      "passed": 64,
+      "matching_errors": 23
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "820f0dc89c2378136838161f2ba0300f35aee304ac7bb7ed477cd7c88e05c041",
+  "executable_sha256": "23918a06f681fb0c192252be23734329b7dcb3b0a5aadd74f4431661bf0a73c9",
+  "harness_sha256": "4d29779e82a1b87857d9c754d275b148c4f19aa1397ff3b4a851cc3a1b98a27c",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare rowid/INTEGER PRIMARY KEY UPDATE with independent SQLite images.\n\nEvery UPDATE starts from its own fixture copy. Checks exact rows, rejection\nstatus, indexed-image integrity, full byte preservation on errors and rollback.\nDeclared non-rowid keys, conflict policies beyond ABORT and triggers are not\nincluded; all generated mismatches are retained."
+}
