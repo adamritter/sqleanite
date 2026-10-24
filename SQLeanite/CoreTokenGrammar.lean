@@ -503,6 +503,9 @@ private def matchOrderTerm (term : OrderTerm) : MatchM Unit := do
   matchExpr term.expr
   if term.descending then expectKeyword "desc"
   else discard <| acceptKeyword "asc"
+  if let some first := term.nullsFirst then
+    expectKeyword "nulls"
+    expectKeyword (if first then "first" else "last")
 
 private def matchOrderTerms : List OrderTerm → MatchM Unit
   | [] => pure ()

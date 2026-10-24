@@ -366,6 +366,13 @@ end
 
 private def parserExpressionDepth : Nat := 1000
 
+private def parseNullOrder : ParserM (Option Bool) := do
+  if ← acceptKeyword "nulls" then
+    if ← acceptKeyword "first" then return some true
+    expectKeyword "last"
+    return some false
+  return none
+
 private def parseExpr (minPrec : Nat := 0) : ParserM Expr :=
   parseExprFuel (Nat.succ parserExpressionDepth) minPrec
 
@@ -814,12 +821,14 @@ private def parseSelectAfterSelectFuel : Nat → Bool → ParserM Select
         let e ← parseExpr
         let desc ← acceptKeyword "desc"
         if !desc then discard <| acceptKeyword "asc"
-        orderBy := orderBy.push { expr := e, descending := desc }
+        let nullsFirst ← parseNullOrder
+        orderBy := orderBy.push { expr := e, descending := desc, nullsFirst }
         while ← acceptSymbol "," do
           let e ← parseExpr
           let desc ← acceptKeyword "desc"
           if !desc then discard <| acceptKeyword "asc"
-          orderBy := orderBy.push { expr := e, descending := desc }
+          let nullsFirst ← parseNullOrder
+          orderBy := orderBy.push { expr := e, descending := desc, nullsFirst }
       let (limit, offset, hadLimit) ← parseLimitClause
       query := { query with orderBy, limit, offset }
       if !orderBy.isEmpty || hadLimit then
@@ -861,12 +870,14 @@ private def parseValuesAfterValues (rows : Array (Array Expr)) : ParserM Select 
     let expression ← parseExpr
     let descending ← acceptKeyword "desc"
     if !descending then discard <| acceptKeyword "asc"
-    orderBy := orderBy.push { expr := expression, descending }
+    let nullsFirst ← parseNullOrder
+    orderBy := orderBy.push { expr := expression, descending, nullsFirst }
     while ← acceptSymbol "," do
       let expression ← parseExpr
       let descending ← acceptKeyword "desc"
       if !descending then discard <| acceptKeyword "asc"
-      orderBy := orderBy.push { expr := expression, descending }
+      let nullsFirst ← parseNullOrder
+      orderBy := orderBy.push { expr := expression, descending, nullsFirst }
   let (limit, offset, hadLimit) ← parseLimitClause
   query := { query with orderBy, limit, offset }
   if !orderBy.isEmpty || hadLimit then

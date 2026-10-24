@@ -207,12 +207,12 @@ theorem projectionSyntax_of_success (schema : Core.Schema) :
               · exact projectionSyntax_of_success schema tail candidate member
 
 inductive OrderTermSyntax : OrderTerm → Prop where
-  | column (qualifier name descending) :
-      OrderTermSyntax ⟨.column qualifier name, descending⟩
+  | column (qualifier name descending nullsFirst) :
+      OrderTermSyntax ⟨.column qualifier name, descending, nullsFirst⟩
   | boundColumn (ctx : CoreExpr.Context) (expression : Expr) (descending : Bool)
-      (qualifier : Option String) (name : String)
+      (nullsFirst : Option Bool) (qualifier : Option String) (name : String)
       (bound : ctx.bindNames expression = .column qualifier name) :
-      OrderTermSyntax ⟨expression, descending⟩
+      OrderTermSyntax ⟨expression, descending, nullsFirst⟩
 
 def OrderingSyntax (terms : List OrderTerm) : Prop :=
   ∀ term ∈ terms, OrderTermSyntax term
@@ -222,7 +222,7 @@ theorem orderingSyntax_of_success (schema : Core.Schema) :
       orderBy schema inputs = .ok ordering → OrderingSyntax inputs
   | [], _, _ => by simp [OrderingSyntax]
   | term :: terms, ordering, success => by
-      rcases term with ⟨expression, descending⟩
+      rcases term with ⟨expression, descending, nullsFirst⟩
       let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
       cases bound : ({ schema, sourceName := schema.name } : CoreExpr.Context).bindNames expression with
       | column qualifier name =>
@@ -238,7 +238,7 @@ theorem orderingSyntax_of_success (schema : Core.Schema) :
                   intro candidate member
                   simp only [List.mem_cons] at member
                   rcases member with rfl | member
-                  · exact .boundColumn ctx expression descending qualifier name bound
+                  · exact .boundColumn ctx expression descending nullsFirst qualifier name bound
                   · exact orderingSyntax_of_success schema rest candidate member
       | literal | star | unary | binary | call | isNull | inList | collate |
           case_ | scalarSubquery | inSubquery | existsSubquery =>

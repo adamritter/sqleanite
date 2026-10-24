@@ -65,6 +65,17 @@ else
   fail "ORDER BY resolver, sorter, or its registered contracts are missing"
 fi
 
+# Sorting modifiers stay explicit through token certification and key comparison.
+if grep -q 'term.nullsFirst' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreOrder.validateTerm ctx' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.Collation.compareValue spec.collation' SQLeanite/CoreOrder.lean &&
+   grep -q 'Collation.noCase_nul' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Collation.rtrimBytes_space' SQLeanite/ProofAxioms.lean; then
+  ok "NULL placement and byte-level ordering collations use the Core sorter"
+else
+  fail "ordering modifiers or collation contracts are missing from production"
+fi
+
 # Row-dependent UPDATE remains an atomic trace of proved Core point updates.
 if grep -q 'executeExpressionUpdate state tableName alias stored' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeExpressionUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&

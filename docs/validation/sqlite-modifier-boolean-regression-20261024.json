@@ -1,0 +1,24 @@
+{
+  "seed": 353683,
+  "random_cases": 200,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 769,
+      "writes": 15,
+      "matching_errors": 9
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 769,
+      "writes": 15,
+      "matching_errors": 9
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a8020e51723da577e1552ac9a112e1d7fe88a6efc9315ac64fa4a13d7c2ac81d",
+  "executable_sha256": "361fc58853b0b5efc4206352741af4aa742f91dc989bca9a7c1ab1e742759fb3",
+  "harness_sha256": "d16ae7fd9d3789c43ae120f3b4b2f007b8c3d94a3e640303295a943af5977ffa",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite boolean keywords, IS truth tests, and shadowing by real column names.\n\nCompare exact CLI bytes, explicit typeof results, and rejection status on\nindependent images in both file modes. Reads must preserve database/WAL bytes.\nAll generated failures are retained. This suite covers constant and single-table\nexpressions; it does not claim alias, join, grouping, or collation completeness."
+}

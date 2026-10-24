@@ -1,0 +1,22 @@
+{
+  "seed": 353682,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1182,
+      "matching_errors": 387
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1182,
+      "matching_errors": 387
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a8020e51723da577e1552ac9a112e1d7fe88a6efc9315ac64fa4a13d7c2ac81d",
+  "executable_sha256": "361fc58853b0b5efc4206352741af4aa742f91dc989bca9a7c1ab1e742759fb3",
+  "harness_sha256": "84ad1c0469cd8635d857c9813fecd8a507ca86893cd3d6d47d05bf6bdc55625c",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare ORDER BY expressions, output aliases, ordinals and LIMIT timing.\n\nSQL runs on independent files in both production modes against the pinned\nSQLite CLI. Exact output bytes and success/rejection are compared without row\nsorting or normalization. Reads must leave main/WAL bytes unchanged. All\nmismatches are retained; matching errors do not compare diagnostic wording.\nThis is a bounded single-source and source-free ordering corpus, not SQL-wide\nor planner-wide equivalence."
+}

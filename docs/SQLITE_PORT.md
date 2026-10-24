@@ -1192,3 +1192,51 @@ compound-query ordering, result aliases outside ORDER BY, and the existing
 SQL/database/WAL gaps remain separate work. The new registered component proofs
 cover zero-LIMIT suppression and stable insertion length, not the entire SQLite
 sorter or resolver.
+
+
+### Ordering collations and explicit NULL placement (2026-10-24)
+
+ORDER terms carry explicit NULLS FIRST/LAST through parsing and independent
+token certification. Default placement can retain the direct Core ordering path;
+other cases use the expression sorter. Its NULL rule is independent of ascending
+or descending comparison. NOCASE and RTRIM port the pinned main.c byte
+comparators: NOCASE folds ASCII only, stops its prefix comparison at NUL, then
+uses original byte lengths; RTRIM removes trailing byte 0x20 only. BINARY,
+numeric storage classes, raw TEXT and BLOB ordering retain their existing rules.
+
+Sort-key collation metadata propagates left first, with an outer COLLATE taking
+precedence. Metadata is erased only through operations whose values do not
+depend on it. Nested collated comparisons, IN, CASE and scalar min/max/nullif
+still require their own scalar support; column declarations with non-BINARY
+collations and general collated DISTINCT/grouping are not added here. Non-default
+NULL ordering on the separate join path remains explicitly rejected. The legacy
+conformance interpreter was updated for the shared NULL-placement field, while
+public execution remains entirely on Core.
+
+Further probes exposed parser-phase ordering behavior: a zero-AND folded before
+ORDER resolution becomes invalid position zero, and the pinned COLLATE node
+does not propagate its child's EP_HasFunc flag. The scalar preparation pass now
+tracks that flag boundary, and ORDER resolution prepares before recognizing
+positions. An outer used collation can override an unknown inner name. The
+initial modifier corpus retained **534 differences in 748 outcomes**; a targeted
+fold/override probe retained **10 differences in 16 outcomes**. Both negative
+reports and the separate development run remain under `docs/validation/`.
+
+At frozen Lean/Main SHA-256
+`a8020e51723da577e1552ac9a112e1d7fe88a6efc9315ac64fa4a13d7c2ac81d`,
+fresh seed 353681 passed **1,564 modifier cases** (**118 matching errors**),
+including raw bytes, NULs, ASCII/non-ASCII case pairs, numeric classes, aliases,
+limits and offsets. Exact CLI bytes and rejection status match pinned SQLite
+3.53.4 in both modes; read-only main/WAL images remain unchanged. Error wording
+is not compared. Fresh regressions passed **2,364 ordinary ordering cases**
+(**774 matching errors**), **1,568 boolean read/write outcomes** (**18 matching
+errors**), **7,200 DISTINCT/order queries** across both modes and index states,
+and **1,120 scalar cases**. Reports are `sqlite-order-modifier-*.json` and
+`sqlite-modifier-*-regression-20261024.json` under `docs/validation/`.
+
+The full build, **190 executable tests**, **1,009 registered headline theorems**,
+both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
+New component proofs cover self-comparison, NOCASE NUL behavior, RTRIM suffix
+removal and the COLLATE function-flag boundary. These are not whole-SQLite
+refinement theorems. The preceding DISTINCT stress timeout and other recorded
+SQL/database/WAL gaps remain unresolved.

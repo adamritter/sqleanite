@@ -359,6 +359,7 @@ structure ResultColumn where
 structure OrderTerm where
   expr : Expr
   descending : Bool := false
+  nullsFirst : Option Bool := none
   deriving Repr, Inhabited
 
 structure TableConstraintDef where

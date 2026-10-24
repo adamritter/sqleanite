@@ -327,13 +327,30 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
 /-- SQLite's parse-time AND fold (expr.c sqlite3ExprAnd) is distinct from
 later truth-code simplification. Literal zero may erase an unbound column,
 but EP_HasFunc prevents erasing a function call and its errors. CAST is an
-operator even though our surface AST encodes it as a named call. -/
-def hasFunction (expression : Expr) : Bool :=
-  expression.any fun e => match e with
-    | .call name _ _ => !name.toLower.startsWith "cast_" && (booleanKeyword? e).isNone &&
-        (quotedIdentifier? e).isNone
-    | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
-    | _ => false
+operator even though our surface AST encodes it as a named call.
+Track the parser's EP_HasFunc propagation. sqlite3ExprAddCollateToken
+constructs a new COLLATE node without propagating that flag from its child. -/
+def hasFunctionFuel : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let has := hasFunctionFuel fuel
+      match expression with
+      | .collate .. => false
+      | .call name args _ =>
+          (!name.toLower.startsWith "cast_" && (booleanKeyword? expression).isNone &&
+            (quotedIdentifier? expression).isNone) || args.any has
+      | .unary _ arg | .isNull arg _ => has arg
+      | .binary _ left right => has left || has right
+      | .inList arg values _ _ => has arg || values.any has
+      | .case_ base branches otherwise => base.any has ||
+          branches.any (fun (condition, result) => has condition || has result) || otherwise.any has
+      | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+      | _ => false
+
+def hasFunction (expression : Expr) : Bool := hasFunctionFuel expression.height expression
+
+theorem hasFunction_collate (expression : Expr) (name : String) :
+    hasFunction (.collate expression name) = false := rfl
 
 def parserFalse : Expr → Bool
   | .literal (.integer 0) => true

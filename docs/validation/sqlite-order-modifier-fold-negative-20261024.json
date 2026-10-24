@@ -1,0 +1,160 @@
+{
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 8,
+      "matching_errors": 1
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 8,
+      "matching_errors": 1
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND v;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND lower(1) COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND abs(-9223372036854775808) COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY 1 COLLATE missing COLLATE BINARY;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY v COLLATE missing COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND v;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND lower(1) COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY 0 AND abs(-9223372036854775808) COLLATE BINARY;",
+      "lean": {
+        "code": 0,
+        "stdout": "b\nA\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY 1 COLLATE missing COLLATE BINARY;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY v COLLATE missing COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "77d820d6c9f20b3d7723aff56d8386799934c9b8e82e78a8f1164178863a98fc",
+  "executable_sha256": "f2a8e14c823fbac6a4aa75c3ec54f1cd9c6755ff92a7784ff05fe1626f8fa4b6",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Exact CLI bytes and rejection status; targeted parser-folding and collation-override diagnostic. Error wording is not compared."
+}

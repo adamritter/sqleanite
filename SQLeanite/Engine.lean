@@ -1732,14 +1732,24 @@ private def sortRowsCollated (collations : Array String)
     (rows : Array (Array Value)) : Array (Array Value) :=
   (rows.foldl (insertRowCollated collations) []).toArray
 
-private def orderedValueRowsLess (keys : Array (Nat × Bool × String))
+private def nullOrderLess? (descending : Bool) (nullsFirst : Option Bool)
+    (left right : Value) : Option Bool :=
+  match left, right with
+  | .null, .null => none
+  | .null, _ => some (nullsFirst.getD (!descending))
+  | _, .null => some (!(nullsFirst.getD (!descending)))
+  | _, _ => none
+
+private def orderedValueRowsLess (keys : Array (Nat × Bool × String × Option Bool))
     (a b : Array Value) : Bool := Id.run do
-  for (index, descending, collation) in keys do
+  for (index, descending, collation, nullsFirst) in keys do
+    if let some before := nullOrderLess? descending nullsFirst (a[index]?.getD .null) (b[index]?.getD .null) then
+      return before
     let ord := collatedCompare collation (a[index]?.getD .null) (b[index]?.getD .null)
     if ord != .eq then return if descending then ord == .gt else ord == .lt
   return false
 
-private def insertOrderedValueRow (keys : Array (Nat × Bool × String))
+private def insertOrderedValueRow (keys : Array (Nat × Bool × String × Option Bool))
     (rows : List (Array Value)) (row : Array Value) : List (Array Value) :=
   match rows with
   | [] => [row]
@@ -1747,26 +1757,27 @@ private def insertOrderedValueRow (keys : Array (Nat × Bool × String))
     if orderedValueRowsLess keys row first then row :: first :: rest
     else first :: insertOrderedValueRow keys rest row
 
-private def sortOrderedValueRows (keys : Array (Nat × Bool × String))
+private def sortOrderedValueRows (keys : Array (Nat × Bool × String × Option Bool))
     (rows : Array (Array Value)) : Array (Array Value) :=
   (rows.foldl (insertOrderedValueRow keys) []).toArray
 
 private def compoundOrderKeys (db : Database) (query : Select) (names : Array String) :
-    Except String (Array (Nat × Bool × String)) := do
+    Except String (Array (Nat × Bool × String × Option Bool)) := do
   let schema := selectColumnSchema db query
   query.orderBy.mapIdxM fun position term => do
     let index ← compoundOrderIndex db query names position term.expr
     let inherited := schema[index]?.map (·.collation) |>.getD "binary"
-    pure (index, term.descending, term.expr.explicitOrderCollation?.getD inherited)
+    pure (index, term.descending, term.expr.explicitOrderCollation?.getD inherited, term.nullsFirst)
 
 private structure KeyedRow where
   values : Array Value
-  keys : Array (Value × Bool × String)
+  keys : Array (Value × Bool × String × Option Bool)
 
 private def keyedRowLess (left right : KeyedRow) : Bool := Id.run do
   for index in [:min left.keys.size right.keys.size] do
-    let (leftValue, descending, collation) := left.keys[index]!
+    let (leftValue, descending, collation, nullsFirst) := left.keys[index]!
     let rightValue := right.keys[index]!.1
+    if let some before := nullOrderLess? descending nullsFirst leftValue rightValue then return before
     let order := collatedCompare collation leftValue rightValue
     if order != .eq then return if descending then order == .gt else order == .lt
   return false
@@ -2228,7 +2239,7 @@ mutual
               | none => evalMiniAggregateFuel fuel db group term.expr
             | expression => evalMiniAggregateFuel fuel db group expression
           pure (value, term.descending,
-            term.expr.explicitOrderCollation?.getD (term.expr.collationIn representative))
+            term.expr.explicitOrderCollation?.getD (term.expr.collationIn representative), term.nullsFirst)
         keyed := keyed.push { values, keys }
       result := sortKeyedRows keyed
       aggregateOrderHandled := true
@@ -2251,7 +2262,7 @@ mutual
               | none => evalWithDbFuel fuel db env term.expr
             | expression => evalWithDbFuel fuel db env expression
           let inherited := term.expr.collationIn env
-          pure (value, term.descending, term.expr.explicitOrderCollation?.getD inherited)
+          pure (value, term.descending, term.expr.explicitOrderCollation?.getD inherited, term.nullsFirst)
         keyed := keyed.push { values, keys }
       result := sortKeyedRows keyed
     if query.distinct then
@@ -2993,6 +3004,8 @@ structure Candidate where
 private def candidateLess (terms : Array OrderTerm) (a b : Candidate) : Bool := Id.run do
   for i in [:min a.orderKeys.size b.orderKeys.size] do
     let term := terms[i]!
+    if let some before := nullOrderLess? term.descending term.nullsFirst a.orderKeys[i]! b.orderKeys[i]! then
+      return before
     let collation := term.expr.explicitOrderCollation?.getD (term.expr.collationIn a.env)
     let ord := collatedCompare collation a.orderKeys[i]! b.orderKeys[i]!
     if ord != .eq then

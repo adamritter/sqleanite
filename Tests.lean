@@ -4201,6 +4201,33 @@ private def expectSQLiteRawText : IO Unit := do
       | .error message => fail message
     unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
 
+private def expectSQLiteOrderModifiers : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,'b'),(2,NULL),(3,'A'),(4,'a '),(5,'a');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT id FROM t ORDER BY v NULLS LAST;", [[.integer 3], [.integer 5], [.integer 4], [.integer 1], [.integer 2]]),
+    ("SELECT id FROM t ORDER BY v DESC NULLS FIRST;", [[.integer 2], [.integer 1], [.integer 4], [.integer 5], [.integer 3]]),
+    ("SELECT id FROM t ORDER BY v COLLATE NOCASE;", [[.integer 2], [.integer 3], [.integer 5], [.integer 4], [.integer 1]]),
+    ("SELECT id FROM t ORDER BY v COLLATE RTRIM NULLS LAST;", [[.integer 3], [.integer 4], [.integer 5], [.integer 1], [.integer 2]]),
+    ("SELECT id FROM t ORDER BY (v||'') COLLATE NOCASE DESC NULLS LAST LIMIT 2;", [[.integer 1], [.integer 4]]),
+    ("SELECT 1 ORDER BY 1 COLLATE NOCASE NULLS LAST;", [[.integer 1]]),
+    ("SELECT id FROM t ORDER BY v COLLATE missing COLLATE NOCASE LIMIT 2;", [[.integer 2], [.integer 3]]),
+    ("SELECT id FROM t ORDER BY id DESC NULLS FIRST,abs(-9223372036854775808) LIMIT 1;", [[.integer 5]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"ORDER modifiers: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"ORDER modifiers mismatch: {sql}"
+  for sql in ["SELECT id FROM t ORDER BY v COLLATE missing LIMIT 0;",
+      "SELECT 1 ORDER BY 1 COLLATE missing LIMIT 0;", "SELECT id FROM t ORDER BY v NULLS;",
+      "SELECT id FROM t ORDER BY v NULLS MIDDLE;", "SELECT id FROM t ORDER BY 0 AND v;",
+      "SELECT id FROM t ORDER BY 0 AND abs(-9223372036854775808) COLLATE BINARY;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"ORDER modifiers omitted error: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteOrderExpressions : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w); INSERT INTO t VALUES(1,1,2),(2,-9223372036854775808,1),(3,3,0);"
   let cases : List (String × List (List Value)) := [
@@ -4733,6 +4760,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
+  ("SQLite ORDER BY collations and NULL placement", expectSQLiteOrderModifiers),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),

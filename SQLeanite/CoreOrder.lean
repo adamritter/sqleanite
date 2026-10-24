@@ -1,4 +1,5 @@
 import SQLeanite.CoreExpr
+import SQLeanite.SQLite.Collation
 
 /-! Single-source ORDER BY binding and the bounded sorter used by the live Core
 expression path. Output aliases bind first only at the top of an ORDER term;
@@ -55,16 +56,13 @@ def resolveNamesFuel (ctx : CoreExpr.Context) (columns : List ResultColumn) : Na
           | .inList arg values negated affinity => .inList (resolve arg) (values.map resolve) negated affinity
           | .case_ base branches otherwise => .case_ (base.map resolve)
               (branches.map fun (condition, result) => (resolve condition, resolve result)) (otherwise.map resolve)
-          | .collate arg name =>
-              if name.toLower == "binary" then resolve arg else .collate (resolve arg) name
+          | .collate arg name => .collate (resolve arg) name
           | _ => expression
 
-def resolveTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) : Expr → Except String Expr
+def resolvePreparedTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) : Expr → Except String Expr
   | .collate expression name => do
-      let resolved ← resolveTerm ctx columns expression
-      -- All admitted stored columns and this sorter use BINARY. Other
-      -- collations retain their wrapper and fail scalar admission explicitly.
-      return if name.toLower == "binary" then resolved else .collate resolved name
+      let resolved ← resolvePreparedTerm ctx columns expression
+      return .collate resolved name
   | expression => do
       if let some result := (bareName? expression).bind (aliasExpression? columns) then
         return ctx.bindNames result
@@ -75,26 +73,97 @@ def resolveTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) : Expr �
         return ctx.bindNames result.expr
       return resolveNamesFuel ctx columns expression.height expression
 
+/-- Parser-level simplification precedes the resolver's ordinal recognition.
+In particular a folded zero-AND becomes position zero and must be rejected. -/
+def resolveTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) (expression : Expr) :
+    Except String Expr := resolvePreparedTerm ctx columns (SQLite.Scalar.prepare expression)
+
 def resolve (ctx : CoreExpr.Context) (columns : List ResultColumn) (terms : List OrderTerm) :
     Except String (List OrderTerm) := do
   let expanded ← expandResults ctx columns
   terms.mapM fun term => do return { term with expr := ← resolveTerm ctx expanded term.expr }
 
-/-- BINARY key order keeps the first input when all keys compare equal. -/
-def keysLess : List Bool → List Core.Value → List Core.Value → Bool
+/-- Explicit COLLATE operators propagate left first through the ordering AST,
+matching sqlite3ExprCollSeq. Admitted stored columns currently use BINARY. -/
+def collationNameFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let find := collationNameFuel fuel
+      match expression with
+      | .collate _ name => some name
+      | .unary _ arg | .isNull arg _ | .inSubquery arg _ _ => find arg
+      | .binary _ left right => (find left).orElse fun _ => find right
+      | .call _ args _ => args.foldl (fun found arg => found.orElse fun _ => find arg) none
+      | .inList arg values _ _ => values.foldl (fun found value => found.orElse fun _ => find value) (find arg)
+      | .case_ base branches otherwise =>
+          let found := branches.foldl (fun found (condition, result) =>
+            found.orElse fun _ => (find condition).orElse fun _ => find result) (base.bind find)
+          found.orElse fun _ => otherwise.bind find
+      | _ => none
+
+/-- Erase metadata only through operations whose values do not depend on a
+collation. Comparisons, IN, CASE and scalar min/max/nullif retain their nested
+wrappers and still require a future collation-aware scalar evaluator. -/
+def keyExpressionFuel : Nat → Expr → Expr
+  | 0, expression => expression
+  | fuel + 1, expression =>
+      let erase := keyExpressionFuel fuel
+      match expression with
+      | .collate arg _ => erase arg
+      | .unary op arg => .unary op (erase arg)
+      | .binary op left right =>
+          if [.concat, .add, .sub, .mul, .div, .mod, .bitAnd, .bitOr,
+              .shiftLeft, .shiftRight, .and, .or].contains op then .binary op (erase left) (erase right)
+          else expression
+      | .call name args star =>
+          if ["min", "max", "nullif"].contains name.toLower then expression
+          else .call name (args.map erase) star
+      | .isNull arg negated => .isNull (erase arg) negated
+      | _ => expression
+
+def keyExpression (expression : Expr) : Expr := keyExpressionFuel expression.height expression
+
+structure KeySpec where
+  descending : Bool
+  nullsFirst : Bool
+  collation : SQLite.Collation.Kind
+
+def specification (term : OrderTerm) : Except String KeySpec := do
+  let collation ← match collationNameFuel term.expr.height term.expr with
+    | none => pure SQLite.Collation.Kind.binary
+    | some name => match SQLite.Collation.named? name with
+        | some kind => pure kind
+        | none => throw "no such collation sequence"
+  return { descending := term.descending, nullsFirst := term.nullsFirst.getD (!term.descending), collation }
+
+def validateTerm (ctx : CoreExpr.Context) (term : OrderTerm) : Except String Unit := do
+  let _ ← specification term
+  ctx.validate (keyExpression term.expr)
+
+def keyLess (spec : KeySpec) (left right : Core.Value) : Bool :=
+  match left, right with
+  | .null, .null => false
+  | .null, _ => spec.nullsFirst
+  | _, .null => !spec.nullsFirst
+  | _, _ =>
+      let order := SQLite.Collation.compareValue spec.collation left right
+      if spec.descending then order == .gt else order == .lt
+
+/-- A separate NULL-placement flag applies before direction/collation. Equal
+keys retain original input order, including NOCASE and RTRIM equalities. -/
+def keysLess : List KeySpec → List Core.Value → List Core.Value → Bool
   | [], _, _ => false
   | _ :: _, [], _ => false
   | _ :: _, _, [] => false
-  | descending :: directions, a :: as, b :: bs =>
-      let order := PhysicalQuery.compareValue a b
-      if order == .eq then keysLess directions as bs
-      else if descending then order == .gt else order == .lt
+  | spec :: specs, a :: as, b :: bs =>
+      if keyLess spec a b then true
+      else if keyLess spec b a then false else keysLess specs as bs
 
 structure SortRow where
   projected : CoreExpr.ProjectedRow
   keys : List Core.Value
 
-def insertStable (directions : List Bool) (row : SortRow) : List SortRow → List SortRow
+def insertStable (directions : List KeySpec) (row : SortRow) : List SortRow → List SortRow
   | [] => [row]
   | first :: rest =>
       if keysLess directions row.keys first.keys then row :: first :: rest
@@ -104,34 +173,34 @@ def insertStable (directions : List Bool) (row : SortRow) : List SortRow → Lis
 before evaluating a new output row. A row later evicted has still been
 computed. DISTINCT must compute its output first to decide whether it is new. -/
 def scanFuel (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : List Expr)
-    (terms : List OrderTerm) (distinct : Bool) (capacity : Option Nat) :
+    (terms : List OrderTerm) (directions : List KeySpec) (distinct : Bool) (capacity : Option Nat) :
     List (List Core.Value) → List (List Core.Value) → List SortRow → Except String (List SortRow)
   | [], _, sorted => .ok sorted
   | row :: rows, seen, sorted => do
       unless ← ctx.matches row condition do
-        return ← scanFuel ctx condition expressions terms distinct capacity rows seen sorted
+        return ← scanFuel ctx condition expressions terms directions distinct capacity rows seen sorted
       let output ← if distinct || capacity.isNone then some <$> ctx.projectRow row expressions else pure none
       let key := output.map Core.distinctRowKey
       if distinct && key.any seen.contains then
-        return ← scanFuel ctx condition expressions terms distinct capacity rows seen sorted
+        return ← scanFuel ctx condition expressions terms directions distinct capacity rows seen sorted
       let seen := if distinct then key.toList ++ seen else seen
-      let keys ← ctx.projectRow row (terms.map (·.expr))
-      let directions := terms.map (·.descending)
+      let keys ← ctx.projectRow row (terms.map (fun term => keyExpression term.expr))
       if capacity.any (fun count => sorted.length ≥ count) &&
           sorted.getLast?.any (fun last => !keysLess directions keys last.keys) then
-        return ← scanFuel ctx condition expressions terms distinct capacity rows seen sorted
+        return ← scanFuel ctx condition expressions terms directions distinct capacity rows seen sorted
       let output ← match output with
         | some values => pure values
         | none => ctx.projectRow row expressions
       let next := insertStable directions { projected := { source := row, output }, keys } sorted
       let next := match capacity with | none => next | some count => next.take count
-      scanFuel ctx condition expressions terms distinct capacity rows seen next
+      scanFuel ctx condition expressions terms directions distinct capacity rows seen next
 
 def scan (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : List Expr)
     (terms : List OrderTerm) (distinct : Bool) (rows : List (List Core.Value))
     (offset : Nat) (limit : Option Nat) : Except String (List CoreExpr.ProjectedRow) := do
   if limit == some 0 then return []
-  let sorted ← scanFuel ctx condition expressions terms distinct (limit.map (· + offset)) rows [] []
+  let directions ← terms.mapM specification
+  let sorted ← scanFuel ctx condition expressions terms directions distinct (limit.map (· + offset)) rows [] []
   return (sorted.drop offset).map (·.projected)
 
 theorem scan_limit_zero (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : List Expr)
@@ -139,7 +208,7 @@ theorem scan_limit_zero (ctx : CoreExpr.Context) (condition : Option Expr) (expr
     scan ctx condition expressions terms distinct rows offset (some 0) = .ok [] := by
   simp [scan, pure, Except.pure]
 
-theorem insertStable_length (directions : List Bool) (row : SortRow) (rows : List SortRow) :
+theorem insertStable_length (directions : List KeySpec) (row : SortRow) (rows : List SortRow) :
     (insertStable directions row rows).length = rows.length + 1 := by
   induction rows with
   | nil => rfl

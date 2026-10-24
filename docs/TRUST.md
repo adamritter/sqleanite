@@ -1772,3 +1772,19 @@ Final-checkpoint differential evidence and the retained larger-run timeout are
 listed in [SQLITE_PORT.md](SQLITE_PORT.md). The timeout has no passing semantic
 result and no performance conclusion is inferred from the smaller successful
 run. Native bindings and their trust assumptions are unchanged.
+
+
+### Ordering modifier boundary (2026-10-24)
+
+`OrderTerm.nullsFirst` is checked against source tokens and used by the live
+Core sorter. `SQLite.Collation` provides transparent byte comparators with
+registered self/NUL/trailing-space component proofs; no Unicode normalization
+or result-side repair is used. Sort metadata is separated from key evaluation
+only through operations whose computed values do not use a collation. Other
+nested collation-sensitive scalar operations remain rejected. Direct queries
+retain their original comparator only for default NULL placement; the separate
+join path rejects unsupported placement changes. The scalar function-flag pass
+models the pinned COLLATE constructor, with a registered boundary theorem.
+Fresh checkpoint results and negative probes are recorded in
+[SQLITE_PORT.md](SQLITE_PORT.md). The native adapter and nine host bindings are
+unchanged; all new database behavior is Lean code.

@@ -1115,3 +1115,9 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreOrder.scan_limit_zero
 #print axioms SQLeanite.CoreOrder.insertStable_length
+
+#print axioms SQLeanite.SQLite.Collation.compareText_self
+#print axioms SQLeanite.SQLite.Collation.noCase_nul
+#print axioms SQLeanite.SQLite.Collation.rtrimBytes_space
+
+#print axioms SQLeanite.SQLite.Scalar.hasFunction_collate

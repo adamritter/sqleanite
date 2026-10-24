@@ -201,8 +201,12 @@ def orderBy (schema : Core.Schema) :
   | term :: terms => do
       let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
       match ctx.bindNames term.expr with
-      | .column _ name =>
-          return (← column schema name, term.descending) :: (← orderBy schema terms)
+      | .column _ name => do
+          let index ← column schema name
+          let rest ← orderBy schema terms
+          unless term.nullsFirst.all (· == !term.descending) do
+            unsupported "non-default NULL ordering"
+          return (index, term.descending) :: rest
       | _ => unsupported "ORDER BY expression"
 
 def resolvedOrdering (schema : Core.Schema) (source : TableRef) (select : Select) :
@@ -919,7 +923,8 @@ def joinProjection (context : JoinContext) : List ResultColumn →
 def joinOrderBy (context : JoinContext) : List OrderTerm →
     Except String (List (CoreJoin.ColumnRef × Bool))
   | [] => .ok []
-  | { expr := .column qualifier name, descending, .. } :: terms =>
+  | { expr := .column qualifier name, descending, nullsFirst } :: terms => do
+      unless nullsFirst.all (· == !descending) do unsupported "non-default join NULL ordering"
       return (← joinColumn context qualifier name, descending) ::
         (← joinOrderBy context terms)
   | _ => unsupported "join ORDER BY expression"
@@ -1047,8 +1052,10 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
     unsupported "constant SELECT expression"
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   let ordering ← CoreOrder.resolve ctx select.columns.toList select.orderBy.toList
-  unless ordering.all (fun term => SQLite.Scalar.admitted term.expr) do
-    unsupported "constant ORDER BY expression"
+  let _ ← ordering.mapM (fun term => do
+    let _ ← CoreOrder.specification term
+    unless SQLite.Scalar.admitted (CoreOrder.keyExpression term.expr) do
+      unsupported "constant ORDER BY expression")
   if select.limit == some 0 then return none
   if let some condition := select.where_ then
     unless ← SQLite.Scalar.testWhere condition do return none
@@ -1114,9 +1121,9 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
   let expressions ← ctx.projection select.columns.toList
   let _ ← select.where_.mapM ctx.validate
   let terms ← resolvedOrdering stored.schema source select
-  let _ ← terms.mapM (fun term => ctx.validate term.expr)
+  let _ ← terms.mapM (CoreOrder.validateTerm ctx)
   let ordering := terms.head?.toList.flatMap fun term =>
-    match ctx.bindNames term.expr with
+    match ctx.bindNames (CoreOrder.keyExpression term.expr) with
     | .column qualifier name => (ctx.column? qualifier name).toList.map (·, term.descending)
     | _ => []
   if select.limit != some 0 then
@@ -1130,7 +1137,7 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
     | .equal index _ => index == stored.schema.primaryKey
     | _ => false)
   let orderedScan := terms.isEmpty || singleRow ||
-    (terms.head?.any (fun term => match ctx.bindNames term.expr with
+    (terms.head?.any (fun term => match ctx.bindNames (CoreOrder.keyExpression term.expr) with
       | .column qualifier name => ctx.column? qualifier name == some stored.schema.primaryKey
       | _ => false))
   let query : Core.Query := {
