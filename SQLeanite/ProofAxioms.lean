@@ -1138,3 +1138,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.WALAppend.Frame.encode_size
 #print axioms SQLeanite.SQLite.WALAppend.prepare_empty
+
+#print axioms SQLeanite.SQLite.Scalar.forbidden_tooManyArguments

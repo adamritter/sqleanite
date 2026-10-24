@@ -1357,3 +1357,39 @@ concurrent publication protocol or complete WAL-index equivalence.
 Reports: `sqlite-wal-components-20261024.json`,
 `sqlite-wal-components-recovery-regression-20261024.json` and
 `sqlite-wal-component-checks-20261024.json` in `docs/validation/`.
+
+
+## Quoted function calls and argument admission (2026-10-24)
+
+The production parser and independent token checker now accept function names
+in double quotes, brackets and backticks. Single quotes remain string literals.
+Scalar DISTINCT is accepted and ignored as in SQLite; aggregate DISTINCT keeps
+its existing accumulator semantics. The parser, token checker and scalar
+admission enforce the pinned default 1,000-argument maximum. The public CAST
+syntax remains the only route to internal cast operations, including when a
+user spells a private function name in uppercase or adds DISTINCT.
+
+The initial seed 353720 recorded 612 differences in 884 outcomes at source
+`2190c31d04dac82b62f38dd66e3ac9e5fd34092a354fc6b853317f3f523a1af6`.
+The expanded final corpus uses fresh seed 353722 at source
+`a12f0750ff26b4b0c4183740a0f42c556ed8e47fdf642fc27550d6d2aedf7fc6`:
+**1,784 of 1,786 outcomes match**, including 318 matching read errors and six
+row-dependent write scenarios across both production file modes. The two
+remaining failures are the same `sum(v) OVER ()` query in each mode; window
+execution remains unsupported. The harness retains these failures and exits
+nonzero. This is not a full-corpus pass or a SQLite-wide compatibility percentage.
+Read queries preserve main/WAL bytes. Error matching checks ordinary nonzero
+exit status, not exact wording or SQLite error codes.
+
+The final source also passes 916 aggregate-result regression outcomes
+(seed 353723, 184 matching errors), the existing 1,120 scalar cases, all 194
+executable tests, the 1,021-headline proof build, the host and live-path audits,
+and 61 reverse file-format cases with two separately declared unsupported cells.
+The scalar regression uses its existing fixed corpus, not new random examples.
+The argument-bound theorem covers scalar syntax rejection; executable boundary
+cases cover 999, 1,000 and 1,001 arguments. No native code or audit allowlist changed.
+
+Reports are `sqlite-quoted-function-negative-20261024.json`,
+`sqlite-quoted-function-20261024.json`, `sqlite-quoted-function-checks-20261024.json`
+and the two `sqlite-quoted-function-*-regression-20261024.json` files under
+`docs/validation/`. Other SQL and WAL gaps listed above remain outstanding.

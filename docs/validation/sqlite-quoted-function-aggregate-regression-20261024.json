@@ -1,0 +1,24 @@
+{
+  "seed": 353723,
+  "random_cases": 150,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 458,
+      "result_rows": 120,
+      "matching_errors": 92
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 458,
+      "result_rows": 120,
+      "matching_errors": 92
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a12f0750ff26b4b0c4183740a0f42c556ed8e47fdf642fc27550d6d2aedf7fc6",
+  "executable_sha256": "c33f14909dbb5f763bb3c5869814978112fff7ca97c64c661643b3879072fd44",
+  "harness_sha256": "3dd6bba6de67839a6a233ec384cc7acc674731a6a585240cd0119cdf11a3e3f5",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Differential checks for scalar results containing aggregates and no-FROM aggregates.\n\nCompare exact CLI bytes, explicit typeof results, and success/rejection status\nagainst the pinned SQLite executable, on independent database images in both\nfile modes. Reads must preserve every main/WAL byte. Error wording is not\ncompared. This suite covers ordinary aggregates without GROUP BY, HAVING,\naggregate ORDER BY, bare source-column results or subqueries. No mismatches\nare filtered or normalized."
+}

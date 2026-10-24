@@ -1,4 +1,5 @@
 import SQLeanite.Lexer
+import SQLeanite.SQLite.Limits
 
 namespace SQLeanite
 
@@ -263,6 +264,37 @@ mutual
       else if ← acceptKeyword "not" then pure (.unary .not (← parseExprFuel fuel 3))
       else parsePrimaryFuel fuel
 
+  private def parseCallFuel (fuel : Nat) (name : String) : ParserM Expr := do
+    let call ← if ← acceptSymbol "*" then
+      expectSymbol ")"
+      pure (.call name #[] true)
+    else
+      let distinct ← acceptKeyword "distinct"
+      if !distinct then discard <| acceptKeyword "all"
+      let mut args := #[]
+      unless ← acceptSymbol ")" do
+        args := args.push (← parseExprFuel fuel)
+        while ← acceptSymbol "," do args := args.push (← parseExprFuel fuel)
+        expectSymbol ")"
+      unless args.size ≤ SQLite.Limits.maxFunctionArgs do
+        throw s!"too many arguments on function {name}"
+      pure (.call (if distinct then distinctAggregateName name else name) args false)
+    let isWindow ← acceptKeyword "over"
+    if isWindow then
+      if ← acceptSymbol "(" then
+        let mut depth := 1
+        while depth > 0 do
+          match ← advance with
+          | .symbol "(" => depth := depth + 1
+          | .symbol ")" => depth := depth - 1
+          | .eof => throw "incomplete input"
+          | _ => pure ()
+      else discard <| expectIdent
+    pure (if isWindow then match call with
+      | .call name args star => .call ("lean_window_" ++ name) args star
+      | other => other
+      else call)
+
   private def parsePrimaryFuel : Nat → ParserM Expr
     | 0 => throw "parser stack overflow"
     | fuel + 1 => do
@@ -317,33 +349,7 @@ mutual
             "union", "intersect", "except"].contains s.toLower then
           throw (syntaxError (.ident s))
         else if ← acceptSymbol "(" then
-          let call ← if ← acceptSymbol "*" then
-            expectSymbol ")"
-            pure (.call s #[] true)
-          else
-            let distinct ← acceptKeyword "distinct"
-            if !distinct then discard <| acceptKeyword "all"
-            let mut args := #[]
-            unless ← acceptSymbol ")" do
-              args := args.push (← parseExprFuel fuel)
-              while ← acceptSymbol "," do args := args.push (← parseExprFuel fuel)
-              expectSymbol ")"
-            pure (.call (if distinct then distinctAggregateName s else s) args false)
-          let isWindow ← acceptKeyword "over"
-          if isWindow then
-            if ← acceptSymbol "(" then
-              let mut depth := 1
-              while depth > 0 do
-                match ← advance with
-                | .symbol "(" => depth := depth + 1
-                | .symbol ")" => depth := depth - 1
-                | .eof => throw "incomplete input"
-                | _ => pure ()
-            else discard <| expectIdent
-          pure (if isWindow then match call with
-            | .call name args star => .call ("lean_window_" ++ name) args star
-            | other => other
-            else call)
+          parseCallFuel fuel s
         else if ← acceptSymbol "." then
           if ← acceptSymbol "*" then pure (.star (some s))
           else
@@ -357,7 +363,8 @@ mutual
         else if keywordEq s "false" then pure (.call "__sqlean_boolean_false" #[] false)
         else pure (.column none s)
       | .quotedIdent s _ =>
-        if ← acceptSymbol "." then
+        if ← acceptSymbol "(" then parseCallFuel fuel s
+        else if ← acceptSymbol "." then
           if ← acceptSymbol "*" then pure (.star (some s))
           else pure (.column (some s) (← expectIdent))
         else pure (.call "lean_dqs" #[.literal (.text s)] false)

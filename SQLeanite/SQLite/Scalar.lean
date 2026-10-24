@@ -398,14 +398,22 @@ def prepareFuel : Nat → Expr → Expr
 
 def prepare (expression : Expr) : Expr := prepareFuel expression.height expression
 
+/-- DISTINCT is syntactically permitted on scalar calls but does not change
+scalar evaluation. Internal CAST markers cannot be introduced by wrapping a
+user-supplied function name in DISTINCT. -/
+def scalarFunctionName (name : String) : String :=
+  let base := aggregateFunctionName name
+  if isDistinctAggregateName name && base.startsWith "cast_" then name.toLower
+  else base
+
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
   | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ | .inList .. => false
   | .binary op _ _ => [.match, .arrow, .arrowText].contains op
   | .call name args star =>
-      let n := name.toLower
-      star || !(if (booleanKeyword? (.call name args star)).isSome then true
+      let n := scalarFunctionName name
+      star || args.size > Limits.maxFunctionArgs || !(if (booleanKeyword? (.call name args star)).isSome then true
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -423,6 +431,11 @@ def forbidden : Expr → Bool
            "hex", "unicode", "quote", "zeroblob", "sign"].contains n
         then args.size == 1 else false)
   | _ => true
+
+theorem forbidden_tooManyArguments (name : String) (args : Array Expr) (star : Bool)
+    (tooMany : Limits.maxFunctionArgs < args.size) :
+    forbidden (.call name args star) = true := by
+  simp [forbidden, tooMany]
 
 def admitted (e : Expr) : Bool := !(prepare e).any forbidden
 
@@ -535,7 +548,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
     | .inList argument values negated applyLeftAffinity =>
         evalInList eval operandAffinity constant argument values negated applyLeftAffinity
     | .call name args false =>
-        let n := name.toLower
+        let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (boolValue truth)
         else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
         else if n == "iif" || n == "if" then conditional eval args.toList

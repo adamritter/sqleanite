@@ -1,0 +1,53 @@
+{
+  "seed": 353722,
+  "random_cases": 300,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "read_queries": 890,
+      "matching_read_errors": 159,
+      "writes": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "read_queries": 890,
+      "matching_read_errors": 159,
+      "writes": 3
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"sum\"(v) OVER () FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_sum, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-0.5\n-0.5\n-0.5\n-0.5\n-0.5\n-0.5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"sum\"(v) OVER () FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_sum, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-0.5\n-0.5\n-0.5\n-0.5\n-0.5\n-0.5\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "a12f0750ff26b4b0c4183740a0f42c556ed8e47fdf642fc27550d6d2aedf7fc6",
+  "executable_sha256": "c33f14909dbb5f763bb3c5869814978112fff7ca97c64c661643b3879072fd44",
+  "harness_sha256": "94ffe98ffcb9618fb598a3fba49086d4cbd3c981281b448597b8ba39039545cd",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Quoted function names and the pinned function-argument limit through both\nproduction file modes. Exact CLI bytes/rejection status are compared with pinned\nSQLite; read-only queries must preserve existing main/WAL bytes."
+}

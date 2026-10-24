@@ -116,7 +116,7 @@ def keyExpressionFuel : Nat → Expr → Expr
               .shiftLeft, .shiftRight, .and, .or].contains op then .binary op (erase left) (erase right)
           else expression
       | .call name args star =>
-          if ["min", "max", "nullif"].contains name.toLower then expression
+          if ["min", "max", "nullif"].contains (SQLite.Scalar.scalarFunctionName name) then expression
           else .call name (args.map erase) star
       | .isNull arg negated => .isNull (erase arg) negated
       | _ => expression

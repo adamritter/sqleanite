@@ -4403,6 +4403,44 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteQuotedFunctions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,-3),(2,1.5),(3,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT \"abs\"(-3),[length]('abc'),`typeof`(1.0);", [[.integer 3, .integer 3, .text "real"]]),
+    ("SELECT \"sum\"(v),[count](*),`count`(DISTINCT v) FROM t;", [[.real (-1.5), .integer 3, .integer 2]]),
+    ("SELECT \"abs\"(DISTINCT -3),coalesce(DISTINCT NULL,2),min(DISTINCT 3,1,2),[max](ALL 1,3);",
+      [[.integer 3, .integer 2, .integer 1, .integer 3]]),
+    ("SELECT \"abs\"(v) FROM t ORDER BY `abs`(v);", [[.null], [.real 1.5], [.integer 3]]),
+    ("UPDATE t SET v=[abs](v); SELECT v FROM t WHERE id=1;", [[.integer 3]]),
+    ("SELECT 0 AND \"abs\"(-9223372036854775808);", [[.integer 0]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"quoted functions: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"quoted function mismatch: {sql}"
+  for name in ["char", "\"char\"", "[char]", "`char`"] do
+    for count in [999, 1000, 1001] do
+      let arguments := String.intercalate "," (List.replicate count "65")
+      let sql := s!"SELECT length({name}({arguments}));"
+      match CoreSQL.execute Core.State.empty sql with
+      | .ok (_, results) =>
+          unless count ≤ SQLite.Limits.maxFunctionArgs &&
+              results.map (·.rows) == [[[(← match SQLSurface.value (.integer count) with
+                | .ok value => pure value
+                | .error message => fail message)]]] do fail "function argument limit accepted wrong count"
+      | .error message => unless count > SQLite.Limits.maxFunctionArgs do fail message
+  for sql in ["SELECT 'abs'(-3);", "SELECT \"abs\"();", "SELECT [abs](1,2);",
+      "SELECT CAST_INTEGER(1);", "SELECT \"cast_integer\"(1);", "SELECT CAST_INTEGER(DISTINCT 1);",
+      "SELECT [cast_integer](DISTINCT 1);", "SELECT lean_distinct_aggregate_abs(1);",
+      "SELECT LEAN_DISTINCT_AGGREGATE_ABS(DISTINCT 1);", "SELECT \"lean_dqs\"('v') FROM t;",
+      "SELECT \"__sqlean_boolean_true\"();", "SELECT 0 AND \"unknown_function\"();"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"private/invalid function was admitted: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteBooleanKeywords : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,true TEXT,false INTEGER,v); INSERT INTO t VALUES(1,'2',7,2),(2,'0',0,0),(3,NULL,NULL,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4882,6 +4920,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite large local payload leaf packing", expectSingletonLeafPacking),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
+  ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

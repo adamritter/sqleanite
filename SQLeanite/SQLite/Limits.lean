@@ -4,6 +4,9 @@ namespace SQLeanite.SQLite.Limits
 byte count, shared by TEXT/BLOB storage and newly produced scalar values. -/
 abbrev maxLength : Nat := 1000000000
 
+/-- SQLITE_MAX_FUNCTION_ARG in the pinned default build. -/
+abbrev maxFunctionArgs : Nat := 1000
+
 def check (payloadBytes : Nat) (allocationOverhead : Nat := 0) : Except String Unit :=
   if payloadBytes + allocationOverhead ≤ maxLength then .ok ()
   else .error "string or blob too big"

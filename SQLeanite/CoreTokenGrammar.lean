@@ -322,6 +322,8 @@ mutual
         expectBinaryOp operation
         matchExprFuel fuel right
     | fuel, .call name arguments star => do
+        unless arguments.size ≤ SQLite.Limits.maxFunctionArgs do
+          mismatch "at most 1000 function arguments"
         if name == "__sqlean_boolean_true" || name == "__sqlean_boolean_false" then
           unless arguments.isEmpty && !star do mismatch "a boolean keyword"
           expectKeyword (if name == "__sqlean_boolean_true" then "true" else "false")
@@ -334,7 +336,7 @@ mutual
                     mismatch s!"quoted identifier {expected}"
               | _ => mismatch s!"quoted identifier {expected}"
           | _, _ => mismatch "a supported quoted identifier"
-        else if name.startsWith "cast_" then
+        else if name.toLower.startsWith "cast_" then
           match arguments.toList, star with
           | [argument], false =>
               expectKeyword "cast"

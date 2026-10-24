@@ -1829,3 +1829,14 @@ remains unapplied; native code and the nine-binding audit boundary are unchanged
 The existing live reader's bounded page-length check changed independently and
 passes the recorded fresh 1,024-outcome recovery regression. See
 [SQLITE_PORT.md](SQLITE_PORT.md) for exact scope, hashes and synthetic-fixture labels.
+
+
+### Quoted function admission (2026-10-24)
+
+Quoted function identifiers share the existing call AST and independent token
+certificate. The scalar argument-limit theorem is an admission property, not
+an equivalence theorem for all built-ins. Fresh final-source differential
+checks match 1,784 of 1,786 outcomes; both retained failures are window calls.
+Scalar DISTINCT is separate from aggregate DISTINCT. Private CAST and parser
+markers are still rejected as user function calls. See the port report for
+exact corpus, hashes, error-comparison scope and unchanged native boundary.
