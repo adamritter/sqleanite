@@ -235,7 +235,7 @@ private def expectCrossProcessSerializedMVP : IO Unit := do
     | .ok output => unless output.exitCode == 0 do
         fail s!"multiprocess worker failed: {output.stderr}"
   let checked ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[database.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*),sum(first) FROM items;"] }
   unless checked.exitCode == 0 && checked.stdout == "ok\n8|360\n" do
@@ -305,7 +305,7 @@ private def expectCrossProcessPhysicalWAL : IO Unit := do
   unless checkpoint.exitCode == 0 do
     fail s!"physical WAL checkpoint failed: {checkpoint.stderr}"
   let checked ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[database.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*),sum(first) FROM items;"] }
   unless checked.exitCode == 0 && checked.stdout == "ok\n8|360\n" do
@@ -1589,7 +1589,7 @@ private def expectRecursivePhysicalPageBTree : IO Unit := do
   let path : System.FilePath := ".lake/build/sqleanite-recursive-pages.db"
   IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*) FROM deep_pages; SELECT count(*) FROM auxiliary; SELECT name FROM sqlite_master WHERE type='index';"] }
   unless output.exitCode == 0 &&
@@ -1694,7 +1694,7 @@ private def expectPhysicalMVPTableBTree : IO Unit := do
   let path : System.FilePath := ".lake/build/sqleanite-mvp-multipage.db"
   IO.FS.writeBinFile path (ByteArray.mk fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
   unless output.exitCode == 0 do
@@ -2073,7 +2073,7 @@ private def expectGeneralMVPFileInterop : IO Unit := do
   let path : System.FilePath := ".lake/build/sqleanite-general-mvp.db"
   IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader", "
       PRAGMA integrity_check;
       SELECT user_id,name,typeof(note),quote(note) FROM users ORDER BY user_id;
@@ -2083,7 +2083,7 @@ private def expectGeneralMVPFileInterop : IO Unit := do
       "ok\n1|Lin|text|'1.5'\n2|Ada|blob|X'0102'\n9|storage|1\n10|proofs|2\nusers_name\n" do
     fail s!"sqlite3 rejected the arbitrary-schema image: {output.stderr}{output.stdout}"
   let mutation ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch",
       "INSERT INTO users VALUES(3,'C sqlite',2.25); UPDATE users SET note=X'CAFE' WHERE user_id=2; INSERT INTO posts VALUES('compact',11,3);"] }
   unless mutation.exitCode == 0 do
@@ -2167,7 +2167,7 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
         fail "page-directed TEXT PRIMARY KEY batch returned wrong rows"
   | _ => fail "TEXT PRIMARY KEY read batch missed the certified cold path"
   let inspected ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader", "
       SELECT sql FROM sqlite_master WHERE type='table' AND name='usertable';
       SELECT sql IS NULL FROM sqlite_master WHERE type='index';
@@ -2177,7 +2177,7 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
       "CREATE TABLE \"usertable\"(\"ycsb_key\" TEXT PRIMARY KEY,\"field0\" \"TEXT\")\n1\nuser1|value1\nok\n" do
     fail s!"SQLite rejected the exact TEXT PRIMARY KEY image: {inspected.stderr}{inspected.stdout}"
   let mutated ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch",
       "INSERT INTO usertable VALUES('user2','value2');"] }
   unless mutated.exitCode == 0 do
@@ -2219,7 +2219,7 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
           [.text ⟨[118, 97, 108, 117, 101, 50], by decide⟩]] do
         fail "file-backed TEXT PRIMARY KEY reads returned wrong YCSB values"
   let workloadCheck ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader", "
       PRAGMA integrity_check;
       SELECT ycsb_key,field0 FROM usertable ORDER BY ycsb_key;"] }
@@ -2246,13 +2246,13 @@ private def expectLiveOverflowInterop : IO Unit := do
   unless reopened.Equiv state.database do
     fail "Lean overflow reopen changed the logical database"
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT length(payload) FROM overflowing INDEXED BY overflowing_payload; SELECT count(*) FROM overflowing;"] }
   unless output.exitCode == 0 && output.stdout == "ok\n9000\n1\n" do
     fail s!"sqlite3 rejected Lean overflow chains: {output.stderr}{output.stdout}"
   let mutation ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch",
       "UPDATE overflowing SET payload=hex(zeroblob(3500)) WHERE id=1;"] }
   unless mutation.exitCode == 0 do
@@ -2295,7 +2295,7 @@ private def expectEscapedCatalogIdentifiers : IO Unit := do
   let path : System.FilePath := ".lake/build/sqleanite-escaped-catalog.db"
   IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT \"value,part\" FROM \"odd\"\"table,one\";"] }
   unless output.exitCode == 0 && output.stdout == "ok\nkept\n" do
@@ -2624,7 +2624,7 @@ private def expectPhysicalIndexTraversal : IO Unit := do
         fail "cold primary-key join returned the wrong rows"
   | _ => fail "cold primary-key join missed the page-directed path"
   let signedMutation ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "INSERT INTO signed_keys VALUES(-7,'negative');"] }
   unless signedMutation.exitCode == 0 do
     fail s!"sqlite3 could not add a negative rowid: {signedMutation.stderr}"
@@ -2697,7 +2697,7 @@ private def expectPhysicalIndexTraversal : IO Unit := do
         fail "live certified integer index returned the wrong row"
   | _ => fail "live certified integer index did not execute"
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*) FROM indexed INDEXED BY indexed_value;"] }
   unless output.exitCode == 0 && output.stdout == "ok\n120\n" do
@@ -2711,7 +2711,7 @@ private def expectWideCIndexCertificate : IO Unit := do
   if ← path.pathExists then IO.FS.removeFile path
   if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
   let created ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString,
       "PRAGMA page_size=4096; VACUUM; CREATE TABLE wide(id INTEGER PRIMARY KEY,score INTEGER NOT NULL,payload TEXT NOT NULL); WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4000) INSERT INTO wide SELECT x,x*10,printf('payload-%d',x) FROM n; CREATE INDEX wide_score ON wide(score); CREATE TABLE mixed(id INTEGER PRIMARY KEY,v); INSERT INTO mixed VALUES(1,NULL),(2,5),(3,5.5),(4,'five'),(5,x'05'); CREATE INDEX mixed_v ON mixed(v);"] }
   unless created.exitCode == 0 do
@@ -2876,7 +2876,7 @@ private def expectCoreFreelistShrink : IO Unit := do
   unless newBytes.size / PhysicalCodec.pageSize == oldPages do
     fail "Core freelist shrink changed the physical file size"
   let check ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM shrinking;"] }
   let lines := check.stdout.trimAscii.toString.splitOn "\n"
@@ -3111,7 +3111,7 @@ private def expectCoreDirtyPageCommit : IO Unit := do
       dirtyPages.length < oldPages do
     fail s!"localized commit wrote {dirtyPages.length} of {oldPages} pages"
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*),length(payload) FROM dirty_rows WHERE payload LIKE 'e%'; SELECT count(*) FROM dirty_rows; SELECT count(*) FROM dirty_rows WHERE id=105;"] }
   unless output.exitCode == 0 && output.stdout == "ok\n1|96\n95\n0\n" do
@@ -3136,7 +3136,7 @@ private def expectCoreMultiFreelist : IO Unit := do
   let path : System.FilePath := ".lake/build/sqleanite-multi-freelist.db"
   IO.FS.writeBinFile path (ByteArray.mk layout.paddedImage.fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM multi_free;"] }
   unless output.exitCode == 0 && output.stdout == "ok\n2050\n1\n" do
@@ -3194,7 +3194,7 @@ private def expectGeneralMVPFileEngine : IO Unit := do
   if let .error message := rolledBack then
     fail s!"general persisted rollback failed: {message}"
   let cInsert ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch",
       "INSERT INTO users VALUES(3,'C'); INSERT INTO notes VALUES('interop',11,3);"] }
   unless cInsert.exitCode == 0 do
@@ -3217,7 +3217,7 @@ private def expectGeneralMVPFileEngine : IO Unit := do
   if rejected.isOk then
     fail "general live UPDATE admitted a NOT NULL violation"
   let check ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader", "
       PRAGMA integrity_check;
       SELECT id,name FROM users ORDER BY id;
@@ -3292,7 +3292,7 @@ private def expectSQLiteFileInterop : IO Unit := do
   | none => fail "verified pager reopen rejected its own image"
   IO.FS.writeBinFile path (ByteArray.mk database.fileBytes.toArray)
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
   unless output.exitCode == 0 do
@@ -3355,7 +3355,7 @@ private def expectMVPFileAdapter : IO Unit := do
   if ← paths.journal.pathExists then
     fail "MVP file adapter returned before journal deletion"
   let output ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT id,first,second FROM items ORDER BY id;"] }
   unless output.exitCode == 0 && output.stdout == "ok\n1|alpha|\n2|-4|beta\n" do
@@ -3393,7 +3393,7 @@ private def expectMVPFileAdapter : IO Unit := do
   unless grownBytes.size == 5 * PhysicalCodec.pageSize do
     fail "MVP file adapter did not physically grow the main file"
   let grownCheck ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*) FROM items;"] }
   unless grownCheck.exitCode == 0 && grownCheck.stdout == "ok\n5\n" do
@@ -3413,7 +3413,7 @@ private def expectMVPFileAdapter : IO Unit := do
   unless shrunkBytes.size == 5 * PhysicalCodec.pageSize do
     fail "MVP freelist shrink unexpectedly truncated the committed file"
   let shrinkCheck ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[paths.main.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM items;"] }
   unless shrinkCheck.exitCode == 0 && shrinkCheck.stdout == "ok\n3\n2\n" do
@@ -3528,7 +3528,7 @@ private def expectPersistentPageTree : IO Unit := do
     ".lake/build/sqleanite-stable-page-bulk.db"
   IO.FS.writeBinFile path (ByteArray.mk image.fileBytes.toArray)
   let check ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
   unless check.exitCode == 0 && check.stdout == "ok\n3\n1\n" do
@@ -3553,7 +3553,7 @@ private def expectPersistentPageTree : IO Unit := do
     ".lake/build/sqleanite-wide-page-bulk.db"
   IO.FS.writeBinFile widePath (ByteArray.mk wideImage.fileBytes.toArray)
   let wideCheck ← IO.Process.output {
-    cmd := "/usr/bin/sqlite3"
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
     args := #[widePath.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; SELECT count(*) FROM a; SELECT count(*) FROM b;"] }
   unless wideCheck.exitCode == 0 && wideCheck.stdout == "ok\n3\n1\n" do
