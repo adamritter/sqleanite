@@ -4467,6 +4467,40 @@ private def expectSQLiteWhereAliases : IO Unit := do
       "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
 
+private def expectSQLiteUnicodeEscape : IO Unit := do
+  let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT unistr(NULL),unistr_quote(NULL);", [[.null, .text "NULL"]]),
+    ("SELECT unistr(X'5C7530303431'),unistr(1.25);", [[.text "A", .text "1.25"]]),
+    ("SELECT hex(unistr(X'5C75303030305C7530303431'));", [[.text "0041"]]),
+    ("SELECT hex(unistr(X'005C71'));", [[.text "005C71"]]),
+    ("SELECT hex(unistr(X'5C7530303431005C71'));", [[.text "41005C71"]]),
+    ("SELECT hex(unistr(X'5C7544383030'));", [[.text "EDA080"]]),
+    ("SELECT hex(unistr(X'5C554646464646464646'));", [[.text "F7BFBFBF"]]),
+    ("SELECT hex(unistr(X'5C553030323030303030'));", [[.text "F0808080"]]),
+    ("SELECT hex(unistr(X'FF805C7530303431'));", [[.text "FF8041"]]),
+    ("SELECT hex(unistr_quote(CAST(X'610A5C27' AS TEXT)));",
+      [[.text "756E697374722827615C75303030615C5C27272729"]]),
+    ("SELECT unistr_quote(CAST(X'615C62' AS TEXT));", [[.text "'a\\b'"]]),
+    ("SELECT unistr_quote(CAST(X'61001B' AS TEXT));", [[.text "'a'"]]),
+    ("SELECT unistr_quote(X'001BFF');", [[.text "X'001BFF'"]]),
+    ("SELECT unistr(X'5C71') FROM e;", []),
+    ("SELECT unistr(X'5C71') LIMIT 0;", []),
+    ("SELECT unistr(X'5C71') LIMIT 1 OFFSET 1;", []),
+    ("SELECT coalesce('x',unistr(X'5C71'));", [[.text "x"]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"Unicode escape: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"Unicode escape mismatch: {sql}"
+  for sql in ["SELECT unistr(X'5C71');", "SELECT unistr(X'5C753132');",
+      "SELECT unistr(X'5C7530300031');", "SELECT unistr();", "SELECT unistr_quote(1,2);",
+      "SELECT unistr(missing) FROM e LIMIT 0;", "SELECT unistr_quote(missing) FROM e LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"Unicode escape error omitted: {sql}"
+
 private def expectSQLiteStringAggregates : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v,s);" ++
     "INSERT INTO t VALUES(1,0,NULL,'!'),(2,0,'A',':'),(3,1,'a',NULL),(4,1,'A',':');" ++
@@ -5365,6 +5399,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
+  ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),
   ("SQLite string aggregates", expectSQLiteStringAggregates),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
   ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),

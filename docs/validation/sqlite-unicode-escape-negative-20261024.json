@@ -1,0 +1,5931 @@
+{
+  "seed": 353860,
+  "random_cases": 40,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 245,
+      "matching_errors": 34
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 245,
+      "matching_errors": 34
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(NULL)),hex(unistr(NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(NULL)),hex(unistr_quote(NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|4E554C4C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(0)),hex(unistr(0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(0)),hex(unistr_quote(0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(-1)),hex(unistr(-1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(-1)),hex(unistr_quote(-1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(1.25)),hex(unistr(1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(1.25)),hex(unistr_quote(1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(-0.0)),hex(unistr(-0.0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|302E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(-0.0)),hex(unistr_quote(-0.0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|302E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(1e999)),hex(unistr(1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|496E66\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(1e999)),hex(unistr_quote(1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|392E30652B393939\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(-1e999)),hex(unistr(-1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D496E66\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(-1e999)),hex(unistr_quote(-1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D392E30652B393939\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(1e-300)),hex(unistr(1e-300));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30652D333030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(1e-300)),hex(unistr_quote(1e-300));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30652D333030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('')),hex(unistr(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('')),hex(unistr_quote(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('plain')),hex(unistr('plain'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|706C61696E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('plain')),hex(unistr_quote('plain'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27706C61696E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('a''b')),hex(unistr('a''b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|612762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('a''b')),hex(unistr_quote('a''b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276127276227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\')),hex(unistr_quote('\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\\\')),hex(unistr('\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\')),hex(unistr_quote('\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\n')),hex(unistr_quote('\\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C6E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\t')),hex(unistr_quote('\\t'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C7427\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\u0041')),hex(unistr('\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0041')),hex(unistr_quote('\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\0041')),hex(unistr('\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\0041')),hex(unistr_quote('\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\+01F600')),hex(unistr('\\+01F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F09F9880\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+01F600')),hex(unistr_quote('\\+01F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B30314636303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U0001F600')),hex(unistr('\\U0001F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F09F9880\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U0001F600')),hex(unistr_quote('\\U0001F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303030314636303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\uD800')),hex(unistr('\\uD800'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDA080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\uD800')),hex(unistr_quote('\\uD800'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C754438303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\uDC00')),hex(unistr('\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDB080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\uDC00')),hex(unistr_quote('\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C754443303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\uD800\\uDC00')),hex(unistr('\\uD800\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDA080EDB080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\uD800\\uDC00')),hex(unistr_quote('\\uD800\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75443830305C754443303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U00110000')),hex(unistr('\\U00110000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F4908080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U00110000')),hex(unistr_quote('\\U00110000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303031313030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\UFFFFFFFF')),hex(unistr('\\UFFFFFFFF'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F7BFBFBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\UFFFFFFFF')),hex(unistr_quote('\\UFFFFFFFF'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55464646464646464627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U00200000')),hex(unistr('\\U00200000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F0808080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U00200000')),hex(unistr_quote('\\U00200000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303032303030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U80000000')),hex(unistr('\\U80000000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F0808080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U80000000')),hex(unistr_quote('\\U80000000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55383030303030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\u0000\\0041')),hex(unistr('\\u0000\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0041\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0000\\0041')),hex(unistr_quote('\\u0000\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303030305C3030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('a\\0000z')),hex(unistr('a\\0000z'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|61007A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('a\\0000z')),hex(unistr_quote('a\\0000z'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27615C303030307A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u12')),hex(unistr_quote('\\u12'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75313227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+12345')),hex(unistr_quote('\\+12345'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B313233343527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U1234567')),hex(unistr_quote('\\U1234567'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C553132333435363727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\123x')),hex(unistr_quote('\\123x'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3132337827\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\q')),hex(unistr_quote('\\q'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C7127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\u00e1rv\u00edz\\u0041')),hex(unistr('\u00e1rv\u00edz\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|C3A17276C3AD7A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\u00e1rv\u00edz\\u0041')),hex(unistr_quote('\u00e1rv\u00edz\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A5C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\u0041\\\\u0042')),hex(unistr('\\u0041\\\\u0042'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|415C7530303432\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0041\\\\u0042')),hex(unistr_quote('\\u0041\\\\u0042'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303034315C5C753030343227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('a\n\\''\t')),hex(unistr_quote('a\n\\''\t'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827615C75303030615C5C27275C75303030392729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\UECBDD66B\\+844f43\\FC23')),hex(unistr('\\UECBDD66B\\+844f43\\FC23'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F79D99ABF184BD83EFB0A3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\UECBDD66B\\+844f43\\FC23')),hex(unistr_quote('\\UECBDD66B\\+844f43\\FC23'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5545434244443636425C2B3834346634335C4643323327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+BBCC34\\+0000x0')),hex(unistr_quote('\\+BBCC34\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B4242434333345C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\u0BA4\\uef0d\\UABB85C95\\u19c7')),hex(unistr('\\u0BA4\\uef0d\\UABB85C95\\u19c7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E0AEA4EEBC8DF685B295E1A787\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0BA4\\uef0d\\UABB85C95\\u19c7')),hex(unistr_quote('\\u0BA4\\uef0d\\UABB85C95\\u19c7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75304241345C75656630645C5541424238354339355C753139633727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\e8e1\\u792b')),hex(unistr('\\e8e1\\u792b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EEA3A1E7A4AB\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\e8e1\\u792b')),hex(unistr_quote('\\e8e1\\u792b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C653865315C753739326227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\uB6A4\\+f08199\\\\\u00e1rv\u00edz\\+0000x0')),hex(unistr_quote('\\uB6A4\\+f08199\\\\\u00e1rv\u00edz\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75423641345C2B6630383139395C5CC3A17276C3AD7A5C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('''\\Ua023bc7a\\Ue4bd6ce5')),hex(unistr('''\\Ua023bc7a\\Ue4bd6ce5'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27F0BBB1BAF796B3A5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('''\\Ua023bc7a\\Ue4bd6ce5')),hex(unistr_quote('''\\Ua023bc7a\\Ue4bd6ce5'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727275C5561303233626337615C55653462643663653527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\UCAB3289F\\+7140a0abc\\Uc11833b6')),hex(unistr('\\UCAB3289F\\+7140a0abc\\Uc11833b6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F4B2A29FF49482A0616263F6838EB6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\UCAB3289F\\+7140a0abc\\Uc11833b6')),hex(unistr_quote('\\UCAB3289F\\+7140a0abc\\Uc11833b6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5543414233323839465C2B3731343061306162635C55633131383333623627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('''\u00e1rv\u00edz')),hex(unistr('''\u00e1rv\u00edz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('''\u00e1rv\u00edz')),hex(unistr_quote('''\u00e1rv\u00edz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|272727C3A17276C3AD7A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u457B\\+BED5BB\\82e9\u001b\\')),hex(unistr_quote('\\u457B\\+BED5BB\\82e9\u001b\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C75343537425C5C2B4245443542425C5C383265395C75303031625C5C2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\q\u00e1rv\u00edz\\0213')),hex(unistr_quote('abc\\q\u00e1rv\u00edz\\0213'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276162635C71C3A17276C3AD7A5C3032313327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U182cc176')),hex(unistr('\\U182cc176'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F38C85B6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U182cc176')),hex(unistr_quote('\\U182cc176'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55313832636331373627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+063A78\\\\\\')),hex(unistr_quote('\\+063A78\\\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3036334137385C5C5C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\4aec')),hex(unistr('\\4aec'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E4ABAC\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\4aec')),hex(unistr_quote('\\4aec'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3461656327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\\\UD054888C\\+0000x0')),hex(unistr_quote('\\\\\\UD054888C\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C5C5544303534383838435C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U6ABB1752\\8D3E\\+0000x0\\U6BE21468')),hex(unistr_quote('\\U6ABB1752\\8D3E\\+0000x0\\U6BE21468'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5536414242313735325C384433455C2B3030303078305C55364245323134363827\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\+6e8499\\uAEE6')),hex(unistr('\\+6e8499\\uAEE6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F3A89299EABBA6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+6e8499\\uAEE6')),hex(unistr_quote('\\+6e8499\\uAEE6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3665383439395C754145453627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\u00e1rv\u00edz\\62d7')),hex(unistr('\u00e1rv\u00edz\\62d7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|C3A17276C3AD7AE68B97\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\u00e1rv\u00edz\\62d7')),hex(unistr_quote('\u00e1rv\u00edz\\62d7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A5C3632643727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\u001b')),hex(unistr('\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1B\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\u001b')),hex(unistr_quote('\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303031622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\f8f5\ud834\udd1e')),hex(unistr('\\f8f5\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFA3B5F09D849E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\f8f5\ud834\udd1e')),hex(unistr_quote('\\f8f5\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C66386635F09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\7894\\U100F3F97\\u0293''')),hex(unistr('\\7894\\U100F3F97\\u0293'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E7A294F3B3BE97CA9327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\7894\\U100F3F97\\u0293''')),hex(unistr_quote('\\7894\\U100F3F97\\u0293'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C373839345C5531303046334639375C7530323933272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\nabc\u00e1rv\u00edz\\')),hex(unistr_quote('\nabc\u00e1rv\u00edz\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C7530303061616263C3A17276C3AD7A5C5C2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\26bd\\9CB2')),hex(unistr('\\26bd\\9CB2'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E29ABDE9B2B2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\26bd\\9CB2')),hex(unistr_quote('\\26bd\\9CB2'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C323662645C3943423227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\\\+ffe08e')),hex(unistr('\\\\+ffe08e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5C2B666665303865\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\+ffe08e')),hex(unistr_quote('\\\\+ffe08e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C2B66666530386527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('abc\\BA2E\\u2510\u001b\n')),hex(unistr('abc\\BA2E\\u2510\u001b\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263EBA8AEE294901B0A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\BA2E\\u2510\u001b\n')),hex(unistr_quote('abc\\BA2E\\u2510\u001b\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228276162635C5C424132455C5C75323531305C75303031625C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\\u00e1rv\u00edz\\Uf6f8e6edabc')),hex(unistr_quote('\\\u00e1rv\u00edz\\Uf6f8e6edabc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275CC3A17276C3AD7A5C55663666386536656461626327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\3065\n''\\ub502abc')),hex(unistr('\\3065\n''\\ub502abc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E381A50A27EB9482616263\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\3065\n''\\ub502abc')),hex(unistr_quote('\\3065\n''\\ub502abc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C333036355C753030306127275C5C75623530326162632729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\BF51\\+36b77c')),hex(unistr('\\BF51\\+36b77c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EBBD91F5AB9DBC\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\BF51\\+36b77c')),hex(unistr_quote('\\BF51\\+36b77c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C424635315C2B33366237376327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\1E7B\\u3571')),hex(unistr('\\1E7B\\u3571'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E1B9BBE395B1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\1E7B\\u3571')),hex(unistr_quote('\\1E7B\\u3571'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C314537425C753335373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\3E76\u001b')),hex(unistr('\\3E76\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E3B9B61B\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\3E76\u001b')),hex(unistr_quote('\\3E76\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C334537365C75303031622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('abc\\ua404\\475c')),hex(unistr('abc\\ua404\\475c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263EA9084E49D9C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\ua404\\475c')),hex(unistr_quote('abc\\ua404\\475c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276162635C75613430345C3437356327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\+500561abc\\0f6b')),hex(unistr('\\+500561abc\\0f6b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F48095A1616263E0BDAB\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+500561abc\\0f6b')),hex(unistr_quote('\\+500561abc\\0f6b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3530303536316162635C3066366227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\+7FA85A\\8104\\u4F60\\U883fec1f')),hex(unistr('\\+7FA85A\\8104\\u4F60\\U883fec1f'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F7BAA19AE88484E4BDA0F7BEB09F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+7FA85A\\8104\\u4F60\\U883fec1f')),hex(unistr_quote('\\+7FA85A\\8104\\u4F60\\U883fec1f'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3746413835415C383130345C75344636305C55383833666563316627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e')),hex(unistr('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F38CBE87C3A17276C3AD7A27F09D849EF09D849E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e')),hex(unistr_quote('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C553231454343463837C3A17276C3AD7A2727F09D849EF09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('abc\ud834\udd1e''')),hex(unistr('abc\ud834\udd1e'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263F09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('abc\ud834\udd1e''')),hex(unistr_quote('abc\ud834\udd1e'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27616263F09D849E272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\Ufca945cb\\631A')),hex(unistr('\\Ufca945cb\\631A'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F294978BE68C9A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\Ufca945cb\\631A')),hex(unistr_quote('\\Ufca945cb\\631A'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5566636139343563625C3633314127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\u924b\\U3770075C\n''')),hex(unistr('\\u924b\\U3770075C\n'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E9898BF4809D9C0A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u924b\\U3770075C\n''')),hex(unistr_quote('\\u924b\\U3770075C\n'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C75393234625C5C5533373730303735435C753030306127272729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\u3F81\\u123')),hex(unistr_quote('\\u3F81\\u123'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75334638315C7531323327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('\\+8EA39C')),hex(unistr('\\+8EA39C'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F3AA8E9C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+8EA39C')),hex(unistr_quote('\\+8EA39C'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B38454133394327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr('''')),hex(unistr(''''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('''')),hex(unistr_quote(''''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote('\\+9882c1''\\\n')),hex(unistr_quote('\\+9882c1''\\\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C2B39383832633127275C5C5C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X''))),hex(unistr((X'')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X''))),hex(unistr_quote((X'')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'' AS TEXT))),hex(unistr(CAST(X'' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'' AS TEXT))),hex(unistr_quote(CAST(X'' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'005c71'))),hex(unistr((X'005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'005c71'))),hex(unistr_quote((X'005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582730303543373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'005c71' AS TEXT))),hex(unistr(CAST(X'005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'005c71' AS TEXT))),hex(unistr_quote(CAST(X'005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'ff80'))),hex(unistr((X'ff80')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FF80\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'ff80'))),hex(unistr_quote((X'ff80')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58274646383027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'ff80' AS TEXT))),hex(unistr(CAST(X'ff80' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FF80\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'ff80' AS TEXT))),hex(unistr_quote(CAST(X'ff80' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27FF8027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'5c7530303431005c71'))),hex(unistr((X'5c7530303431005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'5c7530303431005c71'))),hex(unistr_quote((X'5c7530303431005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582735433735333033303334333130303543373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'5c7530303431005c71' AS TEXT))),hex(unistr(CAST(X'5c7530303431005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5c7530303431005c71' AS TEXT))),hex(unistr_quote(CAST(X'5c7530303431005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'011f5c7f'))),hex(unistr_quote((X'011f5c7f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827303131463543374627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'011f5c7f' AS TEXT))),hex(unistr_quote(CAST(X'011f5c7f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303030315C75303031665C5C7F2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'275c0a'))),hex(unistr_quote((X'275c0a')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582732373543304127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'275c0a' AS TEXT))),hex(unistr_quote(CAST(X'275c0a' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E69737472282727275C5C5C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'5c753030003031'))),hex(unistr_quote((X'5c753030003031')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827354337353330333030303330333127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5c753030003031' AS TEXT))),hex(unistr_quote(CAST(X'5c753030003031' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'efbbbf'))),hex(unistr((X'efbbbf')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFBBBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'efbbbf'))),hex(unistr_quote((X'efbbbf')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582745464242424627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'efbbbf' AS TEXT))),hex(unistr(CAST(X'efbbbf' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFBBBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'efbbbf' AS TEXT))),hex(unistr_quote(CAST(X'efbbbf' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27EFBBBF27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'0001'))),hex(unistr((X'0001')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'0001'))),hex(unistr_quote((X'0001')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58273030303127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'0001' AS TEXT))),hex(unistr(CAST(X'0001' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'0001' AS TEXT))),hex(unistr_quote(CAST(X'0001' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'))),hex(unistr((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'))),hex(unistr_quote((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827303130323033303430353036303730383039304130423043304430453046313031313132313331343135313631373138313931413142314331443145314627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT))),hex(unistr(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT))),hex(unistr_quote(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303030315C75303030325C75303030335C75303030345C75303030355C75303030365C75303030375C75303030385C75303030395C75303030615C75303030625C75303030635C75303030645C75303030655C75303030665C75303031305C75303031315C75303031325C75303031335C75303031345C75303031355C75303031365C75303031375C75303031385C75303031395C75303031615C75303031625C75303031635C75303031645C75303031655C75303031662729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'5f'))),hex(unistr((X'5f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'5f'))),hex(unistr_quote((X'5f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827354627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'5f' AS TEXT))),hex(unistr(CAST(X'5f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5f' AS TEXT))),hex(unistr_quote(CAST(X'5f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275F27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'a55907d0'))),hex(unistr((X'a55907d0')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|A55907D0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'a55907d0'))),hex(unistr_quote((X'a55907d0')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827413535393037443027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'a55907d0' AS TEXT))),hex(unistr(CAST(X'a55907d0' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|A55907D0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'a55907d0' AS TEXT))),hex(unistr_quote(CAST(X'a55907d0' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827A5595C7530303037D02729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f'))),hex(unistr((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|6F2A952EE65FE9A9F6B7A3701A0EAFD94A65907C89A7314F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f'))),hex(unistr_quote((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582736463241393532454536354645394139463642374133373031413045414644393441363539303743383941373331344627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT))),hex(unistr(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|6F2A952EE65FE9A9F6B7A3701A0EAFD94A65907C89A7314F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT))),hex(unistr_quote(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228276F2A952EE65FE9A9F6B7A3705C75303031615C7530303065AFD94A65907C89A7314F2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'86857d504487213c11ae43ee74a90fd1befc2dff'))),hex(unistr((X'86857d504487213c11ae43ee74a90fd1befc2dff')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|86857D504487213C11AE43EE74A90FD1BEFC2DFF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'86857d504487213c11ae43ee74a90fd1befc2dff'))),hex(unistr_quote((X'86857d504487213c11ae43ee74a90fd1befc2dff')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58273836383537443530343438373231334331314145343345453734413930464431424546433244464627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT))),hex(unistr(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|86857D504487213C11AE43EE74A90FD1BEFC2DFF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT))),hex(unistr_quote(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E69737472282786857D504487213C5C7530303131AE43EE74A95C7530303066D1BEFC2DFF2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e'))),hex(unistr((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|8E16FD5E97884A620E07921F08F7454C8C2AAF3A9E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e'))),hex(unistr_quote((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582738453136464435453937383834413632304530373932314630384637343534433843324141463341394527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT))),hex(unistr(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|8E16FD5E97884A620E07921F08F7454C8C2AAF3A9E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT))),hex(unistr_quote(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228278E5C7530303136FD5E97884A625C75303030655C7530303037925C75303031665C7530303038F7454C8C2AAF3A9E2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'dccb0783b51ee04e42bd09e0f95162'))),hex(unistr((X'dccb0783b51ee04e42bd09e0f95162')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|DCCB0783B51EE04E42BD09E0F95162\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'dccb0783b51ee04e42bd09e0f95162'))),hex(unistr_quote((X'dccb0783b51ee04e42bd09e0f95162')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582744434342303738334235314545303445343242443039453046393531363227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT))),hex(unistr(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|DCCB0783B51EE04E42BD09E0F95162\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT))),hex(unistr_quote(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827DCCB5C753030303783B55C7530303165E04E42BD5C7530303039E0F951622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'fa1a709520'))),hex(unistr((X'fa1a709520')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FA1A709520\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'fa1a709520'))),hex(unistr_quote((X'fa1a709520')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58274641314137303935323027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'fa1a709520' AS TEXT))),hex(unistr(CAST(X'fa1a709520' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FA1A709520\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'fa1a709520' AS TEXT))),hex(unistr_quote(CAST(X'fa1a709520' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827FA5C75303031617095202729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr((X'1a590c706a40ca4e44'))),hex(unistr((X'1a590c706a40ca4e44')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1A590C706A40CA4E44\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote((X'1a590c706a40ca4e44'))),hex(unistr_quote((X'1a590c706a40ca4e44')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582731413539304337303641343043413445343427\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr(CAST(X'1a590c706a40ca4e44' AS TEXT))),hex(unistr(CAST(X'1a590c706a40ca4e44' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1A590C706A40CA4E44\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'1a590c706a40ca4e44' AS TEXT))),hex(unistr_quote(CAST(X'1a590c706a40ca4e44' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C7530303161595C7530303063706A40CA4E442729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,typeof(unistr(v)),hex(unistr(v)) FROM t WHERE id<12 ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|null|\n2|text|30\n3|text|2D31\n4|text|312E3235\n5|text|302E30\n6|text|496E66\n7|text|2D496E66\n8|text|312E30652D333030\n9|text|\n10|text|706C61696E\n11|text|612762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(unistr_quote(v)) FROM t ORDER BY id DESC LIMIT 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40|275C653865315C753739326227\n39|275C75304241345C75656630645C5541424238354339355C753139633727\n38|275C2B4242434333345C2B30303030783027\n37|275C5545434244443636425C2B3834346634335C4643323327\n36|756E697374722827615C75303030615C5C27275C75303030392729\n35|275C75303034315C5C753030343227\n34|27C3A17276C3AD7A5C753030343127\n33|275C7127\n32|275C3132337827\n31|275C553132333435363727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(unistr_quote(v))) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4E554C4C2C302C2D312C312E32352C302E302C392E30652B3939392C2D392E30652B3939392C312E30652D3330302C27272C27706C61696E272C2761272762272C275C272C275C5C272C275C6E272C275C74272C275C7530303431272C275C30303431272C275C2B303146363030272C275C553030303146363030272C275C7544383030272C275C7544433030272C275C75443830305C7544433030272C275C553030313130303030272C275C554646464646464646272C275C553030323030303030272C275C553830303030303030272C275C75303030305C30303431272C27615C303030307A272C275C753132272C275C2B3132333435272C275C5531323334353637272C275C31323378272C275C71272C27C3A17276C3AD7A5C7530303431272C275C75303034315C5C7530303432272C756E697374722827615C75303030615C5C27275C753030303927292C275C5545434244443636425C2B3834346634335C46433233272C275C2B4242434333345C2B303030307830272C275C75304241345C75656630645C5541424238354339355C7531396337272C275C653865315C753739326227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr(v) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr_quote(v) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr('\\q') FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr('\\q') LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr('\\q') LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT coalesce('x',unistr('\\q'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT CASE WHEN 0 THEN unistr('\\q') ELSE 7 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr_quote('\\q');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\\q'\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr(DISTINCT '\\u0041');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT unistr_quote(DISTINCT 'x');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'x'\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(NULL)),hex(unistr(NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(NULL)),hex(unistr_quote(NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|4E554C4C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(0)),hex(unistr(0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(0)),hex(unistr_quote(0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(-1)),hex(unistr(-1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(-1)),hex(unistr_quote(-1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(1.25)),hex(unistr(1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(1.25)),hex(unistr_quote(1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(-0.0)),hex(unistr(-0.0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|302E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(-0.0)),hex(unistr_quote(-0.0));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|302E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(1e999)),hex(unistr(1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|496E66\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(1e999)),hex(unistr_quote(1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|392E30652B393939\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(-1e999)),hex(unistr(-1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D496E66\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(-1e999)),hex(unistr_quote(-1e999));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2D392E30652B393939\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(1e-300)),hex(unistr(1e-300));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30652D333030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(1e-300)),hex(unistr_quote(1e-300));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30652D333030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('')),hex(unistr(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('')),hex(unistr_quote(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('plain')),hex(unistr('plain'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|706C61696E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('plain')),hex(unistr_quote('plain'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27706C61696E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('a''b')),hex(unistr('a''b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|612762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('a''b')),hex(unistr_quote('a''b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276127276227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\')),hex(unistr_quote('\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\\\')),hex(unistr('\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\')),hex(unistr_quote('\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\n')),hex(unistr_quote('\\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C6E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\t')),hex(unistr_quote('\\t'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C7427\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\u0041')),hex(unistr('\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0041')),hex(unistr_quote('\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\0041')),hex(unistr('\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\0041')),hex(unistr_quote('\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\+01F600')),hex(unistr('\\+01F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F09F9880\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+01F600')),hex(unistr_quote('\\+01F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B30314636303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U0001F600')),hex(unistr('\\U0001F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F09F9880\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U0001F600')),hex(unistr_quote('\\U0001F600'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303030314636303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\uD800')),hex(unistr('\\uD800'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDA080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\uD800')),hex(unistr_quote('\\uD800'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C754438303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\uDC00')),hex(unistr('\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDB080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\uDC00')),hex(unistr_quote('\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C754443303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\uD800\\uDC00')),hex(unistr('\\uD800\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EDA080EDB080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\uD800\\uDC00')),hex(unistr_quote('\\uD800\\uDC00'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75443830305C754443303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U00110000')),hex(unistr('\\U00110000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F4908080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U00110000')),hex(unistr_quote('\\U00110000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303031313030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\UFFFFFFFF')),hex(unistr('\\UFFFFFFFF'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F7BFBFBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\UFFFFFFFF')),hex(unistr_quote('\\UFFFFFFFF'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55464646464646464627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U00200000')),hex(unistr('\\U00200000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F0808080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U00200000')),hex(unistr_quote('\\U00200000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55303032303030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U80000000')),hex(unistr('\\U80000000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F0808080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U80000000')),hex(unistr_quote('\\U80000000'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55383030303030303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\u0000\\0041')),hex(unistr('\\u0000\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0041\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0000\\0041')),hex(unistr_quote('\\u0000\\0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303030305C3030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('a\\0000z')),hex(unistr('a\\0000z'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|61007A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('a\\0000z')),hex(unistr_quote('a\\0000z'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27615C303030307A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u12')),hex(unistr_quote('\\u12'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75313227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+12345')),hex(unistr_quote('\\+12345'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B313233343527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U1234567')),hex(unistr_quote('\\U1234567'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C553132333435363727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\123x')),hex(unistr_quote('\\123x'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3132337827\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\q')),hex(unistr_quote('\\q'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C7127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\u00e1rv\u00edz\\u0041')),hex(unistr('\u00e1rv\u00edz\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|C3A17276C3AD7A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\u00e1rv\u00edz\\u0041')),hex(unistr_quote('\u00e1rv\u00edz\\u0041'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A5C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\u0041\\\\u0042')),hex(unistr('\\u0041\\\\u0042'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|415C7530303432\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0041\\\\u0042')),hex(unistr_quote('\\u0041\\\\u0042'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303034315C5C753030343227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('a\n\\''\t')),hex(unistr_quote('a\n\\''\t'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827615C75303030615C5C27275C75303030392729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\UECBDD66B\\+844f43\\FC23')),hex(unistr('\\UECBDD66B\\+844f43\\FC23'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F79D99ABF184BD83EFB0A3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\UECBDD66B\\+844f43\\FC23')),hex(unistr_quote('\\UECBDD66B\\+844f43\\FC23'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5545434244443636425C2B3834346634335C4643323327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+BBCC34\\+0000x0')),hex(unistr_quote('\\+BBCC34\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B4242434333345C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\u0BA4\\uef0d\\UABB85C95\\u19c7')),hex(unistr('\\u0BA4\\uef0d\\UABB85C95\\u19c7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E0AEA4EEBC8DF685B295E1A787\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u0BA4\\uef0d\\UABB85C95\\u19c7')),hex(unistr_quote('\\u0BA4\\uef0d\\UABB85C95\\u19c7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75304241345C75656630645C5541424238354339355C753139633727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\e8e1\\u792b')),hex(unistr('\\e8e1\\u792b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EEA3A1E7A4AB\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\e8e1\\u792b')),hex(unistr_quote('\\e8e1\\u792b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C653865315C753739326227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\uB6A4\\+f08199\\\\\u00e1rv\u00edz\\+0000x0')),hex(unistr_quote('\\uB6A4\\+f08199\\\\\u00e1rv\u00edz\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75423641345C2B6630383139395C5CC3A17276C3AD7A5C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('''\\Ua023bc7a\\Ue4bd6ce5')),hex(unistr('''\\Ua023bc7a\\Ue4bd6ce5'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27F0BBB1BAF796B3A5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('''\\Ua023bc7a\\Ue4bd6ce5')),hex(unistr_quote('''\\Ua023bc7a\\Ue4bd6ce5'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727275C5561303233626337615C55653462643663653527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\UCAB3289F\\+7140a0abc\\Uc11833b6')),hex(unistr('\\UCAB3289F\\+7140a0abc\\Uc11833b6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F4B2A29FF49482A0616263F6838EB6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\UCAB3289F\\+7140a0abc\\Uc11833b6')),hex(unistr_quote('\\UCAB3289F\\+7140a0abc\\Uc11833b6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5543414233323839465C2B3731343061306162635C55633131383333623627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('''\u00e1rv\u00edz')),hex(unistr('''\u00e1rv\u00edz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('''\u00e1rv\u00edz')),hex(unistr_quote('''\u00e1rv\u00edz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|272727C3A17276C3AD7A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u457B\\+BED5BB\\82e9\u001b\\')),hex(unistr_quote('\\u457B\\+BED5BB\\82e9\u001b\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C75343537425C5C2B4245443542425C5C383265395C75303031625C5C2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\q\u00e1rv\u00edz\\0213')),hex(unistr_quote('abc\\q\u00e1rv\u00edz\\0213'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276162635C71C3A17276C3AD7A5C3032313327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U182cc176')),hex(unistr('\\U182cc176'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F38C85B6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U182cc176')),hex(unistr_quote('\\U182cc176'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C55313832636331373627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+063A78\\\\\\')),hex(unistr_quote('\\+063A78\\\\\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3036334137385C5C5C27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\4aec')),hex(unistr('\\4aec'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E4ABAC\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\4aec')),hex(unistr_quote('\\4aec'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C3461656327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\\\UD054888C\\+0000x0')),hex(unistr_quote('\\\\\\UD054888C\\+0000x0'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C5C5544303534383838435C2B30303030783027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U6ABB1752\\8D3E\\+0000x0\\U6BE21468')),hex(unistr_quote('\\U6ABB1752\\8D3E\\+0000x0\\U6BE21468'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5536414242313735325C384433455C2B3030303078305C55364245323134363827\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\+6e8499\\uAEE6')),hex(unistr('\\+6e8499\\uAEE6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F3A89299EABBA6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+6e8499\\uAEE6')),hex(unistr_quote('\\+6e8499\\uAEE6'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3665383439395C754145453627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\u00e1rv\u00edz\\62d7')),hex(unistr('\u00e1rv\u00edz\\62d7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|C3A17276C3AD7AE68B97\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\u00e1rv\u00edz\\62d7')),hex(unistr_quote('\u00e1rv\u00edz\\62d7'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27C3A17276C3AD7A5C3632643727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\u001b')),hex(unistr('\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1B\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\u001b')),hex(unistr_quote('\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303031622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\f8f5\ud834\udd1e')),hex(unistr('\\f8f5\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFA3B5F09D849E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\f8f5\ud834\udd1e')),hex(unistr_quote('\\f8f5\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C66386635F09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\7894\\U100F3F97\\u0293''')),hex(unistr('\\7894\\U100F3F97\\u0293'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E7A294F3B3BE97CA9327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\7894\\U100F3F97\\u0293''')),hex(unistr_quote('\\7894\\U100F3F97\\u0293'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C373839345C5531303046334639375C7530323933272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\nabc\u00e1rv\u00edz\\')),hex(unistr_quote('\nabc\u00e1rv\u00edz\\'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C7530303061616263C3A17276C3AD7A5C5C2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\26bd\\9CB2')),hex(unistr('\\26bd\\9CB2'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E29ABDE9B2B2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\26bd\\9CB2')),hex(unistr_quote('\\26bd\\9CB2'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C323662645C3943423227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\\\+ffe08e')),hex(unistr('\\\\+ffe08e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5C2B666665303865\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\\\+ffe08e')),hex(unistr_quote('\\\\+ffe08e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5C2B66666530386527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('abc\\BA2E\\u2510\u001b\n')),hex(unistr('abc\\BA2E\\u2510\u001b\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263EBA8AEE294901B0A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\BA2E\\u2510\u001b\n')),hex(unistr_quote('abc\\BA2E\\u2510\u001b\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228276162635C5C424132455C5C75323531305C75303031625C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\\u00e1rv\u00edz\\Uf6f8e6edabc')),hex(unistr_quote('\\\u00e1rv\u00edz\\Uf6f8e6edabc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275CC3A17276C3AD7A5C55663666386536656461626327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\3065\n''\\ub502abc')),hex(unistr('\\3065\n''\\ub502abc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E381A50A27EB9482616263\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\3065\n''\\ub502abc')),hex(unistr_quote('\\3065\n''\\ub502abc'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C333036355C753030306127275C5C75623530326162632729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\BF51\\+36b77c')),hex(unistr('\\BF51\\+36b77c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EBBD91F5AB9DBC\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\BF51\\+36b77c')),hex(unistr_quote('\\BF51\\+36b77c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C424635315C2B33366237376327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\1E7B\\u3571')),hex(unistr('\\1E7B\\u3571'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E1B9BBE395B1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\1E7B\\u3571')),hex(unistr_quote('\\1E7B\\u3571'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C314537425C753335373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\3E76\u001b')),hex(unistr('\\3E76\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E3B9B61B\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\3E76\u001b')),hex(unistr_quote('\\3E76\u001b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C334537365C75303031622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('abc\\ua404\\475c')),hex(unistr('abc\\ua404\\475c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263EA9084E49D9C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('abc\\ua404\\475c')),hex(unistr_quote('abc\\ua404\\475c'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|276162635C75613430345C3437356327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\+500561abc\\0f6b')),hex(unistr('\\+500561abc\\0f6b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F48095A1616263E0BDAB\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+500561abc\\0f6b')),hex(unistr_quote('\\+500561abc\\0f6b'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3530303536316162635C3066366227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\+7FA85A\\8104\\u4F60\\U883fec1f')),hex(unistr('\\+7FA85A\\8104\\u4F60\\U883fec1f'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F7BAA19AE88484E4BDA0F7BEB09F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+7FA85A\\8104\\u4F60\\U883fec1f')),hex(unistr_quote('\\+7FA85A\\8104\\u4F60\\U883fec1f'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B3746413835415C383130345C75344636305C55383833666563316627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e')),hex(unistr('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F38CBE87C3A17276C3AD7A27F09D849EF09D849E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e')),hex(unistr_quote('\\U21ECCF87\u00e1rv\u00edz''\ud834\udd1e\ud834\udd1e'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C553231454343463837C3A17276C3AD7A2727F09D849EF09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('abc\ud834\udd1e''')),hex(unistr('abc\ud834\udd1e'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|616263F09D849E27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('abc\ud834\udd1e''')),hex(unistr_quote('abc\ud834\udd1e'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27616263F09D849E272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\Ufca945cb\\631A')),hex(unistr('\\Ufca945cb\\631A'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F294978BE68C9A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\Ufca945cb\\631A')),hex(unistr_quote('\\Ufca945cb\\631A'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C5566636139343563625C3633314127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\u924b\\U3770075C\n''')),hex(unistr('\\u924b\\U3770075C\n'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|E9898BF4809D9C0A27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u924b\\U3770075C\n''')),hex(unistr_quote('\\u924b\\U3770075C\n'''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C75393234625C5C5533373730303735435C753030306127272729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\u3F81\\u123')),hex(unistr_quote('\\u3F81\\u123'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75334638315C7531323327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('\\+8EA39C')),hex(unistr('\\+8EA39C'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|F3AA8E9C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+8EA39C')),hex(unistr_quote('\\+8EA39C'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C2B38454133394327\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr('''')),hex(unistr(''''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('''')),hex(unistr_quote(''''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27272727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote('\\+9882c1''\\\n')),hex(unistr_quote('\\+9882c1''\\\n'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C5C2B39383832633127275C5C5C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X''))),hex(unistr((X'')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X''))),hex(unistr_quote((X'')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'' AS TEXT))),hex(unistr(CAST(X'' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'' AS TEXT))),hex(unistr_quote(CAST(X'' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'005c71'))),hex(unistr((X'005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'005c71'))),hex(unistr_quote((X'005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582730303543373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'005c71' AS TEXT))),hex(unistr(CAST(X'005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'005c71' AS TEXT))),hex(unistr_quote(CAST(X'005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'ff80'))),hex(unistr((X'ff80')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FF80\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'ff80'))),hex(unistr_quote((X'ff80')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58274646383027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'ff80' AS TEXT))),hex(unistr(CAST(X'ff80' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FF80\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'ff80' AS TEXT))),hex(unistr_quote(CAST(X'ff80' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27FF8027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'5c7530303431005c71'))),hex(unistr((X'5c7530303431005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'5c7530303431005c71'))),hex(unistr_quote((X'5c7530303431005c71')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582735433735333033303334333130303543373127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'5c7530303431005c71' AS TEXT))),hex(unistr(CAST(X'5c7530303431005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|41005C71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5c7530303431005c71' AS TEXT))),hex(unistr_quote(CAST(X'5c7530303431005c71' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C753030343127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'011f5c7f'))),hex(unistr_quote((X'011f5c7f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827303131463543374627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'011f5c7f' AS TEXT))),hex(unistr_quote(CAST(X'011f5c7f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303030315C75303031665C5C7F2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'275c0a'))),hex(unistr_quote((X'275c0a')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582732373543304127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'275c0a' AS TEXT))),hex(unistr_quote(CAST(X'275c0a' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E69737472282727275C5C5C75303030612729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'5c753030003031'))),hex(unistr_quote((X'5c753030003031')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827354337353330333030303330333127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5c753030003031' AS TEXT))),hex(unistr_quote(CAST(X'5c753030003031' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275C75303027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'efbbbf'))),hex(unistr((X'efbbbf')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFBBBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'efbbbf'))),hex(unistr_quote((X'efbbbf')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582745464242424627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'efbbbf' AS TEXT))),hex(unistr(CAST(X'efbbbf' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|EFBBBF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'efbbbf' AS TEXT))),hex(unistr_quote(CAST(X'efbbbf' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|27EFBBBF27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'0001'))),hex(unistr((X'0001')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'0001'))),hex(unistr_quote((X'0001')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58273030303127\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'0001' AS TEXT))),hex(unistr(CAST(X'0001' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'0001' AS TEXT))),hex(unistr_quote(CAST(X'0001' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'))),hex(unistr((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'))),hex(unistr_quote((X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827303130323033303430353036303730383039304130423043304430453046313031313132313331343135313631373138313931413142314331443145314627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT))),hex(unistr(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT))),hex(unistr_quote(CAST(X'0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C75303030315C75303030325C75303030335C75303030345C75303030355C75303030365C75303030375C75303030385C75303030395C75303030615C75303030625C75303030635C75303030645C75303030655C75303030665C75303031305C75303031315C75303031325C75303031335C75303031345C75303031355C75303031365C75303031375C75303031385C75303031395C75303031615C75303031625C75303031635C75303031645C75303031655C75303031662729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'5f'))),hex(unistr((X'5f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'5f'))),hex(unistr_quote((X'5f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827354627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'5f' AS TEXT))),hex(unistr(CAST(X'5f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'5f' AS TEXT))),hex(unistr_quote(CAST(X'5f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|275F27\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'a55907d0'))),hex(unistr((X'a55907d0')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|A55907D0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'a55907d0'))),hex(unistr_quote((X'a55907d0')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|5827413535393037443027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'a55907d0' AS TEXT))),hex(unistr(CAST(X'a55907d0' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|A55907D0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'a55907d0' AS TEXT))),hex(unistr_quote(CAST(X'a55907d0' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827A5595C7530303037D02729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f'))),hex(unistr((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|6F2A952EE65FE9A9F6B7A3701A0EAFD94A65907C89A7314F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f'))),hex(unistr_quote((X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582736463241393532454536354645394139463642374133373031413045414644393441363539303743383941373331344627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT))),hex(unistr(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|6F2A952EE65FE9A9F6B7A3701A0EAFD94A65907C89A7314F\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT))),hex(unistr_quote(CAST(X'6f2a952ee65fe9a9f6b7a3701a0eafd94a65907c89a7314f' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228276F2A952EE65FE9A9F6B7A3705C75303031615C7530303065AFD94A65907C89A7314F2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'86857d504487213c11ae43ee74a90fd1befc2dff'))),hex(unistr((X'86857d504487213c11ae43ee74a90fd1befc2dff')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|86857D504487213C11AE43EE74A90FD1BEFC2DFF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'86857d504487213c11ae43ee74a90fd1befc2dff'))),hex(unistr_quote((X'86857d504487213c11ae43ee74a90fd1befc2dff')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58273836383537443530343438373231334331314145343345453734413930464431424546433244464627\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT))),hex(unistr(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|86857D504487213C11AE43EE74A90FD1BEFC2DFF\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT))),hex(unistr_quote(CAST(X'86857d504487213c11ae43ee74a90fd1befc2dff' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E69737472282786857D504487213C5C7530303131AE43EE74A95C7530303066D1BEFC2DFF2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e'))),hex(unistr((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|8E16FD5E97884A620E07921F08F7454C8C2AAF3A9E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e'))),hex(unistr_quote((X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582738453136464435453937383834413632304530373932314630384637343534433843324141463341394527\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT))),hex(unistr(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|8E16FD5E97884A620E07921F08F7454C8C2AAF3A9E\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT))),hex(unistr_quote(CAST(X'8e16fd5e97884a620e07921f08f7454c8c2aaf3a9e' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228278E5C7530303136FD5E97884A625C75303030655C7530303037925C75303031665C7530303038F7454C8C2AAF3A9E2729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'dccb0783b51ee04e42bd09e0f95162'))),hex(unistr((X'dccb0783b51ee04e42bd09e0f95162')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|DCCB0783B51EE04E42BD09E0F95162\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'dccb0783b51ee04e42bd09e0f95162'))),hex(unistr_quote((X'dccb0783b51ee04e42bd09e0f95162')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582744434342303738334235314545303445343242443039453046393531363227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT))),hex(unistr(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|DCCB0783B51EE04E42BD09E0F95162\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT))),hex(unistr_quote(CAST(X'dccb0783b51ee04e42bd09e0f95162' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827DCCB5C753030303783B55C7530303165E04E42BD5C7530303039E0F951622729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'fa1a709520'))),hex(unistr((X'fa1a709520')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FA1A709520\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'fa1a709520'))),hex(unistr_quote((X'fa1a709520')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|58274641314137303935323027\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'fa1a709520' AS TEXT))),hex(unistr(CAST(X'fa1a709520' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|FA1A709520\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'fa1a709520' AS TEXT))),hex(unistr_quote(CAST(X'fa1a709520' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E697374722827FA5C75303031617095202729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr((X'1a590c706a40ca4e44'))),hex(unistr((X'1a590c706a40ca4e44')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1A590C706A40CA4E44\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote((X'1a590c706a40ca4e44'))),hex(unistr_quote((X'1a590c706a40ca4e44')));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|582731413539304337303641343043413445343427\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr(CAST(X'1a590c706a40ca4e44' AS TEXT))),hex(unistr(CAST(X'1a590c706a40ca4e44' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|1A590C706A40CA4E44\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(unistr_quote(CAST(X'1a590c706a40ca4e44' AS TEXT))),hex(unistr_quote(CAST(X'1a590c706a40ca4e44' AS TEXT)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|756E6973747228275C7530303161595C7530303063706A40CA4E442729\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,typeof(unistr(v)),hex(unistr(v)) FROM t WHERE id<12 ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|null|\n2|text|30\n3|text|2D31\n4|text|312E3235\n5|text|302E30\n6|text|496E66\n7|text|2D496E66\n8|text|312E30652D333030\n9|text|\n10|text|706C61696E\n11|text|612762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(unistr_quote(v)) FROM t ORDER BY id DESC LIMIT 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40|275C653865315C753739326227\n39|275C75304241345C75656630645C5541424238354339355C753139633727\n38|275C2B4242434333345C2B30303030783027\n37|275C5545434244443636425C2B3834346634335C4643323327\n36|756E697374722827615C75303030615C5C27275C75303030392729\n35|275C75303034315C5C753030343227\n34|27C3A17276C3AD7A5C753030343127\n33|275C7127\n32|275C3132337827\n31|275C553132333435363727\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(unistr_quote(v))) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4E554C4C2C302C2D312C312E32352C302E302C392E30652B3939392C2D392E30652B3939392C312E30652D3330302C27272C27706C61696E272C2761272762272C275C272C275C5C272C275C6E272C275C74272C275C7530303431272C275C30303431272C275C2B303146363030272C275C553030303146363030272C275C7544383030272C275C7544433030272C275C75443830305C7544433030272C275C553030313130303030272C275C554646464646464646272C275C553030323030303030272C275C553830303030303030272C275C75303030305C30303431272C27615C303030307A272C275C753132272C275C2B3132333435272C275C5531323334353637272C275C31323378272C275C71272C27C3A17276C3AD7A5C7530303431272C275C75303034315C5C7530303432272C756E697374722827615C75303030615C5C27275C753030303927292C275C5545434244443636425C2B3834346634335C46433233272C275C2B4242434333345C2B303030307830272C275C75304241345C75656630645C5541424238354339355C7531396337272C275C653865315C753739326227\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr(v) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr_quote(v) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr('\\q') FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr('\\q') LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr('\\q') LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT coalesce('x',unistr('\\q'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT CASE WHEN 0 THEN unistr('\\q') ELSE 7 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr_quote('\\q');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\\q'\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr(DISTINCT '\\u0041');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT unistr_quote(DISTINCT 'x');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'x'\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "d6ab9d23b818e390185397ed2a67082715d507980b196fa666d781650cd0dc55",
+  "executable_sha256": "7d1376d5933deaa7e421553516aa79a7e7e513f363824d483df1ce7be6832bb0",
+  "harness_sha256": "f45921fefe1ac0ee90051b9c97c4a870766e9886b4c6ace4e27cdb606ee5b0ba",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare UNISTR and UNISTR_QUOTE using pinned SQLite and both Core file modes.\n\nSuccessful queries compare type and hex output, including complete invalid UTF-8\nand NUL-containing results. Errors compare positive exit status only, not SQLite\nerror codes or diagnostic wording. Read-only queries preserve main/WAL bytes."
+}

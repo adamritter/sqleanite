@@ -1195,3 +1195,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.AggregateConcat.State.step_null
 #print axioms SQLeanite.SQLite.AggregateConcat.State.first_separator_ignored
 #print axioms SQLeanite.SQLite.AggregateConcat.run_nil
+
+#print axioms SQLeanite.SQLite.UnicodeEscape.unistr_null
+#print axioms SQLeanite.SQLite.UnicodeEscape.decodeFuel_source_nul
+#print axioms SQLeanite.SQLite.UnicodeEscape.quote_blob

@@ -1,0 +1,26 @@
+{
+  "seed": 353862,
+  "random_cases": 700,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 2093,
+      "matching_errors": 207,
+      "writes": 6,
+      "matching_write_errors": 2
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 2093,
+      "matching_errors": 207,
+      "writes": 6,
+      "matching_write_errors": 2
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "e0c2cb3cdb827fa3e3860604d890a7c0fd6cc46e01792485a47a7d353124145a",
+  "executable_sha256": "14fbea3f9d5047e3162fdf33beb17c62311b24eb0560bc2e9de2571839499684",
+  "harness_sha256": "9cb2b22b9ef39adf106f4cc531579e82d6bd86789240712d01c7cdfcdd0d2980",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare UNISTR and UNISTR_QUOTE using pinned SQLite and both Core file modes.\n\nSuccessful queries compare type and hex output, including complete invalid UTF-8\nand NUL-containing results. Errors compare positive exit status only, not SQLite\nerror codes or diagnostic wording. Read-only queries preserve main/WAL bytes.\nSix subsequent write scenarios compare typed hex readback, including failed writes."
+}

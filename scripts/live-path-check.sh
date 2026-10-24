@@ -153,6 +153,17 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Unicode escape functions retain byte sequences, including source-NUL suffixes.
+if grep -q 'SQLite.UnicodeEscape.unistr v' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'SQLite.UnicodeEscape.quote v' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Text.checkedBytes (← decodeFuel' SQLeanite/SQLite/UnicodeEscape.lean &&
+   grep -q 'UnicodeEscape.decodeFuel_source_nul' SQLeanite/ProofAxioms.lean &&
+   grep -q 'UnicodeEscape.quote_blob' SQLeanite/ProofAxioms.lean; then
+  ok "Unicode escape functions use the checked byte-preserving scalar path"
+else
+  fail "Unicode escape execution or its registered contracts are missing"
+fi
+
 # String aggregates retain byte values and evaluate separators on each input row.
 if grep -q 'import SQLeanite.SQLite.AggregateConcat' SQLeanite/CoreAggregate.lean &&
    grep -q 'term.separator.mapM (ctx.eval row)' SQLeanite/CoreAggregate.lean &&

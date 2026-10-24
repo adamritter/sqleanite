@@ -2,6 +2,7 @@ import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.Text
+import SQLeanite.SQLite.UnicodeEscape
 import SQLeanite.SQLite.Pattern
 import SQLeanite.SQLite.ExprCollation
 
@@ -320,6 +321,8 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
   | "unicode", [v] => SQLite.Text.unicode v
   | "char", values => SQLite.Text.charValue values
   | "quote", [v] => SQLite.Text.quote v
+  | "unistr", [v] => SQLite.UnicodeEscape.unistr v
+  | "unistr_quote", [v] => SQLite.UnicodeEscape.quote v
   | "zeroblob", [v] => SQLite.Text.zeroblob v
   | "sign", [v] => return SQLite.Text.sign v
   | "min", first :: rest => return SQLite.Text.minmax false first rest
@@ -452,7 +455,7 @@ def forbidden : Expr → Bool
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
-           "hex", "unicode", "quote", "zeroblob", "sign"].contains n
+           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign"].contains n
         then args.size == 1 else false)
   | _ => true
 

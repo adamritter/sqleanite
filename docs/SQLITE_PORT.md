@@ -1936,3 +1936,42 @@ accumulator, and the empty result. These are not whole-query equivalence proofs.
 Native code and its nine-binding audit boundary remain unchanged. Reports are
 `sqlite-string-aggregate-*20261024.json` under `docs/validation/`; these bounded
 results do not establish full SQLite compatibility.
+
+
+## UNISTR and UNISTR_QUOTE (2026-10-24)
+
+Both functions now execute through the production scalar evaluator. UNISTR
+accepts the four documented hexadecimal escape forms and doubled backslashes,
+rejecting malformed escapes when evaluated. Its byte encoder follows the pinned
+func.c/utf.c behavior for surrogates and out-of-range 32-bit values, including
+masked four-byte prefixes. It preserves original invalid UTF-8 bytes. A source
+NUL stops further escape searches and copies the remaining original suffix;
+a NUL produced by a decoded escape does not stop subsequent decoding.
+
+UNISTR_QUOTE preserves ordinary QUOTE behavior for non-text input and text
+without control bytes before the first NUL. Text with control bytes uses the
+unistr('...') wrapper, lowercase hexadecimal control escapes, doubled quotes
+and doubled backslashes. This also truncates at the first source NUL, matching
+QUOTE's representability rule. Allocation checks precede quoted output assembly.
+These behaviors follow the pinned C source and the public
+[core-function definitions](https://sqlite.org/lang_corefunc.html#unistr).
+
+The previous source d6ab9d23b818e390185397ed2a67082715d507980b196fa666d781650cd0dc55
+records 422 differences in 490 baseline outcomes, seed 353860. Development seed
+353861 passes 1,386 reads and 12 subsequent write scenarios. Final source is
+`e0c2cb3cdb827fa3e3860604d890a7c0fd6cc46e01792485a47a7d353124145a`.
+Fresh seed 353862 passes **4,186 reads**, including **414 matching positive error
+statuses**, and **12 write scenarios**, including four matching failed writes.
+Read checks compare complete type/hex results and preserve database/WAL bytes;
+write checks compare typed hex readback after each statement, including failures.
+Error codes and exact messages are not compared. The final fixed scalar/storage
+regression passes 1,121 cases plus six matching errors and integrity checks.
+
+All 207 executable tests, the full 274-job build, 1,066 registered headline
+proofs, verification audit and live-path audit pass. The reverse-file matrix
+passes 61 accepted cases and two declared unsupported shapes. New component
+lemmas cover NULL propagation, copying the suffix after a source NUL and BLOB
+quotation's equivalence to QUOTE. Near-gigabyte allocation behavior is not
+empirically tested. Native code and its nine-binding audit boundary remain
+unchanged. Reports use `sqlite-unicode-escape-*20261024.json` under
+`docs/validation/`; these are bounded function results, not full SQL equivalence.
