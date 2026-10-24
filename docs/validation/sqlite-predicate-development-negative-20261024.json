@@ -1,0 +1,9 @@
+{
+  "checkpoint": "initial row predicate implementation; retained development negative",
+  "sql": "SELECT id FROM t WHERE abs(-9223372036854775808) AND 0 ORDER BY id DESC LIMIT 1;",
+  "lean": "success, zero rows",
+  "sqlite": "integer overflow",
+  "cause": "Applied expression AND simplification before where.c top-level constraint splitting.",
+  "additional_observation": "Constant WHERE constraints execute before the table loop, even for empty inputs.",
+  "required_regression": "scripts/run-predicate-differential.py expected-error cases and Tests.lean"
+}

@@ -23,6 +23,16 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# Row-expression predicates remain on the production Core read boundary.
+if grep -q 'executeFilteredSelect state select source stored' SQLeanite/CoreSQL.lean &&
+   grep -q 'ctx.scan select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.executeFilteredSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreExpr.scan_length_le' SQLeanite/ProofAxioms.lean; then
+  ok "row-expression WHERE uses bounded scans on Core query results"
+else
+  fail "row-expression WHERE route or its registered contracts are missing"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

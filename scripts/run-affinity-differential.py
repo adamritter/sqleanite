@@ -148,15 +148,21 @@ def main():
             assert a.returncode != 0 and b.returncode != 0, (sql, a.stderr, b.stderr)
             assert printable(observation(lean)) == before, "failed statement mutated data"
 
-        # These mixed-affinity comparisons need a general row expression operand.
-        for sql in ["SELECT id FROM t1 WHERE v=CAST(12 AS INTEGER);",
-                    "SELECT t1.id FROM t1 INNER JOIN t2 ON t1.v=t2.v;"]:
-            a = command(args, "lean", lean, sql, work)
-            assert a.returncode != 0 and b"conversion" in a.stderr, (sql, a.stderr)
+        # Row predicates now evaluate both affinity-bearing operands directly.
+        sql = "SELECT id FROM t1 WHERE v=CAST(12 AS INTEGER) ORDER BY id;"
+        a = command(args, "lean", lean, sql, work)
+        b = command(args, "sqlite", reference, sql, work)
+        assert a.returncode == b.returncode == 0 and a.stdout == b.stdout, (sql, a.stderr, b.stderr)
+        queries += 1
+        assert printable(observation(lean)) == before, "SELECT mutated data"
+        # Mixed-affinity joins still use the narrower Core join operand model.
+        sql = "SELECT t1.id FROM t1 INNER JOIN t2 ON t1.v=t2.v;"
+        a = command(args, "lean", lean, sql, work)
+        assert a.returncode != 0 and b"conversion" in a.stderr, (sql, a.stderr)
 
         report = {"typed_insert_values": len(TYPES) * len(VALUES), "select_queries": queries,
                   "declared_types": TYPES, "expected_write_errors": 4,
-                  "unsupported_mixed_affinity_queries": 2, "reverse_write_checks": 1, "mismatches": 0,
+                  "unsupported_mixed_affinity_queries": 1, "mixed_affinity_predicates": 1, "reverse_write_checks": 1, "mismatches": 0,
                   "sqlite_version": subprocess.check_output([args.sqlite, "--version"], text=True).strip()}
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)

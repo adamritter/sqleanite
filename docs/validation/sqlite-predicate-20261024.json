@@ -1,0 +1,210 @@
+{
+  "seed": 353461,
+  "random_cases": 500,
+  "queries": 1216,
+  "phases": [
+    {
+      "name": "unindexed",
+      "queries": 608,
+      "result_rows": 10696
+    },
+    {
+      "name": "indexed",
+      "queries": 608,
+      "result_rows": 10696
+    }
+  ],
+  "failures": [],
+  "matching_errors": 13,
+  "planner_order_diagnostics": [
+    {
+      "sql": "SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matches": false,
+      "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+    },
+    {
+      "sql": "SELECT DISTINCT id%2 FROM t WHERE id<3 OR abs(-9223372036854775808) LIMIT 2;",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matches": false,
+      "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+    }
+  ],
+  "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+  "executable_sha256": "bc27e2867d15d8c780ec18f243dc16ef3cf9d1b0c4a7911d34f8dfb42b6a60a1",
+  "harness_sha256": {
+    "run-predicate-differential.py": "3a52bb1c0759837ae90891cce2ac6176a8651580f9e60d6debb1669666e1f919",
+    "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+  },
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "CLI rows, multiplicities, truth, LIMIT error suppression, binding and unchanged file; indexed/unindexed",
+  "validation": {
+    "build": "passed, 230 jobs",
+    "tests": 167,
+    "registered_headline_theorems": 958,
+    "verification_audit": "passed",
+    "live_path_audit": "passed"
+  },
+  "regressions": {
+    "group": {
+      "seed": 353452,
+      "random_cases": 200,
+      "queries": 296,
+      "result_rows": 9472,
+      "failures": [],
+      "matching_errors": 3,
+      "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+      "executable_sha256": "bc27e2867d15d8c780ec18f243dc16ef3cf9d1b0c4a7911d34f8dfb42b6a60a1",
+      "harness_sha256": {
+        "run-group-differential.py": "b62164a8b071018b04f053dac580524295e89311b010b6b01960998ff4ff5000",
+        "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+      },
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "CLI group multiplicities, aggregate values, ordering and original numeric/TEXT representatives; unchanged file"
+    },
+    "compound": {
+      "seed": 353443,
+      "random_cases": 200,
+      "queries": 280,
+      "result_rows": 2771,
+      "failures": [],
+      "matching_errors": 3,
+      "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+      "executable_sha256": "bc27e2867d15d8c780ec18f243dc16ef3cf9d1b0c4a7911d34f8dfb42b6a60a1",
+      "harness_sha256": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "CLI multiplicity, ordering and numeric/TEXT representative rendering; unchanged persisted state"
+    },
+    "row": {
+      "seed": 353428,
+      "random_cases": 100,
+      "queries": 204,
+      "result_rows": 10875,
+      "matching_errors": 8,
+      "declared_rejections": [
+        "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"
+      ],
+      "failures": [],
+      "distinct_limit_regression": {
+        "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+        "result": "1\n2\n",
+        "matches_sqlite": true
+      },
+      "cli_render_modes": [
+        "--verified-file",
+        "--verified-wal-file",
+        "--verified-file-timed"
+      ],
+      "numeric_distinct_regression": {
+        "sql": "SELECT DISTINCT v FROM mixed;",
+        "lean": "1\n",
+        "sqlite": "1\n",
+        "matches_sqlite": true
+      },
+      "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+      "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "distinct": {
+      "seed": 353434,
+      "random_cases": 120,
+      "input_pairs": 135,
+      "phases": [
+        {
+          "name": "unindexed-reopen",
+          "queries": 1890,
+          "result_rows": 2720
+        },
+        {
+          "name": "indexed-reopen",
+          "queries": 1890,
+          "result_rows": 2720
+        }
+      ],
+      "queries": 3780,
+      "failures": [],
+      "comparison": "query-output multiplicity and numeric representative rendering; read file-state preservation",
+      "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+      "executable_sha256": "bc27e2867d15d8c780ec18f243dc16ef3cf9d1b0c4a7911d34f8dfb42b6a60a1",
+      "harness_sha256": "37907f2e5647fe147e96ac572b59542009ea6fc9e795c89c8ecf5795474b61d0",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "text": {
+      "implementation_sha256": "b340b5974950942ec973212b2287e01759a84aaeddec73b4fedbcdb3ae4ecee0",
+      "harness_sha256": "f9819a43e9c95bea1bc3f9514c3e7ad19fe85599e43f18240a66c614b66243c7",
+      "seed": 353419,
+      "random_cases": 120,
+      "cases": 2739,
+      "failures": [],
+      "matching_errors": 18,
+      "declared_rejections": [
+        "char(55296)",
+        "trim(X'FF')",
+        "length(zeroblob(1000000))",
+        "coalesce(1,unknown_function())"
+      ],
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw TEXT/BLOB bytes; integrity_check"
+    },
+    "scalar": {
+      "cases": 1120,
+      "failures": [],
+      "errors": 6,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw text/blob bytes; integrity_check"
+    },
+    "affinity": {
+      "typed_insert_values": 444,
+      "select_queries": 4709,
+      "declared_types": [
+        "",
+        "TEXT",
+        "INTEGER",
+        "REAL",
+        "NUMERIC",
+        "BLOB",
+        "VARCHAR(12)",
+        "DOUBLE PRECISION",
+        "FLOATING POINT",
+        "STRING",
+        "\"custom INT type\"",
+        "\"a\"\"b TEXT type\""
+      ],
+      "expected_write_errors": 4,
+      "unsupported_mixed_affinity_queries": 1,
+      "mixed_affinity_predicates": 1,
+      "reverse_write_checks": 1,
+      "mismatches": 0,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    }
+  },
+  "file_compatibility": {
+    "reverse_full": {
+      "accepted": 53,
+      "declared_unsupported": 3
+    },
+    "core_differential": 13,
+    "forward_workloads": 11,
+    "forward_clean": 10,
+    "forward_existing_bounded_orphan_exception": 1
+  },
+  "scope": "Single-table scalar WHERE, constant WHERE, row projections, BINARY DISTINCT, source-column ORDER BY, LIMIT. Aggregates/joins/UPDATE/DELETE and optimizer-dependent evaluation order remain incomplete."
+}

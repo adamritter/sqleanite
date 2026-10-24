@@ -100,6 +100,80 @@ def Context.projectRows (ctx : Context) (expressions : List Expr) (rows : List (
     Except String (List ProjectedRow) :=
   rows.mapM (fun row => do return { source := row, output := ← ctx.projectRow row expressions })
 
+/-- Top-level AND terms use the same WHERE branch evaluator as constant SELECT. -/
+def Context.matches (ctx : Context) (row : List Core.Value) (condition : Option Expr) :
+    Except String Bool :=
+  match condition with
+  | none => .ok true
+  | some expression => SQLite.Scalar.testTermsWith (ctx.lookup row) ctx.affinity
+      (SQLite.Scalar.conditionTerms expression)
+
+/-- Constant constraints run before the table loop, including on an empty
+input. Preserve their relative order; names are checked independently first. -/
+def Context.constantMatches (ctx : Context) (condition : Option Expr) : Except String Bool :=
+  match condition with
+  | none => .ok true
+  | some expression => SQLite.Scalar.testTermsWith (ctx.lookup []) ctx.affinity
+      ((SQLite.Scalar.conditionTerms expression).filter fun term =>
+        !term.any (fun e => match e with | .column .. => true | _ => false))
+
+/-- Evaluate the condition before output expressions; DISTINCT compares the
+computed outputs while retaining their source rows for subsequent ordering. -/
+def Context.candidate (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (seen : List (List Core.Value)) (row : List Core.Value) :
+    Except String (Option ProjectedRow) := do
+  unless ← ctx.matches row condition do return none
+  let output ← ctx.projectRow row expressions
+  if distinct && seen.contains (Core.distinctRowKey output) then return none
+  return some { source := row, output }
+
+/-- A scan stops immediately after the requested number of surviving outputs.
+This matters for errors in predicates and projections beyond a LIMIT. -/
+def Context.scan (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) : List (List Core.Value) → Option Nat → List (List Core.Value) →
+      Except String (List ProjectedRow)
+  | [], _, _ => .ok []
+  | row :: rows, remaining, seen => do
+      if remaining == some 0 then return []
+      match ← ctx.candidate condition expressions distinct seen row with
+      | none => ctx.scan condition expressions distinct rows remaining seen
+      | some projected =>
+          let tail ← ctx.scan condition expressions distinct rows
+            (remaining.map (· - 1)) (Core.distinctRowKey projected.output :: seen)
+          return projected :: tail
+
+theorem scan_limit_zero (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows seen : List (List Core.Value)) :
+    ctx.scan condition expressions distinct rows (some 0) seen = .ok [] := by
+  cases rows <;> simp [Context.scan, pure, Except.pure]
+
+theorem scan_length_le (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows : List (List Core.Value)) (remaining : Option Nat)
+    (seen : List (List Core.Value)) (output : List ProjectedRow)
+    (success : ctx.scan condition expressions distinct rows remaining seen = .ok output) :
+    output.length ≤ rows.length := by
+  induction rows generalizing remaining seen output with
+  | nil => simp [Context.scan] at success; subst output; simp
+  | cons row rows ih =>
+      simp only [Context.scan] at success
+      split at success
+      · simp [pure, Except.pure] at success; subst output; simp
+      · cases candidate : ctx.candidate condition expressions distinct seen row with
+        | error message => simp [candidate, bind, Except.bind] at success
+        | ok value =>
+          cases value with
+          | none =>
+            simp only [candidate, bind, Except.bind] at success
+            exact Nat.le_trans (ih _ _ _ success) (by simp)
+          | some projected =>
+            cases tail : ctx.scan condition expressions distinct rows
+                (remaining.map (· - 1)) (Core.distinctRowKey projected.output :: seen) with
+            | error message => simp [candidate, tail, bind, Except.bind] at success
+            | ok rest =>
+              simp [candidate, tail, bind, Except.bind, pure, Except.pure] at success
+              subst output
+              simpa using Nat.succ_le_succ (ih _ _ _ tail)
+
 theorem projectRow_width (ctx : Context) (row : List Core.Value)
     (expressions : List Expr) (output : List Core.Value)
     (success : ctx.projectRow row expressions = .ok output) :

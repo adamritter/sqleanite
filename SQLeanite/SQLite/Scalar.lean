@@ -335,6 +335,52 @@ def evalWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
   evalFuelWith lookup operandAffinity e.height e
 
+/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
+Testing false is distinct from testing not-true: NULL matches neither. This
+preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
+def testFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) :
+    Nat → Bool → Expr → Except String Bool
+  | 0, _, _ => .error "row predicate depth exhausted"
+  | fuel + 1, wanted, expression => do
+      if let some truth := staticTruth expression then
+        return truth == wanted
+      match expression with
+      | .unary .not arg => testFuelWith lookup operandAffinity fuel (!wanted) arg
+      | .binary .and left right =>
+          if wanted then
+            if ← testFuelWith lookup operandAffinity fuel true left then testFuelWith lookup operandAffinity fuel true right
+            else return false
+          else
+            if ← testFuelWith lookup operandAffinity fuel false left then return true
+            else testFuelWith lookup operandAffinity fuel false right
+      | .binary .or left right =>
+          if wanted then
+            if ← testFuelWith lookup operandAffinity fuel true left then return true
+            else testFuelWith lookup operandAffinity fuel true right
+          else
+            if ← testFuelWith lookup operandAffinity fuel false left then testFuelWith lookup operandAffinity fuel false right
+            else return false
+      | _ => return Numeric.truth (← evalWith lookup operandAffinity expression) ==
+          (if wanted then .true else .false)
+
+/-- where.c splits top-level AND into independent constraints before branch
+code generation. Parenthesized AND has the same AST and is split too. -/
+def conditionTerms : Expr → List Expr
+  | .binary .and left right => conditionTerms left ++ conditionTerms right
+  | expression => [expression]
+
+def testTermsWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : List Expr → Except String Bool
+  | [] => .ok true
+  | expression :: rest => do
+      if ← testFuelWith lookup operandAffinity expression.height true expression then
+        testTermsWith lookup operandAffinity rest
+      else return false
+
+def testWhere (expression : Expr) : Except String Bool :=
+  testTermsWith (fun _ _ => .error "unbound column") expressionAffinity (conditionTerms expression)
+
 theorem evalWith_column (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
     evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := rfl

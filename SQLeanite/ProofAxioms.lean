@@ -1038,3 +1038,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.extremeRepresentative_mem
 #print axioms SQLeanite.Core.GroupQuery.representative_mem
 #print axioms SQLeanite.Core.GroupQuery.representative_key
+
+-- Row-expression WHERE scans on the production Core read path.
+#print axioms SQLeanite.CoreExpr.scan_limit_zero
+#print axioms SQLeanite.CoreExpr.scan_length_le
+#print axioms SQLeanite.CoreSQL.executeFilteredSelect_preserves_state

@@ -3841,6 +3841,38 @@ private def expectSQLiteRowExpressions : IO Unit := do
     | .ok _ => fail s!"unbound row expression accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteRowPredicates : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n NUMERIC); INSERT INTO t VALUES(1,'2','2'),(2,'x',NULL),(3,'3',-2);"
+  for (query, expected) in [
+      ("SELECT id FROM t WHERE id+1>2 ORDER BY id;", [2,3]),
+      ("SELECT id FROM t WHERE v=CAST(2 AS INTEGER);", [1]),
+      ("SELECT id FROM t WHERE coalesce(n,0);", [1,3]),
+      ("SELECT id FROM t WHERE NOT (NULL AND id=2);", [1,3]),
+      ("SELECT id FROM t WHERE NOT (NULL OR id=2);", []),
+      ("SELECT id FROM t WHERE id+0 ORDER BY id DESC LIMIT 2;", [3,2]),
+      ("SELECT id FROM t WHERE id+0 ORDER BY v DESC LIMIT 2;", [2,3]),
+      ("SELECT id FROM t WHERE NULL AND abs(-9223372036854775808);", []),
+      ("SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1;", [1]),
+      ("SELECT id FROM t WHERE abs(-9223372036854775808) LIMIT 0;", [])] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"row predicate: {query}: {message}"
+    let rows ← match expected.mapM (fun i => List.mapM SQLSurface.value [Value.integer i]) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do
+      fail s!"row predicate result: {query}"
+  for query in ["SELECT id FROM t WHERE abs(-9223372036854775808) AND 0;",
+      "SELECT id FROM t WHERE id<0 AND abs(-9223372036854775808);",
+      "SELECT 1 WHERE abs(-9223372036854775808) AND 0;",
+      "SELECT id FROM t WHERE missing+1 LIMIT 0;",
+      "SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808);",
+      "SELECT id FROM t WHERE wrong.id+1;",
+      "SELECT missing FROM t WHERE 0;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ query) with
+    | .ok _ => fail s!"invalid row predicate accepted: {query}"
+    | .error _ => pure ()
+
 private def expectSQLiteDistinctLimit : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,2),(3,1),(4,3);"
   for query in ["SELECT DISTINCT v FROM t ORDER BY id LIMIT 2;",
@@ -4035,6 +4067,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),
   ("SQLite numeric set operations and compound ordering", expectSQLiteNumericCompounds),
   ("SQLite numeric grouping and aggregate representatives", expectSQLiteNumericGroups),
+  ("SQLite row-expression predicates", expectSQLiteRowPredicates),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

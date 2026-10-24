@@ -350,9 +350,47 @@ expressions, collations, grouped ORDER BY/LIMIT and planner-dependent output
 outside this tested shape remain open. The earlier numeric GROUP BY mismatch
 is fixed; its historical negative report remains unchanged.
 
+## Row-expression WHERE checkpoint
+
+The [fresh final checkpoint](validation/sqlite-predicate-20261024.json) records
+**1,216 ordered queries / 21,392 result rows**, using seed `353461` with 500
+fresh generated expressions, each run without indexes and after index creation.
+All compared rows agree with SQLite 3.53.4; thirteen binding/overflow errors
+also agree without file mutation. All **167 executable tests**, **958 registered
+headline theorems**, and both audits pass. The separate affinity regression now
+checks 4,709 queries: its formerly rejected TEXT-versus-numeric-CAST predicate
+matches. Mixed-affinity joins remain rejected. All earlier SQL suites pass.
+
+Single-table projection queries now evaluate arithmetic, scalar functions,
+column-to-column comparisons, column affinity and three-valued conditions in
+WHERE. Core.execute supplies the input rows. A bounded scan filters, projects,
+removes duplicate outputs and stops at LIMIT when source order already matches;
+other source-column ordering sorts the surviving output. Binding checks run
+before empty-input or LIMIT-zero shortcuts. The shared WHERE branch evaluator
+also serves tableless SELECT. Top-level AND constraints are split before branch
+evaluation; constant constraints execute before the table scan. The earlier
+error-suppression mismatch is retained in the [development negative report](validation/sqlite-predicate-development-negative-20261024.json)
+and is now a required passing regression.
+
+Registered contracts cover scan length, no evaluation at LIMIT zero, and
+read-only state. Existing successful Core predicate translation proofs still
+compile; expression fallback does not replace them with a claim of full SQL
+refinement. Aggregate, join, UPDATE and DELETE row predicates remain outside
+this new route. Two **known planner-dependent diagnostics** are retained in the
+report: without ORDER BY, a covering-index scan can reach a failing expression
+before LIMIT while the current Core table scan does not. Those cases are not
+included in the passing count. General planner-dependent error/evaluation order
+is still a compatibility gap.
+
+The full reverse-file matrix accepts **53 cells** and explicitly rejects three
+unsupported schema shapes. The 13 Core differential cases pass. Of 11 forward
+file workloads, ten pass SQLite integrity_check; the indexed-shrink workload
+still has its pre-existing bounded orphan-page exception. These are separately
+reported file results, not proof of complete database or WAL compatibility.
+
 ## Still missing
 
-This step does not implement general row-dependent WHERE/UPDATE expressions,
+This step does not implement general aggregate/join/write WHERE or row-dependent UPDATE expressions,
 the complete VDBE, the full planner, all DDL/constraints, views/triggers,
 subqueries/CTEs/windows, the rest of the scalar/aggregate functions, JSON,
 virtual tables/extensions, all collations/encodings, or the full SQLite WAL
@@ -361,9 +399,9 @@ This is the default 17-digit REAL formatting path, not general SQLite printf
 or per-connection floating-point precision configuration.
 
 Stored column affinity is implemented for the admitted Core SQL subset.
-Comparisons that would require converting the stored column to a different
-affinity (for example TEXT-column versus CAST-to-INTEGER, or TEXT/NUMERIC joins)
-are explicitly rejected pending a general row-expression evaluator. Admitted
+Single-table scalar predicates can convert both operands as required by their
+affinities. Mixed-affinity joins (for example TEXT/NUMERIC joins) remain
+explicit rejections. Admitted
 rows carry a canonical-affinity invariant: malformed foreign records which
 violate it are rejected. Schema round-trip and read normalization proofs retain
 the existing codec contracts; comparison fixed-point proofs justify keeping

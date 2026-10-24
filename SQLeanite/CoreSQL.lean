@@ -661,7 +661,7 @@ def constantRow (select : Select) : Except String (Option (List Core.Value)) := 
     unsupported "constant SELECT expression"
   if select.limit == some 0 then return none
   if let some condition := select.where_ then
-    unless SQLite.Numeric.truth (← SQLite.Scalar.eval condition) == .true do return none
+    unless ← SQLite.Scalar.testWhere condition do return none
   if select.offset > 0 then return none
   return some (← select.columns.toList.mapM (fun column => literal column.expr))
 
@@ -722,6 +722,49 @@ def executeExpressionSelect (state : Core.State) (select : Select) (source : Tab
     else projected
   return ⟨next, { result with rows := projected.map (·.output) }, expressions.length⟩
 
+/-- Fallback for row-dependent WHERE expressions. Source rows still come from
+Core.execute. A primary-key order determines scan direction; other orderings
+sort surviving outputs. LIMIT is applied during an ordered scan or after a
+sort, and all names are bound before either path can skip evaluation. -/
+def filteredSelectResult (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String (Core.Result × Nat) := do
+  unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
+  let ctx : CoreExpr.Context := ⟨stored.schema, source.alias.getD source.name⟩
+  let expressions ← ctx.projection select.columns.toList
+  let _ ← select.where_.mapM ctx.validate
+  let _ ← select.orderBy.toList.mapM (fun term => ctx.validate term.expr)
+  let ordering ← orderBy stored.schema select.orderBy.toList
+  if select.limit != some 0 then
+    unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
+  let orderedScan := ordering.isEmpty ||
+    (ordering.head?.any (fun term => term.1 == stored.schema.primaryKey))
+  let query : Core.Query := {
+    columns := List.range stored.schema.columns.length
+    orderBy := if orderedScan then ordering else [] }
+  let (_, result) ← Core.execute state (.query (canonical source.name) query)
+  let remaining := if orderedScan || select.limit == some 0 then select.limit else none
+  let projected ← ctx.scan select.where_ expressions select.distinct result.rows remaining []
+  let projected := if orderedScan then projected else
+    projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)
+  return ({ result with rows := (Core.limitRows select.limit projected).map (·.output) },
+    expressions.length)
+
+def executeFilteredSelect (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> filteredSelectResult state select source stored
+
+theorem executeFilteredSelect_preserves_state {state : Core.State} {select : Select}
+    {source : TableRef} {stored : Core.Table} {execution : SelectExecution}
+    (success : executeFilteredSelect state select source stored = .ok execution) :
+    execution.state = state := by
+  unfold executeFilteredSelect at success
+  cases result : filteredSelectResult state select source stored with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
+
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   if select.sources.size = 2 then executeJoin state select
@@ -739,54 +782,56 @@ def executeSelectBase (state : Core.State) (select : Select) :
     let stored ← match state.database.findTable? tableName with
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
-    let wherePredicate ← select.where_.mapM (predicate stored.schema)
-    if !select.groupBy.isEmpty then
-      if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
-        unsupported "grouped DISTINCT, ORDER BY, or LIMIT"
+    match select.where_.mapM (predicate stored.schema) with
+    | .error _ => executeFilteredSelect state select source stored
+    | .ok wherePredicate => do
+      if !select.groupBy.isEmpty then
+        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+          unsupported "grouped DISTINCT, ORDER BY, or LIMIT"
+        else
+          let groups ← groupColumns stored.schema select.groupBy.toList
+          let query : Core.GroupQuery := {
+            groupBy := groups
+            outputs := ← groupOutputs stored.schema groups select.columns.toList
+            predicate := wherePredicate }
+          let (next, result) ← Core.execute state (.group tableName query)
+          return ⟨next, result, query.outputs.length⟩
       else
-        let groups ← groupColumns stored.schema select.groupBy.toList
-        let query : Core.GroupQuery := {
-          groupBy := groups
-          outputs := ← groupOutputs stored.schema groups select.columns.toList
-          predicate := wherePredicate }
-        let (next, result) ← Core.execute state (.group tableName query)
-        return ⟨next, result, query.outputs.length⟩
-    else
-      match ← countTarget? stored.schema select.columns.toList,
-          ← sumColumn? stored.schema select.columns.toList,
-          ← extremeColumn? stored.schema select.columns.toList with
-      | some target, none, none =>
-        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
-          unsupported "COUNT DISTINCT, ORDER BY, or LIMIT"
-        else
-          let (next, result) ← Core.execute state (.count tableName target wherePredicate)
-          return ⟨next, result, 1⟩
-      | none, some column, none =>
-        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
-          unsupported "SUM DISTINCT, ORDER BY, or LIMIT"
-        else
-          let (next, result) ← Core.execute state (.sum tableName column wherePredicate)
-          return ⟨next, result, 1⟩
-      | none, none, some (minimum, column) =>
-        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
-          unsupported "MIN/MAX DISTINCT, ORDER BY, or LIMIT"
-        else
-          let (next, result) ← Core.execute state
-            (.extreme tableName minimum column wherePredicate)
-          return ⟨next, result, 1⟩
-      | none, none, none =>
-        match projection stored.schema select.columns.toList with
-        | .error _ => executeExpressionSelect state select source stored wherePredicate
-        | .ok columns =>
-          let query : Core.Query := {
-            columns
-            predicate := wherePredicate
-            orderBy := ← orderBy stored.schema select.orderBy.toList
-            limit := select.limit
-            distinct := select.distinct }
-          let (next, result) ← Core.execute state (.query tableName query)
-          return ⟨next, result, query.columns.length⟩
-      | _, _, _ => unsupported "ambiguous aggregate projection"
+        match ← countTarget? stored.schema select.columns.toList,
+            ← sumColumn? stored.schema select.columns.toList,
+            ← extremeColumn? stored.schema select.columns.toList with
+        | some target, none, none =>
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+            unsupported "COUNT DISTINCT, ORDER BY, or LIMIT"
+          else
+            let (next, result) ← Core.execute state (.count tableName target wherePredicate)
+            return ⟨next, result, 1⟩
+        | none, some column, none =>
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+            unsupported "SUM DISTINCT, ORDER BY, or LIMIT"
+          else
+            let (next, result) ← Core.execute state (.sum tableName column wherePredicate)
+            return ⟨next, result, 1⟩
+        | none, none, some (minimum, column) =>
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+            unsupported "MIN/MAX DISTINCT, ORDER BY, or LIMIT"
+          else
+            let (next, result) ← Core.execute state
+              (.extreme tableName minimum column wherePredicate)
+            return ⟨next, result, 1⟩
+        | none, none, none =>
+          match projection stored.schema select.columns.toList with
+          | .error _ => executeExpressionSelect state select source stored wherePredicate
+          | .ok columns =>
+            let query : Core.Query := {
+              columns
+              predicate := wherePredicate
+              orderBy := ← orderBy stored.schema select.orderBy.toList
+              limit := select.limit
+              distinct := select.distinct }
+            let (next, result) ← Core.execute state (.query tableName query)
+            return ⟨next, result, query.columns.length⟩
+        | _, _, _ => unsupported "ambiguous aggregate projection"
 
 /-- Recognize the non-aggregate single-table SELECT shape used by the
 persisted-index adapter. Returning `none` is only an optimization miss: normal
