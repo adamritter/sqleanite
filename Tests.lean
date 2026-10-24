@@ -3917,6 +3917,45 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteNumericAggregates : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × Value) := [
+    ("INSERT INTO t VALUES(1,1.5),(2,2.5); SELECT sum(v) FROM t;", .real 4.0),
+    ("INSERT INTO t VALUES(1,'1'),(2,'2'); SELECT sum(v) FROM t;", .integer 3),
+    ("INSERT INTO t VALUES(1,'12xyz'),(2,'3'); SELECT sum(v) FROM t;", .real 15.0),
+    ("INSERT INTO t VALUES(1,CAST(X'31320033' AS TEXT)),(2,'1'); SELECT sum(v) FROM t;", .integer 13),
+    ("INSERT INTO t VALUES(1,1),(2,2); SELECT avg(v) FROM t;", .real 1.5),
+    ("INSERT INTO t VALUES(1,1),(2,2); SELECT total(v) FROM t;", .real 3.0),
+    ("SELECT sum(v) FROM t;", .null),
+    ("SELECT avg(v) FROM t;", .null),
+    ("SELECT total(v) FROM t;", .real 0.0),
+    ("INSERT INTO t VALUES(1,1e308),(2,1.0),(3,-1e308); SELECT sum(v) FROM t;", .real 1.0),
+    ("INSERT INTO t VALUES(1,1e999),(2,-1e999); SELECT sum(v) FROM t;", .null),
+    ("INSERT INTO t VALUES(1,9223372036854775807),(2,1),(3,0.0); SELECT sum(v) FROM t;", .real 9223372036854775808.0),
+    ("INSERT INTO t VALUES(1,0.0),(2,9007199254740993),(3,-9007199254740992); SELECT sum(v) FROM t;", .real 1.0)]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"numeric aggregate: {message}"
+    let value ← match SQLSurface.value expected with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [[value]] do
+      fail s!"numeric aggregate result: {sql}"
+  match CoreSQL.execute Core.State.empty (setup ++
+      "INSERT INTO t VALUES(1,9223372036854775807),(2,1); SELECT sum(v) FROM t;") with
+  | .ok _ => fail "SUM omitted the integer overflow error"
+  | .error _ => pure ()
+  let (_, grouped) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v); INSERT INTO t VALUES(1,1,1.5),(2,1,2.5),(3,2,NULL); SELECT g,sum(v),avg(v),total(v) FROM t GROUP BY g;" with
+    | .ok result => pure result
+    | .error message => fail s!"grouped numeric aggregate: {message}"
+  let expected ← match ([[Value.integer 1, .real 4.0, .real 2.0, .real 4.0],
+      [.integer 2, .null, .null, .real 0.0]]).mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
+
 private def expectSQLiteLimitOffset : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,b); INSERT INTO t VALUES(1,1,1),(2,2,2),(3,1,3),(4,3,4);"
   for (query, values) in [
@@ -4247,6 +4286,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),
   ("SQLite WAL valid committed prefix", expectSQLiteWALRecoveryPrefix),

@@ -1064,3 +1064,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreExpr.scanWindow_offset_zero
 #print axioms SQLeanite.CoreExpr.scanWindow_limit_zero
+
+#print axioms SQLeanite.SQLite.AggregateSum.State.step_null
+#print axioms SQLeanite.SQLite.AggregateSum.accumulate_nulls
+#print axioms SQLeanite.SQLite.AggregateSum.sum_nulls
+#print axioms SQLeanite.SQLite.AggregateSum.average_nulls

@@ -879,13 +879,18 @@ def coreGroupOutputRefines (query : Core.GroupQuery) (rows : List Core.Row)
         fun row => row.value column != .null)
   | .countColumn _, _ => False
   | .sumColumn column, value =>
-      ∃ integers,
-        Core.columnIntegers column (query.keyRows rows group) = .ok integers ∧
-        match value with
-        | .null => integers = []
-        | .integer integer =>
-            integer.value = (integers.map (·.value)).sum
-        | .realBits _ | .text _ | .blob _ => False
+      match Core.columnIntegers column (query.keyRows rows group) with
+      | .ok integers =>
+          match value with
+          | .null => integers = []
+          | .integer integer => integer.value = (integers.map (·.value)).sum
+          | .realBits _ | .text _ | .blob _ => False
+      | .error _ => SQLite.AggregateSum.sum
+          ((query.keyRows rows group).map (·.value column)) = .ok value
+  | .averageColumn column, value =>
+      value = Core.averageColumn column (query.keyRows rows group)
+  | .totalColumn column, value =>
+      value = Core.totalColumn column (query.keyRows rows group)
   | .minColumn column, value =>
       value = Core.extremeColumn true column (query.keyRows rows group)
   | .maxColumn column, value =>
@@ -926,9 +931,9 @@ theorem coreGroup_outputValue_refines (query : Core.GroupQuery)
       cases extracted : Core.columnIntegers column
           (query.keyRows rows group) with
       | error message =>
-          simp [Core.sumColumn, extracted, bind, Functor.map, Except.bind,
-            pure, Except.pure] at success
+          simpa [coreGroupOutputRefines, Core.sumColumn, extracted] using success
       | ok integers =>
+          simp only [coreGroupOutputRefines, extracted]
           cases summed : Core.sumIntegers integers with
           | error message =>
               simp [Core.sumColumn, extracted, summed, bind, Functor.map,
@@ -939,13 +944,16 @@ theorem coreGroup_outputValue_refines (query : Core.GroupQuery)
                   simp [Core.sumColumn, extracted, summed, bind, Functor.map,
                     Except.bind, pure, Except.pure] at success
                   subst value
-                  refine ⟨integers, extracted, ?_⟩
                   exact (core_sumIntegers_none_iff integers).1 summed
               | some integer =>
                   simp [Core.sumColumn, extracted, summed, bind, Functor.map,
                     Except.bind, pure, Except.pure] at success
                   subst value
-                  exact ⟨integers, extracted, Core.sumIntegers_exact summed⟩
+                  exact Core.sumIntegers_exact summed
+  | averageColumn column =>
+      simpa [Core.GroupQuery.outputValue, coreGroupOutputRefines] using success.symm
+  | totalColumn column =>
+      simpa [Core.GroupQuery.outputValue, coreGroupOutputRefines] using success.symm
   | minColumn column =>
       simp [Core.GroupQuery.outputValue] at success
       subst value

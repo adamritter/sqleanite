@@ -229,6 +229,10 @@ def groupOutput (schema : Core.Schema) (groups : List Nat) :
             .countColumn <$> column schema columnName
           else if canonical name == "sum" then
             .sumColumn <$> column schema columnName
+          else if canonical name == "avg" then
+            .averageColumn <$> column schema columnName
+          else if canonical name == "total" then
+            .totalColumn <$> column schema columnName
           else if canonical name == "min" then
             .minColumn <$> column schema columnName
           else if canonical name == "max" then
@@ -986,8 +990,27 @@ The earlier predicate translation remains useful for recognizing Core queries;
 this fallback binds and evaluates the original SQL expression tree. -/
 def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) (_wherePredicate : Option Core.Predicate) :
-    Except String SelectExecution :=
-  executeFilteredSelect state select source stored
+    Except String SelectExecution := do
+  match select.columns.toList with
+  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
+      if canonical name == "avg" || canonical name == "total" then
+        unless select.groupBy.isEmpty && !select.distinct && select.orderBy.isEmpty &&
+            select.limit.isNone && select.offset == 0 do
+          unsupported "AVG/TOTAL query shape"
+        let ctx : CoreExpr.Context := {
+          schema := stored.schema
+          sourceName := source.alias.getD source.name }
+        let index ← match ctx.column? qualifier columnName with
+          | some index => .ok index
+          | none => .error s!"no such column: {columnName}"
+        let (next, result) ← Core.execute state (.query (canonical source.name)
+          { columns := [index], predicate := _wherePredicate })
+        let values := result.rows.map (fun row => row[0]?.getD .null)
+        let value := if canonical name == "avg" then SQLite.AggregateSum.average values
+          else SQLite.AggregateSum.total values
+        return ⟨next, { rows := [[value]] }, 1⟩
+      else executeFilteredSelect state select source stored
+  | _ => executeFilteredSelect state select source stored
 
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=

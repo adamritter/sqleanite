@@ -281,7 +281,8 @@ inductive GroupOutputSyntax : ResultColumn → Prop where
   | aggregate (name arguments qualifier columnName alias sourceSql) :
       arguments.toList = [.column qualifier columnName] →
       (canonical name = "count" ∨ canonical name = "sum" ∨
-        canonical name = "min" ∨ canonical name = "max") →
+        canonical name = "min" ∨ canonical name = "max" ∨
+        canonical name = "avg" ∨ canonical name = "total") →
       GroupOutputSyntax
         ⟨.call name arguments false, alias, sourceSql⟩
 
@@ -319,9 +320,15 @@ theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
                               sourceSql listShape (Or.inr (Or.inr (Or.inl minimum)))
                           · by_cases maximum : canonical name = "max"
                             · exact .aggregate name arguments qualifier columnName alias
-                                sourceSql listShape (Or.inr (Or.inr (Or.inr maximum)))
-                            · simp [groupOutput, listShape, count, sum, minimum,
-                                maximum, unsupported] at success
+                                sourceSql listShape (by simp [maximum])
+                            · by_cases average : canonical name = "avg"
+                              · exact .aggregate name arguments qualifier columnName alias
+                                  sourceSql listShape (by simp [average])
+                              · by_cases total : canonical name = "total"
+                                · exact .aggregate name arguments qualifier columnName alias
+                                    sourceSql listShape (by simp [total])
+                                · simp [groupOutput, listShape, count, sum, minimum,
+                                    maximum, average, total, unsupported] at success
                   | literal | star | unary | binary | call | isNull | inList |
                       collate | case_ | scalarSubquery | inSubquery |
                       existsSubquery =>

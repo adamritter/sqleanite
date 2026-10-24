@@ -18,20 +18,26 @@ private def readStreamToEnd (stream : IO.FS.Stream) : IO String := do
     if chunk.isEmpty then return .inr acc else return .inl (acc ++ chunk)
   return String.fromUTF8? acc |>.getD ""
 
-private def coreValueText : PhysicalCodec.Value → String
-  | .null => ""
-  | .integer value => toString value.value
-  | .realBits bits => toString (SQLeanite.Value.real
-      (Float.ofBits (UInt64.ofNat bits.val)))
-  | .text text =>
-      let decoded := (String.fromUTF8? (ByteArray.mk text.bytes.toArray)).getD ""
-      String.ofList (decoded.toList.takeWhile (· != '\x00'))
-  | .blob blob =>
-      (SQLeanite.Value.blob blob.bytes.toArray).clientText
+/-- The SQLite CLI's list mode emits TEXT/BLOB bytes up to the first NUL,
+including invalid UTF-8. Keep this byte boundary separate from SQL values. -/
+private def coreValueBytes : PhysicalCodec.Value → ByteArray
+  | .null => ByteArray.empty
+  | .integer value => (toString value.value).toUTF8
+  | .realBits bits => (toString (SQLeanite.Value.real
+      (Float.ofBits (UInt64.ofNat bits.val)))).toUTF8
+  | .text text => ByteArray.mk (text.bytes.takeWhile (· != 0)).toArray
+  | .blob blob => ByteArray.mk (blob.bytes.takeWhile (· != 0)).toArray
 
-private def renderCoreResult (result : Core.Result) : String :=
-  String.join <| result.rows.map fun row =>
-    String.intercalate "|" (row.map coreValueText) ++ "\n"
+private def renderCoreResult (result : Core.Result) : ByteArray :=
+  result.rows.foldl (fun output row =>
+    let fields := (row.map coreValueBytes).intersperse "|".toUTF8
+    (fields.foldl (· ++ ·) output) ++ "\n".toUTF8) ByteArray.empty
+
+private def printCoreResults (results : List Core.Result) : IO Unit := do
+  let stream ← IO.getStdout
+  for result in results do
+    let bytes := renderCoreResult result
+    unless bytes.isEmpty do stream.write bytes
 
 /-- A preflighted line from a script whose physical lines are independently
 parseable statements.  Keeping only the source and write bit lets large load
@@ -147,8 +153,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
         | .error _ => pure none
       else pure none
     if let some result := lazyWrite then
-      let text := renderCoreResult result
-      unless text.isEmpty do IO.print text
+      printCoreResults [result]
       return 0
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
@@ -168,8 +173,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
         IO.eprintln s!"Error: {message}"
         pure 1
     | .ok results =>
-        let text := String.join (results.map renderCoreResult)
-        unless text.isEmpty do IO.print text
+        printCoreResults results
         pure 0
 
 private def coreWALBatch (databasePath : String) (args : List String) : IO UInt32 := do
@@ -199,8 +203,7 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
       IO.eprintln s!"Error: {message}"
       pure 1
   | .ok results =>
-      let text := String.join (results.map renderCoreResult)
-      unless text.isEmpty do IO.print text
+      printCoreResults results
       pure 0
 
 private def coreWALCheckpoint (databasePath : String) : IO UInt32 := do
@@ -254,8 +257,7 @@ private def coreBatchTimed (databasePath : String) (args : List String) :
           IO.eprintln s!"Error: {message}"
           status := 1
       | .ok results =>
-          let text := String.join (results.map renderCoreResult)
-          unless text.isEmpty do IO.print text
+          printCoreResults results
     pure status
 
 private def runMain (args : List String) : IO UInt32 :=

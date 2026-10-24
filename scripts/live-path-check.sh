@@ -79,6 +79,17 @@ else
   fail "IN evaluator or expression search route is missing"
 fi
 
+# Numeric aggregates share the physical-value accumulator after Core reads.
+if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
+   grep -q 'SQLite.AggregateSum.average values' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.AggregateSum.total values' SQLeanite/CoreSQL.lean &&
+   grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
+   grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean; then
+  ok "SUM/AVG/TOTAL use the numeric accumulator on production Core values"
+else
+  fail "numeric aggregate execution or its registered contracts are missing"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

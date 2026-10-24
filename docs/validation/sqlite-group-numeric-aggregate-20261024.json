@@ -1,0 +1,16 @@
+{
+  "seed": 353544,
+  "random_cases": 250,
+  "queries": 346,
+  "result_rows": 10568,
+  "failures": [],
+  "matching_errors": 3,
+  "implementation_sha256": "c95edd636c514a7bf888b7a242ae3ecfe87d234e26af31ea441b592ebbaee4ed",
+  "executable_sha256": "0288e58ab8a8ad8eb072ad254f95e6db31574654c5e10d6735fae003edb77334",
+  "harness_sha256": {
+    "run-group-differential.py": "b62164a8b071018b04f053dac580524295e89311b010b6b01960998ff4ff5000",
+    "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+  },
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "CLI group multiplicities, aggregate values, ordering and original numeric/TEXT representatives; unchanged file"
+}

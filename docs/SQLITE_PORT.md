@@ -659,3 +659,50 @@ The full build, **174 executable tests**, **970 registered headline theorems**
 and both audits passed. New component contracts cover zero-offset equivalence
 and no scan evaluation for LIMIT zero. The retained gap inventory still has
 16 explicit rejections; this suite is not a whole-SQLite coverage percentage.
+
+
+### Numeric SUM, AVG and TOTAL checkpoint (2026-10-24)
+
+`SQLite/AggregateSum.lean` ports the pinned `func.c` ordered accumulator:
+exact signed-integer accumulation, conversion to compensated binary64 sums,
+wide-integer splitting, delayed integer-overflow errors, and their cancellation
+by a later non-integer input. Numeric TEXT conversion preserves decimal/exponent
+spelling; other TEXT/BLOB values use SQLite's numeric-prefix conversion. NULLs
+do not contribute. AVG and TOTAL always produce REAL when non-NULL; empty SUM
+and AVG are NULL, empty TOTAL is 0.0. Infinite/NaN compensation and final NaN
+follow the SQLite result rules. The original all-integer Core SUM fast path and
+its mathematical-sum claims remain intact. Grouped AVG/TOTAL and single-column
+AVG/TOTAL now use the same physical-value accumulator.
+
+The group refinement contract preserves the exact integer statement when
+integer extraction succeeds and explicitly describes the ordered accumulator
+otherwise. Four new contracts concern NULL steps and all-NULL inputs; they do
+not establish general floating-point equivalence to compiled SQLite. The source
+reference is pinned `func.c` (`sumStep`, `sumFinalize`, `avgFinalize`,
+`totalFinalize`) and the [aggregate documentation](https://www.sqlite.org/lang_aggfunc.html).
+General aggregate expressions, aggregate row-expression WHERE, aggregate
+DISTINCT, and grouped ordering/slicing remain separate work at this checkpoint.
+
+The first differential run found a TEXT-with-NUL type difference and a separate
+CLI rendering difference. Numeric TEXT ending at a NUL now uses the same
+integer recovery rule; production list-mode output now writes raw TEXT/BLOB
+bytes up to the first NUL, including invalid UTF-8, instead of silently changing
+them to empty text or hex notation. This does not change stored values.
+The six development failures are retained in
+`docs/validation/sqlite-numeric-aggregate-development-negative-20261024.json`.
+
+Frozen implementation SHA-256:
+`c95edd636c514a7bf888b7a242ae3ecfe87d234e26af31ea441b592ebbaee4ed`.
+Fresh seed 353543 checked **1,772 queries / 6,896 result rows**, including
+**16 matching errors**, across both production file modes and 249 input groups.
+There were no differences, and reads preserved main/WAL bytes. The suite includes
+raw row output and mixed grouped extrema, so its count is not exclusively
+aggregate arithmetic. Seed 353544 checked **346 grouped queries** plus
+**3 matching errors** without a regression. The existing scalar value/binary
+storage suite also passed. Full build, **175 executable tests**, **974 registered
+headline theorems** and both audits passed. Reports are
+`docs/validation/sqlite-numeric-aggregate-20261024.json`,
+`docs/validation/sqlite-group-numeric-aggregate-20261024.json`, and
+`docs/validation/sqlite-scalar-numeric-aggregate-20261024.json`.
+The diagnostic inventory still contains 14 explicit SQL rejections and is not
+a whole-SQLite compatibility percentage.

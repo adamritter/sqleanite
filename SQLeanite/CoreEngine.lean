@@ -1,6 +1,7 @@
 import SQLeanite.CoreJoin
 import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
+import SQLeanite.SQLite.AggregateSum
 
 namespace SQLeanite
 namespace Core
@@ -891,11 +892,21 @@ def columnIntegers (column : Nat) : List Row → Except String (List Integer)
       | .realBits _ | .text _ | .blob _ =>
           .error "SUM requires INTEGER or NULL values in the verified Core"
 
-def sumColumn (column : Nat) (rows : List Row) : Except String Value := do
-  let integers ← columnIntegers column rows
-  match ← sumIntegers integers with
-  | none => .ok .null
-  | some total => .ok (.integer total)
+/-- The all-integer fast path retains its exact-sum theorem. Mixed storage
+classes use the ordered SQLite accumulator, including delayed overflow errors. -/
+def sumColumn (column : Nat) (rows : List Row) : Except String Value :=
+  match columnIntegers column rows with
+  | .error _ => SQLite.AggregateSum.sum (rows.map (·.value column))
+  | .ok integers => do
+      match ← sumIntegers integers with
+      | none => .ok .null
+      | some total => .ok (.integer total)
+
+def averageColumn (column : Nat) (rows : List Row) : Value :=
+  SQLite.AggregateSum.average (rows.map (·.value column))
+
+def totalColumn (column : Nat) (rows : List Row) : Value :=
+  SQLite.AggregateSum.total (rows.map (·.value column))
 
 /-- Select one non-NULL value using SQLite's total storage-class ordering.
 `minimum = true` chooses MIN; false chooses MAX. -/
@@ -951,6 +962,8 @@ inductive GroupOutput where
   | countStar
   | countColumn (column : Nat)
   | sumColumn (column : Nat)
+  | averageColumn (column : Nat)
+  | totalColumn (column : Nat)
   | minColumn (column : Nat)
   | maxColumn (column : Nat)
   deriving DecidableEq, Repr
@@ -1090,6 +1103,8 @@ def GroupQuery.outputValue (query : GroupQuery) (rows : List Row)
       .integer <$> countInteger ((query.keyRows rows key).countP
         fun row => row.value column != .null)
   | .sumColumn column => sumColumn column (query.keyRows rows key)
+  | .averageColumn column => .ok (averageColumn column (query.keyRows rows key))
+  | .totalColumn column => .ok (totalColumn column (query.keyRows rows key))
   | .minColumn column => .ok (extremeColumn true column (query.keyRows rows key))
   | .maxColumn column => .ok (extremeColumn false column (query.keyRows rows key))
 
