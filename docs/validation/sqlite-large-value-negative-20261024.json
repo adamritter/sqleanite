@@ -1,0 +1,782 @@
+{
+  "seed": 353690,
+  "random_cases": 0,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "queries": 20,
+      "oversize_cases": 3
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-blob",
+      "value_bytes_at_least": 1010213
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-text",
+      "value_bytes_at_least": 1008376
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-raw-text",
+      "value_bytes_at_least": 1017723
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "page_size": 512,
+      "blob_bytes": 1023104
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "page_size": 4096,
+      "blob_bytes": 1021313
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "page_size": 65536,
+      "blob_bytes": 1026107
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "queries": 20,
+      "oversize_cases": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-blob",
+      "value_bytes_at_least": 1005268
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-text",
+      "value_bytes_at_least": 1006290
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-raw-text",
+      "value_bytes_at_least": 1011183
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "page_size": 512,
+      "blob_bytes": 1020122
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "page_size": 4096,
+      "blob_bytes": 1000481
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "page_size": 65536,
+      "blob_bytes": 1020132
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(499999)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1000000));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1000000),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1000001));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1000001),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1048577));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048577\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(524288)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048576\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(524288)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048579\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1048577),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(2000003));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(1000001)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000002\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(1000001)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000005\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(2000003),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-blob",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'80FF00'||zeroblob(1010213)||X'41') AS BLOB));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-text",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST(('\u00e1rv\u00edz\ud83d\ude42'||hex(zeroblob(504188))||'z') AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-raw-text",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'FF80'||zeroblob(1017723)||X'C0AF') AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-file-foreign-512/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1023104|0000000000000000\n2|text|1023104|3030303030303030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-file-foreign-4096/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1021313|0000000000000000\n2|text|1021312|3030303030303030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-file-foreign-65536/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1026107|0000000000000000\n2|text|1026106|3030303030303030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(499999)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1000000));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1000000),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1000001));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000001\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1000001),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(1048577));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048577\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(524288)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048576\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(524288)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1048579\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(1048577),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(zeroblob(2000003));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000003\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(hex(zeroblob(1000001)));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000002\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(concat(hex(zeroblob(1000001)),'xyz'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2000005\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "sql": "SELECT length(substr(zeroblob(2000003),-17));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-blob",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'80FF00'||zeroblob(1005268)||X'41') AS BLOB));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-text",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST(('\u00e1rv\u00edz\ud83d\ude42'||hex(zeroblob(503145))||'z') AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar text exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-raw-text",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'FF80'||zeroblob(1011183)||X'C0AF') AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: scalar blob exceeds Core value limit\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-wal-file-foreign-512/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1020122|0000000000000000\n2|text|1020122|3030303030303030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-wal-file-foreign-4096/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1000481|0000000000000000\n2|text|1000480|3030303030303030\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-large-values-moiz5_02/--verified-wal-file-foreign-65536/lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|blob|1020132|0000000000000000\n2|text|1020132|3030303030303030\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "a8020e51723da577e1552ac9a112e1d7fe88a6efc9315ac64fa4a13d7c2ac81d",
+  "executable_sha256": "361fc58853b0b5efc4206352741af4aa742f91dc989bca9a7c1ab1e742759fb3",
+  "harness_sha256": "c1a9d745d4f7c5c607a809830b38e590121ae1e7cf1b7a6879f3181e7d54ded6",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "observer_sqlite_version": "3.45.1",
+  "comparison": "Large values across scalar evaluation, main/WAL persistence and SQLite-created\nfiles. SQL/CLI comparison uses the selected pinned SQLite executable; Python's\nSQLite independently observes complete stored bytes and integrity after closing\neach connection. Timeouts and process failures are retained, never counted as passes."
+}

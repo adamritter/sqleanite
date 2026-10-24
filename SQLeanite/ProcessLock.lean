@@ -89,9 +89,14 @@ def ownerPath (config : Config) : System.FilePath :=
   config.directory / "owner"
 
 private def readOwner? (config : Config) : IO (Option ProcessId) := do
-  let path := ownerPath config
-  unless ← path.pathExists do return none
-  return (← IO.FS.readFile path).trimAscii.toString.toNat?
+  try
+    return (← IO.FS.readFile (ownerPath config)).trimAscii.toString.toNat?
+  catch error =>
+    -- A competing owner may release the directory between observation and
+    -- reading. Missing ownership is retried; unrelated IO failures propagate.
+    match error with
+    | .noFileOrDirectory .. => return none
+    | _ => throw error
 
 private def removeLockDirectory (config : Config) : IO Unit := do
   let owner := ownerPath config
@@ -132,7 +137,11 @@ private def acquireDirectory (config : Config) : Nat → Nat → IO Bool
                 IO.sleep config.retryMillis
                 acquireDirectory config attempts (missingOwnerAttempts + 1)
         else
-          throw error
+          -- mkdir may report EEXIST just before the previous owner removes
+          -- its directory. That is ordinary contention, not an IO failure.
+          match error with
+          | .alreadyExists .. => acquireDirectory config attempts 0
+          | _ => throw error
 
 /-- The abstract events emitted by one successful runtime critical section. -/
 def successfulTrace (process : ProcessId) : List Event :=

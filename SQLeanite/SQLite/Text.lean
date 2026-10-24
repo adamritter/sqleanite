@@ -1,9 +1,10 @@
 import SQLeanite.SQLite.Numeric
+import SQLeanite.SQLite.Limits
 
 /-!
 Pure ports of the SQLite 3.53.4 func.c string/blob operations. TEXT retains
 original bytes, including malformed UTF-8, without Unicode normalization.
-The existing Core value limit also bounds newly allocated scalar results.
+The pinned default SQLITE_MAX_LENGTH bounds stored and scalar result bytes.
 -/
 namespace SQLeanite.SQLite.Text
 
@@ -23,7 +24,7 @@ def bytes : Value → Array UInt8
 
 def nulPrefix (s : String) : List Char := s.toList.takeWhile (· != '\x00')
 
-def resultLimit : Nat := 999999
+def resultLimit : Nat := Limits.maxLength
 
 /-- A checked String is only a compact representation choice. Invalid UTF-8
 remains TEXT with the identical bytes, not a BLOB or a repaired string. -/
@@ -39,7 +40,7 @@ theorem fromBytes_invalid (bytes : Array UInt8)
 
 def checkedBytes (bytes : Array UInt8) : Except String Value :=
   if bytes.size ≤ resultLimit then .ok (fromBytes bytes)
-  else .error "unsupported verified SQL: scalar text exceeds Core value limit"
+  else .error "string or blob too big"
 
 def continuation (byte : UInt8) : Bool := (byte &&& 0xc0) == 0x80
 
@@ -60,7 +61,7 @@ def characterSpans (bytes : Array UInt8) : List (List UInt8) :=
 
 def checkedText (s : String) : Except String Value :=
   if s.utf8ByteSize ≤ resultLimit then .ok (.text s)
-  else .error "unsupported verified SQL: scalar text exceeds Core value limit"
+  else .error "string or blob too big"
 
 def hexDigit (n : Nat) : Char :=
   Char.ofNat (if n < 10 then 48 + n else 55 + n)
@@ -68,7 +69,28 @@ def hexDigit (n : Nat) : Char :=
 def hexBytes (b : Array UInt8) : String :=
   String.ofList (b.toList.flatMap fun c => [hexDigit (c.toNat / 16), hexDigit (c.toNat % 16)])
 
-def hex (v : Value) : Except String Value := checkedText (hexBytes (bytes v))
+/-- func.c:hexFunc includes the terminating byte in contextMalloc's limit
+check. Check before building the doubled output. -/
+def hex (v : Value) : Except String Value := do
+  let source := bytes v
+  Limits.check (2 * source.size) 1
+  return .text (hexBytes source)
+
+/-- SQL concatenation checks the total before allocating its result. -/
+def append (left right : Value) : Except String Value := do
+  let a := bytes left
+  let b := bytes right
+  Limits.check (a.size + b.size)
+  return fromBytes (a ++ b)
+
+/-- upper/lower share contextMalloc's extra terminator byte. -/
+def asciiCase (upper : Bool) (v : Value) : Except String Value := do
+  if isNull v then return .null
+  let source := bytes v
+  Limits.check source.size 1
+  return fromBytes (source.map fun c =>
+    if upper && 97 ≤ c && c ≤ 122 then c - 32
+    else if !upper && 65 ≤ c && c ≤ 90 then c + 32 else c)
 
 /-- The zero-origin offset and count from func.c:substrFunc, with exact signed
 arithmetic even for Int64.min. TEXT counts characters, BLOB counts bytes. -/
@@ -151,7 +173,7 @@ def replaceBytesLoop (pattern replacement : List UInt8) :
       let matched := !pattern.isEmpty && pattern.isPrefixOf source
       let extra := if matched then replacement.length else 1
       if acc.size + extra > resultLimit then
-        throw "unsupported verified SQL: scalar text exceeds Core value limit"
+        throw "string or blob too big"
       if matched then
         replaceBytesLoop pattern replacement fuel (source.drop pattern.length) (acc ++ replacement.toArray)
       else replaceBytesLoop pattern replacement fuel rest (acc.push byte)
@@ -162,6 +184,7 @@ def replace (v pattern replacement : Value) : Except String Value := do
   let search := bytes pattern
   if search.isEmpty || search[0]? == some 0 then return fromBytes source
   if isNull replacement then return .null
+  Limits.check source.size 1
   return fromBytes (← replaceBytesLoop search.toList (bytes replacement).toList
     source.size source.toList #[])
 
@@ -173,7 +196,7 @@ def concatBytes (separator : Array UInt8) (values : List Value) : Except String 
       let source := bytes v
       let sep := if seen then separator else #[]
       if result.size + sep.size + source.size > resultLimit then
-        throw "unsupported verified SQL: scalar text exceeds Core value limit"
+        throw "string or blob too big"
       result := result ++ sep ++ source
       seen := true
   return fromBytes result
@@ -268,9 +291,15 @@ def charValue (values : List Value) : Except String Value := do
 
 def quote (v : Value) : Except String Value :=
   match v with
-  | .text _ | .textBytes _ =>
-      checkedBytes (([39] ++ ((bytes v).toList.takeWhile (· != 0)).flatMap
+  | .text _ | .textBytes _ => do
+      let source := (bytes v).toList.takeWhile (· != 0)
+      let escaped := source.foldl (fun size byte => size + if byte == 39 then 2 else 1) 2
+      Limits.check escaped 1
+      return fromBytes (([39] ++ source.flatMap
         (fun byte => if byte == 39 then [39, 39] else [byte]) ++ [39]).toArray)
+  | .blob b => do
+      Limits.check (2 * b.size + 3) 1
+      return .text ("X'" ++ hexBytes b ++ "'")
   | _ => checkedText (match v with
       | .null => "NULL"
       | .integer i => toString i
@@ -281,7 +310,7 @@ def quote (v : Value) : Except String Value :=
 def zeroblob (v : Value) : Except String Value :=
   let n := (Numeric.integer v).toNat
   if n ≤ resultLimit then .ok (.blob (Array.replicate n 0))
-  else .error "unsupported verified SQL: scalar blob exceeds Core value limit"
+  else .error "string or blob too big"
 
 def sign (v : Value) : Value :=
   match Numeric.applyAffinity v with

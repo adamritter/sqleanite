@@ -1121,3 +1121,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Collation.rtrimBytes_space
 
 #print axioms SQLeanite.SQLite.Scalar.hasFunction_collate
+
+#print axioms SQLeanite.SQLite.Limits.check_success
+#print axioms SQLeanite.SQLite.Limits.check_excess
+
+#print axioms SQLeanite.SingletonPageTree.pack_entries
+#print axioms SQLeanite.SingletonPageTree.build_entries
+#print axioms SQLeanite.SingletonPageTree.store_represents
+#print axioms SQLeanite.CoreChunkPageState.buildChunkTree_represents

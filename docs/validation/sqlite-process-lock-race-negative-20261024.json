@@ -1,0 +1,8 @@
+{
+  "implementation_sha256": "2627dfd5fafcad521419587acd19daf6ab39e27b9f50fbf922efa3038c494d8d",
+  "executable_sha256": "5160d4eb80656cd35510bed4225711a55dc597e4e77425260051f536445343c8",
+  "command": "lake exe sqleanite_tests",
+  "exit_code": 1,
+  "diagnostic": "not ok - cross-process serialized MVP commits: multiprocess worker failed: Error: no such file or directory (error code: 2)\n  file: .lake/build/sqleanite-multiprocess.db.sqleanite-lock/owner\n\nok - SQLite stored column affinity and indexed c",
+  "log_sha256": "b69b6d2610cbead2f7058dc1086500fd0842acbce4155dbe2e4950e8951bef25"
+}

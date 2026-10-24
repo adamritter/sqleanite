@@ -1736,8 +1736,8 @@ controls without modifying stored values.
 Fresh differential and independent storage evidence, including the intermediate
 negative CLI results, is recorded in [SQLITE_PORT.md](SQLITE_PORT.md). SQL uses
 the pinned 3.53.4 oracle; the byte-level Python storage observer reports its own
-3.45.1 version. Result limits still reject TEXT/BLOB values above 999,999 bytes,
-and UTF-16 file encoding is outside the live decoder. These bounds, the existing
+3.45.1 version. The former 999,999-byte value cap is superseded by the large-value
+checkpoint below; UTF-16 file encoding is still outside the live decoder. That gap, the existing
 WAL lock-interoperability gap and incomplete SQL coverage prevent a claim of
 complete SQLite compatibility. The native OS adapter is unchanged.
 
@@ -1788,3 +1788,26 @@ models the pinned COLLATE constructor, with a registered boundary theorem.
 Fresh checkpoint results and negative probes are recorded in
 [SQLITE_PORT.md](SQLITE_PORT.md). The native adapter and nine host bindings are
 unchanged; all new database behavior is Lean code.
+
+
+### Large-value and leaf-packing boundary (2026-10-24)
+
+`SQLite.Limits` supplies the pinned byte maximum and registered exact
+success/excess arithmetic lemmas. Those lemmas do not establish behavior at all
+possible allocation sizes. Fresh final-source file tests reach four megabytes;
+maximum-size and combined encoded-row behavior are distinct outstanding claims.
+
+`SingletonPageTree.pack` and `build` preserve the entire entry list by theorem.
+The existing structural root checker supplies the successful candidate's
+validity evidence; a rejected candidate uses the existing proved builder. The
+new store representation theorem is used in `CoreChunkPageState.buildTree_rows`,
+so the physical bulk inverse continues to apply to the live capacity-one path.
+The executable suite checks the candidate itself, including singleton leaves
+and balance, across 134 sizes; it does not count a fallback as such a pass.
+
+Private process-lock IO now retries two observed release races. Kernel proofs
+still describe the abstract ownership protocol under the documented OS
+assumptions. The fresh 512-writer stress is executable evidence only, and is
+separate from the unresolved cross-engine SQLite WAL/SHM locking protocol.
+See [SQLITE_PORT.md](SQLITE_PORT.md) for final hashes, positive results and the
+retained negatives. No native source or host binding changed.

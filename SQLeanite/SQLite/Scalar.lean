@@ -179,7 +179,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
   | .glob => Pattern.evaluate true b a
   | .concat => do
       if isNull a || isNull b then return .null
-      Text.checkedBytes (Text.bytes a ++ Text.bytes b)
+      Text.append a b
   | _ => .error "unsupported scalar operator"
 
 abbrev Affinity := SQLite.Affinity
@@ -292,11 +292,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
       | .blob bytes => return .integer bytes.size
       | _ => return .integer (Text.bytes v).size
   | "lower", [v] | "upper", [v] =>
-      if isNull v then return .null
-      -- SQLite's built-ins fold ASCII only, independent of Unicode locale.
-      Text.checkedBytes ((Text.bytes v).map fun c =>
-        if name == "lower" && 65 ≤ c && c ≤ 90 then c + 32
-        else if name == "upper" && 97 ≤ c && c ≤ 122 then c - 32 else c)
+      Text.asciiCase (name == "upper") v
   | "nullif", [a, b] => return if a == b then .null else a
   | "hex", [v] => SQLite.Text.hex v
   | "unhex", [v] => SQLite.Text.unhex v (.text "")

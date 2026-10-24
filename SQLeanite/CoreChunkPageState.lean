@@ -1,5 +1,6 @@
 import SQLeanite.Core
 import SQLeanite.CoreOverflow
+import SQLeanite.SingletonPageTree
 
 namespace SQLeanite
 namespace CoreChunkPageState
@@ -374,17 +375,33 @@ def TableState.rootPage (state : TableState) : Nat := state.tree.root.rootId
 
 def TableState.pageIds (state : TableState) : List Nat := state.tree.root.pageIds
 
+/-- A capacity-one chunk can occupy more than half a SQLite page. In that
+case the bulk tree must use single-entry leaves as well as single-row chunks. -/
+def buildChunkTree (capacity rootPage : Nat) (entries : List (PagedBTree.Entry Chunk)) :
+    PersistentPageTree.Store Chunk :=
+  if capacity = 1 then SingletonPageTree.store rootPage entries
+  else PersistentPageTree.Store.build rootPage entries
+
+theorem buildChunkTree_represents (capacity rootPage : Nat)
+    (entries : List (PagedBTree.Entry Chunk))
+    (sorted : PagedBTree.KeysStrictlySorted entries) :
+    (buildChunkTree capacity rootPage entries).Represents entries := by
+  unfold buildChunkTree
+  split
+  next => exact SingletonPageTree.store_represents rootPage entries sorted
+  next => exact PersistentPageTree.Store.build_represents rootPage entries sorted
+
 theorem buildTree_rows (capacity : Nat) (rootPage : Nat) (table : Core.Table)
     {entries : List (PagedBTree.Entry Chunk)}
     (success : entries? (chunks capacity table.rows) = some entries) :
-    let built := PersistentPageTree.Store.build rootPage entries
+    let built := buildChunkTree capacity rootPage entries
     let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase
       built.rootValid
     Store.rows tree = table.rows := by
   dsimp only
-  have builtRepresents := PersistentPageTree.Store.build_represents rootPage
+  have builtRepresents := buildChunkTree_represents capacity rootPage
     entries (entries?_sorted capacity table success)
-  let built := PersistentPageTree.Store.build rootPage entries
+  let built := buildChunkTree capacity rootPage entries
   have identifiedRepresents := PersistentPageTree.Store.ofTree_represents
     rootPage built.root.erase built.rootValid
   unfold PersistentPageTree.Store.Represents at builtRepresents identifiedRepresents
@@ -403,7 +420,7 @@ def TableState.build? (rootPage : Nat) (table : Core.Table) :
   match result : entries? rowChunks with
   | none => none
   | some entries =>
-      let built := PersistentPageTree.Store.build rootPage entries
+      let built := buildChunkTree capacity rootPage entries
       -- Bulk assignment is preorder so a file-backed pager can traverse with
       -- a forward cursor. Later mutations preserve these identities locally.
       let tree := PersistentPageTree.Store.ofTree rootPage built.root.erase

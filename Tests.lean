@@ -4201,6 +4201,42 @@ private def expectSQLiteRawText : IO Unit := do
       | .error message => fail message
     unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
 
+private def expectSQLiteLargeValueBounds : IO Unit := do
+  for (size, overhead, accepted) in [(1000000000, 0, true), (1000000001, 0, false),
+      (999999999, 1, true), (1000000000, 1, false), (0, 0, true)] do
+    unless (SQLite.Limits.check size overhead).isOk == accepted do
+      throw (IO.userError "SQLite byte-limit boundary mismatch")
+  unless PhysicalCodec.textByteLimit = SQLite.Text.resultLimit + 1 do
+    throw (IO.userError "physical/scalar byte limits disagree")
+  match SQLite.Text.zeroblob (.integer 1000000) with
+  | .ok (.blob bytes) =>
+      unless bytes.size = 1000000 && bytes.all (· == 0) do
+        throw (IO.userError "million-byte zeroblob payload mismatch")
+  | _ => throw (IO.userError "million-byte zeroblob was rejected")
+  unless (SQLite.Text.zeroblob (.integer 1000000001)).toOption.isNone do
+    throw (IO.userError "oversized zeroblob was accepted")
+
+private def expectSingletonLeafPacking : IO Unit := do
+  let rec singles : RecursiveBPlusTree.Node Nat → Bool
+    | .leaf entries => entries.length ≤ 1
+    | .branch2 left _ right => singles left && singles right
+    | .branch3 left _ middle _ right => singles left && singles middle && singles right
+  for count in List.range 130 ++ [257, 511, 512, 1024] do
+    let entries := (List.range count).map fun i => (i, i)
+    let tree := SingletonPageTree.build entries
+    unless tree.checkRootValid && singles tree && tree.toList == entries do
+      fail s!"single-entry leaf packing failed at {count} entries"
+  for width in [2001, 2044, 2048, 3000, 4080, 4096, 8000, 10000] do
+    for count in [2, 3, 4, 5, 7, 8, 9, 17] do
+      let inserts := (List.range count).map fun i =>
+        s!"INSERT INTO t VALUES({i},zeroblob({width}));"
+      let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);" ++ String.join inserts
+      let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+        | .ok result => pure result
+        | .error message => fail message
+      unless (CorePageCodec.encodeChecked state.database).isSome do
+        fail s!"large local payload packing failed: width={width}, rows={count}"
+
 private def expectSQLiteOrderModifiers : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,'b'),(2,NULL),(3,'A'),(4,'a '),(5,'a');"
   let cases : List (String × List (List Value)) := [
@@ -4761,6 +4797,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
   ("SQLite ORDER BY collations and NULL placement", expectSQLiteOrderModifiers),
+  ("SQLite large value bounds", expectSQLiteLargeValueBounds),
+  ("SQLite large local payload leaf packing", expectSingletonLeafPacking),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),

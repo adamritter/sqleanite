@@ -1086,8 +1086,8 @@ errors**), **1,120 scalar cases**, **3,541 text-function cases** (**19 matching
 errors**), and **6,626 stored pattern results**, **40 pattern queries** and
 **24 matching pattern errors**. The four earlier boolean-corpus rejections of
 invalid TEXT now succeed. Reports use the `sqlite-raw-text-` prefix under
-`docs/validation/`. The text suite retains the explicit result-size rejection
-`length(zeroblob(1000000))`; the physical/scalar bound remains 999,999 bytes.
+`docs/validation/`. That checkpoint retained the explicit result-size rejection
+`length(zeroblob(1000000))`; the later large-value checkpoint below removes it.
 The full build, **187 executable tests**, **1,001 registered headline theorems**,
 both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
 
@@ -1240,3 +1240,64 @@ New component proofs cover self-comparison, NOCASE NUL behavior, RTRIM suffix
 removal and the COLLATE function-flag boundary. These are not whole-SQLite
 refinement theorems. The preceding DISTINCT stress timeout and other recorded
 SQL/database/WAL gaps remain unresolved.
+
+
+## Large values, leaf packing and lock contention (2026-10-24)
+
+The shared scalar/physical value limit now uses the pinned default
+`SQLITE_MAX_LENGTH=1000000000`. Physical TEXT and BLOB bounds are inclusive at
+that value. HEX, ASCII case conversion, quoting, replacement and concatenation
+check the relevant result/allocation sizes before constructing expanded output;
+the contextMalloc functions account for their terminating byte. This ports the
+value-size limit, not every SQLite allocation or encoded-row limit.
+
+The initial differential retained **46 mismatches** at source
+`a8020e51723da577e1552ac9a112e1d7fe88a6efc9315ac64fa4a13d7c2ac81d`, including
+scalar results, writes and reads of SQLite-created large values. The expanded
+suite then exposed **three foreign-file update rejections** at source
+`2627dfd5fafcad521419587acd19daf6ab39e27b9f50fbf922efa3038c494d8d`.
+Reducing a chunk to one row was insufficient: the compatibility 2-3 tree could
+still put two large local payloads on one leaf. `SingletonPageTree` now builds
+single-entry leaves for capacity-one chunks, groups levels in twos/threes and
+uses the existing root-validity checker. Its entry-preservation proofs feed the
+existing physical encoder correspondence; it performs no value-side repair.
+Narrower chunks retain their existing builder. Executable regressions exercise
+134 tree sizes and 64 row-count/width combinations.
+
+The unit run also exposed a writer-lock TOCTOU race: a released owner file
+could disappear between checking and reading it. Owner reads now tolerate that
+specific disappearance; a failed mkdir followed by a disappeared directory
+retries when the error was EEXIST. Other IO failures still propagate. This fixes
+the observed private writer-lock race; it does not implement SQLite SHM locks.
+
+Final production source hash:
+`26e8c3fe471cc29bfa2cacd69899b10d4bef041ee79b6a7e87531432456ff146`.
+Fresh checkpoint evidence:
+
+- Seed 353701: **128 SQL outcomes**, including **6 matching oversize errors**,
+  with original million-byte boundary cases and seeded values above it.
+- Seed 353704: **104 SQL outcomes**, including **6 matching oversize errors**,
+  and independently stored values exceeding **4,000,000 bytes**. Both file modes
+  cover TEXT, BLOB and malformed TEXT, reopen, CREATE INDEX, UPDATE and DELETE.
+- SQLite-created **512-, 4096- and 65536-byte-page** files are read without
+  modification, then updated in both modes. Complete stored-byte hashes and
+  storage classes match the independent SQLite observer, with integrity checks.
+- Seed 353702: **512 concurrent subprocess insertions** (16 rounds of 16 writers
+  per mode), complete row equality against the expected seeded rows, integrity
+  checks and released private lock directories.
+- Seed 353703: **2,541 text/blob function cases**, **19 matching errors**, and
+  the previously rejected million-byte zeroblob query now passes. The scalar
+  regression passes **1,120 cases** and **6 matching errors**.
+- Full build: **250 jobs**; **192 executable tests**; **1,015 registered headline
+  theorem audits**; live-path audit; **61 accepted / 2 declared unsupported**
+  reverse-direction cases.
+
+Reports are `sqlite-large-*` and `sqlite-process-lock-*` under `docs/validation/`.
+The original failures, layout failures and lock-race failure remain separate
+negative reports. SQL comparison uses pinned SQLite 3.53.4; the complete stored
+byte observer reports its distinct Python SQLite 3.45.1 version. Boundary
+arithmetic is checked without allocating a billion-byte payload; this is not an
+end-to-end test at the maximum value size. Combined encoded-row maximums,
+UTF-16 databases, concurrent SQLite WAL/SHM coordination and the previously
+listed SQL gaps remain unfinished. The native adapter and nine host bindings
+are unchanged.

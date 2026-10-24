@@ -34,12 +34,12 @@ def value (input : SQLeanite.Value) : Except String PhysicalCodec.Value :=
       let bytes := string.toUTF8.data.toList
       if bound : bytes.length < PhysicalCodec.textByteLimit then
         .ok (.text ⟨bytes, bound⟩)
-      else .error "MVP TEXT exceeds the 999-byte limit"
+      else .error "string or blob too big"
   | .textBytes bytes =>
       let payload := bytes.toList
       if bound : payload.length < PhysicalCodec.textByteLimit then
         .ok (.text ⟨payload, bound⟩)
-      else .error "MVP TEXT exceeds the Core value limit"
+      else .error "string or blob too big"
   | .real value =>
       if value.isNaN then unsupported "NaN REAL value"
       else
@@ -49,7 +49,7 @@ def value (input : SQLeanite.Value) : Except String PhysicalCodec.Value :=
       let payload := bytes.toList
       if bound : payload.length < PhysicalCodec.textByteLimit then
         .ok (.blob ⟨payload, bound⟩)
-      else .error "MVP BLOB exceeds the 999-byte local-page limit"
+      else .error "string or blob too big"
 
 /-- Constant expressions are checked by an independent syntax traversal before
 being evaluated. The physical conversion still checks all storage bounds. -/

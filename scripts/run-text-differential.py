@@ -136,11 +136,11 @@ def main():
             actual, expected = scalar.run(args, cwd, f"INSERT INTO t VALUES(999999,{expr});")
             assert actual.returncode != 0 and expected.returncode != 0, expr
             assert scalar.observe(cwd / "lean.db") == before, expr
-        declared = ["length(zeroblob(1000000))"]
-        for expr in declared:
-            actual, _ = scalar.run(args, cwd, f"INSERT INTO t VALUES(999999,{expr});")
-            assert actual.returncode != 0, expr
-            assert scalar.observe(cwd / "lean.db") == before, expr
+        declared = []
+        actual, expected = scalar.run(args, cwd, "SELECT length(zeroblob(1000000));")
+        assert actual.returncode == expected.returncode == 0
+        assert actual.stdout == expected.stdout == "1000000\n"
+        assert scalar.observe(cwd / "lean.db") == before
         digest = hashlib.sha256()
         for path in sorted((ROOT / "SQLeanite").rglob("*.lean")) + [ROOT / "Main.lean"]:
             digest.update(str(path.relative_to(ROOT)).encode() + b"\0" + path.read_bytes())

@@ -1,0 +1,989 @@
+{
+  "seed": 353701,
+  "random_cases": 5,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "queries": 40,
+      "oversize_cases": 3
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-blob",
+      "value_bytes_at_least": 1003512
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-text",
+      "value_bytes_at_least": 1003986
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "persistence-raw-text",
+      "value_bytes_at_least": 1001891
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read-update",
+      "page_size": 512,
+      "blob_bytes": 1008906
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read-update",
+      "page_size": 4096,
+      "blob_bytes": 1010467
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read-update",
+      "page_size": 65536,
+      "blob_bytes": 1015795
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "queries": 40,
+      "oversize_cases": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-blob",
+      "value_bytes_at_least": 1014177
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-text",
+      "value_bytes_at_least": 1011162
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "persistence-raw-text",
+      "value_bytes_at_least": 1017852
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read-update",
+      "page_size": 512,
+      "blob_bytes": 1008040
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read-update",
+      "page_size": 4096,
+      "blob_bytes": 1010814
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read-update",
+      "page_size": 65536,
+      "blob_bytes": 1026704
+    }
+  ],
+  "comparisons": [
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(999999));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(499999)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(499999)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(999999),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000000));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000000),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000001));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000001),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1048577));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(524288)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(524288)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1048577),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(2000003));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(1000001)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(1000001)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(2000003),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1138977));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(569488)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(569488)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1138977),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000330));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500165)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500165)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000330),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1173884));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(586942)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(586942)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1173884),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1253451));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(626725)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(626725)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1253451),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1284107));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(642053)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(642053)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1284107),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(1000000001);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(9223372036854775807);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(1e999);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-blob",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'80FF00'||zeroblob(1003512)||X'41') AS BLOB));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "reopen-blob",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "index-blob",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "update-blob",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS BLOB) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "delete-blob",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-text",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST(('\u00e1rv\u00edz\ud83d\ude42'||hex(zeroblob(501993))||'z') AS TEXT));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "reopen-text",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "index-text",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "update-text",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS TEXT) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "delete-text",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "write-raw-text",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'FF80'||zeroblob(1001891)||X'C0AF') AS TEXT));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "reopen-raw-text",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "index-raw-text",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "update-raw-text",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS TEXT) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "delete-raw-text",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(999999));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(499999)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(499999)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(999999),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000000));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000000),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000001));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500000)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500000)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000001),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1048577));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(524288)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(524288)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1048577),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(2000003));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(1000001)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(1000001)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(2000003),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1138977));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(569488)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(569488)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1138977),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1000330));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(500165)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(500165)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1000330),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1173884));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(586942)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(586942)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1173884),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1253451));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(626725)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(626725)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1253451),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(zeroblob(1284107));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(hex(zeroblob(642053)));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(concat(hex(zeroblob(642053)),'xyz'));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "scalar",
+      "matched": true,
+      "sql": "SELECT length(substr(zeroblob(1284107),-17));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(1000000001);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(9223372036854775807);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "oversize",
+      "matched": true,
+      "sql": "SELECT zeroblob(1e999);",
+      "matching_error": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-blob",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'80FF00'||zeroblob(1014177)||X'41') AS BLOB));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "reopen-blob",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "index-blob",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "update-blob",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS BLOB) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "delete-blob",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-text",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST(('\u00e1rv\u00edz\ud83d\ude42'||hex(zeroblob(505581))||'z') AS TEXT));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "reopen-text",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "index-text",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "update-text",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS TEXT) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "delete-text",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "write-raw-text",
+      "matched": true,
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST((X'FF80'||zeroblob(1017852)||X'C0AF') AS TEXT));",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "reopen-raw-text",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(CAST(v AS BLOB)),hex(substr(CAST(v AS BLOB),1,12)),hex(substr(CAST(v AS BLOB),-12)) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "index-raw-text",
+      "matched": true,
+      "sql": "CREATE INDEX tv ON t(v); SELECT id FROM t ORDER BY v LIMIT 1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "update-raw-text",
+      "matched": true,
+      "sql": "UPDATE t SET v=CAST(v||'tail-353701' AS TEXT) WHERE id=1;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "delete-raw-text",
+      "matched": true,
+      "sql": "DELETE FROM t WHERE id=1; SELECT count(*) FROM t;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-read",
+      "matched": true,
+      "sql": "SELECT id,typeof(v),length(v),hex(substr(CAST(v AS BLOB),-8)) FROM t ORDER BY id;",
+      "matching_error": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "phase": "foreign-update",
+      "matched": true,
+      "sql": "UPDATE t SET v=v||'tail' WHERE id=2;",
+      "matching_error": false
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "26e8c3fe471cc29bfa2cacd69899b10d4bef041ee79b6a7e87531432456ff146",
+  "executable_sha256": "c6e651a7830b0d2fd78266abb14ac424cd13d2af40d66d7ef97e34be1ee99e43",
+  "harness_sha256": "fa3c0f98925a8e80bae0924cf9a9e0085ef7c28c117dd05c66e6d1e7e90b0480",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "observer_sqlite_version": "3.45.1",
+  "comparison": "Large values across scalar evaluation, main/WAL persistence and SQLite-created\nfiles. SQL/CLI comparison uses the selected pinned SQLite executable; Python's\nSQLite independently observes complete stored bytes and integrity after closing\neach connection. Timeouts and process failures are retained, never counted as passes."
+}

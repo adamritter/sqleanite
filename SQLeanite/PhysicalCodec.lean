@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Limits
 import SQLeanite.Durability
 import SQLeanite.GrowableStorage
 
@@ -7,10 +8,10 @@ namespace PhysicalCodec
 open FileFormat
 
 def pageSize : Nat := 4096
-def textByteLimit : Nat := 1000000
+def textByteLimit : Nat := SQLite.Limits.maxLength + 1
 
-/-- MVP text is represented by its exact UTF-8 file bytes. The unverified SQL
-edge is responsible for converting Lean strings to and from these bytes. -/
+/-- TEXT preserves its exact UTF-8 file bytes, including malformed sequences.
+The strict bound admits SQLite's inclusive default byte limit. -/
 structure Text where
   bytes : List UInt8
   lengthBound : bytes.length < textByteLimit
@@ -26,7 +27,7 @@ structure Blob where
 def Text.serialType (text : Text) : TextSerialType := {
   code := ⟨13 + 2 * text.bytes.length, by
     have bound := text.lengthBound
-    simp only [textByteLimit] at bound
+    simp only [textByteLimit, SQLite.Limits.maxLength] at bound
     omega⟩
   atLeastThirteen := by
     change 13 ≤ 13 + 2 * text.bytes.length
@@ -45,7 +46,7 @@ def Text.recordField (text : Text) : RecordField :=
 def Blob.serialType (blob : Blob) : BlobSerialType := {
   code := ⟨12 + 2 * blob.bytes.length, by
     have bound := blob.lengthBound
-    simp only [textByteLimit] at bound
+    simp only [textByteLimit, SQLite.Limits.maxLength] at bound
     omega⟩
   atLeastTwelve := by
     change 12 ≤ 12 + 2 * blob.bytes.length
@@ -61,7 +62,7 @@ def Blob.recordField (blob : Blob) : RecordField :=
       change blob.bytes.length = (12 + 2 * blob.bytes.length - 12) / 2
       omega }
 
-/-- The three logical storage classes admitted by the verified MVP codec. -/
+/-- The five SQLite storage classes; REAL retains its binary64 bits. -/
 inductive Value where
   | null
   | integer (value : SignedInteger .eight)
@@ -189,7 +190,7 @@ theorem Row.record_encode_length_lt_u64 (row : Row) :
   change row.record.headerSize.val +
     (row.first.recordField.encodePayload.length +
       row.second.recordField.encodePayload.length) < 2 ^ 64
-  simp only [textByteLimit] at firstBound secondBound
+  simp only [textByteLimit, SQLite.Limits.maxLength] at firstBound secondBound
   omega
 
 def decodeRowFields (rowid : SignedInteger .eight) :

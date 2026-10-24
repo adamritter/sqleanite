@@ -1,0 +1,25 @@
+{
+  "seed": 353702,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "workers": 16,
+      "rounds": 16,
+      "insertions": 256,
+      "expected_rows_sha256": "c7cc98d37b04bc0255b573da0cb2f74cd05ba7bc14f6224299d2856fa6534ac7"
+    },
+    {
+      "mode": "--verified-wal-file",
+      "workers": 16,
+      "rounds": 16,
+      "insertions": 256,
+      "expected_rows_sha256": "bbf3d373479c38ea2ce354b84c017572b768d9e2d3c7944975b7f6c6e9b70ee6"
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "26e8c3fe471cc29bfa2cacd69899b10d4bef041ee79b6a7e87531432456ff146",
+  "executable_sha256": "c6e651a7830b0d2fd78266abb14ac424cd13d2af40d66d7ef97e34be1ee99e43",
+  "harness_sha256": "9ad374b657c39802e6715a738578ba697df6e21976c3ca145f049523cf5c9996",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Fresh subprocess contention against the public writer lock. Every worker\ninserts a distinct row; pinned SQLite checks the complete rows and file integrity.\nThis is stress evidence, not a proof of the OS lock refinement."
+}
