@@ -5,6 +5,9 @@ import Std.Data.TreeMap.Lemmas
 namespace SQLeanite
 namespace Core
 
+-- Lean 4.35 requires the lexicographic product order to be selected explicitly.
+attribute [local instance] lexOrd
+
 abbrev Value := PhysicalCodec.Value
 abbrev Integer := FileFormat.SignedInteger .eight
 
@@ -1735,7 +1738,7 @@ def Database.withoutIndexes (database : Database) : Database := {
   tablesWellFormed := by
     have valid := database.tablesWellFormed
     unfold TablesWellFormed at valid ⊢
-    simpa only [List.map_map, Function.comp_apply,
+    simpa only [List.map_map, Function.comp_def,
       Table.withoutIndexes_schema] using valid }
 
 def Database.canonicalize (database : Database) : Database := {
@@ -1743,7 +1746,7 @@ def Database.canonicalize (database : Database) : Database := {
   tablesWellFormed := by
     have valid := database.tablesWellFormed
     unfold TablesWellFormed at valid ⊢
-    simpa only [List.map_map, Function.comp_apply, Table.canonicalize]
+    simpa only [List.map_map, Function.comp_def, Table.canonicalize]
       using valid }
 
 theorem Database.canonicalize_contents (database : Database) :
@@ -2089,7 +2092,7 @@ theorem Table.findRowid?_some_mem {table : Table} {rowid : Integer} {row : Row}
   rw [represented] at inTree
   rcases List.mem_map.mp inTree with ⟨source, member, pairEqual⟩
   have rowEqual : source = row := congrArg Prod.snd pairEqual
-  simpa [rowEqual] using member
+  simpa [rowEqual, Table.rows] using member
 
 /-- Every logical row represented by the table is reachable by routed primary
 lookup. This is the completeness half needed to trust pruning rather than

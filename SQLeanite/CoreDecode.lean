@@ -8,6 +8,11 @@ import Init.Data.Int.Compare
 namespace SQLeanite
 namespace CoreDecode
 
+-- Retain elaboration of dependent page sizes; all terms remain kernel-checked.
+set_option backward.isDefEq.respectTransparency false
+-- Normalize the identity monad in executable cursor refinement proofs.
+attribute [local simp] bind pure Functor.map
+
 open FileFormat
 
 def decodeOffsets : Nat → List UInt8 → Option (List Nat × List UInt8)
@@ -1120,8 +1125,7 @@ theorem parseTableSchema_tableSQL (schema : Core.Schema)
     (printable : CanonicalSchemaSQL.Printable schema) :
     parseTableSchema (CanonicalSchemaSQL.print schema) = some schema := by
   unfold parseTableSchema CanonicalSchemaSQL.print CanonicalSchemaSQL.parse
-  rw [show (String.mk (CanonicalSchemaSQL.tableChars schema)).data
-        = CanonicalSchemaSQL.tableChars schema from rfl,
+  rw [String.toList_ofList,
     CanonicalSchemaSQL.parseChars_tableChars schema printable]
 
 def decodeCanonicalTableStep (nextPage : Nat) (entry : CatalogEntry)
@@ -1305,7 +1309,7 @@ theorem restoreCanonicalIndexes_fixed :
                           input.rows with
                       | error message =>
                           rw [rebuild] at rebuiltResult
-                          exact Option.noConfusion rebuiltResult
+                          cases rebuiltResult
                       | ok value =>
                           rw [rebuild] at rebuiltResult
                           have valueEqual : value = table := by
@@ -1346,7 +1350,7 @@ theorem rebuildCanonicalDatabase_fixed
         cases rebuilt : Core.Database.rebuild resultTables with
         | error message =>
           rw [rebuilt] at success
-          exact Option.noConfusion success
+          cases success
         | ok value =>
           rw [rebuilt] at success
           have equal : value = database := by
@@ -2126,9 +2130,9 @@ private theorem readOverflowFrom_generated_final (source : PageSource)
   rw [readOverflowFrom] <;> try omega
   unfold readOverflowStep
   rw [firstRead]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   rw [CoreOverflow.decodeOverflowPage_overflowPageBytes start 1 0 bytes bounded]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   unfold finishOverflowStep
   have finalNext := CoreOverflow.generatedOverflowPage_next_final start bytes
     bounded
@@ -2161,7 +2165,7 @@ private theorem finishOverflowStep_generated_step (count : Nat)
   have remaining : bytes.length - CoreOverflow.overflowCapacity =
       (bytes.drop CoreOverflow.overflowCapacity).length := by simp
   rw [remaining]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   rw [nextValue, tailDecoded]
   exact congrArg some (List.take_append_drop _ bytes)
 
@@ -2176,9 +2180,9 @@ private theorem readOverflowStep_of_decoded (source : PageSource)
       finishOverflowStep recurse remaining overflow suffix := by
   unfold readOverflowStep
   rw [read]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   rw [decoded]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
 
 private theorem readOverflowStep_generated_step (count : Nat)
     (source : PageSource) (recurse : Nat → Nat → Option (List UInt8))
@@ -2239,9 +2243,9 @@ private theorem readOverflowFrom_generated_final_fuel (source : PageSource)
   rw [readOverflowFrom] <;> try omega
   unfold readOverflowStep
   rw [firstRead]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   rw [CoreOverflow.decodeOverflowPage_overflowPageBytes start 1 0 bytes bounded]
-  simp only [Option.bind_eq_bind, Option.some_bind]
+  simp only [Option.bind_eq_bind, Option.bind_some]
   unfold finishOverflowStep
   have finalNext := CoreOverflow.generatedOverflowPage_next_final start bytes
     bounded
@@ -4450,7 +4454,7 @@ theorem canonicalIndexLeafContent_leafPageBody
   rw [decodeUnsignedFixed_encode _ countBound]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [decodeUnsignedFixed_encode _ contentBound]
-  simpa [replacedLayout] using replacedDrop
+  simpa [replacedLayout, PhysicalCodec.encodeU16Nat] using replacedDrop
 
 theorem canonicalIndexLeafPointers_leafPageBody
     (cells : List (List UInt8)) (fits : PhysicalCodec.PageFit 0 cells) :
@@ -4478,6 +4482,7 @@ theorem canonicalIndexLeafPointers_leafPageBody
         FileFormat.decodeU16, Nat.mod_eq_of_lt countBound,
         Nat.mod_eq_of_lt contentBound]
 
+set_option maxRecDepth 2048 in
 theorem canonicalIndexInteriorContent_interiorPageBody
     (rightmost : U32Value) (cells : List (List UInt8))
     (fits : PhysicalTableBTree.InteriorPageFit cells) :
@@ -4564,7 +4569,7 @@ theorem canonicalIndexInteriorContent_interiorPageBody
     apply congrArg (fun value => some (value, afterHeader))
     omega
   rw [decodedRightmost]
-  simpa [replacedLayout] using replacedDrop
+  simpa [replacedLayout, PhysicalCodec.encodeU16Nat] using replacedDrop
 
 theorem canonicalIndexInteriorPointers_interiorPageBody
     (rightmost : U32Value) (cells : List (List UInt8))
@@ -5946,7 +5951,7 @@ theorem take_append_singleton_of_length_lt (left right : List α) (value : α)
     (left ++ [value] ++ right).take limit =
       left ++ [value] ++ right.take (limit - left.length - 1) := by
   simp only [List.singleton_append, List.append_assoc]
-  rw [List.take_append_eq_append_take,
+  rw [List.take_append,
     List.take_of_length_le (Nat.le_of_lt short)]
   have remaining : 0 < limit - left.length := by omega
   cases difference : limit - left.length with
@@ -7576,8 +7581,8 @@ theorem expectedIndexEntries_pairwise_valueLe (table : Core.Table)
     (expectedIndexEntries table index).Pairwise IndexEntry.ValueLe := by
   unfold expectedIndexEntries
   rw [List.pairwise_map]
-  simpa [CoreFile.indexRowValueLe, IndexEntry.ValueLe] using
-    CoreFile.sortedIndexRows_pairwise_valueLe table index integers
+  change (CoreFile.sortedIndexRows table index).Pairwise (CoreFile.indexRowValueLe index)
+  exact CoreFile.sortedIndexRows_pairwise_valueLe table index integers
 
 theorem expectedIndexEntries_all_integer (table : Core.Table)
     (index : Core.Index)
@@ -7598,8 +7603,8 @@ theorem expectedIndexEntries_pairwise_valueLe_text (table : Core.Table)
     (expectedIndexEntries table index).Pairwise IndexEntry.ValueLe := by
   unfold expectedIndexEntries
   rw [List.pairwise_map]
-  simpa [CoreFile.indexRowValueLe, IndexEntry.ValueLe] using
-    CoreFile.sortedIndexRows_pairwise_valueLe_text table index texts
+  change (CoreFile.sortedIndexRows table index).Pairwise (CoreFile.indexRowValueLe index)
+  exact CoreFile.sortedIndexRows_pairwise_valueLe_text table index texts
 
 theorem expectedIndexEntries_all_text (table : Core.Table)
     (index : Core.Index)

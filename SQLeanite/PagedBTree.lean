@@ -137,7 +137,7 @@ private theorem pageRefs_flatMap (pages : List (LeafPage Value)) :
         · intro index leftBound rightBound
           simp [List.getElem_ofFn]
       rw [tailIds]
-      simpa only [List.flatMap_map] using induction
+      simpa only [List.flatMap_map, List.get_cons_succ', flattenPages] using induction
 
 /-- A two-level B+tree. The root directory stores only in-range page ids and is
 proof-carrying: every leaf occurs exactly once, in pager order. -/

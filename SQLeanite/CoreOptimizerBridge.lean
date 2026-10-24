@@ -42,7 +42,7 @@ theorem toSemantics_eval (predicate : Core.Predicate) (row : Core.Row) :
   induction predicate <;>
     simp_all [toSemantics, QuerySemantics.Predicate.eval,
       QuerySemantics.Row.lookup, Core.Predicate.eval, Core.Row.value,
-      QuerySemantics.sqlEquals]
+      QuerySemantics.sqlEquals] <;> rfl
 
 private theorem foldNot_toSemantics (predicate : Core.Predicate) :
     QuerySemantics.foldNot (toSemantics predicate) =

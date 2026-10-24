@@ -186,7 +186,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, notCount, notSum, notExtreme,
         projectionTranslated, orderingTranslated, readWidth, selectExecution,
-        Except.instMonad, Except.bind, Except.pure, pure]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.query (CoreSQL.canonical source.name) {
             columns
@@ -202,7 +202,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, countTranslated, notSum,
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
-        selectExecution, Except.instMonad, Except.bind, Except.pure, pure]
+        selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.count (CoreSQL.canonical source.name) target predicate) <;>
         simp [execution] <;> rfl
@@ -212,7 +212,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, notCount, sumTranslated,
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
-        selectExecution, Except.instMonad, Except.bind, Except.pure, pure]
+        selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.sum (CoreSQL.canonical source.name) column predicate) <;>
         simp [execution] <;> rfl
@@ -222,7 +222,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, notCount, notSum,
         extremeTranslated, notDistinct, noOrdering, noLimit, readWidth,
-        selectExecution, Except.instMonad, Except.bind, Except.pure, pure]
+        selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.extreme (CoreSQL.canonical source.name) minimum column predicate) <;>
         simp [execution] <;> rfl
@@ -232,7 +232,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, oneSource, hasGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, notDistinct, noOrdering,
         noLimit, groupsTranslated, outputsTranslated, readWidth,
-        selectExecution, Except.instMonad, Except.bind, Except.pure, pure]
+        selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.group (CoreSQL.canonical source.name) {
             groupBy := groups
@@ -248,7 +248,7 @@ theorem executeSelectBase_eq_core
       simp [CoreSQL.executeSelectBase, sourceSize, CoreSQL.executeJoin,
         twoSources, plainSources, noGroups, noHaving, notDistinct, noOffset,
         leftFound, rightFound, queryTranslated, readWidth, selectExecution,
-        Except.instMonad, Except.bind, Except.pure, pure]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.join (CoreSQL.canonical leftSource.name)
             (CoreSQL.canonical rightSource.name)
@@ -411,7 +411,7 @@ theorem executeStatement_binary_eq_core
       have rightFuel : CoreSQL.executeSelectFuel 1 state arm =
           selectExecution (readWidth right) (Core.execute state right) := by
         simp [CoreSQL.executeSelectFuel, armNoCompounds, armBase, rightBase,
-          Except.instMonad, Except.bind, Except.pure, pure]
+          bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state right <;>
           simp [execution, selectExecution,
             CoreSQL.executeSelectFuel.executeArms]
@@ -419,8 +419,8 @@ theorem executeStatement_binary_eq_core
         CoreSQL.executeSelectFuel]
       rw [leftBase]
       simp [compounds, noOuterOrder, noOuterLimit, noOuterOffset,
-        executeBinaryPlan, selectExecution, Except.instMonad,
-        Except.bind, Except.pure, pure]
+        executeBinaryPlan, selectExecution, bind, Functor.map,
+        Except.bind, pure, Except.pure, pure]
       cases leftExecution : Core.execute state left with
       | error message => simp [leftExecution, selectExecution]
       | ok leftOutcome =>
@@ -434,19 +434,19 @@ theorem executeStatement_binary_eq_core
           cases rightExecution : Core.execute state right with
           | error message =>
               simp [rightExecution, selectExecution,
-                CoreSQL.executeSelectFuel.executeArms, Except.instMonad,
-                Except.bind, Except.pure, pure] <;> rfl
+                CoreSQL.executeSelectFuel.executeArms, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure] <;> rfl
           | ok rightOutcome =>
               rcases rightOutcome with ⟨rightNext, rightResult⟩
               by_cases widths : readWidth left = readWidth right
               · simp [rightExecution, selectExecution,
                   CoreSQL.executeSelectFuel.executeArms,
-                  CoreOptimizerBridge.optimizeCompoundOp_eq, Except.instMonad,
-                  Except.bind, Except.pure, pure, widths]
+                  CoreOptimizerBridge.optimizeCompoundOp_eq, bind, Functor.map,
+                  Except.bind, pure, Except.pure, widths] <;> rfl
               · simp [rightExecution, selectExecution,
                   CoreSQL.executeSelectFuel.executeArms,
-                  CoreOptimizerBridge.optimizeCompoundOp_eq, Except.instMonad,
-                  Except.bind, Except.pure, pure, widths]
+                  CoreOptimizerBridge.optimizeCompoundOp_eq, bind, Functor.map,
+                  Except.bind, pure, Except.pure, widths] <;> rfl
 
 /-- A recursively nested compound read whose leaves are live Core read
 commands.  The shape deliberately mirrors SQLite's left-to-right compound
@@ -556,8 +556,8 @@ theorem executeSelectFuel_compound_refines :
         rw [baseExecution] at success
         cases execution : Core.execute state base with
         | error message =>
-            simp [execution, selectExecution, Except.instMonad, Except.bind,
-              Except.pure, pure] at success
+            simp [execution, selectExecution, bind, Functor.map, Except.bind,
+              pure, Except.pure, pure] at success
         | ok baseOutcome =>
             rcases baseOutcome with ⟨baseNext, baseResult⟩
             have baseUnchanged : baseNext = state :=
@@ -592,7 +592,7 @@ theorem executeSelectFuel_compound_refines :
                   cases armExecution : CoreSQL.executeSelectFuel fuel state arm with
                   | error message =>
                       rw [armExecution] at tailSuccess
-                      simp [Except.instMonad, Except.bind] at tailSuccess
+                      simp [bind, Functor.map, Except.bind] at tailSuccess
                   | ok armOutcome =>
                       have armRefines := induction head armExecution
                       rcases armRefines with ⟨armState, armRefines⟩
@@ -610,7 +610,7 @@ theorem executeSelectFuel_compound_refines :
                           rw [armExecution] at tailSuccess
                           simpa [combined,
                             CoreOptimizerBridge.optimizeCompoundOp_eq,
-                            Except.instMonad, Except.bind, Except.pure, pure]
+                            bind, Functor.map, Except.bind, pure, Except.pure, pure]
                             using tailSuccess
                         have tailRefines := armsRefine tail combinedState restSuccess
                         exact ⟨tailRefines.1, .cons operation armPlan
@@ -623,13 +623,13 @@ theorem executeSelectFuel_compound_refines :
                                 operation currentResult.rows
                                   armOutcome.result.rows) tailRefines.2⟩
                       · rw [armExecution] at tailSuccess
-                        simp [sameWidth, Except.instMonad, Except.bind]
+                        simp [sameWidth, bind, Functor.map, Except.bind]
                           at tailSuccess
             have baseTailSuccess :
                 CoreSQL.executeSelectFuel.executeArms fuel
                   ⟨state, baseResult, readWidth base⟩ syntaxArms =
                     .ok outcome := by
-              simpa [Except.instMonad, Except.bind, Except.pure, pure]
+              simpa [bind, Functor.map, Except.bind, pure, Except.pure, pure]
                 using success
             have folded := armsRefine armsTranslated rfl baseTailSuccess
             exact ⟨folded.1, .node base planArms baseResult
@@ -661,7 +661,7 @@ theorem executeStatement_eq_core
         oneSource, noGroups, noHaving, noOffset, plainSource, found,
         predicateTranslated, notCount, notSum, notExtreme,
         projectionTranslated, orderingTranslated, oneResult,
-        Except.instMonad, Except.bind, Except.pure, pure]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.query (CoreSQL.canonical source.name) {
             columns
@@ -682,8 +682,8 @@ theorem executeStatement_eq_core
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, predicateTranslated, countTranslated, notSum, notExtreme,
-        notDistinct, noOrdering, noLimit, oneResult, Except.instMonad,
-        Except.bind, Except.pure, pure]
+        notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
+        Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.count (CoreSQL.canonical source.name) target predicate) with
       | error message => simp only [Except.map]
@@ -698,8 +698,8 @@ theorem executeStatement_eq_core
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, predicateTranslated, notCount, sumTranslated, notExtreme,
-        notDistinct, noOrdering, noLimit, oneResult, Except.instMonad,
-        Except.bind, Except.pure, pure]
+        notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
+        Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.sum (CoreSQL.canonical source.name) column predicate) with
       | error message => simp only [Except.map]
@@ -714,8 +714,8 @@ theorem executeStatement_eq_core
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, predicateTranslated, notCount, notSum, extremeTranslated,
-        notDistinct, noOrdering, noLimit, oneResult, Except.instMonad,
-        Except.bind, Except.pure, pure]
+        notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
+        Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.extreme (CoreSQL.canonical source.name) minimum column predicate) with
       | error message => simp only [Except.map]
@@ -730,8 +730,8 @@ theorem executeStatement_eq_core
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, hasGroups, noHaving, noOffset, plainSource,
         found, predicateTranslated, notDistinct, noOrdering, noLimit,
-        groupsTranslated, outputsTranslated, oneResult, Except.instMonad,
-        Except.bind, Except.pure, pure]
+        groupsTranslated, outputsTranslated, oneResult, bind, Functor.map,
+        Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.group (CoreSQL.canonical source.name) {
             groupBy := groups
@@ -767,7 +767,7 @@ theorem executeStatement_eq_core
         rw [baseSelect]
         simp [CoreSQL.executeJoin, twoSources, plainSources, noGroups,
           noHaving, notDistinct, noOffset, leftFound, rightFound,
-          queryTranslated, Except.instMonad, Except.bind, Except.pure, pure]
+          queryTranslated, bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state
             (.join (CoreSQL.canonical leftSource.name)
               (CoreSQL.canonical rightSource.name)
@@ -778,7 +778,7 @@ theorem executeStatement_eq_core
       simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase,
         height, noCompounds, sourceSize, joinExecution, oneResult,
-        Except.instMonad, Except.bind, Except.pure, pure]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.join (CoreSQL.canonical leftSource.name)
             (CoreSQL.canonical rightSource.name)
@@ -821,11 +821,11 @@ theorem execute_binary_eq_core
     CoreSQL.execute state text = executeBinaryPlan state left operation right := by
   rcases supported with ⟨select, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statements⟩
-  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
+  simp only [CoreSQL.execute, certified, statements, bind, Functor.map, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_binary_eq_core translated]
   cases execution : executeBinaryPlan state left operation right <;>
-    simp [execution, Except.instMonad, Except.bind, Except.pure, pure]
+    simp [execution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
 
 /-- The arbitrary-nesting refinement begins at certified SQL text, not at a
 pre-parsed AST.  The existential width preserves SQLite's empty-result column
@@ -839,15 +839,15 @@ theorem executeText_compound_refines
       plan.Refines state.database result.rows width := by
   rcases supported with ⟨select, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statements⟩
-  simp only [CoreSQL.execute, certified, statements, Except.instMonad,
+  simp only [CoreSQL.execute, certified, statements, bind, Functor.map,
     Except.bind, CoreSQL.runStatements] at success
   cases selected : CoreSQL.executeSelect state select with
   | error message =>
-      simp [CoreSQL.executeStatement, selected, Except.instMonad, Except.bind]
+      simp [CoreSQL.executeStatement, selected, bind, Functor.map, Except.bind]
         at success
   | ok outcome =>
-      simp [CoreSQL.executeStatement, selected, Except.instMonad, Except.bind,
-        Except.pure, pure] at success
+      simp [CoreSQL.executeStatement, selected, bind, Functor.map, Except.bind,
+        pure, Except.pure, pure] at success
       have nextEq : outcome.state = next := success.1
       have resultEq : outcome.result = result := success.2
       have fuelSuccess : CoreSQL.executeSelectFuel select.compoundHeight
@@ -865,7 +865,7 @@ theorem execute_eq_core
     CoreSQL.execute state text = oneResult (Core.execute state command) := by
   rcases supported with ⟨statement, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statements⟩
-  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
+  simp only [CoreSQL.execute, certified, statements, bind, Functor.map, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_eq_core translated]
   unfold oneResult
@@ -928,7 +928,7 @@ theorem executeText_binary_refines
       unfold executeBinaryPlan at planSuccess
       cases leftExecution : Core.execute state left with
       | error message =>
-          simp [leftExecution, Except.instMonad, Except.bind] at planSuccess
+          simp [leftExecution, bind, Functor.map, Except.bind] at planSuccess
       | ok leftOutcome =>
           rcases leftOutcome with ⟨leftNext, leftResult⟩
           have leftUnchanged : leftNext = state :=
@@ -936,7 +936,7 @@ theorem executeText_binary_refines
           subst leftNext
           cases rightExecution : Core.execute state right with
           | error message =>
-              simp [leftExecution, rightExecution, Except.instMonad,
+              simp [leftExecution, rightExecution, bind, Functor.map,
                 Except.bind] at planSuccess
           | ok rightOutcome =>
               rcases rightOutcome with ⟨rightNext, rightResult⟩
@@ -944,8 +944,8 @@ theorem executeText_binary_refines
                 core_read_state_eq rightTranslated rightExecution
               subst rightNext
               by_cases widths : readWidth left = readWidth right
-              · simp [leftExecution, rightExecution, widths, Except.instMonad,
-                  Except.bind, Except.pure, pure] at planSuccess
+              · simp [leftExecution, rightExecution, widths, bind, Functor.map,
+                  Except.bind, pure, Except.pure, pure] at planSuccess
                 have resultEqual : Core.Result.mk (CoreSQL.combineRows operation
                     leftResult.rows rightResult.rows) 0 = result :=
                   planSuccess.2
@@ -959,8 +959,8 @@ theorem executeText_binary_refines
                 simpa [CoreSQL.combineRows] using
                   CoreReadSemantics.compound_denotes state.database operation
                     leftResult.rows rightResult.rows
-              · simp [leftExecution, rightExecution, widths, Except.instMonad,
-                  Except.bind, Except.pure, pure] at planSuccess
+              · simp [leftExecution, rightExecution, widths, bind, Functor.map,
+                  Except.bind, pure, Except.pure, pure] at planSuccess
 
 /-- Actual SQL text to the independent bag denotation for the live simple
 query form.  The state equality rules out read-side mutation. -/

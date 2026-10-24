@@ -5,13 +5,12 @@ SQLite-compatible database core in Lean 4. Its storage algorithms, executable
 semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
-The project currently builds with Lean 4.19.0 and has no Lake dependencies.
-At this snapshot it contains 84,486 lines in 94 library modules, 2,039
-theorems/lemmas, 896 explicitly audited headline theorems, and 151 executable
-tests. The verification audit reports no `sorry`, `axiom`, `native_decide`,
-`unsafe`, or project-local `partial def`. Every count in this paragraph is
-emitted by `scripts/lean-manifest.sh`; regenerate it rather than editing them by
-hand.
+The project currently builds with Lean 4.35.0 and has no Lake dependencies.
+The local Lean 4.35 migration passes all 154 executable tests and audits all
+903 registered headline theorems. The verification audit reports no `sorry`,
+`axiom`, `native_decide`, `unsafe`, or project-local `partial def`.
+Generate current source counts and theorem dependencies with
+`scripts/lean-manifest.sh`.
 
 SQLeanite is not a drop-in replacement for SQLite and is not production-ready.
 It deliberately implements a bounded SQL/storage subset so that its claims can

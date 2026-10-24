@@ -281,7 +281,7 @@ private def expectCrossProcessPhysicalWAL : IO Unit := do
           args := #["--verified-wal-file", database.toString, readSQL.toString] }
         unless output.exitCode == 0 do
           fail s!"physical WAL reader {reader}/{iteration} failed: {output.stderr}"
-        let ids := output.stdout.trim.splitOn "\n" |>.filter (!·.isEmpty)
+        let ids := output.stdout.trimAscii.toString.splitOn "\n" |>.filter (!·.isEmpty)
         unless ids.length ≤ workerCount do
           fail s!"physical WAL reader observed an impossible snapshot: {output.stdout}")
   for writer in writers do
@@ -297,7 +297,7 @@ private def expectCrossProcessPhysicalWAL : IO Unit := do
     cmd := ".lake/build/bin/sqleanite"
     args := #["--verified-wal-file", database.toString, readSQL.toString] }
   unless finalRead.exitCode == 0 &&
-      (finalRead.stdout.trim.splitOn "\n").length == workerCount do
+      (finalRead.stdout.trimAscii.toString.splitOn "\n").length == workerCount do
     fail s!"physical WAL multiprocess commits lost rows: {finalRead.stderr}{finalRead.stdout}"
   let checkpoint ← IO.Process.output {
     cmd := ".lake/build/bin/sqleanite"
@@ -2158,7 +2158,7 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
   match ← CoreLazyFileEngine.execute? paths "
       SELECT * FROM usertable WHERE ycsb_key='user1';
       SELECT * FROM usertable WHERE ycsb_key='missing';" with
-  | some (.ok [{ rows := found }, { rows := missing }]) =>
+  | some (.ok [{ rows := found, changes := _ }, { rows := missing, changes := _ }]) =>
       unless found == [[
           .text ⟨[117, 115, 101, 114, 49], by decide⟩,
           .text ⟨[118, 97, 108, 117, 101, 49], by decide⟩]] &&
@@ -2457,9 +2457,61 @@ private def expectPhysicalIndexTraversal : IO Unit := do
     main := path
     journal := ".lake/build/sqleanite-recursive-index.db-journal" }
   if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  let some geometry ← CoreFileAdapter.readGeneratedFileGeometry paths |
+    fail "cached primary setup lost generated geometry"
+  let primaryKeys : List Core.Integer :=
+    [⟨-1, by decide, by decide⟩] ++
+      (List.range 122).filterMap CoreFile.signedNat?
+  for capacity in [0, 1, 512] do
+    let cache ← CoreFileAdapter.PageReadCache.create capacity
+    -- Visit multiple leaves, hits and both sides of the key range, then
+    -- revisit them in reverse. A disabled or saturated cache must be exact.
+    for key in primaryKeys ++ primaryKeys.reverse do
+      let some actual ← CoreFileAdapter.lookupGeneratedPrimaryRowWith geometry
+          paths "indexed" table.schema cache key |
+        fail "cached primary reader rejected a valid tree"
+      let expected := table.rows.find? (fun row => row.rowid = key)
+      unless actual.map (·.values) == expected.map (·.values) do
+        fail s!"cached primary reader changed row {key.value} at capacity {capacity}"
+    unless (← cache.pages.get).size ≤ capacity do
+      fail "primary reader exceeded the page-cache bound"
+    unless (← cache.tableCursors.get).size ≤ capacity do
+      fail "primary reader exceeded the cursor-cache bound"
+    unless (← cache.tableViews.get).size ≤ capacity do
+      fail "primary reader exceeded the batch-wide checked-page cache bound"
+    for (_, cursor) in (← cache.tableCursors.get).toList do
+      unless (← cursor.views.get).size ≤ capacity do
+        fail "primary reader exceeded the checked-page cache bound"
+    unless (← CoreFileAdapter.lookupGeneratedPrimaryRowWith geometry paths
+        "join_probe" table.schema cache ⟨2, by decide, by decide⟩).isNone do
+      fail "primary reader accepted a schema from another table"
+  for capacity in [1, 2] do
+    let shared ← CoreFileAdapter.PageReadCache.create capacity
+    for name in ["indexed", "signed_keys", "indexed", "signed_keys"] do
+      let some schema := geometry.tableSchema? name | fail "shared-view test lost schema"
+      for key in [1, 4, 120] do
+        let some integer := CoreFile.signedNat? key | fail "shared-view key out of range"
+        unless (← CoreFileAdapter.lookupGeneratedPrimaryRowWith geometry paths
+            name schema shared integer).isSome do
+          fail "shared view cache rejected a valid cross-table read"
+      unless (← shared.tableViews.get).size ≤ capacity do
+        fail "view capacity multiplied by the number of table cursors"
+  let primaryBatch := "SELECT id,value FROM indexed WHERE id=1;
+    SELECT id,value FROM signed_keys WHERE id=4;
+    SELECT id,value FROM indexed WHERE id=120;
+    SELECT id,value FROM indexed WHERE id=999;
+    SELECT id,value FROM indexed WHERE id=1;"
+  let expectedBatch ← match CoreSQL.execute state primaryBatch with
+    | .ok (_, results) => pure results
+    | .error message => fail s!"primary batch reference failed: {message}"
+  match ← CoreLazyFileEngine.execute? paths primaryBatch with
+  | some (.ok actual) =>
+      unless actual.map (·.rows) == expectedBatch.map (·.rows) do
+        fail "cached primary batch changed projection, ordering, or table identity"
+  | _ => fail "primary batch missed the generated fast path"
   match ← CoreLazyFileEngine.execute? paths
       "SELECT id,value FROM indexed WHERE id=999;" with
-  | some (.ok [{ rows := [] }]) => pure ()
+  | some (.ok [{ rows := [], changes := _ }]) => pure ()
   | _ => fail "generated-image primary miss did not stay page-directed"
   let coldIndexQuery : Core.Query := {
     columns := [0, integerIndex.column]
@@ -2826,7 +2878,7 @@ private def expectCoreFreelistShrink : IO Unit := do
     cmd := "/usr/bin/sqlite3"
     args := #[path.toString, "-batch", "-noheader",
       "PRAGMA integrity_check; PRAGMA freelist_count; SELECT count(*) FROM shrinking;"] }
-  let lines := check.stdout.trim.splitOn "\n"
+  let lines := check.stdout.trimAscii.toString.splitOn "\n"
   unless check.exitCode == 0 && lines.length == 3 && lines[0]? == some "ok" &&
       lines[2]? == some "1" do
     fail s!"SQLite rejected the Core freelist image: {check.stderr}{check.stdout}"
@@ -3574,6 +3626,128 @@ private def expectPersistentPageTree : IO Unit := do
           appended.value.root.pageCount == 260 do
         fail "wide append changed contents, root identity, or split topology"
 
+private def expectCheckedTablePages : IO Unit := do
+  let keys : List Core.Integer := [
+    ⟨-9223372036854775808, by decide, by decide⟩,
+    ⟨-1, by decide, by decide⟩, ⟨1, by decide, by decide⟩,
+    ⟨127, by decide, by decide⟩, ⟨128, by decide, by decide⟩,
+    ⟨16383, by decide, by decide⟩, ⟨16384, by decide, by decide⟩,
+    ⟨9223372036854775807, by decide, by decide⟩]
+  let missing : List Core.Integer := [⟨-2, by decide, by decide⟩,
+    ⟨0, by decide, by decide⟩, ⟨2, by decide, by decide⟩,
+    ⟨129, by decide, by decide⟩, ⟨16385, by decide, by decide⟩]
+  let makePage := fun (pageKeys : List Core.Integer) => Id.run do
+    let cells := pageKeys.map fun key =>
+      [0] ++ FileFormat.encodeVarint (FileFormat.signedInteger64Bits key)
+    let headerEnd := 8 + 2 * cells.length
+    let mut offset := headerEnd
+    let mut pointers := []
+    for cell in cells do
+      pointers := pointers ++ FileFormat.encodeUnsignedFixed 2 offset
+      offset := offset + cell.length
+    let data := [13, 0, 0] ++ FileFormat.encodeUnsignedFixed 2 cells.length ++
+      FileFormat.encodeUnsignedFixed 2 headerEnd ++ [0] ++ pointers ++ cells.flatten
+    return ByteArray.mk ((data ++ List.replicate (4096 - data.length) 0).toArray)
+  for count in List.range (keys.length + 1) do
+    let pageKeys := keys.take count
+    let bytes := makePage pageKeys
+    let some _ := Runtime.TablePage.decode? bytes | fail "checked page rejected ordered keys"
+    for capacity in [0, 1] do
+      let pager : Runtime.ReadPager.Pager := {
+        pageCount := 1, pageSize := 4096, capacity
+        pages := ← IO.mkRef {}, readAt := fun _ _ => pure bytes }
+      let cursor ← Runtime.TableCursor.create pager 1
+      for key in (keys ++ missing) ++ (keys ++ missing).reverse do
+        let some actual ← cursor.seek key 2 | fail "checked cursor rejected a valid leaf"
+        unless actual.map (·.key) == pageKeys.find? (· == key) do
+          fail "binary seek disagrees with logical keys at a varint/signed boundary"
+        if let some cell := actual then
+          unless cell.input == cell.bytes.toList.drop cell.offset do
+            fail "cell view changed its shared reference bytes"
+      unless (← cursor.views.get).size ≤ capacity do
+        fail "checked-page cache exceeded capacity"
+      unless (← cursor.seek ⟨0, by decide, by decide⟩ 0).isNone do
+        fail "retained cursor bypassed zero traversal fuel"
+  let valid := makePage (keys.take 3)
+  let badPointer := (valid.set! 8 0).set! 9 7
+  let badCount := (valid.set! 3 255).set! 4 255
+  let unordered := makePage keys.reverse
+  for bytes in [badPointer, badCount, unordered, valid.extract 0 10, valid.set! 0 2] do
+    unless (Runtime.TablePage.decode? bytes).isNone do
+      fail "checked page accepted corrupt pointers/header or unordered keys"
+    let pager : Runtime.ReadPager.Pager := {
+      pageCount := 1, pageSize := bytes.size, capacity := 1
+      pages := ← IO.mkRef {}, readAt := fun _ _ => pure bytes }
+    let cursor ← Runtime.TableCursor.create pager 1
+    unless (← cursor.seek ⟨0, by decide, by decide⟩ 2).isNone && (← cursor.views.get).isEmpty do
+      fail "corrupt page became a successful miss or entered the page-view cache"
+
+private def expectReadPagerBoundary : IO Unit := do
+  let reads ← IO.mkRef 0
+  let pager : Runtime.ReadPager.Pager := {
+    pageCount := 2
+    pageSize := 4
+    capacity := 1
+    pages := ← IO.mkRef {}
+    readAt := fun offset _ => do
+      reads.modify (· + 1)
+      if offset == 0 then return ByteArray.mk #[1, 2, 3, 4]
+      else return ByteArray.mk #[5, 6, 7, 8] }
+  unless (← pager.get 0).isNone && (← pager.get 3).isNone &&
+      (← reads.get) == 0 do
+    fail "pager read an out-of-range page"
+  for page in [1, 1, 2, 2] do
+    let some bytes ← pager.get page | fail "pager rejected a complete page"
+    let expected := if page == 1 then [1, 2, 3, 4] else [5, 6, 7, 8]
+    unless bytes.toList == expected do fail "pager changed page bytes"
+  unless (← reads.get) == 3 && (← pager.pages.get).size == 1 do
+    fail "pager did not reuse cached bytes or exceeded its bound"
+  let short : Runtime.ReadPager.Pager := {
+    pager with
+    pages := ← IO.mkRef {}
+    readAt := fun _ _ => pure (ByteArray.mk #[1, 2, 3]) }
+  unless (← short.get 1).isNone && (← short.pages.get).isEmpty do
+    fail "pager retained a truncated page"
+
+private def expectCachedPrimaryEdgeRows : IO Unit := do
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-cached-primary-edges.db"
+    journal := ".lake/build/sqleanite-cached-primary-edges.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  let large := String.mk (List.replicate 9000 'z')
+  let setup := s!"CREATE TABLE edge(value TEXT,id INTEGER PRIMARY KEY);
+    INSERT INTO edge VALUES('{large}',-7),('zero',0),('positive',17);"
+  match ← CoreFileEngine.execute connection setup with
+  | .error message => fail s!"cached primary edge setup: {message}"
+  | .ok _ => pure ()
+  let state ← CoreFileEngine.snapshot connection
+  let query := "SELECT id,value FROM edge WHERE id=-7;
+    SELECT value,id FROM edge WHERE id=0;
+    SELECT id,value FROM edge WHERE id=17;
+    SELECT id,value FROM edge WHERE id=-8;
+    SELECT id,value FROM edge WHERE id=-7;"
+  let expected ← match CoreSQL.execute state query with
+    | .ok (_, results) => pure results
+    | .error message => fail s!"cached primary edge reference: {message}"
+  match ← CoreLazyFileEngine.execute? paths query with
+  | some (.ok actual) =>
+      unless actual.map (·.rows) == expected.map (·.rows) do
+        fail "cached primary changed signed, overflow, or non-first key rows"
+  | _ => fail "cached primary edge rows missed the generated fast path"
+  -- Each new batch owns a fresh cache, so a durable write must be visible.
+  match ← CoreFileEngine.execute connection
+      "UPDATE edge SET value='updated' WHERE id=-7;" with
+  | .error message => fail s!"cached primary edge update: {message}"
+  | .ok _ => pure ()
+  match ← CoreLazyFileEngine.execute? paths
+      "SELECT value FROM edge WHERE id=-7;" with
+  | some (.ok [{ rows := [[.text value]], .. }]) =>
+      unless value.bytes == "updated".toUTF8.toList do
+        fail "primary batch reused stale pages after a write"
+  | _ => fail "updated primary row did not remain readable"
+
 private def expectCertifiedCoreTokenGrammar : IO Unit := do
   let sql := "CREATE TABLE usertable(ycsb_key TEXT PRIMARY KEY,field0 TEXT);\n    BEGIN; INSERT INTO usertable VALUES('user0001','payload');\n    SELECT field0 FROM usertable WHERE (ycsb_key='user0001'); COMMIT;"
   let certificate ← match CoreTokenGrammar.parseCertified sql with
@@ -3586,6 +3760,9 @@ private def expectCertifiedCoreTokenGrammar : IO Unit := do
   | .ok () => fail "independent Core grammar admitted a mismatched AST"
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("checked binary page search and shared record views", expectCheckedTablePages),
+  ("read pager cache and short-read boundary", expectReadPagerBoundary),
+  ("cached primary signed/overflow rows and write invalidation", expectCachedPrimaryEdgeRows),
   ("certified Core token grammar", expectCertifiedCoreTokenGrammar),
   ("persistent page identities", expectPersistentPageTree),
   ("verified file-format codecs", expectU16Codec),

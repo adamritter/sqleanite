@@ -1,6 +1,6 @@
 # Repository guidance
 
-SQLeanite is a Lean 4.19.0 verified database core. Keep changes scoped to this
+SQLeanite is a Lean 4.35.0 verified database core. Keep changes scoped to this
 repository; upstream SQLite is an optional external comparison dependency.
 
 Use `lake build` and `lake exe sqleanite_tests` for normal validation. Before

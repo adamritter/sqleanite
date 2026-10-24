@@ -46,8 +46,11 @@ def allocatedPage (startPage offset : Nat) : Nat :=
 
 theorem allocatedPage_ne_pendingBytePage (startPage offset : Nat) :
     allocatedPage startPage offset ≠ pendingBytePage := by
-  simp only [allocatedPage, pendingBytePage]
-  split <;> omega
+  by_cases skip : startPage ≤ pendingBytePage ∧ pendingBytePage ≤ startPage + offset
+  · simp [allocatedPage, skip]
+    omega
+  · simp [allocatedPage, skip]
+    omega
 
 theorem allocatedPage_ge (startPage offset : Nat) :
     startPage ≤ allocatedPage startPage offset := by
@@ -954,10 +957,10 @@ theorem appendStep_toList {fuel nextPage after : Nat}
 
       | branch pageId children =>
           simp only [appendStep] at success
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨split, splitResult, success⟩
           rcases split with ⟨initial, last⟩
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨recursive, recursiveResult, success⟩
           rcases recursive with ⟨childResult, afterChild⟩
           have childContents := induction recursiveResult
@@ -1019,10 +1022,10 @@ theorem appendStep_firstRootId {fuel nextPage after : Nat}
             next => contradiction
       | branch pageId children =>
           simp only [appendStep] at success
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨split, splitResult, success⟩
           rcases split with ⟨initial, last⟩
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨recursive, recursiveResult, success⟩
           rcases recursive with ⟨childResult, afterChild⟩
           simp only [splitResult, recursiveResult, Option.bind_eq_bind,
@@ -1067,7 +1070,7 @@ def Store.append? (store : Store Value) (entry : PagedBTree.Entry Value)
           exact after old oldMember }
       some ⟨value, by
         change root.toList = store.toList ++ [entry]
-        simpa [AppendResult.toList, AppendResult.nodes] using
+        simpa [AppendResult.toList, AppendResult.nodes, Store.toList] using
           appendStep_toList appended, by
         change root.rootId = store.root.rootId
         simpa [AppendResult.firstRootId?] using

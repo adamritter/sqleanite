@@ -84,7 +84,7 @@ private theorem flatten_length_le_of_sublist {small large : List (List UInt8)}
   | @cons _ _ item sublist induction =>
       simp only [List.flatten_cons, List.length_append]
       exact Nat.le_trans induction (Nat.le_add_left _ _)
-  | @cons₂ _ _ item sublist induction =>
+  | @cons_cons _ _ item sublist induction =>
       simp only [List.flatten_cons, List.length_append]
       exact Nat.add_le_add_left induction item.length
 
@@ -236,7 +236,7 @@ def Tree.leafPageNumbers (tree : Tree) :
 
 theorem Tree.leafPageNumbers_length (tree : Tree) :
     tree.leafPageNumbers.length = tree.leaves.length := by
-  simp [Tree.leafPageNumbers, leafPageNumbersFor, Tree.leaves]
+  exact List.length_ofFn
 
 def Tree.interiorCells (tree : Tree) : List InteriorTableCell :=
   List.zipWith (fun child row => ⟨child.number, row.rowid⟩)

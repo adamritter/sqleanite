@@ -625,7 +625,7 @@ theorem parseCertified_agrees_parse {sql : String}
     {result : CertifiedParse sql}
     (_success : parseCertified sql = .ok result) :
     parse sql = .ok result.statements := by
-  simp [parse, result.lexes, result.parses, Except.instMonad, Except.bind]
+  simp [parse, result.lexes, result.parses, bind, Except.bind]
 
 /-- A convenient proposition fixing the certified AST while hiding the
 dependent certificate value.  Text-level semantic theorems use this relation

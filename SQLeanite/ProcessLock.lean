@@ -91,7 +91,7 @@ def ownerPath (config : Config) : System.FilePath :=
 private def readOwner? (config : Config) : IO (Option ProcessId) := do
   let path := ownerPath config
   unless ← path.pathExists do return none
-  return (← IO.FS.readFile path).trim.toNat?
+  return (← IO.FS.readFile path).trimAscii.toString.toNat?
 
 private def removeLockDirectory (config : Config) : IO Unit := do
   let owner := ownerPath config

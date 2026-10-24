@@ -13,8 +13,8 @@ proves `parse (print s) = some s`. `CoreDecode` tries this recognizer first and
 falls back to the general parser, so files written by C SQLite still decode
 while our own files round-trip by proof.
 
-Working in `List Char` rather than `String` is deliberate: `String.mk` and
-`String.data` are inverse definitionally, so no string reasoning is needed.
+Working in `List Char` rather than `String` is deliberate: `String.ofList` and
+`String.toList` are inverse by the standard library round-trip theorems.
 
 `Printable` contains only structural schema facts. Identifier text is arbitrary:
 the printer uses SQLite's doubled-quote convention and the inverse proof covers
@@ -62,12 +62,12 @@ def escapeIdent : List Char → List Char
   | '"' :: rest => '"' :: '"' :: escapeIdent rest
   | character :: rest => character :: escapeIdent rest
 
-def quoteChars (name : String) : List Char := '"' :: escapeIdent name.data ++ ['"']
+def quoteChars (name : String) : List Char := '"' :: escapeIdent name.toList ++ ['"']
 
 def columnSuffix (column : Core.Column) : List Char :=
-  if column.integerPrimaryKey then " INTEGER PRIMARY KEY".data
-  else if column.textPrimaryKey then " TEXT PRIMARY KEY".data
-  else if column.notNull then " NOT NULL".data
+  if column.integerPrimaryKey then " INTEGER PRIMARY KEY".toList
+  else if column.textPrimaryKey then " TEXT PRIMARY KEY".toList
+  else if column.notNull then " NOT NULL".toList
   else []
 
 def columnChars (column : Core.Column) : List Char :=
@@ -79,10 +79,10 @@ def columnsChars : List Core.Column → List Char
   | column :: columns => columnChars column ++ ',' :: columnsChars columns
 
 def tableChars (schema : Core.Schema) : List Char :=
-  "CREATE TABLE ".data ++ quoteChars schema.name ++
+  "CREATE TABLE ".toList ++ quoteChars schema.name ++
     '(' :: columnsChars schema.catalogColumns ++ [')']
 
-def print (schema : Core.Schema) : String := String.mk (tableChars schema)
+def print (schema : Core.Schema) : String := String.ofList (tableChars schema)
 
 /-! ## Recognizer -/
 
@@ -114,22 +114,22 @@ def parseColumn : List Char → Option (Core.Column × List Char)
   | '"' :: rest => do
       let (name, afterName) ← takeIdent rest
       if endsColumn afterName then
-        some ({ name := String.mk name, notNull := false,
+        some ({ name := String.ofList name, notNull := false,
                 integerPrimaryKey := false }, afterName)
       else
-        match stripPrefix " INTEGER PRIMARY KEY".data afterName with
+        match stripPrefix " INTEGER PRIMARY KEY".toList afterName with
         | some tail =>
-            some ({ name := String.mk name, notNull := true,
+            some ({ name := String.ofList name, notNull := true,
                     integerPrimaryKey := true }, tail)
         | none =>
-          match stripPrefix " TEXT PRIMARY KEY".data afterName with
+          match stripPrefix " TEXT PRIMARY KEY".toList afterName with
           | some tail =>
-              some ({ name := String.mk name, notNull := true,
+              some ({ name := String.ofList name, notNull := true,
                       textPrimaryKey := true }, tail)
           | none =>
-            match stripPrefix " NOT NULL".data afterName with
+            match stripPrefix " NOT NULL".toList afterName with
             | some tail =>
-                some ({ name := String.mk name, notNull := true }, tail)
+                some ({ name := String.ofList name, notNull := true }, tail)
             | none => none
   | _ => none
 
@@ -144,7 +144,7 @@ def parseColumns : Nat → List Char → Option (List Core.Column × List Char)
       | _ => some ([column], afterColumn)
 
 def parseChars (input : List Char) : Option Core.Schema := do
-  let afterKeyword ← stripPrefix "CREATE TABLE ".data input
+  let afterKeyword ← stripPrefix "CREATE TABLE ".toList input
   match afterKeyword with
   | '"' :: rest => do
       let (name, afterName) ← takeIdent rest
@@ -155,14 +155,14 @@ def parseChars (input : List Char) : Option Core.Schema := do
           | [')'] =>
               match columns.findIdx? (·.integerPrimaryKey) with
               | some primaryKey => some {
-                  name := String.mk name
+                  name := String.ofList name
                   columns := columns
                   primaryKey
                   declaredPrimaryKey := primaryKey }
               | none => do
                   let declaredPrimaryKey ← columns.findIdx? (·.textPrimaryKey)
                   some {
-                    name := String.mk name
+                    name := String.ofList name
                     columns := columns ++ [Core.hiddenRowidColumn]
                     primaryKey := columns.length
                     declaredPrimaryKey }
@@ -170,7 +170,7 @@ def parseChars (input : List Char) : Option Core.Schema := do
       | _ => none
   | _ => none
 
-def parse (sql : String) : Option Core.Schema := parseChars sql.data
+def parse (sql : String) : Option Core.Schema := parseChars sql.toList
 
 /-! ## The inverse proof -/
 
@@ -207,17 +207,17 @@ theorem stripPrefix_sep_none (suffix : List Char) (character : Char)
   simp [stripPrefix, Ne.symm notSpace]
 
 theorem stripPrefix_notNull_cons (rest : List Char) :
-    stripPrefix " NOT NULL".data
+    stripPrefix " NOT NULL".toList
       (' ' :: 'N' :: 'O' :: 'T' :: ' ' :: 'N' :: 'U' :: 'L' :: 'L' :: rest)
       = some rest := rfl
 
 theorem stripPrefix_ipk_miss (rest : List Char) :
-    stripPrefix " INTEGER PRIMARY KEY".data
+    stripPrefix " INTEGER PRIMARY KEY".toList
       (' ' :: 'N' :: 'O' :: 'T' :: ' ' :: 'N' :: 'U' :: 'L' :: 'L' :: rest)
       = none := rfl
 
 theorem stripPrefix_ipk_cons (rest : List Char) :
-    stripPrefix " INTEGER PRIMARY KEY".data
+    stripPrefix " INTEGER PRIMARY KEY".toList
       (' ' :: 'I' :: 'N' :: 'T' :: 'E' :: 'G' :: 'E' :: 'R' :: ' ' :: 'P' :: 'R'
         :: 'I' :: 'M' :: 'A' :: 'R' :: 'Y' :: ' ' :: 'K' :: 'E' :: 'Y' :: rest)
       = some rest := rfl
@@ -236,7 +236,7 @@ theorem parseColumn_append (columnName : String)
   cases columnPrimary <;> cases columnTextPrimary <;> cases columnNotNull
   · have shape : columnChars
         (⟨columnName, false, false, false⟩ : Core.Column) ++ rest
-        = '"' :: (escapeIdent columnName.data ++ '"' :: rest) := by
+        = '"' :: (escapeIdent columnName.toList ++ '"' :: rest) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by
       intro leadingQuote
@@ -249,22 +249,22 @@ theorem parseColumn_append (columnName : String)
     simp [separator]
   · have shape : columnChars
         (⟨columnName, true, false, false⟩ : Core.Column) ++ rest
-        = '"' :: (escapeIdent columnName.data ++ '"' :: (" NOT NULL".data ++ rest)) := by
+        = '"' :: (escapeIdent columnName.toList ++ '"' :: (" NOT NULL".toList ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (consistent rfl) (by simp)
   · have shape : columnChars
         (⟨columnName, true, false, true⟩ : Core.Column) ++ rest
-        = '"' :: (escapeIdent columnName.data ++ '"' ::
-          (" TEXT PRIMARY KEY".data ++ rest)) := by
+        = '"' :: (escapeIdent columnName.toList ++ '"' ::
+          (" TEXT PRIMARY KEY".toList ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (consistent rfl) (by simp)
   · have shape : columnChars
         (⟨columnName, true, true, false⟩ : Core.Column) ++ rest
-        = '"' :: (escapeIdent columnName.data ++ '"' :: (" INTEGER PRIMARY KEY".data ++ rest)) := by
+        = '"' :: (escapeIdent columnName.toList ++ '"' :: (" INTEGER PRIMARY KEY".toList ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
@@ -325,8 +325,8 @@ theorem columnsChars_length_ge : (columns : List Core.Column) →
 theorem parseChars_tableChars (s : Core.Schema) (printable : Printable s) :
     parseChars (tableChars s) = some s := by
   have shape : tableChars s
-      = "CREATE TABLE ".data ++
-        ('"' :: (escapeIdent s.name.data ++ '"' ::
+      = "CREATE TABLE ".toList ++
+        ('"' :: (escapeIdent s.name.toList ++ '"' ::
           ('(' :: (columnsChars s.catalogColumns ++ [')'])))) := by
     simp [tableChars, quoteChars]
   have body := parseColumns_append s.catalogColumns
@@ -363,7 +363,7 @@ theorem parseChars_tableChars (s : Core.Schema) (printable : Printable s) :
   unfold parseChars
   rw [stripPrefix_append]
   simp only [Option.bind_eq_bind, Option.bind]
-  rw [takeIdent_escape s.name.data
+  rw [takeIdent_escape s.name.toList
     ('(' :: (columnsChars s.catalogColumns ++ [')'])) (by simp)]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [show (columnsChars s.catalogColumns ++ [')']).length + 1 =
@@ -377,12 +377,14 @@ theorem parseChars_tableChars (s : Core.Schema) (printable : Printable s) :
     simp only
     rw [catalogShape.2.2.2]
     simp only
+    simp only [String.ofList_toList]
     apply congrArg some
     congr
     · exact catalogShape.1.symm
     · exact catalogShape.2.1.symm
   · rw [catalogShape.2.2.1]
     simp only
+    simp only [String.ofList_toList]
     apply congrArg some
     congr
     · exact catalogShape.1

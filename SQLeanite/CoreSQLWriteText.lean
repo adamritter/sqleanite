@@ -96,35 +96,35 @@ theorem executeStatement_eq_core
   | createTable name columns constraints ifNotExists schema translation =>
       simp [CoreSQL.executeStatement, translation,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
-        Except.instMonad, Except.bind, Except.pure, pure, oneResult]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | createIndex name table expression ifNotExists stored columnName
       columnIndex found expressionName columnFound =>
       simp [CoreSQL.executeStatement, found, expressionName, columnFound,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
-        Except.instMonad, Except.bind, Except.pure, pure, oneResult]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | insert table columns expressions conflict allowed stored values found
       translation =>
       rcases allowed with rfl | rfl <;>
         simp [CoreSQL.executeStatement, found,
           CoreSQL.insertRows_singleton, translation,
           CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
-          Except.instMonad, Except.bind, Except.pure, pure, oneResult]
+          bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | replace table columns expressions stored values found translation =>
       simp [CoreSQL.executeStatement, found, CoreSQL.insertRows_singleton,
         translation, CoreSQL.executeCommand_eq_core,
-        CoreEndToEnd.WriteCommand.toCore, Except.instMonad, Except.bind, pure,
-        Except.pure, oneResult]
+        CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind, pure,
+        pure, Except.pure, oneResult]
   | delete table alias where_ stored predicate found translation =>
       simp [CoreSQL.executeStatement, found, translation,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
-        Except.instMonad, Except.bind, Except.pure, pure, oneResult]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | update table alias assignments where_ conflict allowed stored updates
       predicate found assignmentsTranslated predicateTranslated =>
       rcases allowed with rfl | rfl <;>
         simp [CoreSQL.executeStatement, found, assignmentsTranslated,
           predicateTranslated, CoreSQL.executeCommand_eq_core,
-          CoreEndToEnd.WriteCommand.toCore, Except.instMonad, Except.bind,
-          Except.pure, pure, oneResult]
+          CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind,
+          pure, Except.pure, pure, oneResult]
   | commit => rfl
 
 /-- Multi-row INSERT/REPLACE translates to the exact Core command trace run
@@ -210,12 +210,12 @@ theorem executeStatement_insertRows_eq_core
         simp [CoreSQL.executeStatement, found,
           CoreSQL.insertRows_eq_runCoreCommands, translation,
           executeWriteCommands, map_toCore_inserts, map_comp_toCore_inserts,
-          Except.instMonad, Except.bind, Except.pure, pure]
+          bind, Functor.map, Except.bind, pure, Except.pure, pure]
   | replace table columns rows stored values found translation =>
       simp [CoreSQL.executeStatement, found,
         CoreSQL.insertRows_eq_runCoreCommands, translation,
         executeWriteCommands, map_toCore_replaces, map_comp_toCore_replaces,
-        Except.instMonad, Except.bind, Except.pure, pure]
+        bind, Functor.map, Except.bind, pure, Except.pure, pure]
 
 /-- Command-by-command logical effects for a persisted write trace. -/
 inductive WriteTraceEffect : List CoreEndToEnd.WriteCommand → Core.State →
@@ -243,18 +243,18 @@ theorem executeWriteCommands_exact :
       simp only [List.map_cons, CoreSQL.runCoreCommands] at success
       cases headExecution : Core.execute state command.toCore with
       | error message =>
-          simp [headExecution, Except.instMonad, Except.bind] at success
+          simp [headExecution, bind, Functor.map, Except.bind] at success
       | ok headOutcome =>
           rcases headOutcome with ⟨middle, result⟩
           cases tailExecution : CoreSQL.runCoreCommands middle
               (commands.map (·.toCore)) with
           | error message =>
-              simp [headExecution, tailExecution, Except.instMonad,
+              simp [headExecution, tailExecution, bind, Functor.map,
                 Except.bind] at success
           | ok tailOutcome =>
               rcases tailOutcome with ⟨actualNext, actualResults⟩
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure] at success
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure] at success
               rcases success with ⟨rfl, rfl⟩
               exact .cons (CoreEndToEnd.execute_write_exact command
                 headExecution) (executeWriteCommands_exact commands middle
@@ -298,7 +298,7 @@ theorem executeStatement_block_eq_core
       unfold oneResult executeWriteCommands
       simp only [List.map_cons, List.map_nil, CoreSQL.runCoreCommands]
       cases execution : Core.execute state _ <;>
-        simp [execution, Except.instMonad, Except.bind, Except.pure, pure] <;>
+        simp [execution, bind, Functor.map, Except.bind, pure, Except.pure, pure] <;>
         rfl
   | insertRows translated =>
       exact executeStatement_insertRows_eq_core translated
@@ -342,13 +342,13 @@ theorem runStatements_eq_writeTrace
           rw [tailEquality]
           cases tailExecution : executeWriteCommands middle tailCommands with
           | error message =>
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure]
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure]
 
           | ok outcome =>
               rcases outcome with ⟨next, tailResults⟩
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure]
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure]
 
 inductive SupportedWriteTraceText (state : Core.State) (text : String)
     (commands : List CoreEndToEnd.WriteCommand) : Prop where
@@ -365,7 +365,7 @@ theorem execute_trace_eq_core
   rcases supported with ⟨statements, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statementList⟩
   simp only [CoreSQL.execute, certified, statementList,
-    Except.instMonad, Except.bind]
+    bind, Functor.map, Except.bind]
   exact runStatements_eq_writeTrace translated
 
 theorem writeTrace_success
@@ -474,11 +474,11 @@ theorem execute_insertRows_eq_core
     CoreSQL.execute state text = executeWriteCommands state commands := by
   rcases supported with ⟨statement, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statements⟩
-  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
+  simp only [CoreSQL.execute, certified, statements, bind, Functor.map, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_insertRows_eq_core translated]
   cases execution : executeWriteCommands state commands <;>
-    simp [execution, Except.instMonad, Except.bind, Except.pure, pure]
+    simp [execution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
 
 theorem insertRows_trace_success
     {state next : Core.State} {text : String}
@@ -588,7 +588,7 @@ theorem execute_eq_core
       (Core.execute state command.toCore) := by
   rcases supported with ⟨statement, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statements⟩
-  simp only [CoreSQL.execute, certified, statements, Except.instMonad, Except.bind,
+  simp only [CoreSQL.execute, certified, statements, bind, Functor.map, Except.bind,
     CoreSQL.runStatements]
   rw [executeStatement_eq_core translated]
   unfold oneResult

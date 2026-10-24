@@ -263,9 +263,9 @@ theorem decodeHeaderPrefix_sound {input suffix : List UInt8}
     (decoded : decodeHeaderPrefix input = some (header, suffix)) :
     input = encodeHeaderPrefix header ++ suffix := by
   unfold decodeHeaderPrefix at decoded
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨afterMagic, magicResult, decoded⟩
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨pageSizeAndRest, pageSizeResult, decoded⟩
   rcases pageSizeAndRest with ⟨pageSizeField, afterPageSize⟩
   cases afterPageSize with
@@ -293,7 +293,7 @@ theorem decodeHeaderPrefix_sound {input suffix : List UInt8}
                   by_cases thirdFraction : fraction32b = 32
                   · subst fraction32b
                     simp only at decoded
-                    rcases Option.bind_eq_some.mp decoded with
+                    rcases Option.bind_eq_some_iff.mp decoded with
                       ⟨counterAndSuffix, counterResult, decoded⟩
                     rcases counterAndSuffix with
                       ⟨changeCounter, decodedSuffix⟩
@@ -347,10 +347,10 @@ theorem decodeU32Values_sound :
       rfl
   | count + 1, input, suffix, values, decoded => by
       simp only [decodeU32Values] at decoded
-      rcases Option.bind_eq_some.mp decoded with
+      rcases Option.bind_eq_some_iff.mp decoded with
         ⟨headAndRest, headResult, decoded⟩
       rcases headAndRest with ⟨head, rest⟩
-      rcases Option.bind_eq_some.mp decoded with
+      rcases Option.bind_eq_some_iff.mp decoded with
         ⟨tailAndSuffix, tailResult, decoded⟩
       rcases tailAndSuffix with ⟨tail, decodedSuffix⟩
       have pairEquality := Option.some.inj decoded
@@ -478,15 +478,15 @@ theorem decodeDatabaseHeader_sound {input suffix : List UInt8}
     (decoded : decodeDatabaseHeader input = some (header, suffix)) :
     input = encodeDatabaseHeader header ++ suffix := by
   unfold decodeDatabaseHeader at decoded
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨prefixAndRest, prefixResult, decoded⟩
   rcases prefixAndRest with ⟨headerPrefix, afterPrefix⟩
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨fieldsAndRest, fieldsResult, decoded⟩
   rcases fieldsAndRest with ⟨fields, afterFields⟩
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨afterReserved, reservedResult, decoded⟩
-  rcases Option.bind_eq_some.mp decoded with
+  rcases Option.bind_eq_some_iff.mp decoded with
     ⟨versionsAndSuffix, versionsResult, decoded⟩
   rcases versionsAndSuffix with ⟨versions, decodedSuffix⟩
   rcases fields with _ | ⟨databaseSizePages, fields⟩

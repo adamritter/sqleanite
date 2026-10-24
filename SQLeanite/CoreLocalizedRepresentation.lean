@@ -217,7 +217,7 @@ theorem TablesOnSource.alignTables_none
           unfold CoreChunkPageDelta.alignTables? at success
           split at success
           next equivalent =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tailAligned, tailResult, success⟩
             simp only [Option.some.injEq] at success
             subst aligned
@@ -277,7 +277,7 @@ theorem TablesOnSource.alignTables_none_mem
           unfold CoreChunkPageDelta.alignTables? at success
           split at success
           next equivalent =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tailAligned, tailResult, success⟩
             simp only [Option.some.injEq] at success
             subst aligned
@@ -345,7 +345,7 @@ theorem TablesOnSource.alignTables_changed
           unfold CoreChunkPageDelta.alignTables? at success
           split at success
           next equivalent =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tailAligned, tailResult, success⟩
             simp only [Option.some.injEq] at success
             subst aligned
@@ -948,7 +948,7 @@ theorem alignTables?_indexImages_none :
         unfold CoreChunkPageDelta.alignTables? at success
         split at success
         next same =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -990,7 +990,7 @@ theorem alignTables?_indexImages_changed :
         unfold CoreChunkPageDelta.alignTables? at success
         split at success
         next same =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -1646,7 +1646,7 @@ def DatabaseOnSource.updateState
         (CorePageCodec.chunkTableCatalogEntry table)) =
       state.tables.map (fun table => CoreDecode.CatalogEntry.ofEncoded
         (CorePageCodec.chunkTableCatalogEntry table)) := by
-    simpa only [List.map_map, Function.comp_apply] using decodedCatalog
+    simpa only [List.map_map, Function.comp_def] using decodedCatalog
   have tableEntriesExact :
       delta.after.tables.map (fun table => CoreDecode.CatalogEntry.ofEncoded
         (CorePageCodec.chunkTableCatalogEntry table)) = tableEntries :=
@@ -1934,7 +1934,7 @@ theorem exists_databaseOnSource_encodeBulk_in
               tableEntries.map CoreDecode.CatalogEntry.ofEncoded,
               indexEntries.map CoreDecode.CatalogEntry.ofEncoded,
               expectedCatalogRead, tableFilter, indexFilter, ?_, ?_, ?_, ?_⟩
-            · simpa [tableEntries] using baseTables
+            · simpa [tableEntries, Function.comp_def] using baseTables
             · rw [stateDatabase]
               simpa [indexEntries, CoreOverflow.indexEntriesOf,
                 List.map_map, Function.comp_def] using indexCertificates.2.2

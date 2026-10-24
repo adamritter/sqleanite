@@ -129,9 +129,9 @@ theorem loadNode_decodes (schema : Core.Schema) (capacity : Nat)
           cases interiorResult : CoreDecode.interiorChildren? page with
           | none =>
               simp only [interiorResult] at loaded
-              rcases Option.bind_eq_some.mp loaded with
+              rcases Option.bind_eq_some_iff.mp loaded with
                 ⟨rows, rowsResult, loaded⟩
-              rcases Option.bind_eq_some.mp loaded with
+              rcases Option.bind_eq_some_iff.mp loaded with
                 ⟨entries, entriesResult, loaded⟩
               simp only [Option.some.injEq] at loaded
               subst node
@@ -149,7 +149,7 @@ theorem loadNode_decodes (schema : Core.Schema) (capacity : Nat)
               cases children with
               | nil => simp at loaded
               | cons child children =>
-                  rcases Option.bind_eq_some.mp loaded with
+                  rcases Option.bind_eq_some_iff.mp loaded with
                     ⟨nodes, nodesResult, loaded⟩
                   simp only [Option.some.injEq] at loaded
                   subst node
@@ -186,9 +186,9 @@ theorem loadNode_wellKeyed (schema : Core.Schema) (capacity : Nat)
           cases interiorResult : CoreDecode.interiorChildren? page with
           | none =>
               simp only [interiorResult] at loaded
-              rcases Option.bind_eq_some.mp loaded with
+              rcases Option.bind_eq_some_iff.mp loaded with
                 ⟨rows, rowsResult, loaded⟩
-              rcases Option.bind_eq_some.mp loaded with
+              rcases Option.bind_eq_some_iff.mp loaded with
                 ⟨entries, entriesResult, loaded⟩
               simp only [Option.some.injEq] at loaded
               subst node
@@ -199,7 +199,7 @@ theorem loadNode_wellKeyed (schema : Core.Schema) (capacity : Nat)
               cases children with
               | nil => simp at loaded
               | cons child children =>
-                  rcases Option.bind_eq_some.mp loaded with
+                  rcases Option.bind_eq_some_iff.mp loaded with
                     ⟨nodes, nodesResult, loaded⟩
                   simp only [Option.some.injEq] at loaded
                   subst node
@@ -257,7 +257,7 @@ theorem loadTable?_table {source : CoreDecode.PageSource} {rootPage : Nat}
     (loaded : loadTable? source rootPage table = some state) :
     state.table = table := by
   unfold loadTable? at loaded
-  rcases Option.bind_eq_some.mp loaded with
+  rcases Option.bind_eq_some_iff.mp loaded with
     ⟨loadedRoot, rootResult, loaded⟩
   dsimp only at loaded
   cases orderResult : WidePageTree.decideKeysPairwise loadedRoot.node.toList with
@@ -283,7 +283,7 @@ theorem loadTable?_decodes {source : CoreDecode.PageSource} {rootPage : Nat}
     CoreDecode.decodeSubtreeRowsFrom table.schema source
       (source.pageCount + 1) rootPage = some table.rows := by
   unfold loadTable? at loaded
-  rcases Option.bind_eq_some.mp loaded with
+  rcases Option.bind_eq_some_iff.mp loaded with
     ⟨loadedRoot, rootResult, loaded⟩
   dsimp only at loaded
   cases orderResult : WidePageTree.decideKeysPairwise loadedRoot.node.toList with
@@ -339,10 +339,10 @@ theorem load?_represents {source : CoreDecode.PageSource}
     (loaded : load? source database = some state) :
     state.Represents database := by
   unfold load? at loaded
-  rcases Option.bind_eq_some.mp loaded with
+  rcases Option.bind_eq_some_iff.mp loaded with
     ⟨firstPage, firstPageResult, loaded⟩
-  rcases Option.bind_eq_some.mp loaded with ⟨catalog, catalogResult, loaded⟩
-  rcases Option.bind_eq_some.mp loaded with ⟨tables, tablesResult, loaded⟩
+  rcases Option.bind_eq_some_iff.mp loaded with ⟨catalog, catalogResult, loaded⟩
+  rcases Option.bind_eq_some_iff.mp loaded with ⟨tables, tablesResult, loaded⟩
   simp only [Option.some.injEq] at loaded
   subst state
   refine ⟨rfl, tables.aligned, ?_⟩

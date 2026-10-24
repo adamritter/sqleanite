@@ -209,7 +209,7 @@ private theorem appendTokens_toList (output : Array Token) (tokens : List Token)
   induction tokens generalizing output with
   | nil => simp [appendTokens]
   | cons token tokens induction =>
-      simp only [appendTokens, induction, Array.push_toList,
+      simp only [appendTokens, induction, Array.toList_push,
         List.append_assoc, List.singleton_append]
 
 /-- Tail-recursive erasure of the certified lexical grammar.  The Array is

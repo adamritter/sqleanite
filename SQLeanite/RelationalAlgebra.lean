@@ -811,7 +811,7 @@ theorem coreGroup_sumColumn_refines_integerSum (query : Core.GroupQuery)
     total.value = (integers.map (·.value)).sum := by
   simp only [Core.GroupQuery.outputValue, Core.sumColumn] at success
   rw [extracted] at success
-  simp only [Except.instMonad, Except.bind, Except.pure] at success
+  simp only [bind, Functor.map, Except.bind, pure, Except.pure] at success
   cases summed : Core.sumIntegers integers with
   | error message =>
       simp [summed] at success
@@ -843,7 +843,7 @@ theorem coreGroup_sumColumn_null_iff (query : Core.GroupQuery)
       integers = [] := by
   simp only [Core.GroupQuery.outputValue, Core.sumColumn]
   rw [extracted]
-  simp only [Except.instMonad, Except.bind, Except.pure]
+  simp only [bind, Functor.map, Except.bind, pure, Except.pure]
   cases summed : Core.sumIntegers integers with
   | error message =>
       have notEmpty : integers ≠ [] := by
@@ -901,9 +901,9 @@ theorem coreGroup_outputValue_refines (query : Core.GroupQuery)
       simp only [Core.GroupQuery.outputValue] at success
       cases counted : Core.countInteger (query.keyRows rows group).length with
       | error message =>
-          simp [counted, Except.instMonad, Except.map] at success
+          simp [counted, bind, Functor.map, Except.map] at success
       | ok integer =>
-          simp [counted, Except.instMonad, Except.map] at success
+          simp [counted, bind, Functor.map, Except.map] at success
           subst value
           simp [coreGroupOutputRefines, Core.countInteger_exact counted,
             coreGroup_keyRows_length_eq_keyCount]
@@ -912,9 +912,9 @@ theorem coreGroup_outputValue_refines (query : Core.GroupQuery)
       cases counted : Core.countInteger ((query.keyRows rows group).countP
           fun row => row.value column != .null) with
       | error message =>
-          simp [counted, Except.instMonad, Except.map] at success
+          simp [counted, bind, Functor.map, Except.map] at success
       | ok integer =>
-          simp [counted, Except.instMonad, Except.map] at success
+          simp [counted, bind, Functor.map, Except.map] at success
           subst value
           simp [coreGroupOutputRefines, Core.countInteger_exact counted]
   | sumColumn column =>
@@ -922,24 +922,24 @@ theorem coreGroup_outputValue_refines (query : Core.GroupQuery)
       cases extracted : Core.columnIntegers column
           (query.keyRows rows group) with
       | error message =>
-          simp [Core.sumColumn, extracted, Except.instMonad, Except.bind,
-            Except.pure] at success
+          simp [Core.sumColumn, extracted, bind, Functor.map, Except.bind,
+            pure, Except.pure] at success
       | ok integers =>
           cases summed : Core.sumIntegers integers with
           | error message =>
-              simp [Core.sumColumn, extracted, summed, Except.instMonad,
-                Except.bind, Except.pure] at success
+              simp [Core.sumColumn, extracted, summed, bind, Functor.map,
+                Except.bind, pure, Except.pure] at success
           | ok result =>
               cases result with
               | none =>
-                  simp [Core.sumColumn, extracted, summed, Except.instMonad,
-                    Except.bind, Except.pure] at success
+                  simp [Core.sumColumn, extracted, summed, bind, Functor.map,
+                    Except.bind, pure, Except.pure] at success
                   subst value
                   refine ⟨integers, extracted, ?_⟩
                   exact (core_sumIntegers_none_iff integers).1 summed
               | some integer =>
-                  simp [Core.sumColumn, extracted, summed, Except.instMonad,
-                    Except.bind, Except.pure] at success
+                  simp [Core.sumColumn, extracted, summed, bind, Functor.map,
+                    Except.bind, pure, Except.pure] at success
                   subst value
                   exact ⟨integers, extracted, Core.sumIntegers_exact summed⟩
   | minColumn column =>

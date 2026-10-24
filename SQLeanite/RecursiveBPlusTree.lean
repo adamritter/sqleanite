@@ -1242,7 +1242,7 @@ theorem Node.toList_insertAll (node : Node Value) (valid : node.RootValid) :
 private theorem orderedInsert_at_end (accumulated : List (Entry Value))
     (entry : Entry Value) (before : ∀ old ∈ accumulated, old.1 < entry.1) :
     PagedBTree.orderedInsert entry.1 entry.2 accumulated = accumulated ++ [entry] := by
-  simpa using orderedInsert_append_right entry.1 entry.2 accumulated [] before
+  simpa [PagedBTree.orderedInsert] using orderedInsert_append_right entry.1 entry.2 accumulated [] before
 
 private theorem fold_orderedInsert_append (accumulated : List (Entry Value)) :
     (suffix : List (Entry Value)) →
@@ -1958,10 +1958,10 @@ theorem Node.toList_deleteUnbalanced (node : Node Value) (routes : node.Routes)
   cases deleted : node.deleteStep key with
   | none =>
       rw [deleted] at step
-      simpa only [Node.deletedList, Node.toList] using step
+      simpa only [Node.deletedList, Node.toList, Option.getD_none] using step
   | some updated =>
       rw [deleted] at step
-      simpa only [Node.deletedList] using step
+      simpa only [Node.deletedList, Option.getD_some] using step
 
 def Tree (Value : Type) := Node Value
 

@@ -261,10 +261,10 @@ theorem insertRows_singleton (state : Core.State) (table : String)
   cases replacing with
   | false =>
       simp only [insertRows, translated, Bool.false_eq_true, if_false,
-        executeCommand, Except.instMonad, Except.bind, pure]
+        executeCommand, bind, Functor.map, Except.bind, pure]
   | true =>
       simp only [insertRows, translated, if_pos rfl, executeCommand,
-        Except.instMonad, Except.bind, pure]
+        bind, Functor.map, Except.bind, pure]
 
 /-- Execute a sequence of already translated Core commands, retaining the
 per-row result list used by SQL multi-row INSERT. -/
@@ -297,24 +297,24 @@ theorem runCoreCommands_append (state : Core.State)
       simp only [List.cons_append, runCoreCommands]
       cases head : Core.execute state command with
       | error message =>
-          simp [head, Except.instMonad, Except.bind]
+          simp [head, bind, Functor.map, Except.bind]
       | ok outcome =>
           rcases outcome with ⟨middle, result⟩
-          simp only [head, Except.instMonad, Except.bind]
+          simp only [head, bind, Functor.map, Except.bind]
           rw [induction middle]
           cases prefixRun : runCoreCommands middle commands with
           | error message =>
-              simp [prefixRun, Except.instMonad, Except.bind]
+              simp [prefixRun, bind, Functor.map, Except.bind]
           | ok outcome =>
               rcases outcome with ⟨afterPrefix, prefixResults⟩
               cases suffix : runCoreCommands afterPrefix right with
               | error message =>
-                  simp [prefixRun, suffix, Except.instMonad, Except.bind,
-                    Except.pure, pure]
+                  simp [prefixRun, suffix, bind, Functor.map, Except.bind,
+                    pure, Except.pure, pure]
               | ok outcome =>
                   rcases outcome with ⟨next, suffixResults⟩
-                  simp [prefixRun, suffix, List.append_assoc, Except.instMonad,
-                    Except.bind, Except.pure, pure]
+                  simp [prefixRun, suffix, List.append_assoc, bind, Functor.map,
+                    Except.bind, pure, Except.pure, pure]
 
 /-- The live recursive INSERT executor is exactly command-trace execution
 once every VALUES row has translated. -/
@@ -333,17 +333,17 @@ theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
   | expressions :: rows, values, translated => by
       cases head : rowValues schema columns expressions with
       | error message =>
-          simp [List.mapM_cons, head, Except.instMonad, Except.bind,
-            Except.pure, pure] at translated
+          simp [List.mapM_cons, head, bind, Functor.map, Except.bind,
+            pure, Except.pure, pure] at translated
       | ok value =>
           cases tail : rows.mapM (rowValues schema columns) with
           | error message =>
-              simp [List.mapM_cons, head, tail, Except.instMonad, Except.bind,
-                Except.pure, pure] at translated
+              simp [List.mapM_cons, head, tail, bind, Functor.map, Except.bind,
+                pure, Except.pure, pure] at translated
           | ok remaining =>
               have valuesEqual : values = value :: remaining := by
-                simp [List.mapM_cons, head, tail, Except.instMonad,
-                  Except.bind, Except.pure, pure] at translated
+                simp [List.mapM_cons, head, tail, bind, Functor.map,
+                  Except.bind, pure, Except.pure, pure] at translated
                 exact translated.symm
               subst values
               simp only [insertRows, head, List.map_cons, runCoreCommands]
@@ -351,13 +351,13 @@ theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
                 if replacing then .replace table value else .insert table value
               cases execution : Core.execute state command with
               | error message =>
-                  simp [command, execution, Except.instMonad, Except.bind]
+                  simp [command, execution, bind, Functor.map, Except.bind]
               | ok outcome =>
                   rcases outcome with ⟨next, result⟩
                   have induction := insertRows_eq_runCoreCommands next table
                     schema columns replacing rows remaining tail
-                  simp [command, execution, induction, Except.instMonad,
-                    Except.bind, Except.pure, pure]
+                  simp [command, execution, induction, bind, Functor.map,
+                    Except.bind, pure, Except.pure, pure]
 
 def updateAssignments (schema : Core.Schema) :
     List (String × Expr) → Except String (List (Nat × Core.Value))

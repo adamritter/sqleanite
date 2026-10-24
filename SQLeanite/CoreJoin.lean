@@ -88,8 +88,10 @@ theorem Predicate.eval_leftOnly {predicate : Predicate}
         Operand.value_leftOnly only left firstRight secondRight]
   | not predicate induction =>
       simp [Predicate.eval, induction only]
-  | and first second firstInduction secondInduction |
-      or first second firstInduction secondInduction =>
+  | and first second firstInduction secondInduction =>
+      simp only [Predicate.leftOnly, Bool.and_eq_true] at only
+      simp [Predicate.eval, firstInduction only.1, secondInduction only.2]
+  | or first second firstInduction secondInduction =>
       simp only [Predicate.leftOnly, Bool.and_eq_true] at only
       simp [Predicate.eval, firstInduction only.1, secondInduction only.2]
 
@@ -363,7 +365,12 @@ private theorem matchingMappedRight_leftOnly (on : Option Predicate)
         matchingRows on none (right.map fun row => (left, row))
       else [] := by
   unfold matchingRows
-  simpa [selects] using filterMappedRight_leftOnly on only left right
+  have withoutWhere : (fun row : JoinedRow => selects on row && selects none row) =
+      selects on := by
+    funext row
+    simp [selects]
+  rw [withoutWhere]
+  exact filterMappedRight_leftOnly on only left right
 
 theorem matchingRows_pushLeft (on : Option Predicate)
     {where_ : Predicate} (only : where_.leftOnly = true)

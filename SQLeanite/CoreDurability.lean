@@ -419,7 +419,8 @@ private theorem firstPage_of_decodedHeader
     rw [List.take_append_of_le_length firstLong,
       List.take_append_of_le_length (by omega :
         100 ≤ (FileFormat.encodeDatabaseHeader header).length)] at taken
-    simpa [encodedLength] using taken
+    rw [List.take_of_length_le (Nat.le_of_eq encodedLength)] at taken
+    exact taken
   refine ⟨(image.read 0).bytes.toList.drop 100, ?_⟩
   calc
     (image.read 0).bytes.toList =
@@ -1168,7 +1169,7 @@ noncomputable def
       have equalNumbers : page.pageNumber = numbered.pageNumber :=
         pageNumber.symm.trans alias
       apply separated
-      simpa [equalNumbers] using oldPage
+      simpa [equalNumbers, CoreChunkPageState.TableState.pageIds] using oldPage
     · have pageZero := final.added_pageZero_of_noFreePages noFree
           writeMember base
       have pageNumberMember : numbered.pageNumber ∈ old.tree.root.pageIds := by
@@ -1286,7 +1287,8 @@ noncomputable def
   have changedInline : changed.encoding.overflowPages = [] := by
     simpa [changed,
       SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed,
-      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites]
+      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites,
+      CoreLocalizedRepresentation.TableOnSource.updateStateInlineExtension]
       using afterInline
   exact physical.updateStateApplyWritesBelowExtension oldImage prepared.writes
     final.writes final.distinct prepared.allocation prepared.updated
@@ -1387,7 +1389,8 @@ noncomputable def
   have changedInline : changed.encoding.overflowPages = [] := by
     simpa [changed,
       SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWritesIndexed,
-      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites]
+      SQLeanite.CoreDurability.CoreFileAdapter.PreparedOrdinaryDelta.changedTableOnFinalWrites,
+      CoreLocalizedRepresentation.TableOnSource.updateStateInlineExtension]
       using afterInline
   exact physical.updateStateApplyWritesBelowExtension oldImage prepared.writes
     final.writes final.distinct prepared.allocation prepared.updated

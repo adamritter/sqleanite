@@ -17,11 +17,11 @@ structure Spec where
   deriving DecidableEq, Repr
 
 def Spec.chars (spec : Spec) : List Char :=
-  "CREATE INDEX ".data ++ CanonicalSchemaSQL.quoteChars spec.name ++
-    " ON ".data ++ CanonicalSchemaSQL.quoteChars spec.table ++
+  "CREATE INDEX ".toList ++ CanonicalSchemaSQL.quoteChars spec.name ++
+    " ON ".toList ++ CanonicalSchemaSQL.quoteChars spec.table ++
     '(' :: CanonicalSchemaSQL.quoteChars spec.column ++ [')']
 
-def print (spec : Spec) : String := String.mk spec.chars
+def print (spec : Spec) : String := String.ofList spec.chars
 
 /-- Canonical catalog suffix used only when the encoder has established that
 every current value in the index is INTEGER.  SQLite accepts the SQL comment;
@@ -40,11 +40,11 @@ def printTextCertified (spec : Spec) : String :=
   print spec ++ textCertificateMarker
 
 def parseChars (input : List Char) : Option Spec := do
-  let afterCreate ← CanonicalSchemaSQL.stripPrefix "CREATE INDEX ".data input
+  let afterCreate ← CanonicalSchemaSQL.stripPrefix "CREATE INDEX ".toList input
   match afterCreate with
   | '"' :: afterOpenIndex => do
       let (indexName, afterIndex) ← CanonicalSchemaSQL.takeIdent afterOpenIndex
-      let afterOn ← CanonicalSchemaSQL.stripPrefix " ON ".data afterIndex
+      let afterOn ← CanonicalSchemaSQL.stripPrefix " ON ".toList afterIndex
       match afterOn with
       | '"' :: afterOpenTable => do
           let (tableName, afterTable) ← CanonicalSchemaSQL.takeIdent afterOpenTable
@@ -52,22 +52,22 @@ def parseChars (input : List Char) : Option Spec := do
           | '(' :: '"' :: afterOpenColumn => do
               let (columnName, tail) ← CanonicalSchemaSQL.takeIdent afterOpenColumn
               if tail = [')'] ∨
-                  tail = ')' :: integerCertificateMarker.data ∨
-                  tail = ')' :: textCertificateMarker.data then
-                some ⟨String.mk indexName, String.mk tableName, String.mk columnName⟩
+                  tail = ')' :: integerCertificateMarker.toList ∨
+                  tail = ')' :: textCertificateMarker.toList then
+                some ⟨String.ofList indexName, String.ofList tableName, String.ofList columnName⟩
               else none
           | _ => none
       | _ => none
   | _ => none
 
-def parse (sql : String) : Option Spec := parseChars sql.data
+def parse (sql : String) : Option Spec := parseChars sql.toList
 
 theorem parseChars_chars (spec : Spec) :
     parseChars spec.chars = some spec := by
   rcases spec with ⟨indexName, tableName, columnName⟩
   change parseChars
-    ("CREATE INDEX ".data ++ CanonicalSchemaSQL.quoteChars indexName ++
-      " ON ".data ++ CanonicalSchemaSQL.quoteChars tableName ++
+    ("CREATE INDEX ".toList ++ CanonicalSchemaSQL.quoteChars indexName ++
+      " ON ".toList ++ CanonicalSchemaSQL.quoteChars tableName ++
       '(' :: CanonicalSchemaSQL.quoteChars columnName ++ [')']) =
     some ⟨indexName, tableName, columnName⟩
   unfold parseChars
@@ -87,15 +87,16 @@ theorem parseChars_chars (spec : Spec) :
 theorem parse_print (spec : Spec) :
     parse (print spec) = some spec := by
   unfold parse print
-  change parseChars spec.chars = some spec
+  rw [String.toList_ofList]
   exact parseChars_chars spec
 
 theorem parse_printIntegerCertified (spec : Spec) :
     parse (printIntegerCertified spec) = some spec := by
+  simp only [parse, printIntegerCertified, print, String.toList_append, String.toList_ofList]
   rcases spec with ⟨indexName, tableName, columnName⟩
   change parseChars
     ((⟨indexName, tableName, columnName⟩ : Spec).chars ++
-      integerCertificateMarker.data) =
+      integerCertificateMarker.toList) =
         some ⟨indexName, tableName, columnName⟩
   unfold Spec.chars parseChars
   simp only [List.append_assoc]
@@ -112,10 +113,11 @@ theorem parse_printIntegerCertified (spec : Spec) :
 
 theorem parse_printTextCertified (spec : Spec) :
     parse (printTextCertified spec) = some spec := by
+  simp only [parse, printTextCertified, print, String.toList_append, String.toList_ofList]
   rcases spec with ⟨indexName, tableName, columnName⟩
   change parseChars
     ((⟨indexName, tableName, columnName⟩ : Spec).chars ++
-      textCertificateMarker.data) =
+      textCertificateMarker.toList) =
         some ⟨indexName, tableName, columnName⟩
   unfold Spec.chars parseChars
   simp only [List.append_assoc]

@@ -55,13 +55,13 @@ private def standaloneSQLLine (line : String) : Bool :=
     | .single, '\'' => .none
     | .double, '"' => .none
     | current, _ => current
-  finalQuote == .none && line.trim.endsWith ";"
+  finalQuote == .none && line.trimAscii.toString.endsWith ";"
 
 /-- Conservative write classification for the read-only-file diagnostic.
 Ambiguous statements are treated as writes; actual statement classification
 inside the engine still comes from the parsed `Statement`. -/
 private def lineMightWrite (line : String) : Bool :=
-  let normalized := line.trim.toUpper
+  let normalized := line.trimAscii.toString.toUpper
   !(normalized.startsWith "SELECT" || normalized.startsWith "PRAGMA" ||
     normalized.startsWith "EXPLAIN")
 
@@ -71,7 +71,7 @@ end at an unquoted semicolon, and the ordinary parser still processes that
 line before execution.  Any multiline or otherwise general SQL script returns
 `none` and follows the original whole-script path. -/
 private def prepareLineScript? (sql : String) : Option (Array PreparedLine) :=
-  let lines := (sql.splitOn "\n").filter fun line => !line.trim.isEmpty
+  let lines := (sql.splitOn "\n").filter fun line => !line.trimAscii.toString.isEmpty
   if lines.all standaloneSQLLine then
     some <| lines.toArray.map fun line => {
       sql := line
@@ -242,7 +242,7 @@ private def coreBatchTimed (databasePath : String) (args : List String) :
     requireWritableFor mainPath sql
     let connection ← if fileExists then CoreFileEngine.reopen .system paths
       else CoreFileEngine.create .system paths
-    let statements := (sql.splitOn "\n").filter fun line => !line.trim.isEmpty
+    let statements := (sql.splitOn "\n").filter fun line => !line.trimAscii.toString.isEmpty
     let mut status : UInt32 := 0
     for statement in statements do
       let started ← IO.monoNanosNow

@@ -292,7 +292,7 @@ key belongs to exactly one leaf).
 
 **Frame is proved.** The obstacle was that the decoders are written with
 `do`-notation, whose `Option` bind is not reduced by `dsimp`, `Option.bind_some`,
-`Option.some_bind` or `Option.bind`, and which `split` cannot see through. The way
+`Option.bind_some` or `Option.bind`, and which `split` cannot see through. The way
 around it is `bind_congr` below: every such block *is* a bind, so a congruence lemma
 reduces the obligation to the `some` case without ever reducing the notation. The
 same trick gives `foldlM_congr` for the interior fold.
@@ -337,8 +337,8 @@ theorem mapM_subtreePages_mem {source : CoreDecode.PageSource} {fuel : Nat} :
   | [], nested, mapped, child, member => by simp at member
   | c :: rest, nested, mapped, child, member => by
       rw [List.mapM_cons] at mapped
-      rcases Option.bind_eq_some.mp mapped with ⟨headList, headResult, mapped⟩
-      rcases Option.bind_eq_some.mp mapped with ⟨tailLists, tailResult, mapped⟩
+      rcases Option.bind_eq_some_iff.mp mapped with ⟨headList, headResult, mapped⟩
+      rcases Option.bind_eq_some_iff.mp mapped with ⟨tailLists, tailResult, mapped⟩
       injection mapped with mapped
       subst mapped
       rcases List.mem_cons.mp member with equal | later
@@ -591,7 +591,7 @@ theorem decodeRowsFrom_congr (schema : Core.Schema)
   · simp only [canonical, if_neg]
     exact decodeRowsByPointersFrom_congr schema left right page inlineLeft.1
 
-/-- `Option.some_bind` in the `>>=` form the `do`-notation elaborates to. Same
+/-- `Option.bind_some` in the `>>=` form the `do`-notation elaborates to. Same
 mismatch as `bind_congr'`: the library lemma is stated for `Option.bind` and does not
 fire on `Bind.bind`. -/
 @[simp] theorem some_bind' {α β : Type} (a : α) (f : α → Option β) :
@@ -614,7 +614,7 @@ theorem foldlM_acc {α β : Type} (f : α → Option (List β)) :
       cases headResult : f x with
       | none => simp
       | some head =>
-          simp only [some_bind', Option.some_bind, List.nil_append]
+          simp only [some_bind', Option.bind_some, List.nil_append]
           rw [foldlM_acc f rest (acc ++ head), foldlM_acc f rest head]
           cases restResult : rest.foldlM
               (fun a x => (f x).bind (fun r => some (a ++ r))) [] with

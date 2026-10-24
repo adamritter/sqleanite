@@ -381,7 +381,7 @@ private def inSigned64Range (value : Int) : Bool :=
   -9223372036854775808 <= value && value <= 9223372036854775807
 
 private def parseInteger64? (source : String) : Option Int := do
-  let value ← source.trim.toInt?
+  let value ← source.trimAscii.toString.toInt?
   if inSigned64Range value then some value else none
 
 private def exactInteger? (number : Float) : Option Int := do
@@ -400,7 +400,7 @@ def Column.applyAffinity (column : Column) (value : Value) : Value :=
     if typeContains column.declaredType "INT" then
       match value with
       | .text source =>
-        let source := source.trim
+        let source := source.trimAscii.toString
         match parseInteger64? source with
         | some integer => .integer integer
         | none =>
@@ -422,7 +422,7 @@ def Column.applyAffinity (column : Column) (value : Value) : Value :=
     else
       match value with
       | .text source =>
-        let source := source.trim
+        let source := source.trimAscii.toString
         match parseInteger64? source with
         | some integer => .integer integer
         | none =>
@@ -576,18 +576,18 @@ def integerBinary (op : BinaryOp) (a b : Int) : Value :=
 theorem integerBinary_shiftLeft_negative (value amount : Int) (negative : amount < 0) :
     integerBinary .shiftLeft value amount = integerBinary .shiftRight value (-amount) := by
   have nonnegative : ¬-amount < 0 := by omega
-  simp [integerBinary, negative, nonnegative]
+  simp only [integerBinary, if_pos negative, if_neg nonnegative]
 
 private def numericOperand : Value → Value
   | .text source => match parseInteger64? source with
     | some integer => .integer integer
-    | none => parseDecimal? source.trim |>.map Value.real |>.getD (.integer 0)
+    | none => parseDecimal? source.trimAscii.toString |>.map Value.real |>.getD (.integer 0)
   | .blob _ => .integer 0
   | value => value
 
 private def integerCastOperand : Value → Value
   | .text source =>
-    let chars := source.trim.toList
+    let chars := source.trimAscii.toString.toList
     let (sign, digits) := match chars with
       | '-' :: rest => ("-", rest)
       | '+' :: rest => ("", rest)
@@ -600,7 +600,7 @@ private def integerCastOperand : Value → Value
 private def aggregateNumericOperand : Value → Value
   | .text source => match parseInteger64? source with
     | some integer => .integer integer
-    | none => parseDecimal? source.trim |>.map Value.real |>.getD (.real 0.0)
+    | none => parseDecimal? source.trimAscii.toString |>.map Value.real |>.getD (.real 0.0)
   | .blob _ => .real 0.0
   | value => value
 
@@ -647,7 +647,7 @@ private def Expr.collationIn (env : Env) : Expr → String
 
 private def Expr.declaredTypeIn (env : Env) : Expr → String
   | .collate argument _ => argument.declaredTypeIn env
-  | .call name _ _ => if name.toLower.startsWith "cast_" then name.drop 5 |>.toUpper else ""
+  | .call name _ _ => if name.toLower.startsWith "cast_" then (name.drop 5).toString.toUpper else ""
   | .column qualifier name =>
     env.find? (fun binding => nameEq binding.column name && qualifier.all (fun q =>
       nameEq q binding.alias || nameEq q binding.table)) |>.map (·.declaredType) |>.getD ""
@@ -807,7 +807,7 @@ private def sqlValueToJson : Value → Lean.Json
 
 private def jsonPathValue? (source path : String) : Option Lean.Json := do
   let mut value ← (parseSQLiteJson source).toOption
-  let path := if path.startsWith "$." then path.drop 2 else path
+  let path := if path.startsWith "$." then (path.drop 2).toString else path
   for component in path.splitOn "." do
     value ← (value.getObjVal? component).toOption
   pure value
@@ -973,9 +973,9 @@ private def evalScalarFunction (env : Env) (name : String) (args : Array Expr)
           let path := toString values[1]!
           if !path.startsWith "$." || (path.drop 2).contains '.' then
             throw "JSON path error"
-          else pure (.text (base.setObjVal! (path.drop 2) (sqlValueToJson values[2]!)).compress)
+          else pure (.text (base.setObjVal! (path.drop 2).toString (sqlValueToJson values[2]!)).compress)
   else if lname.startsWith "lean_window_" then
-    let function := lname.drop "lean_window_".length
+    let function := (lname.drop "lean_window_".length).toString
     if function == "count" then
       pure (.integer (if values.any (fun value => !(value matches .null)) then 1 else 0))
     else if values.size == 1 then pure values[0]!
@@ -984,7 +984,7 @@ private def evalScalarFunction (env : Env) (name : String) (args : Array Expr)
     if values.size != 1 then throw "wrong number of arguments to function cast()"
     else
       let value := values[0]!
-      let target := lname.drop 5
+      let target := (lname.drop 5).toString
       if value matches .null then pure .null
       else if typeContains target "INT" then
         pure (.integer (integerCastOperand value |>.toInt?.getD 0))
@@ -1275,7 +1275,7 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
         else .text (toString a ++ toString b))
     | .arrow | .arrowText =>
       let source := toString a
-      if !source.trim.startsWith "{" && !source.trim.startsWith "[" then
+      if !source.trimAscii.toString.startsWith "{" && !source.trimAscii.toString.startsWith "[" then
         pure (.text (source ++ (if op == .arrowText then "->>" else "->") ++ toString b))
       else match jsonPathValue? source (toString b) with
         | none => pure .null
@@ -1325,8 +1325,8 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
               if number == 0.0 then "-4713-11-24 12:00:00" else toString value
           | _ => toString value
         let pieces := rendered.splitOn " "
-        if lname == "date" then return .text (pieces[0]?.getD rendered |>.take 10)
-        if lname == "time" then return .text (pieces[1]?.getD rendered |>.take 8)
+        if lname == "date" then return .text (pieces[0]?.getD rendered |>.take 10 |>.toString)
+        if lname == "time" then return .text (pieces[1]?.getD rendered |>.take 8 |>.toString)
         return .text (if pieces.length == 1 && rendered.length == 10 then
           rendered ++ " 00:00:00" else rendered)
       throw s!"wrong number of arguments to function {name}()"
@@ -1403,7 +1403,7 @@ private def expressionDeclaredType : Expr → String
   | .literal (.blob _) => "BLOB"
   | .call name _ _ =>
     let function := aggregateFunctionName name
-    if function.startsWith "cast_" then function.drop 5 |>.toUpper
+    if function.startsWith "cast_" then (function.drop 5).toString.toUpper
     else if nameEq function "count" then "INTEGER"
     else if nameEq function "avg" || nameEq function "total" then "REAL"
     else ""
@@ -2329,8 +2329,8 @@ mutual
       | .ok rows => pure rows
       | .error message =>
         if !view.temporary && message.startsWith "no such table: " &&
-            !(message.drop "no such table: ".length).toList.contains '.' then
-          throw ("no such table: main." ++ message.drop "no such table: ".length)
+            !(message.drop "no such table: ".length).toString.toList.contains '.' then
+          throw ("no such table: main." ++ (message.drop "no such table: ".length).toString)
         else throw message
     let inferred := selectColumnSchema nestedDb view.query
     let columns := match view.columns with
@@ -3493,7 +3493,7 @@ private def violatesCheck (db : Database) (table : Table) (row : StoredRow)
   pure (!value.truth.satisfiesCheck)
 
 private def checkEvaluationError (message : String) : String :=
-  if message.startsWith "no such function: " then "unknown function: " ++ message.drop 18 else message
+  if message.startsWith "no such function: " then "unknown function: " ++ (message.drop 18).toString else message
 
 private def enforceChecks (db : Database) (table : Table) (row : StoredRow)
     (statementConflict : ConflictAction) : Except String Bool := do
@@ -3853,7 +3853,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
             primaryKey := true, conflict := constraint.conflict,
             autoIncrement := constraint.autoIncrement }
       if columns.any (fun column => column.autoIncrement &&
-          (!column.primaryKey || !nameEq column.declaredType.trim "integer")) then
+          (!column.primaryKey || !nameEq column.declaredType.trimAscii.toString "integer")) then
         throw "AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY"
       let mut uniqueIndexes : Array UniqueIndex := #[]
       for index in [:columns.size] do
@@ -3891,7 +3891,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
         | .ok _ => pure ()
         | .error message =>
           if message.startsWith "no such function: " && message.endsWith "()" then
-            throw (message.take (message.length - 2))
+            throw (message.take (message.length - 2)).toString
           else throw message
       let automaticIndexes := uniqueIndexes.mapIdx fun index uniqueIndex => ({
         name := s!"sqlite_autoindex_{unqualifiedName name}_{index + 1}"
@@ -4447,7 +4447,7 @@ def executeAllProgress (db : Database) (statements : Array Statement) : Database
         let restored := match state.transactionSnapshot with
           | some snapshot => state.restoreSnapshot snapshot
           | none => state
-        return (restored, .error (message.drop rollbackConflictPrefix.length))
+        return (restored, .error (message.drop rollbackConflictPrefix.length).toString)
       return (state, .error message)
     | .ok (next, result) =>
       state := next

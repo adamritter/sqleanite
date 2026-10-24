@@ -48,7 +48,7 @@ private def serverLoop (database : Database) : IO UInt32 :=
     let stdin ← IO.getStdin
     let line ← stdin.getLine
     if line.isEmpty then return .inr 0
-    match hexDecode? line.trim with
+    match hexDecode? line.trimAscii.toString with
     | none =>
         send s!"ERR\t{hexEncode "invalid hex request"}"
         return .inl state

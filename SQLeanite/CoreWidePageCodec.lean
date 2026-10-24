@@ -70,14 +70,14 @@ theorem encodeChunkRoot_pageNumber {schema : Core.Schema}
   cases node with
   | leaf pageId entries =>
       simp only [encodeChunkRoot] at success
-      rcases Option.bind_eq_some.mp success with ⟨built, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨built, _, success⟩
       exact congrArg CorePageCodec.NumberedPage.pageNumber
         (Option.some.inj success).symm
   | branch pageId children =>
       simp only [encodeChunkRoot] at success
-      rcases Option.bind_eq_some.mp success with ⟨parts, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨parts, _, success⟩
       rcases parts with ⟨cells, rightmost⟩
-      rcases Option.bind_eq_some.mp success with ⟨built, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨built, _, success⟩
       exact congrArg CorePageCodec.NumberedPage.pageNumber
         (Option.some.inj success).symm
 
@@ -231,19 +231,19 @@ theorem encodeBulkInlineWithState_represents {database : Core.Database}
     (encoded : encodeBulkInlineWithState database = some result) :
     result.2.Represents database := by
   unfold encodeBulkInlineWithState at encoded
-  rcases Option.bind_eq_some.mp encoded with ⟨state, stateResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨state, stateResult, encoded⟩
   split at encoded
   next =>
-    rcases Option.bind_eq_some.mp encoded with
+    rcases Option.bind_eq_some_iff.mp encoded with
       ⟨numbered, numberedResult, encoded⟩
     dsimp only at encoded
     split at encoded
     next =>
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨indexEncodings, indexResult, encoded⟩
       split at encoded
       next =>
-        rcases Option.bind_eq_some.mp encoded with
+        rcases Option.bind_eq_some_iff.mp encoded with
           ⟨schema, schemaResult, encoded⟩
         simp only [Option.some.injEq, Prod.mk.injEq] at encoded
         subst result

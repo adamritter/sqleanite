@@ -1011,7 +1011,8 @@ theorem decodeOverflowNext_encode (next : OverflowNext) (suffix : List UInt8) :
   | page number =>
       unfold OverflowNext.encode decodeOverflowNext PageNumber.encode
       rw [decodeU32Bytes_encode]
-      simp [Nat.ne_of_gt number.positive]
+      simp only [bind, Option.bind]
+      rw [dif_neg (Nat.ne_of_gt number.positive)]
 
 theorem OverflowNext.encode_length (next : OverflowNext) :
     next.encode.length = 4 := by
@@ -1133,7 +1134,6 @@ theorem OverflowChainData.logicalPayload_length {usable : UsablePageSize}
   | last number payload used used_le =>
       simp [OverflowChainData.logicalPayload,
         OverflowChainData.logicalPayloadSize, payload.length_eq, used_le]
-      omega
   | link number payload tail induction =>
       simp [OverflowChainData.logicalPayload,
         OverflowChainData.logicalPayloadSize, payload.length_eq, induction]

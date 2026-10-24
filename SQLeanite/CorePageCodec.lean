@@ -743,10 +743,12 @@ theorem fillPhysicalChunkPageSlots_lookup
       | some slot =>
         cases slot with
         | none =>
+          have emptySlot : slots[page.pageNumber] = none := by
+            simpa only [Array.getElem?_eq_getElem pageBound, Option.some.injEq] using slotResult
           rw [induction]
           · by_cases same : page.pageNumber = pageNumber
             · subst pageNumber
-              simp [physicalChunkPageSlotLookup, slotResult, pageBound,
+              simp [physicalChunkPageSlotLookup, slotResult, pageBound, emptySlot,
                 findPhysicalChunkPage?]
             · simp [physicalChunkPageSlotLookup, slotResult, pageBound,
                 Array.getElem?_setIfInBounds_ne same,
@@ -3794,7 +3796,7 @@ theorem encodeChunkNodeWithOverflow_noOverflow
                 simpa [rows, List.map_flatMap, List.map_map,
                   Function.comp_def] using rowCells
               rw [cellsResult]
-              simpa only [Option.bind] using pageResult
+              simpa only [bind, Option.bind] using pageResult
             simp [encodeChunkNode, leafEncoded]
   | .branch2 pageId left separator right, nextOverflow, encoding,
       encoded, empty => by
@@ -5544,7 +5546,7 @@ theorem orderNumberedPages_eq_of_range {pages : List NumberedPage}
     (numbers : pages.map NumberedPage.pageNumber = List.range' start count) :
     orderNumberedPages pages = pages := by
   unfold orderNumberedPages
-  apply List.mergeSort_of_sorted
+  apply List.mergeSort_of_pairwise
   apply (List.pairwise_map (f := NumberedPage.pageNumber)
     (R := fun left right : Nat => decide (left ≤ right) = true)).mp
   rw [numbers]
@@ -5593,8 +5595,8 @@ theorem encodeBulkWithState_image {database : Core.Database}
     (encoded : encodeBulkWithState database = some result) :
     encodeBulk database = some result.1 := by
   unfold encodeBulkWithState at encoded
-  rcases Option.bind_eq_some.mp encoded with ⟨state, stateResult, encoded⟩
-  rcases Option.bind_eq_some.mp encoded with ⟨image, imageResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨state, stateResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨image, imageResult, encoded⟩
   simp only [Option.some.injEq] at encoded
   subst result
   unfold encodeBulk
@@ -5606,8 +5608,8 @@ theorem encodeBulkWithState_represents {database : Core.Database}
     (encoded : encodeBulkWithState database = some result) :
     result.2.Represents database := by
   unfold encodeBulkWithState at encoded
-  rcases Option.bind_eq_some.mp encoded with ⟨state, stateResult, encoded⟩
-  rcases Option.bind_eq_some.mp encoded with ⟨image, imageResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨state, stateResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨image, imageResult, encoded⟩
   simp only [Option.some.injEq] at encoded
   subst result
   exact CoreChunkPageState.State.build?_represents stateResult

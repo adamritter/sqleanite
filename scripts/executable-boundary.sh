@@ -45,8 +45,15 @@ CoreWALFileEngine.checkpoint|seam|CoreWAL.decode_encode_forCoreImage|Checkpoint 
 CoreWALFileEngine.needsWriter|covered|CoreWALFileEngine.needsWriter_false_member|Pure predicate deciding whether a statement list needs the writer lock.
 CoreWALFileAdapter.create|seam|CoreWAL.decode_encode_forCoreImage|Initial WAL-mode image creation; codec proved, IO not.
 ProcessLock.withLock|seam|ProcessLock.run_successfulTrace|The lock *protocol* is proved, including that overlapping critical sections are rejected; that a directory on a real filesystem implements it is not.
-CoreLazyFileEngine.execute?|boundary|-|The cold page-directed read fast path: zero theorems, zero audit entries, and tried first for every read. Its page traversals are proved (see the seam statement in the generated document); the IO wrapper that supplies their pages is not.
+CoreLazyFileEngine.execute?|boundary|-|The cold page-directed read fast path. CoreDecode contains proved reference traversals; the generated-image byte cursor and its IO/cache composition do not yet have refinement theorems.
 CoreFileAdapter.lookupPrimaryRowDecision|boundary|-|Returns a plain IndexLookup, not the proof-carrying CertifiedCandidates the warm path uses. A hit self-checks rowid equality and row well-formedness; a miss is admitted only under the generated-image stamp.
+CoreFileAdapter.lookupGeneratedPrimaryRowWith|boundary|-|Generated-image primary lookup through the shared byte cursor. Checks schema, rowid and row well-formedness; cache and geometry are scoped to one locked immutable read batch. No byte-cursor refinement theorem yet.
+Runtime.ReadPager.Pager.get|boundary|-|Bounded raw-page cache with range and short-read checks. Snapshot lifetime is a caller obligation, tested but not proved.
+Runtime.TableCursor.Cursor.seek|boundary|-|Uses checked page views and proved binary lower-bound search. Physical byte decoding, tree traversal and cache lifetime still lack a complete CoreDecode refinement.
+Runtime.TablePage.View.lowerBound|covered|Runtime.TablePage.View.lowerBound_eq_linear|Binary search equals linear first-match search. Its ordering premise is established by an executed adjacency check and carried in the page view.
+Runtime.Record.encodedSize|covered|Runtime.Record.encodedSize_eq_length|Computes the canonical encoded length from serial metadata without re-encoding payload bytes; exact for every physical record.
+Runtime.Record.decodeRowCell|covered|Runtime.Record.decodeRowCell_eq_reference|Effectful equality to the existing CoreDecode cell reader, for every input and page source, including failure and overflow paths.
+Runtime.Record.readRowWithSource|seam|Runtime.Record.readRowWithSource_eq_reference|Shared cell input equals the byte-list reference suffix; decoding and validation equal CoreDecode. Physical pager fidelity is still the caller's boundary.
 CoreFileAdapter.lookupGeneratedPrimaryRange|boundary|-|As above, for separator-directed ranges.
 CoreFileAdapter.lookupGeneratedIndexCandidatesWith|boundary|-|As above, for secondary-index candidates; every resolved rowid and value link is locally validated.
 CoreFileAdapter.lookupGeneratedOrderedPrefix|boundary|-|As above, for the multi-leaf ORDER BY/LIMIT cursor.
@@ -145,7 +152,7 @@ verified binary. This document is the boundary. Of the shipped entry points
 The honest form of this is stronger than "the fast path is unproved", and weaker
 than "the fast path is verified". Both halves matter:
 
-> The page traversals themselves are proved exact against the decoded
+> The reference CoreDecode page traversals are proved exact against the decoded
 > abstraction and against the encoder —
 > \`lookupIndexRangeFrom_refines_full_decode\`,
 > \`lookupTableRangeFrom_decodeAbstract_exact\`,
@@ -157,6 +164,17 @@ than "the fast path is verified". Both halves matter:
 > \`CoreFileAdapter.byteArrayPageSource_eq_storageImage\` is the one place this
 > bridge exists, for the pure source; \`preadPageSource\` and
 > \`filePageSourceFor\` have no counterpart.
+
+The generated-image primary and secondary row-resolution paths now share
+\`Runtime.ReadPager\`, \`Runtime.TableCursor\` and \`Runtime.Record\`.
+Their binary lower-bound search now has a linear-search equivalence theorem
+and a present-key theorem, using the page view's checked ordering certificate.
+The record-size computation is proved equal to canonical re-encoding length;
+the optimized record reader is effectfully equal to CoreDecode, including
+malformed input and overflow reads. Shared cell inputs carry their reference
+suffix equality. These seven new audited theorems do not prove physical page
+decoding, full tree routing, cache fidelity or lock lifetime. Those remain
+explicit obligations; runtime tests and wiring checks do not discharge them.
 
 ### Mitigations, which are real and are not proofs
 
@@ -170,7 +188,8 @@ than "the fast path is verified". Both halves matter:
 
 None of these is a substitute for the missing lemma. The upgrade path is a
 general "IO page source faithfully reads the file" lemma mirroring
-\`byteArrayPageSource_eq_storageImage\`; it would move
+\`byteArrayPageSource_eq_storageImage\`, plus refinement of the byte cursor
+and record view to the reference traversals, before moving
 \`CoreLazyFileEngine.execute?\` from boundary to seam.
 
 ## Classification

@@ -320,8 +320,7 @@ def indexedCandidates (index : Index) : Option Predicate → List Row → Option
 theorem selects_imp_indexColumnMatches {column : Nat} {value : Value} {row : Row}
     (kept : selects (some (.equal column value)) row = true) :
     indexColumnMatches column value row = true := by
-  simp only [selects, Predicate.eval, decide_eq_true_eq] at kept
-  simp [indexColumnMatches, kept]
+  exact kept
 
 /-- **P2 on the Core path.** Filtering the index candidates yields exactly the
 same rows, in the same order, as filtering the entire table. -/
@@ -539,21 +538,21 @@ theorem Database.modifyTable_exact {database next : Database} {name : String}
   unfold Database.modifyTable at success
   cases found : database.findTable? name with
   | none =>
-      simp [found, Except.instMonad, Except.bind, Except.pure,
+      simp [found, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | some table =>
       cases operated : operation table with
       | error message =>
-          simp [found, operated, Except.instMonad, Except.bind, Except.pure,
+          simp [found, operated, bind, Functor.map, Except.bind, pure, Except.pure,
             Except.map] at success
       | ok replacement =>
           cases updated : database.updateTable replacement with
           | error message =>
-              simp [found, operated, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, operated, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
           | ok output =>
-              simp [found, operated, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, operated, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
               subst next
               exact ⟨table, replacement, rfl, operated, updated⟩
 
@@ -578,7 +577,7 @@ theorem Table.findDeclaredTextRowid?_some_mem {table : Table}
   unfold Table.findDeclaredTextRowid? at found
   split at found
   next hidden =>
-    rcases Option.map_eq_some'.mp found with ⟨row, owner, rowidEqual⟩
+    rcases Option.map_eq_some_iff.mp found with ⟨row, owner, rowidEqual⟩
     have represented := table.declaredKeyMapRepresents hidden (.text text)
     rw [owner] at represented
     have logical : table.rows.find? (fun candidate =>
@@ -753,7 +752,7 @@ theorem countRows_star (predicate : Option Predicate) (rows : List Row) :
   unfold countRows
   induction rows.filter (selects predicate) with
   | nil => rfl
-  | cons row rows induction => simp [CountTarget.includes, induction]
+  | cons row rows induction => simp [CountTarget.includes, List.countP_cons, induction]
 
 def addInteger (left right : Integer) : Except String Integer :=
   checkedInteger (left.value + right.value)
@@ -1185,10 +1184,10 @@ theorem execute_createTable_exact {state next : State} {schema : Schema}
   simp only [execute] at success
   cases created : state.database.createTable schema with
   | error message =>
-      simp [created, Except.instMonad, Except.bind, Except.pure,
+      simp [created, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | ok database =>
-      simp [created, Except.instMonad, Except.bind, Except.pure,
+      simp [created, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
       rcases success with ⟨stateEqual, resultEqual⟩
       subst next
@@ -1224,10 +1223,10 @@ theorem execute_createIndex_exact {state next : State}
   cases modified : state.database.modifyTable tableName
       (fun table => table.addIndex index) with
   | error message =>
-      simp [modified, Except.instMonad, Except.bind, Except.pure,
+      simp [modified, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | ok database =>
-      simp [modified, Except.instMonad, Except.bind, Except.pure,
+      simp [modified, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
       rcases success with ⟨stateEqual, resultEqual⟩
       subst next
@@ -1270,21 +1269,21 @@ theorem execute_insert_exact {state next : State} {tableName : String}
   simp only [execute] at success
   cases found : state.database.findTable? tableName with
   | none =>
-      simp [found, Except.instMonad, Except.bind, Except.pure,
+      simp [found, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | some table =>
       cases inserted : table.insertValues values with
       | error message =>
-          simp [found, inserted, Except.instMonad, Except.bind, Except.pure,
+          simp [found, inserted, bind, Functor.map, Except.bind, pure, Except.pure,
             Except.map] at success
       | ok replacement =>
           cases updated : state.database.updateTable replacement with
           | error message =>
-              simp [found, inserted, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, inserted, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
           | ok database =>
-              simp [found, inserted, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, inserted, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
               rcases success with ⟨stateEqual, resultEqual⟩
               subst next
               subst result
@@ -1315,21 +1314,21 @@ theorem execute_replace_exact {state next : State} {tableName : String}
   simp only [execute] at success
   cases found : state.database.findTable? tableName with
   | none =>
-      simp [found, Except.instMonad, Except.bind, Except.pure,
+      simp [found, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | some table =>
       cases replaced : table.replaceValues values with
       | error message =>
-          simp [found, replaced, Except.instMonad, Except.bind, Except.pure,
+          simp [found, replaced, bind, Functor.map, Except.bind, pure, Except.pure,
             Except.map] at success
       | ok replacement =>
           cases updated : state.database.updateTable replacement with
           | error message =>
-              simp [found, replaced, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, replaced, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
           | ok database =>
-              simp [found, replaced, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, replaced, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
               rcases success with ⟨stateEqual, resultEqual⟩
               subst next
               subst result
@@ -1362,21 +1361,21 @@ theorem execute_deleteWhere_exact {state next : State} {tableName : String}
   simp only [execute] at success
   cases found : state.database.findTable? tableName with
   | none =>
-      simp [found, Except.instMonad, Except.bind, Except.pure,
+      simp [found, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | some table =>
       cases retained : table.retainRows (fun row => !selects predicate row) with
       | error message =>
-          simp [found, retained, Except.instMonad, Except.bind, Except.pure,
+          simp [found, retained, bind, Functor.map, Except.bind, pure, Except.pure,
             Except.map] at success
       | ok replacement =>
           cases updated : state.database.updateTable replacement with
           | error message =>
-              simp [found, retained, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, retained, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
           | ok database =>
-              simp [found, retained, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, retained, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
               rcases success with ⟨stateEqual, resultEqual⟩
               subst next
               subst result
@@ -1407,22 +1406,22 @@ theorem execute_updateWhere_exact {state next : State} {tableName : String}
   simp only [execute] at success
   cases found : state.database.findTable? tableName with
   | none =>
-      simp [found, Except.instMonad, Except.bind, Except.pure,
+      simp [found, bind, Functor.map, Except.bind, pure, Except.pure,
         Except.map] at success
   | some table =>
       cases changed : table.updateWhere assignments predicate with
       | error message =>
-          simp [found, changed, Except.instMonad, Except.bind, Except.pure,
+          simp [found, changed, bind, Functor.map, Except.bind, pure, Except.pure,
             Except.map] at success
       | ok outcome =>
           rcases outcome with ⟨replacement, changes⟩
           cases updated : state.database.updateTable replacement with
           | error message =>
-              simp [found, changed, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, changed, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
           | ok database =>
-              simp [found, changed, updated, Except.instMonad, Except.bind,
-                Except.pure, Except.map] at success
+              simp [found, changed, updated, bind, Functor.map, Except.bind,
+                pure, Except.pure, Except.map] at success
               rcases success with ⟨stateEqual, resultEqual⟩
               subst next
               subst result

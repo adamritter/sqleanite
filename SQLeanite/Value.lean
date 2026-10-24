@@ -205,13 +205,13 @@ def parseDecimal? (source : String) : Option Float := do
 def Value.toFloat? : Value → Option Float
   | .integer i => some (Float.ofInt i)
   | .real f => some f
-  | .text s => parseDecimal? s.trim
+  | .text s => parseDecimal? s.trimAscii.toString
   | _ => none
 
 def Value.toInt? : Value → Option Int
   | .integer i => some i
   | .real f => some f.toInt64.toInt
-  | .text s => s.trim.toInt?
+  | .text s => s.trimAscii.toString.toInt?
   | _ => none
 
 def Value.sqlEq (a b : Value) : Truth :=

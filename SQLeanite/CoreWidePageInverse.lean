@@ -186,7 +186,7 @@ theorem interiorChildren_interiorPage (children : List (Nat × Nat))
               apply decodeChildrenAt_encoded
                 (PhysicalTableBTree.interiorPageBody rightmost cells)
                   contentStart children cells cellsResult
-              simpa [contentStart] using dropped
+              simpa [contentStart, PhysicalCodec.cellBytes] using dropped
             change CoreDecode.interiorChildren?
               (PhysicalTableBTree.interiorPageBody rightmost cells) = _
             unfold CoreDecode.interiorChildren?
@@ -250,9 +250,9 @@ private theorem encodeInteriorCells_pageNumbers :
       rfl
   | node :: nodes, encoded, success => by
       rw [List.mapM_cons] at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨head, headResult, success⟩
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨tail, tailResult, success⟩
       simp only [pure, Option.pure_def, Option.some.injEq] at success
       subst encoded
@@ -275,9 +275,9 @@ theorem interiorCells?_pageNumbers
     cells.map Prod.fst ++ [last.rootId] =
       children.map WidePageTree.Node.rootId := by
   unfold CoreWidePageCodec.interiorCells? at success
-  rcases Option.bind_eq_some.mp success with ⟨parts, splitResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨parts, splitResult, success⟩
   rcases parts with ⟨initial, terminal⟩
-  rcases Option.bind_eq_some.mp success with ⟨encoded, encodedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨encoded, encodedResult, success⟩
   simp only [Option.some.injEq, Prod.mk.injEq] at success
   rcases success with ⟨rfl, rfl⟩
   have encodedRoots := encodeInteriorCells_pageNumbers encodedResult
@@ -409,7 +409,7 @@ private theorem decodeChildrenFold (schema : Core.Schema)
                 tailResult tailContains (fun node member =>
                   valid node (by simp [member])) (fun node member =>
                     inline node (by simp [member]))
-              simpa [List.append_assoc] using tailDecoded
+              simpa [List.append_assoc, Option.bind] using tailDecoded
 
 private theorem flatMap_node_rows
     (children : List (WidePageTree.Node CoreWidePageState.Chunk)) :
@@ -448,7 +448,7 @@ theorem decodeSubtreeRowsFrom_encodeChunkNode (schema : Core.Schema)
         cases node with
         | leaf pageId entries =>
           simp only [CoreWidePageCodec.encodeChunkNode] at encoded
-          rcases Option.bind_eq_some.mp encoded with ⟨page, pageResult, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨page, pageResult, encoded⟩
           simp only [Option.some.injEq] at encoded
           subst pages
           unfold CoreDecode.decodeSubtreeRowsFrom
@@ -467,10 +467,10 @@ theorem decodeSubtreeRowsFrom_encodeChunkNode (schema : Core.Schema)
           simp [CoreWidePageState.Node.rows, WidePageTree.Node.toList]
         | branch pageId children =>
           simp only [CoreWidePageCodec.encodeChunkNode] at encoded
-          rcases Option.bind_eq_some.mp encoded with ⟨parts, partsResult, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨parts, partsResult, encoded⟩
           rcases parts with ⟨cells, rightmost⟩
-          rcases Option.bind_eq_some.mp encoded with ⟨rootPage, rootResult, encoded⟩
-          rcases Option.bind_eq_some.mp encoded with
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨rootPage, rootResult, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with
             ⟨childPages, childrenResult, encoded⟩
           simp only [Option.some.injEq] at encoded
           subst pages
@@ -584,16 +584,16 @@ private theorem encodeChunkNode_height_lt_length_succ (schema : Core.Schema) :
       cases node with
       | leaf pageId entries =>
           simp only [CoreWidePageCodec.encodeChunkNode] at encoded
-          rcases Option.bind_eq_some.mp encoded with ⟨page, _, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨page, _, encoded⟩
           simp only [Option.some.injEq] at encoded
           subst pages
           simp [WidePageTree.Node.height]
       | branch pageId children =>
           simp only [CoreWidePageCodec.encodeChunkNode] at encoded
-          rcases Option.bind_eq_some.mp encoded with ⟨parts, partsResult, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨parts, partsResult, encoded⟩
           rcases parts with ⟨cells, rightmost⟩
-          rcases Option.bind_eq_some.mp encoded with ⟨page, _, encoded⟩
-          rcases Option.bind_eq_some.mp encoded with
+          rcases Option.bind_eq_some_iff.mp encoded with ⟨page, _, encoded⟩
+          rcases Option.bind_eq_some_iff.mp encoded with
             ⟨childPages, childrenResult, encoded⟩
           simp only [Option.some.injEq] at encoded
           subst pages
@@ -603,9 +603,9 @@ private theorem encodeChunkNode_height_lt_length_succ (schema : Core.Schema) :
               simp [WidePageTree.splitLast?] at partsResult
           | cons child children =>
               simp only [List.mapM_cons] at childrenResult
-              rcases Option.bind_eq_some.mp childrenResult with
+              rcases Option.bind_eq_some_iff.mp childrenResult with
                 ⟨headPages, headResult, childrenResult⟩
-              rcases Option.bind_eq_some.mp childrenResult with
+              rcases Option.bind_eq_some_iff.mp childrenResult with
                 ⟨tailPages, tailResult, childrenResult⟩
               simp only [pure, Option.pure_def, Option.some.injEq] at childrenResult
               subst childPages
@@ -692,17 +692,17 @@ theorem pageSourceRepresents_encodeBulkInlineWithState
     CoreDecode.PageSourceRepresents
       (.ofList (image.pages.map CoreFile.Page.bytes)) database := by
   unfold CoreWidePageCodec.encodeBulkInlineWithState at encoded
-  rcases Option.bind_eq_some.mp encoded with ⟨state, stateResult, encoded⟩
+  rcases Option.bind_eq_some_iff.mp encoded with ⟨state, stateResult, encoded⟩
   split at encoded
   next inlineResult =>
-    rcases Option.bind_eq_some.mp encoded with
+    rcases Option.bind_eq_some_iff.mp encoded with
       ⟨numbered, numberedResult, encoded⟩
     let ordered := CorePageCodec.orderNumberedPages
       (CoreWidePageCodec.includePendingBytePlaceholder state.nextPage numbered)
     dsimp only at encoded
     split at encoded
     next numbers =>
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨indexEncodings, indexResult, encoded⟩
       split at encoded
       next countBound =>
@@ -974,15 +974,15 @@ theorem encodeBulkInline_header {database : Core.Database}
     simp only [resultEq, Option.map, Option.some.injEq] at encoded
     subst image
     unfold CoreWidePageCodec.encodeBulkInlineWithState at resultEq
-    rcases Option.bind_eq_some.mp resultEq with ⟨state, stateResult, resultEq⟩
+    rcases Option.bind_eq_some_iff.mp resultEq with ⟨state, stateResult, resultEq⟩
     split at resultEq
     next =>
-      rcases Option.bind_eq_some.mp resultEq with
+      rcases Option.bind_eq_some_iff.mp resultEq with
         ⟨numbered, numberedResult, resultEq⟩
       dsimp only at resultEq
       split at resultEq
       next =>
-        rcases Option.bind_eq_some.mp resultEq with
+        rcases Option.bind_eq_some_iff.mp resultEq with
           ⟨indexEncodings, indexResult, resultEq⟩
         split at resultEq
         next countBound =>

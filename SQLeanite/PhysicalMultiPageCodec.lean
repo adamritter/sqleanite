@@ -1,5 +1,8 @@
 import SQLeanite.PhysicalTableBTree
 
+-- Preserve elaboration of dependent page-size indices; the kernel still checks every proof.
+set_option backward.isDefEq.respectTransparency false
+
 namespace SQLeanite
 namespace PhysicalMultiPageCodec
 

@@ -10,6 +10,7 @@ import SQLeanite.CoreWidePageInverse
 import SQLeanite.CoreWidePageLoad
 import SQLeanite.CoreWidePageDelta
 import SQLeanite.PhysicalFileAdapter
+import SQLeanite.Runtime.Record
 
 namespace SQLeanite
 namespace CoreFileAdapter
@@ -387,7 +388,7 @@ theorem addFreelistWrite?_base_mem
       simp only [addFreelistWrite?] at success
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨trunkAndRest, decoded, success⟩
         rcases trunkAndRest with ⟨trunkPage, trunkRest⟩
         split at success
@@ -428,15 +429,15 @@ theorem planLocalizedWrites?_base_mem
   simp only [planLocalizedWrites?] at planned
   split at planned
   next =>
-    rcases Option.bind_eq_some.mp planned with
+    rcases Option.bind_eq_some_iff.mp planned with
       ⟨headerAndSuffix, headerResult, planned⟩
     rcases headerAndSuffix with ⟨header, suffix⟩
-    rcases Option.bind_eq_some.mp planned with
+    rcases Option.bind_eq_some_iff.mp planned with
       ⟨pageAndRest, pageResult, planned⟩
     rcases pageAndRest with ⟨headerPage, headerRest⟩
     split at planned
     next =>
-      rcases Option.bind_eq_some.mp planned with
+      rcases Option.bind_eq_some_iff.mp planned with
         ⟨augmented, augmentedResult, finalResult⟩
       injection finalResult with finalEq
       subst finalWrites
@@ -463,7 +464,7 @@ theorem addFreelistWrite?_sources
       simp only [addFreelistWrite?] at success
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨trunkAndRest, decoded, success⟩
         rcases trunkAndRest with ⟨trunkPage, trunkRest⟩
         split at success
@@ -512,15 +513,15 @@ theorem planLocalizedWrites?_sources
   simp only [planLocalizedWrites?] at planned
   split at planned
   next =>
-    rcases Option.bind_eq_some.mp planned with
+    rcases Option.bind_eq_some_iff.mp planned with
       ⟨headerAndSuffix, headerResult, planned⟩
     rcases headerAndSuffix with ⟨header, suffix⟩
-    rcases Option.bind_eq_some.mp planned with
+    rcases Option.bind_eq_some_iff.mp planned with
       ⟨pageAndRest, pageResult, planned⟩
     rcases pageAndRest with ⟨headerPage, headerRest⟩
     split at planned
     next =>
-      rcases Option.bind_eq_some.mp planned with
+      rcases Option.bind_eq_some_iff.mp planned with
         ⟨augmented, augmentedResult, finalResult⟩
       injection finalResult with finalEq
       subst finalWrites
@@ -661,7 +662,7 @@ theorem PreparedLocalizedWrites.pageZero_not_mem_of_stable
           some (addLocalizedHeaderWrite prepared.firstPage headerPage writes)
         else none) = some prepared.writes at planned
     rw [updatedHeaderEq] at planned
-    rcases Option.bind_eq_some.mp planned with
+    rcases Option.bind_eq_some_iff.mp planned with
       ⟨pageAndRest, pageResult, planned⟩
     rcases pageAndRest with ⟨headerPage, headerRest⟩
     split at planned
@@ -889,118 +890,51 @@ structure PageReadCache where
   pages : IO.Ref (Std.HashMap Nat ByteArray)
   decodedIndexPages : IO.Ref (Std.HashMap Nat CoreDecode.DecodedIndexPage)
   capacity : Nat
+  tableCursors : IO.Ref (Std.HashMap Nat Runtime.TableCursor.Cursor)
+  tableViews : IO.Ref (Std.HashMap Nat Runtime.TablePage.View)
 
 def PageReadCache.create (capacity : Nat := 512) : BaseIO PageReadCache := do
-  return ⟨← IO.mkRef (Std.HashMap.emptyWithCapacity capacity),
-    ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity), capacity⟩
+  return {
+    pages := ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity)
+    decodedIndexPages := ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity)
+    capacity
+    tableCursors := ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity)
+    tableViews := ← IO.mkRef (Std.HashMap.emptyWithCapacity capacity) }
+
+private def readPager (path : System.FilePath) (pageCount : Nat)
+    (cache : PageReadCache) : Runtime.ReadPager.Pager :=
+  Runtime.ReadPager.ofPath path pageCount PhysicalCodec.pageSize
+    cache.pages cache.capacity
 
 private def preadPageSourceCached (path : System.FilePath)
-    (pageCount : Nat) (cache : PageReadCache) : CoreDecode.IOPageSource :=
-  { pageCount
-    readPage := fun pageNumber => do
-      let pages ← cache.pages.get
-      match pages.get? pageNumber with
-      | some page => return some page.toList
-      | none =>
-          if pageNumber = 0 ∨ pageCount < pageNumber then return none
-          let bytes ← SyscallVFS.preadBytes path.toString
-            (UInt64.ofNat ((pageNumber - 1) * PhysicalCodec.pageSize))
-            (USize.ofNat PhysicalCodec.pageSize)
-          if bytes.size = PhysicalCodec.pageSize then
-              if pages.size < cache.capacity then
-                cache.pages.set (pages.insert pageNumber bytes)
-              return some bytes.toList
-          else return none }
+    (pageCount : Nat) (cache : PageReadCache) : CoreDecode.IOPageSource := {
+  pageCount
+  readPage := fun page => do
+    return (← (readPager path pageCount cache).get page).map ByteArray.toList }
 
-private def bytePageCached (path : System.FilePath) (pageCount : Nat)
-    (cache : PageReadCache) (pageNumber : Nat) : IO (Option ByteArray) := do
-  if pageNumber = 0 ∨ pageCount < pageNumber then return none
-  let pages ← cache.pages.get
-  match pages.get? pageNumber with
-  | some page => return some page
-  | none =>
-      let bytes ← SyscallVFS.preadBytes path.toString
-        (UInt64.ofNat ((pageNumber - 1) * PhysicalCodec.pageSize))
-        (USize.ofNat PhysicalCodec.pageSize)
-      unless bytes.size = PhysicalCodec.pageSize do return none
-      if pages.size < cache.capacity then
-        cache.pages.set (pages.insert pageNumber bytes)
-      return some bytes
-
-private def decodeUnsignedAt? (width offset : Nat) (bytes : ByteArray) :
-    Option Nat := do
-  if _bound : offset + width ≤ bytes.size then
-    let window := (bytes.extract offset (offset + width)).toList
-    let (value, suffix) ← FileFormat.decodeUnsignedFixed width window
-    if suffix = [] then some value else none
-  else none
-
-private def decodeVarintAt? (offset : Nat) (bytes : ByteArray) :
-    Option (FileFormat.U64Value × Nat) := do
-  if _bound : offset < bytes.size then
-    let stop := min bytes.size (offset + 9)
-    let window := (bytes.extract offset stop).toList
-    let (value, suffix) ← FileFormat.decodeVarint window
-    some (value, offset + (window.length - suffix.length))
-  else none
-
-private def tableChildAtLoop (bytes : ByteArray) (target : Core.Integer)
-    (rightmost : Nat) : Nat → Nat → Option Nat
-  | 0, _ => some rightmost
-  | remaining + 1, index => do
-      let offset ← decodeUnsignedAt? 2 (12 + 2 * index) bytes
-      let child ← decodeUnsignedAt? 4 offset bytes
-      let (keyBits, _) ← decodeVarintAt? (offset + 4) bytes
-      let key := FileFormat.signedIntegerFromUnsigned .eight keyBits
-      if target.value ≤ key.value then some child
-      else tableChildAtLoop bytes target rightmost remaining (index + 1)
-
-private def tableChildAt? (bytes : ByteArray) (target : Core.Integer) :
-    Option Nat := do
-  if bytes[0]? = some 5 then
-    let count ← decodeUnsignedAt? 2 3 bytes
-    let rightmost ← decodeUnsignedAt? 4 8 bytes
-    tableChildAtLoop bytes target rightmost count 0
-  else none
-
-private def tableRowOffsetLoop (bytes : ByteArray) (target : Core.Integer) :
-    Nat → Nat → Option (Option Nat)
-  | 0, _ => some none
-  | remaining + 1, index => do
-      let offset ← decodeUnsignedAt? 2 (8 + 2 * index) bytes
-      let (_, afterSize) ← decodeVarintAt? offset bytes
-      let (rowidBits, _) ← decodeVarintAt? afterSize bytes
-      let rowid := FileFormat.signedIntegerFromUnsigned .eight rowidBits
-      if rowid = target then some (some offset)
-      else tableRowOffsetLoop bytes target remaining (index + 1)
-
-private def tableRowOffset? (bytes : ByteArray) (target : Core.Integer) :
-    Option (Option Nat) := do
-  if bytes[0]? = some 13 then
-    let count ← decodeUnsignedAt? 2 3 bytes
-    tableRowOffsetLoop bytes target count 0
-  else none
-
+/-- Compatibility adapter: the pager owns bytes, the table cursor locates a
+cell, and the record layer decodes its payload. Existing generated-index and
+primary-key readers share the same bounded transaction-local resources. -/
 private def lookupTableRowidBytesCached (path : System.FilePath)
     (schema : Core.Schema) (source : CoreDecode.IOPageSource)
-    (cache : PageReadCache) (target : Core.Integer) :
-    Nat → Nat → IO (Option (Option Core.Row))
-  | 0, _ => pure none
-  | fuel + 1, pageNumber => do
-      let some page ← bytePageCached path source.pageCount cache pageNumber |
+    (cache : PageReadCache) (target : Core.Integer)
+    (fuel pageNumber : Nat) : IO (Option (Option Core.Row)) := do
+  let cursors ← cache.tableCursors.get
+  let cursor ← match cursors.get? pageNumber with
+    | some cursor => pure cursor
+    | none => do
+        let cursor ← Runtime.TableCursor.create
+          (readPager path source.pageCount cache) pageNumber (some cache.tableViews)
+        if cursors.size < cache.capacity then
+          cache.tableCursors.set (cursors.insert pageNumber cursor)
+        pure cursor
+  let some located ← cursor.seek target fuel | return none
+  match located with
+  | none => return some none
+  | some cell =>
+      let some row ← Runtime.Record.readRowWithSource schema source cell |
         return none
-      match tableChildAt? page target with
-      | some child =>
-          lookupTableRowidBytesCached path schema source cache target fuel child
-      | none =>
-          let some offset := tableRowOffset? page target | return none
-          match offset with
-          | none => return some none
-          | some offset =>
-              let input := (page.extract offset page.size).toList
-              let some row ← CoreDecode.decodeRowCellIOFrom schema source
-                (source.pageCount + 1) input | return none
-              if row.rowid = target then return some (some row) else return none
+      return some (some row)
 
 private def decodedIndexPageCached (cache : PageReadCache)
     (source : CoreDecode.IOPageSource) (pageNumber : Nat) :
@@ -1216,7 +1150,7 @@ theorem generatedOpenState?_database
       some validated) :
     validated.state.database = database := by
   unfold generatedOpenState? at generated
-  rcases Option.bind_eq_some.mp generated with ⟨built, builtResult, generated⟩
+  rcases Option.bind_eq_some_iff.mp generated with ⟨built, builtResult, generated⟩
   exact (retainGeneratedState?_state generated).trans
     (CoreChunkPageState.State.build?_represents builtResult).1
 
@@ -1227,7 +1161,7 @@ theorem generatedOpenState?_allocationWellFormed
       some validated) :
     validated.state.AllocationWellFormed := by
   unfold generatedOpenState? at generated
-  rcases Option.bind_eq_some.mp generated with ⟨built, builtResult, generated⟩
+  rcases Option.bind_eq_some_iff.mp generated with ⟨built, builtResult, generated⟩
   exact retainGeneratedState?_allocationWellFormed generated
 
 /-- Preserve the validating-open capability across a proved table-only delta.
@@ -1358,15 +1292,14 @@ def byteArrayStorageImage (input : ByteArray) (pageCount : Nat)
             simpa [stop, start, Nat.add_mul] using scaled
           have inputSize : input.data.size =
               pageCount * PhysicalCodec.pageSize := by
-            simpa [ByteArray.size] using exactSize
+            exact exactSize
           have pageSize : (input.data.extract start stop).size =
               PhysicalCodec.pageSize := by
             rw [Array.size_extract, inputSize, Nat.min_eq_left stopBound]
             simp only [stop, start, Nat.add_sub_cancel_left]
           change (input.extract start stop).data.size =
             PhysicalCodec.pageSize
-          simpa [ByteArray.extract, ByteArray.copySlice, ByteArray.empty,
-            ByteArray.emptyWithCapacity, stop] using pageSize }
+          simpa only [ByteArray.data_extract] using pageSize }
     else Storage.Page.zero PhysicalCodec.pageSize }
 
 /-- The fast array-backed decoder source and the growable-storage view read
@@ -2252,7 +2185,7 @@ theorem deletedRowsOrdered?_length {before after deleted : List Core.Row}
           next =>
             split at success
             next =>
-              rcases Option.bind_eq_some.mp success with ⟨tail, recursive, equal⟩
+              rcases Option.bind_eq_some_iff.mp success with ⟨tail, recursive, equal⟩
               simp only [Option.some.injEq] at equal
               subst deleted
               have tailLength := induction (after := row :: rows) recursive
@@ -2994,7 +2927,7 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
         let inputBytes := ByteArray.mk input.toArray
         have inputBytesSize : inputBytes.size =
             count * PhysicalCodec.pageSize := by
-          simpa [inputBytes] using _length
+          simpa only [inputBytes, ByteArray.size, List.size_toArray] using _length
         let source := byteArrayPageSource inputBytes count
         let firstPage ← source.readPage 1
         let catalog ← CoreDecode.decodeCatalogForOpen firstPage
@@ -3670,7 +3603,7 @@ theorem rowsForExpectedIndexEntries (table : Core.Table) (index : Core.Index)
     omega
   have candidatesSorted : (candidates.mergeSort rowidLe).Pairwise
       (fun left right => rowidLe left right = true) :=
-    List.sorted_mergeSort rowidLeTrans rowidLeTotal candidates
+    List.pairwise_mergeSort rowidLeTrans rowidLeTotal candidates
   have tableSorted : (table.rows.filter keepRow).Pairwise
       (fun left right => rowidLe left right = true) := by
     have strict := table.rowsWellFormed.2.filter keepRow
@@ -3679,7 +3612,7 @@ theorem rowsForExpectedIndexEntries (table : Core.Table) (index : Core.Index)
       exact Int.le_of_lt less
   unfold rowsForIndexEntries
   change candidates.mergeSort rowidLe = table.rows.filter keepRow
-  apply candidatePerm.eq_of_sorted _ candidatesSorted tableSorted
+  apply candidatePerm.eq_of_pairwise _ candidatesSorted tableSorted
   intro left right leftMember rightMember leftRight rightLeft
   have leftFiltered : left ∈ table.rows.filter keepRow :=
     candidatePerm.subset leftMember
@@ -3705,7 +3638,7 @@ theorem rowsForExpectedValue_exact (table : Core.Table) (index : Core.Index)
   apply rowsForExpectedIndexEntries table index
   intro row member
   simp [CoreDecode.IndexEntry.matchesValue, Core.selects,
-    Core.Predicate.eval, Core.indexColumnMatches]
+    Core.Predicate.eval, Core.indexColumnMatches] <;> rfl
 
 theorem rowsForExpectedRange_exact (table : Core.Table) (index : Core.Index)
     (operation : PhysicalQuery.Comparison) (target : Core.Value) :
@@ -3717,7 +3650,7 @@ theorem rowsForExpectedRange_exact (table : Core.Table) (index : Core.Index)
   apply rowsForExpectedIndexEntries table index
   intro row member
   simp [CoreDecode.IndexEntry.matchesRange, Core.selects,
-    Core.Predicate.eval]
+    Core.Predicate.eval] <;> rfl
 
 structure CertifiedCandidates (table : Core.Table) (query : Core.Query) where
   candidates : List Core.Row
@@ -3919,6 +3852,33 @@ def GeneratedFileGeometry.tableSchema? (geometry : GeneratedFileGeometry)
     (tableName : String) : Option Core.Schema := do
   let entry ← geometry.schemas.find? fun entry => entry.1 == tableName
   some entry.2
+
+/-- Primary-key counterpart of the generated secondary-index reader. The
+caller retains the generated geometry and bounded byte-page cache for one
+immutable, process-locked read batch. Use the same routed byte reader already
+used to resolve secondary-index rowids: it decodes the selected record rather
+than every record in its leaf. Foreign images continue through
+`lookupPrimaryRowDecision`, including its full local decoding checks.
+
+Neither geometry nor cache may be reused across a write. A malformed routed
+page or an invalid selected row is an optimization miss, not a successful
+empty result. Only a valid leaf miss returns `some none`. -/
+def lookupGeneratedPrimaryRowWith (geometry : GeneratedFileGeometry)
+    (paths : Paths) (tableName : String) (schema : Core.Schema)
+    (cache : PageReadCache) (target : Core.Integer) :
+    IO (Option (Option Core.Row)) := do
+  let some tableEntry := geometry.catalog.find? fun entry =>
+    entry.kind == "table" && entry.name == tableName | return none
+  let some decodedSchema := geometry.tableSchema? tableName | return none
+  unless decodedSchema = schema do return none
+  let source := preadPageSourceCached paths.main geometry.pageCount cache
+  let some result ← lookupTableRowidBytesCached paths.main schema source cache
+      target (geometry.pageCount + 1) tableEntry.rootPage | return none
+  match result with
+  | none => return some none
+  | some row =>
+      unless row.rowid = target && row.WellFormed schema do return none
+      return some (some row)
 
 /-- Validate the header and decode the catalog. The header checks are exactly
 those `lookupIndexCandidates` performed inline, so a cached geometry carries the

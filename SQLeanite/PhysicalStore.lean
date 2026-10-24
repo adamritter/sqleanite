@@ -133,7 +133,7 @@ theorem Database.tree_delete_rows (database : Database) (target : Row) :
         have rightFalse : (row.rowid.value != target.rowid.value) = false := by
           simp [equal]
         rw [leftFalse, rightFalse]
-        simpa only [treeEntries] using induction
+        simpa only [treeEntries, Bool.false_eq_true, ↓reduceIte] using induction
       · have keyNotEqual : row.treeKey ≠ target.treeKey := fun keyEqual =>
           equal ((Row.treeKey_eq_iff row target).1 keyEqual)
         have leftTrue : decide (row.treeKey ≠ target.treeKey) = true := by
@@ -141,7 +141,7 @@ theorem Database.tree_delete_rows (database : Database) (target : Row) :
         have rightTrue : (row.rowid.value != target.rowid.value) = true := by
           simp [equal]
         rw [leftTrue, rightTrue]
-        exact congrArg (row :: ·) (by simpa only [treeEntries] using induction)
+        exact congrArg (row :: ·) (by simpa only [treeEntries, Bool.false_eq_true, ↓reduceIte] using induction)
 
 theorem mem_orderedUpsert {row candidate : Row} {rows : List Row}
     (membership : candidate ∈ orderedUpsert row rows) :

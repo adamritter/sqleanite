@@ -149,12 +149,12 @@ theorem runStatements_eq_commands
           rw [tailEquality]
           cases tailExecution : executeCommands middle tailCommands with
           | error message =>
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure]
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure]
           | ok outcome =>
               rcases outcome with ⟨next, tailResults⟩
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure]
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure]
 
 inductive TraceEffects : List TraceCommand → Core.State → Core.State →
     List Core.Result → Prop where
@@ -179,18 +179,18 @@ theorem executeCommands_exact : ∀ (commands : List TraceCommand)
       simp only [List.map_cons, CoreSQL.runCoreCommands] at success
       cases headExecution : Core.execute state command.toCore with
       | error message =>
-          simp [headExecution, Except.instMonad, Except.bind] at success
+          simp [headExecution, bind, Functor.map, Except.bind] at success
       | ok headOutcome =>
           rcases headOutcome with ⟨middle, result⟩
           cases tailExecution : CoreSQL.runCoreCommands middle
               (commands.map (·.toCore)) with
           | error message =>
-              simp [headExecution, tailExecution, Except.instMonad,
+              simp [headExecution, tailExecution, bind, Functor.map,
                 Except.bind] at success
           | ok tailOutcome =>
               rcases tailOutcome with ⟨actualNext, actualResults⟩
-              simp [headExecution, tailExecution, Except.instMonad,
-                Except.bind, Except.pure, pure] at success
+              simp [headExecution, tailExecution, bind, Functor.map,
+                Except.bind, pure, Except.pure, pure] at success
               rcases success with ⟨rfl, rfl⟩
               exact .cons (execute_exact command headExecution)
                 (executeCommands_exact commands middle actualNext
@@ -210,7 +210,7 @@ theorem execute_eq_commands
   rcases supported with ⟨statements, parsed, translated⟩
   rcases parsed with ⟨certificate, certified, statementList⟩
   simp only [CoreSQL.execute, certified, statementList,
-    Except.instMonad, Except.bind]
+    bind, Functor.map, Except.bind]
   exact runStatements_eq_commands translated
 
 theorem execute_success

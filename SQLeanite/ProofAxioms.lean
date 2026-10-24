@@ -1,4 +1,5 @@
 import SQLeanite.Optimizer
+import SQLeanite.Runtime.Record
 import SQLeanite.QueryCost
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreReadSemantics
@@ -962,3 +963,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.PersistentPageTree.Node.lookup_eq_erase
 #print axioms SQLeanite.PersistentPageTree.Node.last?_eq_erase
 #print axioms SQLeanite.Core.implicitPrimaryIndexes_areImplicit
+#print axioms SQLeanite.Runtime.LowerBound.search_eq_findIdx
+#print axioms SQLeanite.Runtime.CheckedOrder.monotone_of_checked
+#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_eq_linear
+#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_present
+#print axioms SQLeanite.Runtime.Record.encodedSize_eq_length
+#print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference
+#print axioms SQLeanite.Runtime.Record.readRowWithSource_eq_reference

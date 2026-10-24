@@ -184,12 +184,12 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
         CoreChunkPageDelta.updateStateCandidate? state next.database with
     | some delta =>
         if sufficient : delta.table.tablePagesSufficient then
-          match physical with
+          match physicalResult : physical with
           | some state =>
             have candidateState :
                 CoreChunkPageDelta.updateStateCandidate? state next.database =
                   some delta := by
-              simpa using candidate
+              simpa [physicalResult] using candidate
             match CoreFileAdapter.prepareOrdinaryDelta? state next.database
                 delta candidateState sufficient with
             | some prepared =>
@@ -204,7 +204,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
                   return next
               | none => commitFull connection next
             | none => commitFull connection next
-          | none => False.elim (by simp at candidate)
+          | none => False.elim (by simp [physicalResult] at candidate)
         else
           have canonicalCandidate :
               CoreChunkPageDelta.updateStateCandidate? delta.before

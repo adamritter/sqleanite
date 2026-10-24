@@ -929,9 +929,40 @@ if grep -q 'CoreLazyFileEngine.execute? paths sql' Main.lean &&
    grep -q 'encodeBulk_generatedHeader' SQLeanite/ProofAxioms.lean &&
    grep -q 'lookupTableRowidWith source.readPage' SQLeanite/CoreDecode.lean &&
    grep -q 'lookupTableRowidWith (m := Id)' SQLeanite/CoreDecode.lean; then
-  ok "cold primary hits and generated-image misses use proved page lookup"
+  ok "foreign primary fallback retains the reference page traversal and provenance checks"
 else
   fail "the cold primary-key path detached from traversal or provenance proof"
+fi
+
+if grep -q 'CoreFileAdapter.lookupGeneratedPrimaryRowWith generated paths' \
+     SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'cursor.seek target fuel' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'Runtime.Record.readRowWithSource schema source cell' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'Runtime.ReadPager.ofPath' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'let some page ← cursor.pager.get pageNumber' \
+     SQLeanite/Runtime/TableCursor.lean &&
+   grep -q 'CoreDecode.decodeRowCellIOFrom schema source' \
+     SQLeanite/Runtime/Record.lean; then
+  ok "generated reads use pager/cursor/record layers (runtime boundary, not a refinement proof)"
+else
+  fail "generated read layers detached from the shipped path"
+fi
+
+if grep -q 'let index := view.lowerBound target' SQLeanite/Runtime/TableCursor.lean &&
+   grep -q 'pageNumber (some cache.tableViews)' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'let some view := TablePage.decode? page' SQLeanite/Runtime/TableCursor.lean &&
+   grep -q 'if ordered : CheckedOrder.adjacent' SQLeanite/Runtime/TablePage.lean &&
+   grep -q 'LowerBound.search' SQLeanite/Runtime/TablePage.lean &&
+   grep -q 'encodedSize record = cell.payloadSize.val' SQLeanite/Runtime/Record.lean &&
+   grep -q '(source.pageCount + 1) cell.input' SQLeanite/Runtime/Record.lean &&
+   grep -q '^#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_eq_linear' SQLeanite/ProofAxioms.lean &&
+   grep -q '^#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_present' SQLeanite/ProofAxioms.lean &&
+   grep -q '^#print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference' SQLeanite/ProofAxioms.lean &&
+   grep -q '^#print axioms SQLeanite.Runtime.Record.readRowWithSource_eq_reference' SQLeanite/ProofAxioms.lean; then
+  ok "checked binary search and allocation-free size validation use audited refinements"
+else
+  fail "SQLite-style page/record algorithms detached from their checked premises or proofs"
 fi
 
 if grep -q 'lookupGeneratedPrimaryRange' SQLeanite/CoreLazyFileEngine.lean &&

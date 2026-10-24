@@ -61,9 +61,7 @@ theorem Cost.total_le {left right : Cost} (bounded : left.LE right) :
 Boolean connective bookkeeping is not counted as a value comparison. -/
 def Predicate.comparisonCount : Predicate → Nat
   | .constant _ => 0
-  | .truthy _ | .equals _ _ | .notEquals _ _ | .compare _ _ _ |
-      .operandsEqual _ _ | .operandsNotEqual _ _ | .operandsCompare _ _ _ |
-      .operandIsNull _ | .isNull _ => 1
+  | .truthy _ | .equals _ _ | .notEquals _ _ | .compare _ _ _ | .operandsEqual _ _ | .operandsNotEqual _ _ | .operandsCompare _ _ _ | .operandIsNull _ | .isNull _ => 1
   | .not predicate | .onLeft predicate | .onRight predicate =>
       predicate.comparisonCount
   | .and left right | .or left right =>
@@ -88,8 +86,7 @@ private theorem foldOr_comparisonCount_le (left right : Predicate) :
 theorem foldConstants_comparisonCount_le (predicate : Predicate) :
     (foldConstants predicate).comparisonCount ≤ predicate.comparisonCount := by
   induction predicate with
-  | constant | truthy | equals | notEquals | compare | operandsEqual |
-      operandsNotEqual | operandsCompare | operandIsNull | isNull =>
+  | constant | truthy | equals | notEquals | compare | operandsEqual | operandsNotEqual | operandsCompare | operandIsNull | isNull =>
       exact Nat.le_refl _
   | not predicate induction =>
       exact Nat.le_trans (foldNot_comparisonCount_le (foldConstants predicate))
@@ -210,18 +207,11 @@ theorem profile_rows (database : Core.Database) (plan : Plan) :
     (profile database plan).rows = evalPlan database plan := by
   induction plan with
   | table | rows => rfl
-  | unionAll left right leftInduction rightInduction |
-    intersectAll left right leftInduction rightInduction |
-    exceptAll left right leftInduction rightInduction |
-    innerJoin left right leftInduction rightInduction |
-    leftOuterJoin left right leftInduction rightInduction =>
+  | unionAll left right leftInduction rightInduction | intersectAll left right leftInduction rightInduction | exceptAll left right leftInduction rightInduction | innerJoin left right leftInduction rightInduction | leftOuterJoin left right leftInduction rightInduction =>
       simp [profile, evalPlan, leftInduction, rightInduction]
-  | distinct input induction | filter _ input induction |
-    project _ input induction | groupCount _ input induction |
-    groupSum _ _ input induction =>
+  | distinct input induction | filter _ input induction | project _ input induction | groupCount _ input induction | groupSum _ _ input induction =>
       simp [profile, evalPlan, induction]
-  | leftOuterOn _ left right leftInduction rightInduction |
-    leftOuterOnWith _ _ left right leftInduction rightInduction =>
+  | leftOuterOn _ left right leftInduction rightInduction | leftOuterOnWith _ _ left right leftInduction rightInduction =>
       simp [profile, evalPlan, leftInduction, rightInduction]
 
 theorem projectionElimination_cost_le (database : Core.Database) (plan : Plan) :
@@ -288,28 +278,19 @@ theorem optimizePlan_cost_le (database : Core.Database) (plan : Plan) :
     (cost database (optimizePlan plan)).LE (cost database plan) := by
   induction plan with
   | table | rows => exact Cost.LE.refl _
-  | unionAll left right leftIH rightIH |
-    intersectAll left right leftIH rightIH |
-    exceptAll left right leftIH rightIH |
-    innerJoin left right leftIH rightIH |
-    leftOuterJoin left right leftIH rightIH =>
+  | unionAll left right leftIH rightIH | intersectAll left right leftIH rightIH | exceptAll left right leftIH rightIH | innerJoin left right leftIH rightIH | leftOuterJoin left right leftIH rightIH =>
       apply (rewriteRoot_cost_le database _).trans
       have leftRows := profile_optimize_rows database left
       have rightRows := profile_optimize_rows database right
       simp only [cost, profile, leftRows, rightRows]
       exact Cost.add_le_add (Cost.add_le_add leftIH rightIH)
         (Cost.LE.refl _)
-  | distinct input inputIH |
-    filter _ input inputIH |
-    project _ input inputIH |
-    groupCount _ input inputIH |
-    groupSum _ _ input inputIH =>
+  | distinct input inputIH | filter _ input inputIH | project _ input inputIH | groupCount _ input inputIH | groupSum _ _ input inputIH =>
       apply (rewriteRoot_cost_le database _).trans
       have inputRows := profile_optimize_rows database input
       simp only [cost, profile, inputRows, filterCost]
       exact Cost.add_le_add inputIH (Cost.LE.refl _)
-  | leftOuterOn _ left right leftIH rightIH |
-    leftOuterOnWith _ _ left right leftIH rightIH =>
+  | leftOuterOn _ left right leftIH rightIH | leftOuterOnWith _ _ left right leftIH rightIH =>
       apply (rewriteRoot_cost_le database _).trans
       have leftRows := profile_optimize_rows database left
       have rightRows := profile_optimize_rows database right

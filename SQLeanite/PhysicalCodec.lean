@@ -583,7 +583,7 @@ theorem Database.fileBytes_length (database : Database) :
 theorem Database.fileBytes_layout (database : Database) :
     database.fileBytes = schemaPageBytes ++ database.dataPageBytes := by
   unfold Database.fileBytes DiskFormat.DatabaseImage.encode DiskFormat.encodeDisk
-  change DiskFormat.encodePages (List.ofFn database.image.disk.read) = _
+  change DiskFormat.encodePages (List.ofFn (fun i : Fin 2 => database.image.disk.read i)) = _
   rw [List.ofFn_succ, List.ofFn_succ, List.ofFn_zero]
   simp only [DiskFormat.encodePages, List.append_nil]
   change schemaPage.bytes.toList ++ database.dataPage.bytes.toList =
@@ -801,8 +801,7 @@ theorem decodeStorageImage_equiv (database : Database)
     apply congrArg (fun disk => DiskFormat.DatabaseImage.mk geometry disk)
     apply congrArg Storage.Disk.mk
     funext pageId
-    have pageBound : pageId.val < 2 := by
-      simp [geometry]
+    have pageBound : pageId.val < 2 := pageId.isLt
     have imageBound : pageId.val < image.pageCount := by
       rw [countMatches]
       exact pageBound

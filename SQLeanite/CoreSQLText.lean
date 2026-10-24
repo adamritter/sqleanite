@@ -108,7 +108,7 @@ theorem execute_eq_runStatements_of_parsed {state : Core.State} {text : String}
     (supported : ParsedSupportedText text statements) :
     execute state text = runStatements state statements.toList := by
   rcases supported with ⟨certificate, parsed, rfl, _⟩
-  simp [execute, parsed, Except.instMonad, Except.bind]
+  simp [execute, parsed, bind, Functor.map, Except.bind]
 
 /-- Every text accepted all the way through the live Core has a parser witness
 and contains no legacy-only top-level statement. -/
@@ -118,11 +118,11 @@ theorem parsedSupportedText_of_execute_success {state next : Core.State}
     ∃ statements, ParsedSupportedText text statements := by
   cases parsed : CoreTokenGrammar.parseCertified text with
   | error message =>
-      simp [execute, parsed, Except.instMonad, Except.bind] at success
+      simp [execute, parsed, bind, Functor.map, Except.bind] at success
   | ok certificate =>
       refine ⟨certificate.statements, certificate, parsed, rfl, ?_⟩
       exact statementListForm_of_run_success state
-        (by simpa [execute, parsed, Except.instMonad, Except.bind] using success)
+        (by simpa [execute, parsed, bind, Functor.map, Except.bind] using success)
 
 theorem parsedSupportedText_execute_exact {state next : Core.State}
     {text : String} {statements : Array Statement}

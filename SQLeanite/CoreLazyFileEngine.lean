@@ -75,13 +75,19 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
   match query.predicate with
   | some (.equal column (.integer rowid)) =>
       if column = schema.primaryKey then
-        let some lookup ←
-            CoreFileAdapter.lookupPrimaryRowDecision paths tableName rowid |
-          return none
-        unless lookup.schema = schema do return none
-        let physicalRows := match lookup.outcome with
-          | .found row => [row]
-          | .generatedMissing => []
+        let resolved : Option (Option Core.Row) ← match geometry with
+          | some generated =>
+              CoreFileAdapter.lookupGeneratedPrimaryRowWith generated paths
+                tableName schema cache rowid
+          | none => do
+              match ← CoreFileAdapter.lookupPrimaryRowDecision paths tableName rowid with
+              | none => pure none
+              | some lookup =>
+                  pure (if lookup.schema = schema then some (match lookup.outcome with
+                    | .found row => some row
+                    | .generatedMissing => none) else none)
+        let some row := resolved | return none
+        let physicalRows := row.toList
         return some ({ rows := optimized.eval physicalRows } : Core.Result)
       else
         let some geometry := geometry | return none

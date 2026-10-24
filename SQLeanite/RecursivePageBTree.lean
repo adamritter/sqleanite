@@ -881,8 +881,8 @@ theorem insertCellAt_append_right (left right : List (List UInt8))
     (position : Nat) (cell : List UInt8) (after : left.length ≤ position) :
     insertCellAt position cell (left ++ right) =
       left ++ insertCellAt (position - left.length) cell right := by
-  rw [insertCellAt, List.take_append_eq_append_take,
-    List.drop_append_eq_append_drop, List.take_of_length_le after,
+  rw [insertCellAt, List.take_append,
+    List.drop_append, List.take_of_length_le after,
     List.drop_eq_nil_of_le after]
   simp [insertCellAt, List.append_assoc]
 
@@ -940,7 +940,7 @@ theorem IndexPlan.insertAt?_toCells {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next before =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -950,7 +950,7 @@ theorem IndexPlan.insertAt?_toCells {plan updated : IndexPlan}
         simpa [List.append_assoc] using insertCellAt_append_left left.toCells
           ([separator] ++ right.toCells) position cell before
       next after =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -972,7 +972,7 @@ theorem IndexPlan.insertAt?_toCells {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next before =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -985,7 +985,7 @@ theorem IndexPlan.insertAt?_toCells {plan updated : IndexPlan}
       next afterLeft =>
         split at inserted
         next beforeRight =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
@@ -1015,7 +1015,7 @@ theorem IndexPlan.insertAt?_toCells {plan updated : IndexPlan}
               at decomposed
           simpa [List.append_assoc] using decomposed.symm
         next afterMiddle =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
@@ -1055,14 +1055,14 @@ theorem IndexPlan.insertAt?_pageCount {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
         simp only [IndexPlan.pageCount]
         rw [leftInduction childResult]
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1073,7 +1073,7 @@ theorem IndexPlan.insertAt?_pageCount {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1082,14 +1082,14 @@ theorem IndexPlan.insertAt?_pageCount {plan updated : IndexPlan}
       next =>
         split at inserted
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
           simp only [IndexPlan.pageCount]
           rw [middleInduction childResult]
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
@@ -1129,14 +1129,14 @@ theorem IndexPlan.insertAt?_height {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
         simp only [IndexPlan.height]
         rw [leftInduction childResult]
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1146,7 +1146,7 @@ theorem IndexPlan.insertAt?_height {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1155,13 +1155,13 @@ theorem IndexPlan.insertAt?_height {plan updated : IndexPlan}
       next =>
         split at inserted
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
           rfl
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
@@ -1186,7 +1186,7 @@ theorem IndexPlan.insertAt?_balanced {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1195,7 +1195,7 @@ theorem IndexPlan.insertAt?_balanced {plan updated : IndexPlan}
         rw [IndexPlan.insertAt?_height childResult]
         exact heightEqual
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1211,7 +1211,7 @@ theorem IndexPlan.insertAt?_balanced {plan updated : IndexPlan}
       simp only [IndexPlan.insertAt?] at inserted
       split at inserted
       next =>
-        rcases Option.bind_eq_some.mp inserted with
+        rcases Option.bind_eq_some_iff.mp inserted with
           ⟨child, childResult, inserted⟩
         injection inserted with equal
         subst updated
@@ -1223,7 +1223,7 @@ theorem IndexPlan.insertAt?_balanced {plan updated : IndexPlan}
       next =>
         split at inserted
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated
@@ -1236,7 +1236,7 @@ theorem IndexPlan.insertAt?_balanced {plan updated : IndexPlan}
           · rw [IndexPlan.insertAt?_height childResult]
             exact middleRightHeight
         next =>
-          rcases Option.bind_eq_some.mp inserted with
+          rcases Option.bind_eq_some_iff.mp inserted with
             ⟨child, childResult, inserted⟩
           injection inserted with equal
           subst updated

@@ -3,6 +3,8 @@ import SQLeanite.CorePageCodec
 namespace SQLeanite
 namespace CoreChunkPageDelta
 
+attribute [local instance] lexOrd
+
 
 structure TableDelta where
   before : CoreChunkPageState.TableState
@@ -450,7 +452,7 @@ theorem replaceManyFold_nextPage_le :
       exact success.1 ▸ Nat.le_refl _
   | entry :: entries, store, updated, rows, remaining, success => by
       unfold replaceManyFold at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨resolved, resolvedResult, success⟩
       split at success
       next => exact replaceManyFold_nextPage_le success
@@ -474,7 +476,7 @@ theorem replaceManyFold_pageIds_of_noAllocation :
   | entry :: entries, store, updated, rows, remaining, success,
       noAllocation => by
       unfold replaceManyFold at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨resolved, resolvedResult, success⟩
       split at success
       next same =>
@@ -510,7 +512,7 @@ theorem replaceManyFold_height_of_noAllocation :
   | entry :: entries, store, updated, rows, remaining, success,
       noAllocation => by
       unfold replaceManyFold at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨resolved, resolvedResult, success⟩
       split at success
       next => exact replaceManyFold_height_of_noAllocation success noAllocation
@@ -567,7 +569,7 @@ theorem replace?_freedPageNumbers {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.freedPageNumbers = [] := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
@@ -575,7 +577,7 @@ theorem replace?_freedPageNumbers {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨pages, pagesResult, success⟩
         injection success with equal
         subst delta
@@ -590,7 +592,7 @@ theorem replace?_after_nextPage {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.after.tree.nextPage = nextPage := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
@@ -598,7 +600,7 @@ theorem replace?_after_nextPage {state : CoreChunkPageState.TableState}
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨pages, pagesResult, success⟩
         injection success with equal
         subst delta
@@ -613,8 +615,8 @@ theorem replaceMany?_freedPageNumbers
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.freedPageNumbers = [] := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   dsimp only at success
   split at success
@@ -623,9 +625,9 @@ theorem replaceMany?_freedPageNumbers
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨pages, pagesResult, success⟩
         injection success with equal
         subst delta
@@ -640,8 +642,8 @@ theorem replaceMany?_after_nextPage
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.after.tree.nextPage = nextPage := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   dsimp only at success
   split at success
@@ -650,9 +652,9 @@ theorem replaceMany?_after_nextPage
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨pages, pagesResult, success⟩
         injection success with equal
         subst delta
@@ -666,8 +668,8 @@ theorem replaceMany?_table {state : CoreChunkPageState.TableState}
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.after.table = replacement := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -675,8 +677,8 @@ theorem replaceMany?_table {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         have equal := Option.some.inj success
         subst delta
         rfl
@@ -696,8 +698,8 @@ theorem replaceMany?_treePagesAccounted
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.TreePagesAccounted := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
@@ -705,9 +707,9 @@ theorem replaceMany?_treePagesAccounted
     next =>
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesAccounted_of_changedPhysical replacement.schema
@@ -722,8 +724,8 @@ theorem replaceMany?_encodabilityPreserved
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.EncodabilityPreserved := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
@@ -731,9 +733,9 @@ theorem replaceMany?_encodabilityPreserved
     next =>
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact encodabilityPreserved_of_changedPhysical replacement.schema
@@ -748,8 +750,8 @@ theorem replaceMany?_treePagesSelected
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.TreePagesSelected := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
@@ -757,9 +759,9 @@ theorem replaceMany?_treePagesSelected
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesSelected_of_changedPhysical replacement.schema
@@ -829,15 +831,15 @@ theorem retainMany?_table {state : CoreChunkPageState.TableState}
     (success : retainMany? state nextPage replacement = some delta) :
     delta.after.table = replacement := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
       have equal := Option.some.inj success
       subst delta
       rfl
@@ -856,16 +858,16 @@ theorem retainMany?_treePagesAccounted
     (success : retainMany? state nextPage replacement = some delta) :
     delta.TreePagesAccounted := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next represents =>
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨beforePages, beforeResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
       have equal := Option.some.inj success
       subst delta
       exact treePagesAccounted_of_changedPhysical replacement.schema
@@ -879,16 +881,16 @@ theorem retainMany?_encodabilityPreserved
     (success : retainMany? state nextPage replacement = some delta) :
     delta.EncodabilityPreserved := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next represents =>
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨beforePages, beforeResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
       have equal := Option.some.inj success
       subst delta
       exact encodabilityPreserved_of_changedPhysical replacement.schema
@@ -902,16 +904,16 @@ theorem retainMany?_treePagesSelected
     (success : retainMany? state nextPage replacement = some delta) :
     delta.TreePagesSelected := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, rowResult, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, updatedResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, rowResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨beforePages, beforeResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
       have equal := Option.some.inj success
       subst delta
       exact treePagesSelected_of_changedPhysical replacement.schema
@@ -971,7 +973,6 @@ theorem replace?_represents {state : CoreChunkPageState.TableState}
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1002,7 +1003,6 @@ theorem replace?_table {state : CoreChunkPageState.TableState}
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1033,7 +1033,6 @@ theorem replace?_treePagesAccounted
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next noAllocation =>
           split at success
@@ -1077,7 +1076,6 @@ theorem replace?_encodabilityPreserved
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next noAllocation =>
           split at success
@@ -1121,7 +1119,6 @@ theorem replace?_treePagesSelected
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1341,7 +1338,6 @@ theorem delete?_correct {state : CoreChunkPageState.TableState}
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1389,7 +1385,6 @@ theorem delete?_treePagesAccounted
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1441,7 +1436,6 @@ theorem delete?_encodabilityPreserved
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1493,7 +1487,6 @@ theorem delete?_treePagesSelected
       simp only [entryResult, Option.bind_eq_bind, Option.bind] at success
       split at success
       next =>
-        dsimp only at success
         split at success
         next =>
           split at success
@@ -1531,20 +1524,20 @@ theorem splitInsert?_table {state : CoreChunkPageState.TableState}
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.after.table = replacement := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨leftKey, leftResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨rightKey, rightResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
@@ -1567,20 +1560,20 @@ theorem splitInsert?_treePagesAccounted
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.TreePagesAccounted := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨leftKey, leftResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨rightKey, rightResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesAccounted_of_changedPhysical replacement.schema
@@ -1596,20 +1589,20 @@ theorem splitInsert?_encodabilityPreserved
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.EncodabilityPreserved := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨leftKey, leftResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨rightKey, rightResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact encodabilityPreserved_of_changedPhysical replacement.schema
@@ -1625,20 +1618,20 @@ theorem splitInsert?_treePagesSelected
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.TreePagesSelected := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨leftKey, leftResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨rightKey, rightResult, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨leftKey, leftResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨rightKey, rightResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesSelected_of_changedPhysical replacement.schema
@@ -1653,18 +1646,18 @@ theorem mergeDelete?_table {state : CoreChunkPageState.TableState}
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.after.table = replacement := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         rfl
@@ -1686,18 +1679,18 @@ theorem mergeDelete?_treePagesAccounted
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.TreePagesAccounted := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesAccounted_of_changedPhysical replacement.schema
@@ -1713,18 +1706,18 @@ theorem mergeDelete?_encodabilityPreserved
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.EncodabilityPreserved := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next represents =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact encodabilityPreserved_of_changedPhysical replacement.schema
@@ -1740,18 +1733,18 @@ theorem mergeDelete?_treePagesSelected
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.TreePagesSelected := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, entryResult, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, entryResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨deleted, deletedResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, deletedResult, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with
+        rcases Option.bind_eq_some_iff.mp success with
           ⟨beforePages, beforeResult, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, pagesResult, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, pagesResult, success⟩
         have equal := Option.some.inj success
         subst delta
         exact treePagesSelected_of_changedPhysical replacement.schema
@@ -2073,7 +2066,7 @@ theorem alignTables?_nextPage_none :
           unfold alignTables? at success
           split at success
           next =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -2114,7 +2107,7 @@ theorem alignTables?_delta_treePagesAccounted :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -2156,7 +2149,7 @@ theorem alignTables?_delta_encodabilityPreserved :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -2198,7 +2191,7 @@ theorem alignTables?_delta_treePagesSelected :
           unfold alignTables? at success
           split at success
           next =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -2421,7 +2414,7 @@ theorem textIndexEntryLe_antisymm
     (leftRight : textIndexEntryLe left right = true)
     (rightLeft : textIndexEntryLe right left = true) : left = right := by
   unfold textIndexEntryLe at leftRight rightLeft
-  have comparison := Std.TransCmp.isLE_antisymm leftRight rightLeft
+  have comparison := Std.OrientedCmp.isLE_antisymm leftRight rightLeft
   have keyBeq := Std.LawfulBEqOrd.compare_eq_iff_beq.mp comparison
   have keyEq := LawfulBEq.eq_of_beq keyBeq
   simp only [textIndexEntrySortKey, leftEq, rightEq,
@@ -2452,7 +2445,7 @@ theorem mergeSort_append_text_insert
       ∃ text : PhysicalCodec.Text, candidate.value = .text text) :
     (entries ++ [entry]).mergeSort textIndexEntryLe =
       insertIndexEntry entry (entries.mergeSort textIndexEntryLe) := by
-  apply List.Perm.eq_of_sorted
+  apply List.Perm.eq_of_pairwise
   · intro left right leftMember rightMember leftRight rightLeft
     have leftSource : left ∈ entries ++ [entry] :=
       (List.mergeSort_perm (entries ++ [entry]) textIndexEntryLe).subset
@@ -2474,12 +2467,12 @@ theorem mergeSort_append_text_insert
         exact List.mem_append_left _ oldMember) with ⟨rightText, rightEq⟩
     exact textIndexEntryLe_antisymm left right leftEq rightEq
       leftRight rightLeft
-  · exact List.sorted_mergeSort textIndexEntryLe_trans
+  · exact List.pairwise_mergeSort textIndexEntryLe_trans
       textIndexEntryLe_total (entries ++ [entry])
   · apply insertIndexEntry_pairwise_text entry entryEq
     · intro candidate member
       exact allText candidate (List.mem_mergeSort.mp member)
-    · exact List.sorted_mergeSort textIndexEntryLe_trans
+    · exact List.pairwise_mergeSort textIndexEntryLe_trans
         textIndexEntryLe_total entries
   · have insertedPerm := insertIndexEntry_perm entry
       (entries.mergeSort textIndexEntryLe)
@@ -2638,7 +2631,7 @@ theorem expectedIndexEntries_eq_sortSource (table : Core.Table)
         rw [indexEntriesText_map]
         exact texts
       rw [if_neg sourceNotTexts]
-      simpa using map_foldInsertIndexRow index table.rows []
+      exact map_foldInsertIndexRow index table.rows []
 
 theorem expectedIndexEntries_append_text
     (before after : Core.Table) (index : Core.Index) (row : Core.Row)
@@ -2751,7 +2744,7 @@ private theorem replace?_before {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.before = state := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -2759,7 +2752,7 @@ private theorem replace?_before {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         rfl
@@ -2773,7 +2766,7 @@ private theorem insert?_before {state : CoreChunkPageState.TableState}
     (success : insert? state nextPage row replacement = some delta) :
     delta.before = state := by
   unfold insert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     split at success
@@ -2783,7 +2776,7 @@ private theorem insert?_before {state : CoreChunkPageState.TableState}
       next =>
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
           injection success with equal
           subst delta
           rfl
@@ -2798,19 +2791,19 @@ private theorem splitInsert?_before {state : CoreChunkPageState.TableState}
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.before = state := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨leftKey, _, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨rightKey, _, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨deleted, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨leftKey, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨rightKey, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, _, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         rfl
@@ -2824,7 +2817,7 @@ private theorem delete?_before {state : CoreChunkPageState.TableState}
     (success : delete? state nextPage row replacement = some delta) :
     delta.before = state := by
   unfold delete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -2834,7 +2827,7 @@ private theorem delete?_before {state : CoreChunkPageState.TableState}
       next =>
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
           injection success with equal
           subst delta
           rfl
@@ -2849,17 +2842,17 @@ private theorem mergeDelete?_before {state : CoreChunkPageState.TableState}
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.before = state := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨deleted, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨deleted, _, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         rfl
@@ -2872,15 +2865,15 @@ private theorem retainMany?_before {state : CoreChunkPageState.TableState}
     (success : retainMany? state nextPage replacement = some delta) :
     delta.before = state := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
       injection success with equal
       subst delta
       rfl
@@ -2892,8 +2885,8 @@ private theorem replaceMany?_before {state : CoreChunkPageState.TableState}
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.before = state := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with ⟨updated, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨updated, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -2901,8 +2894,8 @@ private theorem replaceMany?_before {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         rfl
@@ -2924,7 +2917,7 @@ private theorem replaceManyFold_rootId :
       rfl
   | entry :: entries, store, rows, updated, success => by
       unfold replaceManyFold at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨resolved, resolvedResult, success⟩
       split at success
       next => exact replaceManyFold_rootId entries store resolved.2 updated success
@@ -2957,9 +2950,9 @@ private theorem retainManyFold_rootId :
       rfl
   | entry :: entries, store, rows, freed, updated, success => by
       simp only [List.foldlM_cons] at success
-      rcases Option.bind_eq_some.mp success with ⟨next, stepResult, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨next, stepResult, success⟩
       have stepRoot : next.1.root.rootId = store.root.rootId := by
-        rcases Option.bind_eq_some.mp stepResult with
+        rcases Option.bind_eq_some_iff.mp stepResult with
           ⟨resolved, resolvedResult, stepResult⟩
         split at stepResult
         next =>
@@ -2969,7 +2962,7 @@ private theorem retainManyFold_rootId :
         next =>
           split at stepResult
           next =>
-            rcases Option.bind_eq_some.mp stepResult with
+            rcases Option.bind_eq_some_iff.mp stepResult with
               ⟨deleted, deletedResult, stepResult⟩
             injection stepResult with equal
             subst next
@@ -2988,7 +2981,7 @@ private theorem replace?_rootId {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -2996,7 +2989,7 @@ private theorem replace?_rootId {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         exact PersistentPageTree.Store.insert_rootId
@@ -3011,7 +3004,7 @@ private theorem replace?_pageIds {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.after.tree.root.pageIds = state.tree.root.pageIds := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -3019,7 +3012,7 @@ private theorem replace?_pageIds {state : CoreChunkPageState.TableState}
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         exact PersistentPageTree.Store.insert_pageIds_of_noAllocation
@@ -3035,7 +3028,7 @@ private theorem replace?_height {state : CoreChunkPageState.TableState}
     (success : replace? state nextPage row replacement = some delta) :
     delta.after.tree.root.erase.height = state.tree.root.erase.height := by
   unfold replace? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -3043,7 +3036,7 @@ private theorem replace?_height {state : CoreChunkPageState.TableState}
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         exact PersistentPageTree.Store.insert_height_of_noAllocation
@@ -3059,7 +3052,7 @@ private theorem insert?_rootId {state : CoreChunkPageState.TableState}
     (success : insert? state nextPage row replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold insert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     split at success
@@ -3069,7 +3062,7 @@ private theorem insert?_rootId {state : CoreChunkPageState.TableState}
       next =>
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
           injection success with equal
           subst delta
           exact PersistentPageTree.Store.insert_rootId
@@ -3086,7 +3079,7 @@ private theorem delete?_rootId {state : CoreChunkPageState.TableState}
     (success : delete? state nextPage row replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold delete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
@@ -3096,7 +3089,7 @@ private theorem delete?_rootId {state : CoreChunkPageState.TableState}
       next =>
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
           injection success with equal
           subst delta
           exact PersistentPageTree.Store.insert_rootId
@@ -3113,18 +3106,18 @@ private theorem mergeDelete?_rootId {state : CoreChunkPageState.TableState}
     (success : mergeDelete? state nextPage row replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold mergeDelete? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨deleted, deletedResult, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         have root := PersistentPageTree.Store.delete?_rootId deletedResult
@@ -3138,8 +3131,8 @@ private theorem replaceMany?_rootId {state : CoreChunkPageState.TableState}
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   split at success
   next =>
@@ -3148,8 +3141,8 @@ private theorem replaceMany?_rootId {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         injection success with equal
         subst delta
         have root := replaceManyFold_rootId state.tree.root.erase.toList
@@ -3165,8 +3158,8 @@ private theorem replaceMany?_pageIds
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.after.tree.root.pageIds = state.tree.root.pageIds := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   split at success
   next =>
@@ -3175,8 +3168,8 @@ private theorem replaceMany?_pageIds
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         have pageIds : updated.1.root.pageIds = state.tree.root.pageIds := by
           have preserved := replaceManyFold_pageIds_of_noAllocation
             updatedResult (by simpa using noAllocation)
@@ -3194,8 +3187,8 @@ private theorem replaceMany?_height
     (success : replaceMany? state nextPage replacement = some delta) :
     delta.after.tree.root.erase.height = state.tree.root.erase.height := by
   unfold replaceMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   split at success
   next =>
@@ -3204,8 +3197,8 @@ private theorem replaceMany?_height
     next noAllocation =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         have height : updated.1.root.erase.height =
             state.tree.root.erase.height := by
           have preserved := replaceManyFold_height_of_noAllocation
@@ -3223,16 +3216,16 @@ private theorem retainMany?_rootId {state : CoreChunkPageState.TableState}
     (success : retainMany? state nextPage replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold retainMany? at success
-  rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
-  rcases Option.bind_eq_some.mp success with
+  rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with
     ⟨updated, updatedResult, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-      rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
       injection success with equal
       subst delta
       have root := retainManyFold_rootId state.tree.root.erase.toList
@@ -3248,22 +3241,22 @@ private theorem splitInsert?_rootId {state : CoreChunkPageState.TableState}
     (success : splitInsert? state nextPage row replacement = some delta) :
     delta.after.tree.root.rootId = state.tree.root.rootId := by
   unfold splitInsert? at success
-  rcases Option.bind_eq_some.mp success with ⟨entry, _, success⟩
+  rcases Option.bind_eq_some_iff.mp success with ⟨entry, _, success⟩
   split at success
   next =>
     dsimp only at success
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨leftKey, leftResult, success⟩
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨rightKey, rightResult, success⟩
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨deleted, deletedResult, success⟩
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨beforePages, _, success⟩
-        rcases Option.bind_eq_some.mp success with ⟨pages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨beforePages, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨pages, _, success⟩
         let updated := Core.orderedUpsert row entry.2
         let splitAt := updated.length / 2
         let left := updated.take splitAt
@@ -3302,7 +3295,7 @@ theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
   next =>
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
       cases insertion : insert? state nextPage row replacement with
       | some candidate =>
           rw [insertion] at success
@@ -3315,7 +3308,7 @@ theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
         cases deletion : delete? state nextPage row replacement with
         | some candidate =>
             rw [deletion] at success
@@ -3329,7 +3322,7 @@ theorem replaceBetween?_before {state : CoreChunkPageState.TableState}
         split at success
         next => exact retainMany?_before success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3355,7 +3348,7 @@ theorem replaceBetween?_rootId {state : CoreChunkPageState.TableState}
   next =>
     split at success
     next =>
-      rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+      rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
       cases insertion : insert? state nextPage row replacement with
       | some candidate =>
           rw [insertion] at success
@@ -3368,7 +3361,7 @@ theorem replaceBetween?_rootId {state : CoreChunkPageState.TableState}
     next =>
       split at success
       next =>
-        rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+        rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
         cases deletion : delete? state nextPage row replacement with
         | some candidate =>
             rw [deletion] at success
@@ -3382,7 +3375,7 @@ theorem replaceBetween?_rootId {state : CoreChunkPageState.TableState}
         split at success
         next => exact retainMany?_rootId success
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3415,7 +3408,7 @@ theorem replaceBetween?_pageIds_of_length_eq
         split at success
         next retained => omega
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3447,7 +3440,7 @@ theorem replaceBetween?_height_of_length_eq
         split at success
         next retained => omega
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3479,7 +3472,7 @@ theorem replaceBetween?_freedPageNumbers_of_length_eq
         split at success
         next retained => omega
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3520,7 +3513,7 @@ theorem replaceBetween?_after_nextPage_of_data_update
         split at success
         next retained => omega
         next =>
-          rcases Option.bind_eq_some.mp success with ⟨row, _, success⟩
+          rcases Option.bind_eq_some_iff.mp success with ⟨row, _, success⟩
           cases replacementResult : replace? state nextPage row replacement with
           | some candidate =>
               rw [replacementResult] at success
@@ -3566,7 +3559,7 @@ theorem alignTables?_metadata_none :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -3612,7 +3605,7 @@ theorem alignTables?_metadata_changed :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -3672,7 +3665,7 @@ theorem alignTables?_catalogEntries_none :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -3715,7 +3708,7 @@ theorem alignTables?_catalogEntries_changed :
           unfold alignTables? at success
           split at success
           next same =>
-            rcases Option.bind_eq_some.mp success with
+            rcases Option.bind_eq_some_iff.mp success with
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
@@ -3773,7 +3766,7 @@ theorem alignTables?_selectedPageIds_of_indexed :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -3829,7 +3822,7 @@ theorem alignTables?_selectedHeight_of_indexed :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -3884,7 +3877,7 @@ theorem alignTables?_selectedFreedPages_of_indexed :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -3938,7 +3931,7 @@ theorem alignTables?_nextPage_changed_indexed :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -3992,7 +3985,7 @@ theorem alignTables?_selected_mem :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -4033,7 +4026,7 @@ theorem alignTables?_tablePageIds_none :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -4079,7 +4072,7 @@ theorem alignTables?_tablePageIds_changed_indexed :
         unfold alignTables? at success
         split at success
         next =>
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨tail, tailResult, success⟩
           injection success with equal
           subst aligned
@@ -4152,9 +4145,9 @@ theorem updateStateCandidate?_identityWellFormed
     (updated : updateStateCandidate? state database = some delta) :
     delta.table.IdentityWellFormed := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next identities =>
@@ -4169,9 +4162,9 @@ theorem updateStateCandidate?_endpoints
     (updated : updateStateCandidate? state database = some delta) :
     delta.before = state ∧ delta.after.database = database := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next identities =>
@@ -4187,9 +4180,9 @@ theorem updateStateCandidate?_freePages
     delta.after.freePages =
       addFreePages state.freePages delta.table.freedPageNumbers := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next =>
@@ -4210,9 +4203,9 @@ theorem updateStateCandidate?_alignment
       aligned.tables = delta.after.tables ∧
       aligned.delta = some delta.table := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next =>
@@ -4227,9 +4220,9 @@ theorem updateStateCandidate?_treePagesAccounted
     (updated : updateStateCandidate? state database = some delta) :
     delta.table.TreePagesAccounted := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next =>
@@ -4244,9 +4237,9 @@ theorem updateStateCandidate?_encodabilityPreserved
     (updated : updateStateCandidate? state database = some delta) :
     delta.table.EncodabilityPreserved := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next =>
@@ -4261,9 +4254,9 @@ theorem updateStateCandidate?_treePagesSelected
     (updated : updateStateCandidate? state database = some delta) :
     delta.table.TreePagesSelected := by
   unfold updateStateCandidate? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨aligned, alignedResult, updated⟩
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨table, tableResult, updated⟩
   split at updated
   next =>
@@ -4282,7 +4275,7 @@ theorem updateState?_identityWellFormed {state : CoreChunkPageState.State}
     (updated : updateState? state database = some delta) :
     delta.table.IdentityWellFormed := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4296,7 +4289,7 @@ theorem updateState?_tablePagesSufficient {state : CoreChunkPageState.State}
     (updated : updateState? state database = some delta) :
     delta.table.tablePagesSufficient = true := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next sufficient =>
@@ -4310,7 +4303,7 @@ theorem updateState?_endpoints {state : CoreChunkPageState.State}
     (updated : updateState? state database = some delta) :
     delta.before = state ∧ delta.after.database = database := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4326,7 +4319,7 @@ theorem updateState?_freePages
     delta.after.freePages =
       addFreePages state.freePages delta.table.freedPageNumbers := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4343,7 +4336,7 @@ theorem updateState?_alignment {state : CoreChunkPageState.State}
       aligned.tables = delta.after.tables ∧
       aligned.delta = some delta.table := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4393,7 +4386,7 @@ theorem updateState?_treePagesAccounted
     (updated : updateState? state database = some delta) :
     delta.table.TreePagesAccounted := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4408,7 +4401,7 @@ theorem updateState?_encodabilityPreserved
     (updated : updateState? state database = some delta) :
     delta.table.EncodabilityPreserved := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4423,7 +4416,7 @@ theorem updateState?_treePagesSelected
     (updated : updateState? state database = some delta) :
     delta.table.TreePagesSelected := by
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
@@ -4480,16 +4473,16 @@ theorem updateState?_nextPage_eq_of_indexed
   have nextPage := alignTables?_nextPage_changed_indexed alignedResult selected
     (updateState?_tablePagesSufficient updated) indexed
   unfold updateState? at updated
-  rcases Option.bind_eq_some.mp updated with
+  rcases Option.bind_eq_some_iff.mp updated with
     ⟨candidate, candidateResult, updated⟩
   split at updated
   next =>
     injection updated with equal
     subst candidate
     unfold updateStateCandidate? at candidateResult
-    rcases Option.bind_eq_some.mp candidateResult with
+    rcases Option.bind_eq_some_iff.mp candidateResult with
       ⟨builtAligned, builtResult, candidateResult⟩
-    rcases Option.bind_eq_some.mp candidateResult with
+    rcases Option.bind_eq_some_iff.mp candidateResult with
       ⟨table, tableResult, candidateResult⟩
     split at candidateResult
     next =>

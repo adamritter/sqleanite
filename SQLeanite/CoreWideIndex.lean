@@ -72,7 +72,7 @@ theorem decodePackedInterior_of_mapped
       | none => simp [pageResult] at mapped
       | some page =>
           simp only [pageResult] at mapped
-          rcases Option.bind_eq_some.mp mapped with
+          rcases Option.bind_eq_some_iff.mp mapped with
             ⟨tailCells, tailResult, equal⟩
           have physicalEq : physical =
               (PhysicalTableBTree.encodeU32Nat page.val ++ cell) ::
@@ -104,7 +104,7 @@ theorem decodeIndexInteriorFrom_widePage
   | none => simp [rightResult] at built
   | some rightmost =>
       simp only [rightResult, Option.bind_eq_bind, Option.bind] at built
-      rcases Option.bind_eq_some.mp built with
+      rcases Option.bind_eq_some_iff.mp built with
         ⟨physical, cellsResult, built⟩
       split at built
       next fits =>
@@ -700,9 +700,9 @@ theorem encodeChildren_length_of {fuel : Nat}
       rfl
   | node :: nodes, pages, success => by
       simp only [encodeChildren, Option.bind_eq_bind, Option.bind] at success
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨headPages, headResult, success⟩
-      rcases Option.bind_eq_some.mp success with
+      rcases Option.bind_eq_some_iff.mp success with
         ⟨tailPages, tailResult, equal⟩
       simp only [pure, Pure.pure, Option.some.injEq] at equal
       subst pages
@@ -725,7 +725,7 @@ theorem Node.encodePagesStep_length : ∀ (fuel : Nat) (node : Node)
       | leaf pageId cells =>
           simp only [Node.encodePagesStep, Option.bind_eq_bind, Option.bind]
             at success
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨page, _, equal⟩
           simp only [Option.some.injEq] at equal
           subst pages
@@ -733,9 +733,9 @@ theorem Node.encodePagesStep_length : ∀ (fuel : Nat) (node : Node)
       | branch pageId initial rightmost =>
           simp only [Node.encodePagesStep, Option.bind_eq_bind, Option.bind]
             at success
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨page, _, success⟩
-          rcases Option.bind_eq_some.mp success with
+          rcases Option.bind_eq_some_iff.mp success with
             ⟨childPages, childrenResult, equal⟩
           simp only [Option.some.injEq] at equal
           subst pages
@@ -801,7 +801,7 @@ theorem decodeIndexSubtreeFrom_encodePagesStep
       subst node
       simp only [Node.encodePagesStep, Option.bind_eq_bind, Option.bind]
         at encoded
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨numbered, pageResult, equal⟩
       simp only [Option.some.injEq] at equal
       subst pages
@@ -831,9 +831,9 @@ theorem decodeIndexSubtreeFrom_encodePagesStep
       subst node
       simp only [Node.encodePagesStep, Option.bind_eq_bind, Option.bind]
         at encoded
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨root, rootResult, encoded⟩
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨childPages, childrenResult, equal⟩
       simp only [Option.some.injEq] at equal
       subst pages
@@ -991,9 +991,9 @@ theorem indexCellsDecode_rows (source : CoreDecode.PageSource)
       exact .nil
   | row :: rows, cells, inline, encoded => by
       simp only [List.mapM_cons] at encoded
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨cell, headResult, encoded⟩
-      rcases Option.bind_eq_some.mp encoded with
+      rcases Option.bind_eq_some_iff.mp encoded with
         ⟨tail, tailResult, equal⟩
       simp only [pure, Pure.pure, Option.some.injEq] at equal
       subst cells

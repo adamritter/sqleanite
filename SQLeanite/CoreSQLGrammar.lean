@@ -31,7 +31,7 @@ theorem literalSyntax_of_success {expression : Expr} {value : Core.Value}
       | neg =>
           cases decoded : SQLSurface.literal argument with
           | error message =>
-              simp only [literal, SQLSurface.literal, decoded, Except.instMonad,
+              simp only [literal, SQLSurface.literal, decoded, Seq.seq, bind, Functor.map,
                 Except.bind] at success
               cases success
           | ok decodedValue =>
@@ -41,7 +41,7 @@ theorem literalSyntax_of_success {expression : Expr} {value : Core.Value}
                     (by simpa [literal] using decoded))
               | null | realBits | text | blob =>
                   simp only [literal, SQLSurface.literal, decoded,
-                    Except.instMonad, Except.bind, SQLSurface.unsupported] at success
+                    Seq.seq, bind, Functor.map, Except.bind, SQLSurface.unsupported] at success
                   cases success
       | not | bitNot =>
           simp [literal, SQLSurface.literal, SQLSurface.unsupported] at success
@@ -96,7 +96,7 @@ private theorem comparisonSyntax_of_success {schema : Core.Schema}
       | ok index =>
           cases decoded : literal right with
           | error message =>
-              simp [found, decoded, Except.instMonad, Except.bind,
+              simp [found, decoded, Seq.seq, bind, Functor.map, Except.bind,
                 Except.map] at success
           | ok value =>
               exact .columnRight operation allowed qualifier name right
@@ -118,7 +118,7 @@ private theorem comparisonSyntax_of_success {schema : Core.Schema}
           | ok index =>
               cases decoded : literal left with
               | error message =>
-                  simp [found, decoded, Except.instMonad, Except.bind,
+                  simp [found, decoded, Seq.seq, bind, Functor.map, Except.bind,
                     Except.map] at success
               | ok value =>
                   exact .columnLeft operation allowed left qualifier name
@@ -220,11 +220,11 @@ theorem projectionSyntax_of_success (schema : Core.Schema) :
       unfold projection at success
       cases head : projectionColumn schema input with
       | error message =>
-          simp [head, Except.instMonad, Except.bind, Except.map] at success
+          simp [head, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
       | ok first =>
           cases tail : projection schema inputs with
           | error message =>
-              simp [head, tail, Except.instMonad, Except.bind, Except.map] at success
+              simp [head, tail, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
           | ok remaining =>
               intro candidate member
               simp only [List.mem_cons] at member
@@ -250,11 +250,11 @@ theorem orderingSyntax_of_success (schema : Core.Schema) :
           unfold orderBy at success
           cases first : column schema name with
           | error message =>
-              simp [first, Except.instMonad, Except.bind, Except.map] at success
+              simp [first, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
           | ok index =>
               cases rest : orderBy schema terms with
               | error message =>
-                  simp [first, rest, Except.instMonad, Except.bind,
+                  simp [first, rest, Seq.seq, bind, Functor.map, Except.bind,
                     Except.map] at success
               | ok tail =>
                   intro candidate member
@@ -282,11 +282,11 @@ theorem groupingSyntax_of_success (schema : Core.Schema) :
           unfold groupColumns at success
           cases first : column schema name with
           | error message =>
-              simp [first, Except.instMonad, Except.bind, Except.map] at success
+              simp [first, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
           | ok index =>
               cases rest : groupColumns schema expressions with
               | error message =>
-                  simp [first, rest, Except.instMonad, Except.bind,
+                  simp [first, rest, Seq.seq, bind, Functor.map, Except.bind,
                     Except.map] at success
               | ok tail =>
                   intro candidate member
@@ -414,11 +414,11 @@ private theorem joinComparisonOperands_of_success {context : JoinContext}
     JoinPredicateSyntax (.binary operation left right) := by
   cases leftResult : joinOperand context left with
   | error message =>
-      simp [leftResult, Except.instMonad, Except.bind, Except.map] at success
+      simp [leftResult, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
   | ok leftOperand =>
       cases rightResult : joinOperand context right with
       | error message =>
-          simp [leftResult, rightResult, Except.instMonad, Except.bind,
+          simp [leftResult, rightResult, Seq.seq, bind, Functor.map, Except.bind,
             Except.map] at success
       | ok rightOperand =>
           exact .comparison operation allowed

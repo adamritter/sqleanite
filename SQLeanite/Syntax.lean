@@ -75,7 +75,7 @@ theorem exprListHeight_ge_of_mem {expression : Expr} {expressions : List Expr}
 theorem exprArrayHeight_ge_of_mem {expression : Expr} {expressions : Array Expr}
     (member : expression ∈ expressions) :
     expression.height ≤ exprListHeight expressions.toList := by
-  exact exprListHeight_ge_of_mem (Array.mem_toList.mpr member)
+  exact exprListHeight_ge_of_mem (Array.mem_toList_iff.mpr member)
 
 theorem exprArrayHeight_ge_get (expressions : Array Expr) (index : Nat)
     (valid : index < expressions.size) :
@@ -113,12 +113,12 @@ theorem exprPairListHeight_ge_second_of_mem {branch : Expr × Expr}
 theorem exprPairArrayHeight_ge_first_of_mem {branch : Expr × Expr}
     {branches : Array (Expr × Expr)} (member : branch ∈ branches) :
     branch.1.height ≤ exprPairListHeight branches.toList := by
-  exact exprPairListHeight_ge_first_of_mem (Array.mem_toList.mpr member)
+  exact exprPairListHeight_ge_first_of_mem (Array.mem_toList_iff.mpr member)
 
 theorem exprPairArrayHeight_ge_second_of_mem {branch : Expr × Expr}
     {branches : Array (Expr × Expr)} (member : branch ∈ branches) :
     branch.2.height ≤ exprPairListHeight branches.toList := by
-  exact exprPairListHeight_ge_second_of_mem (Array.mem_toList.mpr member)
+  exact exprPairListHeight_ge_second_of_mem (Array.mem_toList_iff.mpr member)
 
 theorem Expr.height_positive (expression : Expr) : 0 < expression.height := by
   cases expression <;> simp only [Expr.height] <;> omega
@@ -215,7 +215,7 @@ theorem Expr.any_call_of_argument {predicate : Expr → Bool} {name : String}
     (Expr.call name arguments star).any predicate = true := by
   obtain ⟨arguments⟩ := arguments
   simp only [Expr.any, Bool.or_eq_true]
-  exact Or.inr (exprListAny_of_mem (Array.mem_toList.mpr member) found)
+  exact Or.inr (exprListAny_of_mem (Array.mem_toList_iff.mpr member) found)
 
 theorem Expr.any_of_root {predicate : Expr → Bool} {expression : Expr}
     (root : predicate expression = true) : expression.any predicate = true := by
@@ -230,7 +230,7 @@ def isDistinctAggregateName (name : String) : Bool :=
 
 def aggregateFunctionName (name : String) : String :=
   if name.startsWith distinctAggregatePrefix then
-    (name.drop distinctAggregatePrefix.length).toLower
+    (name.drop distinctAggregatePrefix.length).toString.toLower
   else name.toLower
 
 def UnaryOp.sql : UnaryOp → String
@@ -412,7 +412,7 @@ theorem selectCompoundListHeight_ge_of_mem {arm : CompoundOp × Select}
 theorem selectCompoundArrayHeight_ge_of_mem {arm : CompoundOp × Select}
     {arms : Array (CompoundOp × Select)} (member : arm ∈ arms) :
     arm.2.compoundHeight ≤ selectCompoundListHeight arms.toList := by
-  exact selectCompoundListHeight_ge_of_mem (Array.mem_toList.mpr member)
+  exact selectCompoundListHeight_ge_of_mem (Array.mem_toList_iff.mpr member)
 
 theorem Select.compoundHeight_positive (query : Select) : 0 < query.compoundHeight := by
   cases query
@@ -483,7 +483,7 @@ theorem statementListHeight_ge_of_mem {statement : Statement} {statements : List
 theorem statementArrayHeight_ge_of_mem {statement : Statement} {statements : Array Statement}
     (member : statement ∈ statements) :
     statement.height ≤ statementListHeight statements.toList := by
-  exact statementListHeight_ge_of_mem (Array.mem_toList.mpr member)
+  exact statementListHeight_ge_of_mem (Array.mem_toList_iff.mpr member)
 
 theorem Statement.height_positive (statement : Statement) : 0 < statement.height := by
   cases statement <;> simp only [Statement.height] <;> omega

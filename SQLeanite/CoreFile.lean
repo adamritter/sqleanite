@@ -6,6 +6,8 @@ import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.CanonicalIndexSQL
 import SQLeanite.PhysicalTableBTree
 
+attribute [local instance] lexOrd
+
 namespace SQLeanite
 namespace CoreFile
 
@@ -152,7 +154,7 @@ theorem parseIntegerCertified_indexSQL (table : Core.Table)
         have lengths := congrArg String.length equal
         have markerPositive :
             0 < CanonicalIndexSQL.integerCertificateMarker.length := by decide
-        simp [CanonicalIndexSQL.printIntegerCertified] at lengths
+        simp only [CanonicalIndexSQL.printIntegerCertified, String.length_append] at lengths
         omega
       rw [if_neg unequal]
       simp [integers]
@@ -1085,7 +1087,7 @@ theorem sortedIndexRows_pairwise_valueLe (table : Core.Table)
   · intro row member
     exact (indexValuesInteger_iff table index).mp integers row
       (List.mem_mergeSort.mp member)
-  · exact List.sorted_mergeSort (integerIndexRowLe_trans index)
+  · exact List.pairwise_mergeSort (integerIndexRowLe_trans index)
       (integerIndexRowLe_total index) table.rows
 
 theorem sortedIndexRows_pairwise_valueLe_text (table : Core.Table)
@@ -1111,7 +1113,7 @@ theorem sortedIndexRows_pairwise_valueLe_text (table : Core.Table)
     · intro row member
       exact (indexValuesText_iff table index).mp texts row
         (List.mem_mergeSort.mp member)
-    · exact List.sorted_mergeSort (textIndexRowLe_trans index)
+    · exact List.pairwise_mergeSort (textIndexRowLe_trans index)
         (textIndexRowLe_total index) table.rows
 
 theorem foldInsertIndexRow_perm (index : Core.Index)

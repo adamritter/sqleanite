@@ -4,11 +4,12 @@ open System Lake DSL
 
 package sqleanite
 
-target vfsO (pkg : NPackage `sqleanite) : FilePath := Job.async do
+target vfsO pkg : FilePath := Job.async do
   let source ← inputFile (pkg.dir / "native" / "sqleanite_vfs.c") false
   let lean ← getLeanInstall
+  -- Recompile the existing OS shim when the Lean runtime headers change.
   let object ← buildO (pkg.buildDir / "native" / "sqleanite_vfs.o") source
-    #["-I", lean.includeDir.toString] #["-fPIC"] "cc"
+    #["-I", lean.includeDir.toString] #["-fPIC"] "cc" getLeanTrace
   object.await
 
 @[default_target]

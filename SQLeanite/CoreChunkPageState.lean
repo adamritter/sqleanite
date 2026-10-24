@@ -277,7 +277,7 @@ theorem entries?_sorted (capacity : Nat) (table : Core.Table)
     PagedBTree.KeysStrictlySorted entries := by
   have flattenedOrdered :
       (chunks capacity table.rows).flatten.Pairwise Core.Row.keyLess := by
-    simpa [flatten_chunks] using table.rowsWellFormed.2
+    simpa [flatten_chunks, Core.Table.rows] using table.rowsWellFormed.2
   have lastOrdered :
       (lastRows (chunks capacity table.rows)).Pairwise Core.Row.keyLess :=
     flattenedOrdered.sublist (lastRows_sublist_flatten _)

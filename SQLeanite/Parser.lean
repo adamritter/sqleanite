@@ -37,7 +37,7 @@ private def currentTokenPos : ParserM Nat := do
 
 private def tokenSource (start stop : Nat) : ParserM String := do
   let st ← get
-  pure (String.join ((st.tokens.extract start stop).toList.map Token.render)).trim
+  pure (String.join ((st.tokens.extract start stop).toList.map Token.render)).trimAscii.toString
 
 private def keywordEq (s kw : String) : Bool := s.toLower == kw
 
@@ -1286,7 +1286,8 @@ theorem parse_success_tokenizes {sql : String} {statements : Array Statement}
       lex sql = .ok tokens ∧ Tokenizes sql.toList tokens.toList := by
   cases tokenized : lex sql with
   | error message =>
-      simp [parse, tokenized, Except.instMonad, Except.bind] at success
+      simp only [parse, tokenized] at success
+      cases success
   | ok tokens =>
       exact ⟨tokens, rfl, lex_sound tokenized⟩
 

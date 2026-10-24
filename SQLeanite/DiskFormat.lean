@@ -268,7 +268,7 @@ theorem verifiedDatabaseImage_headerEncoded
       materialized.read
           ⟨0, pages.firstPage.headerWellFormed.2.2.2.1⟩ =
         pages.firstPage.encodePage := by
-    simpa [materialized] using pages.applyWrites_read_first old
+    simpa [materialized, DatabaseFirstPage.toPageWrite] using pages.applyWrites_read_first old
   have pageSplit :
       pages.firstPage.encodePage.bytes.toList =
         encodeDatabaseHeader pages.firstPage.databaseHeader ++
