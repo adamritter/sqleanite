@@ -65,12 +65,19 @@ structure PreparedBulkCommit
 /-- Decide the exact bulk image and page delta before performing any syscall.
 The returned object is both the executable input to `commit` and the erased
 proof input to the durability layer. -/
+def headerMetadata? (image : GrowableStorage.Image PhysicalCodec.pageSize) :
+    Option CoreMultiFreelist.HeaderMetadata :=
+  if image.pageCount == 0 then some {}
+  else CoreMultiFreelist.HeaderMetadata.decode? (image.read 0).bytes.toList
+
 def prepareBulkCommit? (old : GrowableStorage.Image PhysicalCodec.pageSize)
-    (database : Core.Database) : Option (PreparedBulkCommit old database) :=
+    (database : Core.Database) (previousMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+    Option (PreparedBulkCommit old database) := do
+  let metadata ← previousMetadata.orElse (fun _ => headerMetadata? old)
   match encoded : CorePageCodec.encodeBulkWithState database with
   | none => none
   | some (canonicalImage, state) =>
-      if grows : old.pageCount ≤ canonicalImage.pageCount then
+      if grows : old.pageCount ≤ canonicalImage.pageCount ∧ metadata = {} then
         let writes := transactionWrites old canonicalImage
         some {
           state
@@ -81,13 +88,14 @@ def prepareBulkCommit? (old : GrowableStorage.Image PhysicalCodec.pageSize)
           encodedWithState := encoded
           choice := .canonical
           doesNotShrink := by
-            simpa [storageImage, CoreFile.Image.pageCount] using grows
+            simpa [storageImage, CoreFile.Image.pageCount] using grows.1
           writesEq := rfl }
       else
         match layoutResult : CoreMultiFreelist.ofImageTotal? canonicalImage
-            old.pageCount with
+            (max old.pageCount canonicalImage.pageCount) with
         | none => none
-        | some layout =>
+        | some baseLayout =>
+            let layout := { baseLayout with metadata }
             let writes := transactionWrites old layout.paddedImage
             some {
               state
@@ -97,13 +105,15 @@ def prepareBulkCommit? (old : GrowableStorage.Image PhysicalCodec.pageSize)
                 (old.pageCount - canonicalImage.pageCount)
               writes
               encodedWithState := encoded
-              choice := .padded layout
-                (CoreMultiFreelist.ofImageTotal?_image layoutResult)
+              choice := .padded layout (by
+                change baseLayout.image = canonicalImage
+                exact CoreMultiFreelist.ofImageTotal?_image layoutResult)
               doesNotShrink := by
                 change old.pageCount ≤ layout.paddedImage.pageCount
-                rw [CoreMultiFreelist.Layout.paddedImage_pageCount,
-                  CoreMultiFreelist.ofImageTotal?_totalPageCount layoutResult]
-                exact Nat.le_refl _
+                rw [CoreMultiFreelist.Layout.paddedImage_pageCount]
+                change old.pageCount ≤ baseLayout.totalPageCount
+                rw [CoreMultiFreelist.ofImageTotal?_totalPageCount layoutResult]
+                exact Nat.le_max_left _ _
               writesEq := rfl }
 
 /-- Growing bulk commits for the high-fanout representation.  Shrinking keeps
@@ -126,7 +136,9 @@ structure ValidatedWideState (database : Core.Database) where
 
 def prepareWideBulkCommit?
     (old : GrowableStorage.Image PhysicalCodec.pageSize)
-    (database : Core.Database) : Option (PreparedWideBulkCommit old database) :=
+    (database : Core.Database) : Option (PreparedWideBulkCommit old database) := do
+  let metadata ← headerMetadata? old
+  unless metadata == {} do none
   match encoded : CoreWidePageCodec.encodeBulkInlineWithState database with
   | none => none
   | some (image, state) =>
@@ -4199,7 +4211,10 @@ def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Databas
   let temporary : System.FilePath := main.toString ++ ".sqleanite-image.tmp"
   let old : GrowableStorage.Image PhysicalCodec.pageSize := {
     pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
-  let prepared ← match prepareBulkCommit? old database with
+  let oldHeader ← IO.FS.withFile main .read (fun handle => handle.read 100)
+  let some metadata := CoreMultiFreelist.HeaderMetadata.decode? oldHeader.toList |
+    throw (IO.userError "invalid application metadata before page-size conversion")
+  let prepared ← match prepareBulkCommit? old database (some metadata) with
     | some prepared => pure prepared
     | none => throw (IO.userError "database exceeds the canonical image bounds")
   let validated ← match retainGeneratedState? prepared.state

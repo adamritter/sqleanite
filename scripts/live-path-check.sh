@@ -153,6 +153,21 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Rebuilt and page-size-converted images retain application-owned header
+# fields through the existing proved freelist/header layout. WAL uses the
+# newest committed header, including a page-one overlay.
+if grep -q 'let metadata ← previousMetadata.orElse' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'prepareBulkCommit? old database (some metadata)' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'let layout := { baseLayout with metadata }' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'let metadata ← readMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'snapshot.readPage base 1' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'Layout.applicationId_preserved' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Layout.userVersion_preserved' SQLeanite/ProofAxioms.lean; then
+  ok "application-owned header metadata uses the proved layout in file and WAL writes"
+else
+  fail "database application metadata detached from the persisted header path"
+fi
+
 # Raw aliases must not be mistaken for source-bound predicates by a direct
 # Core command or by the persisted-query recognizer.
 if grep -q 'select.where_.any (CoreOrder.needsAliases ctx select.columns.toList)' SQLeanite/CoreSQL.lean &&

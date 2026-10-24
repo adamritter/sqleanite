@@ -3117,6 +3117,37 @@ private def expectCoreDirtyPageCommit : IO Unit := do
   unless output.exitCode == 0 && output.stdout == "ok\n1|96\n95\n0\n" do
     fail s!"SQLite rejected the dirty-page commit: {output.stderr}{output.stdout}"
 
+private def expectHeaderMetadata : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'a'),(2,'b');CREATE INDEX t_v ON t(v);" with
+    | .ok result => pure result
+    | .error message => fail message
+  let image ← match CorePageCodec.encodeBulk state.database with
+    | some image => pure image
+    | none => fail "metadata: encode failed"
+  let base ← match CoreMultiFreelist.ofImageTotal? image (image.pageCount + 2) with
+    | some layout => pure layout
+    | none => fail "metadata: layout failed"
+  let metadata : CoreMultiFreelist.HeaderMetadata := {
+    applicationId := ⟨4294967295, by omega⟩
+    userVersion := ⟨42, by omega⟩ }
+  let layout := { base with metadata }
+  let (header, _) ← match FileFormat.decodeDatabaseHeader layout.paddedImage.fileBytes with
+    | some result => pure result
+    | none => fail "metadata: header failed"
+  unless header.applicationId.val == 4294967295 && header.userVersion.val == 42 &&
+      header.databaseSizePages.val == image.pageCount + 2 && header.freelistPageCount.val == 2 do
+    fail "metadata fields or geometry changed"
+  unless layout.schemaPage.bytes.drop 100 == layout.firstPage.bytes.drop 100 do
+    fail "metadata changed the schema B-tree body"
+  let decoded ← match CoreDecode.decode layout.paddedImage.fileBytes with
+    | some database => pure database
+    | none => fail "metadata: padded image failed to decode"
+  unless decoded.contents == state.database.contents do fail "metadata changed logical rows"
+  unless !CoreFile.hasGeneratedImageStamp header do fail "nondefault metadata entered the generated fast path"
+  let zeroApp := { header with applicationId := ⟨0, by omega⟩ }
+  unless !CoreFile.hasGeneratedImageStamp zeroApp do fail "nonzero user version entered the generated fast path"
+
 private def expectCoreMultiFreelist : IO Unit := do
   let (state, _) ← match CoreSQL.execute { database := Core.Database.empty }
       "CREATE TABLE multi_free(id INTEGER PRIMARY KEY,value TEXT);
@@ -5356,6 +5387,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("wide C-produced integer index certificate", expectWideCIndexCertificate),
   ("Core freelist physical shrink", expectCoreFreelistShrink),
   ("localized Core dirty-page commit", expectCoreDirtyPageCommit),
+  ("persistent database application metadata", expectHeaderMetadata),
   ("verified multi-trunk Core freelist", expectCoreMultiFreelist),
   ("lazy reachable-page Core decode", expectLazyReachablePageDecode),
   ("arbitrary-schema transactional file engine", expectGeneralMVPFileEngine),

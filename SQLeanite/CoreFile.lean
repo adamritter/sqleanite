@@ -370,19 +370,19 @@ theorem leafBody_table_exact {headerOffset : Nat}
     next doesNotFit => contradiction
   next invalidType => contradiction
 
-/-- `LSQL` in big-endian form.  Lean-generated images carry this application
-identifier so a cold reader can distinguish the representation proved below
-from arbitrary compatible SQLite files. -/
-def generatedApplicationId : U32Value := ⟨1280528716, by omega⟩
+/-- The default SQLite application identifier is zero. Generated-image
+recognition must not overwrite application-owned metadata with a private tag. -/
+def generatedApplicationId : U32Value := ⟨0, by omega⟩
 
-/-- A second, independently located part of the generated-image stamp.  It is
-stored in both SQLite change-counter fields.  A normal SQLite writer advances
+/-- The current generated-image provenance tag is stored in both SQLite
+change-counter fields. Application-owned nonzero metadata disables its fast
+path. A normal SQLite writer advances
 the counter and therefore invalidates the stamp; Lean's localized page writes
 preserve it.  This is a provenance tag, not a cryptographic authenticator. -/
 def generatedChangeCounter : U32Value := ⟨1279607118, by omega⟩
 
 def hasGeneratedImageStamp (header : DatabaseHeader) : Bool :=
-  header.applicationId.val == generatedApplicationId.val &&
+  header.applicationId.val == generatedApplicationId.val && header.userVersion.val == 0 &&
     header.headerPrefix.changeCounter.val == generatedChangeCounter.val &&
     header.versionValidFor.val == generatedChangeCounter.val
 
@@ -401,7 +401,7 @@ def databaseHeader (pageCount : U32Value) : DatabaseHeader :=
 theorem databaseHeader_generatedImage (pageCount : U32Value) :
     GeneratedImageHeader (databaseHeader pageCount) := by
   simp [GeneratedImageHeader, hasGeneratedImageStamp, databaseHeader,
-    generatedApplicationId, generatedChangeCounter]
+    generatedApplicationId, generatedChangeCounter, PhysicalCodec.databaseHeader]
 
 theorem databaseHeader_hasGeneratedImageStamp (pageCount : U32Value) :
     hasGeneratedImageStamp (databaseHeader pageCount) = true := by

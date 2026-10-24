@@ -110,6 +110,19 @@ decreasing_by
   apply remaining_lt
   omega
 
+/-- Application-owned header fields survive rewrites independently of the
+logical schema, page allocation and generated-image optimization markers. -/
+structure HeaderMetadata where
+  applicationId : U32Value := ⟨0, by omega⟩
+  userVersion : U32Value := ⟨0, by omega⟩
+  deriving DecidableEq, BEq
+
+def HeaderMetadata.fromHeader (header : DatabaseHeader) : HeaderMetadata :=
+  { applicationId := header.applicationId, userVersion := header.userVersion }
+
+def HeaderMetadata.decode? (bytes : List UInt8) : Option HeaderMetadata :=
+  (decodeDatabaseHeader bytes).map (fun (header, _) => HeaderMetadata.fromHeader header)
+
 structure Layout where
   image : CoreFile.Image
   firstPage : CoreFile.Page
@@ -118,6 +131,7 @@ structure Layout where
   totalPageCount : Nat
   active_le_total : image.pageCount ≤ totalPageCount
   total_fits : totalPageCount < 2 ^ 32
+  metadata : HeaderMetadata := {}
 
 def ofImageTotal? (image : CoreFile.Image) (totalPageCount : Nat) :
     Option Layout :=
@@ -127,7 +141,7 @@ def ofImageTotal? (image : CoreFile.Image) (totalPageCount : Nat) :
       if enough : image.pageCount ≤ totalPageCount then
         if totalFits : totalPageCount < 2 ^ 32 then
           some ⟨image, firstPage, remainingActive, pagesEq, totalPageCount,
-            enough, totalFits⟩
+            enough, totalFits, {}⟩
         else none
       else none
 
@@ -188,7 +202,15 @@ def Layout.firstTrunkU32 (layout : Layout) : U32Value :=
 def Layout.databaseHeader (layout : Layout) : DatabaseHeader :=
   { CoreFile.databaseHeader layout.totalU32 with
     firstFreelistTrunk := layout.firstTrunkU32
-    freelistPageCount := layout.freelistU32 }
+    freelistPageCount := layout.freelistU32
+    applicationId := layout.metadata.applicationId
+    userVersion := layout.metadata.userVersion }
+
+theorem Layout.applicationId_preserved (layout : Layout) :
+    layout.databaseHeader.applicationId = layout.metadata.applicationId := rfl
+
+theorem Layout.userVersion_preserved (layout : Layout) :
+    layout.databaseHeader.userVersion = layout.metadata.userVersion := rfl
 
 def Layout.schemaPage (layout : Layout) : CoreFile.Page := {
   bytes := encodeDatabaseHeader layout.databaseHeader ++

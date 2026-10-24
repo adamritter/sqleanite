@@ -1188,3 +1188,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreGrouped.emitOrdered_limit_zero
 
 #print axioms SQLeanite.CoreOrder.resolveAliases_literal
+
+#print axioms SQLeanite.CoreMultiFreelist.Layout.applicationId_preserved
+#print axioms SQLeanite.CoreMultiFreelist.Layout.userVersion_preserved

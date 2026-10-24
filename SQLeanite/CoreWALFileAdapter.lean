@@ -29,10 +29,36 @@ def Paths.temporaryWAL (paths : Paths) : System.FilePath :=
 private def bytes (values : List UInt8) : ByteArray :=
   ByteArray.mk values.toArray
 
-private def encodeImage (database : Core.Database) : IO CoreFile.Image :=
-  match CorePageCodec.encodeChecked database with
-  | some image => return image
-  | none => throw (IO.userError "general MVP database exceeds the physical subset")
+private def encodeImage (database : Core.Database)
+    (metadata : CoreMultiFreelist.HeaderMetadata := {}) : IO CoreFile.Image := do
+  let image ← match CorePageCodec.encodeChecked database with
+    | some image => pure image
+    | none => throw (IO.userError "general MVP database exceeds the physical subset")
+  let some layout := CoreMultiFreelist.ofImageTotal? image image.pageCount |
+    throw (IO.userError "WAL image has no bounded metadata layout")
+  return ({ layout with metadata } : CoreMultiFreelist.Layout).paddedImage
+
+/-- Application metadata comes from the committed WAL snapshot when page one
+has an overlay, and otherwise from the main database header. -/
+private def readMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
+  let main ← IO.FS.readBinFile paths.main
+  let first ← if ← paths.wal.pathExists then do
+      let bytes ← IO.FS.readBinFile paths.wal
+      let recovered ← match SQLite.WALRead.recover bytes.toList with
+        | .ok snapshot => pure snapshot
+        | .error message => throw (IO.userError message)
+      match recovered with
+      | none => pure (main.extract 0 100).toList
+      | some snapshot =>
+          let base := fun page => if page == 1 then
+              some (main.extract 0 snapshot.pageSize).toList else none
+          match snapshot.readPage base 1 with
+          | some bytes => pure bytes
+          | none => throw (IO.userError "WAL snapshot has no metadata page")
+    else pure (main.extract 0 100).toList
+  let some metadata := CoreMultiFreelist.HeaderMetadata.decode? first |
+    throw (IO.userError "invalid database application metadata")
+  return metadata
 
 def header : PhysicalWAL.Header := {
   checkpointSequence := ⟨0, by decide⟩
@@ -106,7 +132,8 @@ WAL writes every target page, so reopening never depends on uncheckpointed
 main-file contents. -/
 def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
     IO Core.Database := do
-  let image ← encodeImage database
+  let metadata ← readMetadata paths
+  let image ← encodeImage database metadata
   if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
     let wal := CoreWAL.forCoreImage header image fits
     if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
@@ -132,7 +159,8 @@ then delete the WAL. A crash before deletion still has the complete WAL; a
 reader after deletion sees the synced main file. -/
 def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   let database ← reopen paths
-  let image ← encodeImage database
+  let metadata ← readMetadata paths
+  let image ← encodeImage database metadata
   IO.FS.writeBinFile paths.main (bytes image.fileBytes)
   syncOps.syncFile paths.main
   if ← paths.wal.pathExists then IO.FS.removeFile paths.wal

@@ -1848,3 +1848,51 @@ lemma shows alias resolution leaves literal values and spellings unchanged;
 it is not a proof of complete name-resolution equivalence. Native code and its
 nine-binding audit boundary are unchanged. Reports use
 `sqlite-where-alias-*20261024.json` under `docs/validation/`.
+
+
+## Persistent application ID and user version (2026-10-24)
+
+Live rewrites now preserve the existing SQLite application_id and user_version
+fields. New databases use application_id zero instead of the private LSQL value.
+The existing generated-image counter marker remains, and the generated fast path
+now requires default application-owned metadata. Nondefault metadata uses the
+proved complete-image/freelist layout, which carries those two fields separately
+from schema B-tree bytes and page allocation. The wide bulk optimization declines
+that metadata shape and falls back to the existing proved bulk encoder.
+
+Page-size conversion explicitly reads metadata from the original file before
+building the replacement image. WAL writes and checkpoints obtain metadata from
+the most recent committed page-one overlay, falling back to the main header when
+there is no overlay. The same header-layout inverse proof covers the customized
+header; no opaque decoder certificate or additional native host binding was added.
+
+At source `2d3b2c789e7010810ef4c385c190e705dc54cb7275c3268abaf46f8249aba0a2`,
+all 54 initial metadata write cases differed. The retained report records the
+private application ID overwrite and lost nonzero user versions. Development
+seed 353841 passes 144 write scenarios. Final source is
+`ec0164a8da29c01fd9ad81894233d3215e3916dc6f617a1e7b423aae4d95a7ba`.
+Fresh seed 353842 passes **360 write scenarios** over 512/4096/65536-byte foreign
+files in both production modes. Fresh seed 353843 passes **132 WAL-overlay
+scenarios** with metadata differing from the main header. Fresh seed 353844
+passes **108 explicit Lean checkpoint scenarios** from such overlays. These
+include signed 32-bit metadata boundaries, new seeded identifiers/versions,
+UPDATE, INSERT, index creation and multiple successive writes.
+
+Pinned SQLite creates each input and independently compares the resulting public
+metadata PRAGMAs, typed/quoted rows and integrity_check. WAL fixtures use SQLite's
+no-checkpoint-on-close configuration; no C connection remains open during the
+Lean write. These tests do not establish concurrent WAL compatibility. Raw change
+counters, schema cookies and format/version fields are recorded separately and
+are not normalized or asserted equal. In particular, the existing fixed change
+counter and schema-cookie behavior still require further work. This change
+preserves stored metadata; it does not implement SQL PRAGMA statements in Lean.
+
+All 205 executable tests, the complete 270-job build, 1,060 registered headline
+theorems, verification audit and updated live-path audit pass. The reverse-file
+matrix passes 61 accepted cases and two explicitly unsupported shapes. The fixed
+scalar regression passes 1,121 cases plus six matching errors. New component
+lemmas identify the application ID and user version emitted by the header layout;
+the existing catalog/page-source inverse proofs continue to compile with those
+fields parameterized. Native code and its nine-binding audit boundary are
+unchanged. Reports use `sqlite-header-metadata-*20261024.json` under
+`docs/validation/`. These results do not establish full SQL or file-format parity.
