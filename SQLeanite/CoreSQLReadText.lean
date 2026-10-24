@@ -35,7 +35,8 @@ inductive TranslatedRead (state : Core.State) :
       (projectionTranslated : CoreSQL.projection stored.schema
         select.columns.toList = .ok columns)
       (orderingTranslated : CoreSQL.orderBy stored.schema
-        select.orderBy.toList = .ok ordering) :
+        select.orderBy.toList = .ok ordering)
+      (directQuery : CoreSQL.queryNeedsRepresentatives select.distinct columns ordering = false) :
       TranslatedRead state (.select select)
         (.query (CoreSQL.canonical source.name) {
           columns
@@ -182,10 +183,10 @@ theorem executeSelectBase_eq_core
   cases translated with
   | query select source stored predicate columns ordering noCompounds oneSource
       noGroups noHaving noOffset plainSource found predicateTranslated
-      notCount notSum notExtreme projectionTranslated orderingTranslated =>
+      notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
         plainSource, found, predicateTranslated, notCount, notSum, notExtreme,
-        projectionTranslated, orderingTranslated, readWidth, selectExecution,
+        projectionTranslated, orderingTranslated, directQuery, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.query (CoreSQL.canonical source.name) {
@@ -650,14 +651,14 @@ theorem executeStatement_eq_core
   cases translated with
   | query select source stored predicate columns ordering noCompounds oneSource
       noGroups noHaving noOffset plainSource found predicateTranslated
-      notCount notSum notExtreme projectionTranslated orderingTranslated =>
+      notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       have height := compoundHeight_eq_one select noCompounds
       simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds,
         oneSource, noGroups, noHaving, noOffset, plainSource, found,
         predicateTranslated, notCount, notSum, notExtreme,
-        projectionTranslated, orderingTranslated, oneResult,
+        projectionTranslated, orderingTranslated, directQuery, oneResult,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.query (CoreSQL.canonical source.name) {

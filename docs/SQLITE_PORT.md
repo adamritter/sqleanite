@@ -494,3 +494,29 @@ Invalid UTF-8 BLOB-to-TEXT conversion is explicitly rejected rather than
 replacing bytes. Collations and column references in constant expressions are
 rejected, including in dead branches. Do not infer a percentage of SQLite
 coverage from the number of ported functions or passing test expressions.
+
+### DISTINCT source ordering checkpoint (2026-10-24)
+
+The production single-table path now retains the first duplicate representative
+before sorting by an unprojected source column. A primary-key order controls
+scan direction; an unrelated source order sorts the surviving representatives.
+Both direct-column and scalar-expression projections use this rule. The
+persisted-query recognizer yields to the same executor for these shapes.
+`TranslatedRead.query` now states the direct-route premise explicitly instead
+of claiming that every translated ordering still uses the old Core query.
+
+Frozen implementation SHA-256:
+`3bee0cf61ae7ebc278a927ef9345f5fa72ad52f209a8710d95a899bb0da72cfc`.
+Fresh seed 353491 checked **8,400 queries** across both file modes, with and
+without an index, including ascending/descending primary keys, arbitrary
+source-column orders, scalar projections, DISTINCT and LIMIT. All outputs
+matched pinned SQLite 3.53.4 and reads preserved the database/WAL bytes.
+Seed 353492 checked **305 row-expression queries / 18,879 output rows**, with
+8 matching errors. The former DISTINCT-expression ordering rejection is now
+a positive regression. Reports are in
+`docs/validation/sqlite-distinct-source-order-20261024.json` and
+`docs/validation/sqlite-row-expression-source-order-20261024.json`.
+All **170 executable tests**, **961 registered headline theorems**, the full
+build and both audits passed. This closes the retained DISTINCT source-order
+counterexample; it is not a whole-SQLite compatibility result. Covering-index
+scan choices and general ORDER BY expressions remain separate work.

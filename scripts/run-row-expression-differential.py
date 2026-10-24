@@ -66,6 +66,7 @@ def cases(seed, count):
         "SELECT DISTINCT +u FROM t;",
         "SELECT DISTINCT u,+u FROM t ORDER BY u DESC LIMIT 4;",
         "SELECT DISTINCT +u FROM t LIMIT 3;",
+        "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;",
         "SELECT DISTINCT abs(-9223372036854775808)+id FROM t LIMIT 0;",
         "SELECT id+1 FROM t WHERE id=1 UNION ALL SELECT id+1 FROM t WHERE id=2;",
         "SELECT * ,v+1 FROM empty;",
@@ -129,11 +130,7 @@ def main():
             actual, expected = run(args, cwd, query)
             assert actual.returncode != 0 and expected.returncode != 0, (query, actual.stdout, expected.stdout)
             assert (cwd / "lean.db").read_bytes() == before, query
-        declared = ["SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"]
-        for query in declared:
-            actual, expected = run(args, cwd, query)
-            assert actual.returncode != 0 and expected.returncode == 0, query
-            assert (cwd / "lean.db").read_bytes() == before, query
+        declared = []
         rendering_sql = "SELECT 3.0;\nSELECT NULL;\nSELECT '';\nSELECT char(65,0,66);\nSELECT 1 WHERE 0;\n"
         rendering_file = cwd / "render.sql"
         rendering_file.write_text(rendering_sql)

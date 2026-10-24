@@ -3930,6 +3930,24 @@ private def expectSQLiteDistinctLimit : IO Unit := do
     unless (results.getLast?).map (·.rows) == some expected do
       fail s!"DISTINCT must retain first values before LIMIT: {query}"
 
+private def expectSQLiteDistinctOrder : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,b); INSERT INTO t VALUES(1,1,1),(2,1,3),(3,2,2),(4,1,0);"
+  for (query, values) in [
+      ("SELECT DISTINCT v FROM t ORDER BY b DESC;", [2,1]),
+      ("SELECT DISTINCT +v FROM t ORDER BY b DESC;", [2,1]),
+      ("SELECT DISTINCT v FROM t ORDER BY id DESC;", [1,2]),
+      ("SELECT DISTINCT +v FROM t ORDER BY id DESC;", [1,2]),
+      ("SELECT DISTINCT v FROM t ORDER BY b DESC LIMIT 1;", [2]),
+      ("SELECT DISTINCT +v FROM t ORDER BY id DESC LIMIT 1;", [1])] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"DISTINCT source ordering: {message}"
+    let expected ← match values.mapM (fun v => (fun x => [x]) <$> SQLSurface.value (.integer v)) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some expected do
+      fail s!"DISTINCT source representative ordering: {query}"
+
 private def expectSQLiteNumericDistinct : IO Unit := do
   let cases : List (String × String × List Value) := [
     ("1", "1.0", [.integer 1]),
@@ -4108,6 +4126,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
+  ("SQLite DISTINCT source ordering", expectSQLiteDistinctOrder),
   ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),
   ("SQLite numeric set operations and compound ordering", expectSQLiteNumericCompounds),
   ("SQLite numeric grouping and aggregate representatives", expectSQLiteNumericGroups),

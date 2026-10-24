@@ -791,36 +791,6 @@ theorem executeConstantSelect_at_most_one_row {state : Core.State} {select : Sel
       cases success
       cases value <;> simp
 
-/-- Row-dependent projection still reads through Core.execute and its table
-planner. Every expression is bound before querying, including at LIMIT 0.
-DISTINCT keeps its representative source row before ORDER BY and LIMIT. -/
-def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
-    (stored : Core.Table) (wherePredicate : Option Core.Predicate) :
-    Except String SelectExecution := do
-  let ctx : CoreExpr.Context := ⟨stored.schema, source.alias.getD source.name⟩
-  let expressions ← ctx.projection select.columns.toList
-  let ordering ← orderBy stored.schema select.orderBy.toList
-  if select.distinct && !(ordering.all fun term => expressions.any fun expression =>
-      match expression with
-      | .column qualifier name => ctx.column? qualifier name == some term.1
-      | _ => false) then
-    unsupported "DISTINCT expression ORDER BY requires projected source columns"
-  let query : Core.Query := {
-    columns := List.range stored.schema.columns.length
-    predicate := wherePredicate
-    orderBy := if select.distinct then [] else ordering
-    limit := if select.distinct && select.limit != some 0 then none else select.limit }
-  let (next, result) ← Core.execute state (.query (canonical source.name) query)
-  let projected ← ctx.projectRows expressions result.rows
-  let projected := if select.distinct then CoreExpr.distinctRows projected else projected
-  let projected := if select.distinct && !ordering.isEmpty then
-      projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)
-    else projected
-  let projected := if select.distinct then
-      match select.limit with | none => projected | some n => projected.take n
-    else projected
-  return ⟨next, { result with rows := projected.map (·.output) }, expressions.length⟩
-
 /-- Fallback for row-dependent WHERE expressions. Source rows still come from
 Core.execute. A primary-key order determines scan direction; other orderings
 sort surviving outputs. LIMIT is applied during an ordered scan or after a
@@ -863,6 +833,21 @@ theorem executeFilteredSelect_preserves_state {state : Core.State} {select : Sel
       simp [result, Functor.map, Except.map] at success
       cases success
       rfl
+
+/-- Direct Core queries sort before projection. When DISTINCT is ordered by
+an unprojected source column, source representatives must be retained before
+sorting; route those queries through the expression scan instead. -/
+def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
+    (ordering : List (Nat × Bool)) : Bool :=
+  distinct && !(ordering.all fun term => columns.contains term.1)
+
+/-- Scalar projections share the same bounded source scan as scalar WHERE.
+The earlier predicate translation remains useful for recognizing Core queries;
+this fallback binds and evaluates the original SQL expression tree. -/
+def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) (_wherePredicate : Option Core.Predicate) :
+    Except String SelectExecution :=
+  executeFilteredSelect state select source stored
 
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
@@ -922,14 +907,18 @@ def executeSelectBase (state : Core.State) (select : Select) :
           match projection stored.schema select.columns.toList with
           | .error _ => executeExpressionSelect state select source stored wherePredicate
           | .ok columns =>
-            let query : Core.Query := {
-              columns
-              predicate := wherePredicate
-              orderBy := ← orderBy stored.schema select.orderBy.toList
-              limit := select.limit
-              distinct := select.distinct }
-            let (next, result) ← Core.execute state (.query tableName query)
-            return ⟨next, result, query.columns.length⟩
+            let ordering ← orderBy stored.schema select.orderBy.toList
+            if queryNeedsRepresentatives select.distinct columns ordering then
+              executeFilteredSelect state select source stored
+            else
+              let query : Core.Query := {
+                columns
+                predicate := wherePredicate
+                orderBy := ordering
+                limit := select.limit
+                distinct := select.distinct }
+              let (next, result) ← Core.execute state (.query tableName query)
+              return ⟨next, result, query.columns.length⟩
         | _, _, _ => unsupported "ambiguous aggregate projection"
 
 /-- Recognize the non-aggregate single-table SELECT shape used by the
@@ -950,7 +939,8 @@ def simpleQuery? (state : Core.State) (select : Select) :
       if count.isNone && sum.isNone && extreme.isNone then
         let columns ← (projection stored.schema select.columns.toList).toOption
         let ordering ← (orderBy stored.schema select.orderBy.toList).toOption
-        some (tableName, {
+        if queryNeedsRepresentatives select.distinct columns ordering then none
+        else some (tableName, {
           columns
           predicate := wherePredicate
           orderBy := ordering

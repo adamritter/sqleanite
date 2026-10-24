@@ -33,6 +33,14 @@ else
   fail "row-expression WHERE route or its registered contracts are missing"
 fi
 
+# DISTINCT source representatives must use the same route after file reopen.
+if [ "$(grep -c 'if queryNeedsRepresentatives select.distinct columns ordering then' SQLeanite/CoreSQL.lean)" -eq 2 ] &&
+   grep -q 'directQuery : CoreSQL.queryNeedsRepresentatives' SQLeanite/CoreSQLReadText.lean; then
+  ok "DISTINCT representative routing is shared by SQL and the persisted recognizer"
+else
+  fail "DISTINCT representative routing or direct-query proof premise is missing"
+fi
+
 # Row-dependent UPDATE remains an atomic trace of proved Core point updates.
 if grep -q 'executeExpressionUpdate state tableName alias stored' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeExpressionUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&

@@ -1,0 +1,37 @@
+{
+  "seed": 353491,
+  "random_cases": 35,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "indexed": false,
+      "queries": 2100,
+      "result_rows": 5760
+    },
+    {
+      "mode": "--verified-file",
+      "indexed": true,
+      "queries": 2100,
+      "result_rows": 5760
+    },
+    {
+      "mode": "--verified-wal-file",
+      "indexed": false,
+      "queries": 2100,
+      "result_rows": 5760
+    },
+    {
+      "mode": "--verified-wal-file",
+      "indexed": true,
+      "queries": 2100,
+      "result_rows": 5760
+    }
+  ],
+  "queries": 8400,
+  "failures": [],
+  "implementation_sha256": "3bee0cf61ae7ebc278a927ef9345f5fa72ad52f209a8710d95a899bb0da72cfc",
+  "executable_sha256": "0739a7330b44538b122ffb64ab31eecdcd0fe55e12a58205adc87ae95897fa2f",
+  "harness_sha256": "d0cc6cc959b34c5132e9ceeb93c5e88c8a92bc966aaa342709592cfd6988cea1",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare DISTINCT source representatives, source ordering and LIMIT.\n\nIncludes ordinary and expression projections, primary-key scan directions,\npost-DISTINCT sorting, both production file modes and reopen/index paths.\nThis is query-output and read-preservation evidence, not a coverage percentage."
+}
