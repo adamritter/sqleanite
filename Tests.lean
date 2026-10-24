@@ -3841,6 +3841,24 @@ private def expectSQLiteRowExpressions : IO Unit := do
     | .ok _ => fail s!"unbound row expression accepted: {query}"
     | .error _ => pure ()
 
+private def expectIndexTailOwnership : IO Unit := do
+  let .ok (state, _) := CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,2),(2,3); CREATE INDEX tv ON t(v);" |
+    fail "index tail setup"
+  let some table := state.database.findTable? "t" | fail "index tail table"
+  let some index := table.indexes.head? | fail "index tail index"
+  let some encoding := CoreOverflow.encodeIndex 2 table index | fail "index tail encoding"
+  let source : CoreDecode.PageSource := {
+    pageCount := 1 + encoding.pages.length
+    readPage := fun number => if number < 2 then none else
+      (encoding.pages[number - 2]?).map (·.bytes) }
+  unless CoreFileAdapter.indexTailMatches source 2 encoding.pages do
+    fail "exact canonical index tail rejected"
+  if CoreFileAdapter.indexTailMatches { source with pageCount := source.pageCount + 1 }
+      2 encoding.pages then fail "unaccounted tail page accepted"
+  if CoreFileAdapter.indexTailMatches { source with readPage := fun _ => none }
+      2 encoding.pages then fail "unreadable index tail accepted"
+
 private def expectSQLiteRowPredicates : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n NUMERIC); INSERT INTO t VALUES(1,'2','2'),(2,'x',NULL),(3,'3',-2);"
   for (query, expected) in [
@@ -4068,6 +4086,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite numeric set operations and compound ordering", expectSQLiteNumericCompounds),
   ("SQLite numeric grouping and aggregate representatives", expectSQLiteNumericGroups),
   ("SQLite row-expression predicates", expectSQLiteRowPredicates),
+  ("physical index tail ownership", expectIndexTailOwnership),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

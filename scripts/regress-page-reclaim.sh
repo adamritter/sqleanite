@@ -1,19 +1,7 @@
 #!/bin/sh
-# Pin the shape of the one declared forward-direction exception.
-#
-# Emptying an indexed table leaves the pages its collapsed trees no longer occupy
-# allocated but unreferenced, so C SQLite's `integrity_check` reports "Page N is
-# never used". `scripts/run-forward-compat.sh` admits that, bounded, because the
-# rows are correct and the condition is transient. "Transient" is the load-bearing
-# word, and this script is what makes it a checked property instead of a claim:
-#
-#   1. emptying an indexed table orphans at most a fixed, small number of pages;
-#   2. the row contents are exactly what C computes for the same program;
-#   3. re-inserting reclaims those pages: `integrity_check` returns to `ok`;
-#   4. repeating the empty/refill cycle does not grow the file.
-#
-# If the leak ever starts accumulating -- which is the version of this that would
-# actually matter -- (4) fails here.
+# Require every indexed empty/refill image to be structurally clean. Repeated
+# cycles must preserve row/index contents and stop growing after first refill.
+# The historical orphan-page exception is no longer accepted.
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
@@ -22,7 +10,6 @@ lean=${SQLEANITE_BIN:-$root/.lake/build/bin/sqleanite}
 csql=${SQLITE3_BIN:-/usr/bin/sqlite3}
 rows=${ROWS:-200}
 cycles=${CYCLES:-5}
-orphan_bound=${ORPHAN_BOUND:-4}
 
 if [ ! -x "$lean" ] || [ ! -x "$csql" ]; then
   printf '%s\n' "SQLeanite or SQLite CLI is unavailable" >&2
@@ -63,30 +50,18 @@ rm -f "$db" "$db-journal" "$db-wal"
 
 status=0
 
-# 1 and 2: emptying orphans a bounded number of pages, and only that.
+# Emptying must immediately publish every retired page on the freelist.
 "$lean" --verified-file "$db" "$work/empty.sql" > /dev/null
 integrity=$("$csql" -batch -noheader "$db" "PRAGMA integrity_check;")
-structural=$(printf '%s\n' "$integrity" |
-  grep -v 'never used' | grep -v '^\*\*\* in database' | grep -v '^ok$' || true)
-orphans=$(printf '%s\n' "$integrity" | grep -c 'never used' || true)
 remaining=$("$csql" -batch -noheader "$db" "SELECT count(*) FROM orders;")
-if [ -n "$structural" ]; then
-  printf 'not ok - emptying reported a structural error, not just orphans: %s\n' \
-    "$(printf '%s' "$structural" | tr '\n' ' ')" >&2
-  status=1
-elif [ "$orphans" -gt "$orphan_bound" ]; then
-  printf 'not ok - emptying orphaned %s pages, bound is %s\n' \
-    "$orphans" "$orphan_bound" >&2
-  status=1
-elif [ "$remaining" != 0 ]; then
-  printf 'not ok - emptying left %s rows behind\n' "$remaining" >&2
+if [ "$integrity" != ok ] || [ "$remaining" != 0 ]; then
+  printf 'not ok - empty indexed table: integrity=%s, rows=%s\n' "$integrity" "$remaining" >&2
   status=1
 else
-  printf 'ok - emptying an indexed table orphans %s pages and no structural error\n' \
-    "$orphans"
+  printf 'ok - empty indexed table has no orphan pages\n'
 fi
 
-# 3 and 4: the pages come back, and the file does not grow across cycles.
+# Refill reuses allocation; every subsequent empty image is clean too.
 baseline=""
 cycle=1
 while [ "$cycle" -le "$cycles" ]; do
@@ -97,7 +72,7 @@ while [ "$cycle" -le "$cycles" ]; do
   hit=$("$csql" -batch -noheader "$db" \
     "SELECT count(*) FROM orders WHERE sku='sku-100';")
   if [ "$integrity" != ok ]; then
-    printf 'not ok - cycle %s: refill did not reclaim the orphans: %s\n' \
+    printf 'not ok - cycle %s: refill failed integrity_check: %s\n' \
       "$cycle" "$(printf '%s' "$integrity" | tr '\n' ' ')" >&2
     status=1
   elif [ "$count" != "$rows" ]; then
@@ -117,12 +92,17 @@ while [ "$cycle" -le "$cycles" ]; do
     status=1
   fi
   "$lean" --verified-file "$db" "$work/empty.sql" > /dev/null
+  integrity=$("$csql" -batch -noheader "$db" "PRAGMA integrity_check;")
+  if [ "$integrity" != ok ]; then
+    printf 'not ok - cycle %s: empty image failed integrity_check: %s\n' "$cycle" "$integrity" >&2
+    status=1
+  fi
   cycle=$((cycle + 1))
 done
 
 if [ "$status" -eq 0 ]; then
-  printf 'ok - %s empty/refill cycles reclaim orphans and hold at %s pages\n' \
+  printf 'ok - %s empty/refill cycles stay clean and hold at %s pages\n' \
     "$cycles" "$baseline"
-  printf 'page reclamation is transient-only, as declared\n'
+  printf 'page reclamation is integrity-check clean after every phase\n'
 fi
 exit "$status"

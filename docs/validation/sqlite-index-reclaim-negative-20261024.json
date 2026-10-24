@@ -1,0 +1,29 @@
+{
+  "checkpoint": "5ae6c3a before index-tail ownership guard",
+  "fixture": "200 orders, 50 customers, orders_sku index; DELETE FROM orders",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "before": {
+    "integrity": "ok",
+    "page_count": 8,
+    "free_pages": 0,
+    "orders_root": 5,
+    "table_children": [
+      3,
+      4
+    ],
+    "index_root": 8,
+    "index_children": [
+      6,
+      7
+    ]
+  },
+  "after": {
+    "integrity": "Page 6: never used; Page 7: never used",
+    "page_count": 8,
+    "free_pages": 2,
+    "orders_root": 5,
+    "index_root": 8
+  },
+  "cause": "Last catalog root was mistaken for the first page of the index allocation; children before that root were not reclaimed.",
+  "fix": "Require prior canonical index bytes to match the complete tail interval before local replacement; otherwise use the freelist-aware full commit."
+}

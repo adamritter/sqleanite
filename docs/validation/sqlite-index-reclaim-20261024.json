@@ -1,0 +1,2803 @@
+{
+  "seed": 353471,
+  "fixtures": 12,
+  "cycles": 5,
+  "checks": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 8
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 6
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 6
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 8
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 16,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 219,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 5
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 3
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 147,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 18
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 1
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 33,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 23
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 17,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 17,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 27,
+      "free_pages": 0
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 505,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 34
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 62,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 8
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 46
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 21
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 35,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 27,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 28,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 86,
+      "free_pages": 0
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 1018,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 4
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 2
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 2
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 2
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 2
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 8,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 82,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 11
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 17,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 15
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 11
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 7
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 28,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 28,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 308,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 8
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 6
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 16,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 5
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 8
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 16,
+      "free_pages": 0
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 215,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 5
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 1
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 140,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 13,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 18
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 22,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 36,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 12
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 23
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 20
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 33,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 33,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 43,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 42,
+      "free_pages": 0
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 517,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 51,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 34
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 38,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 56,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 39
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 43
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 32
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 27,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 65,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 86,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 27,
+      "free_pages": 0
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 1012,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 101,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 2
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 2
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 2
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 6,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 83,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 7,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "initial",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "delete-0",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 11
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "refill-0",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 15,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "delete-1",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 21,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "refill-1",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "delete-2",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 11
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "refill-2",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "delete-3",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 14
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "refill-3",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "delete-4",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "phase": "refill-4",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "initial",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "delete-0",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 4,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "refill-0",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "delete-1",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "refill-1",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "delete-2",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 12,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "refill-2",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "delete-3",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "refill-3",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "delete-4",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 9,
+      "free_pages": 0
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "phase": "refill-4",
+      "rows": 316,
+      "integrity": "ok",
+      "contents_match": true,
+      "page_count": 31,
+      "free_pages": 0
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "b733187df9ffe96a3956357798e097ea3934e737758b4234ec3553cbbbacb877",
+  "executable_sha256": "7ea20de3150d4edb7f715795016c55a7aa949f4ee86728b4f752d14a6f1e72d0",
+  "harness_sha256": "85ff8904fbdd7ecbc7a3cca8c0030ac5dc146124e3bf86a9cd6920d6185036a3",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite independently reads rollback/WAL images, schema, typed values, index lookup, unchanged neighbour table and integrity after every phase.",
+  "validation": {
+    "build": "passed, 230 jobs",
+    "tests": 168,
+    "registered_headline_theorems": 959,
+    "verification_audit": "passed",
+    "live_path_audit": "passed"
+  },
+  "regressions": {
+    "predicate": {
+      "seed": 353462,
+      "random_cases": 300,
+      "queries": 816,
+      "phases": [
+        {
+          "name": "unindexed",
+          "queries": 408,
+          "result_rows": 7301
+        },
+        {
+          "name": "indexed",
+          "queries": 408,
+          "result_rows": 7301
+        }
+      ],
+      "failures": [],
+      "matching_errors": 13,
+      "planner_order_diagnostics": [
+        {
+          "sql": "SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1;",
+          "lean": {
+            "exit_code": 0,
+            "stdout": "1\n",
+            "stderr": ""
+          },
+          "sqlite": {
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": "Error near line 1: integer overflow\n"
+          },
+          "matches": false,
+          "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+        },
+        {
+          "sql": "SELECT DISTINCT id%2 FROM t WHERE id<3 OR abs(-9223372036854775808) LIMIT 2;",
+          "lean": {
+            "exit_code": 0,
+            "stdout": "1\n0\n",
+            "stderr": ""
+          },
+          "sqlite": {
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": "Error near line 1: integer overflow\n"
+          },
+          "matches": false,
+          "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+        }
+      ],
+      "implementation_sha256": "b733187df9ffe96a3956357798e097ea3934e737758b4234ec3553cbbbacb877",
+      "executable_sha256": "7ea20de3150d4edb7f715795016c55a7aa949f4ee86728b4f752d14a6f1e72d0",
+      "harness_sha256": {
+        "run-predicate-differential.py": "3a52bb1c0759837ae90891cce2ac6176a8651580f9e60d6debb1669666e1f919",
+        "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+      },
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "CLI rows, multiplicities, truth, LIMIT error suppression, binding and unchanged file; indexed/unindexed"
+    },
+    "affinity": {
+      "typed_insert_values": 444,
+      "select_queries": 4709,
+      "declared_types": [
+        "",
+        "TEXT",
+        "INTEGER",
+        "REAL",
+        "NUMERIC",
+        "BLOB",
+        "VARCHAR(12)",
+        "DOUBLE PRECISION",
+        "FLOATING POINT",
+        "STRING",
+        "\"custom INT type\"",
+        "\"a\"\"b TEXT type\""
+      ],
+      "expected_write_errors": 4,
+      "unsupported_mixed_affinity_queries": 1,
+      "mixed_affinity_predicates": 1,
+      "reverse_write_checks": 1,
+      "mismatches": 0,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "row": {
+      "seed": 353429,
+      "random_cases": 100,
+      "queries": 204,
+      "result_rows": 10877,
+      "matching_errors": 8,
+      "declared_rejections": [
+        "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"
+      ],
+      "failures": [],
+      "distinct_limit_regression": {
+        "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+        "result": "1\n2\n",
+        "matches_sqlite": true
+      },
+      "cli_render_modes": [
+        "--verified-file",
+        "--verified-wal-file",
+        "--verified-file-timed"
+      ],
+      "numeric_distinct_regression": {
+        "sql": "SELECT DISTINCT v FROM mixed;",
+        "lean": "1\n",
+        "sqlite": "1\n",
+        "matches_sqlite": true
+      },
+      "implementation_sha256": "b733187df9ffe96a3956357798e097ea3934e737758b4234ec3553cbbbacb877",
+      "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "group": {
+      "seed": 353453,
+      "random_cases": 200,
+      "queries": 296,
+      "result_rows": 8590,
+      "failures": [],
+      "matching_errors": 3,
+      "implementation_sha256": "b733187df9ffe96a3956357798e097ea3934e737758b4234ec3553cbbbacb877",
+      "executable_sha256": "7ea20de3150d4edb7f715795016c55a7aa949f4ee86728b4f752d14a6f1e72d0",
+      "harness_sha256": {
+        "run-group-differential.py": "b62164a8b071018b04f053dac580524295e89311b010b6b01960998ff4ff5000",
+        "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+      },
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "CLI group multiplicities, aggregate values, ordering and original numeric/TEXT representatives; unchanged file"
+    }
+  },
+  "file_regressions": {
+    "forward_clean_workloads": 11,
+    "forward_orphan_exceptions": 0,
+    "reverse_full_accepted": 53,
+    "reverse_declared_unsupported": 3,
+    "core_differential": 13,
+    "reclaim_cycles": {
+      "200_rows": 5,
+      "1000_rows": 7
+    },
+    "all_reclaim_phases_integrity": "ok"
+  }
+}

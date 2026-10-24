@@ -388,6 +388,35 @@ file workloads, ten pass SQLite integrity_check; the indexed-shrink workload
 still has its pre-existing bounded orphan-page exception. These are separately
 reported file results, not proof of complete database or WAL compatibility.
 
+## Indexed-shrink file-integrity checkpoint
+
+The [fresh checkpoint](validation/sqlite-index-reclaim-20261024.json) checks
+**264 persisted images** from 12 fresh seeded fixtures (`353471`), five
+shrink/refill cycles each, through both rollback-journal and WAL writers.
+SQLite 3.53.4 independently reads every image: integrity_check is always `ok`,
+and schema, typed values, index lookup and the untouched neighbouring table
+agree with independently SQLite-written files. All **168 tests**, **959
+registered headline theorems**, the verification audit and live-path audit pass.
+All eleven forward workloads are now clean with **zero orphan exceptions**.
+The full reverse matrix retains 53 accepted cells and three explicit rejections;
+13 Core differential cases and the SQL regressions in the report pass.
+
+The historical 200-row indexed-delete exception was a real allocation bug:
+the index root was page 8, while its children were pages 6 and 7. Rewriting the
+root-to-end interval left both children orphaned. The [negative checkpoint](validation/sqlite-index-reclaim-negative-20261024.json)
+preserves that layout. Local tail replacement now verifies the old canonical
+index bytes over the entire physical interval. Layouts that fail this check
+use the existing proved, freelist-aware full commit. The new registered theorem
+exposes the guard's exact byte-image and interval-length equations; it does not
+claim a proof of all foreign index layouts or the real filesystem.
+
+The strict page-reclamation regression also passes five 200-row and seven
+1,000-row empty/refill cycles. Every phase must be clean. The previous bounded
+orphan allowance has been removed from both executable checks and generated
+compatibility documentation. The extra old-index encoding/check can increase
+fallback write cost; correctness takes priority here. Full WAL locking/recovery,
+other writer page sizes and unsupported schema shapes remain open.
+
 ## Still missing
 
 This step does not implement general aggregate/join/write WHERE or row-dependent UPDATE expressions,

@@ -595,6 +595,9 @@ if grep -q 'CoreChunkPageDelta.updateStateCandidate?' \
      SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareLocalizedLastIndex? validated' \
      SQLeanite/CoreFileEngine.lean &&
+   grep -q 'unless indexTailMatches source entry.rootPage prior.value.pages' \
+     SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'CoreFileAdapter.indexTailMatches_exact' SQLeanite/ProofAxioms.lean &&
    grep -q 'commitLocalizedCertified connection.syncOps' \
      SQLeanite/CoreFileEngine.lean &&
    grep -q 'certifyIndexEncoding?_exact' SQLeanite/ProofAxioms.lean &&
@@ -826,14 +829,15 @@ else
   fail "docs/COMPATIBILITY.md is stale; regenerate with --markdown"
 fi
 
-# The one declared forward-direction exception has to stay bounded and transient,
-# and the script that pins that has to stay wired into the reproduction run.
+# Every shrink/refill image must now be clean; keep both strict runners wired.
 if grep -q 'regress-page-reclaim.sh' scripts/reproduce-all.sh &&
    grep -q 'run-forward-compat.sh' scripts/reproduce-all.sh &&
-   grep -q 'orphan_bound' scripts/regress-page-reclaim.sh; then
-  ok "declared page-reclaim exception is bounded and reproduced"
+   grep -q 'empty image failed integrity_check' scripts/regress-page-reclaim.sh &&
+   ! grep -q 'orphan_bound' scripts/regress-page-reclaim.sh &&
+   ! grep -q 'excepted=' scripts/run-forward-compat.sh; then
+  ok "indexed page reclamation requires clean images after every phase"
 else
-  fail "the declared page-reclaim exception lost its bound or its runner"
+  fail "strict page-reclamation checks or their runners are missing"
 fi
 
 # The one assumed law is disclosed as *checkable*, and that claim rests entirely on

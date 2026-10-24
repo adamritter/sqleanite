@@ -34,7 +34,7 @@ scripts/run-reverse-differential.sh | tail -1
 step "forward byte compatibility (we write, C reads and checks integrity)"
 scripts/run-forward-compat.sh | tail -1
 
-step "page reclamation after an indexed shrink (the one declared exception)"
+step "page reclamation after an indexed shrink (no orphan-page exception)"
 scripts/regress-page-reclaim.sh | tail -1
 
 step "Lean mutation arm"

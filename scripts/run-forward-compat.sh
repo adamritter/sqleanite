@@ -108,7 +108,6 @@ c_view() {
 
 passed=0
 failed=0
-excepted=0
 for sql in "$work"/*.sql; do
   name=$(basename "$sql" .sql)
   case $name in 00_seed) continue ;; esac
@@ -129,36 +128,10 @@ for sql in "$work"/*.sql; do
   "$csql" -batch -noheader "$c_db" < "$sql" > /dev/null
 
   failure=""
-  exception=""
 
   integrity=$("$csql" -batch -noheader "$lean_db" "PRAGMA integrity_check;")
   if [ "$integrity" != ok ]; then
-    # One pinned exception, bounded so it cannot grow silently.
-    #
-    # Emptying (or shrinking) a table that carries an index leaves the pages the
-    # collapsed trees no longer occupy allocated but unreferenced, so C reports
-    # "Page N is never used". This is by construction, not an accounting slip:
-    # `CoreChunkPageDelta.updateState?_freedPageNumbers_eq_nil_of_indexed` makes
-    # indexed localized deltas allocation-preserving, which is what lets the
-    # commit skip a second allocation scan. Publishing those pages to the
-    # freelist needs the index trees' page sets in the freed-set proof, which is
-    # real proof work, not a one-line fix.
-    #
-    # It is admitted here only under all of these conditions, each checked:
-    #   * every complaint line is a "never used" page, never a structural error;
-    #   * the row contents still match C exactly (checked below, unconditionally);
-    #   * the number of orphaned pages is bounded by the shape, not growing;
-    #   * the condition is transient -- `scripts/regress-page-reclaim.sh` pins that
-    #     the next inserts reuse those pages and integrity returns to `ok`.
-    structural=$(printf '%s\n' "$integrity" |
-      grep -v 'never used' | grep -v '^\*\*\* in database' || true)
-    orphans=$(printf '%s\n' "$integrity" | grep -c 'never used' || true)
-    if [ -z "$structural" ] && [ "$orphans" -le 4 ]; then
-      exception="allocated-but-unreferenced pages: $orphans (declared: indexed \
-shrink is allocation-preserving; reclaimed on regrowth)"
-    else
-      failure="integrity_check: $(printf '%s' "$integrity" | tr '\n' ' ')"
-    fi
+    failure="integrity_check: $(printf '%s' "$integrity" | tr '\n' ' ')"
   fi
 
   foreign=$("$csql" -batch -noheader "$lean_db" "PRAGMA foreign_key_check;")
@@ -179,11 +152,7 @@ shrink is allocation-preserving; reclaimed on regrowth)"
     if [ -f "$work/$name.diff" ]; then
       sed -n '1,20p' "$work/$name.diff" >&2
     fi
-  elif [ -n "$exception" ]; then
-    printf 'ok - %s: C reads identical schema and rows; declared exception: %s\n' \
-      "$name" "$exception"
-    passed=$((passed + 1))
-    excepted=$((excepted + 1))
+
   else
     printf 'ok - %s: integrity_check=ok and C reads identical schema and rows\n' "$name"
     passed=$((passed + 1))
@@ -191,9 +160,6 @@ shrink is allocation-preserving; reclaimed on regrowth)"
 done
 
 printf '%s forward-direction workload shapes verified by C SQLite' "$passed"
-if [ "$excepted" -gt 0 ]; then
-  printf ' (%s with a declared, bounded exception)' "$excepted"
-fi
 if [ "$failed" -gt 0 ]; then
   printf ', %s failed\n' "$failed"
   exit 1

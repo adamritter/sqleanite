@@ -2906,6 +2906,25 @@ def preparePageDirectedIndexDelete? (validated : ValidatedOpenState)
     else none
   else none
 
+/-- Tail replacement is safe only when the old canonical index occupies
+exactly that physical interval. A last catalog root can still have children
+below it, notably after a wide-tree root split. Such layouts must be rebuilt. -/
+def pageWriteContents (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize)) :
+    List (Nat × Array UInt8) := writes.map (fun write => (write.pageId, write.page.bytes))
+
+def indexTailMatches (source : CoreDecode.PageSource) (rootPage : Nat)
+    (pages : List CoreFile.Page) : Bool :=
+  pages.length == source.pageCount + 1 - rootPage &&
+    (readPageWrites? source rootPage pages.length).map pageWriteContents ==
+      some (pageWriteContents (indexPageWrites rootPage pages))
+
+theorem indexTailMatches_exact {source : CoreDecode.PageSource} {rootPage : Nat}
+    {pages : List CoreFile.Page} (accepted : indexTailMatches source rootPage pages = true) :
+    pages.length = source.pageCount + 1 - rootPage ∧
+      (readPageWrites? source rootPage pages.length).map pageWriteContents =
+        some (pageWriteContents (indexPageWrites rootPage pages)) := by
+  simpa [indexTailMatches, Bool.and_eq_true] using accepted
+
 /-- Localize one changed generated index when it owns the final file interval.
 The validating-open capability records that the old index matched the logical
 pre-state; the replacement is the ordinary proved index encoder rooted at the
@@ -2957,6 +2976,8 @@ def prepareLocalizedLastIndex? (validated : ValidatedOpenState)
                   if _lastRoot : catalog.all fun candidate =>
                       candidate.rootPage ≤ entry.rootPage then
                     if _rootRange : 1 < entry.rootPage ∧ entry.rootPage ≤ count then
+                      let prior ← certifyIndexEncoding? entry.rootPage before index
+                      unless indexTailMatches source entry.rootPage prior.value.pages do none
                       let certified ← certifyIndexEncoding?
                           entry.rootPage after index
                       let encoding := certified.value

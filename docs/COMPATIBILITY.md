@@ -10,20 +10,18 @@ Two directions, and they are not symmetric:
 - **forward** (SQLeanite writes, C SQLite reads) is checked by
   `scripts/run-forward-compat.sh`: for every workload shape C runs
   `PRAGMA integrity_check` *and* must read the same schema and the same rows it
-  reads from its own file. Ten of eleven shapes are clean on every check; the
-  eleventh has one bounded, transient exception, stated in full below rather than
-  averaged away.
+  reads from its own file. All eleven shapes now require a clean integrity check;
+  orphan pages are failures.
 
-## Write-side page size: a stated asymmetry, not a gap being closed
+## Current page-size coverage
 
-`PhysicalCodec.pageSize = 4096` is threaded through sixteen modules and baked
-into type signatures such as `Storage.Page pageSize`. Parameterizing it is
-surface-widening in effect, so the decision is to state the asymmetry:
+`PhysicalCodec.pageSize = 4096` is threaded through the writer and its proof
+types. The currently tested read/write coverage is:
 
 > **SQLeanite reads 1024, 4096, 8192 and 65536 byte pages, and writes 4096 only.**
 
-A file written by SQLeanite is therefore always a 4096-byte-page SQLite file,
-which C SQLite reads unconditionally; nothing is lost on the forward direction.
+Complete SQLite file-format compatibility remains the target. Writer support
+for other page sizes and broader schema/encoding coverage are still gaps.
 
 ## Value rendering differs from the `sqlite3` shell, and is not a storage claim
 
@@ -69,42 +67,27 @@ succeeding fails this script so the declaration cannot go stale.
 | pagesize-indexed | 1024 / 4096 / 8192 / 65536 | accepted | Indexed 200-row table spanning pages at 1024 |
 | pagesize-overflow | 1024 / 4096 / 8192 / 65536 | accepted | Overflow chain at each page size |
 
-## Forward-direction results, and the one declared exception
+## Forward-direction results and indexed-page reclamation
 
-`scripts/run-forward-compat.sh` runs all eleven workload shapes in
-`tests/sql/workloads`, twice per shape: once with SQLeanite as the writer, once
-with C SQLite as the writer. C SQLite is then the *only* reader of both files, so
-our result rendering is out of the comparison. Per shape it checks
-`PRAGMA integrity_check`, `PRAGMA foreign_key_check`, C's view of the schema, and
-C's row contents table by table.
+`scripts/run-forward-compat.sh` runs all eleven workload shapes using independent
+SQLeanite and SQLite files. SQLite then checks both files' schema and contents,
+plus integrity_check and foreign_key_check. All eleven shapes are clean.
+`scripts/regress-page-reclaim.sh` requires a clean image immediately after each
+empty/refill operation and checks that repeated cycles stop growing the file.
 
-Ten of eleven shapes are clean on every check. One has a declared, bounded
-exception:
+The historical indexed-shrink exception is fixed. A high-fanout index can place
+its root after its children, so the last catalog root does not establish that
+the whole index lives in the root-to-end interval. The old tail rewrite orphaned
+two earlier child pages in the 200-row example. Local tail replacement now
+requires exact agreement with the prior canonical index encoding over that
+entire interval. Other layouts use the existing freelist-aware full commit.
+The earlier allocation-preserving-update explanation did not identify this
+shrink-path bug; the retained negative report records the actual failing layout.
 
-| shape | what C reports | why it is admitted |
-|---|---|---|
-| `08_bulk_delete` (empties an indexed table) | `Page N is never used`, 2 pages at the 200-row shape | Rows are exactly what C computes; the pages are allocated but unreferenced, not corrupt |
-
-The cause is a design decision, not an accounting slip:
-`CoreChunkPageDelta.updateState?_freedPageNumbers_eq_nil_of_indexed` makes an
-indexed localized delta *allocation-preserving*, which is what lets a commit skip
-a second allocation scan. Publishing the collapsed trees' pages to the freelist
-needs the index trees' page sets inside the freed-set proof, which is proof work
-rather than a one-line change.
-
-It is admitted only because it is bounded and transient, and both are checked
-rather than asserted:
-
-- `run-forward-compat.sh` fails if any complaint is structural rather than an
-  unreferenced page, if the count exceeds the shape's bound, or if row contents
-  differ at all;
-- `scripts/regress-page-reclaim.sh` pins that re-inserting reclaims the pages,
-  that `integrity_check` returns to `ok`, and that five empty/refill cycles do
-  **not** grow the file. An accumulating leak — the version that would matter —
-  fails that script.
-
-For the same program C SQLite ends at 5 pages where SQLeanite ends at 7 while the
-table is empty. That gap closes on the next insert.
+The [fresh shrink/refill checkpoint](validation/sqlite-index-reclaim-20261024.json)
+uses SQLite as the independent reader of rollback-journal and WAL images after
+every phase. This is evidence for those file shapes, not complete WAL locking,
+recovery or file-format conformance.
 
 ## Untested, and named so it is not mistaken for accepted
 

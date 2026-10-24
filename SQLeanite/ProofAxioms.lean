@@ -1043,3 +1043,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreExpr.scan_limit_zero
 #print axioms SQLeanite.CoreExpr.scan_length_le
 #print axioms SQLeanite.CoreSQL.executeFilteredSelect_preserves_state
+
+-- Tail index replacement checks physical ownership before publishing free pages.
+#print axioms SQLeanite.CoreFileAdapter.indexTailMatches_exact
