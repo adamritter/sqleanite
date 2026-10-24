@@ -1,0 +1,53 @@
+{
+  "implementation_sha256": "c6ed74e8976cb59eb138c3fda506bcc6106db35cfb6627f6df5e033a0af56b16",
+  "checks": {
+    "build": {
+      "sha256": "7cc432d7af562735b96cbdc75dd11196f6e9ef3df827f9edc1a7031c67955956",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3720:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [267/268] Built Tests:c.o (11s)",
+        "\u2714 [268/268] Built sqleanite_tests:exe (371ms)",
+        "Build completed successfully (268 jobs)."
+      ]
+    },
+    "tests": {
+      "sha256": "c4dcdda028881056bcbf97d1273facdfeeb58302335df2d64fc698cb1c1310c6",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "202 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "sha256": "1aab705ce5d8c851d50951f49133af699a6fb530a829d1c4153027bc61eb2a83",
+      "tail": [
+        "ok - indexed bulk DELETE carries an exact decoded post-state certificate",
+        "ok - validated write-open reads pages directly from the file buffer",
+        "ok - single-row indexed INSERT carries an exact decoded post-state certificate",
+        "ok - C sqlite3 accepts a Lean-written file",
+        "ok - page-directed indexed DELETE is integrity-check clean",
+        "ok - page-directed indexed INSERT is integrity-check clean",
+        "ok - read-only writes produce an ordinary SQLite-style diagnostic",
+        "ok - corrupt input rejection is a normal diagnostic, not a crash"
+      ]
+    }
+  },
+  "claim": "Final fresh ungrouped HAVING cases pass. The grouped HAVING negative remains in each full corpus."
+}

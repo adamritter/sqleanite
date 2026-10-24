@@ -1,0 +1,52 @@
+{
+  "seed": 353805,
+  "random_cases": 120,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1347,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 120,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "aggregate-and-binding-edges": 12,
+        "unknown-collation": 36
+      },
+      "matching_errors": 15,
+      "writes": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1347,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 120,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "aggregate-and-binding-edges": 12,
+        "unknown-collation": 36
+      },
+      "matching_errors": 15,
+      "writes": 3
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "c6ed74e8976cb59eb138c3fda506bcc6106db35cfb6627f6df5e033a0af56b16",
+  "executable_sha256": "c0ec9746c2ad67c4f5bb2aff45362625b9c1d28fa86d1a5a22b36d5a35fa67f3",
+  "harness_sha256": "c936abb20569cab6aec54cab76003fdb3ca2e3f598f9c1d3c2addc6fc5d645a1",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare explicit expression collations with pinned SQLite through both live\nfile modes. Exact CLI bytes or ordinary error status are compared; every\nmismatch is retained. Read-only queries must preserve main/WAL bytes."
+}

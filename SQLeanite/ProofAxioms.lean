@@ -1180,3 +1180,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreAggregateOrder.extend_preserves_expressions
 #print axioms SQLeanite.CoreAggregateOrder.eraseBareFuel_aggregate
+
+#print axioms SQLeanite.CoreAggregateHaving.retain_member
+#print axioms SQLeanite.CoreAggregateHaving.Prepared.matches_none

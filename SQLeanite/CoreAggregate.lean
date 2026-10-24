@@ -110,7 +110,7 @@ abbrev PrepareM := StateT (Array Term) (Except String)
 outside aggregate arguments remain rejected by this aggregate-only result path.
 The private slot syntax can only be produced here: ordinary user calls and
 columns are validated before any slot is installed. -/
-def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
+def prepareTemplateFuel (ctx : CoreExpr.Context) (allowBare : Bool) : Nat → Expr → PrepareM Expr
   | 0, _ => throw "aggregate expression depth exhausted"
   | fuel + 1, expression => do
       if recognizes expression then
@@ -121,9 +121,14 @@ def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
         return match SQLite.ExprCollation.name expression with
           | none => slot
           | some name => .collate slot name
+      if allowBare then
+        if let .column qualifier name := expression then
+          let some index := ctx.column? qualifier name | throw "unbound aggregate source column"
+          unless index < ctx.schema.columns.length do throw "aggregate source column is outside its schema"
+          return .column (some "__aggregate_source") (toString index)
       if SQLite.Scalar.forbidden expression then
         throw "unsupported aggregate result operator"
-      let prepare := prepareResultFuel ctx fuel
+      let prepare := prepareTemplateFuel ctx allowBare fuel
       match expression with
       | .literal _ _ => return expression
       | .collate arg name => return .collate (← prepare arg) name
@@ -138,6 +143,10 @@ def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
             (← branches.mapM fun (condition, result) => do return (← prepare condition, ← prepare result))
             (← otherwise.mapM prepare)
       | _ => throw "unsupported bare column or subquery in aggregate result"
+
+/-- Existing aggregate-only result callers retain their admission boundary. -/
+def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr :=
+  prepareTemplateFuel ctx false
 
 def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
     Except String PreparedResults := do

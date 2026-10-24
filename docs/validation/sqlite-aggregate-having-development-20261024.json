@@ -1,0 +1,51 @@
+{
+  "seed": 353801,
+  "random_cases": 200,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 659,
+      "matching_errors": 76
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 659,
+      "matching_errors": 76
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v HAVING count(*)>1 ORDER BY count(*) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\nx|3\n-3|3\n|3\nA  |2\nA|2\n4|2\n2|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v HAVING count(*)>1 ORDER BY count(*) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\nx|3\n-3|3\n|3\nA  |2\nA|2\n4|2\n2|2\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "c6ed74e8976cb59eb138c3fda506bcc6106db35cfb6627f6df5e033a0af56b16",
+  "executable_sha256": "c0ec9746c2ad67c4f5bb2aff45362625b9c1d28fa86d1a5a22b36d5a35fa67f3",
+  "harness_sha256": "960f7d16478b3b553ced672279287f018212e0c0b8d2276819c353a59d058408",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare ungrouped HAVING, aliases, affinities and retained MIN/MAX rows.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

@@ -6,6 +6,7 @@ import SQLeanite.CoreExpr
 import SQLeanite.CoreOrder
 import SQLeanite.CoreAggregate
 import SQLeanite.CoreAggregateOrder
+import SQLeanite.CoreAggregateHaving
 import SQLeanite.CoreCompound
 import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
@@ -1071,22 +1072,23 @@ def constantRow (select : Select) : Except String (Option (List Core.Value)) := 
   unless select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
     return ← scalarConstantRow select
   unless select.sources.isEmpty && select.valueRows.isNone &&
-      select.groupBy.isEmpty && select.having.isNone do
+      select.groupBy.isEmpty do
     unsupported "constant aggregate SELECT shape"
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
-  let prepared ← CoreAggregateOrder.prepare ctx select.columns.toList select.orderBy.toList
-  unless prepared.terms.all (fun term => term.argument.all SQLite.Scalar.admitted) &&
+  let prepared ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
+  unless prepared.results.terms.all (fun term => term.argument.all SQLite.Scalar.admitted) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "unbound constant aggregate expression"
   if select.limit == some 0 then return none
   let enabled ← match select.where_ with
     | none => pure true
     | some condition => SQLite.Scalar.testWhere condition
-  let values ← prepared.accumulate ctx (if enabled then [[]] else [])
+  let values ← prepared.results.accumulate ctx (if enabled then [[]] else [])
+  unless ← prepared.matches ctx values [] do return none
   if select.offset > 0 then return none
-  return some (← prepared.finish values)
+  return some (← prepared.finish ctx values [])
 
 def executeConstantSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
@@ -1183,14 +1185,14 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
 scanned once over Core rows before any aggregate result is finalized. -/
 def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
-  unless select.groupBy.isEmpty && select.having.isNone do
-    unsupported "aggregate grouping or HAVING"
+  unless select.groupBy.isEmpty do
+    unsupported "aggregate grouping"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
-  let prepared ← CoreAggregateOrder.prepare ctx select.columns.toList select.orderBy.toList
+  let prepared ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
   let _ ← select.where_.mapM ctx.validate
-  if select.limit == some 0 then return ({}, prepared.expressions.length)
+  if select.limit == some 0 then return ({}, prepared.results.expressions.length)
   let enabled ← ctx.constantMatches select.where_
   let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
   let ctx := expressionSearchContext ctx search
@@ -1199,9 +1201,12 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
     let (_, result) ← Core.execute state (.query (canonical source.name)
       { columns := List.range stored.schema.columns.length, predicate := search })
     CoreAggregate.selectRows ctx select.where_ result.rows
-  let values ← prepared.accumulate ctx inputs
-  let rows ← if select.offset > 0 then pure [] else do pure [← prepared.finish values]
-  return ({ rows }, prepared.expressions.length)
+  let values ← prepared.results.accumulate ctx inputs
+  let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+  let selected ← prepared.matches ctx values representative
+  let rows ← if !selected || select.offset > 0 then pure []
+    else do pure [← prepared.finish ctx values representative]
+  return ({ rows }, prepared.results.expressions.length)
 
 def executeAggregateSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String SelectExecution :=
@@ -1300,7 +1305,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
   if select.sources.size = 2 then executeJoin state select
   else if select.sources.isEmpty then executeConstantSelect state select
   else do
-    unless select.sources.size = 1 && select.having.isNone do
+    unless select.sources.size = 1 do
       throw "unsupported general verified-MVP SQL: SELECT shape"
     let source ← match select.sources[0]? with
       | some source => .ok source
@@ -1311,6 +1316,11 @@ def executeSelectBase (state : Core.State) (select : Select) :
     let stored ← match state.database.findTable? tableName with
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
+    if select.having.isSome then
+      unless select.groupBy.isEmpty &&
+          select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
+        unsupported "HAVING requires a supported aggregate query"
+      return ← executeAggregateSelect state select source stored
     unless selectNamesBound stored.schema source select do unsupported "unbound SELECT name"
     match select.where_.mapM (predicate stored.schema) with
     | .error _ => executeExpressionSelect state select source stored none

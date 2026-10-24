@@ -4403,6 +4403,50 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteAggregateHaving : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w TEXT);INSERT INTO t VALUES(1,3,'first'),(2,1,'low'),(3,9,'high'),(4,1,'tie');" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,v,w TEXT);CREATE TABLE n(id INTEGER PRIMARY KEY,v,w TEXT);INSERT INTO n VALUES(1,NULL,'first'),(2,NULL,'last');" ++
+    "CREATE TABLE d(id INTEGER PRIMARY KEY,v);INSERT INTO d VALUES(1,3),(2,1),(3,1);" ++
+    "CREATE TABLE tx(id INTEGER PRIMARY KEY,v TEXT);INSERT INTO tx VALUES(1,'4');" ++
+    "CREATE TABLE o(id INTEGER PRIMARY KEY,v);INSERT INTO o VALUES(1,9223372036854775807),(2,1);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT count(*) AS x FROM t HAVING x=4;", [[.integer 4]]),
+    ("SELECT count(*) FROM t HAVING 0;", []),
+    ("SELECT count(*) FROM t HAVING NULL;", []),
+    ("SELECT sum(v) AS v FROM t HAVING v=3;", [[.integer 14]]),
+    ("SELECT id,w,min(v) FROM t HAVING 1;", [[.integer 2, .text "low", .integer 1]]),
+    ("SELECT id,w,min(v),max(v),min(t.v) FROM t HAVING id=3;",
+      [[.integer 3, .text "high", .integer 1, .integer 9, .integer 1]]),
+    ("SELECT id,min(DISTINCT v) FROM d HAVING id=3;", [[.integer 3, .integer 1]]),
+    ("SELECT id,min(v) FROM d HAVING id=2;", [[.integer 2, .integer 1]]),
+    ("SELECT id,w,min(v) FROM n HAVING id=2;", [[.integer 2, .text "last", .null]]),
+    ("SELECT id,w,count(*) FROM e HAVING id IS NULL;", [[.null, .null, .integer 0]]),
+    ("SELECT count(*) FROM t HAVING id=2 ORDER BY min(v);", [[.integer 4]]),
+    ("SELECT count(*) FROM t HAVING id=3 AND max(v)>0 ORDER BY min(v);", [[.integer 4]]),
+    ("SELECT count(*) FROM tx HAVING v=4;", [[.integer 1]]),
+    ("SELECT min(v) AS x FROM tx HAVING x=4;", []),
+    ("SELECT count(*) FROM t HAVING count(*)>0 OR abs(-9223372036854775808);", [[.integer 4]]),
+    ("SELECT count(*) FROM t HAVING count(*)<0 AND abs(-9223372036854775808);", []),
+    ("SELECT abs(-9223372036854775808)+count(*) FROM t HAVING 0;", []),
+    ("SELECT count(*) FROM t HAVING 1 COLLATE missing;", [[.integer 4]]),
+    ("SELECT count(*) AS x WHERE 0 HAVING x=0;", [[.integer 0]]),
+    ("SELECT count(*) HAVING count(*)=1;", [[.integer 1]]),
+    ("SELECT count(*) FROM o HAVING 0 ORDER BY sum(v) LIMIT 0;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"aggregate HAVING: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"aggregate HAVING mismatch: {sql}"
+  for sql in ["SELECT sum(v) FROM o HAVING 0;", "SELECT count(*) FROM o HAVING 0 ORDER BY sum(v);",
+      "SELECT count(*) FROM t HAVING abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "SELECT 1 FROM t HAVING count(*)>0;", "SELECT count(*) FROM t HAVING sum(sum(v));",
+      "SELECT count(*) FROM t HAVING missing LIMIT 0;", "SELECT count(*) FROM t HAVING v=1 COLLATE missing;",
+      "SELECT count(*) FROM t HAVING 0 AND no_function(1);", "SELECT count(*) HAVING rowid IS NULL;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"aggregate HAVING error omitted: {sql}"
+
 private def expectSQLiteAggregateOrder : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1),(2,2),(3,3);"
   let cases : List (String × List (List Value)) := [
@@ -5165,6 +5209,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
   ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),
   ("SQLite numeric literal syntax and signed boundaries", expectSQLiteNumericLiterals),
   ("SQLite literal spelling and certified identity", expectSQLiteLiteralSpelling),

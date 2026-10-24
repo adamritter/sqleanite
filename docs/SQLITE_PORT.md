@@ -1697,3 +1697,49 @@ arguments; they do not establish general SQLite equivalence. Native code and its
 nine-binding audit boundary are unchanged. Reports use
 `sqlite-aggregate-order-*20261024.json` and
 `sqlite-aggregate-tail-negative-20261024.json` under `docs/validation/`.
+
+
+## Ungrouped HAVING and retained aggregate source rows (2026-10-24)
+
+Ungrouped HAVING now resolves output aliases with source-column precedence,
+registers aggregates after result and ORDER BY aggregates, and tests its predicate
+after finalizing every accumulator. HAVING precedes OFFSET and scalar output
+evaluation. Thus an overflowing SUM still fails under HAVING zero, while a scalar
+result overflow is suppressed when HAVING rejects the row. LIMIT zero still
+validates the statement and skips input evaluation. A nonaggregate SELECT with
+HAVING remains an error.
+
+The aggregate template compiler now has an explicit bare-column mode. It binds
+source references to private positional slots, separately from aggregate slots,
+and retains source affinity for comparisons. This also adds bare-column aggregate
+outputs and expanded stars. Private slot names supplied by users do not bypass
+binding; actual tables using those names remain usable. Empty input provides NULL
+source values. Without MIN/MAX the first source row is retained. Unique MIN/MAX
+calls are considered in result, ordering and HAVING order. Each performed step
+sets the shared replacement flag; DISTINCT duplicates skip that update, so a
+skipped duplicate can retain a preceding step's flag. Explicit argument collations
+remain part of aggregate identity. Deterministic extreme arguments are currently
+reevaluated for representative selection after aggregate finalization.
+
+Final source is
+`c6ed74e8976cb59eb138c3fda506bcc6106db35cfb6627f6df5e033a0af56b16`.
+Fresh seed 353802 has **1,918 outcomes, with two remaining grouped-HAVING
+failures**; its explicitly named ungrouped subset passes all 1,916 outcomes.
+Fresh seed 353803 has **2,298 aggregate-tail outcomes, with the same two grouped
+failures**; all 2,296 ungrouped outcomes match, including 526 ordinary errors.
+Every failure remains in its report and both full harness runs exit nonzero.
+Development seeds 353800 and 353801 are retained separately. CLI bytes and
+positive error status are compared in both production file modes, and reads
+must preserve all main/WAL bytes. Exact error codes and wording are not compared.
+
+Fresh seed 353804 passes all 1,116 aggregate-result regression outcomes, including
+200 matching errors. Fresh seed 353805 passes all 2,694 explicit-collation reads
+and six writes, including 30 matching errors. The fixed scalar regression passes
+1,121 cases plus six matching errors. All 202 executable tests, the complete
+268-job build, 1,055 registered headline theorems, verification audit and live-path
+checks pass. New component lemmas characterize retained-row selection and an
+absent HAVING predicate; they are not a proof of complete aggregation semantics.
+Grouped HAVING/ordering and general grouping expressions remain subsequent work.
+No SQLite-wide compatibility percentage follows from these bounded corpora.
+Native code and its nine-binding audit boundary are unchanged. Reports use
+`sqlite-aggregate-having-*20261024.json` under `docs/validation/`.
