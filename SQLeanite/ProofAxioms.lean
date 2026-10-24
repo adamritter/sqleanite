@@ -1159,3 +1159,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCompound.combineCollated_subset
 #print axioms SQLeanite.CoreSQLReadText.translatedRead_noCollation
 #print axioms SQLeanite.CoreSQLReadText.translatedCompound_resultCollation_false
+
+#print axioms SQLeanite.CoreCompoundTail.window_zero
+#print axioms SQLeanite.CoreCompoundTail.window_subset
+#print axioms SQLeanite.CoreCompoundTail.sort_perm
+#print axioms SQLeanite.CoreCompoundTail.adjacentDistinct_subset
+#print axioms SQLeanite.CoreCompoundTail.mergeFuel_subset
+#print axioms SQLeanite.CoreCompoundTail.merge_subset
+#print axioms SQLeanite.CoreSQL.executeCompoundTail_preserves_state

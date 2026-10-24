@@ -6,6 +6,7 @@ import SQLeanite.CoreExpr
 import SQLeanite.CoreOrder
 import SQLeanite.CoreAggregate
 import SQLeanite.CoreCompound
+import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
 
 namespace SQLeanite
@@ -1428,7 +1429,8 @@ def baseResultCollations (state : Core.State) (select : Select) :
   | [leftSource, rightSource] =>
       let some left := state.database.findTable? (canonical leftSource.name) | throw s!"no such table: {leftSource.name}"
       let some right := state.database.findTable? (canonical rightSource.name) | throw s!"no such table: {rightSource.name}"
-      let query ← joinQuery select (canonical leftSource.name) (canonical rightSource.name) left.schema right.schema
+      let query ← joinQuery { select with orderBy := #[], limit := none, offset := 0 }
+        (canonical leftSource.name) (canonical rightSource.name) left.schema right.schema
       return List.replicate query.columns.length (some "binary")
   | _ => unsupported "compound source shape"
 
@@ -1444,12 +1446,133 @@ def resultCollationsFuel : Nat → Core.State → Select → Except String (List
           throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
         return current.zipWith (fun left right => left.orElse fun _ => right) next) first
 
+/-- Expand source columns for compound ORDER BY alias/expression matching. -/
+def compoundTailArm (state : Core.State) (select : Select) : Except String CoreCompoundTail.Arm := do
+  match select.sources.toList with
+  | [] => return { columns := select.columns.toList, context := some {
+      schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" } }
+  | [source] =>
+      let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      return { columns := ← CoreOrder.expandResults ctx select.columns.toList, context := some ctx }
+  | sources =>
+      let mut columns := []
+      for column in select.columns do
+        match column.expr with
+        | .star qualifier =>
+            for source in sources do
+              if qualifier.all (fun q => q.toLower == (source.alias.getD source.name).toLower) then
+                let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+                columns := columns ++ stored.schema.catalogColumns.map (fun c =>
+                  { expr := .column (some (source.alias.getD source.name)) c.name })
+        | _ => columns := columns ++ [column]
+      return { columns, context := none }
+
+def compoundTailArmsFuel : Nat → Core.State → Select → Except String (List CoreCompoundTail.Arm)
+  | 0, _, _ => .error "compound ORDER BY depth exhausted"
+  | fuel + 1, state, select => do
+      let first ← compoundTailArm state select
+      let others ← select.compounds.toList.mapM (fun arm => compoundTailArmsFuel fuel state arm.2)
+      return first :: others.flatten
+
+/-- Leaf execution keeps ORDER BY's top-N evaluation discipline. Aggregates,
+groups and bounded joins already produce their output rows in their own
+executor, so result-slot ordering is applied to those rows. The second return
+value counts rows consumed by OFFSET for concatenated UNION ALL arms. -/
+def compoundTailLeaf (run : Core.State → Select → Except String SelectExecution)
+    (state : Core.State) (select : Select) (terms : List CoreCompoundTail.Term)
+    (offset : Nat) (limit : Option Nat) : Except String (List (List Core.Value) × Nat) := do
+  let aggregate := select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+  if !terms.isEmpty then
+    if !aggregate && select.groupBy.isEmpty && select.sources.size ≤ 1 then
+      let result ← run state { select with orderBy := (terms.map CoreCompoundTail.orderTerm).toArray, offset, limit }
+      return (result.result.rows, 0)
+    let result ← run state { select with orderBy := #[], offset := 0, limit := none }
+    let sorted := CoreCompoundTail.sort terms result.result.rows
+    return (CoreCompoundTail.window offset limit sorted, min offset sorted.length)
+  if offset > 0 && !select.distinct && select.groupBy.isEmpty && !aggregate && select.sources.size ≤ 1 then
+    -- Count skipped source rows without evaluating their output expressions.
+    -- Supported scalar functions are deterministic; validation of the original
+    -- projections has already happened before any leaf executes.
+    let skipped ← run state { select with columns := #[{ expr := .literal (.integer 1) }], orderBy := #[], offset := 0, limit := some offset }
+    let count := skipped.result.rows.length
+    if count < offset then return ([], count)
+    let result ← run state { select with orderBy := #[], offset, limit }
+    return (result.result.rows, count)
+  if aggregate && select.groupBy.isEmpty then
+    let result ← run state { select with orderBy := #[], offset, limit }
+    return (result.result.rows, min offset 1)
+  let result ← run state { select with orderBy := #[], offset := 0, limit := limit.map (· + offset) }
+  return (CoreCompoundTail.window offset limit result.result.rows, min offset result.result.rows.length)
+
+/-- Reverse-arm recursion represents SQL's left-associated compound tree.
+Only UNION ALL propagates a finite bound into its input arms. Set operations
+complete the merge key with the remaining output columns. -/
+def compoundTailPlan (run : Core.State → Select → Except String SelectExecution)
+    (state : Core.State) (kinds : List SQLite.Collation.Kind) (base : Select) :
+    List (CompoundOp × Select) → List CoreCompoundTail.Term → Nat → Option Nat →
+      Except String (List (List Core.Value) × Nat)
+  | [], terms, offset, limit => compoundTailLeaf run state base terms offset limit
+  | (operation, arm) :: prior, terms, offset, limit => do
+      if operation == .unionAll && terms.isEmpty then
+        let (left, skipped) ← compoundTailPlan run state kinds base prior [] offset limit
+        let remaining := limit.map (· - left.length)
+        if remaining == some 0 then return (left, skipped)
+        let (right, moreSkipped) ← compoundTailLeaf run state arm [] (offset - skipped) remaining
+        return (left ++ right, skipped + moreSkipped)
+      let ordering := if operation == .unionAll then terms else CoreCompoundTail.complete kinds terms
+      let capacity := if operation == .unionAll then limit.map (· + offset) else none
+      let (left, _) ← compoundTailPlan run state kinds base prior ordering 0 capacity
+      if left.isEmpty && (operation == .intersect || operation == .except) then return ([], 0)
+      let (right, _) ← compoundTailLeaf run state arm ordering 0 capacity
+      let rows := CoreCompoundTail.merge kinds operation ordering left right
+      return (CoreCompoundTail.window offset limit rows, min offset rows.length)
+
+def compoundTailResult (run : Core.State → Select → Except String SelectExecution)
+    (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+  let names ← resultCollationsFuel select.compoundHeight state select
+  let usesSets := select.compounds.any (fun arm => arm.1 != .unionAll)
+  let kinds ← if usesSets then names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
+    else pure (names.map (fun name => (SQLite.ExprCollation.ofName name).getD .binary))
+  let bindings ← compoundTailArmsFuel select.compoundHeight state select
+  let terms ← select.orderBy.toList.mapM (CoreCompoundTail.resolve bindings names)
+  let base := { select with compounds := #[], orderBy := #[], limit := none, offset := 0 }
+  for arm in base :: select.compounds.toList.map (·.2) do
+    let validated ← run state { arm with orderBy := #[], limit := some 0, offset := 0 }
+    unless validated.width == names.length do
+      throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+  if select.limit == some 0 then return ({}, names.length)
+  let externalSort := usesSets && select.orderBy.any (fun term => (SQLite.ExprCollation.name term.expr).isSome)
+  let rows ← if externalSort then do
+      let (rows, _) ← compoundTailPlan run state kinds base select.compounds.toList.reverse [] 0 none
+      pure (CoreCompoundTail.window select.offset select.limit (CoreCompoundTail.sort terms rows))
+    else do
+      let (rows, _) ← compoundTailPlan run state kinds base select.compounds.toList.reverse terms select.offset select.limit
+      pure rows
+  return ({ rows }, names.length)
+
+def executeCompoundTail (run : Core.State → Select → Except String SelectExecution)
+    (state : Core.State) (select : Select) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> compoundTailResult run state select
+
+theorem executeCompoundTail_preserves_state
+    {run : Core.State → Select → Except String SelectExecution}
+    {state : Core.State} {select : Select} {execution : SelectExecution}
+    (success : executeCompoundTail run state select = .ok execution) : execution.state = state := by
+  unfold executeCompoundTail at success
+  cases result : compoundTailResult run state select with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
+
 def executeSelectFuel : Nat → Core.State → Select → Except String SelectExecution
   | 0, _, _ => .error "compound SELECT exceeds its verified recursion bound"
   | fuel + 1, state, select => do
-      unless select.compounds.isEmpty ||
-          (select.orderBy.isEmpty && select.limit.isNone && select.offset = 0) do
-        throw "unsupported general verified-MVP SQL: compound ORDER BY or LIMIT"
+      if !(select.compounds.isEmpty ||
+          (select.orderBy.isEmpty && select.limit.isNone && select.offset = 0)) then
+        return ← executeCompoundTail (executeSelectFuel fuel) state select
       if requiresCompoundCollation select then
         let names ← resultCollationsFuel select.compoundHeight state select
         let kinds ← if select.compounds.any (fun arm => arm.1 != .unionAll) then

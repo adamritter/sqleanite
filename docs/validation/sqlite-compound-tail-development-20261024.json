@@ -1,0 +1,79 @@
+{
+  "seed": 353761,
+  "random_cases": 100,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 750,
+      "matching_errors": 64
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 750,
+      "matching_errors": 64
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT a.v FROM t AS a JOIN t AS b ON a.id=b.id UNION SELECT v FROM u ORDER BY 1 DESC LIMIT 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: join ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\na \na\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.v FROM t AS a JOIN t AS b ON a.id=b.id UNION SELECT v FROM u ORDER BY 1 DESC LIMIT 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: join ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\na \na\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "946b04212df7cfeb8c02bf65ebfa2dbb6b38ffc347f5518f14ba4088cdfddd0a",
+  "executable_sha256": "f1ac1e5410b0172abf79a273234b37ed40118d434fae254e79679d567045ed4c",
+  "harness_sha256": "d5face833a153dcc46f9f17399c4619cf64be027d99fa66d79e2ba2a005cc950",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound ORDER BY/LIMIT through both production file modes.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

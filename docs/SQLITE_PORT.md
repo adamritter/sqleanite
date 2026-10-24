@@ -1523,3 +1523,48 @@ the nine-binding boundary are unchanged. Reports use
 The fresh scalar/group collation regression at seed 353753 passes all 2,854
 read outcomes (30 matching errors) and six writes. This closes the two retained
 NOCASE UNION differences in that bounded corpus; it is not SQLite-wide coverage.
+
+
+## Compound ordering, windows and bounded UNION ALL (2026-10-24)
+
+The production compound path now resolves ORDER BY positions, output aliases
+across arms, and structurally matching result expressions. It carries
+collations, direction and NULL placement through stable input sorting and the
+pinned left/right merge rules. Set operations extend the merge key with
+unmentioned result columns and remove adjacent duplicates under the result
+collations. An explicit ORDER BY collation on a set compound sorts its completed
+result separately, following SQLite's subquery rewrite. The binder expands
+stars and includes the supported column-only join output.
+
+LIMIT/OFFSET applies to the entire compound. UNION ALL propagates the remaining
+window into its arms; unused arms and skipped plain output expressions are not
+evaluated. Names and widths are validated for every arm, even with LIMIT 0.
+Skipped plain rows are counted using their predicate and a constant projection
+before the retained output scan; supported scalar functions are deterministic.
+This can repeat predicate work and is not an asymptotic performance claim.
+An empty left INTERSECT/EXCEPT input does not evaluate right-side values.
+Aggregate/group/join outputs use their existing leaf executors followed by
+result-slot sorting. This does not add general grouped ORDER BY or HAVING.
+
+Initial seed 353760 retained 1,238 differences in 1,400 outcomes at source
+`772a30c878c89672c1e75aea564ee3ff35b522d3643554d49d115b6cf1e14182`.
+Fresh final seed 353762 at source
+`c4af3c7bc1002874a25af3883fc4694b7670cc2c5d1c68e7e276719df46c6407`
+matches **2,110 of 2,112 outcomes**, including 132 matching errors. Two failures
+remain: `SELECT 1.0 UNION SELECT 2 ORDER BY 1.00` succeeds here but SQLite rejects
+it, in each file mode. The AST currently loses the different REAL token
+spellings. The report retains both failures and the harness exits nonzero.
+The development report also retains the earlier join-binding counterexample.
+These are bounded corpus counts, not a SQLite-wide compatibility percentage.
+Read queries preserve main/WAL bytes; errors compare ordinary exit status.
+
+Fresh seed 353763 passes all 1,636 compound-collation outcomes, including its
+previous four ORDER BY/LIMIT failures and six matching errors. Seed 353764
+passes 1,804 single-source ordering outcomes (598 matching errors); seed 353765
+passes 290 LIMIT/OFFSET outcomes plus 18 separately checked matching errors.
+The full 262-job build, all 198 executable tests, 1,043 registered headline
+theorems, verification and live-path audits pass. New proofs cover window and
+merge membership, sorting permutation, zero LIMIT and state preservation; they
+do not establish full SQLite merge/evaluation equivalence. Existing BINARY
+read refinements retain their premises. Native code and the nine-binding audit
+boundary are unchanged. Reports use `sqlite-compound-tail-*20261024.json`.

@@ -1,0 +1,51 @@
+{
+  "seed": 353762,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1056,
+      "matching_errors": 66
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1056,
+      "matching_errors": 66
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1.0 UNION SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1.0 UNION SELECT 2 ORDER BY 1.00;",
+      "lean": {
+        "code": 0,
+        "stdout": "1.0\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      }
+    }
+  ],
+  "implementation_sha256": "c4af3c7bc1002874a25af3883fc4694b7670cc2c5d1c68e7e276719df46c6407",
+  "executable_sha256": "4b8dddfda1d94bdfed8793a796cbb597c68690986e0800d9ab0941030a191794",
+  "harness_sha256": "3eaada3b8a266ad001a8f22f3fcf5ef509bab51e8ed3548923ffc07403049181",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound ORDER BY/LIMIT through both production file modes.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

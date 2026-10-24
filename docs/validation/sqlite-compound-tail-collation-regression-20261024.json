@@ -1,0 +1,22 @@
+{
+  "seed": 353763,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 818,
+      "matching_errors": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 818,
+      "matching_errors": 3
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "c4af3c7bc1002874a25af3883fc4694b7670cc2c5d1c68e7e276719df46c6407",
+  "executable_sha256": "4b8dddfda1d94bdfed8793a796cbb597c68690986e0800d9ab0941030a191794",
+  "harness_sha256": "a7052b98aa86dccab47b82e8e8e562729c0cb9405af2e4ad6ae1e12a854ca569",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound result collations and representatives with pinned SQLite.\nExact CLI bytes/rejection status, both live file modes, immutable read inputs.\nAll mismatches are retained, including unsupported outer ORDER BY/LIMIT."
+}

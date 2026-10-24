@@ -4403,6 +4403,47 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteCompoundTails : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'A'),(2,'a'),(3,'B'),(4,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 1 AS a,2 AS b UNION ALL SELECT 3 AS c,0 AS d ORDER BY d;",
+      [[.integer 3, .integer 0], [.integer 1, .integer 2]]),
+    ("SELECT 1 AS a,2 AS b UNION ALL SELECT 3 AS c,0 AS a ORDER BY a;",
+      [[.integer 1, .integer 2], [.integer 3, .integer 0]]),
+    ("SELECT a.v FROM t AS a JOIN t AS b ON a.id=b.id UNION SELECT v FROM t ORDER BY 1 DESC LIMIT 3;",
+      [[.text "a"], [.text "B"], [.text "A"]]),
+    ("SELECT v FROM t UNION ALL SELECT 'c' ORDER BY 1 DESC NULLS FIRST LIMIT 3;",
+      [[.null], [.text "c"], [.text "a"]]),
+    ("SELECT 'A' COLLATE NOCASE UNION SELECT 'a' ORDER BY 1 DESC;", [[.text "a"]]),
+    ("SELECT 'A' COLLATE NOCASE INTERSECT SELECT 'a' ORDER BY 1 COLLATE BINARY;", [[.text "A"]]),
+    ("SELECT 'A' COLLATE BINARY INTERSECT SELECT 'a' ORDER BY 1 COLLATE NOCASE;", []),
+    ("SELECT 1 UNION ALL SELECT abs(-9223372036854775808) LIMIT 1;", [[.integer 1]]),
+    ("SELECT abs(-9223372036854775808) UNION ALL SELECT 2 LIMIT 1 OFFSET 1;", [[.integer 2]]),
+    ("SELECT abs(-9223372036854775808) FROM t UNION ALL SELECT 2 LIMIT 1 OFFSET 4;", [[.integer 2]]),
+    ("SELECT 1 UNION SELECT 1 UNION ALL SELECT abs(-9223372036854775808) LIMIT 1;", [[.integer 1]]),
+    ("SELECT 1 WHERE 0 INTERSECT SELECT abs(-9223372036854775808) ORDER BY 1;", []),
+    ("SELECT abs(-9223372036854775808) UNION SELECT 2 LIMIT 0;", []),
+    ("SELECT min(v) AS x FROM t UNION SELECT max(v) FROM t ORDER BY x DESC;", [[.text "a"], [.text "A"]]),
+    ("SELECT CAST(X'410078' AS TEXT) COLLATE NOCASE UNION SELECT CAST(X'610059' AS TEXT) ORDER BY 1 DESC;",
+      [[.textBytes #[97, 0, 89]]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"compound tail: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"compound tail mismatch: {sql}"
+  for sql in ["SELECT 1 UNION ALL SELECT missing LIMIT 0;",
+      "SELECT 1 UNION ALL SELECT 1,2 LIMIT 0;",
+      "SELECT v FROM t UNION SELECT v FROM t ORDER BY v+1;",
+      "SELECT 1 UNION ALL SELECT 2 ORDER BY 1 COLLATE missing LIMIT 0;",
+      "SELECT 1 UNION ALL SELECT 2 ORDER BY 0 LIMIT 0;",
+      "SELECT CASE WHEN 1 THEN 2 END UNION SELECT 3 ORDER BY CASE WHEN 1 THEN 4 END;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"compound tail error omitted: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteCompoundCollations : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'A'),(2,'a'),(3,'B'),(4,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -5025,6 +5066,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite compound ORDER BY and LIMIT", expectSQLiteCompoundTails),
   ("SQLite compound result collations", expectSQLiteCompoundCollations),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
