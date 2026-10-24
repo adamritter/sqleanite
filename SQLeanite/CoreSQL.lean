@@ -10,6 +10,7 @@ import SQLeanite.CoreAggregateHaving
 import SQLeanite.CoreCompound
 import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
+import SQLeanite.CoreGrouped
 
 namespace SQLeanite
 namespace CoreSQL
@@ -1069,6 +1070,14 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
 /-- A source-free aggregate consumes the SELECT's single implicit empty row,
 unless WHERE rejects it. It still emits one aggregate row for empty input. -/
 def constantRow (select : Select) : Except String (Option (List Core.Value)) := do
+  if !select.groupBy.isEmpty then
+    unless select.sources.isEmpty && select.valueRows.isNone do unsupported "constant grouped SELECT shape"
+    let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+    let (rows, _) ← CoreGrouped.run ctx select [[]]
+    match rows with
+    | [] => return none
+    | [row] => return some row
+    | _ => throw "source-free GROUP BY produced more than one group"
   unless select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
     return ← scalarConstantRow select
   unless select.sources.isEmpty && select.valueRows.isNone &&
@@ -1228,29 +1237,9 @@ theorem executeAggregateSelect_preserves_state {state : Core.State} {select : Se
 column shape. This path adds explicit collation metadata to the same outputs. -/
 def collatedGroupResult (select : Select) (source : TableRef) (stored : Core.Table) :
     Except String (Core.Result × Nat) := do
-  unless !select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
-      select.orderBy.isEmpty do
-    unsupported "collated GROUP BY shape"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
-  let terms ← select.groupBy.toList.mapM fun expression => do
-    let expression := ctx.bindNames expression
-    let index ← match SQLite.ExprCollation.strip expression with
-      | .column qualifier name => match ctx.column? qualifier name with
-          | some index => pure index
-          | none => throw "no such grouped column"
-      | _ => unsupported "GROUP BY expression"
-    let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.kind? expression)
-    return (index, kind)
-  let groups := terms.map (·.1)
-  let outputs ← groupOutputs stored.schema groups (select.columns.toList.map fun result =>
-    { result with expr := SQLite.ExprCollation.strip result.expr })
-  let _ ← select.where_.mapM ctx.validate
-  if select.limit == some 0 then return ({}, outputs.length)
-  unless ← ctx.constantMatches select.where_ do return ({}, outputs.length)
-  let rows ← stored.rows.filterM (fun row => ctx.matches row.values select.where_)
-  let query : Core.GroupQuery := { groupBy := groups, outputs }
-  let result ← CoreCollatedGroup.evalWindow query (terms.map (·.2)) rows select.offset select.limit
-  return ({ rows := result }, outputs.length)
+  let (rows, width) ← CoreGrouped.run ctx select (stored.rows.map (·.values))
+  return ({ rows }, width)
 
 def executeCollatedGroup (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String SelectExecution :=
@@ -1317,11 +1306,13 @@ def executeSelectBase (state : Core.State) (select : Select) :
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
     if select.having.isSome then
-      unless select.groupBy.isEmpty &&
-          select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
+      if !select.groupBy.isEmpty then return ← executeCollatedGroup state select source stored
+      unless select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
         unsupported "HAVING requires a supported aggregate query"
       return ← executeAggregateSelect state select source stored
-    unless selectNamesBound stored.schema source select do unsupported "unbound SELECT name"
+    unless selectNamesBound stored.schema source select do
+      if !select.groupBy.isEmpty then return ← executeCollatedGroup state select source stored
+      unsupported "unbound SELECT name"
     match select.where_.mapM (predicate stored.schema) with
     | .error _ => executeExpressionSelect state select source stored none
     | .ok wherePredicate => do

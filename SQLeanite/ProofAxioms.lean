@@ -1183,3 +1183,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreAggregateHaving.retain_member
 #print axioms SQLeanite.CoreAggregateHaving.Prepared.matches_none
+
+#print axioms SQLeanite.CoreGrouped.insertRow_nil
+#print axioms SQLeanite.CoreGrouped.emitOrdered_limit_zero

@@ -1,0 +1,247 @@
+{
+  "seed": 353815,
+  "random_cases": 800,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1025,
+      "matching_errors": 93
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1025,
+      "matching_errors": 93
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g||'' AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\nA|30|A\na |26|a \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\na|30|A\na |26|a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g||'' AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "A|30|A\n4|20|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|30|A\n4|20|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +g AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n2|21|2\n4|20|4\nA|30|A\na |26|a \n1|10|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n2|21|2\n4|20|4\na|30|A\na |26|a \n1|10|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +g AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "a |26|a \nA|30|A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a |26|a \na|30|A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT CAST(g AS TEXT) AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\nA|30|A\na |26|a \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\na|30|A\na |26|a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT CAST(g AS TEXT) AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "A|30|A\n4|20|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|30|A\n4|20|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+1 AS k,count(*) FROM t WHERE k>1 GROUP BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|10\n3|2\n5|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g AS x,count(*) FROM t WHERE x IS NOT NULL GROUP BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3|1\n1|9\n2|2\n4|5\nA|4\na|2\na |4\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g||'' AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\nA|30|A\na |26|a \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\na|30|A\na |26|a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g||'' AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "A|30|A\n4|20|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|30|A\n4|20|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +g AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n2|21|2\n4|20|4\nA|30|A\na |26|a \n1|10|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n2|21|2\n4|20|4\na|30|A\na |26|a \n1|10|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +g AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "a |26|a \nA|30|A\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a |26|a \na|30|A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT CAST(g AS TEXT) AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\nA|30|A\na |26|a \n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|14|\n-3|5|-3\n1|29|1\n1.0|28|1.0\n2|21|2\n4|20|4\na|30|A\na |26|a \n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT CAST(g AS TEXT) AS k,max(id),g FROM t GROUP BY 1 COLLATE NOCASE ORDER BY k DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "A|30|A\n4|20|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|30|A\n4|20|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+1 AS k,count(*) FROM t WHERE k>1 GROUP BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|10\n3|2\n5|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g AS x,count(*) FROM t WHERE x IS NOT NULL GROUP BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3|1\n1|9\n2|2\n4|5\nA|4\na|2\na |4\n1|1\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "836e94a4b628d60ca578df9c69e927a691f61c28d6b47af5e3838826cc152799",
+  "executable_sha256": "2ad9337208cf66553797df1397bdc9457653fe46e8afdd8dbf0fd5f840e67a90",
+  "harness_sha256": "5b8252b1ff42f7df1acdfd97de76ca70e9d32d327d6242013d93f307d0a82acb",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare grouped expressions, HAVING, ORDER BY, DISTINCT and evaluation order.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

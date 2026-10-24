@@ -1691,8 +1691,11 @@ Fresh seed 353793 passes all 1,016 aggregate-result regression outcomes, includi
 178 matching errors. Fresh seed 353794 passes all 1,804 ordering regression
 outcomes, including 618 matching errors. The fixed scalar regression passes
 1,121 cases plus six matching errors. The full 266-job build, all 201 executable
-tests, 1,053 registered headline theorems, verification audit and live-path checks
-pass. Two new component lemmas preserve the output projection and aggregate
+tests, 1,053 registered headline theorems and verification audit pass.
+Correction: the live-path audit exited 1 because its numeric-aggregate check
+still required the previous direct preparation call. The original checkpoint
+summary incorrectly inferred success from the log tail. The complete failed
+log is retained; the grouped-expression checkpoint updates and reruns this check. Two new component lemmas preserve the output projection and aggregate
 arguments; they do not establish general SQLite equivalence. Native code and its
 nine-binding audit boundary are unchanged. Reports use
 `sqlite-aggregate-order-*20261024.json` and
@@ -1736,10 +1739,76 @@ Fresh seed 353804 passes all 1,116 aggregate-result regression outcomes, includi
 200 matching errors. Fresh seed 353805 passes all 2,694 explicit-collation reads
 and six writes, including 30 matching errors. The fixed scalar regression passes
 1,121 cases plus six matching errors. All 202 executable tests, the complete
-268-job build, 1,055 registered headline theorems, verification audit and live-path
-checks pass. New component lemmas characterize retained-row selection and an
+268-job build, 1,055 registered headline theorems and verification audit pass.
+Correction: the live-path audit still exited 1 on the stale numeric-aggregate
+call-chain check. The original summary incorrectly reported it as passing.
+The complete failed log is retained; the grouped-expression checkpoint repairs
+the structural check and reruns it. New component lemmas characterize retained-row selection and an
 absent HAVING predicate; they are not a proof of complete aggregation semantics.
 Grouped HAVING/ordering and general grouping expressions remain subsequent work.
 No SQLite-wide compatibility percentage follows from these bounded corpora.
 Native code and its nine-binding audit boundary are unchanged. Reports use
 `sqlite-aggregate-having-*20261024.json` under `docs/validation/`.
+
+
+## Grouped expressions, HAVING, ordering and DISTINCT (2026-10-24)
+
+The general Core grouping path now accepts scalar grouping keys, result aliases
+and ordinals, aggregate result templates, retained bare source columns, HAVING,
+ORDER BY and DISTINCT. Grouping keeps original key values separately from the
+MIN/MAX representative row. Source-free grouping consumes its one implicit row;
+a false WHERE produces no group. A checked result shape rejects an impossible
+multi-group source-free result rather than dropping rows.
+
+HAVING terms made only from constants and BINARY group keys can move before
+grouping; an always-false integer term remains after aggregation, matching the
+pinned SQLite implementation. Thus `HAVING NULL` can suppress an overflowing
+SUM while `HAVING 0` does not. Grouped WHERE aliases use source-name precedence.
+LIMIT zero validates names and expressions before skipping execution. With
+natural group order, OFFSET skips scalar outputs after finalization/HAVING and
+LIMIT stops further groups. A separate sorter finalizes all groups and applies
+bounded output selection; DISTINCT computes output before duplicate removal.
+
+SQLite copies ORDER BY direction flags into equal-length GROUP BY lists even
+when their expressions differ. This determines tie order in the later output
+sort. Non-column outputs reused by GROUP BY read the saved grouping key, while
+bare columns use the retained source row. A separate non-DISTINCT output sorter
+can instead reuse its ORDER BY expression as the output payload; DISTINCT keeps
+the previously computed output value. These differences are covered with mixed
+INTEGER/REAL storage classes and collated-equal original strings.
+
+The initial seed 353810 recorded 384 differences in 438 outcomes. Development
+seed 353811 recorded 90 differences in 750 outcomes, predominantly tie ordering.
+After that fix seed 353813 passed 1,050 outcomes. The larger independent seed
+353815 then found 16 differences in 2,050 outcomes: DISTINCT key reuse and grouped
+WHERE aliases. Those negative reports remain; both issues were fixed before the
+final checkpoint.
+
+Final source is
+`cf7101680a8d4cbe6b74fc408b2607c2f2fa187a5e88243f19a03e59853e3321`.
+Fresh seed 353816 passes **all 2,450 grouped-expression outcomes**, including
+196 matching ordinary errors. Fresh regressions pass 1,058 collated-group outcomes
+(seed 353817, 12 matching errors), 2,298 aggregate-tail outcomes (353818, 546
+matching errors), and 1,518 aggregate-HAVING outcomes (353819, 218 matching errors).
+These last two corpora now also pass their previously retained grouped-HAVING
+cases. The fixed scalar regression passes 1,121 cases plus six matching errors.
+Every live-mode comparison uses exact CLI bytes or positive error status; read
+queries preserve all main/WAL bytes. Error messages/codes and planner-wide row
+ordering are not asserted equivalent.
+
+All 203 executable tests, the complete 270-job build, 1,057 registered headline
+theorems and verification audit pass. The live-path audit initially failed its
+stale requirement for a direct CoreAggregate preparation call. Its check now
+follows the real CoreAggregateHaving/CoreGrouped call chains and verifies their
+shared accumulator, representative, HAVING and sorter links. The corrected audit
+exits zero. The earlier aggregate ORDER/HAVING summaries incorrectly inferred
+success from only the end of the log; those summaries are corrected above and
+their complete failed logs are retained. The full reverse-file matrix also
+passes: 61 accepted cases and two explicitly unsupported shapes.
+
+New component lemmas cover first-bucket insertion and zero-limit group emission;
+they do not prove complete grouped SQL equivalence. The implementation materializes
+group buckets and makes no scaling claim. Native code and its nine-binding audit
+boundary are unchanged. Reports use `sqlite-grouped-expression-*20261024.json`
+under `docs/validation/`. These bounded results do not establish 100% SQLite
+compatibility.

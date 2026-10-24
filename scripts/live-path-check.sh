@@ -143,12 +143,27 @@ if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
-   grep -q 'CoreAggregate.prepareResults ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
-   grep -q 'prepared.finish values' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreAggregateHaving.prepare ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreAggregate.prepareTemplateFuel ctx true' SQLeanite/CoreAggregateHaving.lean &&
+   grep -q 'prepared.results.accumulate ctx inputs' SQLeanite/CoreSQL.lean &&
+   grep -q 'prepared.finish ctx values representative' SQLeanite/CoreSQL.lean &&
    grep -q 'PreparedResults.accumulate_length' SQLeanite/ProofAxioms.lean; then
   ok "SUM/AVG/TOTAL use the numeric accumulator on production Core values"
 else
   fail "numeric aggregate execution or its registered contracts are missing"
+fi
+
+# General grouping must retain Core aggregates, source representatives and
+# predicate-before-output evaluation through the new expression grouping path.
+if grep -q 'CoreGrouped.run ctx select (stored.rows.map' SQLeanite/CoreSQL.lean &&
+   grep -q 'prepared.aggregate.results.accumulate ctx bucket.rows' SQLeanite/CoreGrouped.lean &&
+   grep -q 'CoreAggregateHaving.representative ctx' SQLeanite/CoreGrouped.lean &&
+   grep -q 'prepared.aggregate.matches ctx values row' SQLeanite/CoreGrouped.lean &&
+   grep -q 'CoreOrder.insertStable prepared.directions' SQLeanite/CoreGrouped.lean &&
+   grep -q 'CoreGrouped.emitOrdered_limit_zero' SQLeanite/ProofAxioms.lean; then
+  ok "grouped expressions retain Core aggregates, HAVING and bounded output ordering"
+else
+  fail "grouped expressions detached from the production aggregate path"
 fi
 
 # Explicit rowids must not enter the generated append proof without its premise.

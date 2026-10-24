@@ -4403,6 +4403,51 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteGroupedExpressions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,'A',2),(2,'a',1),(3,'b',4),(4,'B',3),(5,NULL,5),(6,1,6),(7,1.0,8);" ++
+    "CREATE TABLE o(id INTEGER PRIMARY KEY,g,v);INSERT INTO o VALUES(1,1,9223372036854775807),(2,1,1),(3,2,2),(4,3,3);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT g,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING x>1 ORDER BY x DESC,g;",
+      [[.integer 1, .integer 2], [.text "A", .integer 2], [.text "b", .integer 2]]),
+    ("SELECT g,sum(v)+count(*) FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY 2 DESC;",
+      [[.integer 1, .integer 16], [.text "b", .integer 9], [.text "A", .integer 5]]),
+    ("SELECT g,count(*) FROM t GROUP BY g COLLATE NOCASE HAVING g='a';", []),
+    ("SELECT g,count(*) FROM t GROUP BY g HAVING g='a';", [[.text "a", .integer 1]]),
+    ("SELECT g,sum(v) FROM o GROUP BY g HAVING g>1;", [[.integer 2, .integer 2], [.integer 3, .integer 3]]),
+    ("SELECT g,sum(v) FROM o GROUP BY g HAVING NULL;", []),
+    ("SELECT g,sum(v) FROM o GROUP BY g ORDER BY g DESC LIMIT 1;", [[.integer 3, .integer 3]]),
+    ("SELECT g,sum(v) FROM o GROUP BY g LIMIT 0;", []),
+    ("SELECT DISTINCT count(*) FROM t GROUP BY g ORDER BY 1 DESC;", [[.integer 2], [.integer 1]]),
+    ("SELECT g,abs(-9223372036854775808) FROM t GROUP BY g LIMIT 1 OFFSET 100;", []),
+    ("SELECT g,abs(-9223372036854775808) FROM t GROUP BY g HAVING 0;", []),
+    ("SELECT +g,+g,max(id),typeof(+g) FROM t WHERE id>=6 GROUP BY +g;",
+      [[.real 1.0, .integer 1, .integer 7, .text "real"]]),
+    ("SELECT g||'',max(id),g FROM t WHERE id<=2 GROUP BY g||'' COLLATE NOCASE;",
+      [[.text "a", .integer 2, .text "a"]]),
+    ("SELECT g||'',max(id),g FROM t WHERE id<=2 GROUP BY 1 COLLATE NOCASE;",
+      [[.text "A", .integer 2, .text "a"]]),
+    ("SELECT g||'',max(id),g FROM t WHERE id<=2 GROUP BY 1 COLLATE NOCASE ORDER BY 1;",
+      [[.text "a", .integer 2, .text "a"]]),
+    ("SELECT DISTINCT g||'' AS k,max(id),g FROM t WHERE id<=2 GROUP BY 1 COLLATE NOCASE ORDER BY k;",
+      [[.text "A", .integer 2, .text "a"]]),
+    ("SELECT g+1 AS k,count(*) FROM o WHERE k>2 GROUP BY k;", [[.integer 3, .integer 1], [.integer 4, .integer 1]]),
+    ("SELECT count(*) GROUP BY 1+0 HAVING count(*)>0;", [[.integer 1]]),
+    ("SELECT 1 GROUP BY 1;", [[.integer 1]]),
+    ("SELECT count(*) WHERE 0 GROUP BY 1+0;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"grouped expression: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"grouped expression mismatch: {sql}"
+  for sql in ["SELECT g,sum(v) FROM o GROUP BY g HAVING 0;", "SELECT g,sum(v) FROM o GROUP BY g ORDER BY g LIMIT 1;",
+      "SELECT count(*) FROM t GROUP BY 1;", "SELECT count(*) FROM t GROUP BY missing LIMIT 0;",
+      "SELECT count(*) FROM t GROUP BY g COLLATE missing LIMIT 0;", "SELECT count(*) FROM t GROUP BY g HAVING missing LIMIT 0;",
+      "SELECT DISTINCT g,abs(-9223372036854775808) FROM t GROUP BY g LIMIT 1 OFFSET 100;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"grouped expression error omitted: {sql}"
+
 private def expectSQLiteAggregateHaving : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w TEXT);INSERT INTO t VALUES(1,3,'first'),(2,1,'low'),(3,9,'high'),(4,1,'tie');" ++
     "CREATE TABLE e(id INTEGER PRIMARY KEY,v,w TEXT);CREATE TABLE n(id INTEGER PRIMARY KEY,v,w TEXT);INSERT INTO n VALUES(1,NULL,'first'),(2,NULL,'last');" ++
@@ -5209,6 +5254,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
   ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),
   ("SQLite numeric literal syntax and signed boundaries", expectSQLiteNumericLiterals),

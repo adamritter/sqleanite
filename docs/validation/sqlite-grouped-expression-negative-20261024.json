@@ -1,0 +1,5399 @@
+{
+  "seed": 353810,
+  "random_cases": 100,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 219,
+      "matching_errors": 26
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 219,
+      "matching_errors": 26
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\na |9|row9|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\nA|8|row8|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\na |9|row9|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\nA|8|row8|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\na |9|row9|1.0|1.0|1.0\n-3|5|row5|1.0|5|1.0\na|18|row18|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\nA|8|row8|||\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\na |9|row9|1.0|1.0|1.0\n-3|5|row5|1.0|5|1.0\na|18|row18|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\n-3|5|row5|1.0|5|1.0\na |9|row9|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\nA|8|row8|||\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\n|7\n4|5\na |4.0\n2|4.0\na|3.0\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\n|7\n4|5\na |4.0\na|4.0\n2|4.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\na|7.0\n|7\n4|5\n2|4.0\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\na |1\nA|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\na |1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\nA|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\na |1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\na |1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\n0|4\n2|4\n1|3\n|3\n0|2\n-3|2\n0|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n0|5\n4|5\n2|4\n1|3\n|3\n0|2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\n0|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\na|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\na|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n4\n4\n3\n3\n2\n2\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n5\n4\n3\n3\n2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n6\n5\n4\n3\n3\n2\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g,v ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o WHERE 0 GROUP BY g,v HAVING g>1 OR count(*)>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>1 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g HAVING count(*)>1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|2\n-3|2\n1.0|5\n2|4\n4|5\na|4\na |2\n1|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 OR count(*)>1 ORDER BY g NULLS LAST LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM t WHERE 0 GROUP BY g+0 HAVING x>1 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE ORDER BY g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE RTRIM HAVING abs(-9223372036854775808)>0 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT count(*) AS x FROM o GROUP BY g+0 HAVING g>1 OR count(*)>1 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3|c|2|2|2\n3|4|d|3|3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t WHERE id>2 GROUP BY lower(g) HAVING 0 ORDER BY count(*) DESC,g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o GROUP BY g,v HAVING 0 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g HAVING abs(-9223372036854775808)>0 ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM o WHERE 0 GROUP BY g HAVING count(*)>1 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM e WHERE id>2 GROUP BY g,v HAVING g IS NOT NULL ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a |2\na|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3|2\n1.0|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE id>2 GROUP BY g,v HAVING g>1 ORDER BY 1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE RTRIM HAVING count(*)>1 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 OR count(*)>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM t WHERE 0 GROUP BY lower(g) HAVING 1 ORDER BY count(*) DESC,g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g,v HAVING g>1 OR count(*)>1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE RTRIM HAVING x>1 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM e GROUP BY lower(g) HAVING 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING NULL LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g+0 HAVING x>1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM o WHERE 0 GROUP BY g,v HAVING 1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE id>2 GROUP BY g,v HAVING g IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM e WHERE 0 GROUP BY g+0 HAVING abs(-9223372036854775808)>0 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g,v HAVING 0 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM t WHERE id>2 GROUP BY g COLLATE RTRIM HAVING x>1 ORDER BY abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING x>1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY lower(g) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o GROUP BY g HAVING NULL LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING 1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1\n3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g,v HAVING abs(-9223372036854775808)>0 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o WHERE 0 GROUP BY lower(g) HAVING g>1 OR count(*)>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE 0 GROUP BY g HAVING g IS NOT NULL ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE RTRIM ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g HAVING g>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY g ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM e WHERE id>2 GROUP BY g+0 HAVING 1 ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g+0 HAVING g>1 AND count(*)>0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY lower(g) HAVING g>1 OR count(*)>1 ORDER BY g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING 1 ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1\n1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT count(*) AS x FROM e WHERE id>2 GROUP BY lower(g) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g HAVING g>1 OR count(*)>1 ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY 1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY lower(g) ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM e GROUP BY g,v HAVING x>1 ORDER BY g DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING x>1 ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g+0 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t WHERE 0 GROUP BY lower(g) HAVING abs(-9223372036854775808)>0 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY g DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM t WHERE 0 GROUP BY g COLLATE NOCASE HAVING 1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING NULL ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING NULL ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY g NULLS LAST LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING count(*)>1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t WHERE 0 GROUP BY g,v HAVING 0 ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE 0 GROUP BY g COLLATE RTRIM HAVING g IS NOT NULL ORDER BY count(*) DESC,g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE 0 GROUP BY g HAVING count(*)>1 ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE 0 GROUP BY g HAVING 0 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY g,v ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM o WHERE id>2 GROUP BY g HAVING count(*)>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g HAVING 0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE 0 GROUP BY g ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 OR count(*)>1 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|5\n4|5\n1.0|5\n2|4\n1|3\n0|2\n-3|2\n|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM e WHERE id>2 GROUP BY g,v HAVING x>1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY 1 COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g+0,g+0,count(*),min(id),max(id) FROM t GROUP BY g+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "||3|1|23\n-3|-3|2|5|29\n0|0|7|7|22\n1|1|9|2|28\n2|2|4|4|25\n4|4|5|6|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g HAVING NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g HAVING g>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g ORDER BY g DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) FROM t GROUP BY g ORDER BY count(*) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT count(*) FROM t GROUP BY g ORDER BY 1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,abs(-9223372036854775808) FROM t GROUP BY g LIMIT 1 OFFSET 100;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: group projection expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,abs(-9223372036854775808) FROM t GROUP BY g HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,count(*) FROM t WHERE 0 GROUP BY g HAVING abs(-9223372036854775808)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) GROUP BY 1+0 HAVING count(*)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant aggregate SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\na |9|row9|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\nA|8|row8|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\na |9|row9|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|21|row21|1.0\n-3|29|row29|1.0\na|14|row14|-2\n4|19|row19|-2\n2|17|row17|-2\n1.0|3|row3|-2\n|23|row23|-2\nA|8|row8|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\na |9|row9|1.0|1.0|1.0\n-3|5|row5|1.0|5|1.0\na|18|row18|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\nA|8|row8|||\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\na |9|row9|1.0|1.0|1.0\n-3|5|row5|1.0|5|1.0\na|18|row18|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|28|row28|1.0|5|1.0\n-3|5|row5|1.0|5|1.0\na |9|row9|-2|1.0|-2\n4|27|row27|-2|5|-2\n2|4|row4|-2|1.0|-2\n1|2|row2|-2|5|-2\n|16|row16|-2|5|-2\nA|8|row8|||\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\n|7\n4|5\na |4.0\n2|4.0\na|3.0\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\n|7\n4|5\na |4.0\na|4.0\n2|4.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|9.0\n1|9.0\n-3|8.0\na|7.0\n|7\n4|5\n2|4.0\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\na |1\nA|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\na |1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|3\n1|3\n|3\n1|2\na|2\n2|2\n-3|2\nA|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\na |1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\na |1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1.0\n-3|1.0\na|-2\n4|-2\n2|-2\n1.0|-2\n|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\n0|4\n2|4\n1|3\n|3\n0|2\n-3|2\n0|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n0|5\n4|5\n2|4\n1|3\n|3\n0|2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\n0|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\na|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\na|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\na|5\n4|5\n2|4\n1|3\n|3\na |2\n-3|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|6\n1|6\n4|5\n2|4\n1|3\n|3\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n4\n4\n3\n3\n2\n2\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n5\n4\n3\n3\n2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM t GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n6\n5\n4\n3\n3\n2\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n2|3|c|2\n1|2|b|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n1|1|a|1|9223372036854775807|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n2|2\n1|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g COLLATE NOCASE HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING count(*)>0 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g,v ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|1\n2|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o WHERE 0 GROUP BY g,v HAVING g>1 OR count(*)>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM e GROUP BY g HAVING count(*)>1 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g HAVING count(*)>1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|2\n-3|2\n1.0|5\n2|4\n4|5\na|4\na |2\n1|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 OR count(*)>1 ORDER BY g NULLS LAST LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM t WHERE 0 GROUP BY g+0 HAVING x>1 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE ORDER BY g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE RTRIM HAVING abs(-9223372036854775808)>0 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT count(*) AS x FROM o GROUP BY g+0 HAVING g>1 OR count(*)>1 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3|c|2|2|2\n3|4|d|3|3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM t WHERE id>2 GROUP BY lower(g) HAVING 0 ORDER BY count(*) DESC,g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o GROUP BY g,v HAVING 0 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g HAVING abs(-9223372036854775808)>0 ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM o WHERE 0 GROUP BY g HAVING count(*)>1 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM e WHERE id>2 GROUP BY g,v HAVING g IS NOT NULL ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a |2\na|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3|2\n1.0|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE id>2 GROUP BY g,v HAVING g>1 ORDER BY 1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE RTRIM HAVING count(*)>1 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 OR count(*)>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM t WHERE 0 GROUP BY lower(g) HAVING 1 ORDER BY count(*) DESC,g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e GROUP BY g,v HAVING g>1 OR count(*)>1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE RTRIM HAVING x>1 ORDER BY g NULLS LAST LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM e GROUP BY lower(g) HAVING 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING NULL LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT lower(g) AS k,count(*) AS x FROM e GROUP BY g+0 HAVING x>1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM o WHERE 0 GROUP BY g,v HAVING 1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE id>2 GROUP BY g,v HAVING g IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM e WHERE 0 GROUP BY g+0 HAVING abs(-9223372036854775808)>0 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g,v HAVING 0 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM t WHERE id>2 GROUP BY g COLLATE RTRIM HAVING x>1 ORDER BY abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING x>1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY lower(g) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM o GROUP BY g HAVING NULL LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING 1 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1\n3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM e GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM e GROUP BY g,v HAVING abs(-9223372036854775808)>0 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM o WHERE 0 GROUP BY lower(g) HAVING g>1 OR count(*)>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE 0 GROUP BY g HAVING g IS NOT NULL ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,count(DISTINCT v) AS x FROM e GROUP BY g COLLATE RTRIM ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o GROUP BY g HAVING g>1 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE id>2 GROUP BY g ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM e WHERE id>2 GROUP BY g+0 HAVING 1 ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g+0 HAVING g>1 AND count(*)>0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t WHERE id>2 GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v),max(v),min(v) AS x FROM t WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY lower(g) HAVING g>1 OR count(*)>1 ORDER BY g LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING count(*)>1 ORDER BY 1 DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY 1 DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY g COLLATE RTRIM HAVING 1 ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1\n1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT count(*) AS x FROM e WHERE id>2 GROUP BY lower(g) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o GROUP BY g HAVING g>1 OR count(*)>1 ORDER BY count(*) DESC,g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) AS x FROM o WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY 1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g COLLATE NOCASE AS k,count(*) AS x FROM o GROUP BY lower(g) ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,sum(v)+count(*) AS x FROM e GROUP BY g,v HAVING x>1 ORDER BY g DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM e WHERE 0 GROUP BY g COLLATE NOCASE HAVING x>1 ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v)+count(*) AS x FROM t GROUP BY g+0 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING g>1 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3|3|3\n2|3|c|2|2|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t WHERE 0 GROUP BY lower(g) HAVING abs(-9223372036854775808)>0 ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING 0 ORDER BY g DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT lower(g) AS k,count(*) AS x FROM t WHERE 0 GROUP BY g COLLATE NOCASE HAVING 1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING NULL ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,count(DISTINCT v) AS x FROM e WHERE id>2 GROUP BY g COLLATE NOCASE HAVING NULL ORDER BY g DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,id,w,min(v) AS x FROM o GROUP BY g COLLATE NOCASE HAVING g>1 AND count(*)>0 ORDER BY g NULLS LAST LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4|d|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM o WHERE id>2 GROUP BY g+0 HAVING count(*)>1 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,min(v COLLATE NOCASE) AS x FROM t WHERE 0 GROUP BY g,v HAVING 0 ORDER BY x DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE 0 GROUP BY g COLLATE RTRIM HAVING g IS NOT NULL ORDER BY count(*) DESC,g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) AS x FROM o WHERE 0 GROUP BY g HAVING count(*)>1 ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808)+count(*) AS x FROM o WHERE id>2 GROUP BY lower(g) HAVING 1 ORDER BY g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) AS x FROM o WHERE 0 GROUP BY g HAVING 0 ORDER BY count(*) DESC,g LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t GROUP BY g COLLATE NOCASE HAVING g>1 ORDER BY g LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT abs(-9223372036854775808)+count(*) AS x FROM e WHERE 0 GROUP BY g,v ORDER BY 1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v) AS x FROM o WHERE id>2 GROUP BY g HAVING count(*)>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g HAVING 0 ORDER BY g NULLS LAST LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM t GROUP BY g COLLATE RTRIM HAVING g>1 AND count(*)>0 ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|-2\nA|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,min(v COLLATE NOCASE) AS x FROM o WHERE 0 GROUP BY g ORDER BY 1 DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g+0 AS k,count(*) AS x FROM t WHERE id>2 GROUP BY g COLLATE NOCASE HAVING g>1 OR count(*)>1 ORDER BY x DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|5\n4|5\n1.0|5\n2|4\n1|3\n0|2\n-3|2\n|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT g,id,w,min(v),max(v),min(v) AS x FROM e WHERE id>2 GROUP BY g,v HAVING x>1 LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0 AS k,count(*) FROM t GROUP BY 1 COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|3\n-3|2\n0|7\n1|9\n2|4\n4|5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g+0,g+0,count(*),min(id),max(id) FROM t GROUP BY g+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "||3|1|23\n-3|-3|2|5|29\n0|0|7|7|22\n1|1|9|2|28\n2|2|4|4|25\n4|4|5|6|30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g HAVING NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g HAVING g>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,sum(v) FROM o GROUP BY g ORDER BY g DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) FROM t GROUP BY g ORDER BY count(*) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|6\n4|5\na|4\n2|4\n1|3\n|3\na |2\n-3|2\nA|1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT count(*) FROM t GROUP BY g ORDER BY 1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: collated GROUP BY shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,abs(-9223372036854775808) FROM t GROUP BY g LIMIT 1 OFFSET 100;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: group projection expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,abs(-9223372036854775808) FROM t GROUP BY g HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,count(*) FROM t WHERE 0 GROUP BY g HAVING abs(-9223372036854775808)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) GROUP BY 1+0 HAVING count(*)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant aggregate SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "c6ed74e8976cb59eb138c3fda506bcc6106db35cfb6627f6df5e033a0af56b16",
+  "executable_sha256": "c0ec9746c2ad67c4f5bb2aff45362625b9c1d28fa86d1a5a22b36d5a35fa67f3",
+  "harness_sha256": "72477473f62ef3a0417c72b3e9b23ae5460d0eccb05131f6932febedb98f78ad",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare grouped expressions, HAVING, ORDER BY, DISTINCT and evaluation order.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

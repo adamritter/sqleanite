@@ -46,8 +46,14 @@
         "ok - page-directed indexed INSERT is integrity-check clean",
         "ok - read-only writes produce an ordinary SQLite-style diagnostic",
         "ok - corrupt input rejection is a normal diagnostic, not a crash"
-      ]
+      ],
+      "exit_code": 1,
+      "failures": [
+        "live-path check FAILED: numeric aggregate execution or its registered contracts are missing"
+      ],
+      "retained_log": "docs/validation/sqlite-aggregate-having-live-negative-20261024.log"
     }
   },
-  "claim": "Final fresh ungrouped HAVING cases pass. The grouped HAVING negative remains in each full corpus."
+  "claim": "Final fresh ungrouped HAVING cases pass. The grouped HAVING negative remains in each full corpus.",
+  "correction": "The original checkpoint summary inspected only the log tail and incorrectly reported live-path success. The complete log fails its obsolete direct aggregate-call text check. The grouping checkpoint updates the structural call-chain check and reruns it."
 }
