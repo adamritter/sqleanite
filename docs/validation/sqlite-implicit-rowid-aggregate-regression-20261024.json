@@ -1,0 +1,24 @@
+{
+  "seed": 353562,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 343,
+      "result_rows": 102,
+      "matching_errors": 63
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 343,
+      "result_rows": 102,
+      "matching_errors": 63
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "f4640a1b69605aa1ef0fc03454999b64ef9962b38513df1084d65adceb1f4dcd",
+  "executable_sha256": "0ec2f84b6cd7affa63dac5644bc5b2fbbd7184e6b7d091c91231bf92d4d6f336",
+  "harness_sha256": "cf964f9c01a75226b0a0fce8fe569a9a766805f77d9968c0cc9004fecab46e8b",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare bound scalar aggregate arguments, DISTINCT and expression WHERE.\n\nThe final result is compared byte-for-byte and errors by rejection status.\nInput images are independent and reads must preserve their bytes. This covers\nordinary single-table aggregate terms, not nested result expressions, grouping,\nHAVING or aggregate ORDER BY. All generated mismatches remain in the report."
+}

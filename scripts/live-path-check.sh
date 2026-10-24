@@ -92,6 +92,25 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Explicit rowids must not enter the generated append proof without its premise.
+if grep -q 'if automatic : values\[table.schema.primaryKey\]? = some .null then' SQLeanite/CoreWidePageDelta.lean &&
+   grep -q 'table.createRow_generated automatic created' SQLeanite/CoreWidePageDelta.lean &&
+   grep -q 'Core.Row.declaredKey_no_declared' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Core.Row.create_set_rowid' SQLeanite/ProofAxioms.lean; then
+  ok "implicit keys use distinct rowids and localized appends require automatic allocation"
+else
+  fail "rowid allocation is detached from its key/append contracts"
+fi
+
+# A geometry conversion has its own whole-image publication model.
+if grep -q 'CoreFileAdapter.needsPageSizeConversion connection.paths' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'AtomicFileReplacement.plan prepared.newImage.fileBytes' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'AtomicFileReplacement.prefix_atomic' SQLeanite/ProofAxioms.lean; then
+  ok "foreign page sizes use a separately modeled whole-image publication"
+else
+  fail "page-size conversion lost its publication route or component contract"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"
@@ -861,8 +880,8 @@ fi
 # absent, and the generated compatibility document is current.
 if grep -q 'without-rowid|reject|' scripts/run-reverse-differential.sh &&
    grep -q 'composite-primary-key|reject|' scripts/run-reverse-differential.sh &&
-   grep -q 'no-primary-key|reject|' scripts/run-reverse-differential.sh; then
-  ok "out-of-scope file shapes are declared and checked to fail closed"
+   grep -q 'no-primary-key|pass|' scripts/run-reverse-differential.sh; then
+  ok "remaining unsupported file shapes fail closed and implicit-rowid tables are accepted"
 else
   fail "an out-of-scope file shape lost its fail-closed declaration"
 fi

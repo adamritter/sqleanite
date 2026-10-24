@@ -344,87 +344,89 @@ def executeInsert? (state : CoreWidePageState.State)
       match hidden : table.schema.hasHiddenRowid with
       | false => none
       | true =>
-          match created : table.createRow values with
-          | .error _ => none
-          | .ok row =>
-            match execution : Core.execute beforeState (.insert tableName values) with
+          if automatic : values[table.schema.primaryKey]? = some .null then
+            match created : table.createRow values with
             | .error _ => none
-            | .ok (next, result) =>
-              match replacementFound : next.database.findTable? tableName with
-              | none => none
-              | some replacement =>
-                have afterAllTable : ∀ existing ∈ table.rows,
-                    existing.rowid.value < row.rowid.value := by
-                  rcases table.createRow_generated hidden created with
-                    ⟨rowid, generated, rowidEq⟩
-                  intro existing member
-                  have greater := table.nextGeneratedRowid?_greater generated
-                    existing member
-                  simpa [rowidEq] using greater
-                have appendedRows : replacement.rows = table.rows ++ [row] := by
-                  rcases Core.execute_insert_exact execution with
-                    ⟨old, updated, insertedRow, oldFound, inserted,
-                      rowValid, freshRowid, declaredFresh, updatedRows,
-                      updatedFound, snapshotEq, resultEq, frame⟩
-                  have oldEq : old = table := Option.some.inj
-                    (oldFound.symm.trans found)
-                  subst old
-                  have rowEq : insertedRow = row := Except.ok.inj
-                    (inserted.symm.trans created)
-                  subst insertedRow
-                  have updatedEq : updated = replacement := Option.some.inj
-                    (updatedFound.symm.trans replacementFound)
-                  subst updated
-                  rw [updatedRows,
-                    Core.orderedUpsert_eq_append_of_afterAll row table.rows
-                      afterAllTable]
-                let rowsEq : ∀ before candidate,
-                    state.tables = [before] → next.database.tables = [candidate] →
-                      candidate.rows = before.table.rows ++ [row] := by
-                  intro before candidate beforeEq candidateEq
-                  have oldTables : state.database.tables = [before.table] := by
-                    rw [← state.tables_eq, beforeEq]
-                    rfl
-                  have tableMember := Core.Database.findTable?_mem found
-                  rw [oldTables] at tableMember
-                  have tableEq : before.table = table := by
-                    have : table = before.table := by
-                      simpa only [List.mem_singleton] using tableMember
-                    exact this.symm
-                  have replacementMember :=
-                    Core.Database.findTable?_mem replacementFound
-                  rw [candidateEq] at replacementMember
-                  have candidateEqual : candidate = replacement := by
-                    have : replacement = candidate := by
-                      simpa only [List.mem_singleton] using replacementMember
-                    exact this.symm
-                  rw [candidateEqual, tableEq]
-                  exact appendedRows
-                let afterAll : ∀ before candidate,
-                    state.tables = [before] → next.database.tables = [candidate] →
-                      ∀ existing ∈ before.table.rows,
-                        existing.rowid.value < row.rowid.value := by
-                  intro before candidate beforeEq candidateEq existing member
-                  have oldTables : state.database.tables = [before.table] := by
-                    rw [← state.tables_eq, beforeEq]
-                    rfl
-                  have tableMember := Core.Database.findTable?_mem found
-                  rw [oldTables] at tableMember
-                  have tableEq : before.table = table := by
-                    have : table = before.table := by
-                      simpa only [List.mem_singleton] using tableMember
-                    exact this.symm
-                  rw [tableEq] at member
-                  exact afterAllTable existing member
-                match changed : appendSingle? state next.database row rowsEq
-                    afterAll with
+            | .ok row =>
+              match execution : Core.execute beforeState (.insert tableName values) with
+              | .error _ => none
+              | .ok (next, result) =>
+                match replacementFound : next.database.findTable? tableName with
                 | none => none
-                | some append => some {
-                    next
-                    result
-                    row
-                    append
-                    execution }
+                | some replacement =>
+                  have afterAllTable : ∀ existing ∈ table.rows,
+                      existing.rowid.value < row.rowid.value := by
+                    rcases table.createRow_generated automatic created with
+                      ⟨rowid, generated, rowidEq⟩
+                    intro existing member
+                    have greater := table.nextGeneratedRowid?_greater generated
+                      existing member
+                    simpa [rowidEq] using greater
+                  have appendedRows : replacement.rows = table.rows ++ [row] := by
+                    rcases Core.execute_insert_exact execution with
+                      ⟨old, updated, insertedRow, oldFound, inserted,
+                        rowValid, freshRowid, declaredFresh, updatedRows,
+                        updatedFound, snapshotEq, resultEq, frame⟩
+                    have oldEq : old = table := Option.some.inj
+                      (oldFound.symm.trans found)
+                    subst old
+                    have rowEq : insertedRow = row := Except.ok.inj
+                      (inserted.symm.trans created)
+                    subst insertedRow
+                    have updatedEq : updated = replacement := Option.some.inj
+                      (updatedFound.symm.trans replacementFound)
+                    subst updated
+                    rw [updatedRows,
+                      Core.orderedUpsert_eq_append_of_afterAll row table.rows
+                        afterAllTable]
+                  let rowsEq : ∀ before candidate,
+                      state.tables = [before] → next.database.tables = [candidate] →
+                        candidate.rows = before.table.rows ++ [row] := by
+                    intro before candidate beforeEq candidateEq
+                    have oldTables : state.database.tables = [before.table] := by
+                      rw [← state.tables_eq, beforeEq]
+                      rfl
+                    have tableMember := Core.Database.findTable?_mem found
+                    rw [oldTables] at tableMember
+                    have tableEq : before.table = table := by
+                      have : table = before.table := by
+                        simpa only [List.mem_singleton] using tableMember
+                      exact this.symm
+                    have replacementMember :=
+                      Core.Database.findTable?_mem replacementFound
+                    rw [candidateEq] at replacementMember
+                    have candidateEqual : candidate = replacement := by
+                      have : replacement = candidate := by
+                        simpa only [List.mem_singleton] using replacementMember
+                      exact this.symm
+                    rw [candidateEqual, tableEq]
+                    exact appendedRows
+                  let afterAll : ∀ before candidate,
+                      state.tables = [before] → next.database.tables = [candidate] →
+                        ∀ existing ∈ before.table.rows,
+                          existing.rowid.value < row.rowid.value := by
+                    intro before candidate beforeEq candidateEq existing member
+                    have oldTables : state.database.tables = [before.table] := by
+                      rw [← state.tables_eq, beforeEq]
+                      rfl
+                    have tableMember := Core.Database.findTable?_mem found
+                    rw [oldTables] at tableMember
+                    have tableEq : before.table = table := by
+                      have : table = before.table := by
+                        simpa only [List.mem_singleton] using tableMember
+                      exact this.symm
+                    rw [tableEq] at member
+                    exact afterAllTable existing member
+                  match changed : appendSingle? state next.database row rowsEq
+                      afterAll with
+                  | none => none
+                  | some append => some {
+                      next
+                      result
+                      row
+                      append
+                      execution }
+          else none
 
 end CoreWidePageDelta
 end SQLeanite

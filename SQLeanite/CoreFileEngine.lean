@@ -120,6 +120,17 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
+  if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
+    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database
+    let reopened := validated.state.database
+    unless databaseContents reopened == databaseContents next.database do
+      throw (IO.userError "converted image retained different logical contents")
+    connection.pageState.set (some validated.state)
+    connection.widePageState.set none
+    connection.validatedOpen.set (some validated)
+    connection.fileGeometry.set none
+    connection.provenance.set .generated
+    return { next with database := reopened }
   match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
       next.database with
   | some (wideState, _) =>

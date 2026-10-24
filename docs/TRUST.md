@@ -1682,3 +1682,26 @@ Run `scripts/lean-verification-audit.sh` from the repository root. The audit fai
 if `sorry`, `native_decide`, project axioms, `unsafe`, bare `extern`, or any
 `opaque` declaration outside the exact nine-binding host allowlist enters the
 Lean library, and prints the current `partial def` inventory.
+
+
+### Foreign page-size publication boundary (2026-10-24)
+
+`CoreFileEngine.commitFull` routes non-4096 main files to
+`CoreFileAdapter.convertPageSize`. It prepares a complete canonical image and
+retained Core state, then executes `AtomicFileReplacement.plan`: write the
+staging file, sync/verify its bytes, rename it over the main file, and sync the
+parent directory. The component model's `prefix_atomic` and `committed` theorems
+concern that explicit old/new-image model. They do not prove host rename/sync
+semantics or reuse the ordinary persistent-journal crash theorem for this
+separate protocol. The output geometry is 4096; multiply linked inputs are
+rejected. SQLite reader/writer lock interoperability remains unfinished.
+
+The existing `renamePath` host binding preserves destination uid/gid and access
+bits with POSIX metadata operations and syncs the source inode before rename.
+This expands the disclosed OS adapter behavior, not the SQL/storage interpreter;
+there are still nine named host bindings and no SQLite FFI. Staged contents are
+written with owner-only access before publication. Fault-injection evidence and
+the native source/test hashes are recorded in
+`validation/sqlite-page-conversion-host-checkpoint-20261024.json`. Injected I/O
+errors demonstrate complete images at the tested boundaries; they are not a
+physical power-loss evaluation or a machine-checked OS refinement.

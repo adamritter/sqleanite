@@ -3917,6 +3917,76 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectPageSizeConversionFailures : IO Unit := do
+  for fault in [0, 1, 2] do
+    let main : System.FilePath := s!".lake/build/sqleanite-conversion-{fault}.db"
+    let paths : CoreFileAdapter.Paths := { main, journal := main.toString ++ "-journal" }
+    let temporary : System.FilePath := main.toString ++ ".sqleanite-image.tmp"
+    for path in [main, paths.journal, paths.journalTemp, temporary] do
+      if ← path.pathExists then IO.FS.removeFile path
+    let setup ← IO.Process.output {
+      cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+      args := #[main.toString, "PRAGMA page_size=512; CREATE TABLE t(v); INSERT INTO t VALUES('old');"] }
+    unless setup.exitCode == 0 do fail s!"conversion fixture: {setup.stderr}"
+    CoreFileAdapter.recoverInPlace .system paths
+    let original ← IO.FS.readBinFile main
+    let database ← CoreFileAdapter.reopen paths
+    let (next, _) ← match CoreSQL.execute { database } "INSERT INTO t VALUES('new');" with
+      | .ok result => pure result
+      | .error message => fail message
+    let syncOps : CoreFileAdapter.SyncOps := {
+      syncFile := fun path => do
+        if path.toString.endsWith ".sqleanite-image.tmp" then
+          if fault == 0 then throw (IO.userError "injected temporary-file sync failure")
+          if fault == 1 then IO.FS.writeBinFile path (ByteArray.mk #[0])
+        (PhysicalFileAdapter.SyncOps.system).syncFile path
+      syncDeletion := fun path => do
+        if fault == 2 then throw (IO.userError "injected directory sync failure")
+        (PhysicalFileAdapter.SyncOps.system).syncDeletion path }
+    let failed ← try
+        discard <| CoreFileAdapter.convertPageSize syncOps paths next.database
+        pure false
+      catch _ => pure true
+    unless failed do fail "conversion fault injection did not fail"
+    if fault < 2 then
+      unless (← IO.FS.readBinFile main) == original do
+        fail "unpublished conversion changed the original file"
+    let checked ← IO.Process.output {
+      cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+      args := #[main.toString, "PRAGMA integrity_check;SELECT count(*) FROM t;"] }
+    unless checked.exitCode == 0 && checked.stdout == (if fault < 2 then "ok\n1\n" else "ok\n2\n") do
+      fail s!"conversion exposed an incomplete image: {checked.stdout}{checked.stderr}"
+    discard <| CoreFileAdapter.convertPageSize .system paths next.database
+    let reopened ← CoreFileAdapter.reopen paths
+    unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
+
+private def expectSQLiteImplicitRowid : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("CREATE TABLE t(v); INSERT INTO t VALUES('a'),('a'); SELECT rowid,v FROM t ORDER BY rowid;",
+      [[.integer 1,.text "a"],[.integer 2,.text "a"]]),
+    ("CREATE TABLE t(v); INSERT INTO t(rowid,v) VALUES(-5,'a'); INSERT INTO t(v) VALUES('b'); SELECT rowid,v FROM t ORDER BY rowid;",
+      [[.integer (-5),.text "a"],[.integer (-4),.text "b"]]),
+    ("CREATE TABLE t(v); INSERT INTO t DEFAULT VALUES; INSERT INTO t(rowid,v) VALUES(12,'x'); INSERT INTO t VALUES('y'); SELECT rowid,v FROM t ORDER BY rowid;",
+      [[.integer 1,.null],[.integer 12,.text "x"],[.integer 13,.text "y"]]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t(v) VALUES('a'); INSERT INTO t DEFAULT VALUES; INSERT INTO t VALUES(NULL,'b'); SELECT * FROM t ORDER BY id;",
+      [[.integer 1,.text "a"],[.integer 2,.null],[.integer 3,.text "b"]]),
+    ("CREATE TABLE t(rowid,oid,_rowid_,v); INSERT INTO t VALUES('a','b','c',1); SELECT * FROM t;",
+      [[.text "a",.text "b",.text "c",.integer 1]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"implicit rowid: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"implicit rowid result: {sql}"
+  for sql in ["INSERT INTO t(unknown) VALUES(1);", "INSERT INTO t(unknown) DEFAULT VALUES;",
+      "INSERT INTO t VALUES();", "INSERT INTO t(rowid) VALUES('bad');",
+      "INSERT INTO t(rowid) VALUES(1),(1);"] do
+    match CoreSQL.execute Core.State.empty ("CREATE TABLE t(v);" ++ sql) with
+    | .ok _ => fail s!"rowid insertion accepted invalid input: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteAggregateExpressions : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,1.0),(3,2),(4,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4316,6 +4386,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite implicit rowid allocation and DEFAULT VALUES", expectSQLiteImplicitRowid),
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),

@@ -1,0 +1,269 @@
+{
+  "seed": 353560,
+  "random_cases": 20,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "origin": "lean",
+      "page_size": 4096,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 512,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 1024,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 2048,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 4096,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 8192,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 16384,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 32768,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 65536,
+      "statements": 43,
+      "passed": 0,
+      "matching_errors": 0
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "lean",
+      "page_size": 4096,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 512,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 1024,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 2048,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 4096,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 8192,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 16384,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 32768,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 65536,
+      "statements": 43,
+      "passed": 43,
+      "matching_errors": 4
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 512,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 1024,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 2048,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 8192,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 16384,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 32768,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 65536,
+      "sql": "INSERT INTO t(rowid,v,w) VALUES(-5,'a',1),(-2,'b',2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: could not page the current general MVP image\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "f5e54b6ad9c64b2a69c14fd8978f3d9956b61d2602b072ae691ac1759d1a6189",
+  "executable_sha256": "c777d0b9096f013b8a54416091de8b7ca820bd1ec9568e8ba23e8179708afd03",
+  "harness_sha256": "bac6b4044207cfbff20a1307e51bad4d9881708a1235a58f25a65525e2a95469",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare implicit/aliased rowid allocation and persisted rowid tables.\n\nChecks generated and explicit rowids, negative maxima, DEFAULT VALUES, duplicate\nrejections, rowid-name shadowing, schema reopen, and cross-engine database/WAL\nreads after writes. SQLite-created fixtures span all supported page sizes.\nNo maximum-rowid random-allocation parity claim is made by this suite."
+}

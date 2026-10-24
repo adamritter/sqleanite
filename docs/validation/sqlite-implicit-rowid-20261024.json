@@ -1,0 +1,156 @@
+{
+  "seed": 353561,
+  "random_cases": 80,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "origin": "lean",
+      "page_size": 4096,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 512,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 1024,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 2048,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 4096,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 8192,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 16384,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 32768,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-file",
+      "origin": "sqlite",
+      "page_size": 65536,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "lean",
+      "page_size": 4096,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 512,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 1024,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 2048,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 4096,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 8192,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 16384,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 32768,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    },
+    {
+      "mode": "--verified-wal-file",
+      "origin": "sqlite",
+      "page_size": 65536,
+      "statements": 103,
+      "passed": 103,
+      "matching_errors": 7
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "f4640a1b69605aa1ef0fc03454999b64ef9962b38513df1084d65adceb1f4dcd",
+  "executable_sha256": "0ec2f84b6cd7affa63dac5644bc5b2fbbd7184e6b7d091c91231bf92d4d6f336",
+  "harness_sha256": "082e0fcd8ea6c99ecfc6a8efed01cbf7521aaaa0686facdf94e1893f7b9cdc1c",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare implicit/aliased rowid allocation and persisted rowid tables.\n\nChecks generated and explicit rowids, negative maxima, DEFAULT VALUES, duplicate\nrejections, rowid-name shadowing, schema reopen, and cross-engine database/WAL\nreads after writes. SQLite-created fixtures span all supported page sizes.\nNo maximum-rowid random-allocation parity claim is made by this suite."
+}

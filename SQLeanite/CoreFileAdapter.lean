@@ -11,6 +11,7 @@ import SQLeanite.CoreWidePageLoad
 import SQLeanite.CoreWidePageDelta
 import SQLeanite.PhysicalFileAdapter
 import SQLeanite.Runtime.Record
+import SQLeanite.AtomicFileReplacement
 
 namespace SQLeanite
 namespace CoreFileAdapter
@@ -4175,6 +4176,52 @@ def recoverInPlace (syncOps : SyncOps) (paths : Paths) : IO Unit := do
 def recover (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   recoverInPlace syncOps paths
   reopen paths
+
+/-- The 4096-byte page-delta writer cannot reinterpret another geometry.
+Only the validated full-file path may convert such a database. -/
+def needsPageSizeConversion (paths : Paths) : IO Bool :=
+  IO.FS.withFile paths.main .read fun handle => do
+    let headerBytes ← handle.read 100
+    let some (header, _) := FileFormat.decodeDatabaseHeader headerBytes.data.toList |
+      throw (IO.userError "invalid database header before write")
+    return header.headerPrefix.pageSizeField.val != PhysicalCodec.pageSize
+
+/-- Encode a complete canonical image before publication. This branch changes
+the page size to 4096, and uses atomic image replacement rather than claiming
+that the ordinary same-geometry rollback-journal trace was executed. -/
+def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
+    IO ValidatedOpenState := do
+  recoverInPlace syncOps paths
+  let main ← IO.FS.realPath paths.main
+  let metadata ← main.metadata
+  unless metadata.numLinks == 1 do
+    throw (IO.userError "unsupported page-size conversion of a multiply linked database")
+  let temporary : System.FilePath := main.toString ++ ".sqleanite-image.tmp"
+  let old : GrowableStorage.Image PhysicalCodec.pageSize := {
+    pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+  let prepared ← match prepareBulkCommit? old database with
+    | some prepared => pure prepared
+    | none => throw (IO.userError "database exceeds the canonical image bounds")
+  let validated ← match retainGeneratedState? prepared.state
+      prepared.newImage.pageCount prepared.freePages with
+    | some validated => pure validated
+    | none => throw (IO.userError "converted image did not retain its validated state")
+  let requests := AtomicFileReplacement.plan prepared.newImage.fileBytes
+  for request in requests do
+    match request with
+    | .stage contents =>
+        if ← temporary.pathExists then SyscallVFS.unlinkPath temporary.toString
+        IO.FS.withFile temporary .write fun handle => do
+          IO.setAccessRights temporary { user := { read := true, write := true } }
+          handle.write (bytes contents)
+    | .syncTemporary =>
+        syncOps.syncFile temporary
+        let actual ← IO.FS.readBinFile temporary
+        unless actual.data.toList == prepared.newImage.fileBytes do
+          throw (IO.userError "converted database image verification failed")
+    | .publish => SyscallVFS.renamePath temporary.toString main.toString
+    | .syncDirectory => syncOps.syncDeletion main
+  return validated
 
 /-- Successful live publication retains the pure final-write preparation and
 the equation tying the returned abstract syscall trace to that exact list. -/

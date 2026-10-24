@@ -1,0 +1,8 @@
+{
+  "native_source_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "test_executable_sha256": "4c472084b3a980e5d6cea243af6d3e430ce658c172c9ed199e8dd3aaf63a06d2",
+  "test_log_sha256": "16461a5fe854a6093da8cb4dc0b8c87fbf690ccdf187ea7ae9b561062e18dd51",
+  "component": "Existing OS-only rename binding now preserves destination uid/gid and access bits, syncing the staged inode before rename; no SQLite C or new binding.",
+  "fault_tests": "Temporary-file sync failure and corrupt staging bytes preserve the original byte image. Directory-sync failure after rename exposes the complete new image. All three retries recover the requested contents; pinned SQLite checks integrity and counts.",
+  "scope": "These injected I/O failures are not physical power-loss tests or a proof that a host filesystem refines AtomicFileReplacement."
+}

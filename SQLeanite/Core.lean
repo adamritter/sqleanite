@@ -37,8 +37,8 @@ structure Schema where
   columns : List Column
   primaryKey : Nat
   /-- Column named by the user's PRIMARY KEY declaration. It differs from
-  `primaryKey` exactly when Core lowers a non-integer key through a hidden
-  integer rowid. -/
+  `primaryKey` when Core lowers a non-integer key or an implicit rowid.
+  A value equal to columns.length means there is no declared primary key. -/
   declaredPrimaryKey : Nat := primaryKey
   deriving DecidableEq, Repr
 
@@ -62,16 +62,17 @@ def Schema.catalogColumns (schema : Schema) : List Column :=
   if schema.hasHiddenRowid then schema.columns.take schema.primaryKey
   else schema.columns
 
-/-- The two canonical schema shapes supported by the proved file codec. This
-is carried by every `Table`, so the hidden-rowid lowering cannot silently leak
-an extra SQL column or lose the declared TEXT primary key. -/
+/-- Canonical rowid-table shapes supported by the proved file codec. A hidden
+rowid represents either a declared TEXT key or a table without a declared key.
+The latter uses columns.length as an out-of-range declared-key sentinel. -/
 def Schema.CatalogShape (schema : Schema) : Prop :=
   if schema.hasHiddenRowid then
     schema.columns = schema.catalogColumns ++ [hiddenRowidColumn] ∧
     schema.primaryKey = schema.catalogColumns.length ∧
     schema.catalogColumns.findIdx? (·.integerPrimaryKey) = none ∧
-    schema.catalogColumns.findIdx? (·.textPrimaryKey) =
-      some schema.declaredPrimaryKey
+    schema.catalogColumns ≠ [] ∧
+    schema.declaredPrimaryKey =
+      (schema.catalogColumns.findIdx? (·.textPrimaryKey)).getD schema.columns.length
   else
     schema.catalogColumns = schema.columns ∧
     schema.declaredPrimaryKey = schema.primaryKey ∧
@@ -241,8 +242,15 @@ def Row.declaredPrimaryValue? (schema : Schema) (row : Row) : Option Value := do
   let column ← schema.declaredPrimaryKey?
   row.values[column]?
 
+/-- Tables without a declared key use their unique internal rowid in the
+lookup cache. This prevents unrelated rows from colliding on a synthetic NULL. -/
 def Row.declaredKey (schema : Schema) (row : Row) : Value :=
-  (row.declaredPrimaryValue? schema).getD .null
+  (row.declaredPrimaryValue? schema).getD (.integer row.rowid)
+
+theorem Row.declaredKey_no_declared (schema : Schema) (row : Row)
+    (absent : schema.declaredPrimaryKey? = none) :
+    row.declaredKey schema = .integer row.rowid := by
+  simp [Row.declaredKey, Row.declaredPrimaryValue?, absent]
 
 abbrev DeclaredKeyMap :=
   Std.TreeMap Value Row (compareOn Value.orderKey)
@@ -689,13 +697,10 @@ def Row.createWithRowid (schema : Schema) (rowid : Integer)
     Row.create schema (values.set schema.primaryKey (.integer rowid))
   else Row.create schema values
 
-theorem Row.createWithRowid_rowid {schema : Schema} {rowid : Integer}
+theorem Row.create_set_rowid {schema : Schema} {rowid : Integer}
     {values : List Value} {row : Row}
-    (hidden : schema.hasHiddenRowid = true)
-    (created : Row.createWithRowid schema rowid values = .ok row) :
+    (created : Row.create schema (values.set schema.primaryKey (.integer rowid)) = .ok row) :
     row.rowid = rowid := by
-  unfold Row.createWithRowid at created
-  rw [if_pos hidden] at created
   unfold Row.create at created
   cases present : (values.set schema.primaryKey
       (.integer rowid))[schema.primaryKey]? with
@@ -726,6 +731,14 @@ theorem Row.createWithRowid_rowid {schema : Schema} {rowid : Integer}
             rfl
           next => contradiction
 
+theorem Row.createWithRowid_rowid {schema : Schema} {rowid : Integer}
+    {values : List Value} {row : Row}
+    (hidden : schema.hasHiddenRowid = true)
+    (created : Row.createWithRowid schema rowid values = .ok row) :
+    row.rowid = rowid := by
+  apply Row.create_set_rowid
+  simpa [Row.createWithRowid, hidden] using created
+
 def Table.lastRow? (table : Table) : Option Row :=
   table.rowTree.root.last?.map (·.2)
 
@@ -739,9 +752,16 @@ theorem Table.lastRow?_eq_rows_getLast? (table : Table) :
 def Table.nextGeneratedRowid? (table : Table) : Option Integer :=
   let next := match table.lastRow? with
     | none => 1
-    | some row => if row.rowid.value < 0 then 1 else row.rowid.value.toNat + 1
-  if upper : next < FileFormat.IntegerWidth.eight.midpoint then
-    some ⟨Int.ofNat next, by simp, by simpa using upper⟩
+    | some row => row.rowid.value + 1
+  if upper : next < Int.ofNat FileFormat.IntegerWidth.eight.midpoint then
+    some ⟨next, by
+      dsimp only [next]
+      cases table.lastRow? with
+      | none => decide
+      | some row =>
+          change -(Int.ofNat FileFormat.IntegerWidth.eight.midpoint) ≤ row.rowid.value + 1
+          have := row.rowid.lowerBound
+          omega, upper⟩
   else none
 
 private theorem row_value_le_last {rows : List Row} {row last : Row}
@@ -787,46 +807,31 @@ theorem Table.nextGeneratedRowid?_greater {table : Table} {rowid : Integer}
       have beforeLast := row_value_le_last table.rowsWellFormed.2 member rowsLast
       simp only [lastResult] at generated
       split at generated
-      next negative =>
-        split at generated
-        next upper =>
-          injection generated with equal
-          subst rowid
-          change row.rowid.value < (1 : Int)
-          omega
-        next => contradiction
-      next nonnegative =>
-        split at generated
-        next upper =>
-          injection generated with equal
-          subst rowid
-          have lastToNat : Int.ofNat last.rowid.value.toNat =
-              last.rowid.value := Int.toNat_of_nonneg (Int.le_of_not_gt nonnegative)
-          change row.rowid.value < Int.ofNat (last.rowid.value.toNat + 1)
-          have nextEq : Int.ofNat (last.rowid.value.toNat + 1) =
-              Int.ofNat last.rowid.value.toNat + 1 := rfl
-          rw [nextEq, lastToNat]
-          omega
-        next => contradiction
+      next upper =>
+        injection generated with equal
+        subst rowid
+        change row.rowid.value < last.rowid.value + 1
+        omega
+      next => contradiction
 
 def Table.createRow (table : Table) (values : List Value) : Except String Row :=
-  if table.schema.hasHiddenRowid then
+  if values[table.schema.primaryKey]? = some .null then
     match table.nextGeneratedRowid? with
-    | some rowid => Row.createWithRowid table.schema rowid values
+    | some rowid => Row.create table.schema (values.set table.schema.primaryKey (.integer rowid))
     | none => .error "database or disk is full"
   else Row.create table.schema values
 
 theorem Table.createRow_generated {table : Table} {values : List Value}
-    {row : Row} (hidden : table.schema.hasHiddenRowid = true)
+    {row : Row} (automatic : values[table.schema.primaryKey]? = some .null)
     (created : table.createRow values = .ok row) :
     ∃ rowid, table.nextGeneratedRowid? = some rowid ∧ row.rowid = rowid := by
   unfold Table.createRow at created
-  rw [if_pos hidden] at created
+  rw [if_pos automatic] at created
   cases generated : table.nextGeneratedRowid? with
   | none => simp [generated] at created
   | some rowid =>
       rw [generated] at created
-      exact ⟨rowid, rfl, Row.createWithRowid_rowid hidden created⟩
+      exact ⟨rowid, rfl, Row.create_set_rowid created⟩
 
 def Table.findDeclaredPrimary? (table : Table) (row : Row) : Option Row :=
   if table.schema.hasHiddenRowid then

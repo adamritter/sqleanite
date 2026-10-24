@@ -35,6 +35,19 @@ def schema (name : String) (definitions : Array ColumnDef)
   unless definitions.toList.all columnAllowed do
     throw "unsupported general verified-MVP SQL: column constraint"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
+  if primaryKeys.isEmpty then
+    let visibleColumns : List Core.Column := definitions.toList.map fun column => {
+      name := canonical column.name
+      notNull := column.notNull
+      declaredType := declaredTypeName column.declaredType }
+    unless !visibleColumns.isEmpty do throw "table must have at least one column"
+    if visibleColumns.any (fun column => column.name == "__sqleanite_rowid") then
+      throw "reserved verified column name: __sqleanite_rowid"
+    return {
+      name := canonical name
+      columns := visibleColumns ++ [Core.hiddenRowidColumn]
+      primaryKey := visibleColumns.length
+      declaredPrimaryKey := visibleColumns.length + 1 }
   unless primaryKeys.length = 1 do
     throw "verified MVP tables require exactly one PRIMARY KEY"
   let primaryKey ← match definitions.findIdx? (fun column => column.primaryKey) with
@@ -94,7 +107,10 @@ def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
   return SQLite.PhysicalAffinity.comparison aff value
 
 def findColumn? (schema : Core.Schema) (name : String) : Option Nat :=
-  schema.columns.findIdx? (fun column => column.name == canonical name)
+  match schema.columns.findIdx? (fun column => column.name == canonical name) with
+  | some index => some index
+  | none => if ["rowid", "oid", "_rowid_"].contains (canonical name) then
+      some schema.primaryKey else none
 
 def column (schema : Core.Schema) (name : String) : Except String Nat :=
   match findColumn? schema name with
@@ -255,6 +271,9 @@ def groupOutputs (schema : Core.Schema) (groups : List Nat) :
 
 def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
     (expressions : Array Expr) : Except String (List Core.Value) := do
+  if expressions.isEmpty then
+    let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
+    return List.replicate schema.columns.length .null
   match insertColumns with
   | none =>
       unless expressions.size = schema.visibleColumns.length do
@@ -268,12 +287,9 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
   | some names =>
       unless names.size = expressions.size do
         throw "INSERT column/value count mismatch"
-      let canonicalNames := names.toList.map canonical
-      schema.columns.mapM fun target =>
-        if target.name == "__sqleanite_rowid" && target.integerPrimaryKey then
-          .ok .null
-        else
-        match canonicalNames.findIdx? (· == target.name) with
+      let indices ← names.toList.mapM (column schema)
+      schema.columns.mapIdxM fun targetIndex target =>
+        match indices.findIdx? (· == targetIndex) with
         | some index => columnLiteral target expressions[index]!
         | none => .ok .null
 

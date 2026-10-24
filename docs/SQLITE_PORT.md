@@ -743,3 +743,56 @@ result expressions, mixed bare/aggregate columns, source-free aggregates,
 GROUP BY expression terms, HAVING or aggregate ORDER BY. The previous direct
 column GROUP BY route remains available. The diagnostic inventory now retains
 12 explicit rejections; it is not a whole-SQLite coverage percentage.
+
+
+### Implicit rowid tables and foreign page-size writes (2026-10-24)
+
+Tables without an explicit PRIMARY KEY now use a hidden rowid while keeping
+that internal field out of the SQL schema and star projections. A no-declared-key
+sentinel round-trips through the proved canonical schema printer/parser. The
+internal declared-key cache uses the rowid for such rows, avoiding a false
+uniqueness collision on NULL. Explicit rowid/oid/_rowid_ names resolve after real
+column names, so shadowing remains visible. INSERT validates column names and
+supports DEFAULT VALUES, omitted/NULL INTEGER PRIMARY KEY allocation, explicit
+rowids and negative maxima. Automatic allocation uses max(rowid)+1, or 1 for an
+empty table. The localized append path now explicitly checks the automatic
+allocation premise before applying its after-all-rows proof.
+
+The new persisted-image test exposed seven existing rollback-mode write
+rejections for non-4096 files, retained in
+`docs/validation/sqlite-implicit-rowid-page-write-negative-20261024.json`.
+The production engine now handles that case with a separate full-image
+publication path. It encodes and verifies a canonical 4096-byte image before
+renaming a synced temporary file over the original and syncing the directory.
+This is page-size normalization, not preservation of the source geometry.
+The old same-geometry journal path stays separate. Multiply linked files are
+explicitly rejected by the conversion path; live cross-engine coordination and
+preserving other requested page sizes remain unfinished.
+
+The existing OS rename binding now preserves destination ownership and access
+bits and syncs that metadata before publication. No binding or SQLite C code
+was added. Its source SHA-256 is
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+The separate `AtomicFileReplacement` model proves complete old/new images at
+modeled crash prefixes and the completed new image. Host rename/sync behavior
+remains a stated trust assumption. Injected temporary-sync failures and corrupt
+staging bytes preserved the original image; a directory-sync failure after
+rename left the complete new image. SQLite checked each image and all retries
+succeeded. These are I/O-failure tests, not physical power-loss experiments.
+
+Frozen Lean/Main implementation SHA-256:
+`f4640a1b69605aa1ef0fc03454999b64ef9962b38513df1084d65adceb1f4dcd`.
+Fresh seed 353561 checked **1,854 statement outcomes**, including **126 matching
+errors**, across **18 file variants**, with no discrepancy. Each step checked
+SQL output, independent SQLite reads and integrity, unchanged main/WAL bytes on
+errors, and owner/group/access bits. Seed 353562 checked **686 aggregate
+regressions**, including **126 matching errors**, without a difference. Full
+build, **178 executable tests**, **981 registered headline theorems**, both
+audits and **57 accepted reverse-matrix cells** passed; 2 reverse shapes remain
+declared unsupported. Reports are
+`docs/validation/sqlite-implicit-rowid-20261024.json`,
+`docs/validation/sqlite-implicit-rowid-aggregate-regression-20261024.json`, and
+`docs/validation/sqlite-page-conversion-host-checkpoint-20261024.json`.
+Allocation after the maximum signed rowid, AUTOINCREMENT, rowid updates, nullable
+non-integer primary keys and general constraints remain separate SQL work.
+The selected diagnostic inventory still has 11 explicit rejections.

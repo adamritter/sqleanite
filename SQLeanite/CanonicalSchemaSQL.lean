@@ -41,7 +41,7 @@ theorem Printable.ofWellFormed (schema : Core.Schema)
   · intro empty
     unfold Core.Schema.CatalogShape at shape
     split at shape
-    · simp [empty] at shape
+    · exact shape.2.2.2.1 empty
     · have columns : schema.catalogColumns = schema.columns := shape.1
       have bound := wellFormed.2.1
       rw [← columns, empty] at bound
@@ -173,8 +173,8 @@ def parseChars (input : List Char) : Option Core.Schema := do
                   columns := columns
                   primaryKey
                   declaredPrimaryKey := primaryKey }
-              | none => do
-                  let declaredPrimaryKey ← columns.findIdx? (·.textPrimaryKey)
+              | none =>
+                  let declaredPrimaryKey := (columns.findIdx? (·.textPrimaryKey)).getD (columns.length + 1)
                   some {
                     name := String.ofList name
                     columns := columns ++ [Core.hiddenRowidColumn]
@@ -439,13 +439,16 @@ theorem parseChars_tableChars (s : Core.Schema) (printable : Printable s) :
   split at catalogShape
   · rw [catalogShape.2.2.1]
     simp only
-    rw [catalogShape.2.2.2]
-    simp only
     simp only [String.ofList_toList]
     apply congrArg some
     congr
     · exact catalogShape.1.symm
     · exact catalogShape.2.1.symm
+    · rw [catalogShape.2.2.2.2]
+      have width : s.columns.length = s.catalogColumns.length + 1 := by
+        rw [catalogShape.1]
+        simp
+      rw [width]
   · rw [catalogShape.2.2.1]
     simp only
     simp only [String.ofList_toList]

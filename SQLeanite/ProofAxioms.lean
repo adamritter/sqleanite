@@ -1073,3 +1073,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.countStar_exact
 #print axioms SQLeanite.CoreAggregate.selectRows_length_le
 #print axioms SQLeanite.CoreSQL.executeAggregateSelect_preserves_state
+
+#print axioms SQLeanite.Core.Row.declaredKey_no_declared
+#print axioms SQLeanite.Core.Row.create_set_rowid
+#print axioms SQLeanite.AtomicFileReplacement.committed
+#print axioms SQLeanite.AtomicFileReplacement.prefix_atomic

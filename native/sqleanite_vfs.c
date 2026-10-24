@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 LEAN_EXPORT lean_obj_res sqleanite_process_alive(size_t process,
@@ -252,6 +253,27 @@ LEAN_EXPORT lean_obj_res sqleanite_rename_path(b_lean_obj_arg source_object,
   (void)world;
   const char *source = lean_string_cstr(source_object);
   const char *target = lean_string_cstr(target_object);
+  /* Preserve an existing destination's ownership and access mode when Lean
+     publishes a replacement inode. All database bytes and plans stay in Lean. */
+  struct stat target_info;
+  if (stat(target, &target_info) == 0) {
+    int descriptor = open(source, O_RDONLY | O_CLOEXEC);
+    if (descriptor < 0) return sqleanite_io_error("open", source, errno);
+    struct stat source_info;
+    int failure = 0;
+    if (fstat(descriptor, &source_info) != 0) failure = errno;
+    if (!failure && (source_info.st_uid != target_info.st_uid ||
+                     source_info.st_gid != target_info.st_gid) &&
+        fchown(descriptor, target_info.st_uid, target_info.st_gid) != 0)
+      failure = errno;
+    if (!failure && fchmod(descriptor, target_info.st_mode & 0777) != 0)
+      failure = errno;
+    if (!failure && fsync(descriptor) != 0) failure = errno;
+    if (close(descriptor) != 0 && !failure) failure = errno;
+    if (failure) return sqleanite_io_error("preserve replacement metadata", source, failure);
+  } else if (errno != ENOENT) {
+    return sqleanite_io_error("stat", target, errno);
+  }
   if (renameat(AT_FDCWD, source, AT_FDCWD, target) != 0) {
     return sqleanite_io_error("renameat", source, errno);
   }

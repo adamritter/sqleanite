@@ -58,7 +58,7 @@ null-values|pass|file|NULL payloads and three-valued IS NULL|CREATE TABLE t(id I
 wal-mode|pass|wal|Journal mode WAL, read through the verified WAL path|PRAGMA journal_mode=WAL; CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); $rows_200 INSERT INTO t SELECT x, printf('v%04d',x) FROM n;|SELECT id,v FROM t WHERE id>=197 ORDER BY id;
 without-rowid|reject|file|WITHOUT ROWID: an index B-tree used as the table, out of scope|CREATE TABLE t(k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID; INSERT INTO t VALUES('a','1'),('b','2');|SELECT k,v FROM t ORDER BY k;
 composite-primary-key|reject|file|Composite PRIMARY KEY: not one INTEGER or TEXT key|CREATE TABLE t(a INTEGER, b INTEGER, v TEXT, PRIMARY KEY(a,b)); INSERT INTO t VALUES(1,1,'x'),(1,2,'y');|SELECT a,b,v FROM t ORDER BY a,b;
-no-primary-key|reject|file|No declared PRIMARY KEY at all|CREATE TABLE t(a INTEGER, v TEXT); INSERT INTO t VALUES(1,'x'),(2,'y');|SELECT a,v FROM t ORDER BY a;
+no-primary-key|pass|file|Implicit rowid with no declared PRIMARY KEY|CREATE TABLE t(a INTEGER, v TEXT); INSERT INTO t VALUES(1,'x'),(2,'y');|SELECT a,v FROM t ORDER BY a;
 ROWS
 }
 
@@ -162,26 +162,24 @@ Two directions, and they are not symmetric:
 ## Current page-size coverage
 
 `PhysicalCodec.pageSize = 4096` is threaded through the writer and its proof
-types. The currently tested read/write coverage is:
+types. SQLeanite now reads all eight SQLite page sizes (512 through 65536).
+Writes produce 4096-byte pages. A first rollback-mode write to another geometry
+publishes a fully encoded and verified replacement image using a temporary-file
+sync, atomic rename and directory sync; WAL writes publish a complete image.
+The [fresh rowid/file checkpoint](validation/sqlite-implicit-rowid-20261024.json)
+checks 1,854 statement outcomes across both modes, SQLite-created files at all
+eight page sizes, and Lean-created files. Independent SQLite reads and integrity
+checks follow every outcome; file ownership/access bits remain unchanged.
+Preserving a requested non-4096 write geometry remains separate work.
 
-> **SQLeanite reads 1024, 4096, 8192 and 65536 byte pages, and writes 4096 only.**
+## CLI byte rendering and its scope
 
-Complete SQLite file-format compatibility remains the target. Writer support
-for other page sizes and broader schema/encoding coverage are still gaps.
-
-## Value rendering differs from the `sqlite3` shell, and is not a storage claim
-
-One difference is retained in `Main.lean`'s result rendering rather than in
-storage or comparison:
-
-| value | `sqlite3` prints | `sqleanite` prints |
-|---|---|---|
-| BLOB, e.g. `x'00ff10'` | the raw bytes | `X'00FF10'` |
-
-The matrix cells for REAL and BLOB below read values through ordering and
-predicates, testing the codec and comparison separately from rendering.
-The row-expression differential suite checks integral REAL rendering, empty
-and NULL-only rows, and NUL-terminated TEXT output in file, WAL and timed modes.
+Production list-mode rendering now writes TEXT/BLOB bytes up to their first NUL,
+including invalid UTF-8, matching the corresponding SQLite shell cases. The
+[numeric aggregate checkpoint](validation/sqlite-numeric-aggregate-20261024.json)
+includes raw row output and mixed grouped extrema; it retains the earlier
+BLOB-rendering counterexample in its development-negative report. The matrix
+below still tests REAL/BLOB storage through ordering and predicates separately.
 Rendering remains in the executable TCB (see `docs/TRUST.md`); general shell
 byte-for-byte compatibility is not claimed.
 

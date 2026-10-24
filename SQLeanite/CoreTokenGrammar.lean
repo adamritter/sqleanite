@@ -610,8 +610,13 @@ private def matchStatement : Statement → MatchM Unit
       matchInsertPrefix conflict
       expectQualifiedName table
       matchOptionalNameList columns
-      expectKeyword "values"
-      matchRows rows.toList
+      if ← acceptKeyword "default" then
+        expectKeyword "values"
+        unless rows.size == 1 && rows[0]!.isEmpty do mismatch "DEFAULT VALUES"
+      else
+        expectKeyword "values"
+        unless rows.all (fun row => !row.isEmpty) do mismatch "a nonempty VALUES row"
+        matchRows rows.toList
   | .delete table alias where_ returning => do
       expectKeyword "delete"
       expectKeyword "from"
