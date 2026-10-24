@@ -24,6 +24,7 @@ inductive TranslatedRead (state : Core.State) :
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.canonical source.name) = some stored)
+      (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
       (notCount : CoreSQL.countTarget? stored.schema select.columns.toList =
@@ -53,6 +54,7 @@ inductive TranslatedRead (state : Core.State) :
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.canonical source.name) = some stored)
+      (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
       (countTranslated : CoreSQL.countTarget? stored.schema
@@ -74,6 +76,7 @@ inductive TranslatedRead (state : Core.State) :
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.canonical source.name) = some stored)
+      (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
       (notCount : CoreSQL.countTarget? stored.schema select.columns.toList =
@@ -95,6 +98,7 @@ inductive TranslatedRead (state : Core.State) :
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.canonical source.name) = some stored)
+      (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
       (notCount : CoreSQL.countTarget? stored.schema select.columns.toList =
@@ -117,6 +121,7 @@ inductive TranslatedRead (state : Core.State) :
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.canonical source.name) = some stored)
+      (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
       (notDistinct : select.distinct = false)
@@ -182,10 +187,10 @@ theorem executeSelectBase_eq_core
       selectExecution (readWidth command) (Core.execute state command) := by
   cases translated with
   | query select source stored predicate columns ordering noCompounds oneSource
-      noGroups noHaving noOffset plainSource found predicateTranslated
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
-        plainSource, found, predicateTranslated, notCount, notSum, notExtreme,
+        plainSource, found, namesBound, predicateTranslated, notCount, notSum, notExtreme,
         projectionTranslated, orderingTranslated, directQuery, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -198,40 +203,40 @@ theorem executeSelectBase_eq_core
         simp [execution] <;> rfl
 
   | count select source stored predicate target noCompounds oneSource noGroups
-      noHaving noOffset plainSource found predicateTranslated countTranslated
+      noHaving noOffset plainSource found namesBound predicateTranslated countTranslated
       notSum notExtreme notDistinct noOrdering noLimit =>
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
-        plainSource, found, predicateTranslated, countTranslated, notSum,
+        plainSource, found, namesBound, predicateTranslated, countTranslated, notSum,
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.count (CoreSQL.canonical source.name) target predicate) <;>
         simp [execution] <;> rfl
   | sum select source stored predicate column noCompounds oneSource noGroups
-      noHaving noOffset plainSource found predicateTranslated notCount
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
       sumTranslated notExtreme notDistinct noOrdering noLimit =>
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
-        plainSource, found, predicateTranslated, notCount, sumTranslated,
+        plainSource, found, namesBound, predicateTranslated, notCount, sumTranslated,
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.sum (CoreSQL.canonical source.name) column predicate) <;>
         simp [execution] <;> rfl
   | extreme select source stored predicate minimum column noCompounds oneSource
-      noGroups noHaving noOffset plainSource found predicateTranslated notCount
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated notCount
       notSum extremeTranslated notDistinct noOrdering noLimit =>
       simp [CoreSQL.executeSelectBase, oneSource, noGroups, noHaving, noOffset,
-        plainSource, found, predicateTranslated, notCount, notSum,
+        plainSource, found, namesBound, predicateTranslated, notCount, notSum,
         extremeTranslated, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
           (.extreme (CoreSQL.canonical source.name) minimum column predicate) <;>
         simp [execution] <;> rfl
   | group select source stored predicate groups outputs noCompounds oneSource
-      hasGroups noHaving noOffset plainSource found predicateTranslated
+      hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
       simp [CoreSQL.executeSelectBase, oneSource, hasGroups, noHaving, noOffset,
-        plainSource, found, predicateTranslated, notDistinct, noOrdering,
+        plainSource, found, namesBound, predicateTranslated, notDistinct, noOrdering,
         noLimit, groupsTranslated, outputsTranslated, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -650,13 +655,13 @@ theorem executeStatement_eq_core
       oneResult (Core.execute state command) := by
   cases translated with
   | query select source stored predicate columns ordering noCompounds oneSource
-      noGroups noHaving noOffset plainSource found predicateTranslated
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       have height := compoundHeight_eq_one select noCompounds
-      simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds,
-        oneSource, noGroups, noHaving, noOffset, plainSource, found,
+        oneSource, noGroups, noHaving, noOffset, plainSource, found, namesBound,
         predicateTranslated, notCount, notSum, notExtreme,
         projectionTranslated, orderingTranslated, directQuery, oneResult,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
@@ -673,13 +678,13 @@ theorem executeStatement_eq_core
           rcases outcome with ⟨actualNext, actualResult⟩
           simp only [CoreSQL.executeSelectFuel.executeArms, Except.map]
   | count select source stored predicate target noCompounds oneSource noGroups
-      noHaving noOffset plainSource found predicateTranslated countTranslated
+      noHaving noOffset plainSource found namesBound predicateTranslated countTranslated
       notSum notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
-        found, predicateTranslated, countTranslated, notSum, notExtreme,
+        found, namesBound, predicateTranslated, countTranslated, notSum, notExtreme,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -689,13 +694,13 @@ theorem executeStatement_eq_core
           rcases outcome with ⟨actualNext, actualResult⟩
           simp only [CoreSQL.executeSelectFuel.executeArms, Except.map]
   | sum select source stored predicate column noCompounds oneSource noGroups
-      noHaving noOffset plainSource found predicateTranslated notCount
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
       sumTranslated notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
-        found, predicateTranslated, notCount, sumTranslated, notExtreme,
+        found, namesBound, predicateTranslated, notCount, sumTranslated, notExtreme,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -705,13 +710,13 @@ theorem executeStatement_eq_core
           rcases outcome with ⟨actualNext, actualResult⟩
           simp only [CoreSQL.executeSelectFuel.executeArms, Except.map]
   | extreme select source stored predicate minimum column noCompounds oneSource
-      noGroups noHaving noOffset plainSource found predicateTranslated notCount
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated notCount
       notSum extremeTranslated notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
-        found, predicateTranslated, notCount, notSum, extremeTranslated,
+        found, namesBound, predicateTranslated, notCount, notSum, extremeTranslated,
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -721,13 +726,13 @@ theorem executeStatement_eq_core
           rcases outcome with ⟨actualNext, actualResult⟩
           simp only [CoreSQL.executeSelectFuel.executeArms, Except.map]
   | group select source stored predicate groups outputs noCompounds oneSource
-      hasGroups noHaving noOffset plainSource found predicateTranslated
+      hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
       have height := compoundHeight_eq_one select noCompounds
-      simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, hasGroups, noHaving, noOffset, plainSource,
-        found, predicateTranslated, notDistinct, noOrdering, noLimit,
+        found, namesBound, predicateTranslated, notDistinct, noOrdering, noLimit,
         groupsTranslated, outputsTranslated, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state

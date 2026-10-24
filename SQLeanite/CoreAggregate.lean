@@ -39,7 +39,7 @@ def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
         return { function, argument := none }
       unless !star && arguments.size == 1 do
         throw "wrong number of arguments to aggregate function"
-      let argument := ctx.bindKeywords arguments[0]!
+      let argument := ctx.bindNames arguments[0]!
       ctx.validate argument
       return { function, argument := some argument, distinct }
   | _ => .error "unsupported aggregate result expression"
@@ -116,7 +116,7 @@ def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
     Except String PreparedResults := do
   let (expressions, terms) ←
     (columns.mapM fun column =>
-      let expression := ctx.bindKeywords column.expr
+      let expression := ctx.bindNames column.expr
       prepareResultFuel ctx expression.height expression).run #[]
   return { expressions, terms }
 

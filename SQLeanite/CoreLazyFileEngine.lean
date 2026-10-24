@@ -33,6 +33,8 @@ private def joinSourceNames? (select : Select) : Option (String × String) := do
 
 private def coldQuery? (schema : Core.Schema) (select : Select) :
     Option Core.Query := do
+  let source ← select.sources[0]?
+  unless CoreSQL.selectNamesBound schema source select do none
   let predicate ← (select.where_.mapM (CoreSQL.predicate schema)).toOption
   let count ← (CoreSQL.countTarget? schema select.columns.toList).toOption
   let sum ← (CoreSQL.sumColumn? schema select.columns.toList).toOption

@@ -1109,3 +1109,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.CLI.listTextBytes_nul
 #print axioms SQLeanite.SQLite.CLI.listTextBytes_length_le
+
+#print axioms SQLeanite.SQLite.Scalar.bindNames_quoted
+#print axioms SQLeanite.CoreSQL.selectNamesBound_compounds

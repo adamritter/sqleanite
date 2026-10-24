@@ -1094,3 +1094,45 @@ both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
 These results establish the tested byte-handling behavior, not complete SQL or
 file interoperability. UTF-16 database encoding, live SQLite WAL-reader
 coordination, general SQL/name binding and the other recorded gaps remain work.
+
+
+### Quoted identifiers and single-source scope checks (2026-10-24)
+
+Quoted column tokens now bind as identifiers throughout row expressions,
+aggregates and assignments. The pinned CLI has DQS fallback disabled, so unknown
+quoted names are errors rather than string literals. ORDER BY column terms,
+GROUP BY columns and direct grouped outputs share the binder. Quoted markers
+are not function calls for SQLite's parser-level zero-AND simplification.
+TRUE/FALSE column shadowing continues to use the same binding pass.
+
+SELECT, UPDATE and DELETE validate source/alias scope before lowering to direct
+Core commands. The check also covers the reopened cold page reader and persisted
+index recognizer, so missing qualifiers cannot disappear on a fast path or under
+LIMIT zero. The initial read corpus retained **728 differences in 1,052 outcomes**
+in `docs/validation/sqlite-quoted-names-negative-20261024.json`: both rejected
+valid quoted columns and incorrectly accepted qualifiers were present.
+
+At frozen Lean/Main SHA-256
+`a8787004bacbb09a2e39d30cb5c15f7026fae2a89d6065b4d1a8ff0a7db23b39`,
+fresh seed 353661 passed **2,364 read/write outcomes**, including **576 matching
+errors**, on independent files in both modes. Reads preserve all main/WAL bytes;
+rejected writes preserve the input image. Successful writes are independently
+read and integrity-checked by pinned SQLite 3.53.4. The corpus includes quoted
+columns, predicates, aggregate arguments, group keys, aliases, qualified stars,
+empty tables, LIMIT zero and primary-key searches. Exact CLI bytes and rejection
+status are compared; error wording is not. The development report is kept
+separately from this final evaluation.
+
+Fresh regressions passed **1,668 boolean read/write outcomes** (**18 matching
+errors**), **976 aggregate-result cases** (**170 matching errors**), **166 UPDATEs**
+plus **18 expected errors**, **228 DELETEs** plus **16 matching errors**, transaction
+rollbacks and **1,120 scalar cases**. Reports use `sqlite-quoted-` under
+`docs/validation/`. The full build, **188 executable tests**, **1,003 registered
+headline theorems**, both audits and **61 accepted / 2 declared-unsupported reverse
+cells** passed. The direct read/write correspondence relations now explicitly
+require source-name admission; syntax theorems describe the bound identifier
+forms without asserting complete SQLite name resolution.
+
+Output-alias resolution, ordinal and arbitrary-expression ordering, general
+GROUP BY expressions/HAVING, quoted function-call parsing, schema-qualified
+names and the previously recorded SQL/file/WAL gaps remain separate work.

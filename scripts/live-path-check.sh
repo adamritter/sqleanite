@@ -42,6 +42,18 @@ else
   fail "DISTINCT representative routing or direct-query proof premise is missing"
 fi
 
+# Direct and cold reads must validate qualifiers before dropping AST names.
+if [ "$(grep -c 'unless selectNamesBound stored.schema source select' SQLeanite/CoreSQL.lean)" -eq 2 ] &&
+   grep -q 'unless CoreSQL.selectNamesBound schema source select' SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'unless writeNamesBound stored.schema table alias' SQLeanite/CoreSQL.lean &&
+   grep -q 'namesBound : CoreSQL.selectNamesBound' SQLeanite/CoreSQLReadText.lean &&
+   grep -q 'namesBound : CoreSQL.writeNamesBound' SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'Scalar.bindNames_quoted' SQLeanite/ProofAxioms.lean; then
+  ok "quoted identifiers and source scopes bind before direct Core execution"
+else
+  fail "source name validation is missing from a Core execution route"
+fi
+
 # Row-dependent UPDATE remains an atomic trace of proved Core point updates.
 if grep -q 'executeExpressionUpdate state tableName alias stored' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeExpressionUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&
@@ -92,7 +104,7 @@ else
 fi
 
 # Boolean keywords bind to real columns before scalar preparation and search planning.
-if grep -q 'ctx.bindKeywords expression' SQLeanite/CoreExpr.lean &&
+if grep -q 'ctx.bindNames expression' SQLeanite/CoreExpr.lean &&
    grep -q 'ctx.hasBooleanColumn expression' SQLeanite/CoreSQL.lean &&
    grep -q 'return isTruth left truth' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'bindBooleanKeywords_shadowed' SQLeanite/ProofAxioms.lean; then

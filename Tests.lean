@@ -4201,6 +4201,36 @@ private def expectSQLiteRawText : IO Unit := do
       | .error message => fail message
     unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
 
+private def expectSQLiteQuotedNames : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,\"select\" TEXT,v); INSERT INTO t VALUES(1,'a',3),(2,'b',4); CREATE TABLE empty(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT \"select\",[v],`id` FROM t ORDER BY \"id\";",
+      [[.text "a", .integer 3, .integer 1], [.text "b", .integer 4, .integer 2]]),
+    ("SELECT sum(\"v\"),count([id]) FROM t;", [[.integer 7, .integer 2]]),
+    ("SELECT [v],sum(\"v\") FROM t GROUP BY `v`;", [[.integer 3, .integer 3], [.integer 4, .integer 4]]),
+    ("SELECT x.[v] FROM t AS x WHERE x.id=1;", [[.integer 3]]),
+    ("SELECT 0 AND \"missing\";", [[.integer 0]]),
+    ("SELECT 0 AND missing.v FROM empty;", []),
+    ("UPDATE t AS x SET v=x.[v]+1 WHERE x.id=1; SELECT v FROM t WHERE id=1;", [[.integer 4]]),
+    ("DELETE FROM t WHERE [v]=3; SELECT id FROM t;", [[.integer 2]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"quoted names: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"quoted names mismatch: {sql}"
+  for sql in ["SELECT t.id FROM t AS x LIMIT 0;", "SELECT missing.id FROM t WHERE id=1;",
+      "SELECT id FROM t WHERE missing.v=3;", "SELECT id FROM t ORDER BY missing.v;",
+      "SELECT \"missing\" FROM empty LIMIT 0;", "SELECT missing.* FROM empty;",
+      "SELECT count(missing.v) FROM empty;", "UPDATE empty SET v=1 WHERE missing.id=2;",
+      "UPDATE t AS x SET v=t.v;", "DELETE FROM empty WHERE missing.v=1;",
+      "SELECT lean_dqs('v') FROM t LIMIT 0;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"name binding omitted error: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteBooleanKeywords : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,true TEXT,false INTEGER,v); INSERT INTO t VALUES(1,'2',7,2),(2,'0',0,0),(3,NULL,NULL,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4674,6 +4704,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
+  ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

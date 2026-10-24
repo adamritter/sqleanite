@@ -197,9 +197,12 @@ def projection (schema : Core.Schema) :
 def orderBy (schema : Core.Schema) :
     List OrderTerm → Except String (List (Nat × Bool))
   | [] => .ok []
-  | { expr := .column _ name, descending } :: terms =>
-      return (← column schema name, descending) :: (← orderBy schema terms)
-  | _ => unsupported "ORDER BY expression"
+  | term :: terms => do
+      let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+      match ctx.bindNames term.expr with
+      | .column _ name =>
+          return (← column schema name, term.descending) :: (← orderBy schema terms)
+      | _ => unsupported "ORDER BY expression"
 
 def countTarget? (schema : Core.Schema) :
     List ResultColumn → Except String (Option Core.CountTarget)
@@ -240,11 +243,13 @@ def extremeColumn? (schema : Core.Schema) :
 
 def groupColumns (schema : Core.Schema) : List Expr → Except String (List Nat)
   | [] => .ok []
-  | .column _ name :: expressions =>
-      return (← column schema name) :: (← groupColumns schema expressions)
-  | _ => unsupported "GROUP BY expression"
+  | expression :: expressions => do
+      let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+      match ctx.bindNames expression with
+      | .column _ name => return (← column schema name) :: (← groupColumns schema expressions)
+      | _ => unsupported "GROUP BY expression"
 
-def groupOutput (schema : Core.Schema) (groups : List Nat) :
+def boundGroupOutput (schema : Core.Schema) (groups : List Nat) :
     ResultColumn → Except String Core.GroupOutput
   | { expr := .column _ name, .. } => do
       let columnIndex ← column schema name
@@ -272,6 +277,11 @@ def groupOutput (schema : Core.Schema) (groups : List Nat) :
           else unsupported "aggregate expression"
       | _ => unsupported "group projection expression"
   | _ => unsupported "group projection expression"
+
+def groupOutput (schema : Core.Schema) (groups : List Nat) (result : ResultColumn) :
+    Except String Core.GroupOutput :=
+  let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+  boundGroupOutput schema groups { result with expr := ctx.bindNames result.expr }
 
 def groupOutputs (schema : Core.Schema) (groups : List Nat) :
     List ResultColumn → Except String (List Core.GroupOutput)
@@ -568,7 +578,7 @@ Other access-plan choices remain with the general scan. -/
 def expressionSearch (ctx : CoreExpr.Context) (stored : Core.Table)
     (condition : Option Expr) : Except String (Option Core.Predicate) := do
   let terms := condition.toList.flatMap fun expression =>
-    SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindKeywords expression))
+    SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindNames expression))
   let primaryColumn := fun expression => match expression with
     | .column qualifier name => ctx.column? qualifier name == some stored.schema.primaryKey
     | _ => false
@@ -1184,6 +1194,26 @@ def executeExpressionSelect (state : Core.State) (select : Select) (source : Tab
     executeAggregateSelect state select source stored
   else executeFilteredSelect state select source stored
 
+/-- Every single-source route, including page-directed reads, checks the same
+source/alias scope before a direct Core command can omit an AST qualifier. -/
+def selectNamesBound (schema : Core.Schema) (source : TableRef) (select : Select) : Bool :=
+  let ctx : CoreExpr.Context := { schema, sourceName := source.alias.getD source.name }
+  select.columns.all (fun result => ctx.namesBound result.expr) &&
+    select.where_.all ctx.namesBound && select.groupBy.all ctx.namesBound &&
+    select.having.all ctx.namesBound && select.orderBy.all (fun term => ctx.namesBound term.expr)
+
+@[simp] theorem selectNamesBound_compounds (schema : Core.Schema) (source : TableRef)
+    (select : Select) (compounds : Array (CompoundOp × Select)) :
+    selectNamesBound schema source { select with compounds } =
+      selectNamesBound schema source select := rfl
+
+/-- Writes bind names before deciding whether a predicate/assignment is a
+constant Core command or needs row-expression evaluation. -/
+def writeNamesBound (schema : Core.Schema) (table : String) (alias : Option String)
+    (assignments : Array (String × Expr)) (condition : Option Expr) : Bool :=
+  let ctx : CoreExpr.Context := { schema, sourceName := alias.getD table }
+  assignments.all (fun assignment => ctx.namesBound assignment.2) && condition.all ctx.namesBound
+
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   if select.sources.size = 2 then executeJoin state select
@@ -1200,6 +1230,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
     let stored ← match state.database.findTable? tableName with
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
+    unless selectNamesBound stored.schema source select do unsupported "unbound SELECT name"
     match select.where_.mapM (predicate stored.schema) with
     | .error _ => executeExpressionSelect state select source stored none
     | .ok wherePredicate => do
@@ -1266,6 +1297,7 @@ def simpleQuery? (state : Core.State) (select : Select) :
     if source.subquerySql.isNone && source.joinOn.isNone then
       let tableName := canonical source.name
       let stored ← state.database.findTable? tableName
+      unless selectNamesBound stored.schema source select do none
       let wherePredicate ← (select.where_.mapM (predicate stored.schema)).toOption
       let count ← (countTarget? stored.schema select.columns.toList).toOption
       let sum ← (sumColumn? stored.schema select.columns.toList).toOption
@@ -1407,6 +1439,7 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
+      unless writeNamesBound stored.schema table alias #[] where_ do unsupported "unbound DELETE name"
       match where_.mapM (predicate stored.schema) with
       | .ok condition => executeCommand state (.deleteWhere tableName condition)
       | .error _ => executeExpressionDelete state tableName alias stored where_
@@ -1417,6 +1450,7 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
+      unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
       match updateAssignments stored.schema assignments.toList,
           where_.mapM (predicate stored.schema) with
       | .ok updates, .ok condition =>

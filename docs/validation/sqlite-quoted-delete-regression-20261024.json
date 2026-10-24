@@ -1,0 +1,24 @@
+{
+  "seed": 353665,
+  "random_cases": 100,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "deletes": 114,
+      "matching_errors": 8,
+      "rollback": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "deletes": 114,
+      "matching_errors": 8,
+      "rollback": true
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a8787004bacbb09a2e39d30cb5c15f7026fae2a89d6065b4d1a8ff0a7db23b39",
+  "executable_sha256": "53ec058c5ee87494b613981e7af3e6b0628e737ebb8d981b817d81ea315354d5",
+  "harness_sha256": "cdd9494d87d14e9a6fda221e5e6d6baec226cc5178b18df9de79fa8b09f9c537",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Differential DELETE with scalar predicates, indexes and statement atomicity.\n\nEvery case starts with a fresh copy of independently created databases. Pinned\nSQLite compares retained values and integrity. Errors preserve database/WAL\nbytes, and transaction rollback is checked in both production file modes."
+}

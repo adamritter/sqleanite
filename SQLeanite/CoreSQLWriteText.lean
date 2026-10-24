@@ -67,6 +67,7 @@ inductive TranslatedWrite (state : Core.State) :
       (stored : Core.Table) (predicate : Option Core.Predicate)
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
+      (namesBound : CoreSQL.writeNamesBound stored.schema table alias #[] where_ = true)
       (translated : where_.mapM (CoreSQL.predicate stored.schema) =
         .ok predicate) :
       TranslatedWrite state (.delete table alias where_ #[])
@@ -79,6 +80,7 @@ inductive TranslatedWrite (state : Core.State) :
       (predicate : Option Core.Predicate)
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
+      (namesBound : CoreSQL.writeNamesBound stored.schema table alias assignments where_ = true)
       (assignmentsTranslated :
         CoreSQL.updateAssignments stored.schema assignments.toList =
           .ok updates)
@@ -117,14 +119,14 @@ theorem executeStatement_eq_core
         translation, CoreSQL.executeCommand_eq_core,
         CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind, pure,
         pure, Except.pure, oneResult]
-  | delete table alias where_ stored predicate found translation =>
-      simp [CoreSQL.executeStatement, found, translation,
+  | delete table alias where_ stored predicate found namesBound translation =>
+      simp [CoreSQL.executeStatement, found, namesBound, translation,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | update table alias assignments where_ conflict allowed stored updates
-      predicate found assignmentsTranslated predicateTranslated =>
+      predicate found namesBound assignmentsTranslated predicateTranslated =>
       rcases allowed with rfl | rfl <;>
-        simp [CoreSQL.executeStatement, found, assignmentsTranslated,
+        simp [CoreSQL.executeStatement, found, namesBound, assignmentsTranslated,
           predicateTranslated, CoreSQL.executeCommand_eq_core,
           CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind,
           pure, Except.pure, pure, oneResult]

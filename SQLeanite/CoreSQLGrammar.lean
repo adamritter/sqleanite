@@ -209,6 +209,10 @@ theorem projectionSyntax_of_success (schema : Core.Schema) :
 inductive OrderTermSyntax : OrderTerm → Prop where
   | column (qualifier name descending) :
       OrderTermSyntax ⟨.column qualifier name, descending⟩
+  | boundColumn (ctx : CoreExpr.Context) (expression : Expr) (descending : Bool)
+      (qualifier : Option String) (name : String)
+      (bound : ctx.bindNames expression = .column qualifier name) :
+      OrderTermSyntax ⟨expression, descending⟩
 
 def OrderingSyntax (terms : List OrderTerm) : Prop :=
   ∀ term ∈ terms, OrderTermSyntax term
@@ -219,29 +223,33 @@ theorem orderingSyntax_of_success (schema : Core.Schema) :
   | [], _, _ => by simp [OrderingSyntax]
   | term :: terms, ordering, success => by
       rcases term with ⟨expression, descending⟩
-      cases expression with
+      let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+      cases bound : ({ schema, sourceName := schema.name } : CoreExpr.Context).bindNames expression with
       | column qualifier name =>
-          unfold orderBy at success
+          simp only [orderBy, bound] at success
           cases first : column schema name with
           | error message =>
-              simp [first, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
+              simp [first, bind, Functor.map, Except.bind, Except.map] at success
           | ok index =>
               cases rest : orderBy schema terms with
               | error message =>
-                  simp [first, rest, Seq.seq, bind, Functor.map, Except.bind,
-                    Except.map] at success
+                  simp [first, rest, bind, Functor.map, Except.bind, Except.map] at success
               | ok tail =>
                   intro candidate member
                   simp only [List.mem_cons] at member
                   rcases member with rfl | member
-                  · exact .column qualifier name descending
+                  · exact .boundColumn ctx expression descending qualifier name bound
                   · exact orderingSyntax_of_success schema rest candidate member
       | literal | star | unary | binary | call | isNull | inList | collate |
           case_ | scalarSubquery | inSubquery | existsSubquery =>
-          simp [orderBy, unsupported] at success
+          simp [orderBy, bound, unsupported] at success
 
 inductive GroupColumnSyntax : Expr → Prop where
   | column (qualifier name) : GroupColumnSyntax (.column qualifier name)
+  | boundColumn (ctx : CoreExpr.Context) (expression : Expr)
+      (qualifier : Option String) (name : String)
+      (bound : ctx.bindNames expression = .column qualifier name) :
+      GroupColumnSyntax expression
 
 def GroupingSyntax (expressions : List Expr) : Prop :=
   ∀ expression ∈ expressions, GroupColumnSyntax expression
@@ -251,26 +259,26 @@ theorem groupingSyntax_of_success (schema : Core.Schema) :
       groupColumns schema inputs = .ok groups → GroupingSyntax inputs
   | [], _, _ => by simp [GroupingSyntax]
   | expression :: expressions, groups, success => by
-      cases expression with
+      let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+      cases bound : ({ schema, sourceName := schema.name } : CoreExpr.Context).bindNames expression with
       | column qualifier name =>
-          unfold groupColumns at success
+          simp only [groupColumns, bound] at success
           cases first : column schema name with
           | error message =>
-              simp [first, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
+              simp [first, bind, Functor.map, Except.bind, Except.map] at success
           | ok index =>
               cases rest : groupColumns schema expressions with
               | error message =>
-                  simp [first, rest, Seq.seq, bind, Functor.map, Except.bind,
-                    Except.map] at success
+                  simp [first, rest, bind, Functor.map, Except.bind, Except.map] at success
               | ok tail =>
                   intro candidate member
                   simp only [List.mem_cons] at member
                   rcases member with rfl | member
-                  · exact .column qualifier name
+                  · exact .boundColumn ctx candidate qualifier name bound
                   · exact groupingSyntax_of_success schema rest candidate member
       | literal | star | unary | binary | call | isNull | inList | collate |
           case_ | scalarSubquery | inSubquery | existsSubquery =>
-          simp [groupColumns, unsupported] at success
+          simp [groupColumns, bound, unsupported] at success
 
 inductive GroupOutputSyntax : ResultColumn → Prop where
   | key (qualifier name alias sourceSql) :
@@ -286,9 +294,13 @@ inductive GroupOutputSyntax : ResultColumn → Prop where
       GroupOutputSyntax
         ⟨.call name arguments false, alias, sourceSql⟩
 
-theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
+  | bound (ctx : CoreExpr.Context) (input : ResultColumn)
+      (boundSyntax : GroupOutputSyntax { input with expr := ctx.bindNames input.expr }) :
+      GroupOutputSyntax input
+
+private theorem boundGroupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
     {input : ResultColumn} {output : Core.GroupOutput}
-    (success : groupOutput schema groups input = .ok output) :
+    (success : boundGroupOutput schema groups input = .ok output) :
     GroupOutputSyntax input := by
   rcases input with ⟨expression, alias, sourceSql⟩
   cases expression with
@@ -299,11 +311,11 @@ theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
           by_cases count : canonical name = "count"
           · by_cases empty : arguments.isEmpty
             · exact .countStar name arguments alias sourceSql count empty
-            · simp [groupOutput, count, empty, unsupported] at success
-          · simp [groupOutput, count, unsupported] at success
+            · simp [boundGroupOutput, count, empty, unsupported] at success
+          · simp [boundGroupOutput, count, unsupported] at success
       | false =>
           cases listShape : arguments.toList with
-          | nil => simp [groupOutput, listShape, unsupported] at success
+          | nil => simp [boundGroupOutput, listShape, unsupported] at success
           | cons first rest =>
               cases rest with
               | nil =>
@@ -327,17 +339,24 @@ theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
                               · by_cases total : canonical name = "total"
                                 · exact .aggregate name arguments qualifier columnName alias
                                     sourceSql listShape (by simp [total])
-                                · simp [groupOutput, listShape, count, sum, minimum,
+                                · simp [boundGroupOutput, listShape, count, sum, minimum,
                                     maximum, average, total, unsupported] at success
                   | literal | star | unary | binary | call | isNull | inList |
                       collate | case_ | scalarSubquery | inSubquery |
                       existsSubquery =>
-                      simp [groupOutput, listShape, unsupported] at success
+                      simp [boundGroupOutput, listShape, unsupported] at success
               | cons second tail =>
-                  simp [groupOutput, listShape, unsupported] at success
+                  simp [boundGroupOutput, listShape, unsupported] at success
   | literal | star | unary | binary | isNull | inList | collate | case_ |
       scalarSubquery | inSubquery | existsSubquery =>
-      simp [groupOutput, unsupported] at success
+      simp [boundGroupOutput, unsupported] at success
+
+theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
+    {input : ResultColumn} {output : Core.GroupOutput}
+    (success : groupOutput schema groups input = .ok output) :
+    GroupOutputSyntax input := by
+  exact .bound { schema, sourceName := schema.name } input
+    (boundGroupOutputSyntax_of_success success)
 
 inductive JoinOperandSyntax : Expr → Prop where
   | column (qualifier name) :

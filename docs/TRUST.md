@@ -1740,3 +1740,18 @@ the pinned 3.53.4 oracle; the byte-level Python storage observer reports its own
 and UTF-16 file encoding is outside the live decoder. These bounds, the existing
 WAL lock-interoperability gap and incomplete SQL coverage prevent a claim of
 complete SQLite compatibility. The native OS adapter is unchanged.
+
+
+### Source-name admission boundary (2026-10-24)
+
+The direct single-source SELECT and UPDATE/DELETE translation relations now
+include the executable `selectNamesBound` / `writeNamesBound` premise. The live
+executor and its persisted/cold read recognizers perform that check before
+turning source expressions into column indices. The grammar's ordering/grouping
+forms explicitly allow the result of the quoted/boolean identifier binder;
+aggregate result grammar applies its existing structural rules after binding.
+These additions disclose the binding boundary, not a universal proof of
+SQLite's name resolver or of arbitrary ordering/grouping expressions. The new
+registered components prove quoted-marker binding and independence from a
+SELECT's compound-arm field. No axiom or native binding changed. Fresh SQL and
+unchanged-file evidence is recorded in [SQLITE_PORT.md](SQLITE_PORT.md).

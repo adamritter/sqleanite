@@ -89,13 +89,25 @@ def booleanKeyword? : Expr → Option Bool
 
 def booleanName (truth : Bool) : String := if truth then "true" else "false"
 
-def bindBooleanKeywordsFuel (hasColumn : String → Bool) : Nat → Expr → Expr
+/-- Quoted tokens are identifiers in the pinned DQS-disabled configuration.
+The parser's private marker must never be interpreted as an ordinary function. -/
+def quotedIdentifier? : Expr → Option String
+  | .call name arguments star =>
+      if name == "lean_dqs" && !star then
+        match arguments.toList with
+        | [.literal (.text identifier)] => some identifier
+        | _ => none
+      else none
+  | _ => none
+
+def bindNamesFuel (hasColumn : String → Bool) : Nat → Expr → Expr
   | 0, expression => expression
   | fuel + 1, expression =>
       if let some truth := booleanKeyword? expression then
         if hasColumn (booleanName truth) then .column none (booleanName truth) else expression
+      else if let some name := quotedIdentifier? expression then .column none name
       else
-        let bind := bindBooleanKeywordsFuel hasColumn fuel
+        let bind := bindNamesFuel hasColumn fuel
         match expression with
         | .unary op arg => .unary op (bind arg)
         | .binary op left right => .binary op (bind left) (bind right)
@@ -108,8 +120,8 @@ def bindBooleanKeywordsFuel (hasColumn : String → Bool) : Nat → Expr → Exp
         | .inSubquery arg sql negated => .inSubquery (bind arg) sql negated
         | _ => expression
 
-def bindBooleanKeywords (hasColumn : String → Bool) (expression : Expr) : Expr :=
-  bindBooleanKeywordsFuel hasColumn expression.height expression
+def bindNames (hasColumn : String → Bool) (expression : Expr) : Expr :=
+  bindNamesFuel hasColumn expression.height expression
 
 /-- IS TRUE/FALSE tests truth without column affinity and always returns an
 integer, including for NULL. IS NOT complements that two-valued result. -/
@@ -122,14 +134,19 @@ theorem isTruth_null (expected negated : Bool) :
 
 theorem bindBooleanKeywords_shadowed (hasColumn : String → Bool) (truth : Bool)
     (bound : hasColumn (booleanName truth) = true) :
-    bindBooleanKeywords hasColumn
+    bindNames hasColumn
       (.call (if truth then "__sqlean_boolean_true" else "__sqlean_boolean_false") #[] false) =
       .column none (booleanName truth) := by
-  cases truth <;> simp_all [bindBooleanKeywords, bindBooleanKeywordsFuel, booleanKeyword?, booleanName,
+  cases truth <;> simp_all [bindNames, bindNamesFuel, booleanKeyword?, booleanName,
     Expr.height, exprListHeight]
 
-/-- TEXT conversions cannot silently replace invalid BLOB bytes: until the
-text value representation can carry them, those conversions are rejected. -/
+theorem bindNames_quoted (hasColumn : String → Bool) (name : String) :
+    bindNames hasColumn (.call "lean_dqs" #[.literal (.text name)] false) =
+      .column none name := by
+  simp [bindNames, bindNamesFuel, booleanKeyword?, quotedIdentifier?, Expr.height, exprListHeight]
+
+/-- Strict String extraction for callers that explicitly need valid UTF-8.
+SQL TEXT conversions use Text.fromBytes and retain invalid byte sequences. -/
 def text := SQLite.Text.toText
 
 def comparison (op : BinaryOp) (a b : Value) : Value :=
@@ -313,7 +330,8 @@ but EP_HasFunc prevents erasing a function call and its errors. CAST is an
 operator even though our surface AST encodes it as a named call. -/
 def hasFunction (expression : Expr) : Bool :=
   expression.any fun e => match e with
-    | .call name _ _ => !name.toLower.startsWith "cast_" && (booleanKeyword? e).isNone
+    | .call name _ _ => !name.toLower.startsWith "cast_" && (booleanKeyword? e).isNone &&
+        (quotedIdentifier? e).isNone
     | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
     | _ => false
 
