@@ -3,12 +3,14 @@ import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.Text
 import SQLeanite.SQLite.Pattern
+import SQLeanite.SQLite.ExprCollation
 
 /-!
 Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
 CAST follows vdbemem.c; the small built-in set follows func.c. The evaluator
 uses the parsed expression tree instead of pretending to be a complete VDBE.
-No column affinity or collation is applied by this constant-expression layer.
+Column affinity is supplied by the row context; explicit expression collations
+use the pinned built-in byte comparators.
 -/
 namespace SQLeanite.SQLite.Scalar
 
@@ -149,17 +151,19 @@ theorem bindNames_quoted (hasColumn : String → Bool) (name : String) :
 SQL TEXT conversions use Text.fromBytes and retain invalid byte sequences. -/
 def text := SQLite.Text.toText
 
-def comparison (op : BinaryOp) (a b : Value) : Value :=
-  if op == .is then boolValue (a == b)
-  else if op == .isNot then boolValue (!(a == b))
+def comparisonWith (collation : Collation.Kind) (op : BinaryOp) (a b : Value) : Value :=
+  if op == .is then boolValue (ExprCollation.compare collation a b == .eq)
+  else if op == .isNot then boolValue (ExprCollation.compare collation a b != .eq)
   else if isNull a || isNull b then .null
   else
-    let order := a.compare b
+    let order := ExprCollation.compare collation a b
     boolValue (match op with
       | .eq => order == .eq | .ne => order != .eq
       | .lt => order == .lt | .le => order != .gt
       | .gt => order == .gt | .ge => order != .lt
       | _ => false)
+
+def comparison := comparisonWith .binary
 
 def unary (op : UnaryOp) (v : Value) : Value :=
   match op with
@@ -199,6 +203,7 @@ def cast (typeName : String) (v : Value) : Except String Value := do
 /-- CAST is the constant-expression form that carries affinity. Unary plus
 and other operators erase it, just as sqlite3ExprAffinity specifies. -/
 def expressionAffinity : Expr → Option Affinity
+  | .collate expression _ => expressionAffinity expression
   | .call name _ false =>
       if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
   | _ => none
@@ -230,7 +235,8 @@ def applyComparisonAffinity (aff : Affinity) (v : Value) : Value :=
 def expressionComparisonWith (operandAffinity : Expr → Option Affinity)
     (op : BinaryOp) (left right : Expr) (a b : Value) : Value :=
   let aff := comparisonAffinity (operandAffinity left) (operandAffinity right)
-  comparison op (applyComparisonAffinity aff a) (applyComparisonAffinity aff b)
+  comparisonWith ((ExprCollation.binaryKind? left right).getD .binary) op
+    (applyComparisonAffinity aff a) (applyComparisonAffinity aff b)
 
 def expressionComparison := expressionComparisonWith expressionAffinity
 
@@ -409,11 +415,19 @@ def scalarFunctionName (name : String) : String :=
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
-  | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ | .inList .. => false
-  | .binary op _ _ => [.match, .arrow, .arrowText].contains op
+  | .literal _ | .unary _ _ | .isNull _ _ | .collate .. => false
+  | .case_ base branches _ => base.any fun base =>
+      branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
+  | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
+  | .binary op left right =>
+      [.match, .arrow, .arrowText].contains op ||
+        ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
+          !(([.is, .isNot].contains op) && (booleanKeyword? right).isSome) &&
+          (ExprCollation.binaryKind? left right).isNone)
   | .call name args star =>
       let n := scalarFunctionName name
-      star || args.size > Limits.maxFunctionArgs || !(if (booleanKeyword? (.call name args star)).isSome then true
+      star || args.size > Limits.maxFunctionArgs ||
+        (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -481,36 +495,37 @@ def branches (eval : Expr → Except String Value)
             equal expression condition b v == .integer 1
       if selected then eval result else branches eval equal base otherwise rest
 
-def membership (affinity : Affinity) (left : Value) : List Value → Bool → Truth
+def membership (collation : Collation.Kind) (affinity : Affinity) (left : Value) : List Value → Bool → Truth
   | [], sawNull => if sawNull then .unknown else .false
   | value :: values, sawNull =>
-      let equal := comparison .eq (applyComparisonAffinity affinity left)
+      let equal := comparisonWith collation .eq (applyComparisonAffinity affinity left)
         (applyComparisonAffinity affinity value)
       if equal == .integer 1 then .true
-      else membership affinity left values (sawNull || isNull value)
+      else membership collation affinity left values (sawNull || isNull value)
 
-def linearMembership (eval : Expr → Except String Value) (affinity : Affinity)
+def linearMembership (eval : Expr → Except String Value) (collation : Collation.Kind) (affinity : Affinity)
     (left : Value) : List Expr → Bool → Except String Truth
   | [], sawNull => .ok (if sawNull then .unknown else .false)
   | expression :: expressions, sawNull => do
       let value ← eval expression
-      let equal := comparison .eq (applyComparisonAffinity affinity left)
+      let equal := comparisonWith collation .eq (applyComparisonAffinity affinity left)
         (applyComparisonAffinity affinity value)
       if equal == .integer 1 then return .true
-      else linearMembership eval affinity left expressions (sawNull || isNull value)
+      else linearMembership eval collation affinity left expressions (sawNull || isNull value)
 
 def evalInList (eval : Expr → Except String Value) (operandAffinity : Expr → Option Affinity)
     (constant : Expr → Bool) (argument : Expr) (values : Array Expr) (negated applyLeftAffinity : Bool) :
     Except String Value := do
   if values.isEmpty then return boolValue negated
+  let collation ← ExprCollation.require (ExprCollation.kind? argument)
   let affinity := if applyLeftAffinity then (operandAffinity argument).getD .blob else .blob
   let truth ← if values.size > 2 && values.all constant then do
       let right ← values.toList.mapM eval
       let left ← eval argument
-      pure (membership affinity left right (isNull left))
+      pure (membership collation affinity left right (isNull left))
     else do
       let left ← eval argument
-      linearMembership eval affinity left values.toList (isNull left)
+      linearMembership eval collation affinity left values.toList (isNull left)
   return (if negated then truth.not else truth).toValue
 
 theorem evalInList_empty (eval : Expr → Except String Value)
@@ -519,6 +534,14 @@ theorem evalInList_empty (eval : Expr → Except String Value)
     evalInList eval operandAffinity constant argument #[] negated applyLeftAffinity =
       .ok (boolValue negated) := by
   simp [evalInList, pure, Except.pure]
+
+/-- Scalar min returns the last equal argument; max keeps the first. NULL
+propagates and numeric storage classes remain unchanged. -/
+def minmaxWith (kind : Collation.Kind) (maximum : Bool) (first : Value) (rest : List Value) : Value :=
+  if isNull first || rest.any isNull then .null
+  else rest.foldl (fun best value =>
+    let order := ExprCollation.compare kind best value
+    if (if maximum then order == .lt else order != .lt) then value else best) first
 
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
@@ -530,6 +553,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
     match e with
     | .literal v => .ok v
     | .column qualifier name => lookup qualifier name
+    | .collate argument _ => eval argument
     -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
     -- is used for other operands; only the literal case preserves -0.0.
     | .unary .neg (.literal (.real r)) => .ok (realResult (-r))
@@ -552,6 +576,14 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
         if let some truth := booleanKeyword? e then .ok (boolValue truth)
         else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
         else if n == "iif" || n == "if" then conditional eval args.toList
+        else if ["min", "max", "nullif"].contains n then do
+          let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+          let values ← args.mapM eval
+          match n, values.toList with
+          | "nullif", [a, b] => return if ExprCollation.compare kind a b == .eq then .null else a
+          | "min", first :: rest => return minmaxWith kind false first rest
+          | "max", first :: rest => return minmaxWith kind true first rest
+          | _, _ => builtin n values
         else do builtin n (← args.mapM eval)
     | .case_ base cases otherwise => do
         let b ← base.mapM (fun e => do return (e, ← eval e))

@@ -30,6 +30,7 @@ structure Term where
   function : Function
   argument : Option Expr
   distinct : Bool := false
+  collation : SQLite.Collation.Kind := .binary
 
 def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
   | { expr := .call name arguments star, .. } => do
@@ -41,7 +42,10 @@ def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
         throw "wrong number of arguments to aggregate function"
       let argument := ctx.bindNames arguments[0]!
       ctx.validate argument
-      return { function, argument := some argument, distinct }
+      let collation ← if distinct || function == .minimum || function == .maximum then
+          SQLite.ExprCollation.require (SQLite.ExprCollation.kind? argument)
+        else pure SQLite.Collation.Kind.binary
+      return { function, argument := some argument, distinct, collation }
   | _ => .error "unsupported aggregate result expression"
 
 def terms (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Term) :=
@@ -65,13 +69,32 @@ def result (function : Function) (inputs : List Core.Value) : Except String Core
   | .minimum => .ok (inputs.foldl (Core.chooseExtreme true) .null)
   | .maximum => .ok (inputs.foldl (Core.chooseExtreme false) .null)
 
+/-- Preserve original representatives while applying the aggregate argument's
+collation only to TEXT. Equal INTEGER/REAL inputs still share a step. -/
+def uniqueValuesWith (kind : SQLite.Collation.Kind) (values : List Core.Value) : List Core.Value :=
+  values.foldl (fun kept value =>
+    if kept.any (fun old => SQLite.Collation.compareValue kind old value == .eq) then kept
+    else kept ++ [value]) []
+
+def resultWith (kind : SQLite.Collation.Kind) (function : Function)
+    (inputs : List Core.Value) : Except String Core.Value :=
+  if function == .minimum || function == .maximum then
+    .ok (inputs.foldl (fun best value =>
+      if value == .null then best
+      else if best == .null then value
+      else
+        let order := SQLite.Collation.compareValue kind best value
+        if (if function == .minimum then order == .gt else order == .lt) then value else best) .null)
+  else result function inputs
+
 def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
     (term : Term) : Except String Core.Value := do
   match term.argument with
   | none => .integer <$> Core.countInteger rows.length
   | some expression =>
       let inputs ← values ctx rows expression
-      result term.function (if term.distinct then uniqueValues inputs else inputs)
+      resultWith term.collation term.function
+        (if term.distinct then uniqueValuesWith term.collation inputs else inputs)
 
 /-- Aggregate recognition includes aggregates nested inside scalar result
 operators. An aggregate's own arguments are still checked as scalar inputs. -/
@@ -94,12 +117,16 @@ def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
         let bound ← term ctx { expr := expression }
         let terms ← get
         set (terms.push bound)
-        return .column (some "__aggregate_result") (toString terms.size)
+        let slot := Expr.column (some "__aggregate_result") (toString terms.size)
+        return match SQLite.ExprCollation.name expression with
+          | none => slot
+          | some name => .collate slot name
       if SQLite.Scalar.forbidden expression then
         throw "unsupported aggregate result operator"
       let prepare := prepareResultFuel ctx fuel
       match expression with
       | .literal _ => return expression
+      | .collate arg name => return .collate (← prepare arg) name
       | .unary op arg => return .unary op (← prepare arg)
       | .binary op left right => return .binary op (← prepare left) (← prepare right)
       | .call name args star => return .call name (← args.mapM prepare) star
@@ -165,7 +192,7 @@ def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
       return if selected then row :: tail else tail
 
 theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
-    Term.eval ctx rows ⟨.count, none, false⟩ =
+    Term.eval ctx rows ⟨.count, none, false, .binary⟩ =
       (.integer <$> Core.countInteger rows.length) := rfl
 
 theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)

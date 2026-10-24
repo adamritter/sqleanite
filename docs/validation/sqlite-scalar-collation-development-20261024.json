@@ -1,0 +1,171 @@
+{
+  "seed": 353731,
+  "random_cases": 150,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1365,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 150,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "unknown-collation": 36
+      },
+      "matching_errors": 12,
+      "writes": 3
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1365,
+      "groups": {
+        "comparison": 648,
+        "membership-case-function": 216,
+        "random-expression": 150,
+        "row-expression": 240,
+        "where": 60,
+        "distinct": 3,
+        "distinct-order": 3,
+        "aggregate": 3,
+        "compound": 3,
+        "group": 3,
+        "unknown-collation": 36
+      },
+      "matching_errors": 12,
+      "writes": 3
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE BINARY;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|1\nA|1\nA  |1\na|1\na|1\na |3\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|2\n\u00ffa|3\nA|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "compound",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|2\nA|2\na |3\nA  |1\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|5\nA|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE RTRIM;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|2\nA|1\na|4\na|1\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|2\n\u00ffa|3\nA|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE BINARY;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|1\nA|1\nA  |1\na|1\na|1\na |3\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|2\n\u00ffa|3\nA|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "compound",
+      "sql": "SELECT 'A' COLLATE NOCASE UNION SELECT 'a';",
+      "lean": {
+        "code": 0,
+        "stdout": "A\na\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE NOCASE;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|2\nA|2\na |3\nA  |1\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|5\nA|2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "group",
+      "sql": "SELECT v,count(*) FROM t GROUP BY v COLLATE RTRIM;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: GROUP BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1\n1|2\n1|1\nA|2\nA|1\na|4\na|1\n\u00c3\u0081|2\n\u00c3\u00a1|2\n\u00ffA|2\n\u00ffa|3\nA|2\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "d880ea0369a7a388138d6feab668990af7d5c1866f2504609eb4d291f8673147",
+  "executable_sha256": "1216ff2fbf8d47f8be51b3e7a3577d5084b87b99b1ace15d1c80da9e819a1877",
+  "harness_sha256": "e283a6bf15824e8c77bbbe974ab0df07ca75cd4abf91936770c3b622f687ca55",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare explicit expression collations with pinned SQLite through both live\nfile modes. Exact CLI bytes or ordinary error status are compared; every\nmismatch is retained. Read-only queries must preserve main/WAL bytes."
+}

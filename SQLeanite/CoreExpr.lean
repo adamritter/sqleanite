@@ -32,7 +32,7 @@ def Context.hasBooleanColumn (ctx : Context) (expression : Expr) : Bool :=
     (ctx.column? none (SQLite.Scalar.booleanName truth)).isSome
 
 def Context.affinity (ctx : Context) (expression : Expr) : Option SQLite.Affinity :=
-  match ctx.bindNames expression with
+  match SQLite.ExprCollation.strip (ctx.bindNames expression) with
   | .column qualifier name => do
       let index ← ctx.column? qualifier name
       return (← ctx.schema.columns[index]?).affinity
@@ -109,6 +109,19 @@ structure ProjectedRow where
   source : List Core.Value
   output : List Core.Value
 
+/-- DISTINCT compares each result with that result expression's collation.
+Stored schema collations remain BINARY; an explicit wrapper can override it. -/
+def distinctEqual : List Expr → List Core.Value → List Core.Value → Bool
+  | [], [], [] => true
+  | expression :: expressions, left :: lefts, right :: rights =>
+      SQLite.Collation.compareValue ((SQLite.ExprCollation.kind? expression).getD .binary)
+        left right == .eq && distinctEqual expressions lefts rights
+  | _, _, _ => false
+
+def validateDistinct (expressions : List Expr) : Except String Unit := do
+  for expression in expressions do
+    discard <| SQLite.ExprCollation.require (SQLite.ExprCollation.kind? expression)
+
 /-- Share SQL numeric equivalence with direct-column Core queries. Keep the
 first original output and its source row for the subsequent ordering step. -/
 def distinctRows (rows : List ProjectedRow) : List ProjectedRow :=
@@ -161,7 +174,7 @@ def Context.candidate (ctx : Context) (condition : Option Expr) (expressions : L
     Except String (Option ProjectedRow) := do
   unless ← ctx.matches row condition do return none
   let output ← ctx.projectRow row expressions
-  if distinct && seen.contains (Core.distinctRowKey output) then return none
+  if distinct && seen.any (distinctEqual expressions output) then return none
   return some { source := row, output }
 
 /-- A scan stops immediately after the requested number of surviving outputs.

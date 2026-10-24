@@ -1393,3 +1393,53 @@ Reports are `sqlite-quoted-function-negative-20261024.json`,
 `sqlite-quoted-function-20261024.json`, `sqlite-quoted-function-checks-20261024.json`
 and the two `sqlite-quoted-function-*-regression-20261024.json` files under
 `docs/validation/`. Other SQL and WAL gaps listed above remain outstanding.
+
+
+## Explicit scalar and aggregate collations (2026-10-24)
+
+The production scalar evaluator now carries BINARY, NOCASE and RTRIM through
+comparison, IS, IN, CASE, scalar min/max/nullif, and row-dependent predicates
+and writes. COLLATE preserves affinity; unary plus continues to remove it.
+The existing parser rewrite of a constant single-item IN list is significant:
+it uses comparison collation from both operands, while a multi-item or
+row-dependent list uses the left operand. Unused unknown collation metadata is
+accepted, but a comparison that needs an unknown collation is rejected before
+empty-input/LIMIT shortcuts. The independent token certificate is unchanged.
+
+Expression DISTINCT now compares each output with its own collation and keeps
+its original representative. Aggregate argument collations govern DISTINCT
+and extrema; aggregate output templates preserve that metadata through lowered
+result slots. A non-BINARY comparison operand prevents a BINARY index lookup
+and uses the row-expression evaluator. This does not add collated indexes or
+stored column collations, which remain separate unsupported schema features.
+
+Initial seed 353730 at source
+`a12f0750ff26b4b0c4183740a0f42c556ed8e47fdf642fc27550d6d2aedf7fc6`
+recorded 2,560 differences in 2,596 outcomes. Development seed 353731 reduced
+that to eight in 2,736 outcomes. A separate eight-case negative caught lost
+aggregate-result metadata and missing DISTINCT collation validation; both
+were fixed before final evaluation. All negatives are retained.
+
+Final source is
+`31e1f4a94d813ace2235c4140b9b15ac9d1151c79f0eccb286d5606764de0aa7`.
+Fresh seed 353732 matches **3,252 of 3,260 outcomes**, including 30 matching
+errors and six write scenarios. **Eight failures remain:** six grouped-column
+queries with explicit COLLATE are rejected, and the NOCASE UNION query returns
+the wrong rows in each file mode. The harness includes these failures and
+returns nonzero. Scalar success must not be read as compound or GROUP BY
+collation compatibility. This checkpoint is not a full SQLite compatibility
+claim. Read-only queries preserve main/WAL bytes; matching errors check status,
+not message text or exact error codes.
+
+At this same source, seed 353733 passes 864 ordering outcomes (118 matching
+errors), seed 353734 passes 916 aggregate-result outcomes (174 matching errors),
+and all 195 executable tests, the 1,023-headline theorem build, verification
+audit and live-path checks pass. The scalar regression initially stopped on
+its obsolete requirement that `coalesce(1,2 COLLATE NOCASE)` be rejected. That
+case now joins the positive oracle corpus: all 1,121 cases and six matching
+errors pass. Native code and the nine-binding boundary remain unchanged.
+
+Reports use `sqlite-scalar-collation-*20261024.json` and
+`sqlite-aggregate-collation-negative-20261024.json` under `docs/validation/`.
+The new selector and text self-comparison lemmas are component properties;
+they are not a proof of full SQLite expression equivalence.

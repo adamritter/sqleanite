@@ -98,6 +98,8 @@ Reject that shape rather than using an unsound index equality. -/
 def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
     Except String Core.Value := do
   let value ← literal expression
+  unless SQLite.ExprCollation.kind? expression == some .binary do
+    unsupported "comparison requires an explicit non-BINARY collation"
   let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
   if ctx.hasBooleanColumn expression then unsupported "row-dependent boolean keyword comparison"
   let target ← match schema.columns[index]? with
@@ -1051,6 +1053,8 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
       select.where_.all SQLite.Scalar.admitted do
     unsupported "constant SELECT expression"
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+  if select.distinct then
+    CoreExpr.validateDistinct (select.columns.toList.map (·.expr))
   let ordering ← CoreOrder.resolve ctx select.columns.toList select.orderBy.toList
   let _ ← ordering.mapM (fun term => do
     let _ ← CoreOrder.specification term
@@ -1071,6 +1075,8 @@ def constantRow (select : Select) : Except String (Option (List Core.Value)) := 
       select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
     unsupported "constant aggregate SELECT shape"
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+  if select.distinct then
+    CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
   let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
   unless prepared.terms.all (fun term => term.argument.all SQLite.Scalar.admitted) &&
       select.where_.all SQLite.Scalar.admitted do
@@ -1119,6 +1125,7 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
   unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   let expressions ← ctx.projection select.columns.toList
+  if select.distinct then CoreExpr.validateDistinct expressions
   let _ ← select.where_.mapM ctx.validate
   let terms ← resolvedOrdering stored.schema source select
   let _ ← terms.mapM (CoreOrder.validateTerm ctx)
@@ -1180,6 +1187,8 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
   unless select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
     unsupported "aggregate grouping, HAVING or ORDER BY"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  if select.distinct then
+    CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
   let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
   let _ ← select.where_.mapM ctx.validate
   if select.limit == some 0 then return ({}, prepared.expressions.length)

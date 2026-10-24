@@ -85,21 +85,7 @@ def resolve (ctx : CoreExpr.Context) (columns : List ResultColumn) (terms : List
 
 /-- Explicit COLLATE operators propagate left first through the ordering AST,
 matching sqlite3ExprCollSeq. Admitted stored columns currently use BINARY. -/
-def collationNameFuel : Nat → Expr → Option String
-  | 0, _ => none
-  | fuel + 1, expression =>
-      let find := collationNameFuel fuel
-      match expression with
-      | .collate _ name => some name
-      | .unary _ arg | .isNull arg _ | .inSubquery arg _ _ => find arg
-      | .binary _ left right => (find left).orElse fun _ => find right
-      | .call _ args _ => args.foldl (fun found arg => found.orElse fun _ => find arg) none
-      | .inList arg values _ _ => values.foldl (fun found value => found.orElse fun _ => find value) (find arg)
-      | .case_ base branches otherwise =>
-          let found := branches.foldl (fun found (condition, result) =>
-            found.orElse fun _ => (find condition).orElse fun _ => find result) (base.bind find)
-          found.orElse fun _ => otherwise.bind find
-      | _ => none
+abbrev collationNameFuel := SQLite.ExprCollation.nameFuel
 
 /-- Erase metadata only through operations whose values do not depend on a
 collation. Comparisons, IN, CASE and scalar min/max/nullif retain their nested
@@ -181,7 +167,7 @@ def scanFuel (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : L
         return ← scanFuel ctx condition expressions terms directions distinct capacity rows seen sorted
       let output ← if distinct || capacity.isNone then some <$> ctx.projectRow row expressions else pure none
       let key := output.map Core.distinctRowKey
-      if distinct && key.any seen.contains then
+      if distinct && key.any (fun output => seen.any (CoreExpr.distinctEqual expressions output)) then
         return ← scanFuel ctx condition expressions terms directions distinct capacity rows seen sorted
       let seen := if distinct then key.toList ++ seen else seen
       let keys ← ctx.projectRow row (terms.map (fun term => keyExpression term.expr))

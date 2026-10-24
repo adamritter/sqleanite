@@ -1140,3 +1140,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.WALAppend.prepare_empty
 
 #print axioms SQLeanite.SQLite.Scalar.forbidden_tooManyArguments
+
+#print axioms SQLeanite.SQLite.ExprCollation.name_collate
+#print axioms SQLeanite.SQLite.ExprCollation.compare_text_self

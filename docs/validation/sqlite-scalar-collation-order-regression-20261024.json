@@ -1,0 +1,22 @@
+{
+  "seed": 353733,
+  "random_cases": 150,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 432,
+      "matching_errors": 59
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 432,
+      "matching_errors": 59
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "31e1f4a94d813ace2235c4140b9b15ac9d1151c79f0eccb286d5606764de0aa7",
+  "executable_sha256": "01115408c71afc3be28382175b5dddcbfbcede12b6560ff1698ce5299590283b",
+  "harness_sha256": "0e6855f3469b0b40444ff8a5bf988b8122d721ce54accb1704a730ab882c76bf",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare explicit ordering collations and NULL placement.\n\nCompare exact CLI bytes and rejection status against pinned SQLite on\nindependent files in both modes. Database and WAL bytes must survive every\nread unchanged. Cases include raw TEXT/NUL, numeric classes and aliases.\nMatching rejections do not compare error wording. Every mismatch is retained."
+}

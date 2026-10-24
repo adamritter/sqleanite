@@ -1,0 +1,117 @@
+{
+  "implementation_sha256": "d880ea0369a7a388138d6feab668990af7d5c1866f2504609eb4d291f8673147",
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(v COLLATE NOCASE)='A' FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT max(v COLLATE NOCASE)='b' FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT sum(id) COLLATE missing FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT sum(1) COLLATE missing;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(v COLLATE NOCASE)='A' FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT max(v COLLATE NOCASE)='b' FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT sum(id) COLLATE missing FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT sum(1) COLLATE missing;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    }
+  ]
+}

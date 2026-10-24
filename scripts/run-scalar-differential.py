@@ -71,6 +71,7 @@ def corpus():
         "CASE WHEN NULL THEN 1 WHEN '0.5' THEN 2 ELSE 3 END",
         "CASE 1 WHEN 1.0 THEN 7 ELSE abs(-9223372036854775808) END",
         "CASE NULL WHEN NULL THEN 1 ELSE 2 END", "CASE WHEN 0 THEN 1 END")
+    add("collation-metadata", "coalesce(1,2 COLLATE NOCASE)")
     add("builtins", "typeof(1+1)", "typeof(1.0+1)", "abs(-12)", "abs('-12')",
         "abs('abc')", "abs(NULL)", "length('árvíz')", "octet_length('árvíz')",
         "length(X'00FF41')", "length(CAST(X'410042' AS TEXT))",
@@ -170,8 +171,7 @@ def main():
             assert actual.returncode != 0 and expected.returncode != 0, expression
             assert observe(cwd / "lean.db") == before, expression
         # Unsupported syntax must be rejected even in unevaluated branches.
-        for expression in ["coalesce(1,missing_column)", "coalesce(1,unknown_function())",
-                           "coalesce(1,2 COLLATE NOCASE)"]:
+        for expression in ["coalesce(1,missing_column)", "coalesce(1,unknown_function())"]:
             actual, _ = run(args, cwd, f"INSERT INTO t VALUES(99999,{expression});")
             assert actual.returncode != 0, expression
             assert observe(cwd / "lean.db") == before, expression

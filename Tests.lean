@@ -4403,6 +4403,40 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteExpressionCollations : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,txt TEXT); INSERT INTO t VALUES(1,'a',1),(2,'A',2),(3,'a ',3),(4,NULL,4);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 'A' COLLATE NOCASE='a','a' COLLATE RTRIM='a ',X'41' COLLATE NOCASE='a';",
+      [[.integer 1, .integer 1, .integer 0]]),
+    ("SELECT 'a' IN ('A' COLLATE NOCASE),'a' IN ('A' COLLATE NOCASE,'z'),'a' COLLATE NOCASE IN ('A','z','x');",
+      [[.integer 1, .integer 0, .integer 1]]),
+    ("SELECT CASE 'a' WHEN 'A' COLLATE NOCASE THEN 1 ELSE 0 END,min('a' COLLATE NOCASE,'A'),max('a' COLLATE NOCASE,'A');",
+      [[.integer 1, .text "A", .text "a"]]),
+    ("SELECT id FROM t WHERE txt COLLATE NOCASE=1;", [[.integer 1]]),
+    ("SELECT id FROM t WHERE v='a' COLLATE NOCASE ORDER BY id;", [[.integer 1], [.integer 2]]),
+    ("SELECT DISTINCT v COLLATE NOCASE FROM t;", [[.text "a"], [.text "a "], [.null]]),
+    ("SELECT DISTINCT v COLLATE RTRIM FROM t ORDER BY v COLLATE RTRIM;", [[.null], [.text "A"], [.text "a"]]),
+    ("SELECT min(v COLLATE NOCASE)='A',max(v COLLATE RTRIM)='a',count(DISTINCT v COLLATE NOCASE) FROM t;",
+      [[.integer 1, .integer 1, .integer 2]]),
+    ("SELECT nullif(min(v COLLATE NOCASE),'A'),coalesce(min(v COLLATE NOCASE),'z')='A' FROM t;", [[.null, .integer 1]]),
+    ("SELECT 1 COLLATE missing,1 IN (1 COLLATE missing,2),CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END;",
+      [[.integer 1, .integer 1, .integer 7]]),
+    ("UPDATE t SET v='changed' WHERE v COLLATE NOCASE='A'; SELECT v FROM t WHERE id=2;", [[.text "changed"]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"expression COLLATE: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"expression COLLATE mismatch: {sql}"
+  for sql in ["SELECT 1 COLLATE missing=1 LIMIT 0;", "SELECT DISTINCT 1 COLLATE missing;",
+      "SELECT min(v COLLATE missing) FROM t LIMIT 0;", "SELECT DISTINCT sum(id) COLLATE missing FROM t;",
+      "SELECT DISTINCT sum(1) COLLATE missing;", "SELECT 1 IN (1 COLLATE missing);"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"missing COLLATE was silently used: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteQuotedFunctions : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,-3),(2,1.5),(3,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4807,7 +4841,7 @@ private def expectSQLiteNumericGroups : IO Unit := do
 
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
-      "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
+      "abs(-9223372036854775808)"] do
     match CoreSQL.execute Core.State.empty
         s!"CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,{expression});" with
     | .error _ => pure ()
@@ -4921,6 +4955,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
+  ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),

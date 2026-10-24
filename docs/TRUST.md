@@ -1840,3 +1840,16 @@ checks match 1,784 of 1,786 outcomes; both retained failures are window calls.
 Scalar DISTINCT is separate from aggregate DISTINCT. Private CAST and parser
 markers are still rejected as user function calls. See the port report for
 exact corpus, hashes, error-comparison scope and unchanged native boundary.
+
+
+### Expression collation boundary (2026-10-24)
+
+Explicit BINARY/NOCASE/RTRIM now affect the live scalar, DISTINCT and aggregate
+expression paths. The shared selector has an outer-COLLATE selection lemma;
+the byte comparator has a self-comparison lemma. These do not establish a
+whole-expression or whole-SQLite equivalence theorem. Fresh final evaluation
+matches 3,252 of 3,260 outcomes and retains six rejected grouped queries plus
+two incorrect UNION outputs. These are outstanding implementation gaps, not
+excluded passing cases. Stored column collations, collated indexes and UTF-16
+remain separate boundaries. See the port report for source hashes and the
+aggregate-slot negative that motivated preserving collation after lowering.
