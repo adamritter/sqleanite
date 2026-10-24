@@ -995,3 +995,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_typed_append
 #print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_any_append
 #print axioms SQLeanite.CoreTokenGrammar.parseStatements_certified
+
+-- Pure string/blob scalar functions on the production expression path.
+#print axioms SQLeanite.SQLite.Text.slice_length_le
+#print axioms SQLeanite.SQLite.Text.findSub_empty
+#print axioms SQLeanite.SQLite.Text.substr_null
+#print axioms SQLeanite.SQLite.Text.minmax_null
+#print axioms SQLeanite.SQLite.Text.unhexChars_empty

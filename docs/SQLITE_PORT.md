@@ -1,4 +1,4 @@
-# SQLite C-to-Lean port: scalar values and stored column affinity
+# SQLite C-to-Lean port: scalar values, text/blob functions and column affinity
 
 This is an incremental port, **not a complete SQLite implementation**. The
 reference is SQLite **3.53.4**, checkout `b09c88c14082339b66c7b7158d609a771e64ca69`
@@ -21,6 +21,8 @@ SQLite. C SQLite is used only as an independent test oracle.
 | `vdbe.c`: `applyNumericAffinity`, `alsoAnInt`, `applyAffinity`; `vdbemem.c`: `sqlite3VdbeIntegerAffinity` | `SQLite/Numeric.applyAffinity`, `SQLite/PhysicalAffinity.lean` | Lossless numeric conversion, integer endpoint handling, write and comparison affinity |
 | `vdbe.c`: `OP_RealAffinity` | `PhysicalAffinity.realRead`, `CoreRecord.decodeRowFields` | Reconstruct logical REAL values from native SQLite integer serial types |
 | `expr.c`: `TK_UMINUS`, `codeReal` | `SQLite/Scalar.evalFuel` | Preserve negative zero for negated REAL literals; use subtraction for other operands |
+| `func.c`: `substr`/`substring`, `instr`, trim variants, `replace`, `concat`/`concat_ws`, `hex`/`unhex`, `quote`, `char`, `unicode`, `zeroblob`, `sign`, scalar `min`/`max` | `SQLite/Text.lean`, `SQLite/Scalar.builtin` | Character versus byte indexing, negative offsets/counts, embedded NUL rules, arity, NULL behavior, and result storage classes |
+| `utf.c`: `sqlite3Utf8Read` | `SQLite/Text.firstCodepoint` | `unicode` over raw BLOB bytes, invalid sequences and unsigned 32-bit accumulation |
 | `func.c`: `typeof`, `abs`, `length`, `octet_length`, `upper`, `lower`, `nullif` | `SQLite/Scalar.builtin` | Arity checks, overflow error, UTF-8 character/byte distinction, ASCII-only folding |
 | `expr.c`: conditional expression generation | `SQLite/Scalar.evalFuel` | Lazy CASE, coalesce, ifnull and variadic iif/if evaluation |
 | `select.c`: SELECT without FROM | `CoreSQL.constantRow` | One implicit input row, WHERE, DISTINCT, LIMIT/OFFSET and existing compound-query composition |
@@ -81,6 +83,7 @@ lake build
 lake exe sqleanite_tests
 python3 scripts/run-scalar-differential.py
 python3 scripts/run-affinity-differential.py
+python3 scripts/run-text-differential.py --seed 353411 --random-cases 500
 scripts/lean-verification-audit.sh
 scripts/live-path-check.sh
 ```
@@ -116,6 +119,47 @@ probe regressed. Of the 106 equally weighted feature groups, 26 match all
 sampled cases, 12 are partial and 68 are rejected. These samples are not
 coverage of the whole SQLite codebase. Local raw logs and reports are in
 `../benchmarks/20261024-sqlite-affinity-port/` (outside this Git repository).
+
+## Text/blob scalar extension
+
+Final-checkpoint validation: **6,537 expressions**, with seed `353411` and
+500 fresh generated groups, match SQLite 3.53.4 exactly. All 18 invalid-arity
+cases reject without mutation. All **161 executable tests**, **929 headline
+theorems**, the source audit and the live-path audit pass. The existing
+1,120-expression scalar suite and 444-value/4,708-query affinity suite have no
+regression. The [machine-readable report](validation/sqlite-text-20261024.json)
+records hashes, commands' parameters and separately listed unsupported inputs.
+The earlier 2,351-case development run also passed; it is not counted as the
+fresh final-checkpoint result.
+
+The functions in `SQLite/Text.lean` run through the same certified production
+expression path as arithmetic. They can be used in tableless SELECTs, INSERT
+values, constant UPDATE assignments and supported predicate operands. They do
+not yet make row-dependent projection or UPDATE expressions available.
+
+`substr` counts UTF-8 characters for TEXT and bytes for BLOB. It preserves
+SQLite's zero/negative-position and negative-length rules, including Int64
+endpoints and the NULL result for a zero-length BLOB. `unhex` permits ignored
+characters between complete byte pairs only. `replace` preserves the source
+when its pattern is empty even when the replacement is NULL. Scalar `min`
+selects the last equal argument and `max` the first, preserving the selected
+storage class. Collations remain BINARY. `unicode` reads raw bytes using
+SQLite's decoder, including malformed BLOB sequences, without manufacturing
+invalid Lean strings.
+
+Kernel-checked properties cover the substring length bound, NULL propagation,
+empty-needle search and the empty hex-decoding accumulator. They do not assert
+full equivalence of the new functions with C SQLite. The differential suite
+compares independently written database files, including exact REAL bits and
+TEXT/BLOB bytes, then checks reopening, UPDATE, index predicates and rejection
+without mutation. The report records implementation and harness SHA-256 hashes.
+
+Newly allocated text/blob results retain the Core limit of 999,999 bytes.
+Surrogate-producing `char` calls and operations requiring invalid UTF-8 TEXT
+remain explicit rejections. These are compatibility gaps, not passing cases;
+the differential report lists them separately. SQLite's full size limit,
+byte-preserving invalid TEXT representation and non-BINARY collations remain
+unimplemented.
 
 ## Still missing
 

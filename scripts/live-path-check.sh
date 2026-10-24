@@ -18,6 +18,7 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 status=0
 lake_command=${LAKE_BIN:-lake}
+sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
@@ -105,6 +106,17 @@ if grep -q 'SQLite.Scalar.admitted expression' SQLeanite/SQLSurface.lean &&
   ok "pure SQLite scalar layer and constant SELECT are wired into Core SQL"
 else
   fail "scalar layer detached from the live translator or its proofs"
+fi
+
+# Text/blob helpers must be called from the production scalar evaluator.
+if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'SQLite.Text.unhex v ignored' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'SQLite.Text.slice_length_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.Text.minmax_null' SQLeanite/ProofAxioms.lean; then
+  ok "pure text/blob functions are wired into scalar evaluation and proof audit"
+else
+  fail "text/blob functions detached from the live scalar path or its proofs"
 fi
 
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
@@ -1135,11 +1147,11 @@ else
 fi
 
 # 6. The binary must really produce a SQLite file the C implementation accepts.
-if [ -x .lake/build/bin/sqleanite ] && [ -x /usr/bin/sqlite3 ]; then
+if [ -x .lake/build/bin/sqleanite ] && [ -x "$sqlite_bin" ]; then
   tmp=$(mktemp -d)
   printf 'CREATE TABLE t(id INTEGER PRIMARY KEY, v);\nINSERT INTO t VALUES(1,%s);\n' "'x'" > "$tmp/s.sql"
   .lake/build/bin/sqleanite --verified-file "$tmp/db" "$tmp/s.sql" >/dev/null 2>&1 || fail "sqleanite could not write a database"
-  if [ "$(/usr/bin/sqlite3 "$tmp/db" 'PRAGMA integrity_check;' 2>&1)" = "ok" ]; then
+  if [ "$("$sqlite_bin" "$tmp/db" 'PRAGMA integrity_check;' 2>&1)" = "ok" ]; then
     ok "C sqlite3 accepts a Lean-written file"
   else
     fail "C sqlite3 rejected a Lean-written file"
@@ -1161,7 +1173,7 @@ if [ -x .lake/build/bin/sqleanite ] && [ -x /usr/bin/sqlite3 ]; then
   .lake/build/bin/sqleanite --verified-file "$tmp/delete-db" \
     "$tmp/delete.sql" >/dev/null 2>&1 ||
       fail "page-directed indexed DELETE failed"
-  delete_check=$(/usr/bin/sqlite3 -batch -noheader "$tmp/delete-db" \
+  delete_check=$("$sqlite_bin" -batch -noheader "$tmp/delete-db" \
     'PRAGMA integrity_check; SELECT count(*) FROM d; SELECT count(*) FROM d INDEXED BY d_v;' 2>&1)
   if [ "$delete_check" = "ok
 40
@@ -1174,7 +1186,7 @@ if [ -x .lake/build/bin/sqleanite ] && [ -x /usr/bin/sqlite3 ]; then
   .lake/build/bin/sqleanite --verified-file "$tmp/delete-db" \
     "$tmp/insert.sql" >/dev/null 2>&1 ||
       fail "page-directed indexed INSERT failed"
-  insert_check=$(/usr/bin/sqlite3 -batch -noheader "$tmp/delete-db" \
+  insert_check=$("$sqlite_bin" -batch -noheader "$tmp/delete-db" \
     "PRAGMA integrity_check; SELECT count(*) FROM d; SELECT count(*) FROM d INDEXED BY d_v WHERE v='v-1';" 2>&1)
   if [ "$insert_check" = "ok
 41
@@ -1208,7 +1220,7 @@ if [ -x .lake/build/bin/sqleanite ] && [ -x /usr/bin/sqlite3 ]; then
   fi
   rm -r -- "$tmp"
 else
-  printf 'skip - binary or system sqlite3 unavailable\n'
+  printf 'skip - binary or configured SQLite reference unavailable\n'
 fi
 
 exit $status

@@ -1,6 +1,7 @@
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Type
+import SQLeanite.SQLite.Text
 
 /-!
 Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
@@ -77,12 +78,7 @@ def isNull : Value → Bool | .null => true | _ => false
 
 /-- TEXT conversions cannot silently replace invalid BLOB bytes: until the
 text value representation can carry them, those conversions are rejected. -/
-def text (v : Value) : Except String String :=
-  match v with
-  | .blob bytes => match String.fromUTF8? (ByteArray.mk bytes) with
-      | some s => .ok s
-      | none => .error "unsupported verified SQL: invalid UTF-8 BLOB to TEXT"
-  | _ => .ok (toString v)
+def text := SQLite.Text.toText
 
 def comparison (op : BinaryOp) (a b : Value) : Value :=
   if op == .is then boolValue (a == b)
@@ -199,6 +195,30 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
         else if name == "upper" && 'a' ≤ c && c ≤ 'z' then Char.ofNat (c.toNat - 32)
         else c))
   | "nullif", [a, b] => return if a == b then .null else a
+  | "hex", [v] => SQLite.Text.hex v
+  | "unhex", [v] => SQLite.Text.unhex v (.text "")
+  | "unhex", [v, ignored] => SQLite.Text.unhex v ignored
+  | "substr", [v, start] | "substring", [v, start] =>
+      SQLite.Text.substr v start (.integer 1000000000)
+  | "substr", [v, start, count] | "substring", [v, start, count] =>
+      SQLite.Text.substr v start count
+  | "instr", [haystack, needle] => SQLite.Text.instr haystack needle
+  | "trim", [v] => SQLite.Text.trim true true v (.text " ")
+  | "ltrim", [v] => SQLite.Text.trim true false v (.text " ")
+  | "rtrim", [v] => SQLite.Text.trim false true v (.text " ")
+  | "trim", [v, chars] => SQLite.Text.trim true true v chars
+  | "ltrim", [v, chars] => SQLite.Text.trim true false v chars
+  | "rtrim", [v, chars] => SQLite.Text.trim false true v chars
+  | "replace", [v, pattern, replacement] => SQLite.Text.replace v pattern replacement
+  | "concat", values => SQLite.Text.concat "" values
+  | "concat_ws", separator :: values => SQLite.Text.concatWs separator values
+  | "unicode", [v] => SQLite.Text.unicode v
+  | "char", values => SQLite.Text.charValue values
+  | "quote", [v] => SQLite.Text.quote v
+  | "zeroblob", [v] => SQLite.Text.zeroblob v
+  | "sign", [v] => return SQLite.Text.sign v
+  | "min", first :: rest => return SQLite.Text.minmax false first rest
+  | "max", first :: rest => return SQLite.Text.minmax true first rest
   | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
 
 /-- Admission is a syntax traversal, independent of evaluation success. In
@@ -211,8 +231,17 @@ def forbidden : Expr → Bool
       star || !(if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
+        else if n == "char" then true
+        else if n == "concat" then args.size ≥ 1
+        else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
+        else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
+        else if ["trim", "ltrim", "rtrim", "unhex"].contains n then
+          args.size == 1 || args.size == 2
+        else if n == "instr" then args.size == 2
+        else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
-          ["typeof", "abs", "length", "octet_length", "lower", "upper"].contains n
+          ["typeof", "abs", "length", "octet_length", "lower", "upper",
+           "hex", "unicode", "quote", "zeroblob", "sign"].contains n
         then args.size == 1 else false)
   | _ => true
 

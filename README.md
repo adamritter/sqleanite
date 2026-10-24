@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.35.0 and has no Lake dependencies.
-The current suite passes all 160 executable tests and audits all
-924 registered headline theorems. The verification audit reports no `sorry`,
+The current suite passes all 161 executable tests and audits all
+929 registered headline theorems. The verification audit reports no `sorry`,
 `axiom`, `native_decide`, `unsafe`, or project-local `partial def`.
 Generate current source counts and theorem dependencies with
 `scripts/lean-manifest.sh`.
@@ -19,7 +19,9 @@ remain precise. See [Trust and scope](docs/TRUST.md) before relying on a result.
 The ongoing [SQLite C-to-Lean port](docs/SQLITE_PORT.md) now includes the scalar
 numeric layer, the original binary/decimal conversion algorithms, default
 17-digit REAL formatting, CAST, conditional expressions, SELECT without FROM,
-and stored column affinity on writes, record reads and supported comparisons.
+stored column affinity on writes, record reads and supported comparisons,
+and 18 text/blob and scalar function names including `substr`, `replace`,
+`unhex`, `unicode` and multi-argument `min`/`max`.
 It runs through the production Core path without new C or SQLite FFI.
 The port report distinguishes proved properties, differential evidence and
 the substantial SQLite functionality that remains unported.

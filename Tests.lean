@@ -3787,6 +3787,39 @@ private def expectSQLiteScalarCore : IO Unit := do
     unless (results.getLast?).map (·.rows) == some [[value]] do
       fail s!"Core scalar {expression}: wrong typed result"
 
+private def expectSQLiteTextFunctions : IO Unit := do
+  let samples : List (String × Value) := [
+    ("hex(X'00FF80')", .text "00FF80"), ("hex(NULL)", .text ""),
+    ("unhex('41 42',' ')", .blob #[65, 66]), ("unhex('4 142',' ')", .null),
+    ("substr('árvíz',-3,2)", .text "ví"), ("substr('abcdef',3,-2)", .text "ab"),
+    ("substr('abc',0,2)", .text "a"), ("substr(X'',1)", .null),
+    ("substr(X'00FF41',2,2)", .blob #[255, 65]),
+    ("instr('a🙂β','β')", .integer 3), ("instr('abc','')", .integer 1),
+    ("trim('🙂abc🙂','🙂')", .text "abc"), ("ltrim(' x ')", .text "x "),
+    ("rtrim(' x ')", .text " x"), ("replace('ababa','aba','X')", .text "Xba"),
+    ("replace('a','',NULL)", .text "a"), ("concat(NULL,'',1)", .text "1"),
+    ("concat_ws('-',NULL,'','')", .text "-"), ("concat_ws(NULL,'a')", .null),
+    ("char(65,128578)", .text "A🙂"), ("char()", .text ""),
+    ("unicode('🙂')", .integer 128578), ("unicode('')", .null),
+    ("unicode(X'FF')", .integer 65533), ("unicode(char(65535))", .integer 65533),
+    ("quote('O''Brien')", .text "'O''Brien'"), ("quote(1e999)", .text "9.0e+999"),
+    ("zeroblob(3)", .blob #[0, 0, 0]), ("sign('1x')", .null),
+    ("sign('-1.5')", .integer (-1)), ("sign(X'31')", .null),
+    ("typeof(min(1,1.0))", .text "real"), ("typeof(max(1,1.0))", .text "integer")]
+  for (expression, expected) in samples do
+    let sql := s!"CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,{expression}); SELECT v FROM t;"
+    match CoreTokenGrammar.parseStatements sql with
+    | .error message => fail s!"text function certificate {expression}: {message}"
+    | .ok _ => pure ()
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"text function {expression}: {message}"
+    let value ← match SQLSurface.value expected with
+      | .ok value => pure value
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [[value]] do
+      fail s!"text function {expression}: wrong typed result"
+
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
       "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
@@ -3884,6 +3917,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite certified schema and BETWEEN admission", expectSQLiteCertifiedAdmission),
   ("SQLite SELECT without FROM", expectSQLiteConstantSelect),
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
+  ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),
