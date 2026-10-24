@@ -2,6 +2,7 @@ import SQLeanite.CoreEngine
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
+import SQLeanite.CoreExpr
 
 namespace SQLeanite
 namespace CoreSQL
@@ -198,9 +199,9 @@ def extremeColumn? (schema : Core.Schema) :
       else if canonical name == "max" then
         return some (false, ← column schema columnName)
       else .ok none
-  | [{ expr := .call name _ _, .. }] =>
+  | [{ expr := .call name args star, .. }] =>
       if canonical name == "min" || canonical name == "max" then
-        unsupported "MIN/MAX argument"
+        if !star && args.size ≥ 2 then .ok none else unsupported "MIN/MAX argument"
       else .ok none
   | _ => .ok none
 
@@ -691,6 +692,36 @@ theorem executeConstantSelect_at_most_one_row {state : Core.State} {select : Sel
       cases success
       cases value <;> simp
 
+/-- Row-dependent projection still reads through Core.execute and its table
+planner. Every expression is bound before querying, including at LIMIT 0.
+DISTINCT keeps its representative source row before ORDER BY and LIMIT. -/
+def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) (wherePredicate : Option Core.Predicate) :
+    Except String SelectExecution := do
+  let ctx : CoreExpr.Context := ⟨stored.schema, source.alias.getD source.name⟩
+  let expressions ← ctx.projection select.columns.toList
+  let ordering ← orderBy stored.schema select.orderBy.toList
+  if select.distinct && !(ordering.all fun term => expressions.any fun expression =>
+      match expression with
+      | .column qualifier name => ctx.column? qualifier name == some term.1
+      | _ => false) then
+    unsupported "DISTINCT expression ORDER BY requires projected source columns"
+  let query : Core.Query := {
+    columns := List.range stored.schema.columns.length
+    predicate := wherePredicate
+    orderBy := if select.distinct then [] else ordering
+    limit := if select.distinct && select.limit != some 0 then none else select.limit }
+  let (next, result) ← Core.execute state (.query (canonical source.name) query)
+  let projected ← ctx.projectRows expressions result.rows
+  let projected := if select.distinct then CoreExpr.distinctRows projected else projected
+  let projected := if select.distinct && !ordering.isEmpty then
+      projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)
+    else projected
+  let projected := if select.distinct then
+      match select.limit with | none => projected | some n => projected.take n
+    else projected
+  return ⟨next, { result with rows := projected.map (·.output) }, expressions.length⟩
+
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   if select.sources.size = 2 then executeJoin state select
@@ -744,14 +775,17 @@ def executeSelectBase (state : Core.State) (select : Select) :
             (.extreme tableName minimum column wherePredicate)
           return ⟨next, result, 1⟩
       | none, none, none =>
-        let query : Core.Query := {
-          columns := ← projection stored.schema select.columns.toList
-          predicate := wherePredicate
-          orderBy := ← orderBy stored.schema select.orderBy.toList
-          limit := select.limit
-          distinct := select.distinct }
-        let (next, result) ← Core.execute state (.query tableName query)
-        return ⟨next, result, query.columns.length⟩
+        match projection stored.schema select.columns.toList with
+        | .error _ => executeExpressionSelect state select source stored wherePredicate
+        | .ok columns =>
+          let query : Core.Query := {
+            columns
+            predicate := wherePredicate
+            orderBy := ← orderBy stored.schema select.orderBy.toList
+            limit := select.limit
+            distinct := select.distinct }
+          let (next, result) ← Core.execute state (.query tableName query)
+          return ⟨next, result, query.columns.length⟩
       | _, _, _ => unsupported "ambiguous aggregate projection"
 
 /-- Recognize the non-aggregate single-table SELECT shape used by the

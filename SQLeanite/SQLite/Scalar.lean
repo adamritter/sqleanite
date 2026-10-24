@@ -157,9 +157,12 @@ def applyComparisonAffinity (aff : Affinity) (v : Value) : Value :=
     | _ => v
   else v
 
-def expressionComparison (op : BinaryOp) (left right : Expr) (a b : Value) : Value :=
-  let aff := comparisonAffinity (expressionAffinity left) (expressionAffinity right)
+def expressionComparisonWith (operandAffinity : Expr → Option Affinity)
+    (op : BinaryOp) (left right : Expr) (a b : Value) : Value :=
+  let aff := comparisonAffinity (operandAffinity left) (operandAffinity right)
   comparison op (applyComparisonAffinity aff a) (applyComparisonAffinity aff b)
+
+def expressionComparison := expressionComparisonWith expressionAffinity
 
 def typeOf : Value → String
   | .null => "null" | .integer _ => "integer" | .real _ => "real"
@@ -276,7 +279,8 @@ def conditional (eval : Expr → Except String Value) : List Expr → Except Str
   | condition :: result :: rest => do
       if Numeric.truth (← eval condition) == .true then eval result else conditional eval rest
 
-def branches (eval : Expr → Except String Value) (base : Option (Expr × Value))
+def branches (eval : Expr → Except String Value)
+    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
     (otherwise : Option Expr) : List (Expr × Expr) → Except String Value
   | [] => match otherwise with | none => .ok .null | some e => eval e
   | (condition, result) :: rest => do
@@ -284,17 +288,19 @@ def branches (eval : Expr → Except String Value) (base : Option (Expr × Value
       let selected : Bool := match base with
         | none => Numeric.truth v == .true
         | some (expression, b) =>
-            expressionComparison .eq expression condition b v == .integer 1
-      if selected then eval result else branches eval base otherwise rest
+            equal expression condition b v == .integer 1
+      if selected then eval result else branches eval equal base otherwise rest
 
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
-def evalFuel : Nat → Expr → Except String Value
+def evalFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value
   | 0, _ => .error "scalar expression depth exhausted"
   | fuel + 1, e =>
-    let eval := evalFuel fuel
+    let eval := evalFuelWith lookup operandAffinity fuel
     match e with
     | .literal v => .ok v
+    | .column qualifier name => lookup qualifier name
     -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
     -- is used for other operands; only the literal case preserves -0.0.
     | .unary .neg (.literal (.real r)) => .ok (realResult (-r))
@@ -305,7 +311,7 @@ def evalFuel : Nat → Expr → Except String Value
         let left ← eval a
         let right ← eval b
         if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
-          return expressionComparison op a b left right
+          return expressionComparisonWith operandAffinity op a b left right
         binary op left right
     | .isNull arg negated => do return boolValue (isNull (← eval arg) != negated)
     | .call name args false =>
@@ -315,10 +321,27 @@ def evalFuel : Nat → Expr → Except String Value
         else do builtin n (← args.mapM eval)
     | .case_ base cases otherwise => do
         let b ← base.mapM (fun e => do return (e, ← eval e))
-        branches eval b otherwise cases.toList
+        branches eval (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
     | _ => .error "unsupported constant expression"
 
+def evalFuel : Nat → Expr → Except String Value :=
+  evalFuelWith (fun _ _ => .error "unsupported constant expression") expressionAffinity
+
 def eval (e : Expr) : Except String Value := evalFuel e.height e
+
+/-- The same evaluator with explicit column and affinity inputs. Admission and
+name resolution are checked independently before any row is evaluated. -/
+def evalWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
+  evalFuelWith lookup operandAffinity e.height e
+
+theorem evalWith_column (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := rfl
+
+theorem evalWith_literal (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (value : Value) :
+    evalWith lookup operandAffinity (.literal value) = .ok value := rfl
 
 theorem checkedInteger_exact {i : Int} (fallback : Unit → Float)
     (lower : Numeric.minInt ≤ i) (upper : i ≤ Numeric.maxInt) :

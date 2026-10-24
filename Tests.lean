@@ -3820,6 +3820,26 @@ private def expectSQLiteTextFunctions : IO Unit := do
     unless (results.getLast?).map (·.rows) == some [[value]] do
       fail s!"text function {expression}: wrong typed result"
 
+private def expectSQLiteRowExpressions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n NUMERIC); INSERT INTO t VALUES(1,'abc','2'),(2,NULL,NULL);"
+  let sql := setup ++ "SELECT t.id+1,upper(t.v),n='2',+n='2',CASE n WHEN '2' THEN 'yes' ELSE 'no' END FROM t ORDER BY id;"
+  let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"row expression: {message}"
+  let expected : List (List Value) := [
+    [.integer 2, .text "ABC", .integer 1, .integer 0, .text "yes"],
+    [.integer 3, .null, .null, .null, .text "no"]]
+  let expected ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some expected do
+    fail "row expression value or column affinity changed"
+  for query in ["SELECT missing+1 FROM t LIMIT 0;", "SELECT coalesce(1,missing) FROM t;",
+      "SELECT wrong.id+1 FROM t;", "SELECT t.id+1 FROM t AS alias;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ query) with
+    | .ok _ => fail s!"unbound row expression accepted: {query}"
+    | .error _ => pure ()
+
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
       "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
@@ -3918,6 +3938,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite SELECT without FROM", expectSQLiteConstantSelect),
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
+  ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

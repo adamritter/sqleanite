@@ -1,0 +1,35 @@
+{
+  "seed": 353420,
+  "random_cases": 100,
+  "queries": 144,
+  "result_rows": 10581,
+  "matching_errors": 8,
+  "failures": [
+    {
+      "index": 139,
+      "sql": "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;",
+      "lean": [
+        "",
+        "2",
+        "0.0",
+        "1"
+      ],
+      "sqlite": [
+        "1",
+        "0.0",
+        "",
+        "2"
+      ]
+    }
+  ],
+  "existing_direct_column_differences": [
+    {
+      "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+      "lean": "1\n",
+      "sqlite": "1\n2\n"
+    }
+  ],
+  "implementation_sha256": "211a2ba444934f6c0959c6383c38d8dc0cc4a157cacd5ae26da6e57b38f8aefb",
+  "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

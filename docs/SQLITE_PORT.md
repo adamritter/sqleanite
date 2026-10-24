@@ -25,6 +25,7 @@ SQLite. C SQLite is used only as an independent test oracle.
 | `utf.c`: `sqlite3Utf8Read` | `SQLite/Text.firstCodepoint` | `unicode` over raw BLOB bytes, invalid sequences and unsigned 32-bit accumulation |
 | `func.c`: `typeof`, `abs`, `length`, `octet_length`, `upper`, `lower`, `nullif` | `SQLite/Scalar.builtin` | Arity checks, overflow error, UTF-8 character/byte distinction, ASCII-only folding |
 | `expr.c`: conditional expression generation | `SQLite/Scalar.evalFuel` | Lazy CASE, coalesce, ifnull and variadic iif/if evaluation |
+| `select.c`: row-dependent projection | `CoreExpr.lean`, `Scalar.evalWith`, `CoreSQL.executeExpressionSelect` | Explicit row bindings and column affinity, scalar expressions, in-place star expansion, projected DISTINCT and existing source-column ordering |
 | `select.c`: SELECT without FROM | `CoreSQL.constantRow` | One implicit input row, WHERE, DISTINCT, LIMIT/OFFSET and existing compound-query composition |
 
 Wide multiplication uses Lean natural numbers instead of C intrinsics. This
@@ -84,6 +85,7 @@ lake exe sqleanite_tests
 python3 scripts/run-scalar-differential.py
 python3 scripts/run-affinity-differential.py
 python3 scripts/run-text-differential.py --seed 353411 --random-cases 500
+python3 scripts/run-row-expression-differential.py --seed 353421 --random-cases 500
 scripts/lean-verification-audit.sh
 scripts/live-path-check.sh
 ```
@@ -96,7 +98,7 @@ on failed INSERTs, and rejected expressions in dead branches. Its seeded
 integer and REAL cases are reproducible. Python's SQLite binding only reads
 the resulting files; it is not part of the Lean engine.
 
-Validated on Lean 4.35.0: all 160 executable tests, all 924 registered headline
+Before the text and row-expression extensions, validated on Lean 4.35.0: all 160 executable tests, all 924 registered headline
 theorems, the verification audit and the live-path audit pass. The new suite
 matches **1,120 expressions** exactly and checks six expected evaluation/arity
 errors. The 13 existing Core differential cases and 20 reverse-compatibility
@@ -134,8 +136,8 @@ fresh final-checkpoint result.
 
 The functions in `SQLite/Text.lean` run through the same certified production
 expression path as arithmetic. They can be used in tableless SELECTs, INSERT
-values, constant UPDATE assignments and supported predicate operands. They do
-not yet make row-dependent projection or UPDATE expressions available.
+values, constant UPDATE assignments and supported predicate operands. Row-dependent projection support was added by the following extension; general
+row-dependent WHERE and UPDATE expressions remain unimplemented.
 
 `substr` counts UTF-8 characters for TEXT and bytes for BLOB. It preserves
 SQLite's zero/negative-position and negative-length rules, including Int64
@@ -161,9 +163,52 @@ the differential report lists them separately. SQLite's full size limit,
 byte-preserving invalid TEXT representation and non-BINARY collations remain
 unimplemented.
 
+## Row-dependent SELECT projection
+
+The [fresh final-checkpoint report](validation/sqlite-row-expression-20261024.json)
+records **544 queries and 42,581 result rows**, with seed `353421`, no differences
+in the admitted expression cases and eight matching errors. All **162 tests**,
+**933 headline theorems** and both audits pass. The existing scalar, affinity
+and text suites pass again (1,120 expressions; 444 stored values/4,708 queries;
+3,037 fresh text expressions respectively). These counts do not include the
+known old-path difference or the explicitly rejected DISTINCT ordering case.
+The [development negative result](validation/sqlite-row-expression-development-negative-20261024.json)
+is retained separately.
+
+`SELECT upper(name), price*2 FROM items` now uses the same scalar evaluator
+with explicit column lookup and affinity inputs. Qualified names are checked
+against the table or its alias. Name binding and supported-syntax admission
+cover the whole expression tree before any row is evaluated, including for
+empty tables, LIMIT 0 and dead conditional branches. CASE comparisons preserve
+column affinity; unary plus erases affinity as SQLite requires.
+
+The adapter expands stars in place, reads through `Core.execute` and the
+existing planner, and converts results through `SQLSurface.value`. Existing
+column predicates and source-column ORDER BY work with expression projections.
+DISTINCT expression results use SQLite value comparison (including numeric
+INTEGER/REAL equality and NULL equality), retain a representative row, and
+apply LIMIT after duplicate elimination. DISTINCT ordering is admitted only
+when each ordering column is also a directly projected column. Other such
+orderings remain explicit rejections: the first development run exposed a
+difference when SQLite chose a reverse primary-key scan, and that negative
+result is retained in the validation artifacts.
+
+The row adapter has kernel-checked lookup and result-width properties. The
+existing Core read, file and durability theorems still build without changing
+their statements. No full SQL-semantic refinement theorem for the new scalar
+projection adapter is claimed. The differential report labels its measurements
+as query-output comparisons, distinct from the exact storage-bit comparisons
+in the scalar INSERT suites.
+
+The original direct-column DISTINCT path has a separately reproduced bug:
+with values `(1,1,2)`, `SELECT DISTINCT v FROM d ORDER BY id LIMIT 2` returns
+only `1`, whereas SQLite returns `1,2`. It still limits before deduplication.
+This existing negative result is reported separately and is not a passing
+expression test. It prevents any claim of complete SQLite compatibility.
+
 ## Still missing
 
-This step does not implement row-dependent projection/UPDATE expressions,
+This step does not implement general row-dependent WHERE/UPDATE expressions,
 the complete VDBE, the full planner, all DDL/constraints, views/triggers,
 subqueries/CTEs/windows, the rest of the scalar/aggregate functions, JSON,
 virtual tables/extensions, all collations/encodings, or the full SQLite WAL

@@ -119,6 +119,15 @@ else
   fail "text/blob functions detached from the live scalar path or its proofs"
 fi
 
+if grep -q 'CoreExpr.Context' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeExpressionSelect state select source stored wherePredicate' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity' SQLeanite/CoreExpr.lean &&
+   grep -q 'CoreExpr.projectRow_width' SQLeanite/ProofAxioms.lean; then
+  ok "row projections use explicit bindings, shared scalar evaluation and audited result widths"
+else
+  fail "row expressions detached from the production evaluator or width proof"
+fi
+
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
 #    Checked structurally: the executor must call the planner, and Main must
 #    route --verified-file into the Core engine.

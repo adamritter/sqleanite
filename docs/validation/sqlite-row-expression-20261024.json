@@ -1,0 +1,75 @@
+{
+  "seed": 353421,
+  "random_cases": 500,
+  "queries": 544,
+  "result_rows": 42581,
+  "matching_errors": 8,
+  "declared_rejections": [
+    "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"
+  ],
+  "failures": [],
+  "existing_direct_column_differences": [
+    {
+      "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+      "lean": "1\n",
+      "sqlite": "1\n2\n"
+    }
+  ],
+  "implementation_sha256": "e652db0a8e2c7493175a6751e2f14d863ac76cc5b1c03f292a2785d4c6f9e73a",
+  "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "regressions": {
+    "executable_tests": 162,
+    "headline_theorems": 933,
+    "scalar": {
+      "cases": 1120,
+      "failures": [],
+      "errors": 6,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw text/blob bytes; integrity_check"
+    },
+    "text": {
+      "implementation_sha256": "e652db0a8e2c7493175a6751e2f14d863ac76cc5b1c03f292a2785d4c6f9e73a",
+      "harness_sha256": "f7c3e5b3d9c352b7212042747c94c4f1dc7d2fb0f27026eda284054530eb6bcc",
+      "seed": 353412,
+      "random_cases": 150,
+      "cases": 3037,
+      "failures": [],
+      "matching_errors": 18,
+      "declared_rejections": [
+        "char(55296)",
+        "trim(X'FF')",
+        "length(zeroblob(1000000))",
+        "coalesce(1,unknown_function())"
+      ],
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw TEXT/BLOB bytes; integrity_check"
+    },
+    "affinity": {
+      "typed_insert_values": 444,
+      "select_queries": 4708,
+      "declared_types": [
+        "",
+        "TEXT",
+        "INTEGER",
+        "REAL",
+        "NUMERIC",
+        "BLOB",
+        "VARCHAR(12)",
+        "DOUBLE PRECISION",
+        "FLOATING POINT",
+        "STRING",
+        "\"custom INT type\"",
+        "\"a\"\"b TEXT type\""
+      ],
+      "expected_write_errors": 4,
+      "unsupported_mixed_affinity_queries": 2,
+      "reverse_write_checks": 1,
+      "mismatches": 0,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "build": "passed",
+    "verification_audit": "passed",
+    "live_path_audit": "passed"
+  }
+}

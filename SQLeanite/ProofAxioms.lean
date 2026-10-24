@@ -1002,3 +1002,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Text.substr_null
 #print axioms SQLeanite.SQLite.Text.minmax_null
 #print axioms SQLeanite.SQLite.Text.unhexChars_empty
+
+-- The explicit row-expression boundary uses the shared scalar evaluator.
+#print axioms SQLeanite.SQLite.Scalar.evalWith_column
+#print axioms SQLeanite.SQLite.Scalar.evalWith_literal
+#print axioms SQLeanite.CoreExpr.projectRow_width
+#print axioms SQLeanite.CoreExpr.eval_column
