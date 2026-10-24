@@ -44,7 +44,7 @@ def extremeTerms (ctx : CoreExpr.Context) (terms : Array CoreAggregate.Term) : A
   terms.foldl (fun kept term =>
     if term.function != .minimum && term.function != .maximum then kept
     else if kept.any (fun old => old.function == term.function && old.distinct == term.distinct &&
-        sameArgument ctx old.argument term.argument) then kept
+        sameArgument ctx old.argument term.argument && sameArgument ctx old.filter term.filter) then kept
     else kept.push term) #[]
 
 structure ExtremeState where
@@ -55,6 +55,7 @@ structure ExtremeState where
 A performed MIN/MAX step overwrites the shared flag; all-NULL steps load rows. -/
 def extremeStep (ctx : CoreExpr.Context) (term : CoreAggregate.Term) (state : ExtremeState)
     (row : List Core.Value) : Except String (ExtremeState × Option Bool) := do
+  unless ← term.matchesFilter ctx row do return (state, none)
   let some expression := term.argument | throw "MIN/MAX has no argument"
   let value ← SQLSurface.value (← ctx.eval row expression)
   if term.distinct && state.seen.any (fun old => SQLite.Collation.compareValue term.collation old value == .eq) then
@@ -75,21 +76,27 @@ theorem retain_member (previous current : List Core.Value) (skip : Bool) :
 /-- With no extrema, SQLite retains the first source row. With extrema, the
 last performed unique MIN/MAX step controls whether this row replaces it. -/
 def representative (ctx : CoreExpr.Context) (terms : Array CoreAggregate.Term)
-    (rows : List (List Core.Value)) : Except String (List Core.Value) := do
+    (rows : List (List Core.Value)) (grouped : Bool := false) : Except String (List Core.Value) := do
   let empty := List.replicate ctx.schema.columns.length (.null : Core.Value)
   let extremes := extremeTerms ctx terms
   if extremes.isEmpty then return rows.headD empty
   let mut states : Array ExtremeState := extremes.map (fun _ => {})
+  let resetFiltered := grouped || extremes.all (fun term => term.filter.isSome)
+  let mut visited := false
   let mut skip := false
   let mut chosen := empty
   for row in rows do
     let mut next := #[]
     for (term, state) in extremes.zip states do
+      -- Grouped scans always have regAcc. Ungrouped scans only allocate it
+      -- when no unfiltered MIN/MAX can initialize the retained source row.
+      if resetFiltered && term.filter.isSome then skip := visited
       let (state, flag) ← extremeStep ctx term state row
       next := next.push state
       if let some flag := flag then skip := flag
     states := next
     chosen := retain chosen row skip
+    visited := true
   return chosen
 
 def lookup (values : Array Core.Value) (row : List Core.Value)
@@ -113,7 +120,7 @@ def Prepared.matches (prepared : Prepared) (ctx : CoreExpr.Context)
     (values : Array Core.Value) (row : List Core.Value) : Except String Bool :=
   match prepared.having with
   | none => .ok true
-  | some expression => SQLite.Scalar.testFuelWith (lookup values row) (affinity ctx)
+  | some expression => SQLite.Scalar.testBranchFuelWith (lookup values row) (affinity ctx)
       expression.height true expression
 
 def Prepared.finish (prepared : Prepared) (ctx : CoreExpr.Context)

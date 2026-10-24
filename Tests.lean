@@ -4467,6 +4467,53 @@ private def expectSQLiteWhereAliases : IO Unit := do
       "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
 
+private def expectSQLiteAggregateFilter : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,0,3),(2,0,1),(3,1,9),(4,1,1),(5,1,NULL);" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,g,v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT count(*) FILTER(WHERE id>2),count(v) FILTER(WHERE id>2),sum(v) FILTER(WHERE id>2) FROM t;",
+      [[.integer 3, .integer 2, .integer 10]]),
+    ("SELECT group_concat(v) FILTER(WHERE id>2),group_concat(DISTINCT v) FILTER(WHERE v<4) FROM t;",
+      [[.text "9,1", .text "3,1"]]),
+    ("SELECT sum(abs(-9223372036854775808)) FILTER(WHERE 0),total(v) FILTER(WHERE 0) FROM t;",
+      [[.null, .real 0.0]]),
+    ("SELECT group_concat(v,abs(-9223372036854775808)) FILTER(WHERE NULL) FROM t;", [[.null]]),
+    ("SELECT id,min(v) FILTER(WHERE 0) FROM t;", [[.integer 1, .null]]),
+    ("SELECT id,min(v) FILTER(WHERE id>2) FROM t;", [[.integer 4, .integer 1]]),
+    ("SELECT id,min(v),max(v) FILTER(WHERE 0) FROM t;", [[.integer 2, .integer 1, .null]]),
+    ("SELECT g,id,min(v),max(v) FILTER(WHERE 0) FROM t GROUP BY g ORDER BY g;",
+      [[.integer 0, .integer 1, .integer 1, .null], [.integer 1, .integer 3, .integer 1, .null]]),
+    ("SELECT id,min(v) FILTER(WHERE id<3),min(v) FILTER(WHERE id=3) FROM t;",
+      [[.integer 3, .integer 1, .integer 9]]),
+    ("SELECT count(*) FILTER(WHERE 0),sum(1) FILTER(WHERE 1);", [[.integer 0, .integer 1]]),
+    ("SELECT count(*) FILTER(WHERE 1),min(v) FILTER(WHERE 1) FROM e;", [[.integer 0, .null]]),
+    ("SELECT sum(v) FILTER(WHERE id>2) AS x FROM t HAVING x=10;", [[.integer 10]]),
+    ("SELECT count(*) FROM t ORDER BY sum(abs(-9223372036854775808)) FILTER(WHERE 0);", [[.integer 5]]),
+    ("SELECT count(*) FILTER(WHERE 0 AND missing) FROM t;", [[.integer 0]]),
+    ("SELECT count(*) FILTER(WHERE 0 AND 0x10000000000000000) FROM t;", [[.integer 0]]),
+    ("SELECT count(*) FILTER(WHERE 'a' COLLATE missing)=0 FROM t;", [[.integer 1]]),
+    ("SELECT abs(-9223372036854775808)+count(*) FILTER(WHERE 0) FROM t LIMIT 1 OFFSET 1;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"aggregate FILTER: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"aggregate FILTER mismatch: {sql}"
+  for sql in ["SELECT count(*) FILTER(WHERE likely(NULL AND abs(-9223372036854775808))) FROM t;",
+      "SELECT count(*) FILTER(WHERE (NULL AND abs(-9223372036854775808)) COLLATE binary) FROM t;",
+      "SELECT count(*) FROM t HAVING likely(NULL AND abs(-9223372036854775808));",
+      "SELECT count(*) FROM t HAVING (NULL AND abs(-9223372036854775808)) COLLATE binary;",
+      "SELECT count(*) FILTER(WHERE missing) FROM e LIMIT 0;",
+      "SELECT count(*) FILTER(WHERE 0 AND no_function(1)) FROM e LIMIT 0;",
+      "SELECT count(*) FILTER(WHERE sum(v)>0) FROM e;", "SELECT abs(v) FILTER(WHERE 1) FROM e;",
+      "SELECT sum(v) FILTER(WHERE 1) FILTER(WHERE 1) FROM e;",
+      "SELECT __sqlean_aggregate_filter(count(*),1) FROM t;",
+      "SELECT '__sqlean_aggregate_filter'(count(*),1) FROM t;",
+      "SELECT sum(abs(-9223372036854775808)) FILTER(WHERE 1) FROM t LIMIT 1 OFFSET 1;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"aggregate FILTER error omitted: {sql}"
+
 private def expectSQLiteProbability : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);INSERT INTO t VALUES(1,'1'),(2,'2'),(3,NULL);" ++
     "CREATE TABLE e(id INTEGER PRIMARY KEY,v TEXT);"
@@ -5437,6 +5484,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
+  ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),
   ("SQLite string aggregates", expectSQLiteStringAggregates),

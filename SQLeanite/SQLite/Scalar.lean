@@ -646,37 +646,49 @@ def evalWith (lookup : Option String → String → Except String Value)
 /-- WHERE branches use SQL three-valued truth but need only one truth outcome.
 Testing false is distinct from testing not-true: NULL matches neither. This
 preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
-def testFuelWithConstants (lookup : Option String → String → Except String Value)
-    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+def branchFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (transparentWrappers : Bool) :
     Nat → Bool → Expr → Except String Bool
   | 0, _, _ => .error "row predicate depth exhausted"
   | fuel + 1, wanted, expression => do
       if let some truth := staticTruth expression then
         return truth == wanted
+      if transparentWrappers then
+        if let .collate argument _ := expression then
+          return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
+        if let .call name arguments false := expression then
+          if let some argument := Probability.input? name arguments then
+            return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
       match expression with
-      | .collate argument _ => testFuelWithConstants lookup operandAffinity constant fuel wanted argument
-      | .call name arguments false =>
-          match Probability.input? name arguments with
-          | some argument => testFuelWithConstants lookup operandAffinity constant fuel wanted argument
-          | none => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
-              (if wanted then .true else .false)
-      | .unary .not arg => testFuelWithConstants lookup operandAffinity constant fuel (!wanted) arg
+      | .unary .not arg => branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel (!wanted) arg
       | .binary .and left right =>
           if wanted then
-            if ← testFuelWithConstants lookup operandAffinity constant fuel true left then testFuelWithConstants lookup operandAffinity constant fuel true right
+            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
             else return false
           else
-            if ← testFuelWithConstants lookup operandAffinity constant fuel false left then return true
-            else testFuelWithConstants lookup operandAffinity constant fuel false right
+            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then return true
+            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
       | .binary .or left right =>
           if wanted then
-            if ← testFuelWithConstants lookup operandAffinity constant fuel true left then return true
-            else testFuelWithConstants lookup operandAffinity constant fuel true right
+            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then return true
+            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
           else
-            if ← testFuelWithConstants lookup operandAffinity constant fuel false left then testFuelWithConstants lookup operandAffinity constant fuel false right
+            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
             else return false
       | _ => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
           (if wanted then .true else .false)
+
+/-- WHERE planning exposes the underlying hinted/collated condition. -/
+def testFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Bool → Expr → Except String Bool :=
+  branchFuelWithConstants lookup operandAffinity constant true
+
+/-- HAVING and FILTER branch directly on their AST. A hint or COLLATE wrapper
+therefore evaluates its operand as a scalar before testing truth. -/
+def testBranchFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  branchFuelWithConstants lookup operandAffinity constantExpression false
 
 def testFuelWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=

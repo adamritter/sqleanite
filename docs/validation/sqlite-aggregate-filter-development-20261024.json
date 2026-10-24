@@ -1,0 +1,51 @@
+{
+  "seed": 353881,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1106,
+      "matching_errors": 355
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1106,
+      "matching_errors": 355
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) FILTER(WHERE likely(NULL AND abs(-9223372036854775808))) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) FILTER(WHERE likely(NULL AND abs(-9223372036854775808))) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    }
+  ],
+  "implementation_sha256": "441ccd2f60f778c3deb1fb37ce6d8f7c975a7fb4de8b039a6b47b2b0a266b956",
+  "executable_sha256": "11dbf993f94c9a5450350efc07d30de7273611871e01d04a6459ff07d320d547",
+  "harness_sha256": "3e78eb61e8ce59c1928e1239f354ba5a1016c896f3d8956dc45f7c8f8aa2d74a",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare ordinary aggregate FILTER clauses in the production Core paths.\n\nReads compare exact CLI bytes or matching positive errors, preserving main/WAL\nbytes. Hex projections observe full string bytes. Error wording/codes are not\ncompared. Grouped and ungrouped retained MIN/MAX rows are tested separately."
+}

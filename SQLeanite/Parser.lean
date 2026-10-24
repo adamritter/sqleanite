@@ -280,6 +280,13 @@ mutual
       unless args.size ≤ SQLite.Limits.maxFunctionArgs do
         throw s!"too many arguments on function {name}"
       pure (.call (if distinct then distinctAggregateName name else name) args false)
+    let call ← if ← acceptKeyword "filter" then do
+        expectSymbol "("
+        expectKeyword "where"
+        let condition ← parseExprFuel fuel
+        expectSymbol ")"
+        pure (Expr.call "__sqlean_aggregate_filter" #[call, condition] false)
+      else pure call
     let isWindow ← acceptKeyword "over"
     if isWindow then
       if ← acceptSymbol "(" then

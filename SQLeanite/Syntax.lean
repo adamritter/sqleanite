@@ -260,6 +260,8 @@ private def exprSqlFuel : Nat → Expr → String
   | fuel + 1, .binary op a b => exprSqlFuel fuel a ++ op.sql ++ exprSqlFuel fuel b
   | _fuel + 1, .call "__sqlean_boolean_true" #[] false => "TRUE"
   | _fuel + 1, .call "__sqlean_boolean_false" #[] false => "FALSE"
+  | fuel + 1, .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
+      exprSqlFuel fuel aggregate ++ " FILTER (WHERE " ++ exprSqlFuel fuel condition ++ ")"
   | fuel + 1, .call name args isStar => aggregateFunctionName name ++ "(" ++
       (if isDistinctAggregateName name then "DISTINCT " else "") ++
       (if isStar then "*" else String.intercalate "," (args.toList.map (exprSqlFuel fuel))) ++ ")"

@@ -153,6 +153,17 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# FILTER is rechecked against source tokens and runs before aggregate arguments.
+if grep -q 'expectKeyword "filter"' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'let rows ← term.filteredRows ctx rows' SQLeanite/CoreAggregate.lean &&
+   grep -q 'term.matchesFilter ctx row' SQLeanite/CoreAggregateHaving.lean &&
+   grep -q 'bucket.rows true' SQLeanite/CoreGrouped.lean &&
+   grep -q 'CoreAggregate.Term.filteredRows_none' SQLeanite/ProofAxioms.lean; then
+  ok "aggregate FILTER is token-checked and precedes argument evaluation"
+else
+  fail "aggregate FILTER execution or its registered contracts are missing"
+fi
+
 # Probability hints preserve values and branch evaluation after literal validation.
 if grep -q 'Probability.recognizesName n then (Probability.input? n args).isSome' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'Probability.input? name args then eval argument' SQLeanite/SQLite/Scalar.lean &&

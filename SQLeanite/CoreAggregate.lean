@@ -22,10 +22,14 @@ def function? (name : String) : Option Function :=
   | "group_concat" | "string_agg" => some .groupConcat
   | _ => none
 
+def recognizesCall (name : String) (arguments : Array Expr) (star : Bool) : Bool :=
+  (function? name).isSome &&
+    (!(["min", "max"].contains (aggregateFunctionName name)) || star || arguments.size ≤ 1)
+
 def recognizes : Expr → Bool
-  | .call name arguments star =>
-      (function? name).isSome &&
-        (!(["min", "max"].contains (aggregateFunctionName name)) || star || arguments.size ≤ 1)
+  | .call "__sqlean_aggregate_filter" #[.call name arguments star, _] false =>
+      recognizesCall name arguments star
+  | .call name arguments star => recognizesCall name arguments star
   | _ => false
 
 structure Term where
@@ -34,8 +38,9 @@ structure Term where
   distinct : Bool := false
   collation : SQLite.Collation.Kind := .binary
   separator : Option Expr := none
+  filter : Option Expr := none
 
-def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
+def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
   | { expr := .call name arguments star, .. } => do
       let some function := function? name | throw "unsupported aggregate result expression"
       let distinct := isDistinctAggregateName name
@@ -60,6 +65,17 @@ def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
         else pure SQLite.Collation.Kind.binary
       return { function, argument := some argument, distinct, collation, separator }
   | _ => .error "unsupported aggregate result expression"
+
+/-- The private wrapper is admitted only from matching FILTER syntax by the
+independent token grammar, never from a user-named function invocation. -/
+def term (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
+  match column.expr with
+  | .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
+      let term ← plainTerm ctx { expr := aggregate }
+      let filter := ctx.bindNames condition
+      ctx.validate filter
+      return { term with filter := some filter }
+  | _ => plainTerm ctx column
 
 def terms (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Term) :=
   columns.mapM (term ctx)
@@ -103,8 +119,28 @@ def resultWith (kind : SQLite.Collation.Kind) (function : Function)
         if (if function == .minimum then order == .gt else order == .lt) then value else best) .null)
   else result function inputs
 
+def Term.matchesFilter (term : Term) (ctx : CoreExpr.Context)
+    (row : List Core.Value) : Except String Bool :=
+  match term.filter with
+  | none => .ok true
+  | some expression =>
+      let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
+      SQLite.Scalar.testBranchFuelWith (ctx.lookup row) ctx.affinity expression.height true expression
+
+def Term.filteredRows (term : Term) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) : Except String (List (List Core.Value)) :=
+  match term.filter with
+  | none => .ok rows
+  | some _ => rows.filterM (term.matchesFilter ctx)
+
+theorem Term.filteredRows_none (term : Term) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) (unfiltered : term.filter = none) :
+    term.filteredRows ctx rows = .ok rows := by
+  simp [Term.filteredRows, unfiltered]
+
 def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
     (term : Term) : Except String Core.Value := do
+  let rows ← term.filteredRows ctx rows
   match term.argument with
   | none => .integer <$> Core.countInteger rows.length
   | some expression =>
@@ -231,7 +267,7 @@ def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
       return if selected then row :: tail else tail
 
 theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
-    Term.eval ctx rows ⟨.count, none, false, .binary, none⟩ =
+    Term.eval ctx rows ⟨.count, none, false, .binary, none, none⟩ =
       (.integer <$> Core.countInteger rows.length) := rfl
 
 theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)

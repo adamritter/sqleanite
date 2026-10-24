@@ -1202,3 +1202,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Probability.input_likely
 #print axioms SQLeanite.SQLite.Probability.probability_integer
+
+#print axioms SQLeanite.CoreAggregate.Term.filteredRows_none
+
+#print axioms SQLeanite.SQLite.ExprCollation.callArguments_map

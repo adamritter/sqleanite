@@ -210,7 +210,7 @@ def emitOrdered (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool)
   | bucket :: rest, offset, limit, seen => do
       if limit == some 0 then return []
       let values ← prepared.aggregate.results.accumulate ctx bucket.rows
-      let row ← CoreAggregateHaving.representative ctx prepared.aggregate.results.terms bucket.rows
+      let row ← CoreAggregateHaving.representative ctx prepared.aggregate.results.terms bucket.rows true
       unless ← prepared.aggregate.matches ctx values row do
         return ← emitOrdered ctx prepared distinct rest offset limit seen
       let output ← if distinct || offset == 0 then
@@ -228,7 +228,7 @@ def emitSorted (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool) 
   | [], _, sorted => .ok sorted
   | bucket :: rest, seen, sorted => do
       let values ← prepared.aggregate.results.accumulate ctx bucket.rows
-      let row ← CoreAggregateHaving.representative ctx prepared.aggregate.results.terms bucket.rows
+      let row ← CoreAggregateHaving.representative ctx prepared.aggregate.results.terms bucket.rows true
       unless ← prepared.aggregate.matches ctx values row do
         return ← emitSorted ctx prepared distinct capacity rest seen sorted
       let output ← if distinct || capacity.isNone then

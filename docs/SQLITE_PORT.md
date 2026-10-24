@@ -1990,9 +1990,12 @@ has no comparison affinity: for example, wrapping a TEXT column in LIKELY does
 not retain the column's automatic text coercion of a numeric comparison operand.
 The hint also does not acquire its operand's static truth flag. Thus SELECT
 likely(0) AND abs(Int64.min) still errors, while likely(0 AND abs(Int64.min))
-returns zero. In WHERE/HAVING branch evaluation, hints and COLLATE wrappers
-forward the requested truth outcome, preserving NULL-aware short-circuiting.
-The probability value is not currently used for a planner cost optimization.
+returns zero. WHERE planning exposes hints and COLLATE wrappers for conditional
+short-circuiting. The initial generalization of this behavior to HAVING was too
+broad: the subsequent FILTER checkpoint below records the counterexample and
+corrects HAVING's direct branch evaluation. The original bounded corpus did not
+exercise that nested-NULL case. The probability value is not currently used for
+a planner cost optimization.
 
 The preceding source e0c2cb3cdb827fa3e3860604d890a7c0fd6cc46e01792485a47a7d353124145a
 has 456 differences in 1,028 baseline outcomes, seed 353870. Development seed
@@ -2011,3 +2014,54 @@ cover operand selection for a normalized LIKELY call and INTEGER probability
 rejection; they are not a complete SQLite evaluator proof. Native code and its
 nine-binding audit boundary remain unchanged. Reports use
 `sqlite-probability-*20261024.json` under `docs/validation/`.
+
+
+## Ordinary aggregate FILTER and predicate contexts (2026-10-24)
+
+FILTER (WHERE expression) now works with the supported ordinary aggregates,
+including DISTINCT, string separators, grouping, HAVING and outer ORDER BY.
+The parser retains the clause in an internal expression wrapper; the independent
+token grammar requires the corresponding FILTER syntax. A user function call
+with the internal name cannot forge that syntax. Aggregate arguments and filter
+names/functions validate before LIMIT/empty-input shortcuts. At execution the
+filter runs before argument evaluation and before DISTINCT admission.
+
+FILTER predicates do not contribute the aggregate result's collation metadata.
+The new argument-selection map lemma preserves the existing name-binding and
+read-collation refinement proofs. MIN/MAX identity includes its filter expression.
+Retained source rows model SQLite's first-visit flag: grouped scans reset the
+filtered-extremum control flag on each visit; ungrouped scans do so only when
+there is no unfiltered extremum to initialize the source row. This distinction
+is observable when filtered and unfiltered extrema appear together.
+
+Development found a counterexample to the preceding probability-hint checkpoint's
+HAVING generalization. WHERE planning exposes a hinted/collated condition, but
+HAVING and FILTER branch on the wrapper and evaluate its operand as a scalar.
+For example, likely(NULL AND abs(Int64.min)) skips the error as a WHERE condition,
+but errors in an ungrouped HAVING or FILTER. Grouped HAVING may move a constant
+condition into WHERE and skip the error again. These contexts now select the
+corresponding evaluation rule; complete negative outcomes remain in the reports.
+
+Baseline seed 353880 at source
+bdc24caa9646724af348c6c3e5067b1c9f90cb8a77423c899d621a59e241d5b3
+records 1,088 differences in 1,532 outcomes. The first development source
+441ccd2f60f778c3deb1fb37ce6d8f7c975a7fb4de8b039a6b47b2b0a266b956
+has two differences in 2,212 outcomes (353881), and ten in the expanded
+1,596-outcome predicate-context corpus (353882). Corrected development seed
+353883 passes 2,344 outcomes. Final source is
+`271773dd04341eb1a63b13963ba8d940f96174fb0c8aa51f7f11ef76a8a8e594`.
+Fresh seed 353884 passes **4,244 outcomes**, including **1,544 matching positive
+error statuses**. Fresh HAVING regression 353885 passes **1,918 outcomes**, with
+272 matching errors; probability regression 353886 passes **1,920 outcomes**,
+with 1,120 matching errors. Both file modes compare exact CLI bytes or positive
+error status and require unchanged main/WAL bytes on reads. Exact error codes
+and messages are not compared.
+
+All 209 executable tests, the full 276-job build, 1,070 registered headline
+proofs, verification audit and live-path audit pass. The reverse-file matrix
+passes 61 accepted cases and two declared unsupported shapes. Component proofs
+cover unchanged rows without a filter and collation-argument mapping under a
+syntax transformation. These do not establish complete SQL equivalence. Internal
+aggregate ORDER BY and window clauses remain separate work. Native code and
+its nine-binding audit boundary are unchanged. Reports use
+`sqlite-aggregate-filter-*20261024.json` under `docs/validation/`.

@@ -5,6 +5,30 @@ import SQLeanite.SQLite.Collation
 collations remain a separate schema property; the supported schema uses BINARY. -/
 namespace SQLeanite.SQLite.ExprCollation
 
+/-- FILTER's predicate does not contribute result collation metadata. -/
+def callArguments (name : String) (arguments : Array Expr) (star : Bool) : Array Expr :=
+  match arguments.toList with
+  | [aggregate, _] => if name == "__sqlean_aggregate_filter" && !star then #[aggregate] else arguments
+  | _ => arguments
+
+theorem callArguments_map (name : String) (arguments : Array Expr) (star : Bool)
+    (transform : Expr → Expr) :
+    callArguments name (arguments.map transform) star = (callArguments name arguments star).map transform := by
+  apply Array.toList_inj.mp
+  cases arguments using Array.recOn with
+  | mk expressions =>
+      cases expressions with
+      | nil => simp [callArguments]
+      | cons first rest =>
+          cases rest with
+          | nil => simp [callArguments]
+          | cons second rest =>
+              cases rest with
+              | nil =>
+                  by_cases filtered : (name == "__sqlean_aggregate_filter" && !star) = true <;>
+                    simp [callArguments, filtered]
+              | cons third rest => simp [callArguments]
+
 def nameFuel : Nat → Expr → Option String
   | 0, _ => none
   | fuel + 1, expression =>
@@ -13,7 +37,8 @@ def nameFuel : Nat → Expr → Option String
       | .collate _ name => some name
       | .unary _ arg | .isNull arg _ | .inSubquery arg _ _ => find arg
       | .binary _ left right => (find left).orElse fun _ => find right
-      | .call _ args _ => args.foldl (fun found arg => found.orElse fun _ => find arg) none
+      | .call name args star =>
+          (callArguments name args star).foldl (fun found arg => found.orElse fun _ => find arg) none
       | .inList arg values _ _ => values.foldl (fun found value => found.orElse fun _ => find value) (find arg)
       | .case_ base branches otherwise =>
           let found := branches.foldl (fun found (condition, result) =>

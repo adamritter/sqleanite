@@ -65,7 +65,7 @@ theorem bindNamesFuel_preserves_collation (hasColumn : String → Bool) (namesFu
                   exact (quotedIdentifier_noCollation expression name (fuel + 1) quoted).symm
               | none =>
                   simp only [quoted]
-                  cases expression <;> simp_all [ExprCollation.nameFuel, Array.foldl_map', Option.bind_map, Function.comp_def, ih]
+                  cases expression <;> simp_all [ExprCollation.nameFuel, ExprCollation.callArguments_map, Array.foldl_map', Option.bind_map, Function.comp_def, ih]
 
 end SQLeanite.SQLite.Scalar
 
@@ -108,19 +108,19 @@ theorem count_noCollation (schema : Core.Schema) (columns : List ResultColumn)
   all_goals try (split at success <;> simp_all)
   all_goals
     intro fuel
-    cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, ← Array.foldl_toList]
+    cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, SQLite.ExprCollation.callArguments, ← Array.foldl_toList]
 
 theorem sum_noCollation (schema : Core.Schema) (columns : List ResultColumn)
     (target : Nat) (success : CoreSQL.sumColumn? schema columns = .ok (some target)) :
     ∀ column ∈ columns, NoExplicitCollation column.expr := by
   fun_cases CoreSQL.sumColumn? schema columns <;> simp_all [CoreSQL.sumColumn?, CoreSQL.canonical]
-  all_goals intro fuel; cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, ← Array.foldl_toList]
+  all_goals intro fuel; cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, SQLite.ExprCollation.callArguments, ← Array.foldl_toList]
 
 theorem extreme_noCollation (schema : Core.Schema) (columns : List ResultColumn)
     (target : Bool × Nat) (success : CoreSQL.extremeColumn? schema columns = .ok (some target)) :
     ∀ column ∈ columns, NoExplicitCollation column.expr := by
   fun_cases CoreSQL.extremeColumn? schema columns <;> simp_all [CoreSQL.extremeColumn?, CoreSQL.canonical]
-  all_goals intro fuel; cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, ← Array.foldl_toList]
+  all_goals intro fuel; cases fuel <;> simp_all [SQLite.ExprCollation.nameFuel, SQLite.ExprCollation.callArguments, ← Array.foldl_toList]
 
 theorem groups_noCollation (schema : Core.Schema) (groups : List Nat)
     (columns : List ResultColumn) (outputs : List Core.GroupOutput)
