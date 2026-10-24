@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.WALRead
 import SQLeanite.Optimizer
 import SQLeanite.Runtime.Record
 import SQLeanite.QueryCost
@@ -1053,3 +1054,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.executeExpressionDelete_eq_runCoreCommands
 #print axioms SQLeanite.CoreSQL.rowDeleteCommands_length_le
+
+#print axioms SQLeanite.SQLite.WALRead.decodeFrames_invalid
+#print axioms SQLeanite.SQLite.WALRead.Replay.run_uncommitted
+#print axioms SQLeanite.SQLite.WALRead.Snapshot.readPage_base
+#print axioms SQLeanite.SQLite.WALRead.Snapshot.readPage_newest

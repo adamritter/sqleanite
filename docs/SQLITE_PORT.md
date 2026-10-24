@@ -550,3 +550,42 @@ theorems** and both audits passed. Reports:
 `docs/validation/sqlite-predicate-delete-regression-20261024.json`.
 The point-delete trace can cost more than a single bulk predicate deletion;
 this checkpoint does not claim planner or performance equivalence.
+
+### SQLite-created WAL recovery checkpoint (2026-10-24)
+
+The production WAL reader now decodes SQLite-created logs with either checksum
+byte order and all eight page sizes from 512 through 65536. It stops at the
+first incomplete, salt-mismatched, zero-page-number or checksum-invalid frame,
+replays only the last committed prefix, and obtains unchanged pages from the
+main database. Empty logs and invalid headers fall back to the main file; a
+checksum-valid unsupported WAL version is rejected. Repeated pages use the
+newest committed frame and the commit's database size bounds visibility.
+The page decoder uses the recovered header's geometry. All SQL/WAL parsing,
+checksum and replay logic remains Lean; no host binding was added.
+
+Unlike the older reverse-matrix WAL case, these fixtures are copied while a
+pinned SQLite connection is open, before its close-time checkpoint. Thus the
+WAL really contains partial-page transactions, with untouched overflow pages
+remaining in the main file. The previous reader failed **30 of 32** such
+4096-byte development cases; that negative evidence is retained in
+`docs/validation/sqlite-wal-recovery-negative-20261024.json`.
+
+Frozen implementation SHA-256:
+`09da9aa884ca4a1560c9e146e0d38b09fe3aca8caee7fb37b4e763beccabe674`.
+Fresh seed 353512 checked **768 cases**, including **48 matching version
+errors**, with no discrepancy against SQLite 3.53.4. Every read preserved the
+main/WAL bytes. The report is
+`docs/validation/sqlite-wal-recovery-20261024.json`.
+A fresh 220-UPDATE regression across both file modes, including 16 matching
+errors and transaction rollback, also passed. The full build, **172 executable
+tests**, **967 registered headline theorems**, both audits and the 53 accepted
+reverse-matrix cases passed (3 other matrix shapes remain unsupported).
+
+The new registered contracts prove invalid-frame stopping, invisible
+uncommitted tails, main-page fallback and newest-frame selection. They are
+component contracts, not a proof of all SQLite WAL semantics. Writer output
+still uses 4096-byte complete images; live cross-engine writers/readers still
+need SQLite-compatible locking and wal-index coordination. That separate
+open-reader counterexample remains unresolved. The format/recovery reference
+is SQLite's [WAL file format](https://www.sqlite.org/fileformat2.html#walformat)
+and the pinned source's `walIndexRecover`/`walDecodeFrame` routines.

@@ -1,6 +1,7 @@
 import SQLeanite.CoreWAL
 import SQLeanite.CorePageCodec
 import SQLeanite.GroupCommit
+import SQLeanite.SQLite.WALRead
 
 /-!
 # WAL file adapter for arbitrary Core schemas
@@ -42,27 +43,38 @@ def emptyImage : PhysicalWALRecovery.Image := {
   pageCount := 0
   read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
 
-private def decodeImageBytes (contents : List UInt8) (label : String) :
-    IO Core.Database :=
-  match CoreDecode.decode contents with
-  | some database => return database
-  | none => throw (IO.userError s!"invalid general MVP SQLite image: {label}")
-
-private def readMain (paths : Paths) : IO Core.Database := do
-  let contents ← IO.FS.readBinFile paths.main
-  decodeImageBytes contents.data.toList paths.main.toString
+private def readMain (paths : Paths) : IO Core.Database :=
+  CoreFileAdapter.reopen { main := paths.main, journal := paths.main.toString ++ "-journal" }
 
 private def readWAL (paths : Paths) : IO Core.Database := do
   let contents ← IO.FS.readBinFile paths.wal
-  let wal ← match PhysicalWAL.decode contents.data.toList with
-    | some wal => pure wal
-    | none => throw (IO.userError s!"invalid physical SQLite WAL: {paths.wal}")
-  let recovered ← match PhysicalWALRecovery.recover emptyImage wal with
-    | some recovered => pure recovered
-    | none => throw (IO.userError "physical SQLite WAL contains no commit frame")
-  let pageBytes := (List.range recovered.pageCount).flatMap fun pageId =>
-    (recovered.read pageId).bytes.toList
-  decodeImageBytes pageBytes "physical SQLite WAL"
+  let recovered ← match SQLite.WALRead.recover contents.data.toList with
+    | .ok snapshot => pure snapshot
+    | .error message => throw (IO.userError message)
+  let some snapshot := recovered | readMain paths
+  let main ← IO.FS.readBinFile paths.main
+  let base := fun pageNumber =>
+    if pageNumber = 0 then none
+    else
+      let start := (pageNumber - 1) * snapshot.pageSize
+      let stop := start + snapshot.pageSize
+      if stop ≤ main.size then some (main.extract start stop).data.toList else none
+  let read := snapshot.readPage base
+  let some firstPage := read 1 |
+    throw (IO.userError "SQLite WAL snapshot has no database header")
+  let some (header, _) := FileFormat.decodeDatabaseHeader firstPage |
+    throw (IO.userError "invalid database header in SQLite WAL snapshot")
+  let some usable := CoreFileAdapter.headerUsablePageSize? header |
+    throw (IO.userError "unsupported page geometry in SQLite WAL snapshot")
+  unless usable.val = snapshot.pageSize && header.textEncoding.val = 1 do
+    throw (IO.userError "SQLite WAL/header geometry or text encoding mismatch")
+  let source : CoreDecode.IOPageSource := {
+    usable
+    pageCount := snapshot.pageCount
+    readPage := fun pageNumber => pure (read pageNumber) }
+  match ← CoreDecode.decodeFromIOPageSource source with
+  | some database => return database
+  | none => throw (IO.userError "invalid recovered SQLite WAL database")
 
 /-- A WAL rename or checkpoint deletion can occur between `pathExists` and
 `readBinFile`. Bounded retry keeps the live reader total while allowing that

@@ -89,6 +89,19 @@ uses SQLite as the independent reader of rollback-journal and WAL images after
 every phase. This is evidence for those file shapes, not complete WAL locking,
 recovery or file-format conformance.
 
+## Uncheckpointed SQLite WAL recovery
+
+The [fresh WAL recovery checkpoint](validation/sqlite-wal-recovery-20261024.json)
+compares 768 copied, uncheckpointed main/WAL snapshots against SQLite 3.53.4.
+It covers both checksum byte orders, all eight SQLite page sizes, partial-page
+transactions, untouched main-file overflow pages, repeated writes, invalid
+checksums/salts, incomplete tails and valid unsupported format versions.
+All 768 outcomes match, including 48 version errors. The live Lean reader
+preserves the last committed prefix and overlays it on the main database.
+The [previous failures](validation/sqlite-wal-recovery-negative-20261024.json)
+remain recorded. This snapshot recovery result does not establish simultaneous
+SQLite/SQLeanite writer coordination; that wal-index/locking defect remains.
+
 ## Untested, and named so it is not mistaken for accepted
 
 - files with more than one table carrying overflow *and* an index at a non-4096

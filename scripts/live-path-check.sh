@@ -59,6 +59,16 @@ else
   fail "row-dependent DELETE is detached from its Core trace contracts"
 fi
 
+# WAL snapshots overlay their validated committed frames on the main file.
+if grep -q 'SQLite.WALRead.recover contents.data.toList' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'snapshot.readPage base' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'WALRead.Replay.run_uncommitted' SQLeanite/ProofAxioms.lean &&
+   grep -q 'WALRead.Snapshot.readPage_base' SQLeanite/ProofAxioms.lean; then
+  ok "WAL reads validate frame prefixes and preserve untouched main pages"
+else
+  fail "general WAL recovery is detached from its committed-prefix contracts"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

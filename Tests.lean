@@ -3917,6 +3917,38 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteWALRecoveryPrefix : IO Unit := do
+  let header := CoreWALFileAdapter.header
+  let page := Storage.Page.zero PhysicalCodec.pageSize
+  let first : PhysicalWAL.Frame := {
+    pageNumber := ⟨⟨2, by decide⟩, by decide⟩
+    databaseSize := ⟨0, by decide⟩
+    page }
+  let commit : PhysicalWAL.Frame := {
+    pageNumber := ⟨⟨1, by decide⟩, by decide⟩
+    databaseSize := ⟨2, by decide⟩
+    page }
+  let wal : PhysicalWAL.WAL := { header, frames := [first, commit, first] }
+  for bytes in [wal.encode, wal.encode ++ [1,2,3],
+      wal.encode.take (32 + 2 * PhysicalWAL.frameSize + 17)] do
+    match SQLite.WALRead.recover bytes with
+    | .ok (some snapshot) =>
+      unless snapshot.pageCount == 2 && snapshot.pageSize == 4096 && snapshot.frames.length == 2 do
+        fail "WAL recovery exposed an uncommitted or incomplete tail"
+    | _ => fail "WAL recovery rejected a valid committed prefix"
+  let uncommitted : PhysicalWAL.WAL := { header, frames := [first, first] }
+  for bytes in [[], header.encode, uncommitted.encode] do
+    match SQLite.WALRead.recover bytes with
+    | .ok none => pure ()
+    | _ => fail "WAL recovery invented a commit"
+  let snapshot : SQLite.WALRead.Snapshot := {
+    pageSize := 512, pageCount := 2
+    frames := [⟨2, 2, [2]⟩, ⟨2, 0, [1]⟩] }
+  let base := fun n => some [UInt8.ofNat n]
+  unless snapshot.readPage base 1 == some [1] && snapshot.readPage base 2 == some [2] &&
+      (snapshot.readPage base 3).isNone do
+    fail "WAL main-page overlay or committed size is incorrect"
+
 private def expectSQLiteRowDeletes : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT); INSERT INTO t VALUES(1,'a'),(2,'bb'),(3,'ccc'),(4,NULL); CREATE INDEX tv ON t(v);"
   for (query, removed) in [
@@ -4147,6 +4179,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite WAL valid committed prefix", expectSQLiteWALRecoveryPrefix),
   ("SQLite row-expression DELETE", expectSQLiteRowDeletes),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
   ("SQLite DISTINCT source ordering", expectSQLiteDistinctOrder),
