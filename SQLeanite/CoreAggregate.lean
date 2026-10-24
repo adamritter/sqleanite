@@ -143,7 +143,7 @@ def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
     Except String PreparedResults := do
   let (expressions, terms) ←
     (columns.mapM fun column =>
-      let expression := ctx.bindNames column.expr
+      let expression := SQLite.Scalar.prepare (ctx.bindNames column.expr)
       prepareResultFuel ctx expression.height expression).run #[]
   return { expressions, terms }
 

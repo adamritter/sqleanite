@@ -4403,6 +4403,37 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteAggregateOrder : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1),(2,2),(3,3);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT count(*) FROM t ORDER BY v;", [[.integer 3]]),
+    ("SELECT count(*) AS x FROM t ORDER BY x DESC;", [[.integer 3]]),
+    ("SELECT sum(v)+count(*) AS x FROM t ORDER BY x;", [[.integer 9]]),
+    ("SELECT count(*) FROM t ORDER BY abs(-9223372036854775808);", [[.integer 3]]),
+    ("SELECT count(*) FROM t WHERE 0 ORDER BY sum(abs(-9223372036854775808));", [[.integer 0]]),
+    ("SELECT count(*) FROM t ORDER BY sum(abs(-9223372036854775808)) LIMIT 0;", []),
+    ("SELECT min(v COLLATE NOCASE) FROM t ORDER BY 1 COLLATE RTRIM;", [[.integer 1]]),
+    ("SELECT 1 ORDER BY sum(abs(-9223372036854775808));", [[.integer 1]]),
+    ("SELECT 1 WHERE 0 ORDER BY count(*);", []),
+    ("SELECT count(*),0 AND 0x10000000000000000 ORDER BY 1;", [[.integer 1, .integer 0]]),
+    ("SELECT count(*) ORDER BY abs(-9223372036854775808);", [[.integer 1]]),
+    ("SELECT sum(1) WHERE 0 ORDER BY sum(abs(-9223372036854775808));", [[.null]]),
+    ("SELECT count(*) FROM t ORDER BY v LIMIT 1 OFFSET 1;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"aggregate ORDER BY: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"aggregate ORDER BY mismatch: {sql}"
+  for sql in ["SELECT count(*) FROM t ORDER BY sum(abs(-9223372036854775808));",
+      "SELECT count(*) FROM t ORDER BY sum(abs(-9223372036854775808)) LIMIT 1 OFFSET 1;",
+      "SELECT count(*) FROM t ORDER BY missing LIMIT 0;", "SELECT count(*) FROM t ORDER BY 2;",
+      "SELECT count(*) FROM t ORDER BY 1 COLLATE missing;", "SELECT count(*) FROM t ORDER BY no_function(v);",
+      "SELECT count(*) FROM t ORDER BY min(v COLLATE missing);", "SELECT 1 FROM t ORDER BY count(*);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"aggregate ORDER BY error omitted: {sql}"
+
 private def expectSQLiteNumericLiterals : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("SELECT 0xFFFFFFFFFFFFFFFF,0x8000000000000000,0x7FFFFFFFFFFFFFFF,0x80000000;",
@@ -5134,6 +5165,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),
   ("SQLite numeric literal syntax and signed boundaries", expectSQLiteNumericLiterals),
   ("SQLite literal spelling and certified identity", expectSQLiteLiteralSpelling),
   ("SQLite compound ORDER BY and LIMIT", expectSQLiteCompoundTails),

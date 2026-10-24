@@ -1,0 +1,175 @@
+{
+  "implementation_sha256": "6cdc988b7b37df6df17a592472dc546aa369da09ce5e1dea2fcef1a3e0b7612f",
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*),0 AND 0x10000000000000000 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 ORDER BY sum(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 WHERE 0 ORDER BY count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*),0 AND 0x10000000000000000 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 ORDER BY sum(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 WHERE 0 ORDER BY count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*),0 AND 0x10000000000000000 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 ORDER BY sum(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 WHERE 0 ORDER BY count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*),0 AND 0x10000000000000000 ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 ORDER BY sum(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 WHERE 0 ORDER BY count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant ORDER BY expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

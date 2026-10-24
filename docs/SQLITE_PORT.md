@@ -1654,3 +1654,46 @@ They do not prove complete tokenizer or SQLite equivalence. These bounded
 corpus results do not establish SQLite-wide compatibility. Native code and its
 nine-binding audit boundary are unchanged. Reports use
 `sqlite-numeric-literal-*20261024.json` under `docs/validation/`.
+
+
+## Ungrouped aggregate ORDER BY (2026-10-24)
+
+Singleton aggregate results now bind and validate ORDER BY aliases, ordinals,
+source columns, collations and scalar expressions. Aggregate calls in the order
+terms join the result accumulators and are finalized before OFFSET. SQLite does
+not evaluate the outer scalar sort keys for this one-row result; consequently
+`ORDER BY abs(-9223372036854775808)` succeeds, while placing that expression
+inside a SUM argument reports overflow on nonempty input. LIMIT zero validates
+names and expression structure but skips accumulation. Bare source columns in
+unused sort keys are erased only after binding; aggregate arguments are preserved.
+
+Source-free scalar SELECT has a separate SQLite behavior: aggregate calls in its
+unused ORDER BY are validated but never accumulated. A table-backed scalar SELECT
+still rejects aggregate-only ordering. Aggregate result preparation also folds
+`0 AND` before admitting an otherwise oversized hexadecimal literal. The output
+projection is unchanged when auxiliary ORDER BY aggregates are appended.
+
+Initial seed 353790 recorded 1,416 differences in 1,806 outcomes. Development seed
+353791 reduced this to 590 differences in 1,926 outcomes; a separate six-outcome
+preparation probe retained the source-free and oversized-literal failures before
+they were fixed. These negative reports are preserved.
+
+Final source is
+`2b3e244e5c8915632e996f7c52af95531a6d4b17694f5e2db7d7d5e5d87c6186`.
+Fresh seed 353792 contains **2,298 outcomes with 876 remaining differences**, all
+involving HAVING. The explicitly named **non-HAVING subset passes all 1,120
+outcomes**. The full report retains every failure and the harness exits nonzero;
+this is not a passing full aggregate-tail corpus. Both production file modes
+compare exact CLI bytes or ordinary positive error status and preserve all
+main/WAL bytes. Error wording and exact SQLite error codes are not compared.
+
+Fresh seed 353793 passes all 1,016 aggregate-result regression outcomes, including
+178 matching errors. Fresh seed 353794 passes all 1,804 ordering regression
+outcomes, including 618 matching errors. The fixed scalar regression passes
+1,121 cases plus six matching errors. The full 266-job build, all 201 executable
+tests, 1,053 registered headline theorems, verification audit and live-path checks
+pass. Two new component lemmas preserve the output projection and aggregate
+arguments; they do not establish general SQLite equivalence. Native code and its
+nine-binding audit boundary are unchanged. Reports use
+`sqlite-aggregate-order-*20261024.json` and
+`sqlite-aggregate-tail-negative-20261024.json` under `docs/validation/`.

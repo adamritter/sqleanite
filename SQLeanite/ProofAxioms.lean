@@ -1177,3 +1177,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.NumericLiteral.digitSeparators_trailing
 #print axioms SQLeanite.SQLite.Scalar.forbidden_negated_minimum_hex
 #print axioms SQLeanite.SQLite.Scalar.negatedLiteral_decimal_minimum
+
+#print axioms SQLeanite.CoreAggregateOrder.extend_preserves_expressions
+#print axioms SQLeanite.CoreAggregateOrder.eraseBareFuel_aggregate

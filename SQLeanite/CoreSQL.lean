@@ -5,6 +5,7 @@ import SQLeanite.SQLSurface
 import SQLeanite.CoreExpr
 import SQLeanite.CoreOrder
 import SQLeanite.CoreAggregate
+import SQLeanite.CoreAggregateOrder
 import SQLeanite.CoreCompound
 import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
@@ -1055,11 +1056,9 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (·.expr))
-  let ordering ← CoreOrder.resolve ctx select.columns.toList select.orderBy.toList
-  let _ ← ordering.mapM (fun term => do
-    let _ ← CoreOrder.specification term
-    unless SQLite.Scalar.admitted (CoreOrder.keyExpression term.expr) do
-      unsupported "constant ORDER BY expression")
+  -- SQLite validates aggregate calls in a source-free scalar ORDER BY but
+  -- does not turn the scalar SELECT into an aggregate query or evaluate them.
+  let _ ← CoreAggregateOrder.prepare ctx select.columns.toList select.orderBy.toList
   if select.limit == some 0 then return none
   if let some condition := select.where_ then
     unless ← SQLite.Scalar.testWhere condition do return none
@@ -1072,12 +1071,12 @@ def constantRow (select : Select) : Except String (Option (List Core.Value)) := 
   unless select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
     return ← scalarConstantRow select
   unless select.sources.isEmpty && select.valueRows.isNone &&
-      select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
+      select.groupBy.isEmpty && select.having.isNone do
     unsupported "constant aggregate SELECT shape"
   let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
-  let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
+  let prepared ← CoreAggregateOrder.prepare ctx select.columns.toList select.orderBy.toList
   unless prepared.terms.all (fun term => term.argument.all SQLite.Scalar.admitted) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "unbound constant aggregate expression"
@@ -1184,12 +1183,12 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
 scanned once over Core rows before any aggregate result is finalized. -/
 def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
-  unless select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
-    unsupported "aggregate grouping, HAVING or ORDER BY"
+  unless select.groupBy.isEmpty && select.having.isNone do
+    unsupported "aggregate grouping or HAVING"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
-  let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
+  let prepared ← CoreAggregateOrder.prepare ctx select.columns.toList select.orderBy.toList
   let _ ← select.where_.mapM ctx.validate
   if select.limit == some 0 then return ({}, prepared.expressions.length)
   let enabled ← ctx.constantMatches select.where_
