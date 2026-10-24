@@ -213,6 +213,14 @@ else
   fail "round detached from its implementation or precision theorem"
 fi
 
+if grep -q 'Pattern.evaluate false b a' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Pattern.evaluate true b a' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Pattern.matches_empty' SQLeanite/ProofAxioms.lean; then
+  ok "LIKE and GLOB use the pure pattern matcher on the live scalar path"
+else
+  fail "pattern matching detached from its implementation or component proofs"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

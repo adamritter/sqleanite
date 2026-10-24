@@ -1085,3 +1085,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Scalar.roundPrecision_le
 #print axioms SQLeanite.SQLite.Scalar.roundValue_null_left
 #print axioms SQLeanite.SQLite.Scalar.roundValue_null_right
+
+#print axioms SQLeanite.SQLite.Pattern.foldASCII_nonASCII
+#print axioms SQLeanite.SQLite.Pattern.matches_empty
+#print axioms SQLeanite.SQLite.Pattern.evaluate_null_input

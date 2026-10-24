@@ -268,9 +268,33 @@ mutual
             expectKeyword "and"
             matchExprFuel fuel upper
         | _ => mismatch "a BETWEEN expression"
+      let pattern : MatchM Unit := do
+        let (body, negated) := match expression with
+          | .unary .not body => (body, true)
+          | body => (body, false)
+        match body with
+        | .binary op left right =>
+            unless op == .like || op == .glob do mismatch "LIKE or GLOB"
+            matchExprFuel fuel left
+            if negated then expectKeyword "not"
+            expectBinaryOp op
+            matchExprFuel fuel right
+        | .call "like" arguments false =>
+            match arguments.toList with
+            | [pattern, input, escape] =>
+                matchExprFuel fuel input
+                if negated then expectKeyword "not"
+                expectKeyword "like"
+                matchExprFuel fuel pattern
+                expectKeyword "escape"
+                matchExprFuel fuel escape
+            | _ => mismatch "LIKE ... ESCAPE"
+        | _ => mismatch "a pattern expression"
       match between state with
       | .ok result => .ok result
-      | .error _ => matchExprCore fuel expression state
+      | .error _ => match pattern state with
+          | .ok result => .ok result
+          | .error _ => matchExprCore fuel expression state
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value => expectLiteral value

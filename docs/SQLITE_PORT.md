@@ -859,3 +859,37 @@ regression** and its error/persistence checks also passed. Reports:
 Full build, **180 executable tests**, **986 registered headline theorems** and
 both required audits passed. The selected diagnostic inventory has 9 explicit
 rejections, 18 matches and 1 both-reject case; this is not a compatibility rate.
+
+
+### LIKE, GLOB and ESCAPE (2026-10-24)
+
+The production scalar path now supports LIKE/GLOB operators and functions,
+NOT LIKE/NOT GLOB and the LIKE ESCAPE clause. The independent token grammar
+checks each infix operand and escape expression. A pure suffix matcher handles
+wildcards, ASCII-only LIKE case folding, GLOB classes/inversion/ranges, malformed
+classes and escaped wildcard characters. Its byte decoder follows SQLite's
+permissive UTF-8 rules for BLOB inputs, including isolated continuation bytes,
+overlong sequences, surrogate replacements and NUL termination. SQL TEXT still
+uses the existing UTF-8 representation; this does not claim full invalid-TEXT
+support elsewhere. Pattern bytes are limited to the pinned default 50,000;
+length, ESCAPE and NULL checks follow the original evaluation order.
+
+Frozen Lean/Main SHA-256:
+`ed6782eb87e7f3a381418ebd94fae5f32022d1ca350f48e646031118196ade6a`.
+Fresh seed 353591 passed **14,126 stored-value comparisons** across both file
+modes and **40 query outcomes**, including **24 matching errors**. Separate
+SQLite image readers verified values and integrity before and after predicate
+mutations. Tests cover functions/infix syntax, Unicode, arbitrary BLOB bytes,
+ESCAPE including wildcard escapes, malformed classes, indexed WHERE scans,
+UPDATE/DELETE and the pattern-size boundary. Failed statements preserve the
+main/WAL bytes. The fresh text/blob regression (seed 353592) passed **2,739
+cases** and **18 matching errors**; its explicit pre-existing rejections remain
+listed in the report. Reports are
+`docs/validation/sqlite-pattern-20261024.json` and
+`docs/validation/sqlite-pattern-text-regression-20261024.json`.
+
+Full build, **181 executable tests**, **989 registered headline theorems** and
+both audits passed. Registered component facts cover non-ASCII case preservation,
+the empty-pattern boundary and bounded-pattern NULL input. They do not prove
+full equivalence with SQLite's C matcher. The selected feature-gap inventory
+still records 9 explicit rejections; that inventory is not a coverage measure.

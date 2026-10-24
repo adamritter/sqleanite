@@ -3960,6 +3960,39 @@ private def expectPageSizeConversionFailures : IO Unit := do
     let reopened ← CoreFileAdapter.reopen paths
     unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
 
+private def expectSQLitePatterns : IO Unit := do
+  let cases : List (String × List Value) := [
+    ("SELECT 'ABC' LIKE 'a%', 'Á' LIKE 'á', 'ABC' GLOB 'a*', 'abc' GLOB '[a-z]*';",
+      [.integer 1,.integer 0,.integer 0,.integer 1]),
+    ("SELECT 'a_b' LIKE 'a!_b' ESCAPE '!', 'abc' NOT LIKE 'a%', 'abc' NOT GLOB 'A*';",
+      [.integer 1,.integer 0,.integer 1]),
+    ("SELECT glob('[]]',']'),glob('[^]]','a'),glob('[z-a]','z'),glob('[z-a]','a'),glob('[','a');",
+      [.integer 1,.integer 1,.integer 1,.integer 0,.integer 0]),
+    ("SELECT X'80' GLOB '?',X'C080' LIKE '_',like('a',X'410078'),glob(X'',X'');",
+      [.integer 1,.integer 1,.integer 1,.integer 1]),
+    ("SELECT NULL LIKE '%',glob('*',NULL),like('a','a',NULL),like('a','a',CAST(X'210078' AS TEXT));",
+      [.null,.null,.null,.integer 1])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"patterns: {message}"
+    let row ← match expected.mapM SQLSurface.value with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [row] do fail s!"pattern result: {sql}"
+  for sql in ["SELECT NULL LIKE '%' ESCAPE '';", "SELECT like(NULL,NULL,'ab');",
+      "SELECT glob('a','a','x');", "SELECT like('a','a',char(0));"] do
+    match CoreSQL.execute Core.State.empty sql with
+    | .ok _ => fail s!"pattern accepted invalid input: {sql}"
+    | .error _ => pure ()
+  let tokens ← match lex "SELECT 'a_b' LIKE 'a!_b' ESCAPE '!';" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  let wrong ← match parse "SELECT like('a!_b','changed','!');" with
+    | .ok statements => pure statements
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens wrong).isOk then fail "ESCAPE grammar accepted a changed operand"
+
 private def expectSQLiteRound : IO Unit := do
   let cases : List (String × List Value) := [
     ("SELECT round(0.5),round(-0.5),round(2.5),round(-2.5);",
@@ -4444,6 +4477,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite LIKE GLOB ESCAPE and permissive UTF-8", expectSQLitePatterns),
   ("SQLite round fixed-decimal and integral paths", expectSQLiteRound),
   ("SQLite rowid UPDATE binding and changes", expectSQLiteRowidUpdates),
   ("SQLite implicit rowid allocation and DEFAULT VALUES", expectSQLiteImplicitRowid),

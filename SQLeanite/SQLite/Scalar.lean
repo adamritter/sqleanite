@@ -2,6 +2,7 @@ import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.Text
+import SQLeanite.SQLite.Pattern
 
 /-!
 Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
@@ -106,6 +107,8 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
   | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
   | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
   | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
+  | .like => Pattern.evaluate false b a
+  | .glob => Pattern.evaluate true b a
   | .concat => do
       if isNull a || isNull b then return .null
       return .text ((← text a) ++ (← text b))
@@ -198,6 +201,9 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
   if name.startsWith "cast_" && args.size == 1 then
     return ← cast (name.drop 5).toString args[0]!
   match name, args.toList with
+  | "like", [pattern, input] => Pattern.evaluate false pattern input
+  | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
+  | "glob", [pattern, input] => Pattern.evaluate true pattern input
   | "round", [v] => return roundValue v (.integer 0)
   | "round", [v, places] => return roundValue v places
   | "typeof", [v] => return .text (typeOf v)
@@ -316,7 +322,7 @@ def prepare (expression : Expr) : Expr := prepareFuel expression.height expressi
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
   | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ | .inList .. => false
-  | .binary op _ _ => [.like, .glob, .match, .arrow, .arrowText].contains op
+  | .binary op _ _ => [.match, .arrow, .arrowText].contains op
   | .call name args star =>
       let n := name.toLower
       star || !(if n == "coalesce" then args.size ≥ 2
@@ -328,7 +334,8 @@ def forbidden : Expr → Bool
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
         else if ["trim", "ltrim", "rtrim", "unhex", "round"].contains n then
           args.size == 1 || args.size == 2
-        else if n == "instr" then args.size == 2
+        else if n == "like" then args.size == 2 || args.size == 3
+        else if n == "instr" || n == "glob" then args.size == 2
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
