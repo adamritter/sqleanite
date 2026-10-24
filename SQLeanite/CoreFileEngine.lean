@@ -375,7 +375,7 @@ def execute (connection : Connection) (sql : String) :
     IO (Except String (List Core.Result)) :=
   connection.state.atomically do
     let current ← get
-    match parse sql with
+    match CoreTokenGrammar.parseStatements sql with
     | .error message => return .error message
     | .ok statements =>
         let (finalState, result) ← runStatements connection current statements.toList

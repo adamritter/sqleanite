@@ -1,5 +1,6 @@
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
+import SQLeanite.SQLite.Type
 
 /-!
 Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
@@ -114,18 +115,10 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
       return .text ((← text a) ++ (← text b))
   | _ => .error "unsupported scalar operator"
 
-inductive Affinity where
-  | integer | text | blob | real | numeric
-  deriving BEq, Repr
+abbrev Affinity := SQLite.Affinity
 
 /-- sqlite3AffinityType's precedence, including FLOATING POINT => INTEGER. -/
-def affinity (typeName : String) : Affinity :=
-  let s := typeName.toUpper
-  if (s.splitOn "INT").length > 1 then .integer
-  else if ["CHAR", "CLOB", "TEXT"].any (fun part => (s.splitOn part).length > 1) then .text
-  else if s.isEmpty || (s.splitOn "BLOB").length > 1 then .blob
-  else if ["REAL", "FLOA", "DOUB"].any (fun part => (s.splitOn part).length > 1) then .real
-  else .numeric
+def affinity := SQLite.typeAffinity
 
 def cast (typeName : String) (v : Value) : Except String Value := do
   if isNull v then return .null
@@ -273,6 +266,9 @@ def evalFuel : Nat → Expr → Except String Value
     let eval := evalFuel fuel
     match e with
     | .literal v => .ok v
+    -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
+    -- is used for other operands; only the literal case preserves -0.0.
+    | .unary .neg (.literal (.real r)) => .ok (realResult (-r))
     | .unary op arg => unary op <$> eval arg
     | .binary op a b => do
         if op == .and || op == .or then

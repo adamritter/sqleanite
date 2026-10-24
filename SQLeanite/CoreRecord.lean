@@ -93,14 +93,14 @@ def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
   if schema.hasHiddenRowid = true ∧ fields.length = schema.primaryKey then
     match decodeFields fields with
     | some visible =>
-      match Core.Row.create schema (visible ++ [.integer rowid]) with
+      match Core.Row.create schema (Core.readColumnValues schema.columns (visible ++ [.integer rowid])) with
       | .ok row => some row
       | .error _ => none
     | none => none
   else
     match decodeRowValues rowid schema.primaryKey fields with
     | some values =>
-        match Core.Row.create schema values with
+        match Core.Row.create schema (Core.readColumnValues schema.columns values) with
         | .ok row => some row
         | .error _ => none
     | none => none
@@ -124,7 +124,8 @@ theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
         [.integer row.rowid] = row.values := by
       rw [← keyValue, List.take_append_getElem]
       exact List.take_of_length_le (by omega)
-    rw [reconstructed, Core.Row.create_self schema row valid]
+    rw [reconstructed, Core.readColumnValues_eq_self _ _ valid.2.2,
+      Core.Row.create_self schema row valid]
   next legacy =>
     obtain ⟨bound, _⟩ := List.getElem?_eq_some_iff.mp valid.2.1
     have notStandard : ¬(schema.hasHiddenRowid = true ∧
@@ -134,7 +135,7 @@ theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
     simp only [notStandard, ↓reduceIte]
     rw [decodeRowValues_encode row.rowid schema.primaryKey row.values valid.2.1]
     simp only
-    rw [Core.Row.create_self schema row valid]
+    rw [Core.readColumnValues_eq_self _ _ valid.2.2, Core.Row.create_self schema row valid]
 
 def encodeCell? (schema : Core.Schema) (row : Core.Row) :
     Option (List UInt8) := do

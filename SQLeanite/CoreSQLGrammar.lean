@@ -67,12 +67,11 @@ private theorem comparisonSyntax_of_success {schema : Core.Schema}
       rw [leftRef] at success
       cases found : column schema name with
       | error message =>
-          simp [found, Except.map] at success
-          cases success
+          simp [found, bind, Except.bind, Except.map] at success
       | ok index =>
           cases decoded : literal right with
           | error message =>
-              simp [found, decoded, Seq.seq, bind, Functor.map, Except.bind,
+              simp [comparisonLiteral, found, decoded, Seq.seq, bind, Functor.map, Except.bind,
                 Except.map] at success
           | ok value =>
               exact .columnRight operation allowed qualifier name right
@@ -89,12 +88,11 @@ private theorem comparisonSyntax_of_success {schema : Core.Schema}
           rw [leftRef, rightRef] at success
           cases found : column schema name with
           | error message =>
-              simp [found, Except.map] at success
-              cases success
+              simp [found, bind, Except.bind, Except.map] at success
           | ok index =>
               cases decoded : literal left with
               | error message =>
-                  simp [found, decoded, Seq.seq, bind, Functor.map, Except.bind,
+                  simp [comparisonLiteral, found, decoded, Seq.seq, bind, Functor.map, Except.bind,
                     Except.map] at success
               | ok value =>
                   exact .columnLeft operation allowed left qualifier name
@@ -376,9 +374,9 @@ private theorem joinComparisonOperands_of_success {context : JoinContext}
       operation = .le ∨ operation = .gt ∨ operation = .ge)
     (constructor : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)
     {left right : Expr} {predicate : CoreJoin.Predicate}
-    (success : constructor <$> joinOperand context left <*>
-      joinOperand context right = .ok predicate) :
+    (success : joinComparison context constructor left right = .ok predicate) :
     JoinPredicateSyntax (.binary operation left right) := by
+  unfold joinComparison at success
   cases leftResult : joinOperand context left with
   | error message =>
       simp [leftResult, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success

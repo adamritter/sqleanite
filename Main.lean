@@ -87,7 +87,7 @@ private def requireWritableFor (path : System.FilePath) (sql : String)
     (prepared : Option (Array PreparedLine) := none) : IO Unit := do
   let writes := match prepared with
     | some lines => lines.any (fun line => line.writes)
-    | none => match parse sql with
+    | none => match CoreTokenGrammar.parseStatements sql with
       | .ok statements => statements.toList.any CoreFileEngine.statementWrites
       | .error _ => false
   if writes && (← path.pathExists) then
@@ -132,7 +132,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     -- structural assumption. Set SQLEANITE_PAGE_LOCAL_WRITES=1 to measure it.
     let pageLocalEnabled := (← IO.getEnv "SQLEANITE_PAGE_LOCAL_WRITES") == some "1"
     let lazyWrite ← if fileExists && pageLocalEnabled then
-        match parse sql with
+        match CoreTokenGrammar.parseStatements sql with
         | .ok parsed =>
             match parsed.toList with
             | [.insert table columns rows] =>
@@ -181,7 +181,7 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
   let process := (← IO.Process.getPID).toNat
   let lock : ProcessLock.Config := {
     directory := databasePath ++ ".sqleanite-lock", process }
-  let statements := match parse sql with
+  let statements := match CoreTokenGrammar.parseStatements sql with
     | .ok parsed => parsed.toList
     | .error _ => []
   let run : IO (Except String (List Core.Result)) := do

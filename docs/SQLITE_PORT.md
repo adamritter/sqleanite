@@ -1,4 +1,4 @@
-# SQLite C-to-Lean port: scalar value layer
+# SQLite C-to-Lean port: scalar values and stored column affinity
 
 This is an incremental port, **not a complete SQLite implementation**. The
 reference is SQLite **3.53.4**, checkout `b09c88c14082339b66c7b7158d609a771e64ca69`
@@ -17,7 +17,10 @@ SQLite. C SQLite is used only as an independent test oracle.
 | `vdbemem.c`: `sqlite3VdbeIntValue`, `sqlite3RealToI64`, `sqlite3VdbeMemNumerify`, `sqlite3VdbeMemCast` | `SQLite/Numeric.lean`, `SQLite/Scalar.cast` | INTEGER/REAL/NUMERIC/TEXT/BLOB conversions, including CAST versus arithmetic differences |
 | `vdbe.c`: `computeNumericType`, arithmetic, bit and comparison opcodes | `SQLite/Scalar.lean` | INTEGER fast path, REAL fallback, overflow, NULL, divide by zero, signed remainder, saturating shift counts |
 | `expr.c`: comparison affinity, constant AND/OR simplification | `SQLite/Scalar.lean` | CAST expression affinity, lossless comparison conversion, constant boolean error suppression |
-| `build.c`: `sqlite3AffinityType` | `SQLite/Scalar.affinity` | Type-name precedence for CAST; this does **not** yet add stored column affinity |
+| `build.c`: `sqlite3AffinityType`, declared type dequoting | `SQLite/Type.lean`, `CoreSQL.declaredTypeName` | Shared type-name precedence for CAST and stored columns |
+| `vdbe.c`: `applyNumericAffinity`, `alsoAnInt`, `applyAffinity`; `vdbemem.c`: `sqlite3VdbeIntegerAffinity` | `SQLite/Numeric.applyAffinity`, `SQLite/PhysicalAffinity.lean` | Lossless numeric conversion, integer endpoint handling, write and comparison affinity |
+| `vdbe.c`: `OP_RealAffinity` | `PhysicalAffinity.realRead`, `CoreRecord.decodeRowFields` | Reconstruct logical REAL values from native SQLite integer serial types |
+| `expr.c`: `TK_UMINUS`, `codeReal` | `SQLite/Scalar.evalFuel` | Preserve negative zero for negated REAL literals; use subtraction for other operands |
 | `func.c`: `typeof`, `abs`, `length`, `octet_length`, `upper`, `lower`, `nullif` | `SQLite/Scalar.builtin` | Arity checks, overflow error, UTF-8 character/byte distinction, ASCII-only folding |
 | `expr.c`: conditional expression generation | `SQLite/Scalar.evalFuel` | Lazy CASE, coalesce, ifnull and variadic iif/if evaluation |
 | `select.c`: SELECT without FROM | `CoreSQL.constantRow` | One implicit input row, WHERE, DISTINCT, LIMIT/OFFSET and existing compound-query composition |
@@ -33,6 +36,16 @@ bounds. This function is used by production INSERT, constant UPDATE assignments,
 predicate operands and join operands. `CoreSQL.executeSelectBase` also routes
 tableless SELECTs into this layer. The independent token checker now replays
 CAST, CASE, boolean literals and parentheses around binary operands.
+
+Declared non-primary column types are now retained in the Core schema and
+quoted in canonical `sqlite_schema` SQL. INSERT/REPLACE and constant UPDATE
+assignments apply affinity before row admission. Predicates and join literals
+apply comparison affinity before the existing index/scan evaluator. Record
+decoding restores REAL storage classes, including on independently C-written
+files. All file, WAL, lazy-read and CLI SQL entry points now require the concrete
+token certificate; BETWEEN replay checks both copies of its desugared operand.
+Older Lean-written files whose schema already omitted a declared type retain
+that empty type; this change cannot reconstruct declarations lost previously.
 
 Examples for the production `--verified-file` CLI:
 
@@ -67,6 +80,7 @@ Run the reproducible differential suite after building:
 lake build
 lake exe sqleanite_tests
 python3 scripts/run-scalar-differential.py
+python3 scripts/run-affinity-differential.py
 scripts/lean-verification-audit.sh
 scripts/live-path-check.sh
 ```
@@ -79,20 +93,29 @@ on failed INSERTs, and rejected expressions in dead branches. Its seeded
 integer and REAL cases are reproducible. Python's SQLite binding only reads
 the resulting files; it is not part of the Lean engine.
 
-Validated on Lean 4.35.0: all 157 executable tests, all 914 registered headline
+Validated on Lean 4.35.0: all 160 executable tests, all 924 registered headline
 theorems, the verification audit and the live-path audit pass. The new suite
-matches **1,114 expressions** exactly and checks six expected evaluation/arity
+matches **1,120 expressions** exactly and checks six expected evaluation/arity
 errors. The 13 existing Core differential cases and 20 reverse-compatibility
 cells pass; three reverse cells remain deliberately rejected. The 11 forward
 workloads retain their existing result: ten fully clean, and the indexed-shrink
 case with its previously declared two allocated-but-unreferenced pages.
 
-The separate 144-probe SQL-surface audit improves from 44 to 46 matching probes,
-with no additional mismatches. It still reports the same three semantic gaps
-listed below. Of its 106 equally weighted feature groups, 25 match all sampled
-cases, 12 are partial, 66 are rejected and three differ. These samples are not
+The affinity differential suite checks **444 stored values across 12 declared
+types and 4,708 SELECTs**, before/after index creation, updates and reopening.
+It also checks independently C-created files, a write to a native C image,
+four failing writes without mutation, and two explicit mixed-affinity
+rejections. Result-set markers distinguish adjacent empty/nonempty query
+results; file observations compare storage classes, exact REAL bits and bytes.
+
+The separate 144-probe SQL-surface audit now has **47 matching probes, 97
+explicit rejections and no silent differences**. The earlier scalar-port
+snapshot had 46 matches, 95 rejections and three differences. Column affinity
+now matches; NOCASE and WITHOUT ROWID are rejected. No previously matching
+probe regressed. Of the 106 equally weighted feature groups, 26 match all
+sampled cases, 12 are partial and 68 are rejected. These samples are not
 coverage of the whole SQLite codebase. Local raw logs and reports are in
-`../benchmarks/20261024-sqlite-scalar-port/` (outside this Git repository).
+`../benchmarks/20261024-sqlite-affinity-port/` (outside this Git repository).
 
 ## Still missing
 
@@ -104,9 +127,18 @@ and locking protocol. Tableless ORDER BY and aggregates are still rejected.
 This is the default 17-digit REAL formatting path, not general SQLite printf
 or per-connection floating-point precision configuration.
 
-The earlier audit's column-affinity, column-collation and WITHOUT ROWID
-compatibility gaps are **not fixed** here. CAST affinity in constant expressions
-must not be confused with column affinity in stored schemas and predicates.
+Stored column affinity is implemented for the admitted Core SQL subset.
+Comparisons that would require converting the stored column to a different
+affinity (for example TEXT-column versus CAST-to-INTEGER, or TEXT/NUMERIC joins)
+are explicitly rejected pending a general row-expression evaluator. Admitted
+rows carry a canonical-affinity invariant: malformed foreign records which
+violate it are rejected. Schema round-trip and read normalization proofs retain
+the existing codec contracts; comparison fixed-point proofs justify keeping
+the existing ordinary index key representation. These are not a full C-to-Lean
+semantic equivalence proof.
+
+Non-BINARY column collations and WITHOUT ROWID are now rejected before schema
+creation, instead of being silently discarded. Those features are still unported.
 Invalid UTF-8 BLOB-to-TEXT conversion is explicitly rejected rather than
 replacing bytes. Collations and column references in constant expressions are
 rejected, including in dead branches. Do not infer a percentage of SQLite

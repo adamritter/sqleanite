@@ -69,6 +69,28 @@ else
   ok "no headline theorem depends on sorryAx"
 fi
 
+# Every production SQL entry point must replay the concrete token certificate.
+for entry in Main.lean SQLeanite/CoreFileEngine.lean \
+    SQLeanite/CoreWALFileEngine.lean SQLeanite/CoreLazyFileEngine.lean; do
+  if grep -q 'CoreTokenGrammar.parseStatements sql' "$entry" &&
+     ! grep -Eq '(^|[^[:alnum:]_.])parse sql' "$entry"; then
+    ok "$entry uses certified SQL admission"
+  else
+    fail "$entry bypasses the concrete SQL certificate"
+  fi
+done
+
+if grep -q 'SQLite.PhysicalAffinity.write column.affinity' SQLeanite/CoreSQL.lean &&
+   grep -q 'comparisonLiteral schema index' SQLeanite/CoreSQL.lean &&
+   grep -q 'Core.readColumnValues schema.columns' SQLeanite/CoreRecord.lean &&
+   grep -q 'SQLite.PhysicalAffinity.accepts column.affinity' SQLeanite/Core.lean &&
+   grep -q 'Core.readColumnValues_eq_self' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreTokenGrammar.parseStatements_certified' SQLeanite/ProofAxioms.lean; then
+  ok "stored affinity is checked on writes, comparisons and record reads"
+else
+  fail "stored affinity detached from the proved production path"
+fi
+
 # Constant expressions use the pure scalar layer on the production translator.
 if grep -q 'SQLite.Scalar.admitted expression' SQLeanite/SQLSurface.lean &&
    grep -q 'value (← SQLite.Scalar.eval expression)' SQLeanite/SQLSurface.lean &&

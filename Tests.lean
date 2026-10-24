@@ -2006,7 +2006,8 @@ private def expectGeneralMVPSQL : IO Unit := do
         [[.integer ⟨10, by decide, by decide⟩]],
         [[.null]],
         [[.blob ⟨[1, 2], by decide⟩]],
-        [[.realBits ⟨4609434218613702656, by decide⟩]],
+        -- TEXT affinity renders the assigned REAL, as in C SQLite.
+        [[.text ⟨[49, 46, 53], by decide⟩]],
         [[.integer ⟨1, by decide, by decide⟩]],
         [[.integer ⟨1, by decide, by decide⟩],
          [.integer ⟨2, by decide, by decide⟩],
@@ -2079,7 +2080,7 @@ private def expectGeneralMVPFileInterop : IO Unit := do
       SELECT post_id,body,author_id FROM posts ORDER BY post_id;
       SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"] }
   unless output.exitCode == 0 && output.stdout ==
-      "ok\n1|Lin|real|1.5\n2|Ada|blob|X'0102'\n9|storage|1\n10|proofs|2\nusers_name\n" do
+      "ok\n1|Lin|text|'1.5'\n2|Ada|blob|X'0102'\n9|storage|1\n10|proofs|2\nusers_name\n" do
     fail s!"sqlite3 rejected the arbitrary-schema image: {output.stderr}{output.stdout}"
   let mutation ← IO.Process.output {
     cmd := "/usr/bin/sqlite3"
@@ -2105,8 +2106,8 @@ private def expectGeneralMVPFileInterop : IO Unit := do
     | none => fail "general decoder lost the compact C-written rowid"
   unless (cRow.value 1) == .text ⟨[67, 32, 115, 113, 108, 105, 116, 101], by decide⟩ do
     fail "general decoder changed C-written TEXT"
-  unless (cRow.value 2) == .realBits ⟨4612248968380809216, by decide⟩ do
-    fail "general decoder changed C-written REAL bits"
+  unless (cRow.value 2) == .text ⟨[50, 46, 50, 53], by decide⟩ do
+    fail "general decoder changed C-written TEXT affinity value"
   let adaRow ← match users.rows.find? (fun row => row.rowid.value == 2) with
     | some row => pure row
     | none => fail "general decoder lost the C-updated BLOB row"
@@ -2173,7 +2174,7 @@ private def expectTextPrimaryKeyInterop : IO Unit := do
       SELECT * FROM usertable;
       PRAGMA integrity_check;"] }
   unless inspected.exitCode == 0 && inspected.stdout ==
-      "CREATE TABLE \"usertable\"(\"ycsb_key\" TEXT PRIMARY KEY,\"field0\")\n1\nuser1|value1\nok\n" do
+      "CREATE TABLE \"usertable\"(\"ycsb_key\" TEXT PRIMARY KEY,\"field0\" \"TEXT\")\n1\nuser1|value1\nok\n" do
     fail s!"SQLite rejected the exact TEXT PRIMARY KEY image: {inspected.stderr}{inspected.stdout}"
   let mutated ← IO.Process.output {
     cmd := "/usr/bin/sqlite3"
@@ -3826,7 +3827,61 @@ private def expectSQLiteConstantSelect : IO Unit := do
     unless (results.getLast?).map (·.rows) == some values do
       fail s!"constant SELECT wrong result: {sql}"
 
+private def expectSQLiteColumnAffinity : IO Unit := do
+  let (state, results) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,t TEXT,n NUMERIC,r REAL,b BLOB);\n      INSERT INTO t VALUES('1.0',12,'3e0','5.0','001');\n      CREATE INDEX t_n ON t(n);\n      SELECT t,n,r,b FROM t WHERE n='003' AND t=12;" with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"column affinity: {message}"
+  let expected ← ([Value.text "12", .integer 3, .real 5.0, .text "001"]).mapM fun v =>
+    match SQLSurface.value v with
+    | .ok v => pure v
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some [expected] do
+    fail "column affinity changed value or storage class"
+  let table ← match state.database.findTable? "t" with
+    | some table => pure table
+    | none => fail "column affinity lost table"
+  unless CanonicalSchemaSQL.parse (CanonicalSchemaSQL.print table.schema) == some table.schema do
+    fail "declared types did not survive canonical schema printing"
+  let noncanonical ← match SQLSurface.value (.text "3") with
+    | .ok value => pure value
+    | .error message => fail message
+  if Core.Row.create table.schema
+      ([.integer ⟨2, by decide, by decide⟩] ++ expected.set 1 noncanonical) |>.isOk then
+    fail "Core row admitted numeric TEXT without applying column affinity"
+
+private def expectSQLiteTypedSchemaNames : IO Unit := do
+  for typeName in ["DOUBLE PRECISION", "FLOATING POINT", "a\"b TEXT,)", "", "NUMERIC(12,2)"] do
+    let schema : Core.Schema := {
+      name := "quoted\"table"
+      columns := [{ name := "id", notNull := true, integerPrimaryKey := true },
+        { name := "v", notNull := true, declaredType := typeName }]
+      primaryKey := 0 }
+    unless CanonicalSchemaSQL.parse (CanonicalSchemaSQL.print schema) == some schema do
+      fail s!"canonical schema lost declared type {typeName}"
+
+private def expectSQLiteCertifiedAdmission : IO Unit := do
+  for sql in ["CREATE TABLE t(id INTEGER PRIMARY KEY) WITHOUT ROWID;",
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT COLLATE NOCASE);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then
+      fail s!"Core silently discarded unsupported schema syntax: {sql}"
+  for expression in ["2 BETWEEN 1 AND 3", "2 NOT BETWEEN 1 AND 3"] do
+    match CoreTokenGrammar.parseStatements s!"SELECT {expression};" with
+    | .ok _ => pure ()
+    | .error message => fail s!"certified BETWEEN: {message}"
+  let tokens ← match lex "SELECT 2 BETWEEN 1 AND 3;" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  let wrong ← match parse "SELECT (2>=1) AND (99<=3);" with
+    | .ok statements => pure statements
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens wrong).isOk then
+    fail "BETWEEN certificate accepted unequal copies of its left operand"
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("SQLite stored column affinity and indexed comparison", expectSQLiteColumnAffinity),
+  ("SQLite quoted declared type schema roundtrip", expectSQLiteTypedSchemaNames),
+  ("SQLite certified schema and BETWEEN admission", expectSQLiteCertifiedAdmission),
   ("SQLite SELECT without FROM", expectSQLiteConstantSelect),
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),

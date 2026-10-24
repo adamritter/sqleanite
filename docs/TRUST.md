@@ -12,6 +12,16 @@ differentially tested, not kernel-proved. The older relational read theorems
 remain scoped to their `TranslatedRead` constructors; the new tableless path
 does not silently expand those theorem claims. No host binding was added.
 
+Stored column affinity now retains non-primary declared types, coerces SQL
+writes and comparison literals, and restores logical REAL values when decoding
+integer serial types. `Core.Row.WellFormed` additionally requires canonical column
+affinity. New fixed-point lemmas preserve the record codec round-trip contract
+and identify when existing index comparisons need no stored-operand conversion.
+Mixed-affinity comparisons outside that condition are rejected. Every production
+SQL entry point uses `CoreTokenGrammar.parseStatements`; non-BINARY column
+collations and WITHOUT ROWID cannot be silently dropped. Affinity equivalence
+to C SQLite is covered by differential tests, not a cross-language proof.
+
 ## Current architecture and claim
 
 There is **one** verified core. `--verified-file` (rollback journal) and
@@ -775,7 +785,7 @@ engine; it is not linked into the Core-only production executable.
 proof-carrying database supports multiple named tables, arbitrary column lists,
 an INTEGER PRIMARY KEY at any column position, per-column NOT NULL, and
 single-column index declarations.  Stored rows carry schema width,
-primary-key/value agreement, and NOT NULL checks; tables carry rowid ordering
+primary-key/value agreement, NOT NULL and canonical-affinity checks; tables carry rowid ordering
 and index validity; databases carry unique table names.  Exact-result theorems
 cover ordered insertion, checked row insertion, index addition, and table
 creation.  Tests exercise two distinct schemas, a non-leading primary key,

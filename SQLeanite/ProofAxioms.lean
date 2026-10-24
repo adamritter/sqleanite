@@ -983,3 +983,15 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.executeConstantSelect_preserves_state
 #print axioms SQLeanite.CoreSQL.executeConstantSelect_at_most_one_row
 #print axioms SQLeanite.SQLite.FloatCodec.multiply128_reconstruct
+
+-- Stored column affinity and the concrete production SQL admission boundary.
+#print axioms SQLeanite.SQLite.PhysicalAffinity.comparison_eq_self
+#print axioms SQLeanite.SQLite.PhysicalAffinity.read_eq_self
+#print axioms SQLeanite.SQLite.PhysicalAffinity.comparison_null
+#print axioms SQLeanite.SQLite.PhysicalAffinity.write_null
+#print axioms SQLeanite.Core.columnRead_eq_self
+#print axioms SQLeanite.Core.columnComparison_eq_self
+#print axioms SQLeanite.Core.readColumnValues_eq_self
+#print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_typed_append
+#print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_any_append
+#print axioms SQLeanite.CoreTokenGrammar.parseStatements_certified

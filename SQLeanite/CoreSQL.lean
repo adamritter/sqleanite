@@ -11,9 +11,19 @@ def unsupported (feature : String) : Except String α :=
 
 def canonical (name : String) : String := name.toLower
 
+/-- build.c dequotes a quoted declared type before computing affinity. Keep
+the original spelling of ordinary multiword/parameterized type names. -/
+def declaredTypeName (source : String) : String :=
+  match lex source with
+  | .ok tokens => match (CoreTokenGrammar.significant tokens.toList).head? with
+      | some (.quotedIdent name _) | some (.string name) => name
+      | _ => source.trimAscii.toString
+  | .error _ => source.trimAscii.toString
+
 def columnAllowed (column : ColumnDef) : Bool :=
   column.defaultValue.isNone && column.generated.isNone && !column.unique &&
-  column.references.isNone && column.check.isNone && !column.autoIncrement
+  column.references.isNone && column.check.isNone && !column.autoIncrement &&
+  column.collation.toLower == "binary"
 
 def schema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
@@ -30,14 +40,19 @@ def schema (name : String) (definitions : Array ColumnDef)
   let primaryDefinition ← match definitions[primaryKey]? with
     | some column => .ok column
     | none => .error "verified MVP primary-key index is out of bounds"
-  let integerAlias := primaryDefinition.declaredType.toLower == "integer"
-  unless integerAlias || primaryDefinition.declaredType.toLower == "text" do
+  let integerAlias := (declaredTypeName primaryDefinition.declaredType).toLower == "integer"
+  unless integerAlias || (declaredTypeName primaryDefinition.declaredType).toLower == "text" do
     throw "verified MVP primary key must have declared type INTEGER or TEXT"
-  let visibleColumns := definitions.toList.map fun column => {
+  let visibleColumns : List Core.Column := definitions.toList.map fun column =>
+    if column.primaryKey then {
       name := canonical column.name
-      notNull := column.notNull || column.primaryKey
-      integerPrimaryKey := column.primaryKey && integerAlias
-      textPrimaryKey := column.primaryKey && !integerAlias }
+      notNull := true
+      integerPrimaryKey := integerAlias
+      textPrimaryKey := !integerAlias }
+    else {
+      name := canonical column.name
+      notNull := column.notNull
+      declaredType := declaredTypeName column.declaredType }
   if integerAlias then return {
     name := canonical name
     columns := visibleColumns
@@ -55,6 +70,25 @@ def schema (name : String) (definitions : Array ColumnDef)
 
 def literal (expression : Expr) : Except String Core.Value :=
   SQLSurface.literal expression
+
+def columnLiteral (column : Core.Column) (expression : Expr) : Except String Core.Value :=
+  SQLite.PhysicalAffinity.write column.affinity <$> literal expression
+
+/-- Canonical admitted rows are fixed points of their column's comparison
+affinity. A comparison requesting a different coercion of the stored operand
+needs a general VDBE expression operand, which is not yet in this Core subset.
+Reject that shape rather than using an unsound index equality. -/
+def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
+    Except String Core.Value := do
+  let value ← literal expression
+  let target ← match schema.columns[index]? with
+    | some target => .ok target
+    | none => .error "comparison column is out of range"
+  let aff := SQLite.Scalar.comparisonAffinity (some target.affinity)
+    (SQLite.Scalar.expressionAffinity expression)
+  unless aff == .blob || aff.comparison == target.affinity.comparison do
+    unsupported "comparison requiring conversion of the stored column"
+  return SQLite.PhysicalAffinity.comparison aff value
 
 def findColumn? (schema : Core.Schema) (name : String) : Option Nat :=
   schema.columns.findIdx? (fun column => column.name == canonical name)
@@ -81,9 +115,13 @@ def comparisonPredicate (schema : Core.Schema)
     (forward reverse : Nat → Core.Value → Core.Predicate)
     (left right : Expr) : Except String Core.Predicate :=
   match columnRef? left with
-  | some (_, name) => forward <$> column schema name <*> literal right
+  | some (_, name) => do
+      let index ← column schema name
+      return forward index (← comparisonLiteral schema index right)
   | none => match columnRef? right with
-    | some (_, name) => reverse <$> column schema name <*> literal left
+    | some (_, name) => do
+        let index ← column schema name
+        return reverse index (← comparisonLiteral schema index left)
     | none => unsupported "predicate expression"
 
 def indexColumnName? : Expr → Option String
@@ -212,9 +250,9 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
         throw s!"table {schema.name} has {schema.visibleColumns.length} columns but {expressions.size} values were supplied"
       let visibleValues ← expressions.toList.mapM literal
       let pairs := schema.visibleColumnIndices.zip visibleValues
-      schema.columns.mapIdxM fun index _ =>
+      schema.columns.mapIdxM fun index target =>
         match pairs.find? (fun pair => pair.1 == index) with
-        | some pair => .ok pair.2
+        | some pair => .ok (SQLite.PhysicalAffinity.write target.affinity pair.2)
         | none => .ok .null
   | some names =>
       unless names.size = expressions.size do
@@ -225,7 +263,7 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
           .ok .null
         else
         match canonicalNames.findIdx? (· == target.name) with
-        | some index => literal expressions[index]!
+        | some index => columnLiteral target expressions[index]!
         | none => .ok .null
 
 private def executeCommand (state : Core.State) (command : Core.Command) :
@@ -369,7 +407,10 @@ def updateAssignments (schema : Core.Schema) :
       let remaining ← updateAssignments schema assignments
       if remaining.any (fun candidate => candidate.1 == index) then
         throw s!"duplicate UPDATE assignment: {assignment.1}"
-      return (index, ← literal assignment.2) :: remaining
+      let target ← match schema.columns[index]? with
+        | some target => .ok target
+        | none => .error "UPDATE column is out of range"
+      return (index, ← columnLiteral target assignment.2) :: remaining
 
 structure JoinContext where
   leftTable : String
@@ -402,20 +443,52 @@ def joinOperand (context : JoinContext) : Expr → Except String CoreJoin.Operan
   | .column qualifier name => .column <$> joinColumn context qualifier name
   | expression => .literal <$> literal expression
 
+def joinColumnDefinition (context : JoinContext) (reference : CoreJoin.ColumnRef) :
+    Except String Core.Column :=
+  let schema := match reference.side with
+    | .left => context.leftSchema
+    | .right => context.rightSchema
+  match schema.columns[reference.column]? with
+  | some column => .ok column
+  | none => .error "join column is out of range"
+
+def joinOperandAffinity (context : JoinContext) (expression : Expr) :
+    CoreJoin.Operand → Except String (Option SQLite.Affinity)
+  | .column reference => do return some (← joinColumnDefinition context reference).affinity
+  | .literal _ => .ok (SQLite.Scalar.expressionAffinity expression)
+
+def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
+    CoreJoin.Operand → Except String CoreJoin.Operand
+  | .literal value => .ok (.literal (SQLite.PhysicalAffinity.comparison aff value))
+  | operand@(.column reference) => do
+      let target ← joinColumnDefinition context reference
+      unless aff == .blob || aff.comparison == target.affinity.comparison do
+        unsupported "join requiring conversion of a stored column"
+      return operand
+
+def joinComparison (context : JoinContext)
+    (operation : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)
+    (left right : Expr) : Except String CoreJoin.Predicate := do
+  let a ← joinOperand context left
+  let b ← joinOperand context right
+  let aff := SQLite.Scalar.comparisonAffinity
+    (← joinOperandAffinity context left a) (← joinOperandAffinity context right b)
+  return operation (← joinOperandCoerce context aff a) (← joinOperandCoerce context aff b)
+
 def joinPredicate (context : JoinContext) : Expr →
     Except String CoreJoin.Predicate
   | .binary .eq left right =>
-      .equal <$> joinOperand context left <*> joinOperand context right
+      joinComparison context .equal left right
   | .binary .ne left right =>
-      .notEqual <$> joinOperand context left <*> joinOperand context right
+      joinComparison context .notEqual left right
   | .binary .lt left right =>
-      .compare .less <$> joinOperand context left <*> joinOperand context right
+      joinComparison context (.compare .less) left right
   | .binary .le left right =>
-      .compare .lessEqual <$> joinOperand context left <*> joinOperand context right
+      joinComparison context (.compare .lessEqual) left right
   | .binary .gt left right =>
-      .compare .greater <$> joinOperand context left <*> joinOperand context right
+      joinComparison context (.compare .greater) left right
   | .binary .ge left right =>
-      .compare .greaterEqual <$> joinOperand context left <*> joinOperand context right
+      joinComparison context (.compare .greaterEqual) left right
   | .isNull operand false => .isNull <$> joinOperand context operand
   | .isNull operand true => .not <$> (.isNull <$> joinOperand context operand)
   | .unary .not expression => .not <$> joinPredicate context expression

@@ -70,8 +70,11 @@ def columnSuffix (column : Core.Column) : List Char :=
   else if column.notNull then " NOT NULL".toList
   else []
 
+def columnTypeChars (column : Core.Column) : List Char :=
+  if column.declaredType.isEmpty then [] else ' ' :: quoteChars column.declaredType
+
 def columnChars (column : Core.Column) : List Char :=
-  quoteChars column.name ++ columnSuffix column
+  quoteChars column.name ++ columnTypeChars column ++ columnSuffix column
 
 def columnsChars : List Core.Column → List Char
   | [] => []
@@ -110,6 +113,15 @@ def endsColumn : List Char → Bool
   | ')' :: _ => true
   | _ => false
 
+def parseTypedColumn (name : List Char) (input : List Char) :
+    Option (Core.Column × List Char) := do
+  let (typeName, afterType) ← takeIdent input
+  if endsColumn afterType then
+    some ({ name := String.ofList name, declaredType := String.ofList typeName }, afterType)
+  else
+    let rest ← stripPrefix " NOT NULL".toList afterType
+    some ({ name := String.ofList name, notNull := true, declaredType := String.ofList typeName }, rest)
+
 def parseColumn : List Char → Option (Core.Column × List Char)
   | '"' :: rest => do
       let (name, afterName) ← takeIdent rest
@@ -130,7 +142,9 @@ def parseColumn : List Char → Option (Core.Column × List Char)
             match stripPrefix " NOT NULL".toList afterName with
             | some tail =>
                 some ({ name := String.ofList name, notNull := true }, tail)
-            | none => none
+            | none => match afterName with
+                | ' ' :: '"' :: rest => parseTypedColumn name rest
+                | _ => none
   | _ => none
 
 def parseColumns : Nat → List Char → Option (List Core.Column × List Char)
@@ -230,14 +244,14 @@ theorem parseColumn_append (columnName : String)
     (exclusive : columnPrimary = true → columnTextPrimary = false)
     (separator : endsColumn rest = true) :
     parseColumn (columnChars
-      ⟨columnName, columnNotNull, columnPrimary, columnTextPrimary⟩ ++ rest)
+      { name := columnName, notNull := columnNotNull, integerPrimaryKey := columnPrimary, textPrimaryKey := columnTextPrimary } ++ rest)
       = some
-        (⟨columnName, columnNotNull, columnPrimary, columnTextPrimary⟩, rest) := by
+        ({ name := columnName, notNull := columnNotNull, integerPrimaryKey := columnPrimary, textPrimaryKey := columnTextPrimary }, rest) := by
   cases columnPrimary <;> cases columnTextPrimary <;> cases columnNotNull
   · have shape : columnChars
-        (⟨columnName, false, false, false⟩ : Core.Column) ++ rest
+        ({ name := columnName, notNull := false, integerPrimaryKey := false, textPrimaryKey := false } : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.toList ++ '"' :: rest) := by
-      simp [columnChars, quoteChars, columnSuffix]
+      simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by
       intro leadingQuote
       cases rest with
@@ -248,28 +262,84 @@ theorem parseColumn_append (columnName : String)
           simp [endsColumn] at separator)]
     simp [separator]
   · have shape : columnChars
-        (⟨columnName, true, false, false⟩ : Core.Column) ++ rest
+        ({ name := columnName, notNull := true, integerPrimaryKey := false, textPrimaryKey := false } : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.toList ++ '"' :: (" NOT NULL".toList ++ rest)) := by
-      simp [columnChars, quoteChars, columnSuffix]
+      simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (consistent rfl) (by simp)
   · have shape : columnChars
-        (⟨columnName, true, false, true⟩ : Core.Column) ++ rest
+        ({ name := columnName, notNull := true, integerPrimaryKey := false, textPrimaryKey := true } : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.toList ++ '"' ::
           (" TEXT PRIMARY KEY".toList ++ rest)) := by
-      simp [columnChars, quoteChars, columnSuffix]
+      simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (consistent rfl) (by simp)
   · have shape : columnChars
-        (⟨columnName, true, true, false⟩ : Core.Column) ++ rest
+        ({ name := columnName, notNull := true, integerPrimaryKey := true, textPrimaryKey := false } : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.toList ++ '"' :: (" INTEGER PRIMARY KEY".toList ++ rest)) := by
-      simp [columnChars, quoteChars, columnSuffix]
+      simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
   · exact absurd (exclusive rfl) (by simp)
   · exact absurd (exclusive rfl) (by simp)
+
+private theorem separator_not_quote {rest : List Char} (separator : endsColumn rest = true) :
+    rest.head? ≠ some '"' := by
+  cases rest with
+  | nil => simp
+  | cons c rest =>
+      intro equal
+      have : c = '"' := by simpa using equal
+      subst c
+      simp [endsColumn] at separator
+
+theorem parseColumn_typed_append (name typeName : String) (notNull : Bool)
+    (nonempty : typeName.isEmpty = false) (rest : List Char)
+    (separator : endsColumn rest = true) :
+    parseColumn (columnChars { name, notNull, declaredType := typeName } ++ rest) =
+      some ({ name, notNull, declaredType := typeName }, rest) := by
+  cases notNull
+  · have shape : columnChars { name, notNull := false, declaredType := typeName } ++ rest =
+        '"' :: (escapeIdent name.toList ++ '"' :: ' ' :: '"' ::
+          (escapeIdent typeName.toList ++ '"' :: rest)) := by
+      simp [columnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
+    rw [shape]
+    simp only [parseColumn]
+    rw [takeIdent_escape _ _ (by simp)]
+    change parseTypedColumn name.toList (escapeIdent typeName.toList ++ '"' :: rest) = _
+    unfold parseTypedColumn
+    rw [takeIdent_escape _ _ (separator_not_quote separator)]
+    simp [separator, bind, Option.bind]
+  · have shape : columnChars { name, notNull := true, declaredType := typeName } ++ rest =
+        '"' :: (escapeIdent name.toList ++ '"' :: ' ' :: '"' ::
+          (escapeIdent typeName.toList ++ '"' :: (" NOT NULL".toList ++ rest))) := by
+      simp [columnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
+    rw [shape]
+    simp only [parseColumn]
+    rw [takeIdent_escape _ _ (by simp)]
+    change parseTypedColumn name.toList
+      (escapeIdent typeName.toList ++ '"' :: (" NOT NULL".toList ++ rest)) = _
+    unfold parseTypedColumn
+    rw [takeIdent_escape _ _ (by simp)]
+    simp [endsColumn, stripPrefix, bind, Option.bind]
+
+theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
+    (consistent : (column.integerPrimaryKey || column.textPrimaryKey) = true → column.notNull = true)
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (separator : endsColumn rest = true) :
+    parseColumn (columnChars column ++ rest) = some (column, rest) := by
+  by_cases empty : column.declaredType = ""
+  · have equal : column = { name := column.name, notNull := column.notNull, integerPrimaryKey := column.integerPrimaryKey, textPrimaryKey := column.textPrimaryKey } := by cases column; simp_all
+    rw [equal]
+    exact parseColumn_append _ _ _ _ rest consistent exclusive separator
+  · have notPrimary : column.integerPrimaryKey = false ∧ column.textPrimaryKey = false := by
+      have h := column.primaryType
+      cases hi : column.integerPrimaryKey <;> cases ht : column.textPrimaryKey <;> simp_all
+    have equal : column = { name := column.name, notNull := column.notNull, declaredType := column.declaredType } := by cases column; simp_all
+    rw [equal]
+    exact parseColumn_typed_append _ _ _ (by simpa using empty) rest separator
 
 theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
     (suffix : List Char) →
@@ -283,25 +353,19 @@ theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
   | [c], fuel + 1, suffix, _, _, cons, exclusive => by
       have : columnsChars [c] = columnChars c := rfl
       rw [this]
-      have step := parseColumn_append c.name c.notNull c.integerPrimaryKey
-        c.textPrimaryKey
+      have step := parseColumn_any_append c
         (')' :: suffix)
         (cons c (by simp)) (exclusive c (by simp)) rfl
       simp only [parseColumns]
-      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey,
-        c.textPrimaryKey⟩ : Core.Column) = c from rfl] at step
       rw [step]
       rfl
   | c :: d :: cs, fuel + 1, suffix, _, bound, cons, exclusive => by
       have expand : columnsChars (c :: d :: cs)
           = columnChars c ++ ',' :: columnsChars (d :: cs) := rfl
       rw [expand, List.append_assoc]
-      have step := parseColumn_append c.name c.notNull c.integerPrimaryKey
-        c.textPrimaryKey
+      have step := parseColumn_any_append c
         (',' :: (columnsChars (d :: cs) ++ ')' :: suffix))
         (cons c (by simp)) (exclusive c (by simp)) rfl
-      rw [show (⟨c.name, c.notNull, c.integerPrimaryKey,
-        c.textPrimaryKey⟩ : Core.Column) = c from rfl] at step
       simp only [parseColumns]
       rw [show ',' :: columnsChars (d :: cs) ++ ')' :: suffix
             = ',' :: (columnsChars (d :: cs) ++ ')' :: suffix) from rfl] at *

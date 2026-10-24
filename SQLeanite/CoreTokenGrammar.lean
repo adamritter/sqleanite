@@ -199,8 +199,35 @@ mutual
           | .ok result => .ok result
           -- Parentheses may wrap the left operand, not the whole expression:
           -- (1+2)*3. Retry the AST node against the original token state.
-          | .error _ => matchExprCore fuel expression state
-        else matchExprCore fuel expression state
+          | .error _ => matchExprAlternative fuel expression state
+        else matchExprAlternative fuel expression state
+
+  private def matchExprAlternative (fuel : Nat) (expression : Expr) : MatchM Unit :=
+    fun state =>
+      let between : MatchM Unit := do
+        let (body, negated) := match expression with
+          | .unary .not body => (body, true)
+          | body => (body, false)
+        match body with
+        | .binary .and (.binary .ge left lower) (.binary .le repeated upper) =>
+            let start ← get
+            matchExprFuel fuel left
+            let afterLeft ← get
+            -- BETWEEN duplicates the left operand in the proposed AST.
+            -- Replay both occurrences against exactly the same source span.
+            set start
+            matchExprFuel fuel repeated
+            unless (← get).remaining == afterLeft.remaining do
+              mismatch "the same BETWEEN operand"
+            if negated then expectKeyword "not"
+            expectKeyword "between"
+            matchExprFuel fuel lower
+            expectKeyword "and"
+            matchExprFuel fuel upper
+        | _ => mismatch "a BETWEEN expression"
+      match between state with
+      | .ok result => .ok result
+      | .error _ => matchExprCore fuel expression state
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value => expectLiteral value
@@ -363,7 +390,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
     else
       scanning := false
   unless sawNotNull == column.notNull && sawPrimary == column.primaryKey &&
-      sawCollation == (column.collation.toLower != "binary") do
+      (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 
 private def matchColumn (column : ColumnDef) : MatchM Unit := do
@@ -676,6 +703,21 @@ theorem Parses.agrees_parse {sql : String} {statements : Array Statement}
     (parsed : Parses sql statements) : parse sql = .ok statements := by
   rcases parsed with ⟨certificate, success, rfl⟩
   exact parseCertified_agrees_parse success
+
+/-- Production callers that only need the AST still pass through certificate
+construction. This closes the gap between CoreSQL.execute and the file/CLI
+fast paths, which previously called the broad parser directly. -/
+def parseStatements (sql : String) : Except String (Array Statement) :=
+  (·.statements) <$> parseCertified sql
+
+theorem parseStatements_certified {sql : String} {statements : Array Statement}
+    (success : parseStatements sql = .ok statements) : Parses sql statements := by
+  unfold parseStatements at success
+  cases parsed : parseCertified sql with
+  | error message => simp [parsed, Functor.map, Except.map] at success
+  | ok certificate =>
+      simp [parsed, Functor.map, Except.map] at success
+      exact ⟨certificate, parsed, success⟩
 
 end CoreTokenGrammar
 end SQLeanite

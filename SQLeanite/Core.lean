@@ -1,5 +1,6 @@
 import SQLeanite.PhysicalCodec
 import SQLeanite.PersistentPageTree
+import SQLeanite.SQLite.PhysicalAffinity
 import Std.Data.TreeMap.Lemmas
 
 namespace SQLeanite
@@ -18,7 +19,18 @@ structure Column where
   /-- A non-aliasing SQLite primary key. Unlike `INTEGER PRIMARY KEY`, this
   column remains in the record payload and is backed by an automatic index. -/
   textPrimaryKey : Bool := false
+  /-- Non-primary declared type. Primary columns use the fixed INTEGER/TEXT
+  declarations carried by their flags. Keeping this invariant in the value
+  makes canonical schema printing invertible for every admitted Column. -/
+  declaredType : String := ""
+  primaryType : (integerPrimaryKey || textPrimaryKey) = true → declaredType = "" := by
+    simp_all
   deriving DecidableEq, Repr
+
+def Column.affinity (column : Column) : SQLite.Affinity :=
+  if column.integerPrimaryKey then .integer
+  else if column.textPrimaryKey then .text
+  else SQLite.typeAffinity column.declaredType
 
 structure Schema where
   name : String
@@ -175,18 +187,46 @@ theorem Value.compareOn_orderKey_eq {left right : Value} :
     congrArg Value.orderKey⟩
 
 def columnAccepts (column : Column) (value : Value) : Prop :=
-  column.notNull = true → value ≠ .null
+  (column.notNull = true → value ≠ .null) ∧
+    SQLite.PhysicalAffinity.accepts column.affinity value = true
 
 instance (column : Column) (value : Value) : Decidable (columnAccepts column value) :=
   by unfold columnAccepts; infer_instance
 
 def columnAcceptsBool (column : Column) (value : Value) : Bool :=
-  !column.notNull || value != .null
+  (!column.notNull || value != .null) && SQLite.PhysicalAffinity.accepts column.affinity value
 
 theorem columnAcceptsBool_iff (column : Column) (value : Value) :
     columnAcceptsBool column value = true ↔ columnAccepts column value := by
   unfold columnAcceptsBool columnAccepts
   cases notNull : column.notNull <;> simp_all
+
+theorem columnRead_eq_self {column : Column} {value : Value}
+    (accepted : columnAcceptsBool column value = true) :
+    SQLite.PhysicalAffinity.read column.affinity value = value :=
+  SQLite.PhysicalAffinity.read_eq_self ((columnAcceptsBool_iff _ _).mp accepted).2
+
+theorem columnComparison_eq_self {column : Column} {value : Value}
+    (accepted : columnAcceptsBool column value = true) :
+    SQLite.PhysicalAffinity.comparison column.affinity value = value :=
+  SQLite.PhysicalAffinity.comparison_eq_self ((columnAcceptsBool_iff _ _).mp accepted).2
+
+def readColumnValues : List Column → List Value → List Value
+  | column :: columns, value :: values =>
+      SQLite.PhysicalAffinity.read column.affinity value :: readColumnValues columns values
+  | _, values => values
+
+theorem readColumnValues_eq_self (columns : List Column) (values : List Value)
+    (accepted : (columns.zip values).all (fun pair => columnAcceptsBool pair.1 pair.2) = true) :
+    readColumnValues columns values = values := by
+  induction columns generalizing values with
+  | nil => rfl
+  | cons column columns induction =>
+      cases values with
+      | nil => rfl
+      | cons value values =>
+          simp only [List.zip_cons_cons, List.all_cons, Bool.and_eq_true] at accepted
+          simp only [readColumnValues, columnRead_eq_self accepted.1, induction values accepted.2]
 
 def Row.WellFormed (schema : Schema) (row : Row) : Prop :=
   row.values.length = schema.columns.length ∧

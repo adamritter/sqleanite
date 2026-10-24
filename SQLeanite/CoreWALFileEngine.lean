@@ -74,7 +74,7 @@ def execute (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) (sql : String) :
     IO (Except String (List Core.Result)) := do
   let database ← CoreWALFileAdapter.reopen paths
-  match parse sql with
+  match CoreTokenGrammar.parseStatements sql with
   | .error message => return .error message
   | .ok statements =>
       let (_, result) ← runStatements syncOps paths

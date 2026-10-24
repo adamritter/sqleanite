@@ -142,7 +142,7 @@ materializing the complete database merely because the input contains more
 than one SELECT. -/
 def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
     IO (Option (Except String (List Core.Result))) := do
-  let .ok statements := parse sql | return none
+  let .ok statements := CoreTokenGrammar.parseStatements sql | return none
   let statementList := statements.toList
   if statementList.isEmpty then return none
   let some results ← executeReadStatements? paths statementList |

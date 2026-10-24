@@ -136,6 +136,30 @@ def truth : Value → Truth
   | .null => .unknown
   | v => if real v == 0.0 then .false else .true
 
+/-- vdbemem.c: sqlite3VdbeIntegerAffinity. The extreme integers are excluded
+from the round-trip test, avoiding the rounded Int64.max = 2^63 trap. -/
+def integerAffinity (r : Float) : Value :=
+  let i := realToInteger r
+  if !r.isNaN && r == Float.ofInt i && minInt < i && i < maxInt then .integer i
+  else .real r
+
+/-- vdbe.c: applyNumericAffinity / alsoAnInt. Invalid numeric text and BLOBs
+remain unchanged; decimal/exponent spelling can still yield an INTEGER. -/
+def applyAffinity : Value → Value
+  | v@(.text source) =>
+      let p := parsePrefix source
+      if !p.completeToNul then v
+      else
+        let r := realPrefix source
+        let i := realToInteger r
+        let same := r == 0.0 || (r == Float.ofInt i &&
+          -2251799813685248 ≤ i && i < 2251799813685248)
+        if !p.floating && (same || (p.complete && p.integerFits)) then
+          .integer (if same then i else integerPrefix source)
+        else integerAffinity r
+  | .real r => integerAffinity r
+  | v => v
+
 theorem fits_iff (i : Int) : fits i = true ↔ minInt ≤ i ∧ i ≤ maxInt := by
   simp [fits]
 
