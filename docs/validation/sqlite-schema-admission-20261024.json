@@ -1,0 +1,26 @@
+{
+  "seed": 353612,
+  "random_cases": 300,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "cases": 326,
+      "passed": 326,
+      "matching_errors": 241,
+      "noops": 36
+    },
+    {
+      "mode": "--verified-wal-file",
+      "cases": 326,
+      "passed": 326,
+      "matching_errors": 241,
+      "noops": 36
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "4df6f624a3645e30e934c6ec0bde45f346f1c7b82ecbc55fa97b36a73a0aad2c",
+  "executable_sha256": "99394083f4df9c5ddcd3fe285968df297fe00e24ca3b5a6475f0dcb6d389418b",
+  "harness_sha256": "5303ce9344a7503274129d025b53064f2e7570c124081939156f67e649fa2a80",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Check ordinary table/index creation names and IF NOT EXISTS with SQLite.\n\nEvery case starts independently using implicit-rowid tables. Compare acceptance and complete table/index\ncatalog identity plus independent SQLite integrity. Errors and no-ops preserve\nthe original main/WAL bytes. Table constraints and qualified schema names are\noutside this focused corpus and are not inferred to be compatible."
+}

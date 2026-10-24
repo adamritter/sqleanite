@@ -1,0 +1,819 @@
+{
+  "seed": 353610,
+  "random_cases": 20,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "cases": 46,
+      "passed": 15,
+      "matching_errors": 7,
+      "noops": 0
+    },
+    {
+      "mode": "--verified-wal-file",
+      "cases": 46,
+      "passed": 15,
+      "matching_errors": 7,
+      "noops": 0
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS ix(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE ix(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX t ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX IF NOT EXISTS t ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX ix ON other(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: index ix already exists\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON other(v);",
+      "kind": "SQLite reader",
+      "error": "malformed database schema (ix) - index ix already exists"
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS ix ON t(missing);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON t(unknown_function(v));",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: unsupported general verified-MVP SQL: index expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON t(v) WHERE missing;",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: unsupported general verified-MVP SQL: partial index\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX ir ON t(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  CREATE INDEX ir ON t(rowid);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX ir ON t(oid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: oid\n  CREATE INDEX ir ON t(oid);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX ir ON t(_rowid_);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: _rowid_\n  CREATE INDEX ir ON t(_rowid_);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX iq ON t(t.v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: the \".\" operator prohibited in index expressions\n  CREATE INDEX iq ON t(t.v);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX iq ON t(wrong.v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: wrong.v\n  CREATE INDEX iq ON t(wrong.v);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE sqlite_x(a);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS sqlite_x(a);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX sqlite_x ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX IF NOT EXISTS sqlite_x ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "BEGIN;CREATE TABLE IF NOT EXISTS t(v);ROLLBACK;",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE INDEX t ON t(id);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS fresh76 ON other(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  REATE UNIQUE INDEX IF NOT EXISTS fresh76 ON other(rowid);\n                                      error here ---^\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE UNIQUE INDEX t ON other(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE sqlite_90(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_90\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE ix(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS fresh47 ON t(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  CREATE UNIQUE INDEX IF NOT EXISTS fresh47 ON t(rowid);\n                                   error here ---^\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS other(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: other\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE sqlite_74(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_74\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE sqlite_64(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_64\n"
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS ix(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE ix(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX t ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX IF NOT EXISTS t ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX ix ON other(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: index ix already exists\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON other(v);",
+      "kind": "SQLite reader",
+      "error": "malformed database schema (ix) - index ix already exists"
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS ix ON t(missing);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON t(unknown_function(v));",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: unsupported general verified-MVP SQL: index expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX IF NOT EXISTS ix ON t(v) WHERE missing;",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: unsupported general verified-MVP SQL: partial index\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX ir ON t(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  CREATE INDEX ir ON t(rowid);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX ir ON t(oid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: oid\n  CREATE INDEX ir ON t(oid);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX ir ON t(_rowid_);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: _rowid_\n  CREATE INDEX ir ON t(_rowid_);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX iq ON t(t.v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: the \".\" operator prohibited in index expressions\n  CREATE INDEX iq ON t(t.v);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX iq ON t(wrong.v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: wrong.v\n  CREATE INDEX iq ON t(wrong.v);\n                       ^--- error here\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE sqlite_x(a);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS sqlite_x(a);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX sqlite_x ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX IF NOT EXISTS sqlite_x ON t(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_x\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;CREATE TABLE IF NOT EXISTS t(v);ROLLBACK;",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE INDEX t ON t(id);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS fresh76 ON other(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  REATE UNIQUE INDEX IF NOT EXISTS fresh76 ON other(rowid);\n                                      error here ---^\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE UNIQUE INDEX t ON other(v);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already a table named t\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE sqlite_90(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_90\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE ix(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: there is already an index named ix\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS fresh47 ON t(rowid);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: no such column: rowid\n  CREATE UNIQUE INDEX IF NOT EXISTS fresh47 ON t(rowid);\n                                   error here ---^\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS other(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: other\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE sqlite_74(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_74\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE sqlite_64(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 0,
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stderr": "Parse error near line 1: object name reserved for internal use: sqlite_64\n"
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE IF NOT EXISTS t(v INTEGER);",
+      "kind": "acceptance",
+      "lean": {
+        "code": 1,
+        "stderr": "Error: table already exists: t\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "666d6cc22383902dcd3a84e029b99a6e9ef891cd7c95a9ec030a758214b8ded3",
+  "executable_sha256": "015720dd038cee852bcca9a0198bbb50c882aed779e4eb7804d2de04d4c805fa",
+  "harness_sha256": "5303ce9344a7503274129d025b53064f2e7570c124081939156f67e649fa2a80",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Check ordinary table/index creation names and IF NOT EXISTS with SQLite.\n\nEvery case starts independently using implicit-rowid tables. Compare acceptance and complete table/index\ncatalog identity plus independent SQLite integrity. Errors and no-ops preserve\nthe original main/WAL bytes. Table constraints and qualified schema names are\noutside this focused corpus and are not inferred to be compatible."
+}

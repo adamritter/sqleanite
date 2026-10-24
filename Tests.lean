@@ -3960,6 +3960,32 @@ private def expectPageSizeConversionFailures : IO Unit := do
     let reopened ← CoreFileAdapter.reopen paths
     unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
 
+private def expectSQLiteSchemaAdmission : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER,v);CREATE TABLE other(v);CREATE INDEX ix ON t(v);CREATE TABLE shadow(rowid);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  for sql in ["CREATE TABLE IF NOT EXISTS t(v TEXT);",
+      "CREATE INDEX IF NOT EXISTS ix ON other(missing);",
+      "CREATE UNIQUE INDEX IF NOT EXISTS ix ON t(unknown_function(v));",
+      "CREATE INDEX IF NOT EXISTS ix ON t(v) WHERE missing;"] do
+    let (next, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"schema no-op: {sql}: {message}"
+    unless next.database.Equiv initial.database do fail s!"schema no-op changed database: {sql}"
+    unless results.length == 1 && results.all (fun r => r.changes == 0 && r.rows.isEmpty) do
+      fail s!"schema no-op changed result: {sql}"
+  for sql in ["CREATE TABLE IF NOT EXISTS ix(v);", "CREATE INDEX IF NOT EXISTS t ON t(v);",
+      "CREATE INDEX ix ON other(v);", "CREATE INDEX IF NOT EXISTS ix ON missing(v);",
+      "CREATE TABLE sqlite_x(v);", "CREATE INDEX sqlite_x ON t(v);",
+      "CREATE INDEX ir ON t(rowid);", "CREATE INDEX iq ON t(t.v);"] do
+    match CoreSQL.execute initial sql with
+    | .ok _ => fail s!"invalid schema admitted: {sql}"
+    | .error _ => pure ()
+  match CoreSQL.execute initial "CREATE INDEX ir ON shadow(rowid);" with
+  | .ok _ => pure ()
+  | .error message => fail s!"real rowid-named column rejected: {message}"
+
 private def expectSQLiteUniqueIndexes : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a,b TEXT); INSERT INTO t VALUES(1,1,'a'),(2,2,'b'),(3,NULL,NULL),(4,NULL,NULL); CREATE UNIQUE INDEX ua ON t(a); CREATE UNIQUE INDEX ub ON t(b);"
   let cases : List (String × List (List Value)) := [
@@ -4516,6 +4542,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite schema namespace and IF NOT EXISTS", expectSQLiteSchemaAdmission),
   ("SQLite UNIQUE indexes and multi-key replacement", expectSQLiteUniqueIndexes),
   ("SQLite LIKE GLOB ESCAPE and permissive UTF-8", expectSQLitePatterns),
   ("SQLite round fixed-decimal and integral paths", expectSQLiteRound),

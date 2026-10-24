@@ -231,6 +231,17 @@ else
   fail "UNIQUE constraints detached from production writes or their proof"
 fi
 
+if grep -q 'prepareCreateTable state name ifNotExists' SQLeanite/CoreSQL.lean &&
+   grep -q 'prepareCreateIndex state name ifNotExists' SQLeanite/CoreSQL.lean &&
+   grep -q '!CoreSQL.schemaNoop current statement' SQLeanite/CoreFileEngine.lean &&
+   grep -q '!CoreSQL.schemaNoop state statement' SQLeanite/CoreWALFileEngine.lean &&
+   grep -q 'CoreSQL.executeStatement_createTable_noop' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.executeStatement_createIndex_noop' SQLeanite/ProofAxioms.lean; then
+  ok "schema admission and IF NOT EXISTS no-ops preserve the live file paths"
+else
+  fail "schema no-op guards detached from execution or persistence"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

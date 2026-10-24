@@ -1,0 +1,108 @@
+{
+  "seed": 353613,
+  "random_cases": 60,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": false,
+      "origin": "lean",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 42
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": false,
+      "origin": "sqlite-512",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 36
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": false,
+      "origin": "sqlite-4096",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 41
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": true,
+      "origin": "lean",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 40
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": true,
+      "origin": "sqlite-512",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 35
+    },
+    {
+      "mode": "--verified-file",
+      "explicit_primary_key": true,
+      "origin": "sqlite-4096",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 37
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": false,
+      "origin": "lean",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 39
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": false,
+      "origin": "sqlite-512",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 31
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": false,
+      "origin": "sqlite-4096",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 30
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": true,
+      "origin": "lean",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 32
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": true,
+      "origin": "sqlite-512",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 37
+    },
+    {
+      "mode": "--verified-wal-file",
+      "explicit_primary_key": true,
+      "origin": "sqlite-4096",
+      "statements": 89,
+      "passed": 89,
+      "matching_errors": 34
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "4df6f624a3645e30e934c6ec0bde45f346f1c7b82ecbc55fa97b36a73a0aad2c",
+  "executable_sha256": "99394083f4df9c5ddcd3fe285968df297fe00e24ca3b5a6475f0dcb6d389418b",
+  "harness_sha256": "50732bdc2565711ff4e54d67e17da6cc2513ba3ad197af06b041616b524fd029",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare explicit single-column UNIQUE index constraints and file interchange.\n\nEach statement starts from a separate fixture. Both journal modes read Lean\nand SQLite origins (512/4096 bytes), explicit/implicit rowids, two unique keys,\nNULLs and mixed storage classes. Check rows, schema uniqueness flags, independent\nSQLite integrity and unchanged main/WAL bytes on failed statements."
+}

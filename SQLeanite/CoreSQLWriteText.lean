@@ -25,6 +25,7 @@ inductive TranslatedWrite (state : Core.State) :
   | createTable (name : String) (columns : Array ColumnDef)
       (constraints : Array TableConstraintDef) (ifNotExists : Bool)
       (schema : Core.Schema)
+      (ready : CoreSQL.prepareCreateTable state name ifNotExists = .ok true)
       (translated : CoreSQL.schema name columns constraints = .ok schema) :
       TranslatedWrite state
         (.createTable name columns constraints ifNotExists)
@@ -32,10 +33,11 @@ inductive TranslatedWrite (state : Core.State) :
   | createIndex (name table : String) (expression : Expr)
       (ifNotExists : Bool) (stored : Core.Table) (columnName : String)
       (columnIndex : Nat)
+      (ready : CoreSQL.prepareCreateIndex state name ifNotExists = .ok true)
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
       (expressionName : CoreSQL.indexColumnName? expression = some columnName)
-      (columnFound : CoreSQL.column stored.schema columnName = .ok columnIndex) :
+      (columnFound : CoreSQL.indexColumn stored.schema columnName = .ok columnIndex) :
       TranslatedWrite state
         (.createIndex name table #[expression] false none ifNotExists)
         (.createIndex (CoreSQL.canonical table)
@@ -94,13 +96,13 @@ theorem executeStatement_eq_core
     CoreSQL.executeStatement state statement =
       oneResult (Core.execute state command.toCore) := by
   cases translated with
-  | createTable name columns constraints ifNotExists schema translation =>
-      simp [CoreSQL.executeStatement, translation,
+  | createTable name columns constraints ifNotExists schema ready translation =>
+      simp [CoreSQL.executeStatement, ready, translation,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | createIndex name table expression ifNotExists stored columnName
-      columnIndex found expressionName columnFound =>
-      simp [CoreSQL.executeStatement, found, expressionName, columnFound,
+      columnIndex ready found expressionName columnFound =>
+      simp [CoreSQL.executeStatement, ready, found, expressionName, columnFound,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | insert table columns expressions conflict allowed stored values found

@@ -117,6 +117,13 @@ def column (schema : Core.Schema) (name : String) : Except String Nat :=
   | some index => .ok index
   | none => .error s!"no such column: {name}"
 
+/-- CREATE INDEX cannot name an implicit rowid alias. A real column with
+that spelling is still permitted. -/
+def indexColumn (schema : Core.Schema) (name : String) : Except String Nat :=
+  match schema.catalogColumns.findIdx? (fun column => column.name == canonical name) with
+  | some index => .ok index
+  | none => .error s!"no such column: {name}"
+
 def columnRef? : Expr → Option (Option String × String)
   | .column qualifier name => some (qualifier, name)
   | _ => none
@@ -144,7 +151,7 @@ def comparisonPredicate (schema : Core.Schema)
     | none => unsupported "predicate expression"
 
 def indexColumnName? : Expr → Option String
-  | .column _ name => some name
+  | .column none name => some name
   | .call "lean_dqs" #[.literal (.text name)] false => some name
   | _ => none
 
@@ -1303,23 +1310,55 @@ def replaceUniqueRows (state : Core.State) (table : String)
       let (finalState, results) ← replaceUniqueRows next table schema columns rows
       return (finalState, { changes := 1 } :: results)
 
+def indexNameExists (state : Core.State) (name : String) : Bool :=
+  state.database.tables.any fun table => table.indexes.any fun index => index.name == canonical name
+
+def prepareCreateTable (state : Core.State) (name : String) (ifNotExists : Bool) :
+    Except String Bool := do
+  if (canonical name).startsWith "sqlite_" then throw s!"object name reserved for internal use: {name}"
+  if (state.database.findTable? (canonical name)).isSome then
+    if ifNotExists then return false else throw s!"table already exists: {name}"
+  if indexNameExists state name then throw s!"there is already an index named {name}"
+  return true
+
+/-- The target table must already have been resolved before checking the
+index name. Existing indexes skip expression binding under IF NOT EXISTS. -/
+def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool) :
+    Except String Bool := do
+  if (canonical name).startsWith "sqlite_" then throw s!"object name reserved for internal use: {name}"
+  if (state.database.findTable? (canonical name)).isSome then
+    throw s!"there is already a table named {name}"
+  if indexNameExists state name then
+    if ifNotExists then return false else throw s!"index already exists: {name}"
+  return true
+
+/-- A successful schema no-op must also skip physical publication. -/
+def schemaNoop (state : Core.State) : Statement → Bool
+  | .createTable name _ _ ifNotExists => (prepareCreateTable state name ifNotExists).toOption == some false
+  | .createIndex name table _ _ _ ifNotExists =>
+      (state.database.findTable? (canonical table)).isSome &&
+        (prepareCreateIndex state name ifNotExists).toOption == some false
+  | _ => false
+
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
-  | .createTable name columns constraints _ => do
+  | .createTable name columns constraints ifNotExists => do
+      unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       executeCommand state (.createTable (← schema name columns constraints))
-  | .createIndex name table expressions unique where_ _ => do
+  | .createIndex name table expressions unique where_ ifNotExists => do
+      let tableName := canonical table
+      let stored ← match state.database.findTable? tableName with
+        | some stored => .ok stored
+        | none => .error s!"no such table: {table}"
+      unless ← prepareCreateIndex state name ifNotExists do return (state, [{}])
       if where_.isSome then unsupported "partial index"
       else
-        let tableName := canonical table
-        let stored ← match state.database.findTable? tableName with
-          | some stored => .ok stored
-          | none => .error s!"no such table: {table}"
         let columnName ← match expressions.toList with
           | [expression] => match indexColumnName? expression with
             | some name => .ok name
             | none => unsupported "index expression"
           | _ => unsupported "index expression"
-        let columnIndex ← column stored.schema columnName
+        let columnIndex ← indexColumn stored.schema columnName
         executeCommand state (.createIndex tableName {
           name := canonical name, column := columnIndex, unique })
   | .insert table columns rows conflict => do
@@ -1366,6 +1405,19 @@ def executeStatement (state : Core.State) :
   | .commit => executeCommand state .commit
   | .rollback => executeCommand state .rollback
   | _ => unsupported "statement"
+
+theorem executeStatement_createTable_noop (state : Core.State) (name : String)
+    (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)
+    (skipped : prepareCreateTable state name ifNotExists = .ok false) :
+    executeStatement state (.createTable name columns constraints ifNotExists) = .ok (state, [{}]) := by
+  simp [executeStatement, skipped, bind, Except.bind, pure, Except.pure]
+
+theorem executeStatement_createIndex_noop (state : Core.State) (name table : String)
+    (expressions : Array Expr) (unique : Bool) (where_ : Option Expr) (ifNotExists : Bool)
+    (stored : Core.Table) (found : state.database.findTable? (canonical table) = some stored)
+    (skipped : prepareCreateIndex state name ifNotExists = .ok false) :
+    executeStatement state (.createIndex name table expressions unique where_ ifNotExists) = .ok (state, [{}]) := by
+  simp [executeStatement, found, skipped, bind, Except.bind, pure, Except.pure]
 
 def runStatements : Core.State → List Statement →
     Except String (Core.State × List Core.Result)

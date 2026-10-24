@@ -186,7 +186,7 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
 
 private def persistIfNeeded (connection : Connection) (current next : Core.State)
     (statement : Statement) : IO Core.State := do
-  if requiresPersistence current statement then
+  if requiresPersistence current statement && !CoreSQL.schemaNoop current statement then
     match ← persistWideInsert? connection current statement with
     | some persisted => return persisted
     | none => pure ()

@@ -1093,3 +1093,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.uniqueValueConflict_null_left
 #print axioms SQLeanite.Core.uniqueValueConflict_null_right
 #print axioms SQLeanite.Core.Table.insertValues_unique
+
+#print axioms SQLeanite.CoreSQL.executeStatement_createTable_noop
+#print axioms SQLeanite.CoreSQL.executeStatement_createIndex_noop

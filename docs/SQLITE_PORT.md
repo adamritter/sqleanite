@@ -933,3 +933,35 @@ Multi-column, partial and expression indexes, column/table UNIQUE declarations,
 non-BINARY collations, other conflict policies and broader schema-name rules
 remain separate work. Uniqueness checks currently scan logical rows; large
 unique-index creation can do quadratic comparison work.
+
+
+### Schema namespace, index bindings and no-op creation (2026-10-24)
+
+CREATE TABLE/INDEX now checks the shared table/index namespace, index names
+across tables, and reserved sqlite_ object names. IF NOT EXISTS returns the
+unchanged state for an existing object of the appropriate kind. Index creation
+resolves its target table before the name check, then skips expression binding
+for an existing index, matching SQLite's missing-table/missing-column distinction.
+Index column binding admits actual columns only: implicit rowid aliases and
+qualified index operands are rejected, while real rowid-named columns work.
+Both file engines skip publication for successful schema no-ops.
+
+The initial diagnostic found **62 discrepancies in 92 cases**, including
+accepted namespace collisions which produced invalid catalog images. That
+negative report remains in
+`docs/validation/sqlite-schema-admission-negative-20261024.json`.
+At frozen Lean/Main SHA-256
+`4df6f624a3645e30e934c6ec0bde45f346f1c7b82ecbc55fa97b36a73a0aad2c`,
+fresh seed 353612 passed **652 cases**, including **482 matching errors** and
+**72 no-ops**, across both file modes. Independent SQLite readers check exact
+object identities, table/index metadata and integrity. Main/WAL bytes are
+unchanged after errors and no-ops. The corpus uses implicit-rowid tables; it
+makes no claim about table-constraint or qualified-schema syntax. Seed 353613
+also passed **1,068 UNIQUE regressions**, including **434 matching errors**.
+Reports are `docs/validation/sqlite-schema-admission-20261024.json` and
+`docs/validation/sqlite-schema-unique-regression-20261024.json`.
+Full build, **183 executable tests**, **994 registered headline theorems** and
+both audits passed. New component theorems identify the unchanged state/result
+of skipped table and index creation. Direct creation correspondence now states
+that name preparation admitted an actual creation. The existing diagnostic
+inventory remains at 8 explicit feature rejections, not a coverage percentage.
