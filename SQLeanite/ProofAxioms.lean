@@ -1211,3 +1211,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregateOrdering.sameOrdering_nil
 
 #print axioms SQLeanite.SQLite.FunctionSignatures.matchesArity_exact
+
+#print axioms SQLeanite.SQLite.Math.numeric_integer
+#print axioms SQLeanite.SQLite.Math.rounding_integer
+#print axioms SQLeanite.SQLite.Math.unary_null

@@ -2117,3 +2117,51 @@ signature arity. The sorter materializes inputs; no performance/scaling claim
 is made. Window execution and broader SQL coverage remain incomplete. Native
 code and its nine-binding audit boundary are unchanged. Reports use
 `sqlite-aggregate-internal-order-*20261024.json` under `docs/validation/`.
+
+## Mathematical scalar functions (2026-10-24)
+
+The public scalar path implements the pinned ENABLE_MATH_FUNCTIONS registry:
+29 names and 30 arities, including integer-preserving ceil/ceiling/floor/trunc,
+trigonometric and hyperbolic functions, powers, logarithms, square root, radians,
+degrees, pi and floating-point mod. Function preparation validates arity and
+names independently of whether the expression executes.
+
+The numeric-type conversion preserves REAL inputs and floating-point TEXT
+spelling, rejects BLOB and malformed numeric text, and handles embedded NULs
+like sqlite3_value_numeric_type. The two-argument log follows the actual pinned
+func.c behavior: bases at or below one are rejected and the second argument
+uses the permissive double conversion, including numeric prefixes and BLOBs.
+NaN results become NULL; valid infinities and signed zeros are preserved.
+
+Rounding clears binary64 fraction bits and adjusts the magnitude when required.
+MOD aligns the exact dyadic significands, computes a Nat remainder and rescales
+it by an exact power of two, covering subnormal values without a quotient-rounding
+approximation. Transcendentals use Lean's existing standard-library Float/libm
+operations. This introduces no project-native binding or SQLite delegation, but
+those opaque standard-library functions are not formally verified here. Matching
+on the tested host does not establish bit equivalence across all libm platforms.
+
+Baseline seed 353900 at source 88ac8e03532de20269e94efe192c1bdce471431dfaaeffc28684446ff29152f4
+records 5,668 differences, including two failed bulk writes, across 5,778 read
+queries. Development 353901 passes 6,138 read outcomes and 5,922 stored values.
+Final source is
+`6f1fb1df2ecfa1e81c2cc24582b62919108cd9a4f6633ada9ebc789a3267f919`.
+Fresh seed 353902 passes **10,538 read outcomes**, including **112 matching
+positive error statuses**, and **10,322 stored values**. The expanded corpus
+includes random finite binary64 bit patterns for rounding and MOD, moderate
+and wide-exponent transcendental inputs, domain boundaries and storage types.
+Both file modes compare exact CLI bytes and preserve main/WAL bytes on reads.
+Stored results compare storage class, binary64 bits and raw bytes, with successful
+integrity checks, using Python SQLite 3.45.1 only as the independent file observer;
+the result oracle remains the pinned SQLite 3.53.4 CLI. The fresh bulk phase uses
+an explicit transaction; the earlier development phase used individual commits.
+Exact error codes/messages and exhaustive input coverage are not claimed.
+
+The existing scalar regression passes 1,121 stored expressions and six error
+cases. All 211 executable tests, the 282-job build, 1,076 registered headline
+proofs, verification audit and live-path audit pass. Reverse-file validation
+passes 61 accepted cells and two declared unsupported shapes. New component
+proofs cover numeric INTEGER preservation, rounding INTEGER preservation and
+NULL unary results, not complete numerical equivalence. The nine project-native
+bindings and their audit list remain unchanged. Evidence uses
+`sqlite-math-*20261024.json` under `docs/validation/`.

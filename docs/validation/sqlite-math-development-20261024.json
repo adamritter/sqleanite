@@ -1,0 +1,25 @@
+{
+  "seed": 353901,
+  "random_cases": 200,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 3069,
+      "matching_errors": 56,
+      "stored_values": 2961
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 3069,
+      "matching_errors": 56,
+      "stored_values": 2961
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "6f1fb1df2ecfa1e81c2cc24582b62919108cd9a4f6633ada9ebc789a3267f919",
+  "executable_sha256": "9244dbd176a33aabeabb50f1cfbfe4b0175812fb8d4ce12ff6a35ddbe9b8d875",
+  "harness_sha256": "ec1e2166ac834a9e65064f8f82a68959b6ec84662f11e6f1c19d14a933cd99f7",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare the pinned SQLite math-function behavior in both live file modes.\n\nRead queries compare exact CLI bytes and positive error status, preserving\nmain/WAL bytes. A separate bulk write compares storage classes, binary64 bits\nand raw bytes using Python SQLite only as an independent file observer, and\nrequires integrity_check. This is bounded numerical evidence, not a proof of\ntranscendental equivalence on every platform or every binary64 input.",
+  "observer_sqlite_version": "3.45.1"
+}

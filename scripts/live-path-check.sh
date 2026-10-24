@@ -185,6 +185,15 @@ else
 fi
 
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
+if grep -q 'Math.evaluate? name args.toList' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Math.accepts n args.size' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Math.rounding_integer' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Math.unary_null' SQLeanite/ProofAxioms.lean; then
+  ok "SQLite math conversion and evaluation are on the public scalar path"
+else
+  fail "SQLite math conversion and evaluation are disconnected"
+fi
+
 if grep -q 'SQLite.UnicodeEscape.unistr v' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.UnicodeEscape.quote v' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'Text.checkedBytes (← decodeFuel' SQLeanite/SQLite/UnicodeEscape.lean &&

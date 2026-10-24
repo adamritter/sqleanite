@@ -4597,6 +4597,53 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteMath : IO Unit := do
+  let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT ceil(1.25),floor(-1.25),trunc(-1.75),ceiling(-0.5);",
+      [[.real 2.0, .real (-2.0), .real (-1.0), .real (-0.0)]]),
+    ("SELECT typeof(ceil('1')),typeof(ceil('1.0')),floor(9223372036854775807);",
+      [[.text "integer", .text "real", .integer 9223372036854775807]]),
+    ("SELECT ceil(CAST(X'31320078' AS TEXT)),typeof(ceil(CAST(X'312E300078' AS TEXT)));",
+      [[.integer 12, .text "real"]]),
+    ("SELECT log(2,'8x'),log(2,X'38'),log(0.5,8),log(1,8),ln(-1),sqrt(-1),pow(-1,0.5),mod(1,0);",
+      [[.real 3.0, .real 3.0, .null, .null, .null, .null, .null, .null]]),
+    ("SELECT mod(5.5,2),mod(-5.5,2),mod(5.5,-2),mod(1,1e999),mod(1e999,2);",
+      [[.real 1.5, .real (-1.5), .real 1.5, .real 1.0, .null]]),
+    ("SELECT acos(1),asin(0),atan(0),atan2(0,1),acosh(1),asinh(0),atanh(0);",
+      [[.real 0.0, .real 0.0, .real 0.0, .real 0.0, .real 0.0, .real 0.0, .real 0.0]]),
+    ("SELECT cos(0),cosh(0),sin(0),sinh(0),tan(0),tanh(0),exp(0),ln(1);",
+      [[.real 1.0, .real 1.0, .real 0.0, .real 0.0, .real 0.0, .real 0.0, .real 1.0, .real 0.0]]),
+    ("SELECT log(100),log2(8),log10(1000),sqrt(9),pow(2,3),power(2,3),degrees(pi()),radians(180)=pi();",
+      [[.real 2.0, .real 3.0, .real 3.0, .real 3.0, .real 8.0, .real 8.0, .real 180.0, .integer 1]]),
+    ("SELECT ceil(NULL),sqrt(X'39'),sin('12tail'),ceil('NaN'),ln('Inf');",
+      [[.null, .null, .null, .null, .null]]),
+    ("SELECT sqrt(abs(-9223372036854775808)) FROM e;", []),
+    ("SELECT sqrt(abs(-9223372036854775808)) LIMIT 0;", []),
+    ("SELECT coalesce(7,sqrt(abs(-9223372036854775808)));", [[.integer 7]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"math functions: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"math function mismatch: {sql}"
+  for sql in ["SELECT sqrt(abs(-9223372036854775808));", "SELECT pi(1);", "SELECT log();",
+      "SELECT sqrt(missing) FROM e LIMIT 0;", "SELECT pow(1) FROM e LIMIT 0;",
+      "SELECT log(1,2,3);", "SELECT pi() FILTER(WHERE 1);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"math function error omitted: {sql}"
+  for (direction, value, expected) in [
+      (SQLite.Math.Direction.zero, -0.5, 0x8000000000000000),
+      (.up, -0.5, 0x8000000000000000), (.down, 0.5, 0),
+      (.zero, -0.0, 0x8000000000000000)] do
+    unless (SQLite.Math.roundFloat direction value).toBits == expected do fail "rounding lost signed zero"
+  for (left, right, expected) in [(-4.0, 2.0, 0x8000000000000000),
+      (-0.0, 1.0, 0x8000000000000000), (Float.ofBits 3, Float.ofBits 2, 1)] do
+    match SQLite.Math.remainder left right with
+    | .real value => unless value.toBits == expected do fail "remainder lost exact bits"
+    | _ => fail "remainder lost REAL type"
+
 private def expectSQLiteUnicodeEscape : IO Unit := do
   let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × List (List Value)) := [
@@ -5532,6 +5579,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite math functions and exact floating remainder", expectSQLiteMath),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),
   ("SQLite string aggregates", expectSQLiteStringAggregates),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
