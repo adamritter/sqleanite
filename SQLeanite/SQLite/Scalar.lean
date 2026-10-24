@@ -5,6 +5,7 @@ import SQLeanite.SQLite.Text
 import SQLeanite.SQLite.UnicodeEscape
 import SQLeanite.SQLite.Pattern
 import SQLeanite.SQLite.ExprCollation
+import SQLeanite.SQLite.Probability
 
 /-!
 Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
@@ -441,6 +442,7 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       star || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if Probability.recognizesName n then (Probability.input? n args).isSome
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -601,6 +603,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
     | .call name args false =>
         let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (boolValue truth)
+        else if let some argument := Probability.input? name args then eval argument
         else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
         else if n == "iif" || n == "if" then conditional eval args.toList
         else if ["min", "max", "nullif"].contains n then do
@@ -651,6 +654,12 @@ def testFuelWithConstants (lookup : Option String → String → Except String V
       if let some truth := staticTruth expression then
         return truth == wanted
       match expression with
+      | .collate argument _ => testFuelWithConstants lookup operandAffinity constant fuel wanted argument
+      | .call name arguments false =>
+          match Probability.input? name arguments with
+          | some argument => testFuelWithConstants lookup operandAffinity constant fuel wanted argument
+          | none => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
+              (if wanted then .true else .false)
       | .unary .not arg => testFuelWithConstants lookup operandAffinity constant fuel (!wanted) arg
       | .binary .and left right =>
           if wanted then

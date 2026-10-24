@@ -4467,6 +4467,44 @@ private def expectSQLiteWhereAliases : IO Unit := do
       "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
 
+private def expectSQLiteProbability : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);INSERT INTO t VALUES(1,'1'),(2,'2'),(3,NULL);" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,v TEXT);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT likely(NULL),unlikely(1.25),likelihood('x',0.5);", [[.null, .real 1.25, .text "x"]]),
+    ("SELECT id,likely(v)=1,unlikely(v) IN (1,2) FROM t ORDER BY id;",
+      [[.integer 1, .integer 0, .integer 0], [.integer 2, .integer 0, .integer 0], [.integer 3, .null, .null]]),
+    ("SELECT likely(CAST(1 AS TEXT))=1,unlikely(CAST(1 AS INTEGER))='1';", [[.integer 0, .integer 0]]),
+    ("SELECT likely(CAST(1 AS TEXT))='1',unlikely(CAST(1 AS INTEGER))=1;", [[.integer 1, .integer 1]]),
+    ("SELECT likelihood(7,0.0),likelihood(8,1.0),likelihood(9,(.5));", [[.integer 7, .integer 8, .integer 9]]),
+    ("SELECT likely(count(*)) AS x FROM t HAVING x>0;", [[.integer 3]]),
+    ("SELECT v,count(*) FROM t GROUP BY likely(1);", [[.text "1", .integer 3]]),
+    ("SELECT likely(0 AND abs(-9223372036854775808));", [[.integer 0]]),
+    ("SELECT unlikely(1 OR abs(-9223372036854775808));", [[.integer 1]]),
+    ("SELECT 1 WHERE likely(NULL AND abs(-9223372036854775808));", []),
+    ("SELECT 1 WHERE (NULL AND abs(-9223372036854775808)) COLLATE binary;", []),
+    ("SELECT 1 WHERE likely(1 OR abs(-9223372036854775808));", [[.integer 1]]),
+    ("SELECT likely(abs(-9223372036854775808)) FROM e;", []),
+    ("SELECT likely(abs(-9223372036854775808)) LIMIT 0;", []),
+    ("SELECT likely(abs(-9223372036854775808)) LIMIT 1 OFFSET 1;", []),
+    ("SELECT likelihood(DISTINCT 7,0.5);", [[.integer 7]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"probability hint: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"probability hint mismatch: {sql}"
+  for sql in ["SELECT likely(0) AND abs(-9223372036854775808);",
+      "SELECT likely(1) OR abs(-9223372036854775808);",
+      "SELECT 1 WHERE NOT likely(NULL AND abs(-9223372036854775808));",
+      "SELECT likelihood(1,0) LIMIT 0;", "SELECT likelihood(v,+0.5) FROM e;",
+      "SELECT likelihood(v,-0.0) FROM e;", "SELECT likelihood(v,0.5 COLLATE binary) FROM e;",
+      "SELECT likelihood(v,0.5+0.0) FROM e;", "SELECT 0 AND likelihood(1,0);",
+      "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
+
 private def expectSQLiteUnicodeEscape : IO Unit := do
   let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × List (List Value)) := [
@@ -5399,6 +5437,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
+  ("SQLite probability hints", expectSQLiteProbability),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),
   ("SQLite string aggregates", expectSQLiteStringAggregates),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),

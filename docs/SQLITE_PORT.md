@@ -1975,3 +1975,39 @@ quotation's equivalence to QUOTE. Near-gigabyte allocation behavior is not
 empirically tested. Native code and its nine-binding audit boundary remain
 unchanged. Reports use `sqlite-unicode-escape-*20261024.json` under
 `docs/validation/`; these are bounded function results, not full SQL equivalence.
+
+
+## LIKELY, UNLIKELY and LIKELIHOOD (2026-10-24)
+
+Probability hints now validate and evaluate through the production scalar path.
+LIKELIHOOD requires a REAL literal from 0.0 through 1.0 as its second argument,
+as resolve.c:exprProbability does. INTEGER literals, unary operators, COLLATE,
+computed constants and out-of-range values are preparation errors, including
+on empty input and LIMIT zero. DISTINCT on these scalar calls remains inert.
+
+The returned value retains its storage class and bytes. The function expression
+has no comparison affinity: for example, wrapping a TEXT column in LIKELY does
+not retain the column's automatic text coercion of a numeric comparison operand.
+The hint also does not acquire its operand's static truth flag. Thus SELECT
+likely(0) AND abs(Int64.min) still errors, while likely(0 AND abs(Int64.min))
+returns zero. In WHERE/HAVING branch evaluation, hints and COLLATE wrappers
+forward the requested truth outcome, preserving NULL-aware short-circuiting.
+The probability value is not currently used for a planner cost optimization.
+
+The preceding source e0c2cb3cdb827fa3e3860604d890a7c0fd6cc46e01792485a47a7d353124145a
+has 456 differences in 1,028 baseline outcomes, seed 353870. Development seed
+353871 passes 1,508 outcomes. Final source is
+`bdc24caa9646724af348c6c3e5067b1c9f90cb8a77423c899d621a59e241d5b3`.
+Fresh seed 353872 passes **2,920 outcomes**, including **1,700 matching positive
+error statuses**. Fresh WHERE/alias seed 353873 passes **1,248 outcomes**, including
+636 matching errors. Both modes preserve main/WAL bytes for these reads. Success
+compares exact CLI bytes; exact SQLite error codes/messages are not compared.
+The fixed scalar/storage regression passes 1,121 cases plus six matching errors.
+
+All 208 executable tests, the complete 276-job build, 1,068 registered headline
+proofs, verification audit and live-path audit pass. The reverse-file matrix
+passes 61 accepted cases and two declared unsupported shapes. Component lemmas
+cover operand selection for a normalized LIKELY call and INTEGER probability
+rejection; they are not a complete SQLite evaluator proof. Native code and its
+nine-binding audit boundary remain unchanged. Reports use
+`sqlite-probability-*20261024.json` under `docs/validation/`.

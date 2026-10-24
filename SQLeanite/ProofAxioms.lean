@@ -1199,3 +1199,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.UnicodeEscape.unistr_null
 #print axioms SQLeanite.SQLite.UnicodeEscape.decodeFuel_source_nul
 #print axioms SQLeanite.SQLite.UnicodeEscape.quote_blob
+
+#print axioms SQLeanite.SQLite.Probability.input_likely
+#print axioms SQLeanite.SQLite.Probability.probability_integer

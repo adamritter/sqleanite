@@ -153,6 +153,15 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Probability hints preserve values and branch evaluation after literal validation.
+if grep -q 'Probability.recognizesName n then (Probability.input? n args).isSome' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Probability.input? name args then eval argument' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Probability.probability_integer' SQLeanite/ProofAxioms.lean; then
+  ok "probability hints preserve values and validate probability literals"
+else
+  fail "probability hint execution or its registered contracts are missing"
+fi
+
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
 if grep -q 'SQLite.UnicodeEscape.unistr v' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.UnicodeEscape.quote v' SQLeanite/SQLite/Scalar.lean &&
