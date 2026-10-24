@@ -53,6 +53,32 @@ theorem stableDistinctBy_subset [DecidableEq κ] (key : α → κ) (rows : List 
   intro row member
   exact List.mem_of_find?_eq_some ((mem_stableDistinctBy key rows row).mp member)
 
+/-- Every input key still has an original representative. -/
+theorem stableDistinctBy_coverage [DecidableEq κ] (key : α → κ) (rows : List α)
+    (row : α) (member : row ∈ rows) :
+    ∃ chosen ∈ stableDistinctBy key rows, key chosen = key row := by
+  induction rows with
+  | nil => simp at member
+  | cons head tail ih =>
+      rcases List.mem_cons.mp member with equal | inTail
+      · subst row; exact ⟨head, by simp [stableDistinctBy], rfl⟩
+      · obtain ⟨chosen, kept, equal⟩ := ih inTail
+        by_cases same : key chosen = key head
+        · exact ⟨head, by simp [stableDistinctBy], same.symm.trans equal⟩
+        · exact ⟨chosen, by simp [stableDistinctBy, kept, same], equal⟩
+
+theorem mem_keys_stableDistinctBy [DecidableEq κ] (key : α → κ)
+    (rows : List α) (target : κ) :
+    target ∈ (stableDistinctBy key rows).map key ↔ target ∈ rows.map key := by
+  constructor
+  · rintro member
+    obtain ⟨row, kept, equal⟩ := List.mem_map.mp member
+    exact List.mem_map.mpr ⟨row, stableDistinctBy_subset key rows kept, equal⟩
+  · rintro member
+    obtain ⟨row, original, equal⟩ := List.mem_map.mp member
+    obtain ⟨chosen, kept, same⟩ := stableDistinctBy_coverage key rows row original
+    exact List.mem_map.mpr ⟨chosen, kept, same.trans equal⟩
+
 theorem stableDistinctBy_key_nodup [DecidableEq κ] (key : α → κ) (rows : List α) :
     ((stableDistinctBy key rows).map key).Nodup := by
   induction rows with

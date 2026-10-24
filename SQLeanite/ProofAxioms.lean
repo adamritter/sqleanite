@@ -1024,3 +1024,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Query.eval_distinct_key_nodup
 #print axioms SQLeanite.CoreReadSemantics.ofList_stableDistinctBy
 #print axioms SQLeanite.CoreReadSemantics.distinctRowKey_reorder
+
+-- SQL set operations over comparison keys, preserving original output values.
+#print axioms SQLeanite.Core.stableDistinctBy_coverage
+#print axioms SQLeanite.Core.mem_keys_stableDistinctBy
+#print axioms SQLeanite.CoreCompound.combine_subset
+#print axioms SQLeanite.CoreCompound.combine_keys_nodup
+#print axioms SQLeanite.CoreSQL.combineRows_denotes

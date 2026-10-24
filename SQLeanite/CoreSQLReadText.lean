@@ -517,12 +517,11 @@ mutual
         (width armWidth finalWidth : Nat)
         (head : CompoundReadPlan.Refines database plan armRows armWidth)
         (sameWidth : width = armWidth)
-        (independent : QuerySemantics.evalPlan database
-            (QuerySemantics.optimizePlan
-              (CoreOptimizerBridge.compoundPlan operation
-                currentRows armRows)) =
-          (CoreSQL.combineRows operation currentRows armRows).map
-            CoreOptimizerBridge.compoundRow)
+        (independent : RelationalAlgebra.ofList
+            ((CoreSQL.combineRows operation currentRows armRows).map Core.distinctRowKey) =
+          CoreCompound.denotation operation
+            (RelationalAlgebra.ofList (currentRows.map Core.distinctRowKey))
+            (RelationalAlgebra.ofList (armRows.map Core.distinctRowKey)))
         (tail : CompoundReadArmsRefine database plans
           (CoreSQL.combineRows operation currentRows armRows)
           width finalRows finalWidth) :
@@ -617,11 +616,9 @@ theorem executeSelectFuel_compound_refines :
                           planRest
                           currentResult.rows armOutcome.result.rows
                           final.result.rows armOutcome.width armOutcome.width
-                          final.width armRefines rfl (by
-                            simpa [CoreSQL.combineRows] using
-                              CoreReadSemantics.compound_denotes state.database
-                                operation currentResult.rows
-                                  armOutcome.result.rows) tailRefines.2⟩
+                          final.width armRefines rfl
+                          (CoreSQL.combineRows_denotes operation currentResult.rows
+                            armOutcome.result.rows) tailRefines.2⟩
                       · rw [armExecution] at tailSuccess
                         simp [sameWidth, bind, Functor.map, Except.bind]
                           at tailSuccess
@@ -914,11 +911,10 @@ theorem executeText_binary_refines
       readWidth left = readWidth right ∧ next = state ∧
       result.rows = CoreSQL.combineRows operation
         leftResult.rows rightResult.rows ∧
-      QuerySemantics.evalPlan state.database
-          (QuerySemantics.optimizePlan
-            (CoreOptimizerBridge.compoundPlan operation
-              leftResult.rows rightResult.rows)) =
-        result.rows.map CoreOptimizerBridge.compoundRow := by
+      RelationalAlgebra.ofList (result.rows.map Core.distinctRowKey) =
+        CoreCompound.denotation operation
+          (RelationalAlgebra.ofList (leftResult.rows.map Core.distinctRowKey))
+          (RelationalAlgebra.ofList (rightResult.rows.map Core.distinctRowKey)) := by
   have planSuccess : executeBinaryPlan state left operation right =
       .ok (next, [result]) := (execute_binary_eq_core supported).symm.trans success
   rcases supported with ⟨select, parsed, translated⟩
@@ -956,9 +952,7 @@ theorem executeText_binary_refines
                   rfl, core_read_refines leftTranslated leftExecution,
                   core_read_refines rightTranslated rightExecution, widths, rfl,
                   rfl, ?_⟩
-                simpa [CoreSQL.combineRows] using
-                  CoreReadSemantics.compound_denotes state.database operation
-                    leftResult.rows rightResult.rows
+                exact CoreSQL.combineRows_denotes operation leftResult.rows rightResult.rows
               · simp [leftExecution, rightExecution, widths, bind, Functor.map,
                   Except.bind, pure, Except.pure, pure] at planSuccess
 

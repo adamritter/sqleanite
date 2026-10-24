@@ -3,6 +3,7 @@ import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
 import SQLeanite.CoreExpr
+import SQLeanite.CoreCompound
 
 namespace SQLeanite
 namespace CoreSQL
@@ -537,30 +538,27 @@ def joinOrderBy (context : JoinContext) : List OrderTerm →
         (← joinOrderBy context terms)
   | _ => unsupported "join ORDER BY expression"
 
-/-- SQLite's compound operators over list-backed bags. UNION/INTERSECT/EXCEPT
-remove duplicates; UNION ALL is the only multiplicity-preserving form. -/
+/-- SQL compound operations use numeric comparison keys; output rows retain
+SQLite's selected original storage classes. -/
 def combineRows (operation : CompoundOp) (left right : List (List Core.Value)) :
-    List (List Core.Value) :=
-  CoreOptimizerBridge.compoundRows operation left right
+    List (List Core.Value) := CoreCompound.combine operation left right
 
+/-- Membership is stated over SQL keys, not raw representations: INTEGER 1
+and REAL 1.0 name the same set member. -/
 theorem mem_combineRows (operation : CompoundOp) (left right : List (List Core.Value))
-    (row : List Core.Value) :
-    row ∈ combineRows operation left right ↔
+    (key : List Core.Value) :
+    key ∈ (combineRows operation left right).map Core.distinctRowKey ↔
       match operation with
-      | .unionAll | .unionDistinct => row ∈ left ∨ row ∈ right
-      | .intersect => row ∈ left ∧ row ∈ right
-      | .except => row ∈ left ∧ row ∉ right := by
-  cases operation <;> simp [combineRows, CoreOptimizerBridge.compoundRows,
-    Core.mem_deduplicate]
+      | .unionAll | .unionDistinct => key ∈ left.map Core.distinctRowKey ∨ key ∈ right.map Core.distinctRowKey
+      | .intersect => key ∈ left.map Core.distinctRowKey ∧ key ∈ right.map Core.distinctRowKey
+      | .except => key ∈ left.map Core.distinctRowKey ∧ key ∉ right.map Core.distinctRowKey :=
+  CoreCompound.combine_keys operation left right key
 
 theorem combineRows_nodup (operation : CompoundOp)
     (notAll : operation ≠ .unionAll) (left right : List (List Core.Value)) :
-    (combineRows operation left right).Nodup := by
-  cases operation with
-  | unionAll => contradiction
-  | unionDistinct => exact Core.deduplicate_nodup _
-  | intersect => exact (Core.deduplicate_nodup left).filter _
-  | except => exact (Core.deduplicate_nodup left).filter _
+    (combineRows operation left right).Nodup :=
+  List.Pairwise.of_map Core.distinctRowKey (fun _ _ h equal => h (congrArg _ equal))
+    (CoreCompound.combine_keys_nodup operation left right notAll)
 
 def RowsHaveWidth (width : Nat) (rows : List (List Core.Value)) : Prop :=
   ∀ row ∈ rows, row.length = width
@@ -571,14 +569,16 @@ theorem combineRows_width (operation : CompoundOp) (width : Nat)
     (rightWidth : RowsHaveWidth width right) :
     RowsHaveWidth width (combineRows operation left right) := by
   intro row member
-  have semantic := (mem_combineRows operation left right row).mp member
-  cases operation with
-  | unionAll | unionDistinct =>
-      rcases semantic with member | member
-      · exact leftWidth row member
-      · exact rightWidth row member
-  | intersect => exact leftWidth row semantic.1
-  | except => exact leftWidth row semantic.1
+  rcases List.mem_append.mp (CoreCompound.combine_subset operation left right member) with member | member
+  · exact leftWidth row member
+  · exact rightWidth row member
+
+theorem combineRows_denotes (operation : CompoundOp) (left right : List (List Core.Value)) :
+    RelationalAlgebra.ofList ((combineRows operation left right).map Core.distinctRowKey) =
+      CoreCompound.denotation operation
+        (RelationalAlgebra.ofList (left.map Core.distinctRowKey))
+        (RelationalAlgebra.ofList (right.map Core.distinctRowKey)) :=
+  CoreCompound.combine_denotes operation left right
 
 structure SelectExecution where
   state : Core.State

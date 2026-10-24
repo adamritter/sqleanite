@@ -3880,6 +3880,29 @@ private def expectSQLiteNumericDistinct : IO Unit := do
       unless (results.getLast?).map (·.rows) == some expected do
         fail s!"numeric DISTINCT changed a representative or merged unequal values: {left}, {right} ({projection})"
 
+private def expectSQLiteNumericCompounds : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 1 UNION SELECT 1.0;", [[.real 1.0]]),
+    ("SELECT 1.0 UNION SELECT 1;", [[.integer 1]]),
+    ("SELECT 1 INTERSECT SELECT 1.0;", [[.integer 1]]),
+    ("SELECT 1.0 INTERSECT SELECT 1;", [[.real 1.0]]),
+    ("SELECT 1 EXCEPT SELECT 1.0;", []),
+    ("SELECT 3 UNION SELECT 1 UNION SELECT 2;", [[.integer 1], [.integer 2], [.integer 3]]),
+    ("SELECT NULL INTERSECT SELECT NULL;", [[.null]]),
+    ("SELECT 1 UNION ALL SELECT 1.0;", [[.integer 1], [.real 1.0]]),
+    ("SELECT 1,'x' UNION SELECT 1.0,'x';", [[.real 1.0, .text "x"]]),
+    ("SELECT '1' UNION SELECT 1 UNION SELECT X'31';", [[.integer 1], [.text "1"], [.blob #[49]]]),
+    ("SELECT 9007199254740993 EXCEPT SELECT 9007199254740992.0;", [[.integer 9007199254740993]])]
+  for (query, values) in cases do
+    let (state, results) ← match CoreSQL.execute Core.State.empty query with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"numeric compound: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless results.map (·.rows) == [expected] && state.database.tables.isEmpty do
+      fail s!"numeric compound changed multiplicity, ordering, representative, or state: {query}"
+
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
       "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
@@ -3981,6 +4004,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
   ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),
+  ("SQLite numeric set operations and compound ordering", expectSQLiteNumericCompounds),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

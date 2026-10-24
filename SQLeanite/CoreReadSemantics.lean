@@ -300,8 +300,9 @@ theorem execute_extreme_denotes {state next : Core.State} {tableName : String}
         (table.rows.filter (Core.selects predicate))]] := by
   exact Core.execute_extreme_exact success
 
-/-- Every compound operator used by `CoreSQL` has the independent optimized
-bag-plan denotation already proved by the bridge. -/
+/-- The representation-equality compound algebra has an independent optimized
+bag-plan denotation. SQL's numeric-key contract is `CoreSQL.combineRows_denotes`;
+this older generic algebra is not a cross-storage-class SQL refinement. -/
 theorem compound_denotes (database : Core.Database) (operation : CompoundOp)
     (left right : List (List Core.Value)) :
     QuerySemantics.evalPlan database

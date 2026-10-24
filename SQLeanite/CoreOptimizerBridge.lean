@@ -534,7 +534,10 @@ theorem optimizeJoin_eval (leftName rightName : String)
       query.eval left right := by
   rw [optimizeJoin_eq]
 
-/-! ## Live compound-query refinement -/
+/-! ## Representation-equality compound algebra
+
+SQL numeric set equality is implemented and proved in `CoreCompound`. These
+generic optimizer laws retain their representation-equality domain. -/
 
 def compoundRows (operation : CompoundOp)
     (left right : List (List Core.Value)) : List (List Core.Value) :=

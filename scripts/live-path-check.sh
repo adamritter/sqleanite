@@ -138,6 +138,14 @@ else
   fail "DISTINCT/LIMIT implementation detached from its corrected denotation"
 fi
 
+if grep -q 'CoreCompound.combine operation left right' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.combineRows_denotes' SQLeanite/ProofAxioms.lean &&
+   grep -q 'distinctRowKey row' SQLeanite/CoreCompound.lean; then
+  ok "SQL compounds use numeric keys and the live key-bag refinement"
+else
+  fail "SQL compound equality detached from its typed set-operation proof"
+fi
+
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
 #    Checked structurally: the executor must call the planner, and Main must
 #    route --verified-file into the Core engine.
@@ -342,7 +350,7 @@ if grep -q 'executeText_read_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'executeText_compound_refines' SQLeanite/ProofAxioms.lean &&
    grep -q 'armsRefine armsTranslated' \
      SQLeanite/CoreSQLReadText.lean &&
-   grep -q 'CoreReadSemantics.compound_denotes' \
+   grep -q 'CoreSQL.combineRows_denotes' \
      SQLeanite/CoreSQLReadText.lean &&
    grep -q 'CoreReadSemantics.execute_query_denotes' \
      SQLeanite/CoreSQLReadText.lean &&
@@ -947,11 +955,11 @@ fi
 
 if grep -q 'CoreOptimizerBridge.optimizeCompoundOp operation' \
      SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreOptimizerBridge.compoundRows operation left right' \
+   grep -q 'CoreCompound.combine operation left right' \
      SQLeanite/CoreSQL.lean &&
-   grep -q 'optimize_compoundPlan_eval' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.combineRows_denotes' SQLeanite/ProofAxioms.lean &&
    grep -q 'optimizeCompoundOp_eq' SQLeanite/ProofAxioms.lean; then
-  ok "live compound SELECTs execute the duplicate-sensitive bag optimizer"
+  ok "live compound SELECTs execute the SQL-key bag refinement and operator optimizer"
 else
   fail "live compound SELECTs bypass or detached from denotational refinement"
 fi

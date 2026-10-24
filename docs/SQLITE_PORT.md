@@ -282,6 +282,40 @@ queries with wrong output. In particular, `UNION`, `INTERSECT`, `EXCEPT` and
 `SELECT DISTINCT v ... ORDER BY b` can choose the wrong order when `b` is not
 projected. These are known defects, not passing or silently excluded cases.
 
+## SQL compound set-operation checkpoint
+
+The [final checkpoint](validation/sqlite-compound-20261024.json) records
+**680 compound queries / 3,305 result rows**, with 600 fresh random cases at
+seed `353441`, matching SQLite 3.53.4. It covers mixed left-associative operator
+chains, empty arms, NULL, INTEGER/REAL equality, text separation, exact numeric
+boundaries, multiple result columns and persisted table inputs. Three expected
+error cases reject without changing the file. All **165 tests**, **950
+registered headline theorems**, and both audits pass. The existing row,
+DISTINCT, scalar, text and affinity regressions also pass; their separate
+metrics and source hashes are retained in the report.
+
+`CoreCompound` gives UNION, INTERSECT and EXCEPT an explicit comparison-key
+semantics and preserves UNION ALL multiplicities. Outputs retain original
+storage classes and use SQLite's ascending BINARY compound order. The pinned
+SQLite merge chooses the right UNION arm on equal keys, retaining the first
+matching row within that arm; INTERSECT and EXCEPT retain the left arm's first
+representative. An earlier last-representative implementation failed 24
+persisted-table queries; the [negative result](validation/sqlite-compound-development-negative-20261024.json)
+is retained and those cases now pass.
+
+SQL membership and multiplicity theorem statements now explicitly refer to
+comparison keys. This corrects the old raw-representation contract rather than
+claiming that its equality domain was already SQLite-equivalent. The production
+SQL-text binary and recursive compound proofs reach the new independent
+key-bag denotation, retain exact output-row equality, and preserve read-only
+state. The older optimizer's representation-equality algebra remains labelled
+as such. Source membership, row widths and key uniqueness remain proved.
+
+The three previously recorded numeric UNION/INTERSECT/EXCEPT examples are now
+fixed. GROUP BY numeric equality, nonprojected DISTINCT ordering, compound
+ORDER BY/LIMIT and the larger feature gaps listed below remain outstanding at
+this checkpoint. Passing these cases does not establish 100% compatibility.
+
 ## Still missing
 
 This step does not implement general row-dependent WHERE/UPDATE expressions,
