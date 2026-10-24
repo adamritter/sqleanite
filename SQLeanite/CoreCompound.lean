@@ -10,14 +10,8 @@ namespace SQLeanite.CoreCompound
 
 open Core
 
-/-- SQLite's ephemeral compound-result B-tree presents ascending keys. -/
-def rowCompare : List Core.Value → List Core.Value → Ordering
-  | [], [] => .eq
-  | [], _ :: _ => .lt
-  | _ :: _, [] => .gt
-  | a :: as, b :: bs =>
-      let order := PhysicalQuery.compareValue a b
-      if order == .eq then rowCompare as bs else order
+/-- Ascending SQL comparison order used by the pinned compound merge. -/
+def rowCompare := PhysicalQuery.compareValues
 
 def ordered (rows : List (List Core.Value)) : List (List Core.Value) :=
   rows.mergeSort (fun a b => rowCompare a b != .gt)

@@ -905,8 +905,15 @@ def chooseExtreme (minimum : Bool) (left right : Value) : Value :=
   | value, .null => value
   | left, right =>
       let order := PhysicalQuery.compareValue left right
-      if (minimum && order == .lt) || (!minimum && order == .gt) then left
+      if (minimum && order != .gt) || (!minimum && order != .lt) then left
       else right
+
+theorem chooseExtreme_tie (minimum : Bool) (left right : Value)
+    (leftNotNull : left ≠ .null) (rightNotNull : right ≠ .null)
+    (equal : PhysicalQuery.compareValue left right = .eq) :
+    chooseExtreme minimum left right = left := by
+  cases left <;> cases right <;> simp_all [chooseExtreme]
+  all_goals cases minimum <;> simp_all
 
 def extremeValues (minimum : Bool) : List Value → Value
   | [] => .null
@@ -953,27 +960,31 @@ structure GroupQuery where
   outputs : List GroupOutput
   predicate : Option Predicate := none
 
-def GroupQuery.rowKey (query : GroupQuery) (row : Row) : List Value :=
+def GroupQuery.originalKey (query : GroupQuery) (row : Row) : List Value :=
   query.groupBy.map row.value
+
+/-- GROUP BY uses the same exact BINARY numeric equivalence as DISTINCT. -/
+def GroupQuery.rowKey (query : GroupQuery) (row : Row) : List Value :=
+  distinctRowKey (query.originalKey row)
 
 def GroupQuery.selectedRows (query : GroupQuery) (rows : List Row) : List Row :=
   rows.filter (selects query.predicate)
 
-/-- SQL groups NULLs together: physical Core values have decidable structural
-equality, so ordinary tuple equality implements SQLite's GROUP BY equality for
-the currently supported INTEGER/TEXT/NULL value domain. -/
+/-- Canonical comparison keys, presented in SQLite's ascending group order.
+Original group output values are read from a representative source row. -/
 def GroupQuery.groupKeys (query : GroupQuery) (rows : List Row) : List (List Value) :=
-  deduplicate ((query.selectedRows rows).map query.rowKey)
+  (deduplicate ((query.selectedRows rows).map query.rowKey)).mergeSort
+    (fun a b => PhysicalQuery.compareValues a b != .gt)
 
 theorem GroupQuery.groupKeys_nodup (query : GroupQuery) (rows : List Row) :
-    (query.groupKeys rows).Nodup := by
-  exact deduplicate_nodup _
+    (query.groupKeys rows).Nodup :=
+  (List.mergeSort_perm _ _).nodup_iff.mpr (deduplicate_nodup _)
 
 theorem GroupQuery.mem_groupKeys_iff (query : GroupQuery) (rows : List Row)
     (key : List Value) :
     key ∈ query.groupKeys rows ↔
       ∃ row ∈ rows, selects query.predicate row = true ∧ query.rowKey row = key := by
-  rw [GroupQuery.groupKeys, mem_deduplicate]
+  rw [GroupQuery.groupKeys, (List.mergeSort_perm _ _).mem_iff, mem_deduplicate]
   simp only [GroupQuery.selectedRows, List.mem_map, List.mem_filter]
   constructor
   · rintro ⟨row, ⟨member, selected⟩, equal⟩
@@ -989,9 +1000,90 @@ def GroupQuery.keyRows (query : GroupQuery) (rows : List Row)
     (key : List Value) : List Row :=
   (query.selectedRows rows).filter fun row => query.rowKey row == key
 
+/-- A MIN/MAX step updates bare columns only on improvement. If every input
+is NULL, SQLite keeps loading the current row because no best value exists. -/
+def extremeRepresentativeStep (minimum : Bool) (column : Nat) (best row : Row) : Row :=
+  if best.value column == .null then row
+  else if row.value column == .null then best
+  else
+    let order := PhysicalQuery.compareValue (row.value column) (best.value column)
+    if (minimum && order == .lt) || (!minimum && order == .gt) then row else best
+
+theorem extremeRepresentativeStep_member (minimum : Bool) (column : Nat) (best row : Row) :
+    extremeRepresentativeStep minimum column best row = best ∨
+      extremeRepresentativeStep minimum column best row = row := by
+  unfold extremeRepresentativeStep
+  split
+  · exact Or.inr rfl
+  · split
+    · exact Or.inl rfl
+    · dsimp only
+      split
+      · exact Or.inr rfl
+      · exact Or.inl rfl
+
+def extremeRepresentative (minimum : Bool) (column : Nat) (first : Row) : List Row → Row
+  | [] => first
+  | row :: rows => extremeRepresentative minimum column
+      (extremeRepresentativeStep minimum column first row) rows
+
+theorem extremeRepresentative_mem (minimum : Bool) (column : Nat) (first : Row) (rows : List Row) :
+    extremeRepresentative minimum column first rows ∈ first :: rows := by
+  induction rows generalizing first with
+  | nil => simp [extremeRepresentative]
+  | cons row rows ih =>
+      change extremeRepresentative minimum column (extremeRepresentativeStep minimum column first row) rows ∈ first :: row :: rows
+      have member := ih (extremeRepresentativeStep minimum column first row)
+      rcases List.mem_cons.mp member with same | tail
+      · rw [same]
+        rcases extremeRepresentativeStep_member minimum column first row with best | current
+        · simp [best]
+        · simp [current]
+      · exact List.mem_cons_of_mem _ (List.mem_cons_of_mem _ tail)
+
+/-- Repeated aggregate expressions share one SQLite accumulator. The last
+unique MIN/MAX accumulator controls bare-column row selection. -/
+def GroupQuery.controllingExtreme (query : GroupQuery) : Option (Bool × Nat) :=
+  (stableDistinctBy id query.outputs).foldl (fun current output =>
+    match output with
+    | .minColumn column => some (true, column)
+    | .maxColumn column => some (false, column)
+    | _ => current) none
+
+def GroupQuery.representative (query : GroupQuery) (rows : List Row) (key : List Value) : Option Row :=
+  match query.keyRows rows key with
+  | [] => none
+  | first :: rest => some <| match query.controllingExtreme with
+      | none => first
+      | some (minimum, column) => extremeRepresentative minimum column first rest
+
+theorem GroupQuery.representative_mem (query : GroupQuery) (rows : List Row) (key : List Value)
+    (chosen : Row) (success : query.representative rows key = some chosen) :
+    chosen ∈ query.keyRows rows key := by
+  unfold GroupQuery.representative at success
+  cases found : query.keyRows rows key with
+  | nil => simp [found] at success
+  | cons first rest =>
+      cases controls : query.controllingExtreme with
+      | none => simp [found, controls] at success; subst chosen; simp
+      | some control =>
+          rcases control with ⟨minimum, column⟩
+          simp [found, controls] at success
+          subst chosen
+          exact extremeRepresentative_mem minimum column first rest
+
+theorem GroupQuery.representative_key (query : GroupQuery) (rows : List Row) (key : List Value)
+    (chosen : Row) (success : query.representative rows key = some chosen) :
+    query.rowKey chosen = key := by
+  have member := query.representative_mem rows key chosen success
+  simpa only [beq_iff_eq] using (List.mem_filter.mp member).2
+
+def GroupQuery.outputKey (query : GroupQuery) (rows : List Row) (key : List Value) : List Value :=
+  ((query.representative rows key).map query.originalKey).getD key
+
 def GroupQuery.outputValue (query : GroupQuery) (rows : List Row)
     (key : List Value) : GroupOutput → Except String Value
-  | .key position => .ok (key[position]?.getD .null)
+  | .key position => .ok ((query.outputKey rows key)[position]?.getD .null)
   | .countStar =>
       .integer <$> countInteger (query.keyRows rows key).length
   | .countColumn column =>

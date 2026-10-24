@@ -146,6 +146,14 @@ else
   fail "SQL compound equality detached from its typed set-operation proof"
 fi
 
+if grep -q 'distinctRowKey (query.originalKey row)' SQLeanite/CoreEngine.lean &&
+   grep -q 'query.outputKey rows key' SQLeanite/CoreEngine.lean &&
+   grep -q 'GroupQuery.representative_key' SQLeanite/ProofAxioms.lean; then
+  ok "GROUP BY compares numeric keys and retains a proved source representative"
+else
+  fail "GROUP BY numeric equivalence or original representative is detached"
+fi
+
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
 #    Checked structurally: the executor must call the planner, and Main must
 #    route --verified-file into the Core engine.

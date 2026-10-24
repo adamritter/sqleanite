@@ -3903,6 +3903,35 @@ private def expectSQLiteNumericCompounds : IO Unit := do
     unless results.map (·.rows) == [expected] && state.database.tables.isEmpty do
       fail s!"numeric compound changed multiplicity, ordering, representative, or state: {query}"
 
+private def expectSQLiteNumericGroups : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,x); INSERT INTO t VALUES(1,1,5),(2,1.0,7),(3,1,6),(4,'1',2),(5,NULL,NULL),(6,NULL,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT v,count(*) FROM t GROUP BY v;", [[.null,.integer 2],[.integer 1,.integer 3],[.text "1",.integer 1]]),
+    ("SELECT v,max(x) FROM t GROUP BY v;", [[.null,.null],[.real 1.0,.integer 7],[.text "1",.integer 2]]),
+    ("SELECT v,sum(x) FROM t GROUP BY v;", [[.null,.null],[.integer 1,.integer 18],[.text "1",.integer 2]]),
+    ("SELECT v,min(x),max(x),min(x) FROM t GROUP BY v;", [[.null,.null,.null,.null],[.real 1.0,.integer 5,.integer 7,.integer 5],[.text "1",.integer 2,.integer 2,.integer 2]]),
+    ("SELECT v,count(x) FROM t GROUP BY v;", [[.null,.integer 0],[.integer 1,.integer 3],[.text "1",.integer 1]]),
+    ("SELECT min(v) FROM t WHERE id<4;", [[.integer 1]]),
+    ("SELECT max(v) FROM t WHERE id<4;", [[.integer 1]])]
+  for (query, values) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"numeric grouping: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some expected do
+      fail s!"GROUP BY changed equality, counts, ordering, or representative storage class: {query}"
+  let nullSetup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,x);INSERT INTO t VALUES(1,1,NULL),(2,1.0,NULL);"
+  let (_, results) ← match CoreSQL.execute Core.State.empty (nullSetup ++ "SELECT v,max(x) FROM t GROUP BY v;") with
+    | .ok outcome => pure outcome
+    | .error message => fail message
+  let real ← match SQLSurface.value (.real 1.0) with
+    | .ok value => pure value
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some [[real,.null]] do
+    fail "all-NULL extremum must select the last source row"
+
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
       "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
@@ -4005,6 +4034,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
   ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),
   ("SQLite numeric set operations and compound ordering", expectSQLiteNumericCompounds),
+  ("SQLite numeric grouping and aggregate representatives", expectSQLiteNumericGroups),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

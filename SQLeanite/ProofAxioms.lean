@@ -1031,3 +1031,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCompound.combine_subset
 #print axioms SQLeanite.CoreCompound.combine_keys_nodup
 #print axioms SQLeanite.CoreSQL.combineRows_denotes
+
+-- Numeric grouping, original representatives and stable extremum ties.
+#print axioms SQLeanite.PhysicalQuery.compareValues_self
+#print axioms SQLeanite.Core.chooseExtreme_tie
+#print axioms SQLeanite.Core.extremeRepresentative_mem
+#print axioms SQLeanite.Core.GroupQuery.representative_mem
+#print axioms SQLeanite.Core.GroupQuery.representative_key

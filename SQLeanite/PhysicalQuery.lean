@@ -50,6 +50,23 @@ def compareValue : PhysicalCodec.Value → PhysicalCodec.Value → Ordering
   | .blob left, .blob right => compare left.bytes right.bytes
   | left, right => compare (valueClass left) (valueClass right)
 
+/-- Lexicographic BINARY SQL order for tuples of physical values. -/
+def compareValues : List PhysicalCodec.Value → List PhysicalCodec.Value → Ordering
+  | [], [] => .eq
+  | [], _ :: _ => .lt
+  | _ :: _, [] => .gt
+  | a :: as, b :: bs =>
+      let order := compareValue a b
+      if order == .eq then compareValues as bs else order
+
+theorem compareValue_self (value : PhysicalCodec.Value) : compareValue value value = .eq := by
+  cases value <;> simp [compareValue, Binary64.compareBits_self]
+
+theorem compareValues_self (values : List PhysicalCodec.Value) : compareValues values values = .eq := by
+  induction values with
+  | nil => rfl
+  | cons value rest ih => simp [compareValues, compareValue_self, ih]
+
 /-- SQL equality implies equality in the B-tree comparison order. This is the
 bridge used when a separator proof rules out a subtree containing the sought
 value, including integer/REAL numeric equality and signed zero. -/

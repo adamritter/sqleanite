@@ -6,6 +6,13 @@ in the adjacent `sqlite/` directory. All implementation changes in this step
 are Lean. The existing OS bindings are unchanged; the engine does not call C
 SQLite. C SQLite is used only as an independent test oracle.
 
+## Accepted compatibility target
+
+The user-confirmed target is SQLite **3.53.4 SQL behavior, database file format
+and WAL file format**. The C API and loadable-extension ABI are outside this
+target. This target is not yet achieved: the checkpoints below measure specific
+implemented subsets, and known rejections and mismatches remain explicit.
+
 ## Source correspondence and production use
 
 | SQLite source | Lean implementation | Behavior ported |
@@ -315,6 +322,33 @@ The three previously recorded numeric UNION/INTERSECT/EXCEPT examples are now
 fixed. GROUP BY numeric equality, nonprojected DISTINCT ordering, compound
 ORDER BY/LIMIT and the larger feature gaps listed below remain outstanding at
 this checkpoint. Passing these cases does not establish 100% compatibility.
+
+## Numeric GROUP BY and aggregate representatives checkpoint
+
+The [fresh final checkpoint](validation/sqlite-group-20261024.json) records
+**596 queries / 20,130 result rows**, including 500 fresh generated cases at
+seed `353451`, matching SQLite 3.53.4. Three binding/overflow errors reject
+without file mutation. All **166 tests**, **955 registered headline theorems**,
+the verification audit and the live-path audit pass. Compound, row-expression,
+DISTINCT, text, scalar and affinity regressions pass separately; counts and
+source/executable/harness hashes are retained in the report.
+
+GROUP BY now uses the same numeric comparison keys as DISTINCT, retaining
+original values for output. Groups use lexicographic SQLite BINARY order.
+MIN/MAX retain the first non-NULL equal extreme, including its storage class.
+Group-column output follows the source row selected by the last distinct
+MIN/MAX accumulator; identical aggregate expressions share that accumulator.
+Without MIN/MAX, group-column output uses the first source row. All-NULL
+extrema select the last source row, matching the pinned accumulator behavior.
+
+The new registered proofs show that representatives belong to the input group
+and preserve its comparison key. The materialized count refinement now states
+bag equality, because Core group presentation is sorted; the independent
+aggregate denotation records the chosen original key. This is not a formal
+cross-language proof of every SQLite aggregate. REAL SUM, arbitrary aggregate
+expressions, collations, grouped ORDER BY/LIMIT and planner-dependent output
+outside this tested shape remain open. The earlier numeric GROUP BY mismatch
+is fixed; its historical negative report remains unchanged.
 
 ## Still missing
 

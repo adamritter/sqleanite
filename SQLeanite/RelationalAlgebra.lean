@@ -764,17 +764,21 @@ theorem coreGroup_keyCount_eq_multiplicity (query : Core.GroupQuery)
   intro row _member
   simp only [Function.comp_def, beq_iff_eq]
 
-/-- Therefore the executable materialized COUNT rows use the same groups and
-counts as the live Core group evaluator, before its checked INTEGER encoding. -/
+/-- Materialized COUNT and the live sorted GROUP BY presentation have the
+same bag of normalized group keys and multiplicities. -/
 theorem materializedCountRows_eq_coreGroup (query : Core.GroupQuery)
     (rows : List Core.Row) :
-    materializedCountRows query.rowKey (query.selectedRows rows) =
-      (query.groupKeys rows).map fun group =>
-        (group, query.keyCount rows group) := by
-  unfold materializedCountRows Core.GroupQuery.groupKeys
-  apply List.map_congr_left
-  intro group _member
-  simp [coreGroup_keyCount_eq_multiplicity]
+    ofList (materializedCountRows query.rowKey (query.selectedRows rows)) =
+      ofList ((query.groupKeys rows).map fun group => (group, query.keyCount rows group)) := by
+  have mapped : materializedCountRows query.rowKey (query.selectedRows rows) =
+      (Core.deduplicate ((query.selectedRows rows).map query.rowKey)).map
+        (fun group => (group, query.keyCount rows group)) := by
+    unfold materializedCountRows
+    apply List.map_congr_left
+    intro group _member
+    simp [coreGroup_keyCount_eq_multiplicity]
+  rw [mapped]
+  exact ofList_perm ((List.mergeSort_perm _ _).symm.map _)
 
 theorem coreGroup_keyRows_length_eq_keyCount (query : Core.GroupQuery)
     (rows : List Core.Row) (group : List Core.Value) :
@@ -866,7 +870,7 @@ theorem coreGroup_sumColumn_null_iff (query : Core.GroupQuery)
 /-- Per-column semantic contract for a live grouped output tuple. -/
 def coreGroupOutputRefines (query : Core.GroupQuery) (rows : List Core.Row)
     (group : List Core.Value) : Core.GroupOutput → Core.Value → Prop
-  | .key position, value => value = group[position]?.getD .null
+  | .key position, value => value = (query.outputKey rows group)[position]?.getD .null
   | .countStar, .integer integer =>
       integer.value = Int.ofNat (query.keyCount rows group)
   | .countStar, _ => False
