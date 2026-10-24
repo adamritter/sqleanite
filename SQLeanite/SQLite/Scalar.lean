@@ -224,6 +224,44 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
   | "max", first :: rest => return SQLite.Text.minmax true first rest
   | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
 
+/-- SQLite's parse-time AND fold (expr.c sqlite3ExprAnd) is distinct from
+later truth-code simplification. Literal zero may erase an unbound column,
+but EP_HasFunc prevents erasing a function call and its errors. CAST is an
+operator even though our surface AST encodes it as a named call. -/
+def hasFunction (expression : Expr) : Bool :=
+  expression.any fun e => match e with
+    | .call name _ _ => !name.toLower.startsWith "cast_"
+    | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+    | _ => false
+
+def parserFalse : Expr → Bool
+  | .literal (.integer 0) => true
+  | _ => false
+
+def prepareFuel : Nat → Expr → Expr
+  | 0, e => e
+  | fuel + 1, e =>
+    let prepare := prepareFuel fuel
+    match e with
+    | .unary op arg => .unary op (prepare arg)
+    | .binary op left right =>
+        let a := prepare left
+        let b := prepare right
+        if op == .and && (parserFalse a || parserFalse b) &&
+            !(hasFunction a || hasFunction b) then .literal (.integer 0)
+        else .binary op a b
+    | .call name args star => .call name (args.map prepare) star
+    | .isNull arg negated => .isNull (prepare arg) negated
+    | .inList arg values negated affinity =>
+        .inList (prepare arg) (values.map prepare) negated affinity
+    | .collate arg name => .collate (prepare arg) name
+    | .case_ base branches otherwise => .case_ (base.map prepare)
+        (branches.map fun pair => (prepare pair.1, prepare pair.2)) (otherwise.map prepare)
+    | .inSubquery arg sql negated => .inSubquery (prepare arg) sql negated
+    | _ => e
+
+def prepare (expression : Expr) : Expr := prepareFuel expression.height expression
+
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
@@ -248,7 +286,7 @@ def forbidden : Expr → Bool
         then args.size == 1 else false)
   | _ => true
 
-def admitted (e : Expr) : Bool := !e.any forbidden
+def admitted (e : Expr) : Bool := !(prepare e).any forbidden
 
 /-- expr.c's EP_IsTrue/EP_IsFalse and sqlite3ExprSimplifiedAndOr. Only
 nonnegative 32-bit integer literals acquire these flags; +0, -0, 0.0 and
@@ -327,13 +365,16 @@ def evalFuelWith (lookup : Option String → String → Except String Value)
 def evalFuel : Nat → Expr → Except String Value :=
   evalFuelWith (fun _ _ => .error "unsupported constant expression") expressionAffinity
 
-def eval (e : Expr) : Except String Value := evalFuel e.height e
+def eval (e : Expr) : Except String Value :=
+  let expression := prepare e
+  evalFuel expression.height expression
 
 /-- The same evaluator with explicit column and affinity inputs. Admission and
 name resolution are checked independently before any row is evaluated. -/
 def evalWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
-  evalFuelWith lookup operandAffinity e.height e
+  let expression := prepare e
+  evalFuelWith lookup operandAffinity expression.height expression
 
 /-- WHERE branches use SQL three-valued truth but need only one truth outcome.
 Testing false is distinct from testing not-true: NULL matches neither. This
@@ -379,7 +420,7 @@ def testTermsWith (lookup : Option String → String → Except String Value)
       else return false
 
 def testWhere (expression : Expr) : Except String Bool :=
-  testTermsWith (fun _ _ => .error "unbound column") expressionAffinity (conditionTerms expression)
+  testTermsWith (fun _ _ => .error "unbound column") expressionAffinity (conditionTerms (prepare expression))
 
 theorem evalWith_column (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :

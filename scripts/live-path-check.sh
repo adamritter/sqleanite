@@ -50,6 +50,15 @@ else
   fail "row-dependent UPDATE is detached from its Core trace contracts"
 fi
 
+# Scalar DELETE must share the Core atomic command boundary.
+if grep -q 'executeExpressionDelete state tableName alias stored where_' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.executeExpressionDelete_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.rowDeleteCommands_length_le' SQLeanite/ProofAxioms.lean; then
+  ok "row-dependent DELETE uses a bounded Core command trace"
+else
+  fail "row-dependent DELETE is detached from its Core trace contracts"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

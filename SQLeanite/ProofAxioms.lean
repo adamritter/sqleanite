@@ -1050,3 +1050,6 @@ import SQLeanite.CoreFileEngine
 -- Row-dependent UPDATE compiles a bounded trace against original rows.
 #print axioms SQLeanite.CoreSQL.rowUpdateCommands_length_le
 #print axioms SQLeanite.CoreSQL.executeExpressionUpdate_eq_runCoreCommands
+
+#print axioms SQLeanite.CoreSQL.executeExpressionDelete_eq_runCoreCommands
+#print axioms SQLeanite.CoreSQL.rowDeleteCommands_length_le

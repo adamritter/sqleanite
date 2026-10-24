@@ -1,8 +1,8 @@
 {
   "purpose": "Recheck retained SQL counterexamples without treating them as coverage.\n\nThis is a diagnostic inventory, not a whole-SQLite compatibility percentage.\nUse --require-compatible to fail on any remaining rejection or difference.",
   "counts": {
-    "explicit_rejection": 19,
-    "matches": 7
+    "explicit_rejection": 18,
+    "matches": 8
   },
   "probes": [
     {
@@ -200,11 +200,11 @@
     {
       "name": "row_expression_delete",
       "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1.5),(2,2.5),(3,NULL);DELETE FROM t WHERE v+1>2;SELECT id FROM t ORDER BY id;",
-      "status": "explicit_rejection",
+      "status": "matches",
       "lean": {
-        "exit_code": 1,
-        "stdout": "",
-        "stderr": "Error: unsupported general verified-MVP SQL: predicate expression\n"
+        "exit_code": 0,
+        "stdout": "3\n",
+        "stderr": ""
       },
       "sqlite": {
         "exit_code": 0,
@@ -408,8 +408,8 @@
       }
     }
   ],
-  "implementation_sha256": "3bee0cf61ae7ebc278a927ef9345f5fa72ad52f209a8710d95a899bb0da72cfc",
-  "executable_sha256": "0739a7330b44538b122ffb64ab31eecdcd0fe55e12a58205adc87ae95897fa2f",
+  "implementation_sha256": "ada0e598e845cf98c0ec009d00cd6d02ddc2041c3d78391aae90c22f487b7c26",
+  "executable_sha256": "19e22bd90d6af8623658f5a16ac0c25a315783171f1d99862242d62bf73251da",
   "harness_sha256": "546131bebc4be35b3600b612298cdeac37f765ce8d53c134adeb4b77ccf6f8c3",
   "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
 }

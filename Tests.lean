@@ -3917,6 +3917,28 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteRowDeletes : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT); INSERT INTO t VALUES(1,'a'),(2,'bb'),(3,'ccc'),(4,NULL); CREATE INDEX tv ON t(v);"
+  for (query, removed) in [
+      ("DELETE FROM t WHERE length(v)>1;", 2),
+      ("DELETE FROM t AS x WHERE x.id%2=0;", 2),
+      ("DELETE FROM t WHERE 0 AND abs(-9223372036854775808);", 0),
+      ("DELETE FROM t WHERE id+0>0;", 4),
+      ("DELETE FROM t WHERE missing+1 AND 0;", 0)] do
+    let (state, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"row DELETE: {message}"
+    unless (results.getLast?).map (·.changes) == some removed &&
+        (state.database.findTable? "t").map (·.rows.length) == some (4 - removed) do
+      fail s!"row DELETE count: {query}"
+  for query in ["DELETE FROM t WHERE id=1 OR abs(-9223372036854775808);",
+      "DELETE FROM t WHERE abs(-9223372036854775808) AND 0;",
+      "DELETE FROM t WHERE wrong.id+1;", "DELETE FROM t WHERE missing+1;",
+      "DELETE FROM t WHERE unknown_function(id) AND 0;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ query) with
+    | .ok _ => fail s!"invalid DELETE accepted: {query}"
+    | .error _ => pure ()
+
 private def expectSQLiteDistinctLimit : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,2),(3,1),(4,3);"
   for query in ["SELECT DISTINCT v FROM t ORDER BY id LIMIT 2;",
@@ -4125,6 +4147,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite row-expression DELETE", expectSQLiteRowDeletes),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
   ("SQLite DISTINCT source ordering", expectSQLiteDistinctOrder),
   ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),

@@ -513,6 +513,65 @@ theorem rowUpdateCommands_length_le (tableName : String) (ctx : CoreExpr.Context
               subst commands
               simpa using Nat.succ_le_succ (ih _ tail)
 
+/-- Bind and evaluate DELETE predicates against the original statement
+snapshot before running any Core mutation. A late expression error therefore
+cannot publish a prefix of the selected deletions. -/
+def rowDeleteCommands (tableName : String) (ctx : CoreExpr.Context)
+    (condition : Option Expr) : List Core.Row → Except String (List Core.Command)
+  | [] => .ok []
+  | row :: rows => do
+      let selected ← ctx.matches row.values condition
+      let commands ← rowDeleteCommands tableName ctx condition rows
+      if selected then
+        return .deleteWhere tableName
+          (some (.equal ctx.schema.primaryKey (.integer row.rowid))) :: commands
+      else return commands
+
+def expressionDeletePlan (tableName : String) (alias : Option String) (stored : Core.Table)
+    (condition : Option Expr) : Except String (List Core.Command) := do
+  let ctx : CoreExpr.Context := ⟨stored.schema, alias.getD tableName⟩
+  let _ ← condition.mapM ctx.validate
+  unless ← ctx.constantMatches condition do return []
+  rowDeleteCommands tableName ctx condition stored.rows
+
+def executeExpressionDelete (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let commands ← expressionDeletePlan tableName alias stored condition
+  let (next, results) ← runCoreCommands state commands
+  return (next, [{ changes := (results.map (·.changes)).sum }])
+
+theorem executeExpressionDelete_eq_runCoreCommands
+    (state : Core.State) (tableName : String) (alias : Option String) (stored : Core.Table)
+    (condition : Option Expr) (commands : List Core.Command)
+    (translated : expressionDeletePlan tableName alias stored condition = .ok commands) :
+    executeExpressionDelete state tableName alias stored condition =
+      (fun outcome => (outcome.1, [{ changes := (outcome.2.map (·.changes)).sum }])) <$>
+        runCoreCommands state commands := by
+  simp only [executeExpressionDelete, translated, bind, Except.bind]
+  cases executed : runCoreCommands state commands with
+  | error message => rfl
+  | ok outcome => rfl
+
+theorem rowDeleteCommands_length_le (tableName : String) (ctx : CoreExpr.Context)
+    (condition : Option Expr) (rows : List Core.Row) (commands : List Core.Command)
+    (translated : rowDeleteCommands tableName ctx condition rows = .ok commands) :
+    commands.length ≤ rows.length := by
+  induction rows generalizing commands with
+  | nil => simp [rowDeleteCommands] at translated; subst commands; simp
+  | cons row rows ih =>
+    simp only [rowDeleteCommands] at translated
+    cases selected : ctx.matches row.values condition with
+    | error message => simp [selected, bind, Except.bind] at translated
+    | ok keep =>
+      cases tail : rowDeleteCommands tableName ctx condition rows with
+      | error message => simp [selected, tail, bind, Except.bind] at translated
+      | ok rest =>
+        have bound := ih _ tail
+        cases keep <;>
+          simp [selected, tail, bind, Except.bind, pure, Except.pure] at translated <;>
+          subst commands <;> simp only [List.length_cons] <;> omega
+
 structure JoinContext where
   leftTable : String
   rightTable : String
@@ -1005,15 +1064,16 @@ def executeStatement (state : Core.State) :
         | none => .error s!"no such table: {table}"
       insertRows state tableName stored.schema columns (conflict == .replace)
         rows.toList
-  | .delete table _ where_ returning => do
+  | .delete table alias where_ returning => do
       unless returning.isEmpty do
         throw "unsupported general verified-MVP SQL: DELETE RETURNING"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      executeCommand state (.deleteWhere tableName
-        (← where_.mapM (predicate stored.schema)))
+      match where_.mapM (predicate stored.schema) with
+      | .ok condition => executeCommand state (.deleteWhere tableName condition)
+      | .error _ => executeExpressionDelete state tableName alias stored where_
   | .update table alias assignments where_ conflict => do
       unless conflict == .default || conflict == .abort do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"

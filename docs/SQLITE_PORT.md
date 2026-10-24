@@ -520,3 +520,33 @@ All **170 executable tests**, **961 registered headline theorems**, the full
 build and both audits passed. This closes the retained DISTINCT source-order
 counterexample; it is not a whole-SQLite compatibility result. Covering-index
 scan choices and general ORDER BY expressions remain separate work.
+
+### Atomic scalar-predicate DELETE checkpoint (2026-10-24)
+
+DELETE now accepts the same bound row expressions as scalar WHERE and UPDATE,
+including table aliases, functions, arithmetic, CASE and SQL three-valued
+truth. Selected rowids become a bounded Core command trace. The predicate scan
+finishes before mutation starts, so a later expression error preserves the
+whole statement's file state. RETURNING, triggers and foreign-key actions
+remain outside this implementation.
+
+The new suite exposed a parse-time binding difference: SQLite folds
+`missing+1 AND 0` to zero before name binding, but preserves function calls
+under AND so that their errors remain observable. The common scalar layer now
+implements that explicit AST normalization (including CAST's operator status),
+then performs normal binding and evaluation. This is separate from the later
+WHERE branch simplifier. Subquery syntax remains conservatively excluded from
+this fold until that syntax is implemented.
+
+Frozen implementation SHA-256:
+`ada0e598e845cf98c0ec009d00cd6d02ddc2041c3d78391aae90c22f487b7c26`.
+Fresh seed 353502 checked **382 DELETE statements**, **14 matching errors**,
+independently decoded retained values, integrity after every successful delete,
+byte preservation after errors, and rollback in both production file modes.
+Seed 353503 checked **816 predicate queries / 13,222 output rows** without a
+difference. Full build, **171 executable tests**, **963 registered headline
+theorems** and both audits passed. Reports:
+`docs/validation/sqlite-row-delete-20261024.json` and
+`docs/validation/sqlite-predicate-delete-regression-20261024.json`.
+The point-delete trace can cost more than a single bulk predicate deletion;
+this checkpoint does not claim planner or performance equivalence.

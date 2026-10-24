@@ -26,7 +26,7 @@ def Context.affinity (ctx : Context) (expression : Expr) : Option SQLite.Affinit
   | _ => SQLite.Scalar.expressionAffinity expression
 
 def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
-  !expression.any (fun e => match e with
+  !(SQLite.Scalar.prepare expression).any (fun e => match e with
     | .column qualifier name => (ctx.column? qualifier name).isNone
     | _ => SQLite.Scalar.forbidden e)
 
@@ -106,7 +106,7 @@ def Context.matches (ctx : Context) (row : List Core.Value) (condition : Option 
   match condition with
   | none => .ok true
   | some expression => SQLite.Scalar.testTermsWith (ctx.lookup row) ctx.affinity
-      (SQLite.Scalar.conditionTerms expression)
+      (SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression))
 
 /-- Constant constraints run before the table loop, including on an empty
 input. Preserve their relative order; names are checked independently first. -/
@@ -114,7 +114,7 @@ def Context.constantMatches (ctx : Context) (condition : Option Expr) : Except S
   match condition with
   | none => .ok true
   | some expression => SQLite.Scalar.testTermsWith (ctx.lookup []) ctx.affinity
-      ((SQLite.Scalar.conditionTerms expression).filter fun term =>
+      ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)).filter fun term =>
         !term.any (fun e => match e with | .column .. => true | _ => false))
 
 /-- Evaluate the condition before output expressions; DISTINCT compares the
