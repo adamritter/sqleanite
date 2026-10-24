@@ -97,6 +97,8 @@ Reject that shape rather than using an unsound index equality. -/
 def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
     Except String Core.Value := do
   let value ← literal expression
+  let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+  if ctx.hasBooleanColumn expression then unsupported "row-dependent boolean keyword comparison"
   let target ← match schema.columns[index]? with
     | some target => .ok target
     | none => .error "comparison column is out of range"
@@ -153,6 +155,8 @@ def comparisonPredicate (schema : Core.Schema)
 def indexColumnName? : Expr → Option String
   | .column none name => some name
   | .call "lean_dqs" #[.literal (.text name)] false => some name
+  | .call "__sqlean_boolean_true" #[] false => some "true"
+  | .call "__sqlean_boolean_false" #[] false => some "false"
   | _ => none
 
 def predicate (schema : Core.Schema) : Expr → Except String Core.Predicate
@@ -444,7 +448,10 @@ def updateAssignments (schema : Core.Schema) :
       let target ← match schema.columns[index]? with
         | some target => .ok target
         | none => .error "UPDATE column is out of range"
-      return (index, ← columnLiteral target assignment.2) :: remaining
+      let value ← columnLiteral target assignment.2
+      let ctx : CoreExpr.Context := { schema, sourceName := schema.name }
+      if ctx.hasBooleanColumn assignment.2 then unsupported "row-dependent boolean keyword assignment"
+      return (index, value) :: remaining
 
 /-- Resolve every UPDATE name even when the row set is empty. SQLite uses
 only the last assignment to a repeated target; earlier expressions are still
@@ -561,7 +568,7 @@ Other access-plan choices remain with the general scan. -/
 def expressionSearch (ctx : CoreExpr.Context) (stored : Core.Table)
     (condition : Option Expr) : Except String (Option Core.Predicate) := do
   let terms := condition.toList.flatMap fun expression =>
-    SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)
+    SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindKeywords expression))
   let primaryColumn := fun expression => match expression with
     | .column qualifier name => ctx.column? qualifier name == some stored.schema.primaryKey
     | _ => false

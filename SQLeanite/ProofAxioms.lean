@@ -1098,3 +1098,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.executeStatement_createIndex_noop
 
 #print axioms SQLeanite.CoreAggregate.PreparedResults.accumulate_length
+
+#print axioms SQLeanite.SQLite.Scalar.isTruth_null
+#print axioms SQLeanite.SQLite.Scalar.bindBooleanKeywords_shadowed

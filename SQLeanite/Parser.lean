@@ -221,10 +221,6 @@ mutual
             expectKeyword "from"
             let rhs ← parseExprFuel fuel 4
             lhs := .binary (if negated then .is else .isNot) lhs rhs
-          else if ← acceptKeyword "true" then
-            lhs := .call (if negated then "lean_is_not_true" else "lean_is_true") #[lhs] false
-          else if ← acceptKeyword "false" then
-            lhs := .call (if negated then "lean_is_not_false" else "lean_is_false") #[lhs] false
           else
             let rhs ← parseExprFuel fuel 4
             lhs := match rhs with
@@ -317,8 +313,6 @@ mutual
           expectKeyword "end"
           pure (.case_ base branches else_)
         else if keywordEq s "null" then pure (.literal .null)
-        else if keywordEq s "true" then pure (.literal (.integer 1))
-        else if keywordEq s "false" then pure (.literal (.integer 0))
         else if ["from", "where", "group", "having", "order", "limit", "offset",
             "union", "intersect", "except"].contains s.toLower then
           throw (syntaxError (.ident s))
@@ -359,6 +353,8 @@ mutual
               if ← acceptSymbol "*" then pure (.star (some qualifier))
               else pure (.column (some qualifier) (← expectIdent))
             else pure (.column (some s) second)
+        else if keywordEq s "true" then pure (.call "__sqlean_boolean_true" #[] false)
+        else if keywordEq s "false" then pure (.call "__sqlean_boolean_false" #[] false)
         else pure (.column none s)
       | .quotedIdent s _ =>
         if ← acceptSymbol "." then
@@ -378,6 +374,8 @@ private def parseUnary : ParserM Expr :=
 
 private def constantInt? : Expr → Option Int
   | .literal (.integer value) => some value
+  | .call "__sqlean_boolean_true" #[] false => some 1
+  | .call "__sqlean_boolean_false" #[] false => some 0
   | .unary .plus expr => constantInt? expr
   | .unary .neg expr => (-·) <$> constantInt? expr
   | .binary op left right => do

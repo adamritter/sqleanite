@@ -1,5 +1,6 @@
 import SQLeanite.Parser
 import SQLeanite.Record
+import SQLeanite.SQLite.Scalar
 import Lean.Data.Json.Parser
 import Lean.Data.Json.Printer
 
@@ -1253,6 +1254,10 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
       | _ => pure (.integer (-(v.toInt?.getD 0) - 1))
   | fuel + 1, env, .binary op left right => do
     let a ← evalExprFuel fuel env left
+    if op == .is || op == .isNot then
+      if let some truth := SQLite.Scalar.booleanKeyword? right then
+        unless env.any (fun binding => nameEq binding.column (SQLite.Scalar.booleanName truth)) do
+          return SQLite.Scalar.isTruth a truth (op == .isNot)
     let b ← evalExprFuel fuel env right
     let isComparison := [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op
     let (a, b) := if isComparison then
@@ -1285,6 +1290,10 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
             else
               pure (.text value.compress)
   | fuel + 1, env, .call name args star => do
+    if let some truth := SQLite.Scalar.booleanKeyword? (.call name args star) then
+      let keyword := SQLite.Scalar.booleanName truth
+      if env.any (fun binding => nameEq binding.column keyword) then return ← resolveColumn env none keyword
+      else return SQLite.Scalar.boolValue truth
     let lname := name.toLower
     if lname == "raise" then
       throw "RAISE() may only be used within a trigger-program"

@@ -1009,3 +1009,40 @@ The full build, **185 executable tests**, **995 registered headline theorems**,
 both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
 These are bounded differential results and component proofs, not a percentage
 of the entire SQLite language or a claim of complete database/WAL equivalence.
+
+
+### Boolean keyword binding and IS truth tests (2026-10-24)
+
+The parser preserves TRUE/FALSE as private keyword markers until source-column
+binding. Parentheses preserve the keyword; unary plus and arithmetic produce
+ordinary expressions. IS/IS NOT uses two-valued truth testing only for an
+unshadowed boolean keyword on its right. Real source columns named true/false
+bind first, including their affinities, and are retained in predicates,
+aggregate inputs and assignments. Constant/index search planning cannot treat
+such a column as the integer 1 or 0. INSERT VALUES remains source-free.
+The independent grammar accepts the markers only for actual TRUE/FALSE tokens;
+calling a private marker as a SQL function is rejected. The legacy conformance
+engine was adjusted to the shared parser representation; production execution
+still exclusively uses Core. New component theorems cover NULL truth tests and
+shadowed-keyword binding.
+
+The initial read-only corpus had **578 discrepancies in 1,372 outcomes**.
+At frozen Lean/Main SHA-256
+`7851150c35cfaf2610a1d14c84aabc14480d9db31d5e98379511a1d0fa50d6b5`,
+fresh seed 353641 checked **2,368 read/write outcomes** in both file modes:
+**2,364 matched**, including **18 matching errors**, while **four remained explicit
+rejections**. Those four involve CAST of an invalid-UTF-8 BLOB to TEXT through
+a shadowing column; the scalar TEXT representation still rejects this preexisting
+gap. The report retains the failures without filtering or normalization; this
+is not an all-passing compatibility claim. Successful writes are independently
+read by SQLite and integrity-checked, and failed writes preserve main/WAL bytes.
+Reports are `docs/validation/sqlite-boolean-keywords-negative-20261024.json`,
+`sqlite-boolean-keywords-development-20261024.json` and
+`sqlite-boolean-keywords-20261024.json` in the same directory.
+
+The **1,120 scalar regressions**, **1,616 fresh aggregate-result regressions**
+(**254 matching errors**), full build, **186 executable tests**, **997 registered
+headline theorems**, both audits, and **61 accepted / 2 declared-unsupported
+reverse cells** passed. The invalid-UTF-8 TEXT conversion failures remain the
+next implementation target; broader alias, join, grouping and collation behavior
+is outside this boolean corpus.

@@ -1,0 +1,81 @@
+{
+  "seed": 353641,
+  "random_cases": 600,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1169,
+      "writes": 15,
+      "matching_errors": 9
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1169,
+      "writes": 15,
+      "matching_errors": 9
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,CAST(TRUE AS TEXT)=v,typeof(CAST(TRUE AS TEXT)=v) FROM s ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: invalid UTF-8 BLOB to TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0|integer\n2|0|integer\n3|0|integer\n4|0|integer\n5|0|integer\n6|0|integer\n7|0|integer\n8|0|integer\n9||null\n10|0|integer\n11|0|integer\n12|0|integer\n13|0|integer\n14|0|integer\n15|1|integer\n16|0|integer\n17|0|integer\n18|0|integer\n19|0|integer\n20|0|integer\n21|0|integer\n22|0|integer\n23|0|integer\n24|0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM s WHERE CAST(TRUE AS TEXT)=v ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: invalid UTF-8 BLOB to TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "15\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,CAST(TRUE AS TEXT)=v,typeof(CAST(TRUE AS TEXT)=v) FROM s ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: invalid UTF-8 BLOB to TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0|integer\n2|0|integer\n3|0|integer\n4|0|integer\n5|0|integer\n6|0|integer\n7|0|integer\n8|0|integer\n9||null\n10|0|integer\n11|0|integer\n12|0|integer\n13|0|integer\n14|0|integer\n15|1|integer\n16|0|integer\n17|0|integer\n18|0|integer\n19|0|integer\n20|0|integer\n21|0|integer\n22|0|integer\n23|0|integer\n24|0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM s WHERE CAST(TRUE AS TEXT)=v ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: invalid UTF-8 BLOB to TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "15\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "7851150c35cfaf2610a1d14c84aabc14480d9db31d5e98379511a1d0fa50d6b5",
+  "executable_sha256": "a05c88baa1e091c6e99970ee8e124aea03d6ce30f89ab53e3e96df641cd4bd04",
+  "harness_sha256": "d16ae7fd9d3789c43ae120f3b4b2f007b8c3d94a3e640303295a943af5977ffa",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite boolean keywords, IS truth tests, and shadowing by real column names.\n\nCompare exact CLI bytes, explicit typeof results, and rejection status on\nindependent images in both file modes. Reads must preserve database/WAL bytes.\nAll generated failures are retained. This suite covers constant and single-table\nexpressions; it does not claim alias, join, grouping, or collation completeness."
+}

@@ -21,15 +21,24 @@ def Context.column? (ctx : Context) (qualifier : Option String) (name : String) 
     | none => if ["rowid", "oid", "_rowid_"].contains name.toLower then
         some ctx.schema.primaryKey else none
 
+/-- An actual source column shadows a bare TRUE/FALSE keyword before any
+constant folding, affinity inference or scan planning. -/
+def Context.bindKeywords (ctx : Context) (expression : Expr) : Expr :=
+  SQLite.Scalar.bindBooleanKeywords (fun name => (ctx.column? none name).isSome) expression
+
+def Context.hasBooleanColumn (ctx : Context) (expression : Expr) : Bool :=
+  expression.any fun node => (SQLite.Scalar.booleanKeyword? node).any fun truth =>
+    (ctx.column? none (SQLite.Scalar.booleanName truth)).isSome
+
 def Context.affinity (ctx : Context) (expression : Expr) : Option SQLite.Affinity :=
-  match expression with
+  match ctx.bindKeywords expression with
   | .column qualifier name => do
       let index ← ctx.column? qualifier name
       return (← ctx.schema.columns[index]?).affinity
   | _ => SQLite.Scalar.expressionAffinity expression
 
 def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
-  !(SQLite.Scalar.prepare expression).any (fun e => match e with
+  !(SQLite.Scalar.prepare (ctx.bindKeywords expression)).any (fun e => match e with
     | .column qualifier name => (ctx.column? qualifier name).isNone
     | _ => SQLite.Scalar.forbidden e)
 
@@ -59,7 +68,7 @@ def Context.lookup (ctx : Context) (row : List Core.Value)
 
 def Context.eval (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String Value :=
-  SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity expression
+  SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity (ctx.bindKeywords expression)
 
 /-- Expand each star in place, keeping visible-column order and result width. -/
 def Context.projection (ctx : Context) (columns : List ResultColumn) : Except String (List Expr) := do
@@ -104,7 +113,7 @@ def Context.projectRows (ctx : Context) (expressions : List Expr) (rows : List (
   rows.mapM (fun row => do return { source := row, output := ← ctx.projectRow row expressions })
 
 def Context.constantExpression (ctx : Context) (expression : Expr) : Bool :=
-  !expression.any (fun e => match e with
+  !(ctx.bindKeywords expression).any (fun e => match e with
     | .column qualifier name => !(ctx.column? qualifier name).any ctx.fixedColumns.contains
     | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
     | _ => false)
@@ -116,7 +125,7 @@ def Context.matches (ctx : Context) (row : List Core.Value) (condition : Option 
   | none => .ok true
   | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
       ctx.constantExpression
-      (SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression))
+      (SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindKeywords expression)))
 
 /-- Constant constraints run before the table loop, including on an empty
 input. Preserve their relative order; names are checked independently first. -/
@@ -126,7 +135,7 @@ def Context.constantMatchesOn (ctx : Context) (row : List Core.Value)
   | none => .ok true
   | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
       ctx.constantExpression
-      ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)).filter ctx.constantExpression)
+      ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindKeywords expression))).filter ctx.constantExpression)
 
 def Context.constantMatches (ctx : Context) (condition : Option Expr) : Except String Bool :=
   ctx.constantMatchesOn [] condition

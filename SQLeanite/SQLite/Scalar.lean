@@ -77,6 +77,57 @@ def boolValue (b : Bool) : Value := .integer (if b then 1 else 0)
 
 def isNull : Value → Bool | .null => true | _ => false
 
+/-- Keep the original keyword spelling through name binding. These private
+parser markers are certified only against bare TRUE/FALSE source tokens. -/
+def booleanKeyword? : Expr → Option Bool
+  | .call name arguments star =>
+      if arguments.isEmpty && !star then
+        if name == "__sqlean_boolean_true" then some true
+        else if name == "__sqlean_boolean_false" then some false else none
+      else none
+  | _ => none
+
+def booleanName (truth : Bool) : String := if truth then "true" else "false"
+
+def bindBooleanKeywordsFuel (hasColumn : String → Bool) : Nat → Expr → Expr
+  | 0, expression => expression
+  | fuel + 1, expression =>
+      if let some truth := booleanKeyword? expression then
+        if hasColumn (booleanName truth) then .column none (booleanName truth) else expression
+      else
+        let bind := bindBooleanKeywordsFuel hasColumn fuel
+        match expression with
+        | .unary op arg => .unary op (bind arg)
+        | .binary op left right => .binary op (bind left) (bind right)
+        | .call name args star => .call name (args.map bind) star
+        | .isNull arg negated => .isNull (bind arg) negated
+        | .inList arg values negated affinity => .inList (bind arg) (values.map bind) negated affinity
+        | .case_ base branches otherwise => .case_ (base.map bind)
+            (branches.map fun (condition, result) => (bind condition, bind result)) (otherwise.map bind)
+        | .collate arg name => .collate (bind arg) name
+        | .inSubquery arg sql negated => .inSubquery (bind arg) sql negated
+        | _ => expression
+
+def bindBooleanKeywords (hasColumn : String → Bool) (expression : Expr) : Expr :=
+  bindBooleanKeywordsFuel hasColumn expression.height expression
+
+/-- IS TRUE/FALSE tests truth without column affinity and always returns an
+integer, including for NULL. IS NOT complements that two-valued result. -/
+def isTruth (value : Value) (expected negated : Bool) : Value :=
+  boolValue ((Numeric.truth value == (if expected then .true else .false)) != negated)
+
+theorem isTruth_null (expected negated : Bool) :
+    isTruth .null expected negated = boolValue negated := by
+  cases expected <;> cases negated <;> rfl
+
+theorem bindBooleanKeywords_shadowed (hasColumn : String → Bool) (truth : Bool)
+    (bound : hasColumn (booleanName truth) = true) :
+    bindBooleanKeywords hasColumn
+      (.call (if truth then "__sqlean_boolean_true" else "__sqlean_boolean_false") #[] false) =
+      .column none (booleanName truth) := by
+  cases truth <;> simp_all [bindBooleanKeywords, bindBooleanKeywordsFuel, booleanKeyword?, booleanName,
+    Expr.height, exprListHeight]
+
 /-- TEXT conversions cannot silently replace invalid BLOB bytes: until the
 text value representation can carry them, those conversions are rejected. -/
 def text := SQLite.Text.toText
@@ -264,7 +315,7 @@ but EP_HasFunc prevents erasing a function call and its errors. CAST is an
 operator even though our surface AST encodes it as a named call. -/
 def hasFunction (expression : Expr) : Bool :=
   expression.any fun e => match e with
-    | .call name _ _ => !name.toLower.startsWith "cast_"
+    | .call name _ _ => !name.toLower.startsWith "cast_" && (booleanKeyword? e).isNone
     | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
     | _ => false
 
@@ -325,7 +376,8 @@ def forbidden : Expr → Bool
   | .binary op _ _ => [.match, .arrow, .arrowText].contains op
   | .call name args star =>
       let n := name.toLower
-      star || !(if n == "coalesce" then args.size ≥ 2
+      star || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
         else if n == "char" then true
@@ -349,6 +401,7 @@ def admitted (e : Expr) : Bool := !(prepare e).any forbidden
 nonnegative 32-bit integer literals acquire these flags; +0, -0, 0.0 and
 numeric strings do not. This preserves SQLite's observable error suppression. -/
 def staticTruth : Expr → Option Bool
+  | expression@(.call ..) => booleanKeyword? expression
   | .literal (.integer i) => if 0 ≤ i && i ≤ 2147483647 then some (i != 0) else none
   | .binary .and a b =>
       match staticTruth a, staticTruth b with
@@ -443,6 +496,8 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
         if op == .and || op == .or then
           if let some truth := staticTruth e then return boolValue truth
         let left ← eval a
+        if op == .is || op == .isNot then
+          if let some truth := booleanKeyword? b then return isTruth left truth (op == .isNot)
         let right ← eval b
         if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
           return expressionComparisonWith operandAffinity op a b left right
@@ -452,7 +507,8 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
         evalInList eval operandAffinity constant argument values negated applyLeftAffinity
     | .call name args false =>
         let n := name.toLower
-        if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
+        if let some truth := booleanKeyword? e then .ok (boolValue truth)
+        else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
         else if n == "iif" || n == "if" then conditional eval args.toList
         else do builtin n (← args.mapM eval)
     | .case_ base cases otherwise => do

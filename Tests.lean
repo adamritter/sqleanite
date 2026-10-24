@@ -4172,6 +4172,39 @@ private def expectSQLiteAggregateExpressions : IO Unit := do
     | .ok _ => fail s!"aggregate accepted invalid expression: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteBooleanKeywords : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,true TEXT,false INTEGER,v); INSERT INTO t VALUES(1,'2',7,2),(2,'0',0,0),(3,NULL,NULL,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 2 IS TRUE,2 IS (TRUE),2 IS TRUE+0,0 IS FALSE,NULL IS NOT TRUE,NULL IS FALSE;",
+      [[.integer 1, .integer 1, .integer 0, .integer 1, .integer 1, .integer 0]]),
+    ("SELECT TRUE,FALSE,typeof(TRUE),typeof(FALSE);", [[.integer 1, .integer 0, .text "integer", .text "integer"]]),
+    ("SELECT id,TRUE,FALSE,v IS TRUE FROM t ORDER BY id;",
+      [[.integer 1, .text "2", .integer 7, .integer 0],
+       [.integer 2, .text "0", .integer 0, .integer 0],
+       [.integer 3, .null, .null, .integer 1]]),
+    ("SELECT id FROM t WHERE id=TRUE ORDER BY id;", []),
+    ("SELECT sum(TRUE),sum(FALSE) FROM t;", [[.integer 2, .integer 7]]),
+    ("SELECT FALSE AND abs(-9223372036854775808),TRUE OR abs(-9223372036854775808);",
+      [[.integer 0, .integer 1]]),
+    ("SELECT 1 LIMIT TRUE;", [[.integer 1]]),
+    ("SELECT 1 LIMIT FALSE;", []),
+    ("UPDATE t SET v=TRUE WHERE id=1; SELECT v,typeof(v) FROM t WHERE id=1;", [[.text "2", .text "text"]]),
+    ("DELETE FROM t WHERE false; SELECT id FROM t ORDER BY id;", [[.integer 2], [.integer 3]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"boolean keyword: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"boolean keyword mismatch: {sql}"
+  for sql in ["SELECT FALSE AND missing;", "SELECT TRUE OR unknown_function();",
+      "SELECT __sqlean_boolean_true() LIMIT 0;", "SELECT TRUE() LIMIT 0;",
+      "SELECT TRUE.foo;", "SELECT missing IS TRUE FROM t WHERE FALSE LIMIT 0;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"boolean binding omitted error: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteOperatorPrecedence : IO Unit := do
   let cases : List (String × Value) := [
     ("0.5=-1<0.5", .integer 0), ("1!=(-1)<(-1)", .integer 1),
@@ -4612,6 +4645,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
+  ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),

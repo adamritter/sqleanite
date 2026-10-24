@@ -39,7 +39,7 @@ def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
         return { function, argument := none }
       unless !star && arguments.size == 1 do
         throw "wrong number of arguments to aggregate function"
-      let argument := arguments[0]!
+      let argument := ctx.bindKeywords arguments[0]!
       ctx.validate argument
       return { function, argument := some argument, distinct }
   | _ => .error "unsupported aggregate result expression"
@@ -115,7 +115,9 @@ def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
 def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
     Except String PreparedResults := do
   let (expressions, terms) ←
-    (columns.mapM fun column => prepareResultFuel ctx column.expr.height column.expr).run #[]
+    (columns.mapM fun column =>
+      let expression := ctx.bindKeywords column.expr
+      prepareResultFuel ctx expression.height expression).run #[]
   return { expressions, terms }
 
 /-- Accumulators are finalized before OFFSET. Scalar result expressions are

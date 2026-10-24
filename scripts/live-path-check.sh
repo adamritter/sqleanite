@@ -79,6 +79,16 @@ else
   fail "IN evaluator or expression search route is missing"
 fi
 
+# Boolean keywords bind to real columns before scalar preparation and search planning.
+if grep -q 'ctx.bindKeywords expression' SQLeanite/CoreExpr.lean &&
+   grep -q 'ctx.hasBooleanColumn expression' SQLeanite/CoreSQL.lean &&
+   grep -q 'return isTruth left truth' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'bindBooleanKeywords_shadowed' SQLeanite/ProofAxioms.lean; then
+  ok "boolean keyword binding and IS truth tests are on the production path"
+else
+  fail "boolean keyword binding or its registered contracts are missing"
+fi
+
 # Numeric aggregates share the physical-value accumulator after Core reads.
 if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
    grep -q 'SQLite.AggregateSum.average inputs' SQLeanite/CoreAggregate.lean &&

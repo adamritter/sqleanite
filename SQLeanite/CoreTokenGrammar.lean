@@ -129,9 +129,6 @@ private def expectInteger (expected : Int) : MatchM Unit := do
     match ← advance with
     | .integer found =>
         unless found == expected do mismatch s!"integer {expected}"
-    | .ident found =>
-        unless (found.toLower == "true" && expected == 1) ||
-            (found.toLower == "false" && expected == 0) do mismatch s!"integer {expected}"
     | _ => mismatch s!"integer {expected}"
 
 private def expectNat (expected : Nat) : MatchM Unit :=
@@ -324,7 +321,10 @@ mutual
         expectBinaryOp operation
         matchExprFuel fuel right
     | fuel, .call name arguments star => do
-        if name == "lean_dqs" then
+        if name == "__sqlean_boolean_true" || name == "__sqlean_boolean_false" then
+          unless arguments.isEmpty && !star do mismatch "a boolean keyword"
+          expectKeyword (if name == "__sqlean_boolean_true" then "true" else "false")
+        else if name == "lean_dqs" then
           match arguments.toList, star with
           | [.literal (.text expected)], false =>
               match ← advance with
