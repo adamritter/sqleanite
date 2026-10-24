@@ -205,6 +205,14 @@ else
   fail "scalar layer detached from the live translator or its proofs"
 fi
 
+if grep -q '"round", \[v, places\].*roundValue v places' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'FloatCodec.renderFixed r n' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Scalar.roundPrecision_le' SQLeanite/ProofAxioms.lean; then
+  ok "round uses the pure fixed-decimal codec and bounded precision"
+else
+  fail "round detached from its implementation or precision theorem"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

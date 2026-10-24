@@ -1081,3 +1081,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.rowRekeyBatch_changes_le
 #print axioms SQLeanite.CoreSQL.executeRekeyUpdate_eq_runCoreCommands
+
+#print axioms SQLeanite.SQLite.Scalar.roundPrecision_le
+#print axioms SQLeanite.SQLite.Scalar.roundValue_null_left
+#print axioms SQLeanite.SQLite.Scalar.roundValue_null_right

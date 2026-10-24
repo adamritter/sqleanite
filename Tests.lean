@@ -3960,6 +3960,31 @@ private def expectPageSizeConversionFailures : IO Unit := do
     let reopened ← CoreFileAdapter.reopen paths
     unless reopened.Equiv next.database do fail "conversion retry changed logical contents"
 
+private def expectSQLiteRound : IO Unit := do
+  let cases : List (String × List Value) := [
+    ("SELECT round(0.5),round(-0.5),round(2.5),round(-2.5);",
+      [.real 1.0,.real (-1.0),.real 3.0,.real (-3.0)]),
+    ("SELECT round(2.675,2),round(1.005,2),round(0.05,1),round(-0.05,1);",
+      [.real 2.67,.real 1.0,.real 0.1,.real (-0.1)]),
+    ("SELECT round(12.5,-1),round(1.25,'1x'),round(1.25,'1e2'),round('bad');",
+      [.real 13.0,.real 1.3,.real 1.3,.real 0.0]),
+    ("SELECT round(NULL),round(1,NULL),round(1.25,31),typeof(round(1));",
+      [.null,.null,.real 1.25,.text "real"])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"round: {message}"
+    let row ← match expected.mapM SQLSurface.value with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [row] do fail s!"round result: {sql}"
+  for sql in ["SELECT round();", "SELECT round(1,2,3);",
+      "SELECT round(NULL,abs(-9223372036854775808));",
+      "SELECT round(abs(-9223372036854775808),NULL);"] do
+    match CoreSQL.execute Core.State.empty sql with
+    | .ok _ => fail s!"round accepted invalid input: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteRowidUpdates : IO Unit := do
   let cases : List (String × Nat × List (List Value)) := [
     ("CREATE TABLE t(v); INSERT INTO t(rowid,v) VALUES(-5,'a'),(2,'b'); UPDATE t SET rowid=rowid+20,v=v||rowid; SELECT rowid,v FROM t ORDER BY rowid;",
@@ -4419,6 +4444,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite page-size conversion publication failures", expectPageSizeConversionFailures),
+  ("SQLite round fixed-decimal and integral paths", expectSQLiteRound),
   ("SQLite rowid UPDATE binding and changes", expectSQLiteRowidUpdates),
   ("SQLite implicit rowid allocation and DEFAULT VALUES", expectSQLiteImplicitRowid),
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),

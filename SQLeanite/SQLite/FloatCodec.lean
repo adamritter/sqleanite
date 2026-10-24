@@ -138,6 +138,50 @@ def decode17 (r : Float) : String × Int := Id.run do
     return (String.ofList (trimZeros digits), point)
   return (String.ofList (trimZeros raw), point)
 
+/-- sqlite3FpDecode with a fixed number of fractional digits and the `%!f`
+20-significant-digit cap. The input is a positive finite nonzero magnitude.
+The 17-digit shortening rule is shared with the ordinary REAL text path. -/
+def decodeFixed (r : Float) (precision : Nat) : String × Int := Id.run do
+  let bits := r.toBits.toNat
+  let exponent := (bits >>> 52) &&& 2047
+  let mantissa := bits &&& (2^52 - 1)
+  let (mantissa, exponent) := if exponent == 0 then
+      let leading := 64 - (mantissa.log2 + 1)
+      (mantissa <<< leading, -1074 - Int.ofNat leading)
+    else ((mantissa <<< 11) ||| 2^63, Int.ofNat exponent - 1086)
+  let (digits, power) := binaryToDecimal mantissa exponent
+  let mut raw := (toString digits).toList
+  let mut point := Int.ofNat raw.length + power
+  let mut rounding := point + Int.ofNat precision
+  if rounding == 0 && raw.head! ≥ '5' then
+    raw := '0' :: raw
+    point := point + 1
+    rounding := 1
+  if rounding > 0 && (rounding < Int.ofNat raw.length || raw.length > 20) then
+    let count := min rounding.toNat 20
+    if count == 17 then return decode17 r
+    let rounded := digitsValue (raw.take count) + (if raw[count]! ≥ '5' then 1 else 0)
+    let digits := (toString rounded).toList
+    if digits.length > count then point := point + 1
+    return (String.ofList (trimZeros digits), point)
+  return (String.ofList (trimZeros raw), point)
+
+/-- The fixed-decimal `%!.*f` text used by roundFunc. Digits below the
+requested decimal place are truncated only after the decoder rounds them. -/
+def renderFixed (value : Float) (precision : Nat) : String :=
+  if !value.isFinite then if value.isNaN then "NaN" else if value < 0.0 then "-Inf" else "Inf"
+  else if value == 0.0 then "0.0"
+  else
+    let negative := value < 0.0
+    let (digits, point) := decodeFixed (if negative then -value else value) precision
+    let chars := digits.toList
+    let whole := if point ≤ 0 then "0" else
+      String.ofList (chars.take point.toNat ++ List.replicate (point.toNat - chars.length) '0')
+    let fraction := if point ≤ 0 then List.replicate (-point).toNat '0' ++ chars
+      else chars.drop point.toNat
+    let fraction := String.ofList (trimZeros (fraction.take precision))
+    (if negative then "-" else "") ++ whole ++ "." ++ (if fraction.isEmpty then "0" else fraction)
+
 /-- SQLite's default REAL-to-TEXT conversion (%!.17g), including the mandatory
 fractional digit, exponent padding, special values, and unsigned zero. -/
 def render (value : Float) : String :=

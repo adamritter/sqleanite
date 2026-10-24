@@ -830,3 +830,32 @@ passed. The selected gap inventory now has **10 explicit rejections**,
 **17 matches** and **1 both-reject** case; it is not a coverage percentage.
 Declared non-rowid primary-key changes, conflict policies beyond ABORT,
 triggers and foreign-key actions still need separate implementations.
+
+
+### ROUND fixed-decimal semantics (2026-10-24)
+
+The live scalar evaluator now implements one- and two-argument `round()`.
+It follows pinned `func.c:roundFunc`: NULL propagation after eager argument
+evaluation, saturated integer precision clamped to 0..30, the integral
+half-away-from-zero path, and the no-fractional-bits large-magnitude path.
+Other values use the pure `%!.*f` decimal decoder followed by the existing
+SQLite decimal parser. This retains the 17-significant-digit shortening rule
+when fixed decimal precision selects that branch. No host binding was added.
+The precision bound and left/right NULL laws are registered component proofs;
+complete rounding equivalence remains differential evidence.
+
+Frozen Lean/Main SHA-256:
+`09ae145f6a0778aeb244db32c7f41164d41dc9659be10e8e5683ee9f17a42029`.
+Fresh seed 353581 passed **7,216 stored result comparisons** over both file
+modes, checking storage classes and exact binary64 bits with independent
+SQLite image readers and integrity checks. Inputs include random finite bit
+patterns, decimal midpoint neighbours, subnormals, infinities, numeric TEXT
+and BLOB prefixes, NULL, negative and oversized precision. **26 query outcomes**,
+including **12 matching errors**, additionally check row expressions, output,
+aggregate use and lazy/dead evaluation. The existing **1,120-case scalar
+regression** and its error/persistence checks also passed. Reports:
+`docs/validation/sqlite-round-20261024.json` and
+`docs/validation/sqlite-round-scalar-regression-20261024.json`.
+Full build, **180 executable tests**, **986 registered headline theorems** and
+both required audits passed. The selected diagnostic inventory has 9 explicit
+rejections, 18 matches and 1 both-reject case; this is not a compatibility rate.

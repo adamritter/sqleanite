@@ -1,0 +1,24 @@
+{
+  "seed": 353580,
+  "random_cases": 500,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "stored_values": 1108,
+      "queries": 13,
+      "matching_errors": 6
+    },
+    {
+      "mode": "--verified-wal-file",
+      "stored_values": 1108,
+      "queries": 13,
+      "matching_errors": 6
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "09ae145f6a0778aeb244db32c7f41164d41dc9659be10e8e5683ee9f17a42029",
+  "executable_sha256": "5ff60bf062f73b2e50b190d493737ec99ef9c7e29e506ca7c1b0f04f77b06001",
+  "harness_sha256": "bdbdfbe0a50e34bb9e8a51d47d94ca5ae58e88a1099ce1b93dce84916d0f4c64",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare SQLite 3.53.4 round at the CLI and persisted-value boundaries.\n\nSQLite creates the oracle. Independent copies of both images are read for\nstorage classes, binary64 bits and integrity. Includes random finite bit\npatterns, decimal midpoint neighbours, precision coercion, NULL and lazy paths."
+}

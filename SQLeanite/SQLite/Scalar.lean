@@ -168,10 +168,38 @@ def typeOf : Value → String
   | .null => "null" | .integer _ => "integer" | .real _ => "real"
   | .text _ => "text" | .blob _ => "blob"
 
+/-- roundFunc clamps sqlite3_value_int64 precision before its floating branch. -/
+def roundPrecision (places : Value) : Nat :=
+  (max 0 (min 30 (Numeric.integer places))).toNat
+
+theorem roundPrecision_le (places : Value) : roundPrecision places ≤ 30 := by
+  unfold roundPrecision
+  have h : max 0 (min 30 (Numeric.integer places)) ≤ 30 := by omega
+  omega
+
+/-- SQLite roundFunc, including half-away-from-zero integral rounding and
+its fixed-decimal printf/parse path. Large magnitudes have no fractional bits. -/
+def roundValue (value places : Value) : Value :=
+  if isNull value || isNull places then .null
+  else
+    let n := roundPrecision places
+    let r := Numeric.real value
+    realResult (if r < -4503599627370496.0 || r > 4503599627370496.0 then r
+      else if n == 0 then Float.ofInt (Numeric.realToInteger (r + (if r < 0.0 then -0.5 else 0.5)))
+      else Numeric.realPrefix (FloatCodec.renderFixed r n))
+
+theorem roundValue_null_left (places : Value) : roundValue .null places = .null := by
+  simp [roundValue, isNull]
+
+theorem roundValue_null_right (value : Value) : roundValue value .null = .null := by
+  simp [roundValue, isNull]
+
 def builtin (name : String) (args : Array Value) : Except String Value := do
   if name.startsWith "cast_" && args.size == 1 then
     return ← cast (name.drop 5).toString args[0]!
   match name, args.toList with
+  | "round", [v] => return roundValue v (.integer 0)
+  | "round", [v, places] => return roundValue v places
   | "typeof", [v] => return .text (typeOf v)
   | "abs", [.integer i] =>
       if i == Numeric.minInt then throw "integer overflow"
@@ -298,7 +326,7 @@ def forbidden : Expr → Bool
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
-        else if ["trim", "ltrim", "rtrim", "unhex"].contains n then
+        else if ["trim", "ltrim", "rtrim", "unhex", "round"].contains n then
           args.size == 1 || args.size == 2
         else if n == "instr" then args.size == 2
         else if n == "replace" then args.size == 3
