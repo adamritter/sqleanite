@@ -1,0 +1,26 @@
+{
+  "seed": 353654,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "requested_values": 3313,
+      "stored_values": 3313,
+      "queries": 20,
+      "matching_errors": 12
+    },
+    {
+      "mode": "--verified-wal-file",
+      "requested_values": 3313,
+      "stored_values": 3313,
+      "queries": 20,
+      "matching_errors": 12
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a29c65470d15be4bbfc782ec86d0171ecbd7952078bc5d75908369387c901ffe",
+  "executable_sha256": "02f281425fa9a50df9a9ba521d6e2682dade8ca144d39093fa867cee7b115685",
+  "harness_sha256": "aa74786657a956eea09cd7e7cafdd500587b2029435a19678d4b467e54bc66ee",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare LIKE/GLOB operators, functions and ESCAPE with SQLite 3.53.4.\n\nBoth production file modes are checked for exact stored values, SQLite image\nintegrity, row predicates/mutations, NULL/error ordering and pattern limits.\nUTF-8 TEXT and arbitrary BLOB bytes are separate input families. Every mismatch\nis retained; this is a bounded function test, not a whole-SQL coverage rate."
+}

@@ -46,8 +46,8 @@ def Context.validate (ctx : Context) (expression : Expr) : Except String Unit :=
   if ctx.admitted expression then .ok ()
   else .error "unsupported or unbound row expression"
 
-/-- TEXT decoding is checked; no replacement character can silently change a
-stored byte sequence while converting it to the expression representation. -/
+/-- Invalid UTF-8 TEXT retains its original bytes in the scalar representation;
+no replacement character can change a stored sequence during expression reads. -/
 def value : Core.Value → Except String Value
   | .null => .ok .null
   | .integer i => .ok (.integer i.value)
@@ -55,7 +55,12 @@ def value : Core.Value → Except String Value
   | .blob payload => .ok (.blob payload.bytes.toArray)
   | .text payload => match String.fromUTF8? (ByteArray.mk payload.bytes.toArray) with
       | some s => .ok (.text s)
-      | none => .error "unsupported verified SQL: invalid UTF-8 stored TEXT"
+      | none => .ok (.textBytes payload.bytes.toArray)
+
+theorem value_invalid_text (payload : PhysicalCodec.Text)
+    (invalid : String.fromUTF8? (ByteArray.mk payload.bytes.toArray) = none) :
+    value (.text payload) = .ok (.textBytes payload.bytes.toArray) := by
+  simp [value, invalid]
 
 def Context.lookup (ctx : Context) (row : List Core.Value)
     (qualifier : Option String) (name : String) : Except String Value := do

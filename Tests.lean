@@ -4172,6 +4172,35 @@ private def expectSQLiteAggregateExpressions : IO Unit := do
     | .ok _ => fail s!"aggregate accepted invalid expression: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteRawText : IO Unit := do
+  unless SQLite.CLI.listTextBytes [65,1,13,10,9,10,13,0,255] == [65,94,65,13,10,9,10,94,77] do
+    fail "CLI control-byte rendering differs from the pinned default list mode"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT CAST(X'FF8041' AS TEXT),typeof(CAST(X'FF8041' AS TEXT)),length(CAST(X'FF8041' AS TEXT));",
+      [[.textBytes #[255,128,65], .text "text", .integer 2]]),
+    ("SELECT substr(CAST(X'41808142' AS TEXT),2,2),instr(CAST(X'41808142' AS TEXT),'B');",
+      [[.textBytes #[128,129], .integer 2]]),
+    ("SELECT trim(CAST(X'FF41FF' AS TEXT),CAST(X'FF' AS TEXT));", [[.text "A"]]),
+    ("SELECT hex(replace(CAST(X'C3A9FF' AS TEXT),CAST(X'A9' AS TEXT),CAST(X'80' AS TEXT)));", [[.text "C380FF"]]),
+    ("SELECT hex(quote(CAST(X'FF270080' AS TEXT)));", [[.text "27FF272727"]]),
+    ("SELECT unhex(CAST(X'3441FF3432' AS TEXT),CAST(X'FF' AS TEXT));", [[.blob #[74,66]]]),
+    ("SELECT hex(char(55296)),typeof(char(55296)),unicode(char(55296));",
+      [[.text "EDA080", .text "text", .integer 65533]]),
+    ("SELECT CAST(CAST(X'3132FF' AS TEXT) AS NUMERIC),CAST(X'3132FF' AS TEXT)=CAST(12 AS INT);",
+      [[.integer 12, .integer 0]]),
+    ("CREATE TABLE t(v); INSERT INTO t VALUES(CAST(X'FF' AS TEXT)); UPDATE t SET v=v||'a'; SELECT v,typeof(v) FROM t;",
+      [[.textBytes #[255,97], .text "text"]]),
+    ("CREATE TABLE t(v); INSERT INTO t VALUES(CAST(X'FF' AS TEXT)); SELECT coalesce(min(v),'a'),count(v) FROM t;",
+      [[.textBytes #[255], .integer 1]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"raw TEXT: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
+
 private def expectSQLiteBooleanKeywords : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,true TEXT,false INTEGER,v); INSERT INTO t VALUES(1,'2',7,2),(2,'0',0,0),(3,NULL,NULL,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -4646,6 +4675,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
+  ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),

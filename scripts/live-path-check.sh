@@ -79,6 +79,18 @@ else
   fail "IN evaluator or expression search route is missing"
 fi
 
+# Scalar TEXT keeps original bytes across casts, stored reads, and output conversion.
+if grep -q 'return Text.fromBytes (Text.bytes v)' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Text.characterSpans (Text.bytes v)' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'textBytes payload.bytes.toArray' SQLeanite/CoreExpr.lean &&
+   grep -q 'Text.fromBytes_invalid' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreExpr.value_invalid_text' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.CLI.listTextBytes' Main.lean; then
+  ok "raw TEXT byte preservation is on the production scalar and storage paths"
+else
+  fail "raw TEXT conversion or its registered contracts are missing"
+fi
+
 # Boolean keywords bind to real columns before scalar preparation and search planning.
 if grep -q 'ctx.bindKeywords expression' SQLeanite/CoreExpr.lean &&
    grep -q 'ctx.hasBooleanColumn expression' SQLeanite/CoreSQL.lean &&

@@ -1720,3 +1720,23 @@ universal proof of all SQLite constraints. Successful INSERT freshness and NULL
 non-conflict have separate registered component proofs. Fresh file/constraint
 evidence and the remaining limits are recorded in [SQLITE_PORT.md](SQLITE_PORT.md).
 No host binding or native source changed in this checkpoint.
+
+
+### Raw TEXT and CLI rendering boundary (2026-10-24)
+
+Scalar `Value.textBytes` retains invalid UTF-8 without changing the physical
+TEXT storage class. Valid strings and raw TEXT compare by their original bytes;
+Core decoding and SQLSurface encoding preserve those bytes. New component
+proofs cover the invalid-text conversion branches and CLI NUL termination/output
+length. They do not prove every string function equivalent to SQLite. Existing
+conditional UTF-8 roundtrip theorems retain their stated hypotheses; no new axiom
+or host binding was introduced. The separate pure shell renderer escapes C0
+controls without modifying stored values.
+
+Fresh differential and independent storage evidence, including the intermediate
+negative CLI results, is recorded in [SQLITE_PORT.md](SQLITE_PORT.md). SQL uses
+the pinned 3.53.4 oracle; the byte-level Python storage observer reports its own
+3.45.1 version. Result limits still reject TEXT/BLOB values above 999,999 bytes,
+and UTF-16 file encoding is outside the live decoder. These bounds, the existing
+WAL lock-interoperability gap and incomplete SQL coverage prevent a claim of
+complete SQLite compatibility. The native OS adapter is unchanged.

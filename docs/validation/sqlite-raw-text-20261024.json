@@ -1,0 +1,29 @@
+{
+  "seed": 353651,
+  "random_cases": 80,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "expressions": 2590,
+      "matching_errors": 0,
+      "lean_stored": 2590,
+      "sqlite_stored": 2590,
+      "storage_differences": 0
+    },
+    {
+      "mode": "--verified-wal-file",
+      "expressions": 2590,
+      "matching_errors": 0,
+      "lean_stored": 2590,
+      "sqlite_stored": 2590,
+      "storage_differences": 0
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "a29c65470d15be4bbfc782ec86d0171ecbd7952078bc5d75908369387c901ffe",
+  "executable_sha256": "02f281425fa9a50df9a9ba521d6e2682dade8ca144d39093fa867cee7b115685",
+  "harness_sha256": "4603e2740372bf32a0771027b0f51569227354b276cea7f1ff26a8f73126e149",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "sqlite_storage_observer_version": "3.45.1",
+  "comparison": "Exercise byte-preserving TEXT and SQLite's permissive UTF-8 string routines.\n\nEach scalar result is inserted into a real file. Independent SQLite readers\ncompare storage class, exact IEEE-754 bits and original TEXT/BLOB bytes, then\ncheck integrity. CLI bytes and success/rejection status are compared as well.\nBoth production file modes are exercised; unsupported results remain failures.\nError wording is not compared. There is no Unicode repair or normalization."
+}

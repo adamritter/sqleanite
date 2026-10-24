@@ -804,6 +804,7 @@ private def sqlValueToJson : Value → Lean.Json
   | .integer value => .num value
   | .real value => (Lean.Json.parse (toString value)).toOption.getD .null
   | .text value => (parseSQLiteJson value).toOption.getD (.str value)
+  | .textBytes value => .str (toString (Value.textBytes value))
   | .blob value => .str (toString (Value.blob value))
 
 private def jsonPathValue? (source path : String) : Option Lean.Json := do
@@ -1165,7 +1166,7 @@ private def evalScalarFunction (env : Env) (name : String) (args : Array Expr)
   else if lname == "typeof" then
     pure (.text <| match values[0]! with
       | .null => "null" | .integer _ => "integer" | .real _ => "real"
-      | .text _ => "text" | .blob _ => "blob")
+      | .text _ | .textBytes _ => "text" | .blob _ => "blob")
   else if lname == "quote" then
     pure (.text <| match values[0]! with
       | .null => "NULL"
@@ -1457,6 +1458,7 @@ private def sqliteSerialTypeAndPayload : Value → Nat × Nat
             FileFormat.serialTypePayloadSize serialType)
       | none => (7, 8)
   | .text value => (13 + 2 * value.utf8ByteSize, value.utf8ByteSize)
+  | .textBytes value => (13 + 2 * value.size, value.size)
   | .blob value => (12 + 2 * value.size, value.size)
 
 /-- Size of a row under SQLite's canonical record encoding. This is useful

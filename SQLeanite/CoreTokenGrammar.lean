@@ -232,6 +232,7 @@ private def expectLiteral : Value → MatchM Unit
       match ← advance with
       | .string found => unless found == value do mismatch "the parsed text literal"
       | _ => mismatch "a text literal"
+  | .textBytes _ => mismatch "a source literal (raw TEXT requires CAST)"
   | .blob value => expectSource (toString (Value.blob value))
 
 mutual

@@ -3,12 +3,14 @@ import SQLeanite.SQLite.FloatCodec
 
 namespace SQLeanite
 
-/-- SQLite's five storage classes. `Float` is used for the binary64 REAL class. -/
+/-- SQLite's five storage classes. TEXT retains either a valid Lean string or
+its exact bytes; both representations have the same SQL storage class. -/
 inductive Value where
   | null
   | integer (value : Int)
   | real (value : Float)
   | text (value : String)
+  | textBytes (value : Array UInt8)
   | blob (value : Array UInt8)
   deriving Repr, Inhabited
 
@@ -21,6 +23,9 @@ instance : ToString Value where
     | .integer i => toString i
     | .real f => formatFloat f
     | .text s => s
+    | .textBytes b => "CAST(X'" ++ String.join (b.toList.map fun x =>
+          let digit (n : Nat) := Char.ofNat (if n < 10 then 48 + n else 55 + n)
+          String.ofList [digit (x.toNat / 16), digit (x.toNat % 16)]) ++ "' AS TEXT)"
     | .blob b => "X'" ++ String.join (b.toList.map fun x =>
           let hexDigit (n : Nat) := Char.ofNat (if n < 10 then '0'.toNat + n else 'A'.toNat + n - 10)
           String.mk [hexDigit (x.toNat / 16), hexDigit (x.toNat % 16)]) ++ "'"
@@ -54,6 +59,9 @@ def Value.beq : Value → Value → Bool
   | .integer a, .real b => compareIntegerReal a b == .eq
   | .real a, .integer b => compareIntegerReal b a == .eq
   | .text a, .text b => a == b
+  | .textBytes a, .textBytes b => a == b
+  | .text a, .textBytes b => a.toUTF8.data == b
+  | .textBytes a, .text b => a == b.toUTF8.data
   | .blob a, .blob b => a == b
   | _, _ => false
 
@@ -120,6 +128,10 @@ def Value.truth : Value → Truth
       | some 0 => .false
       | some _ => .true
       | none => .false
+  | .textBytes bytes =>
+      match (String.ofList (bytes.toList.map (fun byte => Char.ofNat byte.toNat))).toInt? with
+      | some 0 | none => .false
+      | some _ => .true
   | .blob _ => .false
 
 def Truth.toValue : Truth → Value
@@ -165,12 +177,14 @@ def Value.toFloat? : Value → Option Float
   | .integer i => some (Float.ofInt i)
   | .real f => some f
   | .text s => parseDecimal? s.trimAscii.toString
+  | .textBytes bytes => parseDecimal? (String.ofList (bytes.toList.map (fun b => Char.ofNat b.toNat))).trimAscii.toString
   | _ => none
 
 def Value.toInt? : Value → Option Int
   | .integer i => some i
   | .real f => some f.toInt64.toInt
   | .text s => s.trimAscii.toString.toInt?
+  | .textBytes bytes => (String.ofList (bytes.toList.map (fun b => Char.ofNat b.toNat))).trimAscii.toString.toInt?
   | _ => none
 
 def Value.sqlEq (a b : Value) : Truth :=
@@ -181,7 +195,7 @@ def Value.sqlEq (a b : Value) : Truth :=
 def Value.typeRank : Value → Nat
   | .null => 0
   | .integer _ | .real _ => 1
-  | .text _ => 2
+  | .text _ | .textBytes _ => 2
   | .blob _ => 3
 
 /-- Total ordering used by ORDER BY. NULL sorts first, then numbers, text, blobs. -/
@@ -208,6 +222,9 @@ def Value.compare : Value → Value → Ordering
     | .eq => .eq
     | .gt => .lt
   | .text a, .text b => compareLT a b
+  | .textBytes a, .textBytes b => compareBytes a.toList b.toList
+  | .text a, .textBytes b => compareBytes a.toUTF8.data.toList b.toList
+  | .textBytes a, .text b => compareBytes a.toList b.toUTF8.data.toList
   | .blob a, .blob b => compareBytes a.toList b.toList
   | a, b => compareLT a.typeRank b.typeRank
 

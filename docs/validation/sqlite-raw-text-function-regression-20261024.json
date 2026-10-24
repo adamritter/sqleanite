@@ -1,0 +1,14 @@
+{
+  "implementation_sha256": "a29c65470d15be4bbfc782ec86d0171ecbd7952078bc5d75908369387c901ffe",
+  "harness_sha256": "3af46d1a2f9267d9deba468cd0a506aaad6fbd4029c9c1ac3d250a68ca213524",
+  "seed": 353653,
+  "random_cases": 200,
+  "cases": 3541,
+  "failures": [],
+  "matching_errors": 19,
+  "declared_rejections": [
+    "length(zeroblob(1000000))"
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "storage class, exact binary64 bits, raw TEXT/BLOB bytes; integrity_check"
+}

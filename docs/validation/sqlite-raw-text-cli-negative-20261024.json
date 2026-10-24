@@ -1,0 +1,7170 @@
+{
+  "seed": 353650,
+  "random_cases": 40,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "expressions": 1446,
+      "matching_errors": 0,
+      "lean_stored": 1446,
+      "sqlite_stored": 1446,
+      "storage_differences": 0
+    },
+    {
+      "mode": "--verified-wal-file",
+      "expressions": 1446,
+      "matching_errors": 0,
+      "lean_stored": 1446,
+      "sqlite_stored": 1446,
+      "storage_differences": 0
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "id": 260,
+      "expression": "unhex(CAST(X'34313132ff3432' AS TEXT),CAST(X'3132ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "A\u0012B|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A^RB|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 285,
+      "expression": "unhex(CAST(X'313200ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0012|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^R|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 286,
+      "expression": "unhex(CAST(X'3431313200ff3432' AS TEXT),CAST(X'313200ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "A\u0012|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A^R|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 391,
+      "expression": "CAST(X'a54f6914' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 395,
+      "expression": "quote(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00a5Oi\u0014'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00a5Oi^T'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 396,
+      "expression": "upper(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5OI\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5OI^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 397,
+      "expression": "lower(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5oi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5oi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 398,
+      "expression": "CAST(CAST(X'a54f6914' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^T|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 403,
+      "expression": "CAST(X'a54f6914' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^Tx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 404,
+      "expression": "concat('a',CAST(X'a54f6914' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00a5Oi\u0014b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00a5Oi^Tb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 405,
+      "expression": "concat_ws(CAST(X'a54f6914' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00a5Oi\u0014\u00a5Oi\u0014b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00a5Oi^T\u00a5Oi^Tb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 408,
+      "expression": "substr(CAST(X'a54f6914' AS TEXT),3,3)",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 411,
+      "expression": "trim(CAST(X'a54f6914' AS TEXT),CAST(X'a54f' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 412,
+      "expression": "ltrim(CAST(X'a54f6914' AS TEXT),CAST(X'a54f' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 414,
+      "expression": "replace(CAST(X'a54f6914' AS TEXT),CAST(X'a5' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffOi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffOi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 443,
+      "expression": "CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 447,
+      "expression": "quote(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 448,
+      "expression": "upper(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 449,
+      "expression": "lower(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7a\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7a\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 450,
+      "expression": "CAST(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 455,
+      "expression": "CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 456,
+      "expression": "concat('a',CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 457,
+      "expression": "concat_ws(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 463,
+      "expression": "trim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca25' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 464,
+      "expression": "ltrim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca25' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 465,
+      "expression": "rtrim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'dde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 466,
+      "expression": "replace(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 469,
+      "expression": "CAST(X'bafc8c01cb4ab792' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 473,
+      "expression": "quote(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 474,
+      "expression": "upper(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 475,
+      "expression": "lower(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbj\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbj\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 476,
+      "expression": "CAST(CAST(X'bafc8c01cb4ab792' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 481,
+      "expression": "CAST(X'bafc8c01cb4ab792' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 482,
+      "expression": "concat('a',CAST(X'bafc8c01cb4ab792' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 483,
+      "expression": "concat_ws(CAST(X'bafc8c01cb4ab792' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 486,
+      "expression": "substr(CAST(X'bafc8c01cb4ab792' AS TEXT),-5,2)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0001\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^A\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 489,
+      "expression": "trim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'bafc' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 490,
+      "expression": "ltrim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'bafc' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 491,
+      "expression": "rtrim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'b792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 492,
+      "expression": "replace(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'ba' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 495,
+      "expression": "CAST(X'f61a7ef92b838b75' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 499,
+      "expression": "quote(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00f6\u001a~\u00f9+\u0083\u008bu'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00f6^Z~\u00f9+\u0083\u008bu'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 500,
+      "expression": "upper(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bU|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bU|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 501,
+      "expression": "lower(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 502,
+      "expression": "CAST(CAST(X'f61a7ef92b838b75' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 507,
+      "expression": "CAST(X'f61a7ef92b838b75' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bux|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bux|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 508,
+      "expression": "concat('a',CAST(X'f61a7ef92b838b75' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f6\u001a~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f6^Z~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 509,
+      "expression": "concat_ws(CAST(X'f61a7ef92b838b75' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f6\u001a~\u00f9+\u0083\u008bu\u00f6\u001a~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f6^Z~\u00f9+\u0083\u008bu\u00f6^Z~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 512,
+      "expression": "substr(CAST(X'f61a7ef92b838b75' AS TEXT),4,-4)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 517,
+      "expression": "rtrim(CAST(X'f61a7ef92b838b75' AS TEXT),CAST(X'8b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 518,
+      "expression": "replace(CAST(X'f61a7ef92b838b75' AS TEXT),CAST(X'f6' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 547,
+      "expression": "CAST(X'd85427844a10f3' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 551,
+      "expression": "quote(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d8T''\u0084J\u0010\u00f3'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d8T''\u0084J^P\u00f3'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 552,
+      "expression": "upper(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 553,
+      "expression": "lower(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8t'\u0084j\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8t'\u0084j^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 554,
+      "expression": "CAST(CAST(X'd85427844a10f3' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 559,
+      "expression": "CAST(X'd85427844a10f3' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 560,
+      "expression": "concat('a',CAST(X'd85427844a10f3' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J\u0010\u00f3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J^P\u00f3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 561,
+      "expression": "concat_ws(CAST(X'd85427844a10f3' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J\u0010\u00f3\u00d8T'\u0084J\u0010\u00f3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J^P\u00f3\u00d8T'\u0084J^P\u00f3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 567,
+      "expression": "trim(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd854' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 568,
+      "expression": "ltrim(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd854' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 570,
+      "expression": "replace(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd8' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffT'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffT'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 573,
+      "expression": "CAST(X'e489ffb6965a2025be0c66' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 577,
+      "expression": "quote(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 578,
+      "expression": "upper(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\fF|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^LF|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 579,
+      "expression": "lower(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 580,
+      "expression": "CAST(CAST(X'e489ffb6965a2025be0c66' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 585,
+      "expression": "CAST(X'e489ffb6965a2025be0c66' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 586,
+      "expression": "concat('a',CAST(X'e489ffb6965a2025be0c66' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 587,
+      "expression": "concat_ws(CAST(X'e489ffb6965a2025be0c66' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 593,
+      "expression": "trim(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e489' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 594,
+      "expression": "ltrim(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e489' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 596,
+      "expression": "replace(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e4' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0089\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 651,
+      "expression": "CAST(X'892e065f16f4' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 655,
+      "expression": "quote(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0089.\u0006_\u0016\u00f4'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0089.^F_^V\u00f4'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 656,
+      "expression": "upper(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 657,
+      "expression": "lower(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 658,
+      "expression": "CAST(CAST(X'892e065f16f4' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 663,
+      "expression": "CAST(X'892e065f16f4' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 664,
+      "expression": "concat('a',CAST(X'892e065f16f4' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u0089.\u0006_\u0016\u00f4b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u0089.^F_^V\u00f4b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 665,
+      "expression": "concat_ws(CAST(X'892e065f16f4' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u0089.\u0006_\u0016\u00f4\u0089.\u0006_\u0016\u00f4b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u0089.^F_^V\u00f4\u0089.^F_^V\u00f4b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 668,
+      "expression": "substr(CAST(X'892e065f16f4' AS TEXT),3,7)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 671,
+      "expression": "trim(CAST(X'892e065f16f4' AS TEXT),CAST(X'892e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 672,
+      "expression": "ltrim(CAST(X'892e065f16f4' AS TEXT),CAST(X'892e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 673,
+      "expression": "rtrim(CAST(X'892e065f16f4' AS TEXT),CAST(X'16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 674,
+      "expression": "replace(CAST(X'892e065f16f4' AS TEXT),CAST(X'89' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 677,
+      "expression": "CAST(X'd045d51c' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 681,
+      "expression": "quote(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d0E\u00d5\u001c'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d0E\u00d5^\\'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 682,
+      "expression": "upper(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 683,
+      "expression": "lower(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0e\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0e\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 684,
+      "expression": "CAST(CAST(X'd045d51c' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 689,
+      "expression": "CAST(X'd045d51c' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001cx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 690,
+      "expression": "concat('a',CAST(X'd045d51c' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5\u001cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5^\\b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 691,
+      "expression": "concat_ws(CAST(X'd045d51c' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5\u001c\u00d0E\u00d5\u001cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5^\\\u00d0E\u00d5^\\b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 694,
+      "expression": "substr(CAST(X'd045d51c' AS TEXT),5,-4)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 697,
+      "expression": "trim(CAST(X'd045d51c' AS TEXT),CAST(X'd045' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 698,
+      "expression": "ltrim(CAST(X'd045d51c' AS TEXT),CAST(X'd045' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 700,
+      "expression": "replace(CAST(X'd045d51c' AS TEXT),CAST(X'd0' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffE\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffE\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 703,
+      "expression": "CAST(X'5ccb84b128b5167304df8d' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 707,
+      "expression": "quote(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 708,
+      "expression": "upper(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016S\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^VS^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 709,
+      "expression": "lower(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 710,
+      "expression": "CAST(CAST(X'5ccb84b128b5167304df8d' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 715,
+      "expression": "CAST(X'5ccb84b128b5167304df8d' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008dx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008dx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 716,
+      "expression": "concat('a',CAST(X'5ccb84b128b5167304df8d' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008db|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008db|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 717,
+      "expression": "concat_ws(CAST(X'5ccb84b128b5167304df8d' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008db|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008db|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 723,
+      "expression": "trim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5ccb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 724,
+      "expression": "ltrim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5ccb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 725,
+      "expression": "rtrim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 726,
+      "expression": "replace(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5c' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 729,
+      "expression": "CAST(X'2fda03a648c012e3' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 733,
+      "expression": "quote(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'/\u00da\u0003\u00a6H\u00c0\u0012\u00e3'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'/\u00da^C\u00a6H\u00c0^R\u00e3'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 734,
+      "expression": "upper(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 735,
+      "expression": "lower(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6h\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6h\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 736,
+      "expression": "CAST(CAST(X'2fda03a648c012e3' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 741,
+      "expression": "CAST(X'2fda03a648c012e3' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 742,
+      "expression": "concat('a',CAST(X'2fda03a648c012e3' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a/\u00da\u0003\u00a6H\u00c0\u0012\u00e3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a/\u00da^C\u00a6H\u00c0^R\u00e3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 743,
+      "expression": "concat_ws(CAST(X'2fda03a648c012e3' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a/\u00da\u0003\u00a6H\u00c0\u0012\u00e3/\u00da\u0003\u00a6H\u00c0\u0012\u00e3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a/\u00da^C\u00a6H\u00c0^R\u00e3/\u00da^C\u00a6H\u00c0^R\u00e3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 746,
+      "expression": "substr(CAST(X'2fda03a648c012e3' AS TEXT),1,7)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 749,
+      "expression": "trim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2fda' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 750,
+      "expression": "ltrim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2fda' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 751,
+      "expression": "rtrim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'12e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 752,
+      "expression": "replace(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2f' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 807,
+      "expression": "CAST(X'7f2ef19f1c7b1c00006d' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 811,
+      "expression": "quote(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u007f.\u00f1\u009f\u001c{\u001c'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u007f.\u00f1\u009f^\\{^\\'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 812,
+      "expression": "upper(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 813,
+      "expression": "lower(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 814,
+      "expression": "CAST(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 819,
+      "expression": "CAST(X'7f2ef19f1c7b1c00006d' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 820,
+      "expression": "concat('a',CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 821,
+      "expression": "concat_ws(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 827,
+      "expression": "trim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f2e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 828,
+      "expression": "ltrim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f2e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 829,
+      "expression": "rtrim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 830,
+      "expression": "replace(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 859,
+      "expression": "CAST(X'e0cbc1113598217311' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 863,
+      "expression": "quote(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00e0\u00cb\u00c1\u00115\u0098!s\u0011'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00e0\u00cb\u00c1^Q5\u0098!s^Q'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 864,
+      "expression": "upper(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!S\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!S^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 865,
+      "expression": "lower(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 866,
+      "expression": "CAST(CAST(X'e0cbc1113598217311' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 871,
+      "expression": "CAST(X'e0cbc1113598217311' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Qx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 872,
+      "expression": "concat('a',CAST(X'e0cbc1113598217311' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1\u00115\u0098!s\u0011b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1^Q5\u0098!s^Qb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 873,
+      "expression": "concat_ws(CAST(X'e0cbc1113598217311' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1\u00115\u0098!s\u0011\u00e0\u00cb\u00c1\u00115\u0098!s\u0011b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1^Q5\u0098!s^Q\u00e0\u00cb\u00c1^Q5\u0098!s^Qb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 879,
+      "expression": "trim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0cb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 880,
+      "expression": "ltrim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0cb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 881,
+      "expression": "rtrim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'7311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 882,
+      "expression": "replace(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1015,
+      "expression": "CAST(X'20d307e168cc38fff2' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1019,
+      "expression": "quote(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "' \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "' \u00d3^G\u00e1h\u00cc8\u00ff\u00f2'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1020,
+      "expression": "upper(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1H\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1H\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1021,
+      "expression": "lower(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1022,
+      "expression": "CAST(CAST(X'20d307e168cc38fff2' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1027,
+      "expression": "CAST(X'20d307e168cc38fff2' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1028,
+      "expression": "concat('a',CAST(X'20d307e168cc38fff2' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \u00d3^G\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1029,
+      "expression": "concat_ws(CAST(X'20d307e168cc38fff2' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2 \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \u00d3^G\u00e1h\u00cc8\u00ff\u00f2 \u00d3^G\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1032,
+      "expression": "substr(CAST(X'20d307e168cc38fff2' AS TEXT),8,-7)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1035,
+      "expression": "trim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20d3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1036,
+      "expression": "ltrim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20d3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1037,
+      "expression": "rtrim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1038,
+      "expression": "replace(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1067,
+      "expression": "CAST(X'ef7019' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1071,
+      "expression": "quote(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00efp\u0019'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00efp^Y'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1072,
+      "expression": "upper(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efP\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efP^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1073,
+      "expression": "lower(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1074,
+      "expression": "CAST(CAST(X'ef7019' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1079,
+      "expression": "CAST(X'ef7019' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Yx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1080,
+      "expression": "concat('a',CAST(X'ef7019' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00efp\u0019b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00efp^Yb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1081,
+      "expression": "concat_ws(CAST(X'ef7019' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00efp\u0019\u00efp\u0019b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00efp^Y\u00efp^Yb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1087,
+      "expression": "trim(CAST(X'ef7019' AS TEXT),CAST(X'ef70' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1088,
+      "expression": "ltrim(CAST(X'ef7019' AS TEXT),CAST(X'ef70' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1090,
+      "expression": "replace(CAST(X'ef7019' AS TEXT),CAST(X'ef' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1119,
+      "expression": "CAST(X'bb210684160d58f8e675' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1123,
+      "expression": "quote(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00bb!^F\u0084^V^MX\u00f8\u00e6u'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1124,
+      "expression": "upper(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6U|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6U|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1125,
+      "expression": "lower(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rx\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^Mx\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1126,
+      "expression": "CAST(CAST(X'bb210684160d58f8e675' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6u|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1131,
+      "expression": "CAST(X'bb210684160d58f8e675' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ux|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6ux|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1132,
+      "expression": "concat('a',CAST(X'bb210684160d58f8e675' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00bb!^F\u0084^V^MX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1133,
+      "expression": "concat_ws(CAST(X'bb210684160d58f8e675' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00bb!^F\u0084^V^MX\u00f8\u00e6u\u00bb!^F\u0084^V^MX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1139,
+      "expression": "trim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb21' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1140,
+      "expression": "ltrim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb21' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1141,
+      "expression": "rtrim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1142,
+      "expression": "replace(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff!\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff!^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1171,
+      "expression": "CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1175,
+      "expression": "quote(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1176,
+      "expression": "upper(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1177,
+      "expression": "lower(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "bp\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "bp\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1178,
+      "expression": "CAST(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1183,
+      "expression": "CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1184,
+      "expression": "concat('a',CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1185,
+      "expression": "concat_ws(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1191,
+      "expression": "trim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'4250' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1192,
+      "expression": "ltrim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'4250' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1193,
+      "expression": "rtrim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'c2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1194,
+      "expression": "replace(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'42' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1197,
+      "expression": "CAST(X'd8800bf27449' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1201,
+      "expression": "quote(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d8\u0080\u000b\u00f2tI'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d8\u0080^K\u00f2tI'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1202,
+      "expression": "upper(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2TI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2TI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1203,
+      "expression": "lower(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2ti|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2ti|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1204,
+      "expression": "CAST(CAST(X'd8800bf27449' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tI|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tI|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1209,
+      "expression": "CAST(X'd8800bf27449' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tIx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tIx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1210,
+      "expression": "concat('a',CAST(X'd8800bf27449' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080\u000b\u00f2tIb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080^K\u00f2tIb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1211,
+      "expression": "concat_ws(CAST(X'd8800bf27449' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080\u000b\u00f2tI\u00d8\u0080\u000b\u00f2tIb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080^K\u00f2tI\u00d8\u0080^K\u00f2tIb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1217,
+      "expression": "trim(CAST(X'd8800bf27449' AS TEXT),CAST(X'd880' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1218,
+      "expression": "ltrim(CAST(X'd8800bf27449' AS TEXT),CAST(X'd880' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1219,
+      "expression": "rtrim(CAST(X'd8800bf27449' AS TEXT),CAST(X'7449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1220,
+      "expression": "replace(CAST(X'd8800bf27449' AS TEXT),CAST(X'd8' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0080\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0080^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1301,
+      "expression": "CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1305,
+      "expression": "quote(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1306,
+      "expression": "upper(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?B\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?B\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1307,
+      "expression": "lower(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1308,
+      "expression": "CAST(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1313,
+      "expression": "CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1314,
+      "expression": "concat('a',CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1315,
+      "expression": "concat_ws(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1318,
+      "expression": "substr(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),-3,-3)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001e?b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^^?b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1321,
+      "expression": "trim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f398' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1322,
+      "expression": "ltrim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f398' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1323,
+      "expression": "rtrim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'd1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1324,
+      "expression": "replace(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f3' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1327,
+      "expression": "CAST(X'6d14ff' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1331,
+      "expression": "quote(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'m\u0014\u00ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'m^T\u00ff'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1332,
+      "expression": "upper(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "M\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "M^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1333,
+      "expression": "lower(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1334,
+      "expression": "CAST(CAST(X'6d14ff' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1339,
+      "expression": "CAST(X'6d14ff' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ffx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1340,
+      "expression": "concat('a',CAST(X'6d14ff' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "am\u0014\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "am^T\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1341,
+      "expression": "concat_ws(CAST(X'6d14ff' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "am\u0014\u00ffm\u0014\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "am^T\u00ffm^T\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1350,
+      "expression": "replace(CAST(X'6d14ff' AS TEXT),CAST(X'6d' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1405,
+      "expression": "CAST(X'1f4fa7406c7acb00a8' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1409,
+      "expression": "quote(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u001fO\u00a7@lz\u00cb'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'^_O\u00a7@lz\u00cb'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1410,
+      "expression": "upper(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@LZ\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@LZ\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1411,
+      "expression": "lower(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fo\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_o\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1412,
+      "expression": "CAST(CAST(X'1f4fa7406c7acb00a8' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1417,
+      "expression": "CAST(X'1f4fa7406c7acb00a8' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1418,
+      "expression": "concat('a',CAST(X'1f4fa7406c7acb00a8' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1419,
+      "expression": "concat_ws(CAST(X'1f4fa7406c7acb00a8' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "id": 1427,
+      "expression": "rtrim(CAST(X'1f4fa7406c7acb00a8' AS TEXT),CAST(X'00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 260,
+      "expression": "unhex(CAST(X'34313132ff3432' AS TEXT),CAST(X'3132ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "A\u0012B|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A^RB|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 285,
+      "expression": "unhex(CAST(X'313200ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0012|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^R|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 286,
+      "expression": "unhex(CAST(X'3431313200ff3432' AS TEXT),CAST(X'313200ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "A\u0012|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A^R|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 391,
+      "expression": "CAST(X'a54f6914' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 395,
+      "expression": "quote(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00a5Oi\u0014'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00a5Oi^T'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 396,
+      "expression": "upper(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5OI\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5OI^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 397,
+      "expression": "lower(CAST(X'a54f6914' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5oi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5oi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 398,
+      "expression": "CAST(CAST(X'a54f6914' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^T|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 403,
+      "expression": "CAST(X'a54f6914' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00a5Oi\u0014x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00a5Oi^Tx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 404,
+      "expression": "concat('a',CAST(X'a54f6914' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00a5Oi\u0014b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00a5Oi^Tb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 405,
+      "expression": "concat_ws(CAST(X'a54f6914' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00a5Oi\u0014\u00a5Oi\u0014b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00a5Oi^T\u00a5Oi^Tb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 408,
+      "expression": "substr(CAST(X'a54f6914' AS TEXT),3,3)",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 411,
+      "expression": "trim(CAST(X'a54f6914' AS TEXT),CAST(X'a54f' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 412,
+      "expression": "ltrim(CAST(X'a54f6914' AS TEXT),CAST(X'a54f' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "i\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "i^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 414,
+      "expression": "replace(CAST(X'a54f6914' AS TEXT),CAST(X'a5' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffOi\u0014|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffOi^T|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 443,
+      "expression": "CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 447,
+      "expression": "quote(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 448,
+      "expression": "upper(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 449,
+      "expression": "lower(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7a\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7a\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 450,
+      "expression": "CAST(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 455,
+      "expression": "CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 456,
+      "expression": "concat('a',CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 457,
+      "expression": "concat_ws(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 463,
+      "expression": "trim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca25' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 464,
+      "expression": "ltrim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca25' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 465,
+      "expression": "rtrim(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'dde8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ca%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ca%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 466,
+      "expression": "replace(CAST(X'ca251abdc6a2c741a4cbdde8' AS TEXT),CAST(X'ca' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff%\u001a\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff%^Z\u00bd\u00c6\u00a2\u00c7A\u00a4\u00cb\u00dd\u00e8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 469,
+      "expression": "CAST(X'bafc8c01cb4ab792' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 473,
+      "expression": "quote(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 474,
+      "expression": "upper(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 475,
+      "expression": "lower(CAST(X'bafc8c01cb4ab792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbj\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbj\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 476,
+      "expression": "CAST(CAST(X'bafc8c01cb4ab792' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 481,
+      "expression": "CAST(X'bafc8c01cb4ab792' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 482,
+      "expression": "concat('a',CAST(X'bafc8c01cb4ab792' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 483,
+      "expression": "concat_ws(CAST(X'bafc8c01cb4ab792' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092\u00ba\u00fc\u008c\u0001\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092\u00ba\u00fc\u008c^A\u00cbJ\u00b7\u0092b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 486,
+      "expression": "substr(CAST(X'bafc8c01cb4ab792' AS TEXT),-5,2)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0001\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^A\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 489,
+      "expression": "trim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'bafc' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 490,
+      "expression": "ltrim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'bafc' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 491,
+      "expression": "rtrim(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'b792' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c\u0001\u00cbJ|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ba\u00fc\u008c^A\u00cbJ|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 492,
+      "expression": "replace(CAST(X'bafc8c01cb4ab792' AS TEXT),CAST(X'ba' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00fc\u008c\u0001\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00fc\u008c^A\u00cbJ\u00b7\u0092|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 495,
+      "expression": "CAST(X'f61a7ef92b838b75' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 499,
+      "expression": "quote(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00f6\u001a~\u00f9+\u0083\u008bu'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00f6^Z~\u00f9+\u0083\u008bu'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 500,
+      "expression": "upper(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bU|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bU|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 501,
+      "expression": "lower(CAST(X'f61a7ef92b838b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 502,
+      "expression": "CAST(CAST(X'f61a7ef92b838b75' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bu|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bu|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 507,
+      "expression": "CAST(X'f61a7ef92b838b75' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083\u008bux|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083\u008bux|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 508,
+      "expression": "concat('a',CAST(X'f61a7ef92b838b75' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f6\u001a~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f6^Z~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 509,
+      "expression": "concat_ws(CAST(X'f61a7ef92b838b75' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f6\u001a~\u00f9+\u0083\u008bu\u00f6\u001a~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f6^Z~\u00f9+\u0083\u008bu\u00f6^Z~\u00f9+\u0083\u008bub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 512,
+      "expression": "substr(CAST(X'f61a7ef92b838b75' AS TEXT),4,-4)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 517,
+      "expression": "rtrim(CAST(X'f61a7ef92b838b75' AS TEXT),CAST(X'8b75' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f6\u001a~\u00f9+\u0083|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f6^Z~\u00f9+\u0083|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 518,
+      "expression": "replace(CAST(X'f61a7ef92b838b75' AS TEXT),CAST(X'f6' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u001a~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff^Z~\u00f9+\u0083\u008bu|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 547,
+      "expression": "CAST(X'd85427844a10f3' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 551,
+      "expression": "quote(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d8T''\u0084J\u0010\u00f3'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d8T''\u0084J^P\u00f3'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 552,
+      "expression": "upper(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 553,
+      "expression": "lower(CAST(X'd85427844a10f3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8t'\u0084j\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8t'\u0084j^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 554,
+      "expression": "CAST(CAST(X'd85427844a10f3' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 559,
+      "expression": "CAST(X'd85427844a10f3' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J\u0010\u00f3x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8T'\u0084J^P\u00f3x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 560,
+      "expression": "concat('a',CAST(X'd85427844a10f3' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J\u0010\u00f3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J^P\u00f3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 561,
+      "expression": "concat_ws(CAST(X'd85427844a10f3' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J\u0010\u00f3\u00d8T'\u0084J\u0010\u00f3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8T'\u0084J^P\u00f3\u00d8T'\u0084J^P\u00f3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 567,
+      "expression": "trim(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd854' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 568,
+      "expression": "ltrim(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd854' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 570,
+      "expression": "replace(CAST(X'd85427844a10f3' AS TEXT),CAST(X'd8' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffT'\u0084J\u0010\u00f3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffT'\u0084J^P\u00f3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 573,
+      "expression": "CAST(X'e489ffb6965a2025be0c66' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 577,
+      "expression": "quote(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 578,
+      "expression": "upper(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\fF|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^LF|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 579,
+      "expression": "lower(CAST(X'e489ffb6965a2025be0c66' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 580,
+      "expression": "CAST(CAST(X'e489ffb6965a2025be0c66' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 585,
+      "expression": "CAST(X'e489ffb6965a2025be0c66' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 586,
+      "expression": "concat('a',CAST(X'e489ffb6965a2025be0c66' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 587,
+      "expression": "concat_ws(CAST(X'e489ffb6965a2025be0c66' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ff\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be\ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lf\u00e4\u0089\u00ff\u00b6\u0096Z %\u00be^Lfb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 593,
+      "expression": "trim(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e489' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 594,
+      "expression": "ltrim(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e489' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 596,
+      "expression": "replace(CAST(X'e489ffb6965a2025be0c66' AS TEXT),CAST(X'e4' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0089\u00ff\u00b6\u0096Z %\u00be\ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0089\u00ff\u00b6\u0096Z %\u00be^Lf|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 651,
+      "expression": "CAST(X'892e065f16f4' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 655,
+      "expression": "quote(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u0089.\u0006_\u0016\u00f4'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u0089.^F_^V\u00f4'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 656,
+      "expression": "upper(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 657,
+      "expression": "lower(CAST(X'892e065f16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 658,
+      "expression": "CAST(CAST(X'892e065f16f4' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 663,
+      "expression": "CAST(X'892e065f16f4' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_\u0016\u00f4x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_^V\u00f4x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 664,
+      "expression": "concat('a',CAST(X'892e065f16f4' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u0089.\u0006_\u0016\u00f4b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u0089.^F_^V\u00f4b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 665,
+      "expression": "concat_ws(CAST(X'892e065f16f4' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u0089.\u0006_\u0016\u00f4\u0089.\u0006_\u0016\u00f4b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u0089.^F_^V\u00f4\u0089.^F_^V\u00f4b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 668,
+      "expression": "substr(CAST(X'892e065f16f4' AS TEXT),3,7)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 671,
+      "expression": "trim(CAST(X'892e065f16f4' AS TEXT),CAST(X'892e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 672,
+      "expression": "ltrim(CAST(X'892e065f16f4' AS TEXT),CAST(X'892e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 673,
+      "expression": "rtrim(CAST(X'892e065f16f4' AS TEXT),CAST(X'16f4' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0089.\u0006_|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0089.^F_|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 674,
+      "expression": "replace(CAST(X'892e065f16f4' AS TEXT),CAST(X'89' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff.\u0006_\u0016\u00f4|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff.^F_^V\u00f4|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 677,
+      "expression": "CAST(X'd045d51c' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 681,
+      "expression": "quote(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d0E\u00d5\u001c'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d0E\u00d5^\\'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 682,
+      "expression": "upper(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 683,
+      "expression": "lower(CAST(X'd045d51c' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0e\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0e\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 684,
+      "expression": "CAST(CAST(X'd045d51c' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 689,
+      "expression": "CAST(X'd045d51c' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001cx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 690,
+      "expression": "concat('a',CAST(X'd045d51c' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5\u001cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5^\\b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 691,
+      "expression": "concat_ws(CAST(X'd045d51c' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5\u001c\u00d0E\u00d5\u001cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d0E\u00d5^\\\u00d0E\u00d5^\\b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 694,
+      "expression": "substr(CAST(X'd045d51c' AS TEXT),5,-4)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d0E\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 697,
+      "expression": "trim(CAST(X'd045d51c' AS TEXT),CAST(X'd045' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 698,
+      "expression": "ltrim(CAST(X'd045d51c' AS TEXT),CAST(X'd045' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 700,
+      "expression": "replace(CAST(X'd045d51c' AS TEXT),CAST(X'd0' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffE\u00d5\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffE\u00d5^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 703,
+      "expression": "CAST(X'5ccb84b128b5167304df8d' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 707,
+      "expression": "quote(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 708,
+      "expression": "upper(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016S\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^VS^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 709,
+      "expression": "lower(CAST(X'5ccb84b128b5167304df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 710,
+      "expression": "CAST(CAST(X'5ccb84b128b5167304df8d' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 715,
+      "expression": "CAST(X'5ccb84b128b5167304df8d' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008dx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008dx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 716,
+      "expression": "concat('a',CAST(X'5ccb84b128b5167304df8d' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008db|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008db|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 717,
+      "expression": "concat_ws(CAST(X'5ccb84b128b5167304df8d' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008db|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d\\\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008db|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 723,
+      "expression": "trim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5ccb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 724,
+      "expression": "ltrim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5ccb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 725,
+      "expression": "rtrim(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'df8d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5\u0016s\u0004|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\\\u00cb\u0084\u00b1(\u00b5^Vs^D|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 726,
+      "expression": "replace(CAST(X'5ccb84b128b5167304df8d' AS TEXT),CAST(X'5c' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u0084\u00b1(\u00b5\u0016s\u0004\u00df\u008d|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u0084\u00b1(\u00b5^Vs^D\u00df\u008d|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 729,
+      "expression": "CAST(X'2fda03a648c012e3' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 733,
+      "expression": "quote(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'/\u00da\u0003\u00a6H\u00c0\u0012\u00e3'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'/\u00da^C\u00a6H\u00c0^R\u00e3'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 734,
+      "expression": "upper(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 735,
+      "expression": "lower(CAST(X'2fda03a648c012e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6h\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6h\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 736,
+      "expression": "CAST(CAST(X'2fda03a648c012e3' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 741,
+      "expression": "CAST(X'2fda03a648c012e3' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012\u00e3x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R\u00e3x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 742,
+      "expression": "concat('a',CAST(X'2fda03a648c012e3' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a/\u00da\u0003\u00a6H\u00c0\u0012\u00e3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a/\u00da^C\u00a6H\u00c0^R\u00e3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 743,
+      "expression": "concat_ws(CAST(X'2fda03a648c012e3' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a/\u00da\u0003\u00a6H\u00c0\u0012\u00e3/\u00da\u0003\u00a6H\u00c0\u0012\u00e3b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a/\u00da^C\u00a6H\u00c0^R\u00e3/\u00da^C\u00a6H\u00c0^R\u00e3b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 746,
+      "expression": "substr(CAST(X'2fda03a648c012e3' AS TEXT),1,7)",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0\u0012|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0^R|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 749,
+      "expression": "trim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2fda' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 750,
+      "expression": "ltrim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2fda' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 751,
+      "expression": "rtrim(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'12e3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "/\u00da\u0003\u00a6H\u00c0|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "/\u00da^C\u00a6H\u00c0|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 752,
+      "expression": "replace(CAST(X'2fda03a648c012e3' AS TEXT),CAST(X'2f' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00da\u0003\u00a6H\u00c0\u0012\u00e3|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00da^C\u00a6H\u00c0^R\u00e3|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 807,
+      "expression": "CAST(X'7f2ef19f1c7b1c00006d' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 811,
+      "expression": "quote(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u007f.\u00f1\u009f\u001c{\u001c'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u007f.\u00f1\u009f^\\{^\\'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 812,
+      "expression": "upper(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 813,
+      "expression": "lower(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 814,
+      "expression": "CAST(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 819,
+      "expression": "CAST(X'7f2ef19f1c7b1c00006d' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 820,
+      "expression": "concat('a',CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 821,
+      "expression": "concat_ws(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 827,
+      "expression": "trim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f2e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 828,
+      "expression": "ltrim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f2e' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 829,
+      "expression": "rtrim(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'006d' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u007f.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 830,
+      "expression": "replace(CAST(X'7f2ef19f1c7b1c00006d' AS TEXT),CAST(X'7f' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff.\u00f1\u009f\u001c{\u001c|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff.\u00f1\u009f^\\{^\\|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 859,
+      "expression": "CAST(X'e0cbc1113598217311' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 863,
+      "expression": "quote(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00e0\u00cb\u00c1\u00115\u0098!s\u0011'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00e0\u00cb\u00c1^Q5\u0098!s^Q'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 864,
+      "expression": "upper(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!S\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!S^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 865,
+      "expression": "lower(CAST(X'e0cbc1113598217311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 866,
+      "expression": "CAST(CAST(X'e0cbc1113598217311' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Q|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 871,
+      "expression": "CAST(X'e0cbc1113598217311' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!s\u0011x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!s^Qx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 872,
+      "expression": "concat('a',CAST(X'e0cbc1113598217311' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1\u00115\u0098!s\u0011b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1^Q5\u0098!s^Qb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 873,
+      "expression": "concat_ws(CAST(X'e0cbc1113598217311' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1\u00115\u0098!s\u0011\u00e0\u00cb\u00c1\u00115\u0098!s\u0011b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00e0\u00cb\u00c1^Q5\u0098!s^Q\u00e0\u00cb\u00c1^Q5\u0098!s^Qb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 879,
+      "expression": "trim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0cb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 880,
+      "expression": "ltrim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0cb' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 881,
+      "expression": "rtrim(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'7311' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1\u00115\u0098!|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00e0\u00cb\u00c1^Q5\u0098!|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 882,
+      "expression": "replace(CAST(X'e0cbc1113598217311' AS TEXT),CAST(X'e0' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u00c1\u00115\u0098!s\u0011|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00cb\u00c1^Q5\u0098!s^Q|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1015,
+      "expression": "CAST(X'20d307e168cc38fff2' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1019,
+      "expression": "quote(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "' \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "' \u00d3^G\u00e1h\u00cc8\u00ff\u00f2'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1020,
+      "expression": "upper(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1H\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1H\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1021,
+      "expression": "lower(CAST(X'20d307e168cc38fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1022,
+      "expression": "CAST(CAST(X'20d307e168cc38fff2' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1027,
+      "expression": "CAST(X'20d307e168cc38fff2' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8\u00ff\u00f2x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1028,
+      "expression": "concat('a',CAST(X'20d307e168cc38fff2' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \u00d3^G\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1029,
+      "expression": "concat_ws(CAST(X'20d307e168cc38fff2' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2 \u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a \u00d3^G\u00e1h\u00cc8\u00ff\u00f2 \u00d3^G\u00e1h\u00cc8\u00ff\u00f2b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1032,
+      "expression": "substr(CAST(X'20d307e168cc38fff2' AS TEXT),8,-7)",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1035,
+      "expression": "trim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20d3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1036,
+      "expression": "ltrim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20d3' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1037,
+      "expression": "rtrim(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'fff2' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": " \u00d3\u0007\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": " \u00d3^G\u00e1h\u00cc8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1038,
+      "expression": "replace(CAST(X'20d307e168cc38fff2' AS TEXT),CAST(X'20' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u00d3\u0007\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u00d3^G\u00e1h\u00cc8\u00ff\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1067,
+      "expression": "CAST(X'ef7019' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1071,
+      "expression": "quote(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00efp\u0019'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00efp^Y'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1072,
+      "expression": "upper(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efP\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efP^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1073,
+      "expression": "lower(CAST(X'ef7019' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1074,
+      "expression": "CAST(CAST(X'ef7019' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Y|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1079,
+      "expression": "CAST(X'ef7019' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00efp\u0019x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00efp^Yx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1080,
+      "expression": "concat('a',CAST(X'ef7019' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00efp\u0019b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00efp^Yb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1081,
+      "expression": "concat_ws(CAST(X'ef7019' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00efp\u0019\u00efp\u0019b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00efp^Y\u00efp^Yb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1087,
+      "expression": "trim(CAST(X'ef7019' AS TEXT),CAST(X'ef70' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1088,
+      "expression": "ltrim(CAST(X'ef7019' AS TEXT),CAST(X'ef70' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1090,
+      "expression": "replace(CAST(X'ef7019' AS TEXT),CAST(X'ef' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffp\u0019|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffp^Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1119,
+      "expression": "CAST(X'bb210684160d58f8e675' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1123,
+      "expression": "quote(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00bb!^F\u0084^V^MX\u00f8\u00e6u'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1124,
+      "expression": "upper(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6U|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6U|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1125,
+      "expression": "lower(CAST(X'bb210684160d58f8e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rx\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^Mx\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1126,
+      "expression": "CAST(CAST(X'bb210684160d58f8e675' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6u|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1131,
+      "expression": "CAST(X'bb210684160d58f8e675' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ux|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8\u00e6ux|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1132,
+      "expression": "concat('a',CAST(X'bb210684160d58f8e675' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00bb!^F\u0084^V^MX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1133,
+      "expression": "concat_ws(CAST(X'bb210684160d58f8e675' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6u\u00bb!\u0006\u0084\u0016\rX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00bb!^F\u0084^V^MX\u00f8\u00e6u\u00bb!^F\u0084^V^MX\u00f8\u00e6ub|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1139,
+      "expression": "trim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb21' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1140,
+      "expression": "ltrim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb21' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1141,
+      "expression": "rtrim(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'e675' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00bb!\u0006\u0084\u0016\rX\u00f8|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00bb!^F\u0084^V^MX\u00f8|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1142,
+      "expression": "replace(CAST(X'bb210684160d58f8e675' AS TEXT),CAST(X'bb' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff!\u0006\u0084\u0016\rX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff!^F\u0084^V^MX\u00f8\u00e6u|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1171,
+      "expression": "CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1175,
+      "expression": "quote(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1176,
+      "expression": "upper(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1177,
+      "expression": "lower(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "bp\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "bp\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1178,
+      "expression": "CAST(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1183,
+      "expression": "CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1184,
+      "expression": "concat('a',CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1185,
+      "expression": "concat_ws(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffBP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "aBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffBP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1191,
+      "expression": "trim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'4250' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1192,
+      "expression": "ltrim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'4250' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1193,
+      "expression": "rtrim(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'c2ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf \u0011\u009e~\u009e|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "BP\u00c7\u00bf ^Q\u009e~\u009e|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1194,
+      "expression": "replace(CAST(X'4250c7bf20119e7e9ec2ff' AS TEXT),CAST(X'42' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ffP\u00c7\u00bf \u0011\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ffP\u00c7\u00bf ^Q\u009e~\u009e\u00c2\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1197,
+      "expression": "CAST(X'd8800bf27449' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1201,
+      "expression": "quote(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00d8\u0080\u000b\u00f2tI'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00d8\u0080^K\u00f2tI'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1202,
+      "expression": "upper(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2TI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2TI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1203,
+      "expression": "lower(CAST(X'd8800bf27449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2ti|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2ti|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1204,
+      "expression": "CAST(CAST(X'd8800bf27449' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tI|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tI|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1209,
+      "expression": "CAST(X'd8800bf27449' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2tIx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2tIx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1210,
+      "expression": "concat('a',CAST(X'd8800bf27449' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080\u000b\u00f2tIb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080^K\u00f2tIb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1211,
+      "expression": "concat_ws(CAST(X'd8800bf27449' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080\u000b\u00f2tI\u00d8\u0080\u000b\u00f2tIb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00d8\u0080^K\u00f2tI\u00d8\u0080^K\u00f2tIb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1217,
+      "expression": "trim(CAST(X'd8800bf27449' AS TEXT),CAST(X'd880' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1218,
+      "expression": "ltrim(CAST(X'd8800bf27449' AS TEXT),CAST(X'd880' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1219,
+      "expression": "rtrim(CAST(X'd8800bf27449' AS TEXT),CAST(X'7449' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d8\u0080\u000b\u00f2|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d8\u0080^K\u00f2|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1220,
+      "expression": "replace(CAST(X'd8800bf27449' AS TEXT),CAST(X'd8' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0080\u000b\u00f2tI|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0080^K\u00f2tI|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1301,
+      "expression": "CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1305,
+      "expression": "quote(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1306,
+      "expression": "upper(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?B\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?B\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1307,
+      "expression": "lower(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1308,
+      "expression": "CAST(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1313,
+      "expression": "CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7x|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7x|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1314,
+      "expression": "concat('a',CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1315,
+      "expression": "concat_ws(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1318,
+      "expression": "substr(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),-3,-3)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001e?b|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^^?b|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1321,
+      "expression": "trim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f398' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1322,
+      "expression": "ltrim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f398' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1323,
+      "expression": "rtrim(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'd1a7' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}\u001e?b\u00c5Y|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00f3\u0098\u00d08\u00a8}^^?b\u00c5Y|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1324,
+      "expression": "replace(CAST(X'f398d038a87d1e3f62c559d1a7' AS TEXT),CAST(X'f3' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0098\u00d08\u00a8}\u001e?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff\u0098\u00d08\u00a8}^^?b\u00c5Y\u00d1\u00a7|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1327,
+      "expression": "CAST(X'6d14ff' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1331,
+      "expression": "quote(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'m\u0014\u00ff'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'m^T\u00ff'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1332,
+      "expression": "upper(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "M\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "M^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1333,
+      "expression": "lower(CAST(X'6d14ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1334,
+      "expression": "CAST(CAST(X'6d14ff' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ff|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ff|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1339,
+      "expression": "CAST(X'6d14ff' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "m\u0014\u00ffx|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "m^T\u00ffx|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1340,
+      "expression": "concat('a',CAST(X'6d14ff' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "am\u0014\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "am^T\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1341,
+      "expression": "concat_ws(CAST(X'6d14ff' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "am\u0014\u00ffm\u0014\u00ffb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "am^T\u00ffm^T\u00ffb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1350,
+      "expression": "replace(CAST(X'6d14ff' AS TEXT),CAST(X'6d' AS TEXT),CAST(X'ff' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u00ff\u0014\u00ff|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u00ff^T\u00ff|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1405,
+      "expression": "CAST(X'1f4fa7406c7acb00a8' AS TEXT)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1409,
+      "expression": "quote(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "'\u001fO\u00a7@lz\u00cb'|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "'^_O\u00a7@lz\u00cb'|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1410,
+      "expression": "upper(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@LZ\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@LZ\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1411,
+      "expression": "lower(CAST(X'1f4fa7406c7acb00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fo\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_o\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1412,
+      "expression": "CAST(CAST(X'1f4fa7406c7acb00a8' AS TEXT) AS BLOB)",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|blob\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|blob\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1417,
+      "expression": "CAST(X'1f4fa7406c7acb00a8' AS TEXT)||'x'",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1418,
+      "expression": "concat('a',CAST(X'1f4fa7406c7acb00a8' AS TEXT),'b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1419,
+      "expression": "concat_ws(CAST(X'1f4fa7406c7acb00a8' AS TEXT),'a','','b')",
+      "lean": {
+        "code": 0,
+        "stdout": "a\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "id": 1427,
+      "expression": "rtrim(CAST(X'1f4fa7406c7acb00a8' AS TEXT),CAST(X'00a8' AS TEXT))",
+      "lean": {
+        "code": 0,
+        "stdout": "\u001fO\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "^_O\u00a7@lz\u00cb|text\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "9a446f289c3aff724bd769b62c5720f4132f574acde86c89148276f68f249a03",
+  "executable_sha256": "b871ca900589a8cbc087a339f584b5e50cb97ef138262f67273b5b7e559195b0",
+  "harness_sha256": "f5631892431d4b0c7f5fa17cec5430a3b3a8c85528b00c57584ff609390356be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "sqlite_storage_observer_version": "3.45.1",
+  "comparison": "Exercise byte-preserving TEXT and SQLite's permissive UTF-8 string routines.\n\nEach scalar result is inserted into a real file. Independent SQLite readers\ncompare storage class, exact IEEE-754 bits and original TEXT/BLOB bytes, then\ncheck integrity. CLI bytes and success/rejection status are compared as well.\nBoth production file modes are exercised; unsupported results remain failures.\nError wording is not compared. There is no Unicode repair or normalization."
+}

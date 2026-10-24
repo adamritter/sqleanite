@@ -81,6 +81,7 @@ def parsePrefix (source : String) : Prefix := Id.run do
 prefix. BLOB values are not decoded or rewritten in storage. -/
 def numericText : Value → String
   | .text s => s
+  | .textBytes bytes => String.ofList (bytes.toList.map (fun byte => Char.ofNat byte.toNat))
   | .blob bytes => String.ofList ((bytes.toList.takeWhile (·.toNat < 128)).map
       (fun byte => Char.ofNat byte.toNat))
   | value => toString value
@@ -109,7 +110,7 @@ def real : Value → Float
 /-- Arithmetic numericType preserves REAL spelling (e.g. '1.0'), unlike
 CAST AS NUMERIC, which can recover an integer. -/
 def arithmetic : Value → Value
-  | v@(.text _) | v@(.blob _) =>
+  | v@(.text _) | v@(.textBytes _) | v@(.blob _) =>
       let s := numericText v
       let p := parsePrefix s
       if !p.floating && p.integerFits && (!p.completeToNul || p.complete) then
@@ -119,7 +120,7 @@ def arithmetic : Value → Value
 
 def numerify (v : Value) : Value :=
   match v with
-  | .text _ | .blob _ =>
+  | .text _ | .textBytes _ | .blob _ =>
       let source := numericText v
       let p := parsePrefix source
       let n : Value := if !p.floating && p.integerFits then .integer (integerPrefix source)
@@ -146,7 +147,8 @@ def integerAffinity (r : Float) : Value :=
 /-- vdbe.c: applyNumericAffinity / alsoAnInt. Invalid numeric text and BLOBs
 remain unchanged; decimal/exponent spelling can still yield an INTEGER. -/
 def applyAffinity : Value → Value
-  | v@(.text source) =>
+  | v@(.text _) | v@(.textBytes _) =>
+      let source := numericText v
       let p := parsePrefix source
       if !p.completeToNul then v
       else

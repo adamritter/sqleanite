@@ -162,7 +162,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
   | .glob => Pattern.evaluate true b a
   | .concat => do
       if isNull a || isNull b then return .null
-      return .text ((← text a) ++ (← text b))
+      Text.checkedBytes (Text.bytes a ++ Text.bytes b)
   | _ => .error "unsupported scalar operator"
 
 abbrev Affinity := SQLite.Affinity
@@ -176,10 +176,8 @@ def cast (typeName : String) (v : Value) : Except String Value := do
   | .integer => return .integer (Numeric.integer v)
   | .real => return realResult (Numeric.real v)
   | .numeric => return Numeric.numerify v
-  | .text => return .text (← text v)
-  | .blob => match v with
-      | .blob _ => return v
-      | _ => return .blob (← text v).toUTF8.data
+  | .text => return Text.fromBytes (Text.bytes v)
+  | .blob => return .blob (Text.bytes v)
 
 /-- CAST is the constant-expression form that carries affinity. Unary plus
 and other operators erase it, just as sqlite3ExprAffinity specifies. -/
@@ -203,7 +201,8 @@ original storage classes, in contrast to the forced CAST conversions. -/
 def applyComparisonAffinity (aff : Affinity) (v : Value) : Value :=
   if numericAffinity aff then
     match v with
-    | .text s => if (Numeric.parsePrefix s).completeToNul then Numeric.arithmetic v else v
+    | .text _ | .textBytes _ =>
+        if (Numeric.parsePrefix (Numeric.numericText v)).completeToNul then Numeric.arithmetic v else v
     | _ => v
   else if aff == .text then
     match v with
@@ -220,7 +219,7 @@ def expressionComparison := expressionComparisonWith expressionAffinity
 
 def typeOf : Value → String
   | .null => "null" | .integer _ => "integer" | .real _ => "real"
-  | .text _ => "text" | .blob _ => "blob"
+  | .text _ | .textBytes _ => "text" | .blob _ => "blob"
 
 /-- roundFunc clamps sqlite3_value_int64 precision before its floating branch. -/
 def roundPrecision (places : Value) : Nat :=
@@ -269,19 +268,18 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
       match v with
       | .null => return .null
       | .blob bytes => return .integer bytes.size
-      | _ => return .integer ((← text v).toList.takeWhile (· != '\x00')).length
+      | _ => return .integer (Text.characterSpans (Text.bytes v)).length
   | "octet_length", [v] =>
       match v with
       | .null => return .null
       | .blob bytes => return .integer bytes.size
-      | _ => return .integer (← text v).utf8ByteSize
+      | _ => return .integer (Text.bytes v).size
   | "lower", [v] | "upper", [v] =>
       if isNull v then return .null
       -- SQLite's built-ins fold ASCII only, independent of Unicode locale.
-      return .text (String.ofList ((← text v).toList.map fun c =>
-        if name == "lower" && 'A' ≤ c && c ≤ 'Z' then Char.ofNat (c.toNat + 32)
-        else if name == "upper" && 'a' ≤ c && c ≤ 'z' then Char.ofNat (c.toNat - 32)
-        else c))
+      Text.checkedBytes ((Text.bytes v).map fun c =>
+        if name == "lower" && 65 ≤ c && c ≤ 90 then c + 32
+        else if name == "upper" && 97 ≤ c && c ≤ 122 then c - 32 else c)
   | "nullif", [a, b] => return if a == b then .null else a
   | "hex", [v] => SQLite.Text.hex v
   | "unhex", [v] => SQLite.Text.unhex v (.text "")

@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.35.0 and has no Lake dependencies.
-The current suite passes all 186 executable tests and audits all
-997 registered headline theorems. The verification audit reports no `sorry`,
+The current suite passes all 187 executable tests and audits all
+1001 registered headline theorems. The verification audit reports no `sorry`,
 `axiom`, `native_decide`, `unsafe`, or project-local `partial def`.
 Generate current source counts and theorem dependencies with
 `scripts/lean-manifest.sh`.
@@ -48,7 +48,9 @@ subset. Tables may use an implicit rowid, one `INTEGER PRIMARY KEY`, or one
 autoindex, including
 the literal VeriBetrKV/YCSB `usertable(ycsb_key TEXT PRIMARY KEY, field0 TEXT)`
 schema. Values include `NULL`, signed 64-bit `INTEGER`, bounded `TEXT`/`BLOB`,
-and `REAL` (including infinities).
+and `REAL` (including infinities). TEXT preserves original bytes, including
+embedded NUL and invalid UTF-8; string functions follow SQLite's byte and
+character rules for these inputs.
 Single-column indexes, transactions, common predicates, ordering, grouping,
 aggregates, and a bounded join subset are supported. Unsupported SQL is
 rejected instead of silently falling back to C SQLite.

@@ -13,6 +13,9 @@ and WAL file format**. The C API and loadable-extension ABI are outside this
 target. This target is not yet achieved: the checkpoints below measure specific
 implemented subsets, and known rejections and mismatches remain explicit.
 
+The latest raw-TEXT checkpoint below supersedes earlier invalid-UTF-8 TEXT
+rejection notes. Historical negative reports are retained without alteration.
+
 ## Source correspondence and production use
 
 | SQLite source | Lean implementation | Behavior ported |
@@ -1046,3 +1049,48 @@ headline theorems**, both audits, and **61 accepted / 2 declared-unsupported
 reverse cells** passed. The invalid-UTF-8 TEXT conversion failures remain the
 next implementation target; broader alias, join, grouping and collation behavior
 is outside this boolean corpus.
+
+
+### Byte-preserving TEXT and shell control escaping (2026-10-24)
+
+The scalar value representation now retains invalid UTF-8 TEXT as its original
+bytes, alongside the existing valid-string representation. Both have SQLite
+storage class TEXT. CAST, concatenation, comparison and numeric conversion keep
+those bytes through Core records. String operations implement SQLite's distinct
+byte-scanning rules: character spans for length/substr, raw matching for instr
+and replace, charset spans for trim, permissive decoding for unhex/unicode,
+and ASCII-only case conversion. char can emit the surrogate byte sequences
+produced by the pinned implementation. No Unicode repair is applied.
+
+A separate pure CLI renderer implements the pinned shell's default control-byte
+escaping, including first-NUL termination and the TAB/LF/CRLF exceptions. This
+changes printed output only; storage and expression values retain original
+bytes. The initial raw corpus retained **994 storage discrepancies** across
+1,072 expressions. After value handling was fixed, all **2,892 stored results**
+matched, while **476 CLI differences** exposed the missing shell escaping.
+These negative reports remain in `sqlite-raw-text-negative-20261024.json` and
+`sqlite-raw-text-cli-negative-20261024.json` under `docs/validation/`.
+
+At frozen Lean/Main SHA-256
+`a29c65470d15be4bbfc782ec86d0171ecbd7952078bc5d75908369387c901ffe`,
+fresh seed 353651 passed **5,180 expressions** in both file modes, with exact
+CLI bytes, stored classes, original TEXT/BLOB bytes and REAL bits. Every result
+was stored and independently read; integrity checks passed. SQL execution uses
+the pinned SQLite **3.53.4** CLI; the independent storage observer is Python's
+SQLite **3.45.1**, recorded explicitly in the report. Invalid sequences, NUL,
+control characters, surrogate/out-of-range encodings and numeric prefixes are
+included. Error wording is outside this comparison.
+
+Fresh regressions also passed **1,968 boolean read/write outcomes** (**18 matching
+errors**), **1,120 scalar cases**, **3,541 text-function cases** (**19 matching
+errors**), and **6,626 stored pattern results**, **40 pattern queries** and
+**24 matching pattern errors**. The four earlier boolean-corpus rejections of
+invalid TEXT now succeed. Reports use the `sqlite-raw-text-` prefix under
+`docs/validation/`. The text suite retains the explicit result-size rejection
+`length(zeroblob(1000000))`; the physical/scalar bound remains 999,999 bytes.
+The full build, **187 executable tests**, **1,001 registered headline theorems**,
+both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
+
+These results establish the tested byte-handling behavior, not complete SQL or
+file interoperability. UTF-16 database encoding, live SQLite WAL-reader
+coordination, general SQL/name binding and the other recorded gaps remain work.

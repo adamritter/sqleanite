@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.CLI
 import SQLeanite.CoreLazyWrite
 import SQLeanite.CoreRuntime
 
@@ -18,15 +19,15 @@ private def readStreamToEnd (stream : IO.FS.Stream) : IO String := do
     if chunk.isEmpty then return .inr acc else return .inl (acc ++ chunk)
   return String.fromUTF8? acc |>.getD ""
 
-/-- The SQLite CLI's list mode emits TEXT/BLOB bytes up to the first NUL,
-including invalid UTF-8. Keep this byte boundary separate from SQL values. -/
+/-- The pinned CLI preserves non-control bytes, stops at NUL, and escapes
+C0 controls in list mode. Formatting remains separate from SQL values. -/
 private def coreValueBytes : PhysicalCodec.Value → ByteArray
   | .null => ByteArray.empty
   | .integer value => (toString value.value).toUTF8
   | .realBits bits => (toString (SQLeanite.Value.real
       (Float.ofBits (UInt64.ofNat bits.val)))).toUTF8
-  | .text text => ByteArray.mk (text.bytes.takeWhile (· != 0)).toArray
-  | .blob blob => ByteArray.mk (blob.bytes.takeWhile (· != 0)).toArray
+  | .text text => ByteArray.mk (SQLite.CLI.listTextBytes text.bytes).toArray
+  | .blob blob => ByteArray.mk (SQLite.CLI.listTextBytes blob.bytes).toArray
 
 private def renderCoreResult (result : Core.Result) : ByteArray :=
   result.rows.foldl (fun output row =>

@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.CLI
 import SQLeanite.SQLite.WALRead
 import SQLeanite.Optimizer
 import SQLeanite.Runtime.Record
@@ -1002,7 +1003,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Text.findSub_empty
 #print axioms SQLeanite.SQLite.Text.substr_null
 #print axioms SQLeanite.SQLite.Text.minmax_null
-#print axioms SQLeanite.SQLite.Text.unhexChars_empty
+#print axioms SQLeanite.SQLite.Text.unhexCodes_empty
 
 -- The explicit row-expression boundary uses the shared scalar evaluator.
 #print axioms SQLeanite.SQLite.Scalar.evalWith_column
@@ -1101,3 +1102,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.isTruth_null
 #print axioms SQLeanite.SQLite.Scalar.bindBooleanKeywords_shadowed
+
+#print axioms SQLeanite.SQLite.Text.fromBytes_invalid
+
+#print axioms SQLeanite.CoreExpr.value_invalid_text
+
+#print axioms SQLeanite.SQLite.CLI.listTextBytes_nul
+#print axioms SQLeanite.SQLite.CLI.listTextBytes_length_le

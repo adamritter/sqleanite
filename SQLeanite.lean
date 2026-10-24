@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.CLI
 import SQLeanite.Value
 import SQLeanite.Storage
 import SQLeanite.TornStorage

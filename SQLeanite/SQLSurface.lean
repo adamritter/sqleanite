@@ -35,6 +35,11 @@ def value (input : SQLeanite.Value) : Except String PhysicalCodec.Value :=
       if bound : bytes.length < PhysicalCodec.textByteLimit then
         .ok (.text ⟨bytes, bound⟩)
       else .error "MVP TEXT exceeds the 999-byte limit"
+  | .textBytes bytes =>
+      let payload := bytes.toList
+      if bound : payload.length < PhysicalCodec.textByteLimit then
+        .ok (.text ⟨payload, bound⟩)
+      else .error "MVP TEXT exceeds the Core value limit"
   | .real value =>
       if value.isNaN then unsupported "NaN REAL value"
       else

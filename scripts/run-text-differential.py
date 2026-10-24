@@ -34,6 +34,7 @@ def corpus(seed, count):
     def add(group, *exprs):
         cases.extend((group, expr) for expr in exprs)
 
+    add("raw-text", "char(55296)", "trim(X'FF')")
     values = ["NULL", "0", "-12", "1.5", "''", "'árvíz🙂'", "X''", "X'00FF80'",
               text_literal("a\x00b"), text_literal(" \txy \x00 ")]
     for value in values:
@@ -130,13 +131,12 @@ def main():
         errors = ["hex()", "hex(1,2)", "unhex()", "substr('a')", "substr('a',1,2,3)",
                   "instr('a')", "trim()", "replace('a','b')", "concat()", "concat_ws('-')",
                   "unicode()", "quote(1,2)", "sign()", "zeroblob()", "min()", "max()",
-                  "coalesce(1,hex())", "CASE WHEN 1 THEN 1 ELSE substr('a') END"]
+                  "coalesce(1,hex())", "CASE WHEN 1 THEN 1 ELSE substr('a') END", "coalesce(1,unknown_function())"]
         for expr in errors:
             actual, expected = scalar.run(args, cwd, f"INSERT INTO t VALUES(999999,{expr});")
             assert actual.returncode != 0 and expected.returncode != 0, expr
             assert scalar.observe(cwd / "lean.db") == before, expr
-        declared = ["char(55296)", "trim(X'FF')", "length(zeroblob(1000000))",
-                    "coalesce(1,unknown_function())"]
+        declared = ["length(zeroblob(1000000))"]
         for expr in declared:
             actual, _ = scalar.run(args, cwd, f"INSERT INTO t VALUES(999999,{expr});")
             assert actual.returncode != 0, expr
