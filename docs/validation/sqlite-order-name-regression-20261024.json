@@ -1,0 +1,24 @@
+{
+  "seed": 353674,
+  "random_cases": 120,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 624,
+      "writes": 78,
+      "matching_errors": 288
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 624,
+      "writes": 78,
+      "matching_errors": 288
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "be7f18563e31364f2a7c8ceb68fa017525e0df60ab37858a5ab9e109219378c9",
+  "executable_sha256": "8c5ed18c6ccf85083707ed851ffef69404b09d8e331b7cfae68b1c931fc20704",
+  "harness_sha256": "4c183724d7ee5ca85c69b5ae03f1550f11dca7169cfe400bc3c40d7dc373986e",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare quoted column references and single-source qualifier binding.\n\nExact CLI output, rejection status and unchanged input bytes are compared on\nindependent files in both modes. The pinned SQLite CLI disables DQS fallback;\nunknown quoted identifiers must therefore reject. All mismatches are retained.\nSuccessful writes are independently observed with the pinned SQLite CLI and\nintegrity-checked; rejected writes preserve bytes. This suite does not establish\ncomplete alias, schema-name or grouping behavior."
+}

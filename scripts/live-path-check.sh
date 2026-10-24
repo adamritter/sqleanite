@@ -54,6 +54,17 @@ else
   fail "source name validation is missing from a Core execution route"
 fi
 
+# General sorting preserves alias binding and evaluates retained candidates.
+if grep -q 'CoreOrder.scan ctx select.where_ expressions terms' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.directOrdering schema source select' SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'orderingTranslated : CoreSQL.directOrdering' SQLeanite/CoreSQLReadText.lean &&
+   grep -q 'CoreOrder.scan_limit_zero' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreOrder.insertStable_length' SQLeanite/ProofAxioms.lean; then
+  ok "ORDER BY binding and bounded candidate sorting are on the Core path"
+else
+  fail "ORDER BY resolver, sorter, or its registered contracts are missing"
+fi
+
 # Row-dependent UPDATE remains an atomic trace of proved Core point updates.
 if grep -q 'executeExpressionUpdate state tableName alias stored' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeExpressionUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&

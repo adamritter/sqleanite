@@ -41,7 +41,7 @@ private def coldQuery? (schema : Core.Schema) (select : Select) :
   let extreme ← (CoreSQL.extremeColumn? schema select.columns.toList).toOption
   unless count.isNone && sum.isNone && extreme.isNone do none
   let columns ← (CoreSQL.projection schema select.columns.toList).toOption
-  let ordering ← (CoreSQL.orderBy schema select.orderBy.toList).toOption
+  let ordering ← (CoreSQL.directOrdering schema source select).toOption
   let query : Core.Query := {
     columns
     predicate

@@ -1112,3 +1112,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.bindNames_quoted
 #print axioms SQLeanite.CoreSQL.selectNamesBound_compounds
+
+#print axioms SQLeanite.CoreOrder.scan_limit_zero
+#print axioms SQLeanite.CoreOrder.insertStable_length

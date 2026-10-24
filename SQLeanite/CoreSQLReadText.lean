@@ -35,8 +35,7 @@ inductive TranslatedRead (state : Core.State) :
         select.columns.toList = .ok none)
       (projectionTranslated : CoreSQL.projection stored.schema
         select.columns.toList = .ok columns)
-      (orderingTranslated : CoreSQL.orderBy stored.schema
-        select.orderBy.toList = .ok ordering)
+      (orderingTranslated : CoreSQL.directOrdering stored.schema source select = .ok ordering)
       (directQuery : CoreSQL.queryNeedsRepresentatives select.distinct columns ordering = false) :
       TranslatedRead state (.select select)
         (.query (CoreSQL.canonical source.name) {
@@ -658,7 +657,7 @@ theorem executeStatement_eq_core
       noGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
       have height := compoundHeight_eq_one select noCompounds
-      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds,
         oneSource, noGroups, noHaving, noOffset, plainSource, found, namesBound,
@@ -681,7 +680,7 @@ theorem executeStatement_eq_core
       noHaving noOffset plainSource found namesBound predicateTranslated countTranslated
       notSum notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, countTranslated, notSum, notExtreme,
@@ -697,7 +696,7 @@ theorem executeStatement_eq_core
       noHaving noOffset plainSource found namesBound predicateTranslated notCount
       sumTranslated notExtreme notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notCount, sumTranslated, notExtreme,
@@ -713,7 +712,7 @@ theorem executeStatement_eq_core
       noGroups noHaving noOffset plainSource found namesBound predicateTranslated notCount
       notSum extremeTranslated notDistinct noOrdering noLimit =>
       have height := compoundHeight_eq_one select noCompounds
-      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, noGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notCount, notSum, extremeTranslated,
@@ -729,7 +728,7 @@ theorem executeStatement_eq_core
       hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
       notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
       have height := compoundHeight_eq_one select noCompounds
-      simp_all [CoreSQL.selectNamesBound, CoreSQL.executeStatement, CoreSQL.executeSelect,
+      simp_all [CoreSQL.selectNamesBound, CoreSQL.resolvedOrdering, CoreSQL.directOrdering, CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.executeSelectBase, height,
         noCompounds, oneSource, hasGroups, noHaving, noOffset, plainSource,
         found, namesBound, predicateTranslated, notDistinct, noOrdering, noLimit,

@@ -1136,3 +1136,59 @@ forms without asserting complete SQLite name resolution.
 Output-alias resolution, ordinal and arbitrary-expression ordering, general
 GROUP BY expressions/HAVING, quoted function-call parsing, schema-qualified
 names and the previously recorded SQL/file/WAL gaps remain separate work.
+
+
+### ORDER BY expressions, result aliases and positions (2026-10-24)
+
+Single-source scalar SELECTs now resolve ORDER BY result aliases and positional
+integers after star expansion. A top-level alias takes precedence over a source
+column; inside an expression, source columns take precedence and otherwise an
+output alias can supply its expression. Ordinal recognition follows the pinned
+32-bit literal/unary rules, so large integer sort constants are not positions.
+Ordinary expressions, BINARY collation wrappers, multiple directions and stable
+ties use the Core expression sorter. The direct Core command and cold/persisted
+read paths share resolved ordering, including aliases that shadow source names.
+Source-free scalar SELECTs bind ordering expressions but do not execute an
+unnecessary sort over their single implicit input row.
+
+The bounded sorter follows SQLite's LIMIT+OFFSET candidate behavior. It computes
+sort keys before admitting an ordinary output row to a full candidate set; rows
+later evicted have already evaluated their outputs. DISTINCT computes each
+output before duplicate elimination. Primary-key order and known single-row
+searches retain their scan path. These choices matter for errors such as integer
+abs overflow, beyond merely producing the right sorted successful rows.
+
+The initial corpus retained **736 differences in 1,374 outcomes**. An expanded
+intermediate corpus retained **38 BINARY-wrapper rejections in 1,608 outcomes**.
+Both reports remain under `docs/validation/` as
+`sqlite-order-expression-negative-20261024.json` and
+`sqlite-order-expression-binary-negative-20261024.json`.
+At frozen Lean/Main SHA-256
+`be7f18563e31364f2a7c8ceb68fa017525e0df60ab37858a5ab9e109219378c9`,
+fresh seed 353671 passed **2,764 ordering cases**, including **848 matching
+errors**, in both file modes. Cases vary data, output/source name collisions,
+positions, numeric storage classes, NULLs, limits, offsets and overflow placement.
+Exact CLI bytes and rejection status are compared, and reads preserve main/WAL
+bytes. Error wording and equivalence to every SQLite planner choice are outside
+this comparison.
+
+Fresh regressions passed **12,000 DISTINCT/order queries** across both modes and
+before/after index creation, **290 LIMIT/OFFSET cases** (**18 matching errors**),
+**1,404 name-binding read/write outcomes** (**576 matching errors**), **916
+aggregate-result cases** (**178 matching errors**) and **1,120 scalar cases**.
+The full build, **189 executable tests**, **1,005 registered headline theorems**,
+both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
+Reports use the `sqlite-order-` prefix under `docs/validation/`.
+
+A larger DISTINCT stress configuration (2,400 input rows, 9,600 queries per phase)
+timed out in its first query subprocess after 180 seconds. It has no completed
+phase result and is not counted as passing. Its source/executable/harness hashes
+and diagnostic are retained in `sqlite-order-distinct-timeout-20261024.json`.
+The passing DISTINCT run used a fresh seed and 750 input rows. No throughput or
+unbounded scalability claim follows from these results.
+
+Explicit NULLS FIRST/LAST, NOCASE/RTRIM ordering, general aggregate/group ordering,
+compound-query ordering, result aliases outside ORDER BY, and the existing
+SQL/database/WAL gaps remain separate work. The new registered component proofs
+cover zero-LIMIT suppression and stable insertion length, not the entire SQLite
+sorter or resolver.

@@ -4201,6 +4201,35 @@ private def expectSQLiteRawText : IO Unit := do
       | .error message => fail message
     unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
 
+private def expectSQLiteOrderExpressions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w); INSERT INTO t VALUES(1,1,2),(2,-9223372036854775808,1),(3,3,0);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT id+1 AS k FROM t ORDER BY k DESC LIMIT 1;", [[.integer 4]]),
+    ("SELECT id,v FROM t ORDER BY 2 LIMIT 1;", [[.integer 2, .integer (-9223372036854775808)]]),
+    ("SELECT id AS v FROM t ORDER BY v COLLATE BINARY DESC LIMIT 1;", [[.integer 3]]),
+    ("SELECT id AS v FROM t ORDER BY v;", [[.integer 1], [.integer 2], [.integer 3]]),
+    ("SELECT id AS v FROM t ORDER BY v+0;", [[.integer 2], [.integer 1], [.integer 3]]),
+    ("SELECT abs(v) FROM t ORDER BY -w LIMIT 1;", [[.integer 1]]),
+    ("SELECT id FROM t ORDER BY id DESC,abs(v) LIMIT 1;", [[.integer 3]]),
+    ("SELECT abs(v) FROM t ORDER BY 1 LIMIT 0;", []),
+    ("SELECT 3 AS x,1 ORDER BY x+1;", [[.integer 3, .integer 1]]),
+    ("SELECT 1 ORDER BY abs(-9223372036854775808);", [[.integer 1]]),
+    ("SELECT abs(-9223372036854775808) ORDER BY 1 LIMIT 1 OFFSET 1;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"ORDER expression: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"ORDER expression mismatch: {sql}"
+  for sql in ["SELECT abs(v) FROM t ORDER BY w LIMIT 1;", "SELECT id FROM t ORDER BY 0 LIMIT 0;",
+      "SELECT id FROM t ORDER BY 2 LIMIT 0;", "SELECT id FROM t ORDER BY missing LIMIT 0;",
+      "SELECT 1 ORDER BY unknown_function() LIMIT 0;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"ORDER expression omitted error: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteQuotedNames : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,\"select\" TEXT,v); INSERT INTO t VALUES(1,'a',3),(2,'b',4); CREATE TABLE empty(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × List (List Value)) := [
@@ -4704,6 +4733,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite aggregate scalar results and implicit source row", expectSQLiteAggregateResults),
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
+  ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),

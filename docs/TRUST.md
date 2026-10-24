@@ -1755,3 +1755,20 @@ SQLite's name resolver or of arbitrary ordering/grouping expressions. The new
 registered components prove quoted-marker binding and independence from a
 SELECT's compound-arm field. No axiom or native binding changed. Fresh SQL and
 unchanged-file evidence is recorded in [SQLITE_PORT.md](SQLITE_PORT.md).
+
+
+### Expression ordering boundary (2026-10-24)
+
+`CoreOrder` resolves ORDER BY references using expanded output columns and the
+source context, then sorts evaluated Core keys. Direct read correspondence now
+states successful `directOrdering`, which includes that resolver; the cold and
+persisted read recognizers use the same function. The scalar fallback retains
+Core input rows and explicit alias/name admission. Its candidate loop models
+LIMIT+OFFSET evaluation timing, with separate DISTINCT behavior. New component
+proofs state insertion length and the zero-LIMIT result. They do not establish
+a full optimizer/compiler refinement or all collation rules.
+
+Final-checkpoint differential evidence and the retained larger-run timeout are
+listed in [SQLITE_PORT.md](SQLITE_PORT.md). The timeout has no passing semantic
+result and no performance conclusion is inferred from the smaller successful
+run. Native bindings and their trust assumptions are unchanged.

@@ -3,6 +3,7 @@ import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
 import SQLeanite.CoreExpr
+import SQLeanite.CoreOrder
 import SQLeanite.CoreAggregate
 import SQLeanite.CoreCompound
 
@@ -203,6 +204,15 @@ def orderBy (schema : Core.Schema) :
       | .column _ name =>
           return (← column schema name, term.descending) :: (← orderBy schema terms)
       | _ => unsupported "ORDER BY expression"
+
+def resolvedOrdering (schema : Core.Schema) (source : TableRef) (select : Select) :
+    Except String (List OrderTerm) :=
+  CoreOrder.resolve { schema, sourceName := source.alias.getD source.name }
+    select.columns.toList select.orderBy.toList
+
+def directOrdering (schema : Core.Schema) (source : TableRef) (select : Select) :
+    Except String (List (Nat × Bool)) := do
+  orderBy schema (← resolvedOrdering schema source select)
 
 def countTarget? (schema : Core.Schema) :
     List ResultColumn → Except String (Option Core.CountTarget)
@@ -1030,11 +1040,15 @@ all expressions before evaluating WHERE, LIMIT, and then the result row;
 unselected expressions must not raise evaluation errors. -/
 def scalarConstantRow (select : Select) : Except String (Option (List Core.Value)) := do
   unless select.sources.isEmpty && select.valueRows.isNone &&
-      select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
+      select.groupBy.isEmpty && select.having.isNone do
     unsupported "constant SELECT shape"
   unless select.columns.all (fun column => SQLite.Scalar.admitted column.expr) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "constant SELECT expression"
+  let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+  let ordering ← CoreOrder.resolve ctx select.columns.toList select.orderBy.toList
+  unless ordering.all (fun term => SQLite.Scalar.admitted term.expr) do
+    unsupported "constant ORDER BY expression"
   if select.limit == some 0 then return none
   if let some condition := select.where_ then
     unless ← SQLite.Scalar.testWhere condition do return none
@@ -1099,8 +1113,12 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   let expressions ← ctx.projection select.columns.toList
   let _ ← select.where_.mapM ctx.validate
-  let _ ← select.orderBy.toList.mapM (fun term => ctx.validate term.expr)
-  let ordering ← orderBy stored.schema select.orderBy.toList
+  let terms ← resolvedOrdering stored.schema source select
+  let _ ← terms.mapM (fun term => ctx.validate term.expr)
+  let ordering := terms.head?.toList.flatMap fun term =>
+    match ctx.bindNames term.expr with
+    | .column qualifier name => (ctx.column? qualifier name).toList.map (·, term.descending)
+    | _ => []
   if select.limit != some 0 then
     unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
   let search ← if select.limit == some 0 then pure none
@@ -1108,20 +1126,22 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
   let ctx := expressionSearchContext ctx search
   if select.limit != some 0 then
     unless ← expressionSearchReady ctx search select.where_ do return ({}, expressions.length)
-  let orderedScan := ordering.isEmpty ||
-    (ordering.head?.any (fun term => term.1 == stored.schema.primaryKey))
+  let singleRow := search.any (fun predicate => match predicate with
+    | .equal index _ => index == stored.schema.primaryKey
+    | _ => false)
+  let orderedScan := terms.isEmpty || singleRow ||
+    (terms.head?.any (fun term => match ctx.bindNames term.expr with
+      | .column qualifier name => ctx.column? qualifier name == some stored.schema.primaryKey
+      | _ => false))
   let query : Core.Query := {
     columns := List.range stored.schema.columns.length
     predicate := search
     orderBy := if orderedScan then ordering else [] }
   let (_, result) ← Core.execute state (.query (canonical source.name) query)
-  let remaining := if orderedScan || select.limit == some 0 then select.limit else none
-  let skip := if orderedScan then select.offset else 0
-  let projected ← ctx.scanWindow select.where_ expressions select.distinct result.rows skip remaining []
-  let projected := if orderedScan then projected else
-    (projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)).drop select.offset
-  return ({ result with rows := (Core.limitRows select.limit projected).map (·.output) },
-    expressions.length)
+  let projected ← if orderedScan then
+      ctx.scanWindow select.where_ expressions select.distinct result.rows select.offset select.limit []
+    else CoreOrder.scan ctx select.where_ expressions terms select.distinct result.rows select.offset select.limit
+  return ({ result with rows := projected.map (·.output) }, expressions.length)
 
 def executeFilteredSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String SelectExecution :=
@@ -1200,7 +1220,8 @@ def selectNamesBound (schema : Core.Schema) (source : TableRef) (select : Select
   let ctx : CoreExpr.Context := { schema, sourceName := source.alias.getD source.name }
   select.columns.all (fun result => ctx.namesBound result.expr) &&
     select.where_.all ctx.namesBound && select.groupBy.all ctx.namesBound &&
-    select.having.all ctx.namesBound && select.orderBy.all (fun term => ctx.namesBound term.expr)
+    select.having.all ctx.namesBound &&
+    ((resolvedOrdering schema source select).toOption.any (fun terms => terms.all (fun term => ctx.namesBound term.expr)))
 
 @[simp] theorem selectNamesBound_compounds (schema : Core.Schema) (source : TableRef)
     (select : Select) (compounds : Array (CompoundOp × Select)) :
@@ -1272,18 +1293,20 @@ def executeSelectBase (state : Core.State) (select : Select) :
           match projection stored.schema select.columns.toList with
           | .error _ => executeExpressionSelect state select source stored wherePredicate
           | .ok columns =>
-            let ordering ← orderBy stored.schema select.orderBy.toList
-            if select.offset != 0 || queryNeedsRepresentatives select.distinct columns ordering then
-              executeFilteredSelect state select source stored
-            else
-              let query : Core.Query := {
-                columns
-                predicate := wherePredicate
-                orderBy := ordering
-                limit := select.limit
-                distinct := select.distinct }
-              let (next, result) ← Core.execute state (.query tableName query)
-              return ⟨next, result, query.columns.length⟩
+            match directOrdering stored.schema source select with
+            | .error _ => executeFilteredSelect state select source stored
+            | .ok ordering => do
+              if select.offset != 0 || queryNeedsRepresentatives select.distinct columns ordering then
+                executeFilteredSelect state select source stored
+              else
+                let query : Core.Query := {
+                  columns
+                  predicate := wherePredicate
+                  orderBy := ordering
+                  limit := select.limit
+                  distinct := select.distinct }
+                let (next, result) ← Core.execute state (.query tableName query)
+                return ⟨next, result, query.columns.length⟩
         | _, _, _ => unsupported "ambiguous aggregate projection"
 
 /-- Recognize the non-aggregate single-table SELECT shape used by the
@@ -1304,7 +1327,7 @@ def simpleQuery? (state : Core.State) (select : Select) :
       let extreme ← (extremeColumn? stored.schema select.columns.toList).toOption
       if count.isNone && sum.isNone && extreme.isNone then
         let columns ← (projection stored.schema select.columns.toList).toOption
-        let ordering ← (orderBy stored.schema select.orderBy.toList).toOption
+        let ordering ← (directOrdering stored.schema source select).toOption
         if queryNeedsRepresentatives select.distinct columns ordering then none
         else some (tableName, {
           columns
