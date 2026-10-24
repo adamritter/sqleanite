@@ -128,9 +128,11 @@ else
   fail "row expressions detached from the production evaluator or width proof"
 fi
 
-if grep -q 'limitRows query.limit (stableDeduplicate projected)' SQLeanite/CoreEngine.lean &&
-   grep -q 'orderedLimit (Core.stableDeduplicate' SQLeanite/CoreReadSemantics.lean &&
-   grep -q 'Core.Query.eval_distinct_limit' SQLeanite/ProofAxioms.lean; then
+if grep -q 'limitRows query.limit (stableDistinctBy distinctRowKey projected)' SQLeanite/CoreEngine.lean &&
+   grep -q 'orderedLimit (Core.stableDistinctBy' SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'Core.Query.eval_distinct_limit' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Core.Query.eval_distinct_key_nodup' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Core.stableDistinctBy' SQLeanite/CoreExpr.lean; then
   ok "DISTINCT precedes LIMIT on the live Core query and its bag denotation"
 else
   fail "DISTINCT/LIMIT implementation detached from its corrected denotation"

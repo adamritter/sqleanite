@@ -1,4 +1,5 @@
 import SQLeanite.CoreJoin
+import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
 
 namespace SQLeanite
@@ -300,7 +301,7 @@ def Query.projectedRows (query : Query) (rows : List Row) : List (List Value) :=
 
 def Query.eval (query : Query) (rows : List Row) : List (List Value) :=
   let projected := query.projectedRows rows
-  if query.distinct then limitRows query.limit (stableDeduplicate projected) else projected
+  if query.distinct then limitRows query.limit (stableDistinctBy distinctRowKey projected) else projected
 
 theorem Query.eval_distinct_limit (query : Query) (rows : List Row) (n : Nat)
     (enabled : query.distinct = true) (limited : query.limit = some n) :
@@ -349,14 +350,23 @@ theorem Query.eval_width (query : Query) (rows : List Row)
   split at member
   next enabled =>
     have original : output ∈ query.projectedRows rows :=
-      (mem_stableDeduplicate output (query.projectedRows rows)).mp (mem_limitRows member)
+      stableDistinctBy_subset distinctRowKey (query.projectedRows rows) (mem_limitRows member)
     exact Query.projectedRows_width query rows original
   next disabled => exact Query.projectedRows_width query rows member
 
 theorem Query.eval_nodup_of_distinct (query : Query) (rows : List Row)
     (enabled : query.distinct = true) : (query.eval rows).Nodup := by
   simpa [Query.eval, enabled] using
-    limitRows_nodup query.limit (stableDeduplicate_nodup (query.projectedRows rows))
+    limitRows_nodup query.limit (stableDistinctBy_nodup distinctRowKey (query.projectedRows rows))
+
+/-- DISTINCT output has unique SQL comparison keys, while preserving the
+stored representation of each chosen row. -/
+theorem Query.eval_distinct_key_nodup (query : Query) (rows : List Row)
+    (enabled : query.distinct = true) :
+    ((query.eval rows).map distinctRowKey).Nodup := by
+  simp only [Query.eval, enabled, if_true]
+  rw [← limitRows_map]
+  exact limitRows_nodup _ (stableDistinctBy_key_nodup _ _)
 
 /-- Does this row agree with the sought value on the indexed column, under the
 same equality the predicate applies? -/

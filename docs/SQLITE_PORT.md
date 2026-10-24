@@ -85,7 +85,8 @@ lake exe sqleanite_tests
 python3 scripts/run-scalar-differential.py
 python3 scripts/run-affinity-differential.py
 python3 scripts/run-text-differential.py --seed 353411 --random-cases 500
-python3 scripts/run-row-expression-differential.py --seed 353421 --random-cases 500
+python3 scripts/run-row-expression-differential.py --seed 353425 --random-cases 500
+python3 scripts/run-distinct-differential.py --seed 353431 --random-cases 350
 scripts/lean-verification-audit.sh
 scripts/live-path-check.sh
 ```
@@ -208,12 +209,11 @@ representatives and applies LIMIT after duplicate elimination, returning
 read and permutation theorem statements are preserved and rechecked. The old
 negative result remains in the earlier checkpoint report.
 
-This corrects operation order, not all SQLite equality semantics. The direct
-column path still uses representation equality: `1` and `1.0` in a column with
-no affinity can survive DISTINCT as separate rows. The newer expression
-projection path uses SQLite numeric comparison instead. This remaining
-cross-storage-class discrepancy is exercised and reported separately, and
-prevents any claim that direct-column DISTINCT is fully SQLite-compatible.
+At the DISTINCT/LIMIT checkpoint, direct-column queries still used
+representation equality: `1` and `1.0` could survive as separate rows. That
+negative result is preserved in its report. The numeric DISTINCT checkpoint
+below corrects this discrepancy with a shared exact comparison key. It does
+not claim to resolve all ordering, grouping or set-operation semantics.
 
 The fresh tests also exposed and fixed two CLI issues: empty/NULL-only rows
 must emit an empty line, and rendered TEXT stops at its first NUL. File, WAL
@@ -237,8 +237,50 @@ The direct-column LIMIT reproduction now returns `1,2` in both engines, and
 coverage. Empty rows and NUL text rendering match in all three CLI modes.
 The [first fresh negative checkpoint](validation/sqlite-distinct-cli-development-negative-20261024.json)
 and [Unicode signed-result failure](validation/sqlite-unicode-development-negative-20261024.json)
-remain available. The final report still separately records the unresolved
-INTEGER/REAL DISTINCT difference; it is not counted as a passing case.
+remain available. That historical report separately records the then-unresolved
+INTEGER/REAL DISTINCT difference; it was not counted as a passing case.
+
+## Numeric DISTINCT checkpoint
+
+The [fresh final-checkpoint report](validation/sqlite-numeric-distinct-20261024.json)
+records **10,220 numeric DISTINCT queries** with no differences at seed
+`353431`: 350 newly generated pairs plus 15 fixed boundary pairs, exercised
+before and after index creation and reopening. Both direct-column and
+expression projections retain the first original representative; INTEGER/REAL
+equality, signed zeros, signed-64 endpoints, neighboring values around `2^53`,
+subnormals, infinity, NULL and numeric TEXT separation are covered. Multi-column
+permutations and post-DISTINCT LIMIT are included. BLOB/TEXT separation is
+checked as typed Core values in the executable tests; this particular query
+suite does not claim to compare arbitrary BLOB shell output or exact binary64
+SELECT result bits.
+
+`Core.distinctValueKey` in `CoreDistinct.lean` uses binary64's exact significand and exponent
+to identify integral REALs that fit signed 64-bit INTEGER. It leaves all other
+representations unchanged and never converts an INTEGER to an inexact Float.
+The keys are only used for comparison; output and stored values are untouched.
+Both production projection paths use the same first-representative algorithm.
+
+The existing read and column-permutation theorem statements still compile.
+The independent bag denotation now selects the first original representative
+of each key from the projected bag, then applies the ordered LIMIT. New
+kernel-checked statements cover source membership, key uniqueness, retained
+representatives, key-preserving maps and column permutation. These properties
+are not a complete proof of equivalence between the key normalizer and every
+SQLite collation or runtime value.
+
+All **164 executable tests**, **945 registered headline theorems**, the source
+audit and the live-path audit pass. Fresh regression checks also pass: 604
+row-expression queries / 42,873 result rows at seed `353425`, 6,539 text/blob
+cases at seed `353416`, 1,120 scalar expressions, and 444 affinity values /
+4,708 queries. Source, executable and numeric-harness hashes are in the report.
+The earlier numeric DISTINCT failure now has a required passing regression.
+
+The [remaining-gap probes](validation/sqlite-remaining-gaps-20261024.json) are
+reported separately: seven explicit feature rejections and five successful
+queries with wrong output. In particular, `UNION`, `INTERSECT`, `EXCEPT` and
+`GROUP BY` still use representation equality in their older paths, and
+`SELECT DISTINCT v ... ORDER BY b` can choose the wrong order when `b` is not
+projected. These are known defects, not passing or silently excluded cases.
 
 ## Still missing
 

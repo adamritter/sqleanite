@@ -1015,3 +1015,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Query.eval_distinct_limit
 #print axioms SQLeanite.CoreReadSemantics.ofList_limitRows
 #print axioms SQLeanite.CoreReadSemantics.ofList_stableDeduplicate
+
+-- SQL DISTINCT identifies numeric values without rewriting stored results.
+#print axioms SQLeanite.Core.mem_stableDistinctBy
+#print axioms SQLeanite.Core.stableDistinctBy_subset
+#print axioms SQLeanite.Core.stableDistinctBy_key_nodup
+#print axioms SQLeanite.Core.stableDistinctBy_map
+#print axioms SQLeanite.Core.Query.eval_distinct_key_nodup
+#print axioms SQLeanite.CoreReadSemantics.ofList_stableDistinctBy
+#print axioms SQLeanite.CoreReadSemantics.distinctRowKey_reorder

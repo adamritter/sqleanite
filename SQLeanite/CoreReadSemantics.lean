@@ -113,6 +113,37 @@ theorem ofList_stableDeduplicate {α : Type} [DecidableEq α] (rows : List α) :
     _ = KRelation.distinct (RelationalAlgebra.ofList rows) :=
       congrArg KRelation.distinct (RelationalAlgebra.ofList_perm (List.reverse_perm _))
 
+/-- Select the first original representative of each SQL key from the
+independent bag projection. No normalization is applied to output values. -/
+def orderedDistinct {α κ : Type} [DecidableEq α] [DecidableEq κ]
+    (key : α → κ) (order : List α) (relation : KRelation.Relation α) :
+    KRelation.Relation α :=
+  KRelation.select (fun row =>
+    if order.find? (fun candidate => decide (key candidate = key row)) = some row
+    then .true else .false) (KRelation.distinct relation)
+
+theorem ofList_stableDistinctBy {α κ : Type} [DecidableEq α] [DecidableEq κ]
+    (key : α → κ) (rows : List α) :
+    RelationalAlgebra.ofList (Core.stableDistinctBy key rows) =
+      orderedDistinct key rows (RelationalAlgebra.ofList rows) := by
+  apply KRelation.Relation.ext
+  intro row
+  by_cases chosen : rows.find? (fun candidate => decide (key candidate = key row)) = some row
+  · have member := List.mem_of_find?_eq_some chosen
+    have kept := (Core.mem_stableDistinctBy key rows row).mpr chosen
+    have count : RelationalAlgebra.listMultiplicity row (Core.stableDistinctBy key rows) = 1 := by
+      rw [RelationalAlgebra.listMultiplicity_eq_count,
+        List.Nodup.count (Core.stableDistinctBy_nodup key rows)]
+      simp [kept]
+    have nonzero : RelationalAlgebra.listMultiplicity row rows ≠ 0 :=
+      fun zero => (RelationalAlgebra.listMultiplicity_eq_zero_iff row rows).mp zero member
+    simp [orderedDistinct, KRelation.select, KRelation.distinct,
+      RelationalAlgebra.ofList, chosen, count, nonzero]
+  · have absent : row ∉ Core.stableDistinctBy key rows := by
+      simpa only [Core.mem_stableDistinctBy] using chosen
+    simp [orderedDistinct, KRelation.select, RelationalAlgebra.ofList, chosen,
+      RelationalAlgebra.listMultiplicity_eq_zero_of_not_mem row _ absent]
+
 /-- Bag denotation of the live query after its order/limit presentation step.
 The finite support is deduplicated, so projection sums each source value once
 and preserves its original multiplicity. -/
@@ -124,8 +155,8 @@ def queryDenotation (query : Core.Query) (rows : List Core.Row) :
     (fun row => query.columns.map row.value)
     (RelationalAlgebra.ofList selected)
   if query.distinct then
-    orderedLimit (Core.stableDeduplicate (query.projectedRows rows)) query.limit
-      (KRelation.distinct projected)
+    orderedLimit (Core.stableDistinctBy Core.distinctRowKey (query.projectedRows rows)) query.limit
+      (orderedDistinct Core.distinctRowKey (query.projectedRows rows) projected)
   else projected
 
 theorem query_eval_denotes (query : Core.Query) (rows : List Core.Row) :
@@ -134,7 +165,7 @@ theorem query_eval_denotes (query : Core.Query) (rows : List Core.Row) :
   unfold Core.Query.eval Core.Query.projectedRows queryDenotation
   split
   next enabled =>
-    rw [ofList_limitRows _ _ (Core.stableDeduplicate_nodup _), ofList_stableDeduplicate]
+    rw [ofList_limitRows _ _ (Core.stableDistinctBy_nodup _ _), ofList_stableDistinctBy]
     rw [← RelationalAlgebra.project_ofList]
     rfl
   next disabled =>
@@ -482,6 +513,20 @@ theorem reorderValues_invert_symm {positions : List Nat}
       rw [reorderValues, if_neg (by rw [invertPositions_length]; exact width)]
     rw [identity, reorderValues, if_neg width]
 
+theorem distinctRowKey_reorder (positions : List Nat) (values : List Core.Value) :
+    Core.distinctRowKey (reorderValues positions values) =
+      reorderValues positions (Core.distinctRowKey values) := by
+  have lookupKey (index : Nat) :
+      valueAt (Core.distinctRowKey values) index = Core.distinctValueKey (valueAt values index) := by
+    cases found : values[index]? <;>
+      simp [Core.distinctRowKey, valueAt, List.getElem?_map, found, Core.distinctValueKey]
+  by_cases width : values.length = positions.length
+  · simp only [Core.distinctRowKey, reorderValues, List.length_map, width, if_true, List.map_map]
+    apply List.map_congr_left
+    intro index _
+    exact (lookupKey index).symm
+  · simp [Core.distinctRowKey, reorderValues, width]
+
 /-- A permutation of `range columns.length` is a permutation of
 `range positions.length`, because permutations preserve length.  Stated
 separately so the bijection below can be built from the permutation a caller
@@ -575,7 +620,7 @@ theorem permuted_projection_denotes (query : Core.Query) {positions : List Nat}
             columns := positions.map (fun index => query.columns.getD index 0) }
           rows =
         if query.distinct then
-          Core.limitRows query.limit (Core.stableDeduplicate ((query.projectedRows rows).map
+          Core.limitRows query.limit (Core.stableDistinctBy Core.distinctRowKey ((query.projectedRows rows).map
             (reorderValues positions)))
         else (query.projectedRows rows).map (reorderValues positions) := by
     unfold Core.Query.eval
@@ -588,10 +633,16 @@ theorem permuted_projection_denotes (query : Core.Query) {positions : List Nat}
         intro a b equal
         have recovered := congrArg (columnBijection perm).backward equal
         simpa only [(columnBijection perm).leftInverse] using recovered
+      have preserves (a b : List Core.Value) :
+          Core.distinctRowKey ((columnBijection perm).forward a) =
+            Core.distinctRowKey ((columnBijection perm).forward b) ↔
+          Core.distinctRowKey a = Core.distinctRowKey b := by
+        simp only [columnBijection_forward, distinctRowKey_reorder]
+        exact injective.eq_iff
       rw [← columnBijection_forward perm,
-        Core.stableDeduplicate_map_injective _ injective, Core.limitRows_map]
+        Core.stableDistinctBy_map _ _ _ preserves, Core.limitRows_map]
       exact RelationalAlgebra.ofList_map_permute (columnBijection perm)
-        (Core.limitRows query.limit (Core.stableDeduplicate (query.projectedRows rows)))
+        (Core.limitRows query.limit (Core.stableDistinctBy Core.distinctRowKey (query.projectedRows rows)))
   | false =>
       simp only [flag, if_false, Bool.false_eq_true]
       rw [← columnBijection_forward perm]

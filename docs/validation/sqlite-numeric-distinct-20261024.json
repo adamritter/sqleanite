@@ -1,0 +1,112 @@
+{
+  "seed": 353431,
+  "random_cases": 350,
+  "input_pairs": 365,
+  "phases": [
+    {
+      "name": "unindexed-reopen",
+      "queries": 5110,
+      "result_rows": 7450
+    },
+    {
+      "name": "indexed-reopen",
+      "queries": 5110,
+      "result_rows": 7450
+    }
+  ],
+  "queries": 10220,
+  "failures": [],
+  "comparison": "query-output multiplicity and numeric representative rendering; read file-state preservation",
+  "implementation_sha256": "077193b36d1d2ca101b01bc6d6878a62207fb3cf5e77e7112c882fd18d060694",
+  "executable_sha256": "eaf0d32329ebe33d7abefa1e9add78931e7dd61647b1c41afd5b1ab71d4752b0",
+  "harness_sha256": "37907f2e5647fe147e96ac572b59542009ea6fc9e795c89c8ecf5795474b61d0",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "validation": {
+    "build": "lake build: passed (228 jobs)",
+    "tests": 164,
+    "registered_headline_theorems": 945,
+    "source_audit": "passed; 9 allowlisted host bindings; no project partial definitions",
+    "live_path_audit": "passed, including SQLite integrity checks"
+  },
+  "regressions": {
+    "row": {
+      "seed": 353425,
+      "random_cases": 500,
+      "queries": 604,
+      "result_rows": 42873,
+      "matching_errors": 8,
+      "declared_rejections": [
+        "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"
+      ],
+      "failures": [],
+      "distinct_limit_regression": {
+        "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+        "result": "1\n2\n",
+        "matches_sqlite": true
+      },
+      "cli_render_modes": [
+        "--verified-file",
+        "--verified-wal-file",
+        "--verified-file-timed"
+      ],
+      "numeric_distinct_regression": {
+        "sql": "SELECT DISTINCT v FROM mixed;",
+        "lean": "1\n",
+        "sqlite": "1\n",
+        "matches_sqlite": true
+      },
+      "implementation_sha256": "077193b36d1d2ca101b01bc6d6878a62207fb3cf5e77e7112c882fd18d060694",
+      "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "text": {
+      "implementation_sha256": "077193b36d1d2ca101b01bc6d6878a62207fb3cf5e77e7112c882fd18d060694",
+      "harness_sha256": "f9819a43e9c95bea1bc3f9514c3e7ad19fe85599e43f18240a66c614b66243c7",
+      "seed": 353416,
+      "random_cases": 500,
+      "cases": 6539,
+      "failures": [],
+      "matching_errors": 18,
+      "declared_rejections": [
+        "char(55296)",
+        "trim(X'FF')",
+        "length(zeroblob(1000000))",
+        "coalesce(1,unknown_function())"
+      ],
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw TEXT/BLOB bytes; integrity_check"
+    },
+    "scalar": {
+      "cases": 1120,
+      "failures": [],
+      "errors": 6,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "storage class, exact binary64 bits, raw text/blob bytes; integrity_check"
+    },
+    "affinity": {
+      "typed_insert_values": 444,
+      "select_queries": 4708,
+      "declared_types": [
+        "",
+        "TEXT",
+        "INTEGER",
+        "REAL",
+        "NUMERIC",
+        "BLOB",
+        "VARCHAR(12)",
+        "DOUBLE PRECISION",
+        "FLOATING POINT",
+        "STRING",
+        "\"custom INT type\"",
+        "\"a\"\"b TEXT type\""
+      ],
+      "expected_write_errors": 4,
+      "unsupported_mixed_affinity_queries": 2,
+      "reverse_write_checks": 1,
+      "mismatches": 0,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    }
+  },
+  "remaining_gaps_report": "sqlite-remaining-gaps-20261024.json",
+  "scope": "Numeric SELECT DISTINCT with BINARY comparison; this is not full SQLite conformance. Compound set operations, GROUP BY and nonprojected DISTINCT ordering have separately recorded differences."
+}

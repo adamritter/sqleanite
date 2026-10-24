@@ -156,16 +156,18 @@ def main():
         assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
         assert actual.stdout == expected.stdout == "1\n2\n", (query, actual.stdout, expected.stdout)
         distinct_regression = dict(sql=query, result=actual.stdout, matches_sqlite=True)
-        # Separate known limitation: the direct-column Core bag still uses
-        # representation equality rather than SQL numeric equivalence.
+        # Regression: INTEGER and equal REAL keys collapse without changing
+        # the first original representative's storage class.
         setup = "CREATE TABLE mixed(id INTEGER PRIMARY KEY,v);INSERT INTO mixed VALUES(1,1),(2,1.0);"
         actual, expected = run(args, cwd, setup)
         assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
         mixed_query = "SELECT DISTINCT v FROM mixed;"
         actual, expected = run(args, cwd, mixed_query)
         assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
-        numeric_difference = [] if actual.stdout == expected.stdout else [
-            dict(sql=mixed_query, lean=actual.stdout, sqlite=expected.stdout)]
+        if actual.stdout != expected.stdout:
+            failures.append(dict(sql=mixed_query, lean=actual.stdout, sqlite=expected.stdout))
+        numeric_regression = dict(sql=mixed_query, lean=actual.stdout, sqlite=expected.stdout,
+                                  matches_sqlite=actual.stdout == expected.stdout)
         with sqlite3.connect(cwd / "lean.db") as db:
             assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         digest = hashlib.sha256()
@@ -174,7 +176,7 @@ def main():
         report = dict(seed=args.seed, random_cases=args.random_cases, queries=len(queries),
                       result_rows=sum(map(len, rows.values())), matching_errors=len(errors), declared_rejections=declared, failures=failures,
                       distinct_limit_regression=distinct_regression, cli_render_modes=modes,
-                      existing_numeric_distinct_differences=numeric_difference, implementation_sha256=digest.hexdigest(),
+                      numeric_distinct_regression=numeric_regression, implementation_sha256=digest.hexdigest(),
                       comparison="query storage classes, hex value/quote renderings; SELECT file-state preservation",
                       sqlite_version=subprocess.check_output([args.sqlite, "--version"], text=True).strip())
         if args.output:

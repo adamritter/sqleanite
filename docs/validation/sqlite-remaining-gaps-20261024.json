@@ -1,0 +1,175 @@
+{
+  "purpose": "Diagnostic compatibility gaps; these are not passing cases or whole-SQLite coverage.",
+  "implementation_sha256": "077193b36d1d2ca101b01bc6d6878a62207fb3cf5e77e7112c882fd18d060694",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "probes": [
+    {
+      "name": "cte",
+      "sql": "WITH x(v) AS (VALUES(1)) SELECT v FROM x;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found WITH\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1\n"
+      }
+    },
+    {
+      "name": "scalar_subquery",
+      "sql": "SELECT (SELECT 1);",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a Core expression (subquery is outside the subset), found (\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1\n"
+      }
+    },
+    {
+      "name": "view",
+      "sql": "CREATE VIEW v AS SELECT 1 AS n; SELECT n FROM v;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found CREATE\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1\n"
+      }
+    },
+    {
+      "name": "trigger",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); CREATE TRIGGER tr AFTER INSERT ON t BEGIN UPDATE t SET v=2 WHERE id=NEW.id; END; INSERT INTO t VALUES(1,1); SELECT v FROM t;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found CREATE\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "2\n"
+      }
+    },
+    {
+      "name": "implicit_rowid_table",
+      "sql": "CREATE TABLE t(v); INSERT INTO t VALUES(1); SELECT v FROM t;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP tables require exactly one PRIMARY KEY\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1\n"
+      }
+    },
+    {
+      "name": "row_dependent_update",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1); UPDATE t SET v=v+1; SELECT v FROM t;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified-MVP SQL: non-constant or unsupported expression\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "2\n"
+      }
+    },
+    {
+      "name": "row_expression_where",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,2); SELECT v FROM t WHERE v+1>2;",
+      "status": "explicit_rejection",
+      "lean": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: predicate expression\n"
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "2\n"
+      }
+    },
+    {
+      "name": "numeric_union",
+      "sql": "SELECT 1 UNION SELECT 1.0;",
+      "status": "output_difference",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n1.0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1.0\n"
+      }
+    },
+    {
+      "name": "numeric_intersect",
+      "sql": "SELECT 1 INTERSECT SELECT 1.0;",
+      "status": "output_difference",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1\n"
+      }
+    },
+    {
+      "name": "numeric_except",
+      "sql": "SELECT 1 EXCEPT SELECT 1.0;",
+      "status": "output_difference",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": ""
+      }
+    },
+    {
+      "name": "numeric_group_by",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,1.0); SELECT v,count(*) FROM t GROUP BY v;",
+      "status": "output_difference",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1|1\n1.0|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "1|2\n"
+      }
+    },
+    {
+      "name": "nonprojected_distinct_order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,b); INSERT INTO t VALUES(1,1,1),(2,1,3),(3,2,2); SELECT DISTINCT v FROM t ORDER BY b DESC;",
+      "status": "output_difference",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 0,
+        "stdout": "2\n1\n"
+      }
+    }
+  ]
+}

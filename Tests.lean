@@ -3854,6 +3854,32 @@ private def expectSQLiteDistinctLimit : IO Unit := do
     unless (results.getLast?).map (·.rows) == some expected do
       fail s!"DISTINCT must retain first values before LIMIT: {query}"
 
+private def expectSQLiteNumericDistinct : IO Unit := do
+  let cases : List (String × String × List Value) := [
+    ("1", "1.0", [.integer 1]),
+    ("1.0", "1", [.real 1.0]),
+    ("0", "-0.0", [.integer 0]),
+    ("0.0", "-0.0", [.real 0.0]),
+    ("NULL", "NULL", [.null]),
+    ("1", "'1'", [.integer 1, .text "1"]),
+    ("'1'", "X'31'", [.text "1", .blob #[49]]),
+    ("9007199254740992", "9007199254740992.0", [.integer 9007199254740992]),
+    ("9007199254740993", "9007199254740992.0", [.integer 9007199254740993, .real 9007199254740992.0]),
+    ("-9223372036854775808", "-9223372036854775808.0", [.integer (-9223372036854775808)]),
+    ("9223372036854775807", "9223372036854775808.0", [.integer 9223372036854775807, .real 9223372036854775808.0]),
+    ("1.5", "1.5", [.real 1.5])]
+  for (left, right, values) in cases do
+    let setup := s!"CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,{left}),(2,{right});"
+    for projection in ["v", "+v"] do
+      let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ s!"SELECT DISTINCT {projection} FROM t;") with
+        | .ok outcome => pure outcome
+        | .error message => fail s!"numeric DISTINCT: {message}"
+      let expected ← match values.mapM (fun v => (fun x => [x]) <$> SQLSurface.value v) with
+        | .ok rows => pure rows
+        | .error message => fail message
+      unless (results.getLast?).map (·.rows) == some expected do
+        fail s!"numeric DISTINCT changed a representative or merged unequal values: {left}, {right} ({projection})"
+
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
       "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
@@ -3954,6 +3980,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
+  ("SQLite exact numeric DISTINCT and original representatives", expectSQLiteNumericDistinct),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

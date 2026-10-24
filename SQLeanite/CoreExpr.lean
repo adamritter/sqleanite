@@ -1,4 +1,4 @@
-import SQLeanite.Core
+import SQLeanite.CoreDistinct
 import SQLeanite.SQLSurface
 import SQLeanite.PhysicalQuery
 
@@ -83,17 +83,10 @@ structure ProjectedRow where
   source : List Core.Value
   output : List Core.Value
 
-def equalValues : List Core.Value → List Core.Value → Bool
-  | [], [] => true
-  | a :: as, b :: bs => PhysicalQuery.compareValue a b == .eq && equalValues as bs
-  | _, _ => false
-
-/-- Retain the first equivalent projected row, including INTEGER/REAL equality
-and NULL equality. The attached source row supplies ORDER BY keys afterwards. -/
+/-- Share SQL numeric equivalence with direct-column Core queries. Keep the
+first original output and its source row for the subsequent ordering step. -/
 def distinctRows (rows : List ProjectedRow) : List ProjectedRow :=
-  (rows.foldl (fun kept row =>
-    if kept.any (fun previous => equalValues previous.output row.output) then kept
-    else row :: kept) []).reverse
+  Core.stableDistinctBy (fun row => Core.distinctRowKey row.output) rows
 
 def sourceLess : List (Nat × Bool) → ProjectedRow → ProjectedRow → Bool
   | [], _, _ => false
