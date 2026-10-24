@@ -153,6 +153,17 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Internal aggregate ordering has its own source-token and scalar-input checks.
+if grep -q 'let rows ← term.orderedRows ctx rows' SQLeanite/CoreAggregate.lean &&
+   grep -q 'AggregateOrder.decode? encoded' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreAggregateOrdering.validateIgnored ctx order.expr' SQLeanite/CoreAggregate.lean &&
+   grep -q 'replaceEqual := distinct && identicalKey' SQLeanite/CoreAggregateOrdering.lean &&
+   grep -q 'AggregateOrder.decode_encode' SQLeanite/ProofAxioms.lean; then
+  ok "internal aggregate ORDER BY uses checked keys and DISTINCT representatives"
+else
+  fail "internal aggregate ordering or its registered contracts are missing"
+fi
+
 # FILTER is rechecked against source tokens and runs before aggregate arguments.
 if grep -q 'expectKeyword "filter"' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'let rows ← term.filteredRows ctx rows' SQLeanite/CoreAggregate.lean &&

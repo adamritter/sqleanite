@@ -4467,6 +4467,51 @@ private def expectSQLiteWhereAliases : IO Unit := do
       "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
 
+private def expectSQLiteAggregateInternalOrder : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,s);INSERT INTO t VALUES(1,'A','x'),(2,'a','y'),(3,1,'z'),(4,1.0,'q'),(5,NULL,NULL);" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,v,s);" ++
+    "CREATE TABLE o(id INTEGER PRIMARY KEY,v);INSERT INTO o VALUES(1,9223372036854775807),(2,1),(3,-1);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT group_concat(v ORDER BY id DESC),string_agg(v,s ORDER BY id DESC) FROM t;",
+      [[.text "1.0,1,a,A", .text "1.0z1yaxA"]]),
+    ("SELECT group_concat(DISTINCT v ORDER BY v),group_concat(DISTINCT v ORDER BY id DESC) FROM t;",
+      [[.text "1.0,A,a", .text "1,a,A"]]),
+    ("SELECT group_concat(DISTINCT v COLLATE NOCASE ORDER BY v COLLATE NOCASE) FROM t;", [[.text "1.0,a"]]),
+    ("SELECT group_concat(v ORDER BY 1) FROM t;", [[.text "A,a,1,1.0"]]),
+    ("SELECT count(ORDER BY missing),count(ALL ORDER BY no_function(1)) FROM t;", [[.integer 5, .integer 5]]),
+    ("SELECT count(ORDER BY missing);", [[.integer 1]]),
+    ("SELECT char(ORDER BY missing);", [[.text ""]]),
+    ("SELECT min(v ORDER BY abs(-9223372036854775808)) FROM t;", [[.integer 1]]),
+    ("SELECT min(v ORDER BY id COLLATE missing),max(v ORDER BY v='a' COLLATE missing) FROM t;",
+      [[.integer 1, .text "a"]]),
+    ("SELECT min(v ORDER BY json(v)),max(v ORDER BY sqrt(v)) FROM t;", [[.integer 1, .text "a"]]),
+    ("SELECT min(v ORDER BY v MATCH 'x') FROM t;", [[.integer 1]]),
+    ("SELECT min(v ORDER BY 0x10000000000000000),min(v ORDER BY -0x8000000000000000) FROM t;",
+      [[.integer 1, .integer 1]]),
+    ("SELECT id,min(v ORDER BY id),max(v),min(v ORDER BY id ASC NULLS FIRST) FROM o;",
+      [[.integer 1, .integer (-1), .integer 9223372036854775807, .integer (-1)]]),
+    ("SELECT sum(v ORDER BY id DESC) FROM o;", [[.integer 9223372036854775807]]),
+    ("SELECT sum(v ORDER BY id) FILTER(WHERE id>1) FROM o;", [[.integer 0]]),
+    ("SELECT group_concat(v ORDER BY abs(-9223372036854775808)) FILTER(WHERE 0) FROM t;", [[.null]]),
+    ("SELECT count(v ORDER BY abs(-9223372036854775808)) FROM e;", [[.integer 0]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"aggregate internal ORDER BY: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"aggregate internal ORDER BY mismatch: {sql}"
+  for sql in ["SELECT sum(v ORDER BY id) FROM o;", "SELECT count(v ORDER BY abs(-9223372036854775808)) FROM t;",
+      "SELECT min(v ORDER BY missing) FROM e LIMIT 0;", "SELECT min(v ORDER BY no_function(id)) FROM t LIMIT 0;",
+      "SELECT min(v ORDER BY json(v,v)) FROM e;", "SELECT min(v ORDER BY min(v)) FROM t;",
+      "SELECT min(v ORDER BY likelihood(v,0)) FROM e;", "SELECT abs(v ORDER BY id) FROM e;",
+      "SELECT min(v ORDER BY likelihood(v,0x00000000000000000)) FROM e;",
+      "SELECT count(* ORDER BY id) FROM t;", "SELECT count(DISTINCT ORDER BY id) FROM t;",
+      "SELECT __sqlean_aggregate_order(group_concat(v),id) FROM t;",
+      "SELECT group_concat(v ORDER BY __sqlean_order_desc(id)) FROM t;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"aggregate internal ORDER BY error omitted: {sql}"
+
 private def expectSQLiteAggregateFilter : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,0,3),(2,0,1),(3,1,9),(4,1,1),(5,1,NULL);" ++
     "CREATE TABLE e(id INTEGER PRIMARY KEY,g,v);"
@@ -5484,6 +5529,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
+  ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),

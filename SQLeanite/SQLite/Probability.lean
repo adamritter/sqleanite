@@ -10,7 +10,8 @@ def recognizesName (name : String) : Bool :=
   ["likely", "unlikely", "likelihood"].contains (aggregateFunctionName name)
 
 def probability : Expr → Bool
-  | .literal (.real value) _ => 0.0 ≤ value && value ≤ 1.0
+  | .literal (.real value) source =>
+      !(source.any (fun spelling => spelling.toLower.startsWith "0x")) && 0.0 ≤ value && value ≤ 1.0
   | _ => false
 
 def input? (name : String) (arguments : Array Expr) : Option Expr :=

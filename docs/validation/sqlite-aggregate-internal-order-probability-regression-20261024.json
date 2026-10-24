@@ -1,0 +1,22 @@
+{
+  "seed": 353896,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 860,
+      "matching_errors": 503
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 860,
+      "matching_errors": 503
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "88ac8e03532de20269e94efe192c1bdce471431dfaaeffc28684446ff29152f4",
+  "executable_sha256": "2af3d2a9e33df42fc337b58ba11b68ee50375f73bb930d40b95cc726e83741c8",
+  "harness_sha256": "e940b5699fc83d4dd0cde0197110d8d45716b720dd49998564a040f176551e12",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare LIKELY, UNLIKELY and LIKELIHOOD SQL behavior in both file modes.\n\nSuccessful reads compare exact CLI bytes, including typed/hex projections.\nErrors compare positive exit status, not exact codes/messages. Read queries must\npreserve main/WAL bytes. This checks semantic behavior, not planner performance."
+}

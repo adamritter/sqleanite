@@ -2065,3 +2065,55 @@ syntax transformation. These do not establish complete SQL equivalence. Internal
 aggregate ORDER BY and window clauses remain separate work. Native code and
 its nine-binding audit boundary are unchanged. Reports use
 `sqlite-aggregate-filter-*20261024.json` under `docs/validation/`.
+
+
+## Aggregate-internal ORDER BY (2026-10-24)
+
+Supported ordinary aggregates now accept ORDER BY inside their argument list,
+including direction, explicit NULL placement, collations and FILTER. Internal
+ordering expressions bind to input columns; integer expressions are values, not
+output-column ordinals. The independent token grammar checks encoded order terms,
+function argument limits and the separate 2,000-term ORDER BY limit. Zero-argument
+function ordering is discarded before binding, matching SQLite, including
+count(ORDER BY missing) and char(ORDER BY missing).
+
+The accumulator input sorter evaluates keys even for DISTINCT duplicates.
+Ordinary DISTINCT retains the first input before sorting. When the single
+argument and single ordering expression are structurally identical, SQLite's
+unique sorting-index optimization retains the last equal representative instead;
+this includes equal INTEGER/REAL values and collated TEXT. MIN/MAX ignores its
+ordering at execution but retains it in aggregate identity. Explicit default
+NULL placement compares as the same ordering flags during aggregate sharing.
+
+Ignored MIN/MAX ordering still resolves names and scalar function arities, but
+emits no value or collation operations. Therefore unknown names/functions and
+nested aggregates fail, while unused invalid collations, oversized hex literals
+and runtime arithmetic errors do not. The pinned builtin registry supplies
+167 preparation signatures (134 scalar entries); its complete metadata and
+source fingerprint are retained in sqlite-builtin-signatures-20261024.json.
+This is a static Lean signature table, excludes shell/application extensions,
+and does not implement or delegate evaluation of those other functions. Deferred
+hex literal spellings also remain invalid as LIKELIHOOD probability literals.
+
+At source 271773dd04341eb1a63b13963ba8d940f96174fb0c8aa51f7f11ef76a8a8e594,
+baseline 353890 has 1,048 differences in 1,232 outcomes. Development 353891
+has eight ignored-collation differences in 1,772 outcomes; expanded development
+353892 has eight ignored-literal differences in 2,044 outcomes. Both negative
+reports remain. Corrected development 353893 passes 2,032 outcomes. Final source:
+`88ac8e03532de20269e94efe192c1bdce471431dfaaeffc28684446ff29152f4`.
+Fresh 353894 passes **3,632 outcomes**, including **1,054 matching positive error
+statuses**. Fresh FILTER regression 353895 passes **2,444 outcomes** (790 matching
+errors), and probability regression 353896 passes **1,720 outcomes** (1,006
+matching errors). Both file modes compare exact CLI bytes and preserve main/WAL
+bytes. Hex projections include malformed UTF-8 and embedded-NUL results. The
+1,001/2,000/2,001 ordering-term boundaries are exercised. Error codes and wording
+are not compared.
+
+All 210 executable tests, the full 280-job build, 1,073 registered headline
+proofs, verification audit and live-path audit pass. The reverse-file matrix
+passes 61 accepted cases and two declared unsupported shapes. New component
+lemmas cover order-term encoding/decoding, empty ordering identity and exact
+signature arity. The sorter materializes inputs; no performance/scaling claim
+is made. Window execution and broader SQL coverage remain incomplete. Native
+code and its nine-binding audit boundary are unchanged. Reports use
+`sqlite-aggregate-internal-order-*20261024.json` under `docs/validation/`.

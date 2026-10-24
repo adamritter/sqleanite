@@ -1,6 +1,7 @@
 import SQLeanite.CoreExpr
 import SQLeanite.CoreEngine
 import SQLeanite.SQLite.AggregateConcat
+import SQLeanite.CoreAggregateOrdering
 
 /-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
 Input rows are supplied by the production Core query path. Aggregate terms
@@ -26,11 +27,17 @@ def recognizesCall (name : String) (arguments : Array Expr) (star : Bool) : Bool
   (function? name).isSome &&
     (!(["min", "max"].contains (aggregateFunctionName name)) || star || arguments.size ≤ 1)
 
-def recognizes : Expr → Bool
-  | .call "__sqlean_aggregate_filter" #[.call name arguments star, _] false =>
-      recognizesCall name arguments star
-  | .call name arguments star => recognizesCall name arguments star
-  | _ => false
+def recognizesFuel : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, .call name arguments star =>
+      if !star && name == "__sqlean_aggregate_filter" then
+        match arguments.toList with | [aggregate, _] => recognizesFuel fuel aggregate | _ => false
+      else if !star && name == "__sqlean_aggregate_order" then
+        match arguments.toList with | aggregate :: _ :: _ => recognizesFuel fuel aggregate | _ => false
+      else recognizesCall name arguments star
+  | _, _ => false
+
+def recognizes (expression : Expr) : Bool := recognizesFuel expression.height expression
 
 structure Term where
   function : Function
@@ -39,6 +46,7 @@ structure Term where
   collation : SQLite.Collation.Kind := .binary
   separator : Option Expr := none
   filter : Option Expr := none
+  ordering : List OrderTerm := []
 
 def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
   | { expr := .call name arguments star, .. } => do
@@ -66,16 +74,35 @@ def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
       return { function, argument := some argument, distinct, collation, separator }
   | _ => .error "unsupported aggregate result expression"
 
+def orderedTerm (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
+  match column.expr with
+  | .call "__sqlean_aggregate_order" encoded false =>
+      let aggregate :: ordering := encoded.toList | throw "aggregate ORDER BY has no function"
+      unless !ordering.isEmpty do throw "aggregate ORDER BY has no terms"
+      let term ← plainTerm ctx { expr := aggregate }
+      if term.argument.isNone then return term
+      let ordering ← ordering.mapM fun encoded => do
+        let some order := AggregateOrder.decode? encoded | throw "invalid aggregate ORDER BY term"
+        let order := { order with expr := ctx.bindNames order.expr }
+        if term.function == .minimum || term.function == .maximum then
+          CoreAggregateOrdering.validateIgnored ctx order.expr
+        else
+          ctx.validate order.expr
+          discard <| CoreOrder.specification order
+        pure order
+      return { term with ordering }
+  | _ => plainTerm ctx column
+
 /-- The private wrapper is admitted only from matching FILTER syntax by the
 independent token grammar, never from a user-named function invocation. -/
 def term (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
   match column.expr with
   | .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
-      let term ← plainTerm ctx { expr := aggregate }
+      let term ← orderedTerm ctx { expr := aggregate }
       let filter := ctx.bindNames condition
       ctx.validate filter
       return { term with filter := some filter }
-  | _ => plainTerm ctx column
+  | _ => orderedTerm ctx column
 
 def terms (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Term) :=
   columns.mapM (term ctx)
@@ -138,9 +165,20 @@ theorem Term.filteredRows_none (term : Term) (ctx : CoreExpr.Context)
     term.filteredRows ctx rows = .ok rows := by
   simp [Term.filteredRows, unfiltered]
 
+def Term.usesOrdering (term : Term) : Bool :=
+  !term.ordering.isEmpty && term.function != .minimum && term.function != .maximum
+
+def Term.orderedRows (term : Term) (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
+    Except String (List (List Core.Value)) := do
+  if !term.usesOrdering then return rows
+  let some argument := term.argument | return rows
+  CoreAggregateOrdering.arrange ctx rows argument term.distinct term.collation term.ordering
+
 def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
     (term : Term) : Except String Core.Value := do
   let rows ← term.filteredRows ctx rows
+  let rows ← term.orderedRows ctx rows
+  let term := if term.usesOrdering then { term with distinct := false } else term
   match term.argument with
   | none => .integer <$> Core.countInteger rows.length
   | some expression =>
@@ -267,7 +305,7 @@ def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
       return if selected then row :: tail else tail
 
 theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
-    Term.eval ctx rows ⟨.count, none, false, .binary, none, none⟩ =
+    Term.eval ctx rows ⟨.count, none, false, .binary, none, none, []⟩ =
       (.integer <$> Core.countInteger rows.length) := rfl
 
 theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)

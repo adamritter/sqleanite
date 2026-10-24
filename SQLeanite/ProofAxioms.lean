@@ -1206,3 +1206,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.Term.filteredRows_none
 
 #print axioms SQLeanite.SQLite.ExprCollation.callArguments_map
+
+#print axioms SQLeanite.AggregateOrder.decode_encode
+#print axioms SQLeanite.CoreAggregateOrdering.sameOrdering_nil
+
+#print axioms SQLeanite.SQLite.FunctionSignatures.matchesArity_exact

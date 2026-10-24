@@ -262,6 +262,21 @@ private def exprSqlFuel : Nat → Expr → String
   | _fuel + 1, .call "__sqlean_boolean_false" #[] false => "FALSE"
   | fuel + 1, .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
       exprSqlFuel fuel aggregate ++ " FILTER (WHERE " ++ exprSqlFuel fuel condition ++ ")"
+  | fuel + 1, .call "__sqlean_aggregate_order" args false =>
+      match args.toList with
+      | .call name inputs false :: ordering =>
+          let render (term : Expr) := match term with
+            | .call direction #[expression] false =>
+                exprSqlFuel fuel expression ++
+                  (if direction.startsWith "__sqlean_order_desc" then " DESC" else " ASC") ++
+                  (if direction.endsWith "_first" then " NULLS FIRST"
+                    else if direction.endsWith "_last" then " NULLS LAST" else "")
+            | _ => exprSqlFuel fuel term
+          aggregateFunctionName name ++ "(" ++
+            (if isDistinctAggregateName name then "DISTINCT " else "") ++
+            String.intercalate "," (inputs.toList.map (exprSqlFuel fuel)) ++ " ORDER BY " ++
+            String.intercalate "," (ordering.map render) ++ ")"
+      | _ => "invalid aggregate ordering"
   | fuel + 1, .call name args isStar => aggregateFunctionName name ++ "(" ++
       (if isDistinctAggregateName name then "DISTINCT " else "") ++
       (if isStar then "*" else String.intercalate "," (args.toList.map (exprSqlFuel fuel))) ++ ")"
@@ -366,6 +381,39 @@ structure OrderTerm where
   descending : Bool := false
   nullsFirst : Option Bool := none
   deriving Repr, Inhabited
+
+namespace AggregateOrder
+
+/-- Internal syntax nodes retain ORDER direction and NULL placement without
+changing the user function's actual argument list. The token grammar checks
+these nodes only inside aggregate ORDER BY syntax. -/
+def encode (term : OrderTerm) : Expr :=
+  let direction := if term.descending then "desc" else "asc"
+  let nulls := match term.nullsFirst with | none => "" | some true => "_first" | some false => "_last"
+  .call ("__sqlean_order_" ++ direction ++ nulls) #[term.expr] false
+
+def decode? : Expr → Option OrderTerm
+  | .call name arguments false =>
+      match arguments.toList with
+      | [expression] => match name with
+        | "__sqlean_order_asc" => some { expr := expression }
+        | "__sqlean_order_desc" => some { expr := expression, descending := true }
+        | "__sqlean_order_asc_first" => some { expr := expression, nullsFirst := some true }
+        | "__sqlean_order_asc_last" => some { expr := expression, nullsFirst := some false }
+        | "__sqlean_order_desc_first" => some { expr := expression, descending := true, nullsFirst := some true }
+        | "__sqlean_order_desc_last" => some { expr := expression, descending := true, nullsFirst := some false }
+        | _ => none
+      | _ => none
+  | _ => none
+
+theorem decode_encode (term : OrderTerm) : decode? (encode term) = some term := by
+  cases term with
+  | mk expression descending nulls =>
+      cases descending <;> cases nulls with
+      | none => rfl
+      | some first => cases first <;> rfl
+
+end AggregateOrder
 
 structure TableConstraintDef where
   columns : Array String

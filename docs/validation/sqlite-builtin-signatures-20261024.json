@@ -1,0 +1,1177 @@
+{
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "query": "SELECT name,type,enc,narg,flags FROM pragma_function_list WHERE builtin=1 ORDER BY name,narg,enc,type;",
+  "entries": [
+    {
+      "name": "->",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "->>",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "abs",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "acos",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "acosh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "asin",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "asinh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "atan",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "atan2",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "atanh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "avg",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "ceil",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "ceiling",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "changes",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "char",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "coalesce",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -4,
+      "flags": 2099200
+    },
+    {
+      "name": "concat",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -3,
+      "flags": 2099200
+    },
+    {
+      "name": "concat_ws",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -4,
+      "flags": 2099200
+    },
+    {
+      "name": "cos",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "cosh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "count",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "count",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "cume_dist",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "current_date",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "current_time",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "current_timestamp",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "date",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "datetime",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "degrees",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "dense_rank",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "exp",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "first_value",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "floor",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "format",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "glob",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "group_concat",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "group_concat",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2097152
+    },
+    {
+      "name": "hex",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "if",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -4,
+      "flags": 2099200
+    },
+    {
+      "name": "ifnull",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "iif",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -4,
+      "flags": 2099200
+    },
+    {
+      "name": "instr",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "json",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_array",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_array_insert",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_array_length",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_array_length",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "json_error_position",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_extract",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_group_array",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_group_object",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 3147776
+    },
+    {
+      "name": "json_insert",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_object",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_patch",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "json_pretty",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_pretty",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "json_quote",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_remove",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_replace",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_set",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "json_type",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_type",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "json_valid",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "json_valid",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "jsonb",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "jsonb_array",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_array_insert",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_extract",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "jsonb_group_array",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_group_object",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_insert",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_object",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_patch",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "jsonb_remove",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "jsonb_replace",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "jsonb_set",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 3147776
+    },
+    {
+      "name": "julianday",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "lag",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "lag",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2097152
+    },
+    {
+      "name": "lag",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2097152
+    },
+    {
+      "name": "last_insert_rowid",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "last_value",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "lead",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "lead",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2097152
+    },
+    {
+      "name": "lead",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2097152
+    },
+    {
+      "name": "length",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "like",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "like",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2099200
+    },
+    {
+      "name": "likelihood",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "likely",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "ln",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "load_extension",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 524288
+    },
+    {
+      "name": "load_extension",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 524288
+    },
+    {
+      "name": "log",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "log",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "log10",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "log2",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "lower",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "ltrim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "ltrim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "max",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -3,
+      "flags": 2099200
+    },
+    {
+      "name": "max",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "median",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 0
+    },
+    {
+      "name": "min",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -3,
+      "flags": 2099200
+    },
+    {
+      "name": "min",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "mod",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "nth_value",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2097152
+    },
+    {
+      "name": "ntile",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "nullif",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "octet_length",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "percent_rank",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "percentile",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 0
+    },
+    {
+      "name": "percentile_cont",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 0
+    },
+    {
+      "name": "percentile_disc",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 0
+    },
+    {
+      "name": "pi",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2099200
+    },
+    {
+      "name": "pow",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "power",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "printf",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "quote",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "radians",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "random",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "randomblob",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "rank",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "replace",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2099200
+    },
+    {
+      "name": "round",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "round",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "row_number",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "rtrim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "rtrim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "sign",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "sin",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "sinh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "sqlite_compileoption_get",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "sqlite_compileoption_used",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "sqlite_log",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "sqlite_offset",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "sqlite_source_id",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "sqlite_version",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "sqrt",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "strftime",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "string_agg",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2097152
+    },
+    {
+      "name": "substr",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "substr",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2099200
+    },
+    {
+      "name": "substring",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "substring",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 3,
+      "flags": 2099200
+    },
+    {
+      "name": "subtype",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 3147776
+    },
+    {
+      "name": "sum",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "tan",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "tanh",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "time",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "timediff",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "total",
+      "type": "w",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2097152
+    },
+    {
+      "name": "total_changes",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 0,
+      "flags": 2097152
+    },
+    {
+      "name": "trim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "trim",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "trunc",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "typeof",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "unhex",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "unhex",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 2,
+      "flags": 2099200
+    },
+    {
+      "name": "unicode",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "unistr",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "unistr_quote",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "unixepoch",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "unknown",
+      "type": "s",
+      "enc": "utf8",
+      "narg": -1,
+      "flags": 2099200
+    },
+    {
+      "name": "unlikely",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "upper",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    },
+    {
+      "name": "zeroblob",
+      "type": "s",
+      "enc": "utf8",
+      "narg": 1,
+      "flags": 2099200
+    }
+  ],
+  "lean_sha256": "c6f0b90d0ea95a62638aed9132989a5bea469adcf3507a3c16925d654de5d6d7",
+  "claim": "Preparation metadata for ignored MIN/MAX ordering expressions; excludes shell/application extensions and does not implement these functions."
+}

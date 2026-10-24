@@ -8,7 +8,9 @@ namespace SQLeanite.SQLite.ExprCollation
 /-- FILTER's predicate does not contribute result collation metadata. -/
 def callArguments (name : String) (arguments : Array Expr) (star : Bool) : Array Expr :=
   match arguments.toList with
-  | [aggregate, _] => if name == "__sqlean_aggregate_filter" && !star then #[aggregate] else arguments
+  | aggregate :: _ :: rest =>
+      if !star && (name == "__sqlean_aggregate_order" ||
+          (name == "__sqlean_aggregate_filter" && rest.isEmpty)) then #[aggregate] else arguments
   | _ => arguments
 
 theorem callArguments_map (name : String) (arguments : Array Expr) (star : Bool)
@@ -23,11 +25,8 @@ theorem callArguments_map (name : String) (arguments : Array Expr) (star : Bool)
           cases rest with
           | nil => simp [callArguments]
           | cons second rest =>
-              cases rest with
-              | nil =>
-                  by_cases filtered : (name == "__sqlean_aggregate_filter" && !star) = true <;>
-                    simp [callArguments, filtered]
-              | cons third rest => simp [callArguments]
+              simp only [callArguments, Array.toList_map, List.map_cons, List.isEmpty_map]
+              split <;> simp_all
 
 def nameFuel : Nat → Expr → Option String
   | 0, _ => none

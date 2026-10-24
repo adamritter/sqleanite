@@ -110,6 +110,14 @@ private def captureSubquery : ParserM String := do
   expectSymbol ")"
   pure source
 
+private def parseNullOrder : ParserM (Option Bool) := do
+  if ← acceptKeyword "nulls" then
+    if ← acceptKeyword "first" then return some true
+    expectKeyword "last"
+    return some false
+  return none
+
+
 private def binaryInfo : Token → Option (BinaryOp × Nat)
   | .ident s =>
     if keywordEq s "or" then some (.or, 1)
@@ -273,13 +281,27 @@ mutual
       let distinct ← acceptKeyword "distinct"
       if !distinct then discard <| acceptKeyword "all"
       let mut args := #[]
+      let mut ordering := #[]
       unless ← acceptSymbol ")" do
-        args := args.push (← parseExprFuel fuel)
-        while ← acceptSymbol "," do args := args.push (← parseExprFuel fuel)
+        unless isKeyword (← peek) "order" do
+          args := args.push (← parseExprFuel fuel)
+          while ← acceptSymbol "," do args := args.push (← parseExprFuel fuel)
+        if ← acceptKeyword "order" then
+          expectKeyword "by"
+          let mut more := true
+          while more do
+            let expression ← parseExprFuel fuel
+            let descending ← acceptKeyword "desc"
+            if !descending then discard <| acceptKeyword "asc"
+            let nullsFirst ← parseNullOrder
+            ordering := ordering.push (AggregateOrder.encode { expr := expression, descending, nullsFirst })
+            unless ordering.size ≤ SQLite.Limits.maxColumns do throw "too many terms in ORDER BY clause"
+            more ← acceptSymbol ","
         expectSymbol ")"
       unless args.size ≤ SQLite.Limits.maxFunctionArgs do
         throw s!"too many arguments on function {name}"
-      pure (.call (if distinct then distinctAggregateName name else name) args false)
+      let call := Expr.call (if distinct then distinctAggregateName name else name) args false
+      pure (if ordering.isEmpty then call else .call "__sqlean_aggregate_order" (#[call] ++ ordering) false)
     let call ← if ← acceptKeyword "filter" then do
         expectSymbol "("
         expectKeyword "where"
@@ -382,12 +404,6 @@ end
 
 private def parserExpressionDepth : Nat := 1000
 
-private def parseNullOrder : ParserM (Option Bool) := do
-  if ← acceptKeyword "nulls" then
-    if ← acceptKeyword "first" then return some true
-    expectKeyword "last"
-    return some false
-  return none
 
 private def parseExpr (minPrec : Nat := 0) : ParserM Expr :=
   parseExprFuel (Nat.succ parserExpressionDepth) minPrec

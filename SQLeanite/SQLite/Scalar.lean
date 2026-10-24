@@ -382,7 +382,15 @@ def prepareFuel : Nat → Expr → Expr
         if op == .and && (parserFalse a || parserFalse b) &&
             !(hasFunction a || hasFunction b) then .literal (.integer 0)
         else .binary op a b
-    | .call name args star => .call name (args.map prepare) star
+    | .call name args star =>
+        let ignoredOrder := if name == "__sqlean_aggregate_order" && !star then
+            match args.toList with
+            | aggregate@(.call _ inputs false) :: _ :: _ => if inputs.isEmpty then some aggregate else none
+            | _ => none
+          else none
+        match ignoredOrder with
+        | some aggregate => prepare aggregate
+        | none => .call name (args.map prepare) star
     | .isNull arg negated => .isNull (prepare arg) negated
     | .inList arg values negated affinity =>
         let argument := prepare arg

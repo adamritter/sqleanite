@@ -44,7 +44,8 @@ def extremeTerms (ctx : CoreExpr.Context) (terms : Array CoreAggregate.Term) : A
   terms.foldl (fun kept term =>
     if term.function != .minimum && term.function != .maximum then kept
     else if kept.any (fun old => old.function == term.function && old.distinct == term.distinct &&
-        sameArgument ctx old.argument term.argument && sameArgument ctx old.filter term.filter) then kept
+        sameArgument ctx old.argument term.argument && sameArgument ctx old.filter term.filter &&
+        CoreAggregateOrdering.sameOrdering ctx old.ordering term.ordering) then kept
     else kept.push term) #[]
 
 structure ExtremeState where

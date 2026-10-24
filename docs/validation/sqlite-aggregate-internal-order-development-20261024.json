@@ -1,0 +1,135 @@
+{
+  "seed": 353891,
+  "random_cases": 350,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 886,
+      "matching_errors": 199
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 886,
+      "matching_errors": 199
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(min(DISTINCT v ORDER BY v='a' COLLATE missing)) AS x FROM t GROUP BY v COLLATE NOCASE ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n2D312E30652B313030\n2D32\n31\n31\n312E30652B313030\n41\n6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(min(v ORDER BY v='a' COLLATE missing) FILTER(WHERE v IS NULL)) AS x FROM o LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(max(v ORDER BY v='a' COLLATE missing) FILTER(WHERE 0)) AS x FROM o WHERE 0 GROUP BY v COLLATE NOCASE HAVING x IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(v ORDER BY v='a' COLLATE missing) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(min(DISTINCT v ORDER BY v='a' COLLATE missing)) AS x FROM t GROUP BY v COLLATE NOCASE ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n2D312E30652B313030\n2D32\n31\n31\n312E30652B313030\n41\n6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(min(v ORDER BY v='a' COLLATE missing) FILTER(WHERE v IS NULL)) AS x FROM o LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(max(v ORDER BY v='a' COLLATE missing) FILTER(WHERE 0)) AS x FROM o WHERE 0 GROUP BY v COLLATE NOCASE HAVING x IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(v ORDER BY v='a' COLLATE missing) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "1187f56d6efc08e1825aa84d4b96ae299739b0dd893b99520b9b850423487e2f",
+  "executable_sha256": "831bd2a2e28522e7441554579202599c590437f746b4cd1ed9f8f1a79b1b6c0b",
+  "harness_sha256": "11864ab1aaca5201e2b4830be37752b40e8de425709dc5e537a73efc508218e3",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare aggregate-internal ORDER BY in both production file modes.\n\nSuccessful reads compare exact CLI bytes, with hex projections for string bytes.\nErrors compare positive status, not exact codes/messages. Input main/WAL bytes\nmust remain unchanged. DISTINCT representative replacement and MIN/MAX's ignored\nordering are included; this does not measure query-planner performance."
+}

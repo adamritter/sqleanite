@@ -1,0 +1,22 @@
+{
+  "seed": 353893,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1016,
+      "matching_errors": 235
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1016,
+      "matching_errors": 235
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "88ac8e03532de20269e94efe192c1bdce471431dfaaeffc28684446ff29152f4",
+  "executable_sha256": "2af3d2a9e33df42fc337b58ba11b68ee50375f73bb930d40b95cc726e83741c8",
+  "harness_sha256": "50878ec9d6ba9b84323ed68ce60a147d923dccd18fd3683d06f27f8835251c2c",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare aggregate-internal ORDER BY in both production file modes.\n\nSuccessful reads compare exact CLI bytes, with hex projections for string bytes.\nErrors compare positive status, not exact codes/messages. Input main/WAL bytes\nmust remain unchanged. DISTINCT representative replacement and MIN/MAX's ignored\nordering are included; this does not measure query-planner performance."
+}

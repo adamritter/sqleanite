@@ -1,0 +1,22 @@
+{
+  "seed": 353895,
+  "random_cases": 500,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1222,
+      "matching_errors": 395
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1222,
+      "matching_errors": 395
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "88ac8e03532de20269e94efe192c1bdce471431dfaaeffc28684446ff29152f4",
+  "executable_sha256": "2af3d2a9e33df42fc337b58ba11b68ee50375f73bb930d40b95cc726e83741c8",
+  "harness_sha256": "9c2f90528e0a26d16de2d8c4c060dd03cef05a2e45d81e65d21df30ed4b719b3",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare ordinary aggregate FILTER clauses in the production Core paths.\n\nReads compare exact CLI bytes or matching positive errors, preserving main/WAL\nbytes. Hex projections observe full string bytes. Error wording/codes are not\ncompared. Grouped and ungrouped retained MIN/MAX rows are tested separately."
+}

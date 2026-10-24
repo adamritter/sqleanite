@@ -344,9 +344,41 @@ mutual
         expectBinaryOp operation
         matchExprFuel fuel right
     | fuel, .call name arguments star => do
-        unless arguments.size ≤ SQLite.Limits.maxFunctionArgs do
+        unless name == "__sqlean_aggregate_order" || arguments.size ≤ SQLite.Limits.maxFunctionArgs do
           mismatch "at most 1000 function arguments"
-        if name == "__sqlean_aggregate_filter" then
+        if name == "__sqlean_aggregate_order" then
+          match arguments.toList, star with
+          | .call function inputs false :: ordering, false =>
+              unless inputs.size ≤ SQLite.Limits.maxFunctionArgs &&
+                  !ordering.isEmpty && ordering.length ≤ SQLite.Limits.maxColumns do
+                mismatch "aggregate arguments and ORDER BY terms within their limits"
+              expectName (aggregateFunctionName function)
+              expectSymbol "("
+              if isDistinctAggregateName function then expectKeyword "distinct"
+              else discard <| acceptKeyword "all"
+              match inputs.toList with
+              | [] => pure ()
+              | first :: rest =>
+                  matchExprFuel fuel first
+                  for next in rest do
+                    expectSymbol ","
+                    matchExprFuel fuel next
+              expectKeyword "order"
+              expectKeyword "by"
+              let mut first := true
+              for encoded in ordering do
+                if !first then expectSymbol ","
+                first := false
+                let some term := AggregateOrder.decode? encoded | mismatch "an aggregate ORDER BY term"
+                matchExprFuel fuel term.expr
+                if term.descending then expectKeyword "desc"
+                else discard <| acceptKeyword "asc"
+                if let some nullsFirst := term.nullsFirst then
+                  expectKeyword "nulls"
+                  expectKeyword (if nullsFirst then "first" else "last")
+              expectSymbol ")"
+          | _, _ => mismatch "aggregate ORDER BY syntax"
+        else if name == "__sqlean_aggregate_filter" then
           match arguments.toList, star with
           | [aggregate, condition], false =>
               matchExprFuel fuel aggregate

@@ -1,0 +1,135 @@
+{
+  "seed": 353892,
+  "random_cases": 450,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1022,
+      "matching_errors": 253
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1022,
+      "matching_errors": 253
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(v ORDER BY 0x10000000000000000) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT max(v ORDER BY 0x10000000000000000) FROM e LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(v ORDER BY -0x8000000000000000) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT max(v ORDER BY -0x8000000000000000) FROM e LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(v ORDER BY 0x10000000000000000) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT max(v ORDER BY 0x10000000000000000) FROM e LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(v ORDER BY -0x8000000000000000) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1.0e+100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT max(v ORDER BY -0x8000000000000000) FROM e LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound ignored aggregate ordering expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "c889a5da7b5a272a653bb0af72b506a539c0dd725fd8d6d8ffd7708979e8a298",
+  "executable_sha256": "584440d1490ae16845a80f4699b8a7f836fd970a7aaa6f0b9e69cc57344b7715",
+  "harness_sha256": "389be64e209f1b8180293605e65c1762251a355b5489d6d98e694ab64ec6485a",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare aggregate-internal ORDER BY in both production file modes.\n\nSuccessful reads compare exact CLI bytes, with hex projections for string bytes.\nErrors compare positive status, not exact codes/messages. Input main/WAL bytes\nmust remain unchanged. DISTINCT representative replacement and MIN/MAX's ignored\nordering are included; this does not measure query-planner performance."
+}
