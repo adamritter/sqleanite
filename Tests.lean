@@ -4201,6 +4201,86 @@ private def expectSQLiteRawText : IO Unit := do
       | .error message => fail message
     unless (results.getLast?).map (·.rows) == some rows do fail s!"raw TEXT mismatch: {sql}"
 
+private def expectSQLiteWALIndexFixture (walPath shmPath : String) : IO Nat := do
+  let wal ← IO.FS.readBinFile walPath
+  let shm ← IO.FS.readBinFile shmPath
+  let some header := SQLite.WALIndex.decodeCopies false shm.data |
+    throw (IO.userError "wal-index header rejected")
+  unless header.encode false == shm.data.extract 0 48 do
+    throw (IO.userError "wal-index header re-encoding mismatch")
+  let log ← match SQLite.WALAppend.read wal.data with
+    | .ok (some log) => pure log
+    | .ok none => fail "WAL append parser rejected the reference log"
+    | .error message => fail message
+  unless log.committedFrames == header.maxFrame.val && log.pageCount == header.databaseSize.val &&
+      log.checksum == header.frameChecksum do
+    fail "WAL parser and independent wal-index disagree"
+  let some decodedBig := SQLite.WALIndex.decodeHeader true (header.encode true) |
+    throw (IO.userError "big-endian component header round-trip failed")
+  unless decodedBig.encode true == header.encode true do
+    throw (IO.userError "big-endian component header changed")
+  let mut pages := #[]
+  for i in [:header.maxFrame.val] do
+    let some page := SQLite.WALIndex.number? true wal.data (32 + i * (24 + header.pageSize)) 4 |
+      throw (IO.userError "WAL page number is truncated")
+    pages := pages.push page
+  for splitAt in [0, 1, 2, 73, 4061, 4062, 4063, header.maxFrame.val] do
+    let count := min splitAt pages.size
+    let first ← match SQLite.WALIndex.append false 0 (pages.extract 0 count) #[] with
+      | .ok value => pure value
+      | .error error => throw (IO.userError error)
+    -- Simulate a writer that put an uncommitted suffix into the shared hash.
+    let dirty ← match SQLite.WALIndex.append false count #[99999, 88888, 77777] first.bytes with
+      | .ok value => pure value
+      | .error error => throw (IO.userError error)
+    let complete ← match SQLite.WALIndex.append false count (pages.extract count pages.size) dirty.bytes with
+      | .ok value => pure value
+      | .error error => throw (IO.userError error)
+    let expectedBytes := ((SQLite.WALIndex.frameRegion header.maxFrame.val) + 1) * 32768
+    unless complete.bytes.extract 136 expectedBytes == shm.data.extract 136 expectedBytes do
+      throw (IO.userError s!"wal-index mapping mismatch at split {count}")
+  return pages.size
+
+private def exportSQLiteWALAppend (walPath imagePath destination : String) : IO Nat := do
+  let original ← IO.FS.readBinFile walPath
+  let image ← IO.FS.readBinFile imagePath
+  let log ← match SQLite.WALAppend.read original.data with
+    | .ok (some log) => pure log
+    | .ok none => fail "WAL append fixture has no valid log header"
+    | .error message => fail message
+  unless image.size % log.header.pageSize = 0 do fail "unaligned fixture image"
+  let pages := (Array.range (image.size / log.header.pageSize)).map fun i =>
+    (image.extract (i * log.header.pageSize) ((i + 1) * log.header.pageSize)).data
+  let prepared ← match SQLite.WALAppend.prepare log pages with
+    | .ok prepared => pure prepared
+    | .error message => fail message
+  IO.FS.withFile destination .write fun handle => do
+    handle.write (original.extract 0 log.endOffset)
+    let mut offset := log.endOffset
+    for write in prepared.writes do
+      unless write.offset = offset do fail "WAL append touched an old prefix or left a gap"
+      handle.write (ByteArray.mk write.bytes)
+      offset := offset + write.bytes.size
+    unless offset = prepared.endOffset do fail "WAL append endpoint mismatch"
+  return prepared.committedFrames.val
+
+private def expectSQLiteWALIndex : IO Unit := do
+  for big in [false, true] do
+    for pageSize in [512, 4096, 65536] do
+      let header : SQLite.WALIndex.Header := {
+        change := ⟨1234, by decide⟩, bigEndianChecksum := !big, pageSize
+        maxFrame := ⟨4063, by decide⟩, databaseSize := ⟨99, by decide⟩
+        frameChecksum := ⟨⟨1234567, by decide⟩, ⟨9876543, by decide⟩⟩
+        saltFirst := ⟨0x12345678, by decide⟩, saltSecond := ⟨0x90abcdef, by decide⟩ }
+      let encoded := header.encode big
+      let some decoded := SQLite.WALIndex.decodeCopies big (encoded ++ encoded) |
+        fail "WAL index header round-trip rejected"
+      unless decoded.encode big == encoded do fail "WAL index header bytes changed"
+      unless (SQLite.WALIndex.decodeCopies big (encoded ++ encoded.set! 8 255)).isNone do
+        fail "WAL index accepted different copies"
+      unless (SQLite.WALIndex.decodeCopies big ((encoded.set! 0 255) ++ (encoded.set! 0 255))).isNone do
+        fail "WAL index accepted invalid version/checksum"
+
 private def expectSQLiteLargeValueBounds : IO Unit := do
   for (size, overhead, accepted) in [(1000000000, 0, true), (1000000001, 0, false),
       (999999999, 1, true), (1000000000, 1, false), (0, 0, true)] do
@@ -4798,6 +4878,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite operator precedence and NULL-test syntax", expectSQLiteOperatorPrecedence),
   ("SQLite ORDER BY collations and NULL placement", expectSQLiteOrderModifiers),
   ("SQLite large value bounds", expectSQLiteLargeValueBounds),
+  ("SQLite WAL index headers", expectSQLiteWALIndex),
   ("SQLite large local payload leaf packing", expectSingletonLeafPacking),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),
@@ -5215,7 +5296,16 @@ private def unitTests : Array (String × IO Unit) := #[
   ("row width error", expectError "row width" "CREATE TABLE t(a,b); INSERT INTO t VALUES(1);" "2 columns")
 ]
 
-def main : IO UInt32 := do
+def main (args : List String) : IO UInt32 := do
+  if let ["--wal-index-fixture", walPath, shmPath] := args then
+    let frames ← expectSQLiteWALIndexFixture walPath shmPath
+    IO.println s!"WAL index fixture: {frames} frames, 8 interrupted-append splits"
+    return 0
+  if let ["--wal-append-fixture", walPath, imagePath, destination] := args then
+    let frames ← exportSQLiteWALAppend walPath imagePath destination
+    IO.println s!"WAL append fixture: {frames} committed frames"
+    return 0
+  unless args.isEmpty do throw (IO.userError "unknown test-runner arguments")
   let mut passed := 0
   for (name, test) in unitTests do
     try

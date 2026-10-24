@@ -1,3 +1,5 @@
+import SQLeanite.SQLite.WALAppend
+import SQLeanite.SQLite.WALIndex
 import SQLeanite.SQLite.CLI
 import SQLeanite.SQLite.WALRead
 import SQLeanite.Optimizer
@@ -1129,3 +1131,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SingletonPageTree.build_entries
 #print axioms SQLeanite.SingletonPageTree.store_represents
 #print axioms SQLeanite.CoreChunkPageState.buildChunkTree_represents
+
+#print axioms SQLeanite.SQLite.WALIndex.Header.prefix_size
+#print axioms SQLeanite.SQLite.WALIndex.Header.encode_size
+#print axioms SQLeanite.SQLite.WALIndex.append_empty
+
+#print axioms SQLeanite.SQLite.WALAppend.Frame.encode_size
+#print axioms SQLeanite.SQLite.WALAppend.prepare_empty

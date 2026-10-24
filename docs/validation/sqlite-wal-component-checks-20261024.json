@@ -1,0 +1,50 @@
+{
+  "implementation_sha256": "2190c31d04dac82b62f38dd66e3ac9e5fd34092a354fc6b853317f3f523a1af6",
+  "test_executable_sha256": "07cfac28fc314908165947559d027182335bae34a72e86c62d88ad0517fcdbdf",
+  "native_source_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "log_sha256": "3424d3d16c53afd211ea3df5c496355dfcf4cfa6625f34ce1d6c59eabd829873",
+      "tail": [
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [253/254] Built Tests:c.o (10s)",
+        "\u2714 [254/254] Built sqleanite_tests:exe (348ms)",
+        "Build completed successfully (254 jobs)."
+      ]
+    },
+    "unit_tests": {
+      "exit_code": 0,
+      "log_sha256": "c5c0f27804a59084d30a1a779d88de7373b3ca300f0ed785666b8e67e5fa0cca",
+      "tail": [
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "193 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "log_sha256": "804eebbbaa4b63a76b0b6fcc90042c14cbdad347ef2e78c9da7bfa5c84071c54",
+      "tail": [
+        "ok - C sqlite3 accepts a Lean-written file",
+        "ok - page-directed indexed DELETE is integrity-check clean",
+        "ok - page-directed indexed INSERT is integrity-check clean",
+        "ok - read-only writes produce an ordinary SQLite-style diagnostic",
+        "ok - corrupt input rejection is a normal diagnostic, not a crash"
+      ]
+    }
+  },
+  "scope": "Component codecs are not yet connected to the live append writer. Native range-lock binding proposal is unapplied pending user authorization."
+}

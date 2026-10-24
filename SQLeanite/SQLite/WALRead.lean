@@ -27,7 +27,7 @@ structure Header where
 /-- Invalid or incomplete headers describe an empty log. A valid checksum with
 an unsupported format version is an error, matching SQLite's recovery order. -/
 def decodeHeader (input : List UInt8) : Except String (Option (Header × List UInt8)) := do
-  if input.length ≤ 32 then return none
+  if input.length < 32 then return none
   let some (words, rest) := decodeWords 8 input | return none
   match words with
   | [magic, version, pageSize, _, saltFirst, saltSecond, first, second] =>
@@ -52,10 +52,10 @@ def decodeFrame (header : Header) (seed : Checksum) (input : List UInt8) :
   let (words, data) ← decodeWords 6 input
   match words with
   | [pageNumber, databaseSize, saltFirst, saltSecond, first, second] =>
+      let page := data.take header.pageSize
       if pageNumber.val == 0 || saltFirst != header.saltFirst ||
-          saltSecond != header.saltSecond || data.length < header.pageSize then none
+          saltSecond != header.saltSecond || page.length != header.pageSize then none
       else
-        let page := data.take header.pageSize
         let next := checksum header.bigEndian seed (input.take 8 ++ page)
         if next.first == first && next.second == second then
           some (⟨pageNumber.val, databaseSize.val, page⟩, next, data.drop header.pageSize)

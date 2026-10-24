@@ -1811,3 +1811,21 @@ assumptions. The fresh 512-writer stress is executable evidence only, and is
 separate from the unresolved cross-engine SQLite WAL/SHM locking protocol.
 See [SQLITE_PORT.md](SQLITE_PORT.md) for final hashes, positive results and the
 retained negatives. No native source or host binding changed.
+
+
+### WAL append/index component boundary (2026-10-24)
+
+The new `SQLite.WALIndex` and `SQLite.WALAppend` helpers are pure Lean and have
+component size/empty-input lemmas. Their fresh differential tests compare
+complete SHM mapping bytes and independently read appended WALs. They do not
+establish a live writer refinement: OS lock acquisition, coherent shared-memory
+publication, reader marks, restart and checkpoint coordination remain separate
+work. The production writer still follows its previous whole-WAL publication
+path. Its concurrent SQLite-reader negative is not closed by component tests.
+
+Automatic approval review rejected adding three native host bindings and
+expanding their allowlist without explicit user authorization. That proposal
+remains unapplied; native code and the nine-binding audit boundary are unchanged.
+The existing live reader's bounded page-length check changed independently and
+passes the recorded fresh 1,024-outcome recovery regression. See
+[SQLITE_PORT.md](SQLITE_PORT.md) for exact scope, hashes and synthetic-fixture labels.
