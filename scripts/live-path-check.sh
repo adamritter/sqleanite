@@ -33,6 +33,15 @@ else
   fail "row-expression WHERE route or its registered contracts are missing"
 fi
 
+# Row-dependent UPDATE remains an atomic trace of proved Core point updates.
+if grep -q 'executeExpressionUpdate state tableName alias stored' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.executeExpressionUpdate_eq_runCoreCommands' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.rowUpdateCommands_length_le' SQLeanite/ProofAxioms.lean; then
+  ok "row-dependent UPDATE uses a bounded Core command trace"
+else
+  fail "row-dependent UPDATE is detached from its Core trace contracts"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

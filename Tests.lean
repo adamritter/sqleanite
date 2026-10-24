@@ -3841,6 +3841,32 @@ private def expectSQLiteRowExpressions : IO Unit := do
     | .ok _ => fail s!"unbound row expression accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteRowUpdates : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b TEXT,n NOT NULL); INSERT INTO t VALUES(1,2,'3',1),(2,4,'5',2);"
+  let (_, results) ← match CoreSQL.execute Core.State.empty
+      (setup ++ "UPDATE t SET a=b,b=a,n=n+1 WHERE id+0; SELECT a,b,n FROM t ORDER BY id;") with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"row UPDATE: {message}"
+  let expected ← match [[Value.integer 3,.text "2",.integer 2],
+      [.integer 5,.text "4",.integer 3]].mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some expected do fail "UPDATE RHS or affinity changed"
+  unless (results.reverse[1]?).map (·.changes) == some 2 do fail "UPDATE change count changed"
+  for query in ["UPDATE t SET a=missing WHERE 0;", "UPDATE t SET a=wrong.a;",
+      "UPDATE t SET n=NULL WHERE id+0;", "UPDATE t SET a=abs(-9223372036854775808)+id;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ query) with
+    | .ok _ => fail s!"invalid UPDATE accepted: {query}"
+    | .error _ => pure ()
+  let (_, duplicate) ← match CoreSQL.execute Core.State.empty
+      (setup ++ "UPDATE t SET a=abs(-9223372036854775808),a=a+1; SELECT a FROM t ORDER BY id;") with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"duplicate UPDATE: {message}"
+  let expected ← match [[Value.integer 3],[.integer 5]].mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (duplicate.getLast?).map (·.rows) == some expected do fail "last UPDATE assignment did not win"
+
 private def expectIndexTailOwnership : IO Unit := do
   let .ok (state, _) := CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,2),(2,3); CREATE INDEX tv ON t(v);" |
@@ -4087,6 +4113,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite numeric grouping and aggregate representatives", expectSQLiteNumericGroups),
   ("SQLite row-expression predicates", expectSQLiteRowPredicates),
   ("physical index tail ownership", expectIndexTailOwnership),
+  ("SQLite row-dependent UPDATE", expectSQLiteRowUpdates),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

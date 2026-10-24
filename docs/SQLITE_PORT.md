@@ -417,9 +417,60 @@ compatibility documentation. The extra old-index encoding/check can increase
 fallback write cost; correctness takes priority here. Full WAL locking/recovery,
 other writer page sizes and unsupported schema shapes remain open.
 
+## Row-dependent UPDATE checkpoint
+
+The [fresh final checkpoint](validation/sqlite-update-20261024.json) records
+**520 successful UPDATE statements**, seed `353481`, with 250 fresh generated
+updates in each of the rollback-journal and WAL modes. After every statement,
+an independent SQLite reader checks 122 rows across INTEGER-primary-key and
+hidden-rowid/TEXT-primary-key tables: storage classes, exact binary64 bits and
+TEXT/BLOB bytes match. Sixteen expected failures leave the database/WAL bytes
+unchanged; transaction rollback also preserves the original state. Every image
+passes integrity_check. All **169 executable tests**, **961 registered headline
+theorems**, both audits, all eleven forward file workloads, and the separately
+reported affinity/predicate/reclamation regressions pass.
+
+UPDATE now binds row-dependent RHS and WHERE expressions, computes every RHS
+against the original row, and applies destination-column affinity afterwards.
+This includes column swaps and the last assignment to a repeated destination.
+The production fallback prepares a bounded trace of Core point updates and
+publishes only after the complete trace succeeds. Registered contracts expose
+the exact executed trace and its row-count bound; existing constant-UPDATE
+translation theorems remain intact. These properties are not a full SQLite
+UPDATE refinement proof. Primary-key writes, non-ABORT conflict policies,
+UPDATE FROM/RETURNING, all constraint forms and full planner evaluation-order
+parity remain open. Unsupported functions remain rejected during admission,
+including some overwritten assignments SQLite can ignore on unindexed tables.
+The [development negative](validation/sqlite-update-development-negative-20261024.json)
+records why skipping their validation wholesale was incorrect for indexed UPDATE.
+
+The stored-value test closes each observer explicitly. An initial Python test
+used a connection context manager without closing the connection, exposing a
+separate, real cross-engine WAL limitation. A [reproducible negative probe](validation/sqlite-wal-open-reader-negative-20261024.json)
+now holds a **SQLite 3.53.4** connection open while SQLeanite replaces the WAL.
+Another SQLite 3.53.4 reader then reports `file is not a database`; after the
+held connection closes, the same WAL reads correctly and passes integrity_check.
+The old shared-memory wal-index still refers to old frame offsets. SQLeanite's
+whole-WAL rename does not implement SQLite's SHM coordination. This issue is
+**unresolved**, excluded from the passing sequential file-interchange count,
+and prevents a claim of complete cross-engine WAL compatibility.
+
+## Current gap inventory
+
+The [current diagnostic inventory](validation/sqlite-current-gaps-20261024.json)
+rechecks retained counterexamples and additional feature probes. It contains
+six matches, nineteen explicit rejections and one wrong-result case. These
+counts are a selected diagnostic set, **not a compatibility percentage**. The
+remaining wrong result is DISTINCT ordered by a nonprojected column. CTEs,
+subqueries, views, triggers, implicit-rowid schemas, general aggregates,
+row-expression DELETE, window functions, OFFSET, IN, UNIQUE indexes and other
+features still fail the current production surface. The separate open-reader
+WAL negative above remains unresolved as well. The accepted 100% target has
+not been reached.
+
 ## Still missing
 
-This step does not implement general aggregate/join/write WHERE or row-dependent UPDATE expressions,
+This step does not implement general aggregate/join/DELETE WHERE expressions,
 the complete VDBE, the full planner, all DDL/constraints, views/triggers,
 subqueries/CTEs/windows, the rest of the scalar/aggregate functions, JSON,
 virtual tables/extensions, all collations/encodings, or the full SQLite WAL

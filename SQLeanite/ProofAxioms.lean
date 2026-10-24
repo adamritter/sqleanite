@@ -1046,3 +1046,7 @@ import SQLeanite.CoreFileEngine
 
 -- Tail index replacement checks physical ownership before publishing free pages.
 #print axioms SQLeanite.CoreFileAdapter.indexTailMatches_exact
+
+-- Row-dependent UPDATE compiles a bounded trace against original rows.
+#print axioms SQLeanite.CoreSQL.rowUpdateCommands_length_le
+#print axioms SQLeanite.CoreSQL.executeExpressionUpdate_eq_runCoreCommands

@@ -414,6 +414,105 @@ def updateAssignments (schema : Core.Schema) :
         | none => .error "UPDATE column is out of range"
       return (index, ← columnLiteral target assignment.2) :: remaining
 
+/-- Resolve every UPDATE name even when the row set is empty. SQLite uses
+only the last assignment to a repeated target; earlier expressions are still
+bound, but are not evaluated. Primary-key mutation remains outside this path. -/
+def expressionAssignments (ctx : CoreExpr.Context) : List (String × Expr) →
+    Except String (List (Nat × Expr))
+  | [] => .ok []
+  | (name, expression) :: rest => do
+      let index ← column ctx.schema name
+      ctx.validate expression
+      let remaining ← expressionAssignments ctx rest
+      if remaining.any (fun next => next.1 == index) then return remaining
+      if index = ctx.schema.primaryKey || index = ctx.schema.declaredPrimaryKey then
+        throw "updating the PRIMARY KEY is outside the verified MVP"
+      return (index, expression) :: remaining
+
+/-- All RHS expressions read the same original row; affinity is applied only
+to each completed value. No earlier assignment changes a later RHS binding. -/
+def evaluateAssignments (ctx : CoreExpr.Context) (row : Core.Row) :
+    List (Nat × Expr) → Except String (List (Nat × Core.Value))
+  | [] => .ok []
+  | (index, expression) :: rest => do
+      let target ← match ctx.schema.columns[index]? with
+        | some target => .ok target
+        | none => .error "UPDATE column is out of range"
+      let value ← SQLSurface.value (← ctx.eval row.values expression)
+      let remaining ← evaluateAssignments ctx row rest
+      return (index, SQLite.PhysicalAffinity.write target.affinity value) :: remaining
+
+/-- Compile each selected original row to a point update on its stable rowid.
+The entire trace is computed before it is run; an error cannot publish a prefix. -/
+def rowUpdateCommands (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) :
+    List Core.Row → Except String (List Core.Command)
+  | [] => .ok []
+  | row :: rows => do
+      unless ← ctx.matches row.values condition do
+        return ← rowUpdateCommands tableName ctx assignments condition rows
+      let updates ← evaluateAssignments ctx row assignments
+      let commands ← rowUpdateCommands tableName ctx assignments condition rows
+      return .updateWhere tableName updates
+        (some (.equal ctx.schema.primaryKey (.integer row.rowid))) :: commands
+
+def expressionUpdatePlan (tableName : String) (alias : Option String) (stored : Core.Table)
+    (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (List Core.Command) := do
+  let ctx : CoreExpr.Context := ⟨stored.schema, alias.getD tableName⟩
+  let bound ← expressionAssignments ctx assignments
+  let _ ← condition.mapM ctx.validate
+  unless ← ctx.constantMatches condition do return []
+  rowUpdateCommands tableName ctx bound condition stored.rows
+
+def executeExpressionUpdate (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let commands ← expressionUpdatePlan tableName alias stored assignments condition
+  let (next, results) ← runCoreCommands state commands
+  return (next, [{ changes := (results.map (·.changes)).sum }])
+
+/-- The SQL fallback executes exactly its precomputed Core trace, preserving
+Core constraint checking and the statement-level Except failure boundary. -/
+theorem executeExpressionUpdate_eq_runCoreCommands
+    (state : Core.State) (tableName : String) (alias : Option String) (stored : Core.Table)
+    (assignments : List (String × Expr)) (condition : Option Expr) (commands : List Core.Command)
+    (translated : expressionUpdatePlan tableName alias stored assignments condition = .ok commands) :
+    executeExpressionUpdate state tableName alias stored assignments condition =
+      (fun outcome => (outcome.1, [{ changes := (outcome.2.map (·.changes)).sum }])) <$>
+        runCoreCommands state commands := by
+  simp only [executeExpressionUpdate, translated, bind, Except.bind]
+  cases executed : runCoreCommands state commands with
+  | error message => rfl
+  | ok outcome => rfl
+
+theorem rowUpdateCommands_length_le (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) (rows : List Core.Row)
+    (commands : List Core.Command)
+    (translated : rowUpdateCommands tableName ctx assignments condition rows = .ok commands) :
+    commands.length ≤ rows.length := by
+  induction rows generalizing commands with
+  | nil => simp [rowUpdateCommands] at translated; subst commands; simp
+  | cons row rows ih =>
+      simp only [rowUpdateCommands] at translated
+      cases selected : ctx.matches row.values condition with
+      | error message => simp [selected, bind, Except.bind] at translated
+      | ok keep =>
+        cases keep with
+        | false =>
+          simp [selected, bind, Except.bind] at translated
+          exact Nat.le_trans (ih _ translated) (by simp)
+        | true =>
+          cases updates : evaluateAssignments ctx row assignments with
+          | error message => simp [selected, updates, bind, Except.bind] at translated
+          | ok values =>
+            cases tail : rowUpdateCommands tableName ctx assignments condition rows with
+            | error message => simp [selected, updates, tail, bind, Except.bind] at translated
+            | ok rest =>
+              simp [selected, updates, tail, bind, Except.bind, pure, Except.pure] at translated
+              subst commands
+              simpa using Nat.succ_le_succ (ih _ tail)
+
 structure JoinContext where
   leftTable : String
   rightTable : String
@@ -925,16 +1024,18 @@ def executeStatement (state : Core.State) :
         | none => .error s!"no such table: {table}"
       executeCommand state (.deleteWhere tableName
         (← where_.mapM (predicate stored.schema)))
-  | .update table _ assignments where_ conflict => do
+  | .update table alias assignments where_ conflict => do
       unless conflict == .default || conflict == .abort do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      executeCommand state (.updateWhere tableName
-        (← updateAssignments stored.schema assignments.toList)
-        (← where_.mapM (predicate stored.schema)))
+      match updateAssignments stored.schema assignments.toList,
+          where_.mapM (predicate stored.schema) with
+      | .ok updates, .ok condition =>
+          executeCommand state (.updateWhere tableName updates condition)
+      | _, _ => executeExpressionUpdate state tableName alias stored assignments.toList where_
   | .select select => do
       let execution ← executeSelect state select
       return (execution.state, [execution.result])

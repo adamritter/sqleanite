@@ -1,0 +1,22 @@
+{
+  "purpose": "Retain the known SQLite/SQLeanite simultaneous-WAL-reader incompatibility.\n\nDiagnostic only. An idle SQLite connection keeps its wal-index mapped while\nSQLeanite replaces the whole WAL. This does not implement SQLite SHM locking.",
+  "before": "200|200",
+  "expected_after": "200|140000\nok\n",
+  "with_open_observer": {
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error in 3rd command line argument: file is not a database (26)\n"
+  },
+  "after_observer_closed": {
+    "code": 0,
+    "stdout": "200|140000\nok\n",
+    "stderr": ""
+  },
+  "matches_with_observer": false,
+  "matches_after_close": true,
+  "observer_sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "oracle_sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "implementation_sha256": "c9e15fdaf9067f31ce3cc3bb86d4d7fdc6368a8438c191dee6d8c06fb268ad65",
+  "harness_sha256": "b3d81609fa26f8c1d26f7c943d7da4175501f941670eda38137d0436b749e9e8",
+  "status": "Unresolved cross-engine WAL/SHM coordination; never counted as a passing file-format case."
+}

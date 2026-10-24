@@ -1,0 +1,975 @@
+{
+  "seed": 353481,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "updates": 260,
+      "requested_updates": 260,
+      "rows_per_observation": 122,
+      "expected_errors": 8,
+      "rollback": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "updates": 260,
+      "requested_updates": 260,
+      "rows_per_observation": 122,
+      "expected_errors": 8,
+      "rollback": true
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "c9e15fdaf9067f31ce3cc3bb86d4d7fdc6368a8438c191dee6d8c06fb268ad65",
+  "executable_sha256": "4ff901671a21936b71d9328909d56d42b1cdb760570bd0799ad78372e442656d",
+  "harness_sha256": "97bcc19a3a8a964421834322fd832a29e877e09161a46777d7e17426a203ea40",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite-decoded storage classes, exact binary64, TEXT/BLOB bytes after each UPDATE; integrity; failed-statement bytes; rollback.",
+  "validation": {
+    "build": "passed, 230 jobs",
+    "tests": 169,
+    "registered_headline_theorems": 961,
+    "verification_audit": "passed",
+    "live_path_audit": "passed"
+  },
+  "regressions": {
+    "affinity": {
+      "typed_insert_values": 444,
+      "select_queries": 4709,
+      "declared_types": [
+        "",
+        "TEXT",
+        "INTEGER",
+        "REAL",
+        "NUMERIC",
+        "BLOB",
+        "VARCHAR(12)",
+        "DOUBLE PRECISION",
+        "FLOATING POINT",
+        "STRING",
+        "\"custom INT type\"",
+        "\"a\"\"b TEXT type\""
+      ],
+      "expected_write_errors": 4,
+      "unsupported_mixed_affinity_queries": 1,
+      "mixed_affinity_predicates": 1,
+      "reverse_write_checks": 1,
+      "mismatches": 0,
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+    },
+    "predicate": {
+      "seed": 353463,
+      "random_cases": 200,
+      "queries": 616,
+      "phases": [
+        {
+          "name": "unindexed",
+          "queries": 308,
+          "result_rows": 3852
+        },
+        {
+          "name": "indexed",
+          "queries": 308,
+          "result_rows": 3852
+        }
+      ],
+      "failures": [],
+      "matching_errors": 13,
+      "planner_order_diagnostics": [
+        {
+          "sql": "SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1;",
+          "lean": {
+            "exit_code": 0,
+            "stdout": "1\n",
+            "stderr": ""
+          },
+          "sqlite": {
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": "Error near line 1: integer overflow\n"
+          },
+          "matches": false,
+          "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+        },
+        {
+          "sql": "SELECT DISTINCT id%2 FROM t WHERE id<3 OR abs(-9223372036854775808) LIMIT 2;",
+          "lean": {
+            "exit_code": 0,
+            "stdout": "1\n0\n",
+            "stderr": ""
+          },
+          "sqlite": {
+            "exit_code": 1,
+            "stdout": "0\n",
+            "stderr": "Error near line 1: integer overflow\n"
+          },
+          "matches": false,
+          "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+        }
+      ],
+      "implementation_sha256": "c9e15fdaf9067f31ce3cc3bb86d4d7fdc6368a8438c191dee6d8c06fb268ad65",
+      "executable_sha256": "4ff901671a21936b71d9328909d56d42b1cdb760570bd0799ad78372e442656d",
+      "harness_sha256": {
+        "run-predicate-differential.py": "3a52bb1c0759837ae90891cce2ac6176a8651580f9e60d6debb1669666e1f919",
+        "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+      },
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "CLI rows, multiplicities, truth, LIMIT error suppression, binding and unchanged file; indexed/unindexed"
+    },
+    "reclaim": {
+      "seed": 353472,
+      "fixtures": 6,
+      "cycles": 3,
+      "checks": [
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 8
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 3
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 21,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 21,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 7,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 21,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 6,
+          "free_pages": 0
+        },
+        {
+          "fixture": 0,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 204,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 21,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 5
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 3
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 13,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 13,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 6,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 13,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 1,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 133,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 13,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 22,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 22,
+          "free_pages": 18
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 22,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 41,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 27
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 15,
+          "free_pages": 0
+        },
+        {
+          "fixture": 2,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 507,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 51,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 38,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 38,
+          "free_pages": 34
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 38,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 64,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 39
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 82,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 43,
+          "free_pages": 0
+        },
+        {
+          "fixture": 3,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 1022,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 101,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 4
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 2
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 2
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 8,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 6,
+          "free_pages": 0
+        },
+        {
+          "fixture": 4,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 82,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "initial",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 15,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "delete-0",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 15,
+          "free_pages": 11
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "refill-0",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 15,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "delete-1",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 27,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "refill-1",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "delete-2",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 11
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-file",
+          "phase": "refill-2",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "initial",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "delete-0",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 4,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "refill-0",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "delete-1",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 12,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "refill-1",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "delete-2",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 9,
+          "free_pages": 0
+        },
+        {
+          "fixture": 5,
+          "mode": "--verified-wal-file",
+          "phase": "refill-2",
+          "rows": 304,
+          "integrity": "ok",
+          "contents_match": true,
+          "page_count": 31,
+          "free_pages": 0
+        }
+      ],
+      "failures": [],
+      "implementation_sha256": "c9e15fdaf9067f31ce3cc3bb86d4d7fdc6368a8438c191dee6d8c06fb268ad65",
+      "executable_sha256": "4ff901671a21936b71d9328909d56d42b1cdb760570bd0799ad78372e442656d",
+      "harness_sha256": "85ff8904fbdd7ecbc7a3cca8c0030ac5dc146124e3bf86a9cd6920d6185036a3",
+      "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+      "comparison": "SQLite independently reads rollback/WAL images, schema, typed values, index lookup, unchanged neighbour table and integrity after every phase."
+    }
+  },
+  "forward_clean_workloads": 11,
+  "scope": "Default/ABORT single-table non-primary-key UPDATE, admitted scalar expressions; closed independent SQLite observers. Not all constraints, conflict modes, UPDATE FROM or concurrent cross-engine WAL."
+}
