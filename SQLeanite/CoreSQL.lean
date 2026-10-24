@@ -1011,7 +1011,7 @@ def executeJoin (state : Core.State) (select : Select) :
 /-- A SELECT without FROM has one implicit zero-column input row. Validate
 all expressions before evaluating WHERE, LIMIT, and then the result row;
 unselected expressions must not raise evaluation errors. -/
-def constantRow (select : Select) : Except String (Option (List Core.Value)) := do
+def scalarConstantRow (select : Select) : Except String (Option (List Core.Value)) := do
   unless select.sources.isEmpty && select.valueRows.isNone &&
       select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
     unsupported "constant SELECT shape"
@@ -1023,6 +1023,27 @@ def constantRow (select : Select) : Except String (Option (List Core.Value)) := 
     unless ← SQLite.Scalar.testWhere condition do return none
   if select.offset > 0 then return none
   return some (← select.columns.toList.mapM (fun column => literal column.expr))
+
+/-- A source-free aggregate consumes the SELECT's single implicit empty row,
+unless WHERE rejects it. It still emits one aggregate row for empty input. -/
+def constantRow (select : Select) : Except String (Option (List Core.Value)) := do
+  unless select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
+    return ← scalarConstantRow select
+  unless select.sources.isEmpty && select.valueRows.isNone &&
+      select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
+    unsupported "constant aggregate SELECT shape"
+  let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+  let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
+  unless prepared.terms.all (fun term => term.argument.all SQLite.Scalar.admitted) &&
+      select.where_.all SQLite.Scalar.admitted do
+    unsupported "unbound constant aggregate expression"
+  if select.limit == some 0 then return none
+  let enabled ← match select.where_ with
+    | none => pure true
+    | some condition => SQLite.Scalar.testWhere condition
+  let values ← prepared.accumulate ctx (if enabled then [[]] else [])
+  if select.offset > 0 then return none
+  return some (← prepared.finish values)
 
 def executeConstantSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
@@ -1115,9 +1136,9 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
   unless select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
     unsupported "aggregate grouping, HAVING or ORDER BY"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
-  let terms ← CoreAggregate.terms ctx select.columns.toList
+  let prepared ← CoreAggregate.prepareResults ctx select.columns.toList
   let _ ← select.where_.mapM ctx.validate
-  if select.limit == some 0 then return ({}, terms.length)
+  if select.limit == some 0 then return ({}, prepared.expressions.length)
   let enabled ← ctx.constantMatches select.where_
   let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
   let ctx := expressionSearchContext ctx search
@@ -1126,9 +1147,9 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
     let (_, result) ← Core.execute state (.query (canonical source.name)
       { columns := List.range stored.schema.columns.length, predicate := search })
     CoreAggregate.selectRows ctx select.where_ result.rows
-  let output ← terms.mapM (CoreAggregate.Term.eval ctx inputs)
-  let rows := if select.offset > 0 then [] else [output]
-  return ({ rows }, terms.length)
+  let values ← prepared.accumulate ctx inputs
+  let rows ← if select.offset > 0 then pure [] else do pure [← prepared.finish values]
+  return ({ rows }, prepared.expressions.length)
 
 def executeAggregateSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String SelectExecution :=
@@ -1147,12 +1168,12 @@ theorem executeAggregateSelect_preserves_state {state : Core.State} {select : Se
       rfl
 
 /-- Scalar and aggregate projections share bound Core source rows. A recognized
-aggregate term selects the aggregate evaluator; malformed/mixed result shapes
-remain explicit errors until their own result-expression handling is present. -/
+aggregate anywhere in a result expression selects the aggregate evaluator;
+aggregate arguments and scalar output templates bind before evaluation. -/
 def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) (_wherePredicate : Option Core.Predicate) :
     Except String SelectExecution :=
-  if select.columns.any (fun column => CoreAggregate.recognizes column.expr) then
+  if select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) then
     executeAggregateSelect state select source stored
   else executeFilteredSelect state select source stored
 

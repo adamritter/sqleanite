@@ -196,8 +196,16 @@ private def expectBinaryOp : BinaryOp → MatchM Unit
   | .le => expectSymbol "<="
   | .gt => expectSymbol ">"
   | .ge => expectSymbol ">="
-  | .is => expectKeyword "is"
-  | .isNot => expectKeyword "is" *> expectKeyword "not"
+  | .is => do
+      expectKeyword "is"
+      if ← acceptKeyword "not" then
+        expectKeyword "distinct"
+        expectKeyword "from"
+  | .isNot => do
+      expectKeyword "is"
+      unless ← acceptKeyword "not" do
+        expectKeyword "distinct"
+        expectKeyword "from"
   | .like => expectKeyword "like"
   | .glob => expectKeyword "glob"
   | .match => expectKeyword "match"
@@ -355,9 +363,14 @@ mutual
           expectSymbol ")"
     | fuel, .isNull argument negated => do
         matchExprFuel fuel argument
+        if !negated && (← acceptKeyword "isnull") then return
+        if negated && (← acceptKeyword "notnull") then return
+        if negated && (← acceptKeyword "not") then
+          expectKeyword "null"
+          return
         expectKeyword "is"
         if negated then expectKeyword "not"
-        expectKeyword "null"
+        matchExprFuel fuel (.literal .null)
     | fuel, .inList argument values negated _ => do
         matchExprFuel fuel argument
         if negated then expectKeyword "not"

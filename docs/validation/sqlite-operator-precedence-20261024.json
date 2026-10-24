@@ -1,0 +1,22 @@
+{
+  "seed": 353631,
+  "repetitions": 5,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 3352,
+      "matching_errors": 27
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 3352,
+      "matching_errors": 27
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "5410ea4354ccdf59062a73dd531456093fb49e5159fd33e00a56c54f2cb5e215",
+  "executable_sha256": "30fffb709059f167b80cfd35e1d20a087c50d63a0c1ab0b288538c02738a0e42",
+  "harness_sha256": "c6a825a9b7547687346e820f7e36571709d7f0eb42d110376c8e8bdeb0dfdc77",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare expression precedence and NULL-test spellings against pinned SQLite.\n\nExact CLI bytes and typeof values are compared on independent images in both\nfile modes. Generated operator pairs, NOT, BETWEEN, LIKE ESCAPE, and NULL-test\nspellings are not filtered based on acceptance. Error wording is not compared.\nNo claim is made here about collations, JSON, subqueries, or boolean-name binding."
+}

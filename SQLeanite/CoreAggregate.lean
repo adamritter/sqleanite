@@ -2,8 +2,8 @@ import SQLeanite.CoreExpr
 import SQLeanite.CoreEngine
 
 /-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
-Input rows are supplied by the production Core query path. Group keys and
-nested aggregate result expressions are separate from this term evaluator. -/
+Input rows are supplied by the production Core query path. Aggregate terms
+feed a separately bound scalar result template; group keys remain separate. -/
 namespace SQLeanite.CoreAggregate
 
 inductive Function where
@@ -72,6 +72,87 @@ def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
   | some expression =>
       let inputs ← values ctx rows expression
       result term.function (if term.distinct then uniqueValues inputs else inputs)
+
+/-- Aggregate recognition includes aggregates nested inside scalar result
+operators. An aggregate's own arguments are still checked as scalar inputs. -/
+def containsAggregate (expression : Expr) : Bool := expression.any recognizes
+
+structure PreparedResults where
+  expressions : List Expr
+  terms : Array Term
+
+abbrev PrepareM := StateT (Array Term) (Except String)
+
+/-- Lower aggregate calls to private result slots. Source column references
+outside aggregate arguments remain rejected by this aggregate-only result path.
+The private slot syntax can only be produced here: ordinary user calls and
+columns are validated before any slot is installed. -/
+def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr
+  | 0, _ => throw "aggregate expression depth exhausted"
+  | fuel + 1, expression => do
+      if recognizes expression then
+        let bound ← term ctx { expr := expression }
+        let terms ← get
+        set (terms.push bound)
+        return .column (some "__aggregate_result") (toString terms.size)
+      if SQLite.Scalar.forbidden expression then
+        throw "unsupported aggregate result operator"
+      let prepare := prepareResultFuel ctx fuel
+      match expression with
+      | .literal _ => return expression
+      | .unary op arg => return .unary op (← prepare arg)
+      | .binary op left right => return .binary op (← prepare left) (← prepare right)
+      | .call name args star => return .call name (← args.mapM prepare) star
+      | .isNull arg negated => return .isNull (← prepare arg) negated
+      | .inList arg values negated affinity =>
+          return .inList (← prepare arg) (← values.mapM prepare) negated affinity
+      | .case_ base branches otherwise =>
+          return .case_ (← base.mapM prepare)
+            (← branches.mapM fun (condition, result) => do return (← prepare condition, ← prepare result))
+            (← otherwise.mapM prepare)
+      | _ => throw "unsupported bare column or subquery in aggregate result"
+
+def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
+    Except String PreparedResults := do
+  let (expressions, terms) ←
+    (columns.mapM fun column => prepareResultFuel ctx column.expr.height column.expr).run #[]
+  return { expressions, terms }
+
+/-- Accumulators are finalized before OFFSET. Scalar result expressions are
+kept separate so a skipped output row does not evaluate its scalar operations. -/
+def PreparedResults.accumulate (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) : Except String (Array Core.Value) :=
+  Subtype.val <$> prepared.terms.mapM' (Term.eval ctx rows)
+
+def resultSlot (values : Array Core.Value) (qualifier : Option String) (name : String) :
+    Except String Core.Value := do
+  unless qualifier == some "__aggregate_result" do throw "unbound aggregate result column"
+  let some index := name.toNat? | throw "invalid aggregate result slot"
+  let some value := values[index]? | throw "aggregate result slot is outside its accumulator array"
+  return value
+
+def PreparedResults.finish (prepared : PreparedResults) (values : Array Core.Value) :
+    Except String (List Core.Value) :=
+  prepared.expressions.mapM fun expression =>
+    match expression with
+    | .column qualifier name => resultSlot values qualifier name
+    | _ => do
+        let result ← SQLite.Scalar.evalWith
+          (fun qualifier name => do CoreExpr.value (← resultSlot values qualifier name))
+          SQLite.Scalar.expressionAffinity expression
+        SQLSurface.value result
+
+theorem PreparedResults.accumulate_length (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) (values : Array Core.Value)
+    (success : prepared.accumulate ctx rows = .ok values) :
+    values.size = prepared.terms.size := by
+  unfold PreparedResults.accumulate at success
+  cases evaluated : prepared.terms.mapM' (Term.eval ctx rows) with
+  | error message => simp [evaluated, Functor.map, Except.map] at success
+  | ok checked =>
+      simp [evaluated, Functor.map, Except.map] at success
+      cases success
+      exact checked.property
 
 def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
     List (List Core.Value) → Except String (List (List Core.Value))

@@ -1,0 +1,5663 @@
+{
+  "seed": 353630,
+  "repetitions": 2,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 1504,
+      "matching_errors": 10
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 1504,
+      "matching_errors": 10
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0.5) = (-1) < (0.5),typeof((0.5) = (-1) < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (1) != (-1) < (-1),typeof((1) != (-1) < (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) != (2) <= (1),typeof((0) != (2) <= (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) != ('x') > ('1'),typeof((3) != ('x') > ('1'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) IS ('1') < ('2'),typeof((3) IS ('1') < ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS (1) > (-1),typeof((2) IS (1) > (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) IS NOT (X'31') < (-1),typeof((-3) IS NOT (X'31') < (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) IS NOT (NULL) > ('x'),typeof((3) IS NOT (NULL) > ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (NULL) IS NOT (3) >= ('2'),typeof((NULL) IS NOT (3) >= ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) LIKE (2) < (-3),typeof((0) LIKE (2) < (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') LIKE ('2') > (-1),typeof(('2') LIKE ('2') > (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) LIKE ('1') >= (-3),typeof((-3) LIKE ('1') >= (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) GLOB (1) < (1),typeof((-3) GLOB (1) < (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) GLOB (-1) <= (0),typeof((3) GLOB (-1) <= (0));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (2) NOT BETWEEN (1) AND (3) = (-3),typeof((2) NOT BETWEEN (1) AND (3) = (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' <= (2),typeof('a' NOT LIKE 'a' ESCAPE 'x' <= (2));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' > (X'31'),typeof('a' LIKE 'a' ESCAPE 'x' > (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (0) NOT BETWEEN (0.5) AND (-3) IS (3),typeof((0) NOT BETWEEN (0.5) AND (-3) IS (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "between-upper",
+      "sql": "SELECT ('2') BETWEEN (2) AND (1) IS NOT (-3),typeof(('2') BETWEEN (2) AND (1) IS NOT (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (X'31') NOT BETWEEN (-1) AND (0.5) IS NOT (1),typeof((X'31') NOT BETWEEN (-1) AND (0.5) IS NOT (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('x') NOT BETWEEN (X'31') AND (2) GLOB (NULL),typeof(('x') NOT BETWEEN (X'31') AND (2) GLOB (NULL));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|null\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) = ('1') <= (3),typeof((-3) = ('1') <= (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') != (2) >= ('2'),typeof(('2') != (2) >= ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS (NULL) < (0.5),typeof((2) IS (NULL) < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('1') IS (0.5) <= (1),typeof(('1') IS (0.5) <= (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) IS (-1) > ('x'),typeof((0) IS (-1) > ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS NOT (3) >= (X'31'),typeof((2) IS NOT (3) >= (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('x') LIKE (1) < ('x'),typeof(('x') LIKE (1) < ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0.5) GLOB (-1) <= (2),typeof((0.5) GLOB (-1) <= (2));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') GLOB ('1') >= (-1),typeof(('2') GLOB ('1') >= (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "between-upper",
+      "sql": "SELECT ('1') BETWEEN ('2') AND ('x') != (1),typeof(('1') BETWEEN ('2') AND ('x') != (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('1') NOT BETWEEN (3) AND (2) != (1),typeof(('1') NOT BETWEEN (3) AND (2) != (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' < (0.5),typeof('a' NOT LIKE 'a' ESCAPE 'x' < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' <= (-3),typeof('a' LIKE 'a' ESCAPE 'x' <= (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' <= ('x'),typeof('a' NOT LIKE 'a' ESCAPE 'x' <= ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' > (X'31'),typeof('a' LIKE 'a' ESCAPE 'x' > (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('x') NOT BETWEEN ('2') AND (-3) IS ('2'),typeof(('x') NOT BETWEEN ('2') AND (-3) IS ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "between-upper",
+      "sql": "SELECT (2) BETWEEN (0.5) AND (-3) IS NOT (1),typeof((2) BETWEEN (0.5) AND (-3) IS NOT (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "between-upper",
+      "sql": "SELECT (0.5) BETWEEN (3) AND ('2') LIKE (NULL),typeof((0.5) BETWEEN (3) AND ('2') LIKE (NULL));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|null\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (2) NOT BETWEEN (1) AND (-1) LIKE (3),typeof((2) NOT BETWEEN (1) AND (-1) LIKE (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (X'31') NOT BETWEEN (2) AND (3) GLOB (3),typeof((X'31') NOT BETWEEN (2) AND (3) GLOB (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) ISNULL,typeof((-3) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) ISNULL+1,typeof((-3) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) ISNULL,typeof((-1) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) ISNULL+1,typeof((-1) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0) ISNULL,typeof((0) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) ISNULL+1,typeof((0) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (1) ISNULL,typeof((1) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) ISNULL+1,typeof((1) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (2) ISNULL,typeof((2) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) ISNULL+1,typeof((2) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (3) ISNULL,typeof((3) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) ISNULL+1,typeof((3) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) ISNULL,typeof((0.5) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) ISNULL+1,typeof((0.5) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) ISNULL,typeof((NULL) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) ISNULL+1,typeof((NULL) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') ISNULL,typeof(('1') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') ISNULL+1,typeof(('1') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') ISNULL,typeof(('2') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') ISNULL+1,typeof(('2') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') ISNULL,typeof(('x') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') ISNULL+1,typeof(('x') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') ISNULL,typeof((X'31') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') ISNULL+1,typeof((X'31') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-table",
+      "sql": "SELECT v ISNULL,typeof(v ISNULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n0|integer\n0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) NOTNULL,typeof((-3) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) NOTNULL+1,typeof((-3) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) NOTNULL,typeof((-1) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) NOTNULL+1,typeof((-1) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0) NOTNULL,typeof((0) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) NOTNULL+1,typeof((0) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (1) NOTNULL,typeof((1) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) NOTNULL+1,typeof((1) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (2) NOTNULL,typeof((2) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) NOTNULL+1,typeof((2) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (3) NOTNULL,typeof((3) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) NOTNULL+1,typeof((3) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) NOTNULL,typeof((0.5) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) NOTNULL+1,typeof((0.5) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) NOTNULL,typeof((NULL) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) NOTNULL+1,typeof((NULL) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') NOTNULL,typeof(('1') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') NOTNULL+1,typeof(('1') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') NOTNULL,typeof(('2') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') NOTNULL+1,typeof(('2') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') NOTNULL,typeof(('x') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') NOTNULL+1,typeof(('x') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') NOTNULL,typeof((X'31') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') NOTNULL+1,typeof((X'31') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-table",
+      "sql": "SELECT v NOTNULL,typeof(v NOTNULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n1|integer\n1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) NOT NULL,typeof((-3) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) NOT NULL+1,typeof((-3) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) NOT NULL,typeof((-1) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) NOT NULL+1,typeof((-1) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0) NOT NULL,typeof((0) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) NOT NULL+1,typeof((0) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (1) NOT NULL,typeof((1) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) NOT NULL+1,typeof((1) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (2) NOT NULL,typeof((2) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) NOT NULL+1,typeof((2) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (3) NOT NULL,typeof((3) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) NOT NULL+1,typeof((3) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) NOT NULL,typeof((0.5) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) NOT NULL+1,typeof((0.5) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) NOT NULL,typeof((NULL) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) NOT NULL+1,typeof((NULL) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') NOT NULL,typeof(('1') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') NOT NULL+1,typeof(('1') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') NOT NULL,typeof(('2') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') NOT NULL+1,typeof(('2') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') NOT NULL,typeof(('x') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') NOT NULL+1,typeof(('x') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') NOT NULL,typeof((X'31') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') NOT NULL+1,typeof((X'31') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "null-table",
+      "sql": "SELECT v NOT NULL,typeof(v NOT NULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n1|integer\n1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (NULL),typeof((-3) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (1),typeof((-3) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (2),typeof((-3) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (NULL),typeof((-1) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (1),typeof((-1) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (2),typeof((-1) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (NULL),typeof((0) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (1),typeof((0) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (2),typeof((0) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (NULL),typeof((1) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (1),typeof((1) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (2),typeof((1) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (NULL),typeof((2) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (1),typeof((2) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (2),typeof((2) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (NULL),typeof((3) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (1),typeof((3) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (2),typeof((3) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (NULL),typeof((0.5) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (1),typeof((0.5) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (2),typeof((0.5) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (NULL),typeof((NULL) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (1),typeof((NULL) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (2),typeof((NULL) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (NULL),typeof(('1') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (1),typeof(('1') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (2),typeof(('1') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (NULL),typeof(('2') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (1),typeof(('2') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (2),typeof(('2') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (NULL),typeof(('x') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (1),typeof(('x') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (2),typeof(('x') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (NULL),typeof((X'31') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (1),typeof((X'31') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (2),typeof((X'31') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (NULL),typeof((-3) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (1),typeof((-3) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (2),typeof((-3) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (NULL),typeof((-1) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (1),typeof((-1) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (2),typeof((-1) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (NULL),typeof((0) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (1),typeof((0) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (2),typeof((0) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (NULL),typeof((1) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (1),typeof((1) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (2),typeof((1) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (NULL),typeof((2) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (1),typeof((2) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (2),typeof((2) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (NULL),typeof((3) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (1),typeof((3) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (2),typeof((3) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (NULL),typeof((0.5) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (1),typeof((0.5) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (2),typeof((0.5) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (NULL),typeof((NULL) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (1),typeof((NULL) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (2),typeof((NULL) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (NULL),typeof(('1') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (1),typeof(('1') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (2),typeof(('1') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (NULL),typeof(('2') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (1),typeof(('2') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (2),typeof(('2') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (NULL),typeof(('x') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (1),typeof(('x') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (2),typeof(('x') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (NULL),typeof((X'31') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (1),typeof((X'31') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (2),typeof((X'31') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0.5) = (-1) < (0.5),typeof((0.5) = (-1) < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (1) != (-1) < (-1),typeof((1) != (-1) < (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) != (2) <= (1),typeof((0) != (2) <= (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) != ('x') > ('1'),typeof((3) != ('x') > ('1'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) IS ('1') < ('2'),typeof((3) IS ('1') < ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS (1) > (-1),typeof((2) IS (1) > (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) IS NOT (X'31') < (-1),typeof((-3) IS NOT (X'31') < (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) IS NOT (NULL) > ('x'),typeof((3) IS NOT (NULL) > ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (NULL) IS NOT (3) >= ('2'),typeof((NULL) IS NOT (3) >= ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) LIKE (2) < (-3),typeof((0) LIKE (2) < (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') LIKE ('2') > (-1),typeof(('2') LIKE ('2') > (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) LIKE ('1') >= (-3),typeof((-3) LIKE ('1') >= (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) GLOB (1) < (1),typeof((-3) GLOB (1) < (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (3) GLOB (-1) <= (0),typeof((3) GLOB (-1) <= (0));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (2) NOT BETWEEN (1) AND (3) = (-3),typeof((2) NOT BETWEEN (1) AND (3) = (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' <= (2),typeof('a' NOT LIKE 'a' ESCAPE 'x' <= (2));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' > (X'31'),typeof('a' LIKE 'a' ESCAPE 'x' > (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (0) NOT BETWEEN (0.5) AND (-3) IS (3),typeof((0) NOT BETWEEN (0.5) AND (-3) IS (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "between-upper",
+      "sql": "SELECT ('2') BETWEEN (2) AND (1) IS NOT (-3),typeof(('2') BETWEEN (2) AND (1) IS NOT (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (X'31') NOT BETWEEN (-1) AND (0.5) IS NOT (1),typeof((X'31') NOT BETWEEN (-1) AND (0.5) IS NOT (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('x') NOT BETWEEN (X'31') AND (2) GLOB (NULL),typeof(('x') NOT BETWEEN (X'31') AND (2) GLOB (NULL));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|null\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (-3) = ('1') <= (3),typeof((-3) = ('1') <= (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') != (2) >= ('2'),typeof(('2') != (2) >= ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS (NULL) < (0.5),typeof((2) IS (NULL) < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('1') IS (0.5) <= (1),typeof(('1') IS (0.5) <= (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0) IS (-1) > ('x'),typeof((0) IS (-1) > ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (2) IS NOT (3) >= (X'31'),typeof((2) IS NOT (3) >= (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('x') LIKE (1) < ('x'),typeof(('x') LIKE (1) < ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT (0.5) GLOB (-1) <= (2),typeof((0.5) GLOB (-1) <= (2));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "binary-pair",
+      "sql": "SELECT ('2') GLOB ('1') >= (-1),typeof(('2') GLOB ('1') >= (-1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "between-upper",
+      "sql": "SELECT ('1') BETWEEN ('2') AND ('x') != (1),typeof(('1') BETWEEN ('2') AND ('x') != (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('1') NOT BETWEEN (3) AND (2) != (1),typeof(('1') NOT BETWEEN (3) AND (2) != (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' < (0.5),typeof('a' NOT LIKE 'a' ESCAPE 'x' < (0.5));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' <= (-3),typeof('a' LIKE 'a' ESCAPE 'x' <= (-3));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-like-escape",
+      "sql": "SELECT 'a' NOT LIKE 'a' ESCAPE 'x' <= ('x'),typeof('a' NOT LIKE 'a' ESCAPE 'x' <= ('x'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "like-escape",
+      "sql": "SELECT 'a' LIKE 'a' ESCAPE 'x' > (X'31'),typeof('a' LIKE 'a' ESCAPE 'x' > (X'31'));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT ('x') NOT BETWEEN ('2') AND (-3) IS ('2'),typeof(('x') NOT BETWEEN ('2') AND (-3) IS ('2'));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "between-upper",
+      "sql": "SELECT (2) BETWEEN (0.5) AND (-3) IS NOT (1),typeof((2) BETWEEN (0.5) AND (-3) IS NOT (1));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "between-upper",
+      "sql": "SELECT (0.5) BETWEEN (3) AND ('2') LIKE (NULL),typeof((0.5) BETWEEN (3) AND ('2') LIKE (NULL));",
+      "lean": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|null\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (2) NOT BETWEEN (1) AND (-1) LIKE (3),typeof((2) NOT BETWEEN (1) AND (-1) LIKE (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "not-between-upper",
+      "sql": "SELECT (X'31') NOT BETWEEN (2) AND (3) GLOB (3),typeof((X'31') NOT BETWEEN (2) AND (3) GLOB (3));",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) ISNULL,typeof((-3) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) ISNULL+1,typeof((-3) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) ISNULL,typeof((-1) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) ISNULL+1,typeof((-1) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0) ISNULL,typeof((0) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) ISNULL+1,typeof((0) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (1) ISNULL,typeof((1) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) ISNULL+1,typeof((1) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (2) ISNULL,typeof((2) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) ISNULL+1,typeof((2) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (3) ISNULL,typeof((3) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) ISNULL+1,typeof((3) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) ISNULL,typeof((0.5) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) ISNULL+1,typeof((0.5) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) ISNULL,typeof((NULL) ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) ISNULL+1,typeof((NULL) ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') ISNULL,typeof(('1') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') ISNULL+1,typeof(('1') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') ISNULL,typeof(('2') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') ISNULL+1,typeof(('2') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') ISNULL,typeof(('x') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') ISNULL+1,typeof(('x') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') ISNULL,typeof((X'31') ISNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') ISNULL+1,typeof((X'31') ISNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-table",
+      "sql": "SELECT v ISNULL,typeof(v ISNULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found ISNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n0|integer\n0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) NOTNULL,typeof((-3) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) NOTNULL+1,typeof((-3) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) NOTNULL,typeof((-1) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) NOTNULL+1,typeof((-1) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0) NOTNULL,typeof((0) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) NOTNULL+1,typeof((0) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (1) NOTNULL,typeof((1) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) NOTNULL+1,typeof((1) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (2) NOTNULL,typeof((2) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) NOTNULL+1,typeof((2) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (3) NOTNULL,typeof((3) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) NOTNULL+1,typeof((3) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) NOTNULL,typeof((0.5) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) NOTNULL+1,typeof((0.5) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) NOTNULL,typeof((NULL) NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) NOTNULL+1,typeof((NULL) NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') NOTNULL,typeof(('1') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') NOTNULL+1,typeof(('1') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') NOTNULL,typeof(('2') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') NOTNULL+1,typeof(('2') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') NOTNULL,typeof(('x') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') NOTNULL+1,typeof(('x') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') NOTNULL,typeof((X'31') NOTNULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') NOTNULL+1,typeof((X'31') NOTNULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-table",
+      "sql": "SELECT v NOTNULL,typeof(v NOTNULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOTNULL\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n1|integer\n1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-3) NOT NULL,typeof((-3) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-3) NOT NULL+1,typeof((-3) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (-1) NOT NULL,typeof((-1) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (-1) NOT NULL+1,typeof((-1) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0) NOT NULL,typeof((0) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0) NOT NULL+1,typeof((0) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (1) NOT NULL,typeof((1) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (1) NOT NULL+1,typeof((1) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (2) NOT NULL,typeof((2) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (2) NOT NULL+1,typeof((2) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (3) NOT NULL,typeof((3) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (3) NOT NULL+1,typeof((3) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (0.5) NOT NULL,typeof((0.5) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (0.5) NOT NULL+1,typeof((0.5) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (NULL) NOT NULL,typeof((NULL) NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (NULL) NOT NULL+1,typeof((NULL) NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('1') NOT NULL,typeof(('1') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('1') NOT NULL+1,typeof(('1') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('2') NOT NULL,typeof(('2') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('2') NOT NULL+1,typeof(('2') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT ('x') NOT NULL,typeof(('x') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT ('x') NOT NULL+1,typeof(('x') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-test",
+      "sql": "SELECT (X'31') NOT NULL,typeof((X'31') NOT NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-postfix",
+      "sql": "SELECT (X'31') NOT NULL+1,typeof((X'31') NOT NULL+1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "null-table",
+      "sql": "SELECT v NOT NULL,typeof(v NOT NULL) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected IS, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n1|integer\n1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (NULL),typeof((-3) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (1),typeof((-3) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS DISTINCT FROM (2),typeof((-3) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (NULL),typeof((-1) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (1),typeof((-1) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS DISTINCT FROM (2),typeof((-1) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (NULL),typeof((0) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (1),typeof((0) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS DISTINCT FROM (2),typeof((0) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (NULL),typeof((1) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (1),typeof((1) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS DISTINCT FROM (2),typeof((1) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (NULL),typeof((2) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (1),typeof((2) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS DISTINCT FROM (2),typeof((2) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (NULL),typeof((3) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (1),typeof((3) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS DISTINCT FROM (2),typeof((3) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (NULL),typeof((0.5) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (1),typeof((0.5) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS DISTINCT FROM (2),typeof((0.5) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (NULL),typeof((NULL) IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (1),typeof((NULL) IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS DISTINCT FROM (2),typeof((NULL) IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (NULL),typeof(('1') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (1),typeof(('1') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS DISTINCT FROM (2),typeof(('1') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (NULL),typeof(('2') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (1),typeof(('2') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS DISTINCT FROM (2),typeof(('2') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (NULL),typeof(('x') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (1),typeof(('x') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS DISTINCT FROM (2),typeof(('x') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (NULL),typeof((X'31') IS DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (1),typeof((X'31') IS DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS DISTINCT FROM (2),typeof((X'31') IS DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NOT, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (NULL),typeof((-3) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (1),typeof((-3) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-3) IS NOT DISTINCT FROM (2),typeof((-3) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (NULL),typeof((-1) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (1),typeof((-1) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (-1) IS NOT DISTINCT FROM (2),typeof((-1) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (NULL),typeof((0) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (1),typeof((0) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0) IS NOT DISTINCT FROM (2),typeof((0) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (NULL),typeof((1) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (1),typeof((1) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (1) IS NOT DISTINCT FROM (2),typeof((1) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (NULL),typeof((2) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (1),typeof((2) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (2) IS NOT DISTINCT FROM (2),typeof((2) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (NULL),typeof((3) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (1),typeof((3) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (3) IS NOT DISTINCT FROM (2),typeof((3) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (NULL),typeof((0.5) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (1),typeof((0.5) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (0.5) IS NOT DISTINCT FROM (2),typeof((0.5) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (NULL),typeof((NULL) IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (1),typeof((NULL) IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (NULL) IS NOT DISTINCT FROM (2),typeof((NULL) IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (NULL),typeof(('1') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (1),typeof(('1') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('1') IS NOT DISTINCT FROM (2),typeof(('1') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (NULL),typeof(('2') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (1),typeof(('2') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('2') IS NOT DISTINCT FROM (2),typeof(('2') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (NULL),typeof(('x') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (1),typeof(('x') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT ('x') IS NOT DISTINCT FROM (2),typeof(('x') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (NULL),typeof((X'31') IS NOT DISTINCT FROM (NULL));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected NULL, found NOT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (1),typeof((X'31') IS NOT DISTINCT FROM (1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "group": "is-distinct",
+      "sql": "SELECT (X'31') IS NOT DISTINCT FROM (2),typeof((X'31') IS NOT DISTINCT FROM (2));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found DISTINCT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "e6b71a69100fa054f2bc460622cb2c4f0002af5813e44420e268d943c74268fb",
+  "executable_sha256": "0f8418a858b7d4b05824d18514953eb8b7b13892fdd7197a4f01c6962d60929a",
+  "harness_sha256": "c6a825a9b7547687346e820f7e36571709d7f0eb42d110376c8e8bdeb0dfdc77",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare expression precedence and NULL-test spellings against pinned SQLite.\n\nExact CLI bytes and typeof values are compared on independent images in both\nfile modes. Generated operator pairs, NOT, BETWEEN, LIKE ESCAPE, and NULL-test\nspellings are not filtered based on acceptance. Error wording is not compared.\nNo claim is made here about collations, JSON, subqueries, or boolean-name binding."
+}

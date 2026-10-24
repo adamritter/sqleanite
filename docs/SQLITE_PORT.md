@@ -965,3 +965,47 @@ both audits passed. New component theorems identify the unchanged state/result
 of skipped table and index creation. Direct creation correspondence now states
 that name preparation admitted an actual creation. The existing diagnostic
 inventory remains at 8 explicit feature rejections, not a coverage percentage.
+
+
+### Aggregate result expressions and operator precedence (2026-10-24)
+
+Ordinary aggregates can now feed scalar result expressions, including arithmetic,
+CASE, casts, scalar functions and IN. Bound aggregate terms are accumulated
+before the output template runs. A positive OFFSET skips scalar output evaluation
+but preserves aggregate-step/finalization errors; LIMIT zero still skips both
+after binding. SELECT without FROM aggregates its single implicit empty row,
+or no input rows when WHERE is false, and emits the normal empty aggregate row.
+Bare source-column results, grouping expressions, HAVING and aggregate ORDER BY
+remain separate work. The new registered component theorem proves accumulator
+array length; it is not a complete SQL equivalence theorem.
+
+Fresh differential cases exposed three parser defects: concatenation bound below
+arithmetic, IS NULL consumed its right operand before subsequent arithmetic,
+and relational comparisons shared equality/LIKE precedence. A wider operator
+corpus also found BETWEEN upper-bound associativity and rejected NULL-test/IS
+DISTINCT FROM spellings. The parser now follows the pinned parse.y precedence
+for these operators, and independent token certification accepts ISNULL,
+NOTNULL, NOT NULL, IS DISTINCT FROM and IS NOT DISTINCT FROM. Parenthesized
+NULL tests remain checked against their original source tokens.
+
+The initial operator corpus found **376 discrepancies in 3,008 outcomes**.
+Those results and all three aggregate-discovered parser failures are retained in
+`docs/validation/sqlite-operator-precedence-negative-20261024.json` and the
+`sqlite-aggregate-results-*-negative-20261024.json` reports.
+At frozen Lean/Main SHA-256
+`5410ea4354ccdf59062a73dd531456093fb49e5159fd33e00a56c54f2cb5e215`,
+fresh seed 353627 passed **3,616 aggregate-result cases** (**378 matching errors**),
+seed 353631 passed **6,704 operator cases** (**54 matching errors**), and seed
+353628 passed **1,086 aggregate-argument regressions** (**126 matching errors**).
+Each suite compares exact CLI bytes and explicitly generated typeof values on
+independent images in both file modes; every main/WAL byte must survive reads
+unchanged. Error wording is not compared. The existing **1,120 scalar cases**
+also passed. Reports are `sqlite-aggregate-results-20261024.json`,
+`sqlite-operator-precedence-20261024.json`, `sqlite-aggregate-results-regression-20261024.json`
+and `sqlite-aggregate-results-scalar-regression-20261024.json` under
+`docs/validation/`.
+
+The full build, **185 executable tests**, **995 registered headline theorems**,
+both audits and **61 accepted / 2 declared-unsupported reverse cells** passed.
+These are bounded differential results and component proofs, not a percentage
+of the entire SQLite language or a claim of complete database/WAL equivalence.

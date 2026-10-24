@@ -86,7 +86,10 @@ if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
    grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean; then
+   grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreAggregate.prepareResults ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'prepared.finish values' SQLeanite/CoreSQL.lean &&
+   grep -q 'PreparedResults.accumulate_length' SQLeanite/ProofAxioms.lean; then
   ok "SUM/AVG/TOTAL use the numeric accumulator on production Core values"
 else
   fail "numeric aggregate execution or its registered contracts are missing"

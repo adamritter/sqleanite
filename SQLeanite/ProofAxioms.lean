@@ -1096,3 +1096,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.executeStatement_createTable_noop
 #print axioms SQLeanite.CoreSQL.executeStatement_createIndex_noop
+
+#print axioms SQLeanite.CoreAggregate.PreparedResults.accumulate_length

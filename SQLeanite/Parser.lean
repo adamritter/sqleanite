@@ -119,17 +119,17 @@ private def binaryInfo : Token → Option (BinaryOp × Nat)
     else none
   | .symbol "=" | .symbol "==" => some (.eq, 3)
   | .symbol "!=" | .symbol "<>" => some (.ne, 3)
-  | .symbol "<" => some (.lt, 3)
-  | .symbol "<=" => some (.le, 3)
-  | .symbol ">" => some (.gt, 3)
-  | .symbol ">=" => some (.ge, 3)
-  | .symbol "|" => some (.bitOr, 4)
-  | .symbol "&" => some (.bitAnd, 4)
-  | .symbol "<<" => some (.shiftLeft, 4)
-  | .symbol ">>" => some (.shiftRight, 4)
-  | .symbol "||" => some (.concat, 5)
-  | .symbol "->" => some (.arrow, 5)
-  | .symbol "->>" => some (.arrowText, 5)
+  | .symbol "<" => some (.lt, 4)
+  | .symbol "<=" => some (.le, 4)
+  | .symbol ">" => some (.gt, 4)
+  | .symbol ">=" => some (.ge, 4)
+  | .symbol "|" => some (.bitOr, 5)
+  | .symbol "&" => some (.bitAnd, 5)
+  | .symbol "<<" => some (.shiftLeft, 5)
+  | .symbol ">>" => some (.shiftRight, 5)
+  | .symbol "||" => some (.concat, 8)
+  | .symbol "->" => some (.arrow, 8)
+  | .symbol "->>" => some (.arrowText, 8)
   | .symbol "+" => some (.add, 6)
   | .symbol "-" => some (.sub, 6)
   | .symbol "*" => some (.mul, 7)
@@ -167,14 +167,14 @@ mutual
           discard <| advance
           let lower ← parseExprFuel fuel 3
           expectKeyword "and"
-          let upper ← parseExprFuel fuel 3
+          let upper ← parseExprFuel fuel 4
           lhs := .binary .and (.binary .ge lhs lower) (.binary .le lhs upper)
         else if minPrec <= 3 && isKeyword (← peek) "not" then
           discard <| advance
           if ← acceptKeyword "between" then
             let lower ← parseExprFuel fuel 3
             expectKeyword "and"
-            let upper ← parseExprFuel fuel 3
+            let upper ← parseExprFuel fuel 4
             lhs := .unary .not (.binary .and (.binary .ge lhs lower) (.binary .le lhs upper))
           else if ← acceptKeyword "like" then
             let pattern ← parseExprFuel fuel 4
@@ -221,14 +221,15 @@ mutual
             expectKeyword "from"
             let rhs ← parseExprFuel fuel 4
             lhs := .binary (if negated then .is else .isNot) lhs rhs
-          else if ← acceptKeyword "null" then lhs := .isNull lhs negated
           else if ← acceptKeyword "true" then
             lhs := .call (if negated then "lean_is_not_true" else "lean_is_true") #[lhs] false
           else if ← acceptKeyword "false" then
             lhs := .call (if negated then "lean_is_not_false" else "lean_is_false") #[lhs] false
           else
             let rhs ← parseExprFuel fuel 4
-            lhs := .binary (if negated then .isNot else .is) lhs rhs
+            lhs := match rhs with
+              | .literal .null => .isNull lhs negated
+              | _ => .binary (if negated then .isNot else .is) lhs rhs
         else if minPrec <= 3 && isKeyword (← peek) "isnull" then
           discard <| advance
           lhs := .isNull lhs false
