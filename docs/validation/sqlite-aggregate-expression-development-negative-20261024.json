@@ -1,0 +1,193 @@
+{
+  "seed": 353550,
+  "random_cases": 180,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 237,
+      "result_rows": 64,
+      "matching_errors": 39
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 237,
+      "result_rows": 64,
+      "matching_errors": 39
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM t LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM t LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM empty;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM empty LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count() FROM empty LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "100\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM t LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM t LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM empty;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM empty LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count() FROM empty LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to aggregate function\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "5cab45f10be58558955237b70b0657de15d263a1cf0dea9b9874b9a41ce89e41",
+  "executable_sha256": "7ab96ee170c4fd4627608c1d043fb501043a81b76ad06be11ba008ba73131178",
+  "harness_sha256": "bda6d2f1302da995a65f676dc9379d3e261b94fc745d830238264e2bf20d23e1",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare bound scalar aggregate arguments, DISTINCT and expression WHERE.\n\nThe final result is compared byte-for-byte and errors by rejection status.\nInput images are independent and reads must preserve their bytes. This covers\nordinary single-table aggregate terms, not nested result expressions, grouping,\nHAVING or aggregate ORDER BY. All generated mismatches remain in the report."
+}

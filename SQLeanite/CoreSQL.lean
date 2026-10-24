@@ -3,6 +3,7 @@ import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
 import SQLeanite.CoreExpr
+import SQLeanite.CoreAggregate
 import SQLeanite.CoreCompound
 
 namespace SQLeanite
@@ -179,30 +180,34 @@ def countTarget? (schema : Core.Schema) :
       if canonical name != "count" then .ok none
       else if star && arguments.isEmpty then .ok (some .star)
       else match arguments.toList, star with
-        | [.column _ name], false => return some (.column (← column schema name))
-        | _, _ => unsupported "COUNT argument"
+        | [.column qualifier name], false =>
+            if qualifier.isSome then .ok none
+            else return some (.column (← column schema name))
+        | _, _ => .ok none
   | _ => .ok none
 
 def sumColumn? (schema : Core.Schema) :
     List ResultColumn → Except String (Option Nat)
-  | [{ expr := .call name #[.column _ columnName] false, .. }] =>
-      if canonical name == "sum" then return some (← column schema columnName)
+  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
+      if qualifier.isSome then .ok none
+      else if canonical name == "sum" then return some (← column schema columnName)
       else .ok none
   | [{ expr := .call name _ _, .. }] =>
-      if canonical name == "sum" then unsupported "SUM argument" else .ok none
+      .ok none
   | _ => .ok none
 
 def extremeColumn? (schema : Core.Schema) :
     List ResultColumn → Except String (Option (Bool × Nat))
-  | [{ expr := .call name #[.column _ columnName] false, .. }] =>
-      if canonical name == "min" then
+  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
+      if qualifier.isSome then .ok none
+      else if canonical name == "min" then
         return some (true, ← column schema columnName)
       else if canonical name == "max" then
         return some (false, ← column schema columnName)
       else .ok none
   | [{ expr := .call name args star, .. }] =>
       if canonical name == "min" || canonical name == "max" then
-        if !star && args.size ≥ 2 then .ok none else unsupported "MIN/MAX argument"
+        .ok none
       else .ok none
   | _ => .ok none
 
@@ -985,32 +990,53 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
     (ordering : List (Nat × Bool)) : Bool :=
   distinct && !(ordering.all fun term => columns.contains term.1)
 
-/-- Scalar projections share the same bounded source scan as scalar WHERE.
-The earlier predicate translation remains useful for recognizing Core queries;
-this fallback binds and evaluates the original SQL expression tree. -/
+/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE is
+scanned once over Core rows before any aggregate result is finalized. -/
+def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String (Core.Result × Nat) := do
+  unless select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
+    unsupported "aggregate grouping, HAVING or ORDER BY"
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let terms ← CoreAggregate.terms ctx select.columns.toList
+  let _ ← select.where_.mapM ctx.validate
+  if select.limit == some 0 then return ({}, terms.length)
+  let enabled ← ctx.constantMatches select.where_
+  let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
+  let ctx := expressionSearchContext ctx search
+  let enabled ← if enabled then expressionSearchReady ctx search select.where_ else pure false
+  let inputs ← if !enabled then pure [] else do
+    let (_, result) ← Core.execute state (.query (canonical source.name)
+      { columns := List.range stored.schema.columns.length, predicate := search })
+    CoreAggregate.selectRows ctx select.where_ result.rows
+  let output ← terms.mapM (CoreAggregate.Term.eval ctx inputs)
+  let rows := if select.offset > 0 then [] else [output]
+  return ({ rows }, terms.length)
+
+def executeAggregateSelect (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> aggregateSelectResult state select source stored
+
+theorem executeAggregateSelect_preserves_state {state : Core.State} {select : Select}
+    {source : TableRef} {stored : Core.Table} {execution : SelectExecution}
+    (success : executeAggregateSelect state select source stored = .ok execution) :
+    execution.state = state := by
+  unfold executeAggregateSelect at success
+  cases result : aggregateSelectResult state select source stored with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
+
+/-- Scalar and aggregate projections share bound Core source rows. A recognized
+aggregate term selects the aggregate evaluator; malformed/mixed result shapes
+remain explicit errors until their own result-expression handling is present. -/
 def executeExpressionSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) (_wherePredicate : Option Core.Predicate) :
-    Except String SelectExecution := do
-  match select.columns.toList with
-  | [{ expr := .call name #[.column qualifier columnName] false, .. }] =>
-      if canonical name == "avg" || canonical name == "total" then
-        unless select.groupBy.isEmpty && !select.distinct && select.orderBy.isEmpty &&
-            select.limit.isNone && select.offset == 0 do
-          unsupported "AVG/TOTAL query shape"
-        let ctx : CoreExpr.Context := {
-          schema := stored.schema
-          sourceName := source.alias.getD source.name }
-        let index ← match ctx.column? qualifier columnName with
-          | some index => .ok index
-          | none => .error s!"no such column: {columnName}"
-        let (next, result) ← Core.execute state (.query (canonical source.name)
-          { columns := [index], predicate := _wherePredicate })
-        let values := result.rows.map (fun row => row[0]?.getD .null)
-        let value := if canonical name == "avg" then SQLite.AggregateSum.average values
-          else SQLite.AggregateSum.total values
-        return ⟨next, { rows := [[value]] }, 1⟩
-      else executeFilteredSelect state select source stored
-  | _ => executeFilteredSelect state select source stored
+    Except String SelectExecution :=
+  if select.columns.any (fun column => CoreAggregate.recognizes column.expr) then
+    executeAggregateSelect state select source stored
+  else executeFilteredSelect state select source stored
 
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
@@ -1029,7 +1055,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
     match select.where_.mapM (predicate stored.schema) with
-    | .error _ => executeFilteredSelect state select source stored
+    | .error _ => executeExpressionSelect state select source stored none
     | .ok wherePredicate => do
       if !select.groupBy.isEmpty then
         if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
@@ -1048,19 +1074,19 @@ def executeSelectBase (state : Core.State) (select : Select) :
             ← extremeColumn? stored.schema select.columns.toList with
         | some target, none, none =>
           if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
-            unsupported "COUNT DISTINCT, ORDER BY, or LIMIT"
+            executeAggregateSelect state select source stored
           else
             let (next, result) ← Core.execute state (.count tableName target wherePredicate)
             return ⟨next, result, 1⟩
         | none, some column, none =>
           if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
-            unsupported "SUM DISTINCT, ORDER BY, or LIMIT"
+            executeAggregateSelect state select source stored
           else
             let (next, result) ← Core.execute state (.sum tableName column wherePredicate)
             return ⟨next, result, 1⟩
         | none, none, some (minimum, column) =>
           if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
-            unsupported "MIN/MAX DISTINCT, ORDER BY, or LIMIT"
+            executeAggregateSelect state select source stored
           else
             let (next, result) ← Core.execute state
               (.extreme tableName minimum column wherePredicate)

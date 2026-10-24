@@ -3917,6 +3917,36 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteAggregateExpressions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,1.0),(3,2),(4,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT count(DISTINCT v),sum(DISTINCT v),avg(DISTINCT v),total(DISTINCT v) FROM t;",
+      [[.integer 2, .integer 3, .real 1.5, .real 3.0]]),
+    ("SELECT count(*),sum(v+1),avg(v),count(v*0) FROM t WHERE v+1>2;",
+      [[.integer 1, .integer 3, .real 2.0, .integer 1]]),
+    ("SELECT count(*),sum(v),avg(v),total(v),min(v),max(v) FROM t WHERE id<0;",
+      [[.integer 0, .null, .null, .real 0.0, .null, .null]]),
+    ("SELECT count(abs(-9223372036854775808)) FROM t LIMIT 0;", []),
+    ("SELECT count(*) FROM t LIMIT 1 OFFSET 1;", []),
+    ("SELECT count() FROM t;", [[.integer 4]]),
+    ("SELECT count(x.v) FROM t AS x;", [[.integer 3]]),
+    ("SELECT count(*) FROM t WHERE abs(-9223372036854775808) LIMIT 0;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"aggregate expression: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do
+      fail s!"aggregate expression result: {sql}"
+  for sql in ["SELECT count(missing) FROM t LIMIT 0;", "SELECT count(sum(v)) FROM t;",
+      "SELECT count(t.v) FROM t AS x;", "SELECT sum(unknown.v) FROM t;",
+      "SELECT sum(*) FROM t;", "SELECT count(abs(-9223372036854775808)) FROM t LIMIT 1 OFFSET 1;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .ok _ => fail s!"aggregate accepted invalid expression: {sql}"
+    | .error _ => pure ()
+
 private def expectSQLiteNumericAggregates : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × Value) := [
@@ -4286,6 +4316,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite aggregate expressions DISTINCT and WHERE", expectSQLiteAggregateExpressions),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),

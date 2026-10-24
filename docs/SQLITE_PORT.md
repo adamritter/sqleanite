@@ -706,3 +706,40 @@ headline theorems** and both audits passed. Reports are
 `docs/validation/sqlite-scalar-numeric-aggregate-20261024.json`.
 The diagnostic inventory still contains 14 explicit SQL rejections and is not
 a whole-SQLite compatibility percentage.
+
+
+### Bound aggregate arguments and DISTINCT checkpoint (2026-10-24)
+
+`CoreAggregate` now evaluates ordinary single-table COUNT/SUM/AVG/TOTAL/MIN/MAX
+terms with bound scalar arguments, multiple aggregate result columns, and
+DISTINCT input elimination using the exact Core BINARY numeric keys. The query
+first filters Core source rows with the shared expression-WHERE evaluator,
+including constant-term preparation and supported indexed searches. LIMIT zero
+skips evaluation after binding; OFFSET skips the finalized aggregate output,
+so it does not suppress errors encountered while accumulating inputs.
+
+COUNT() shares COUNT(*)'s row count, including empty inputs. This SQLite case
+was the 12-failure development counterexample retained in
+`docs/validation/sqlite-aggregate-expression-development-negative-20261024.json`.
+Qualified column arguments go through binding before the older direct-column
+optimization, so a wrong table name/alias fails even on empty input or LIMIT
+zero. Scalar MIN/MAX with multiple arguments keeps its scalar classification.
+
+Frozen implementation SHA-256:
+`900a7e22179f518b009c616320f87f9369bfdc1cbad37a2c7a35e4353a9fc1f8`.
+Fresh seed 353551 checked **1,086 queries**, including **126 matching errors**,
+across both production file modes, with no output or rejection-status mismatch.
+Seed 353552 checked **992 numeric-aggregate/regression queries**, including
+**16 matching errors**. All reads preserved main/WAL bytes. Reports are
+`docs/validation/sqlite-aggregate-expression-20261024.json` and
+`docs/validation/sqlite-aggregate-expression-numeric-regression-20261024.json`.
+Full build, **176 executable tests**, **977 registered headline theorems** and
+both audits passed. The new registered contracts cover the COUNT(*) Core count,
+filtered-row length and unchanged Core state. These are component contracts;
+the CLI comparisons do not assert identical diagnostic wording or query plans.
+
+The new term evaluator does not yet cover aggregate expressions nested in
+result expressions, mixed bare/aggregate columns, source-free aggregates,
+GROUP BY expression terms, HAVING or aggregate ORDER BY. The previous direct
+column GROUP BY route remains available. The diagnostic inventory now retains
+12 explicit rejections; it is not a whole-SQLite coverage percentage.

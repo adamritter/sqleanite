@@ -1069,3 +1069,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.AggregateSum.accumulate_nulls
 #print axioms SQLeanite.SQLite.AggregateSum.sum_nulls
 #print axioms SQLeanite.SQLite.AggregateSum.average_nulls
+
+#print axioms SQLeanite.CoreAggregate.countStar_exact
+#print axioms SQLeanite.CoreAggregate.selectRows_length_le
+#print axioms SQLeanite.CoreSQL.executeAggregateSelect_preserves_state
