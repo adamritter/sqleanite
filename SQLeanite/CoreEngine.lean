@@ -209,9 +209,10 @@ def Query.selectedRows (query : Query) (rows : List Row) : List Row :=
   let rows := rows.filter (selects query.predicate)
   let rows := if query.orderBy.isEmpty then rows
     else rows.mergeSort (rowLe query.orderBy)
-  match query.limit with
-  | none => rows
-  | some limit => rows.take limit
+  if query.distinct then rows
+  else match query.limit with
+    | none => rows
+    | some limit => rows.take limit
 
 def deduplicate [DecidableEq α] : List α → List α
   | [] => []
@@ -240,12 +241,71 @@ theorem deduplicate_nodup [DecidableEq α] (values : List α) :
       · apply List.nodup_cons.mpr
         exact ⟨by simpa [mem_deduplicate], induction⟩
 
+/-- Preserve the first representative, rather than the last one, before LIMIT.
+The historical last-retaining helper remains for its other callers. -/
+def stableDeduplicate [DecidableEq α] (rows : List α) : List α :=
+  (deduplicate rows.reverse).reverse
+
+theorem mem_stableDeduplicate [DecidableEq α] (value : α) (rows : List α) :
+    value ∈ stableDeduplicate rows ↔ value ∈ rows := by
+  simp [stableDeduplicate, mem_deduplicate]
+
+theorem stableDeduplicate_nodup [DecidableEq α] (rows : List α) :
+    (stableDeduplicate rows).Nodup := by
+  apply List.pairwise_reverse.mpr
+  exact (deduplicate_nodup rows.reverse).imp (fun h => Ne.symm h)
+
+theorem deduplicate_map_injective [DecidableEq α] [DecidableEq β]
+    (f : α → β) (injective : Function.Injective f) (rows : List α) :
+    deduplicate (rows.map f) = (deduplicate rows).map f := by
+  induction rows with
+  | nil => rfl
+  | cons x xs ih =>
+      have member : f x ∈ xs.map f ↔ x ∈ xs := by
+        simp only [List.mem_map]
+        constructor
+        · rintro ⟨y, hy, equal⟩
+          exact injective equal ▸ hy
+        · intro h; exact ⟨x, h, rfl⟩
+      simp only [List.map_cons, deduplicate, member]
+      split <;> simp_all
+
+theorem stableDeduplicate_map_injective [DecidableEq α] [DecidableEq β]
+    (f : α → β) (injective : Function.Injective f) (rows : List α) :
+    stableDeduplicate (rows.map f) = (stableDeduplicate rows).map f := by
+  unfold stableDeduplicate
+  rw [← List.map_reverse, deduplicate_map_injective f injective, List.map_reverse]
+
+def limitRows (limit : Option Nat) (rows : List α) : List α :=
+  match limit with | none => rows | some n => rows.take n
+
+theorem mem_limitRows {limit : Option Nat} {rows : List α} {row : α}
+    (h : row ∈ limitRows limit rows) : row ∈ rows := by
+  cases limit with
+  | none => exact h
+  | some n => exact List.mem_of_mem_take h
+
+theorem limitRows_nodup (limit : Option Nat) {rows : List α} (h : rows.Nodup) :
+    (limitRows limit rows).Nodup := by
+  cases limit with
+  | none => exact h
+  | some n => exact h.take
+
+theorem limitRows_map (limit : Option Nat) (f : α → β) (rows : List α) :
+    limitRows limit (rows.map f) = (limitRows limit rows).map f := by
+  cases limit <;> simp [limitRows, List.map_take]
+
 def Query.projectedRows (query : Query) (rows : List Row) : List (List Value) :=
   (query.selectedRows rows).map fun row => query.columns.map row.value
 
 def Query.eval (query : Query) (rows : List Row) : List (List Value) :=
   let projected := query.projectedRows rows
-  if query.distinct then deduplicate projected else projected
+  if query.distinct then limitRows query.limit (stableDeduplicate projected) else projected
+
+theorem Query.eval_distinct_limit (query : Query) (rows : List Row) (n : Nat)
+    (enabled : query.distinct = true) (limited : query.limit = some n) :
+    (query.eval rows).length ≤ n := by
+  simp [Query.eval, enabled, limited, limitRows, Nat.min_le_left]
 
 theorem Query.eval_primaryKey (table : Table) (query : Query) (rowid : Integer)
     (predicate : query.predicate =
@@ -289,13 +349,14 @@ theorem Query.eval_width (query : Query) (rows : List Row)
   split at member
   next enabled =>
     have original : output ∈ query.projectedRows rows :=
-      (mem_deduplicate output (query.projectedRows rows)).mp member
+      (mem_stableDeduplicate output (query.projectedRows rows)).mp (mem_limitRows member)
     exact Query.projectedRows_width query rows original
   next disabled => exact Query.projectedRows_width query rows member
 
 theorem Query.eval_nodup_of_distinct (query : Query) (rows : List Row)
     (enabled : query.distinct = true) : (query.eval rows).Nodup := by
-  simp [Query.eval, enabled, deduplicate_nodup]
+  simpa [Query.eval, enabled] using
+    limitRows_nodup query.limit (stableDeduplicate_nodup (query.projectedRows rows))
 
 /-- Does this row agree with the sought value on the indexed column, under the
 same equality the predicate applies? -/

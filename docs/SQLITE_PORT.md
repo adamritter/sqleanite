@@ -200,11 +200,45 @@ projection adapter is claimed. The differential report labels its measurements
 as query-output comparisons, distinct from the exact storage-bit comparisons
 in the scalar INSERT suites.
 
-The original direct-column DISTINCT path has a separately reproduced bug:
-with values `(1,1,2)`, `SELECT DISTINCT v FROM d ORDER BY id LIMIT 2` returns
-only `1`, whereas SQLite returns `1,2`. It still limits before deduplication.
-This existing negative result is reported separately and is not a passing
-expression test. It prevents any claim of complete SQLite compatibility.
+The preceding row-expression checkpoint reproduced a direct-column DISTINCT
+bug: values `(1,1,2)` with `SELECT DISTINCT v FROM d ORDER BY id LIMIT 2`
+returned only `1`. The subsequent Core correction now retains first
+representatives and applies LIMIT after duplicate elimination, returning
+`1,2`. The bag denotation models that ordered prefix explicitly; the existing
+read and permutation theorem statements are preserved and rechecked. The old
+negative result remains in the earlier checkpoint report.
+
+This corrects operation order, not all SQLite equality semantics. The direct
+column path still uses representation equality: `1` and `1.0` in a column with
+no affinity can survive DISTINCT as separate rows. The newer expression
+projection path uses SQLite numeric comparison instead. This remaining
+cross-storage-class discrepancy is exercised and reported separately, and
+prevents any claim that direct-column DISTINCT is fully SQLite-compatible.
+
+The fresh tests also exposed and fixed two CLI issues: empty/NULL-only rows
+must emit an empty line, and rendered TEXT stops at its first NUL. File, WAL
+and timed CLI modes share those fixes. A later malformed UTF-8 probe found a
+missing signed-Int32 conversion in `unicode`; the exact failing bytes are now
+a fixed regression. These negative checkpoint results are retained rather
+than counted among passing cases.
+
+## Final DISTINCT/LIMIT and CLI checkpoint
+
+The [final checkpoint report](validation/sqlite-distinct-cli-20261024.json)
+records **604 queries / 42,873 result rows** at fresh seed `353424`, and
+**6,539 text/blob expressions** at fresh seed `353415`, with no differences in
+those admitted cases. The 1,120-expression scalar suite and the 444-value /
+4,708-query affinity suite also pass. All **163 executable tests**, **938
+registered headline theorems**, the source audit and the complete live-path
+audit pass. The report hashes all library sources and `Main.lean`.
+
+The direct-column LIMIT reproduction now returns `1,2` in both engines, and
+60 generated indexed/range/ordered/empty DISTINCT queries provide regression
+coverage. Empty rows and NUL text rendering match in all three CLI modes.
+The [first fresh negative checkpoint](validation/sqlite-distinct-cli-development-negative-20261024.json)
+and [Unicode signed-result failure](validation/sqlite-unicode-development-negative-20261024.json)
+remain available. The final report still separately records the unresolved
+INTEGER/REAL DISTINCT difference; it is not counted as a passing case.
 
 ## Still missing
 

@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.35.0 and has no Lake dependencies.
-The current suite passes all 162 executable tests and audits all
-933 registered headline theorems. The verification audit reports no `sorry`,
+The current suite passes all 163 executable tests and audits all
+938 registered headline theorems. The verification audit reports no `sorry`,
 `axiom`, `native_decide`, `unsafe`, or project-local `partial def`.
 Generate current source counts and theorem dependencies with
 `scripts/lean-manifest.sh`.
@@ -23,6 +23,8 @@ stored column affinity on writes, record reads and supported comparisons,
 and 18 text/blob and scalar function names including `substr`, `replace`,
 `unhex`, `unicode` and multi-argument `min`/`max`, plus row-dependent SELECT
 projections using the same scalar evaluator and explicit column affinity.
+The direct-column query path now applies LIMIT after stable duplicate removal;
+remaining numeric DISTINCT differences are recorded in the port report.
 It runs through the production Core path without new C or SQLite FFI.
 The port report distinguishes proved properties, differential evidence and
 the substantial SQLite functionality that remains unported.

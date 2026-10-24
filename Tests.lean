@@ -3801,7 +3801,8 @@ private def expectSQLiteTextFunctions : IO Unit := do
     ("concat_ws('-',NULL,'','')", .text "-"), ("concat_ws(NULL,'a')", .null),
     ("char(65,128578)", .text "A🙂"), ("char()", .text ""),
     ("unicode('🙂')", .integer 128578), ("unicode('')", .null),
-    ("unicode(X'FF')", .integer 65533), ("unicode(char(65535))", .integer 65533),
+    ("unicode(X'FF')", .integer 65533),
+    ("unicode(X'CBBEB9A28F89934749')", .integer (-1182207405)), ("unicode(char(65535))", .integer 65533),
     ("quote('O''Brien')", .text "'O''Brien'"), ("quote(1e999)", .text "9.0e+999"),
     ("zeroblob(3)", .blob #[0, 0, 0]), ("sign('1x')", .null),
     ("sign('-1.5')", .integer (-1)), ("sign(X'31')", .null),
@@ -3839,6 +3840,19 @@ private def expectSQLiteRowExpressions : IO Unit := do
     match CoreSQL.execute Core.State.empty (setup ++ query) with
     | .ok _ => fail s!"unbound row expression accepted: {query}"
     | .error _ => pure ()
+
+private def expectSQLiteDistinctLimit : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,2),(3,1),(4,3);"
+  for query in ["SELECT DISTINCT v FROM t ORDER BY id LIMIT 2;",
+      "SELECT DISTINCT v FROM t LIMIT 2;", "SELECT DISTINCT v FROM t ORDER BY v LIMIT 2;"] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"DISTINCT LIMIT: {message}"
+    let expected ← match [[Value.integer 1], [Value.integer 2]].mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some expected do
+      fail s!"DISTINCT must retain first values before LIMIT: {query}"
 
 private def expectSQLiteScalarAdmission : IO Unit := do
   for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
@@ -3939,6 +3953,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),
   ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),

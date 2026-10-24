@@ -128,6 +128,14 @@ else
   fail "row expressions detached from the production evaluator or width proof"
 fi
 
+if grep -q 'limitRows query.limit (stableDeduplicate projected)' SQLeanite/CoreEngine.lean &&
+   grep -q 'orderedLimit (Core.stableDeduplicate' SQLeanite/CoreReadSemantics.lean &&
+   grep -q 'Core.Query.eval_distinct_limit' SQLeanite/ProofAxioms.lean; then
+  ok "DISTINCT precedes LIMIT on the live Core query and its bag denotation"
+else
+  fail "DISTINCT/LIMIT implementation detached from its corrected denotation"
+fi
+
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
 #    Checked structurally: the executor must call the planner, and Main must
 #    route --verified-file into the Core engine.

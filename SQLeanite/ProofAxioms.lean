@@ -1008,3 +1008,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Scalar.evalWith_literal
 #print axioms SQLeanite.CoreExpr.projectRow_width
 #print axioms SQLeanite.CoreExpr.eval_column
+
+-- Stable DISTINCT and its post-deduplication LIMIT denotation.
+#print axioms SQLeanite.Core.stableDeduplicate_nodup
+#print axioms SQLeanite.Core.stableDeduplicate_map_injective
+#print axioms SQLeanite.Core.Query.eval_distinct_limit
+#print axioms SQLeanite.CoreReadSemantics.ofList_limitRows
+#print axioms SQLeanite.CoreReadSemantics.ofList_stableDeduplicate

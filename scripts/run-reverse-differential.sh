@@ -173,19 +173,19 @@ which C SQLite reads unconditionally; nothing is lost on the forward direction.
 
 ## Value rendering differs from the `sqlite3` shell, and is not a storage claim
 
-Two differences are known, both in `Main.lean`'s unverified result rendering
-rather than in storage or comparison:
+One difference is retained in `Main.lean`'s result rendering rather than in
+storage or comparison:
 
 | value | `sqlite3` prints | `sqleanite` prints |
 |---|---|---|
-| REAL with an integral value, e.g. `3.0` | `3.0` | `3` |
 | BLOB, e.g. `x'00ff10'` | the raw bytes | `X'00FF10'` |
 
-Both files round-trip correctly: the matrix cells for REAL and BLOB below read
-those values through *ordering and predicates* rather than through rendering, so
-they test the codec and the comparison, which are the parts with theorems.
-Rendering lives in the executable TCB (see `docs/TRUST.md`) and is deliberately
-not claimed to match the shell byte for byte.
+The matrix cells for REAL and BLOB below read values through ordering and
+predicates, testing the codec and comparison separately from rendering.
+The row-expression differential suite checks integral REAL rendering, empty
+and NULL-only rows, and NUL-terminated TEXT output in file, WAL and timed modes.
+Rendering remains in the executable TCB (see `docs/TRUST.md`); general shell
+byte-for-byte compatibility is not claimed.
 
 ## Reverse-direction matrix
 

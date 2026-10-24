@@ -23,13 +23,15 @@ private def coreValueText : PhysicalCodec.Value → String
   | .integer value => toString value.value
   | .realBits bits => toString (SQLeanite.Value.real
       (Float.ofBits (UInt64.ofNat bits.val)))
-  | .text text => String.fromUTF8? (ByteArray.mk text.bytes.toArray) |>.getD ""
+  | .text text =>
+      let decoded := (String.fromUTF8? (ByteArray.mk text.bytes.toArray)).getD ""
+      String.ofList (decoded.toList.takeWhile (· != '\x00'))
   | .blob blob =>
       (SQLeanite.Value.blob blob.bytes.toArray).clientText
 
 private def renderCoreResult (result : Core.Result) : String :=
-  String.intercalate "\n" <| result.rows.map fun row =>
-    String.intercalate "|" (row.map coreValueText)
+  String.join <| result.rows.map fun row =>
+    String.intercalate "|" (row.map coreValueText) ++ "\n"
 
 /-- A preflighted line from a script whose physical lines are independently
 parseable statements.  Keeping only the source and write bit lets large load
@@ -146,7 +148,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
       else pure none
     if let some result := lazyWrite then
       let text := renderCoreResult result
-      unless text.isEmpty do IO.println text
+      unless text.isEmpty do IO.print text
       return 0
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
@@ -166,9 +168,8 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
         IO.eprintln s!"Error: {message}"
         pure 1
     | .ok results =>
-        let text := String.intercalate "\n" <|
-          (results.map renderCoreResult).filter fun output => !output.isEmpty
-        unless text.isEmpty do IO.println text
+        let text := String.join (results.map renderCoreResult)
+        unless text.isEmpty do IO.print text
         pure 0
 
 private def coreWALBatch (databasePath : String) (args : List String) : IO UInt32 := do
@@ -198,9 +199,8 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
       IO.eprintln s!"Error: {message}"
       pure 1
   | .ok results =>
-      let text := String.intercalate "\n" <|
-        (results.map renderCoreResult).filter fun output => !output.isEmpty
-      unless text.isEmpty do IO.println text
+      let text := String.join (results.map renderCoreResult)
+      unless text.isEmpty do IO.print text
       pure 0
 
 private def coreWALCheckpoint (databasePath : String) : IO UInt32 := do
@@ -254,9 +254,8 @@ private def coreBatchTimed (databasePath : String) (args : List String) :
           IO.eprintln s!"Error: {message}"
           status := 1
       | .ok results =>
-          let text := String.intercalate "\n" <|
-            (results.map renderCoreResult).filter fun output => !output.isEmpty
-          unless text.isEmpty do IO.println text
+          let text := String.join (results.map renderCoreResult)
+          unless text.isEmpty do IO.print text
     pure status
 
 private def runMain (args : List String) : IO UInt32 :=

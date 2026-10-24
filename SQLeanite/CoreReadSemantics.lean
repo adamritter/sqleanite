@@ -76,6 +76,43 @@ theorem optimize_tableFilterPlan_eval {database : Core.Database}
   rw [QuerySemantics.optimizePlan_eval]
   exact tableFilterPlan_eval found predicate
 
+/-- LIMIT restricts a duplicate-free bag to a prefix of its explicit ordered
+presentation. Ordering remains an input to this bag-level operation. -/
+def orderedLimit {α : Type} [DecidableEq α] (order : List α) (limit : Option Nat)
+    (relation : KRelation.Relation α) : KRelation.Relation α :=
+  match limit with
+  | none => relation
+  | some n => KRelation.select
+      (fun row => if row ∈ order.take n then .true else .false) relation
+
+theorem ofList_limitRows {α : Type} [DecidableEq α] (rows : List α) (limit : Option Nat)
+    (nodup : rows.Nodup) :
+    RelationalAlgebra.ofList (Core.limitRows limit rows) =
+      orderedLimit rows limit (RelationalAlgebra.ofList rows) := by
+  cases limit with
+  | none => rfl
+  | some n =>
+      funext row
+      simp only [Core.limitRows, orderedLimit, KRelation.select, RelationalAlgebra.ofList,
+        RelationalAlgebra.listMultiplicity_eq_count]
+      rw [List.Nodup.count (nodup.take), List.Nodup.count nodup]
+      by_cases member : row ∈ rows.take n
+      · have original : row ∈ rows := List.mem_of_mem_take member
+        simp [member, original]
+      · simp [member]
+
+theorem ofList_stableDeduplicate {α : Type} [DecidableEq α] (rows : List α) :
+    RelationalAlgebra.ofList (Core.stableDeduplicate rows) =
+      KRelation.distinct (RelationalAlgebra.ofList rows) := by
+  calc
+    RelationalAlgebra.ofList (Core.stableDeduplicate rows) =
+        RelationalAlgebra.ofList (Core.deduplicate rows.reverse) :=
+      RelationalAlgebra.ofList_perm (List.reverse_perm _)
+    _ = KRelation.distinct (RelationalAlgebra.ofList rows.reverse) :=
+      RelationalAlgebra.ofList_deduplicate _
+    _ = KRelation.distinct (RelationalAlgebra.ofList rows) :=
+      congrArg KRelation.distinct (RelationalAlgebra.ofList_perm (List.reverse_perm _))
+
 /-- Bag denotation of the live query after its order/limit presentation step.
 The finite support is deduplicated, so projection sums each source value once
 and preserves its original multiplicity. -/
@@ -86,7 +123,10 @@ def queryDenotation (query : Core.Query) (rows : List Core.Row) :
     (RelationalAlgebra.supportDomain selected).values
     (fun row => query.columns.map row.value)
     (RelationalAlgebra.ofList selected)
-  if query.distinct then KRelation.distinct projected else projected
+  if query.distinct then
+    orderedLimit (Core.stableDeduplicate (query.projectedRows rows)) query.limit
+      (KRelation.distinct projected)
+  else projected
 
 theorem query_eval_denotes (query : Core.Query) (rows : List Core.Row) :
     RelationalAlgebra.ofList (query.eval rows) =
@@ -94,8 +134,9 @@ theorem query_eval_denotes (query : Core.Query) (rows : List Core.Row) :
   unfold Core.Query.eval Core.Query.projectedRows queryDenotation
   split
   next enabled =>
-    rw [RelationalAlgebra.ofList_deduplicate]
+    rw [ofList_limitRows _ _ (Core.stableDeduplicate_nodup _), ofList_stableDeduplicate]
     rw [← RelationalAlgebra.project_ofList]
+    rfl
   next disabled =>
     rw [← RelationalAlgebra.project_ofList]
 
@@ -534,8 +575,8 @@ theorem permuted_projection_denotes (query : Core.Query) {positions : List Nat}
             columns := positions.map (fun index => query.columns.getD index 0) }
           rows =
         if query.distinct then
-          Core.deduplicate ((query.projectedRows rows).map
-            (reorderValues positions))
+          Core.limitRows query.limit (Core.stableDeduplicate ((query.projectedRows rows).map
+            (reorderValues positions)))
         else (query.projectedRows rows).map (reorderValues positions) := by
     unfold Core.Query.eval
     rw [projected]
@@ -543,12 +584,14 @@ theorem permuted_projection_denotes (query : Core.Query) {positions : List Nat}
   cases flag : query.distinct with
   | true =>
       simp only [flag, if_true]
-      rw [RelationalAlgebra.ofList_deduplicate,
-        ← columnBijection_forward perm,
-        RelationalAlgebra.ofList_map_permute (columnBijection perm)
-          (query.projectedRows rows),
-        RelationalAlgebra.distinct_permute,
-        ← RelationalAlgebra.ofList_deduplicate (query.projectedRows rows)]
+      have injective : Function.Injective (columnBijection perm).forward := by
+        intro a b equal
+        have recovered := congrArg (columnBijection perm).backward equal
+        simpa only [(columnBijection perm).leftInverse] using recovered
+      rw [← columnBijection_forward perm,
+        Core.stableDeduplicate_map_injective _ injective, Core.limitRows_map]
+      exact RelationalAlgebra.ofList_map_permute (columnBijection perm)
+        (Core.limitRows query.limit (Core.stableDeduplicate (query.projectedRows rows)))
   | false =>
       simp only [flag, if_false, Bool.false_eq_true]
       rw [← columnBijection_forward perm]

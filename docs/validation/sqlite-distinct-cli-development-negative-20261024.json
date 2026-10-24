@@ -1,0 +1,55 @@
+{
+  "seed": 353422,
+  "random_cases": 500,
+  "queries": 604,
+  "result_rows": 42869,
+  "matching_errors": 8,
+  "declared_rejections": [
+    "SELECT DISTINCT +u FROM t ORDER BY id DESC LIMIT 4;"
+  ],
+  "failures": [
+    {
+      "index": 532,
+      "sql": "SELECT upper(x.s),x.i+2 FROM t AS x WHERE id>=77 ORDER BY id DESC LIMIT 2;",
+      "lean": [
+        "2|88205",
+        "A\u0000B|-81471"
+      ],
+      "sqlite": [
+        "2|88205",
+        "A|-81471"
+      ]
+    },
+    {
+      "index": 554,
+      "sql": "SELECT DISTINCT v FROM duplicates ORDER BY v ASC LIMIT 1;",
+      "lean": [],
+      "sqlite": [
+        ""
+      ]
+    },
+    {
+      "index": 556,
+      "sql": "SELECT DISTINCT v FROM duplicates WHERE id>30 ORDER BY v ASC LIMIT 1;",
+      "lean": [],
+      "sqlite": [
+        ""
+      ]
+    }
+  ],
+  "distinct_limit_regression": {
+    "sql": "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;",
+    "result": "1\n2\n",
+    "matches_sqlite": true
+  },
+  "existing_numeric_distinct_differences": [
+    {
+      "sql": "SELECT DISTINCT v FROM mixed;",
+      "lean": "1\n1.0\n",
+      "sqlite": "1\n"
+    }
+  ],
+  "implementation_sha256": "738101067e5a65e4ec4cb86d5d0085d5d7796f0e8132dd50d49f091668246de1",
+  "comparison": "query storage classes, hex value/quote renderings; SELECT file-state preservation",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

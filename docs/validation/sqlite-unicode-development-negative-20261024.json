@@ -1,0 +1,33 @@
+{
+  "implementation_sha256": "33afad90b696239cc4c472e1a510b33569bf2999a597ff13a628e99bd5f5d899",
+  "harness_sha256": "f7c3e5b3d9c352b7212042747c94c4f1dc7d2fb0f27026eda284054530eb6bcc",
+  "seed": 353414,
+  "random_cases": 150,
+  "cases": 3037,
+  "failures": [
+    {
+      "id": 1967,
+      "group": "seeded-blob",
+      "expression": "unicode(X'cbbeb9a28f89934749')",
+      "lean": [
+        1967,
+        "integer",
+        3112759891
+      ],
+      "sqlite": [
+        1967,
+        "integer",
+        -1182207405
+      ]
+    }
+  ],
+  "matching_errors": 18,
+  "declared_rejections": [
+    "char(55296)",
+    "trim(X'FF')",
+    "length(zeroblob(1000000))",
+    "coalesce(1,unknown_function())"
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "storage class, exact binary64 bits, raw TEXT/BLOB bytes; integrity_check"
+}

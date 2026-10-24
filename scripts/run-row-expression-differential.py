@@ -70,6 +70,17 @@ def cases(seed, count):
         "SELECT id+1 FROM t WHERE id=1 UNION ALL SELECT id+1 FROM t WHERE id=2;",
         "SELECT * ,v+1 FROM empty;",
     ]
+    inserts.extend(["CREATE TABLE duplicates(id INTEGER PRIMARY KEY,v INTEGER,label TEXT);", "BEGIN;"])
+    for key in range(1, 101):
+        v = rng.choice(["NULL"] + [str(n) for n in range(-5, 6)])
+        label = text(rng.choice(["a", "b", "árvíz"]))
+        inserts.append(f"INSERT INTO duplicates VALUES({key},{v},{label});")
+    inserts.extend(["COMMIT;", "CREATE INDEX duplicate_v ON duplicates(v);"])
+    for limit in [0, 1, 2, 5, 20, 200]:
+        for direction in ["ASC", "DESC"]:
+            for where in ["", " WHERE v>=0", " WHERE id>30", " WHERE id<0"]:
+                queries.append(f"SELECT DISTINCT v FROM duplicates{where} ORDER BY v {direction} LIMIT {limit};")
+            queries.append(f"SELECT DISTINCT v,label FROM duplicates ORDER BY v {direction},label LIMIT {limit};")
     return "\n".join(inserts), queries
 
 
@@ -123,15 +134,38 @@ def main():
             actual, expected = run(args, cwd, query)
             assert actual.returncode != 0 and expected.returncode == 0, query
             assert (cwd / "lean.db").read_bytes() == before, query
-        # Existing direct-column DISTINCT applies LIMIT too early. Keep this
-        # negative result separate instead of counting it as expression parity.
+        rendering_sql = "SELECT 3.0;\nSELECT NULL;\nSELECT '';\nSELECT char(65,0,66);\nSELECT 1 WHERE 0;\n"
+        rendering_file = cwd / "render.sql"
+        rendering_file.write_text(rendering_sql)
+        reference_render = subprocess.run([args.sqlite, "-batch", "-bail", ":memory:"],
+            input=rendering_sql, text=True, capture_output=True, timeout=120)
+        assert reference_render.returncode == 0
+        assert reference_render.stdout == "3.0\n\n\nA\n"
+        modes = ["--verified-file", "--verified-wal-file", "--verified-file-timed"]
+        for mode in modes:
+            rendered = subprocess.run([str(args.lean), mode, str(cwd / (mode + ".db")), str(rendering_file)],
+                text=True, capture_output=True, timeout=120)
+            assert rendered.returncode == 0, (mode, rendered.stderr)
+            assert rendered.stdout == reference_render.stdout, (mode, rendered.stdout, reference_render.stdout)
+        # Regression for the previously reproduced direct-column LIMIT bug.
         query = "SELECT DISTINCT v FROM d ORDER BY id LIMIT 2;"
         setup = "CREATE TABLE d(id INTEGER PRIMARY KEY,v);INSERT INTO d VALUES(1,1),(2,1),(3,2);"
         actual, expected = run(args, cwd, setup)
         assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
         actual, expected = run(args, cwd, query)
         assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
-        known = [] if actual.stdout == expected.stdout else [dict(sql=query, lean=actual.stdout, sqlite=expected.stdout)]
+        assert actual.stdout == expected.stdout == "1\n2\n", (query, actual.stdout, expected.stdout)
+        distinct_regression = dict(sql=query, result=actual.stdout, matches_sqlite=True)
+        # Separate known limitation: the direct-column Core bag still uses
+        # representation equality rather than SQL numeric equivalence.
+        setup = "CREATE TABLE mixed(id INTEGER PRIMARY KEY,v);INSERT INTO mixed VALUES(1,1),(2,1.0);"
+        actual, expected = run(args, cwd, setup)
+        assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
+        mixed_query = "SELECT DISTINCT v FROM mixed;"
+        actual, expected = run(args, cwd, mixed_query)
+        assert actual.returncode == expected.returncode == 0, (actual.stderr, expected.stderr)
+        numeric_difference = [] if actual.stdout == expected.stdout else [
+            dict(sql=mixed_query, lean=actual.stdout, sqlite=expected.stdout)]
         with sqlite3.connect(cwd / "lean.db") as db:
             assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         digest = hashlib.sha256()
@@ -139,7 +173,8 @@ def main():
             digest.update(str(path.relative_to(ROOT)).encode() + b"\0" + path.read_bytes())
         report = dict(seed=args.seed, random_cases=args.random_cases, queries=len(queries),
                       result_rows=sum(map(len, rows.values())), matching_errors=len(errors), declared_rejections=declared, failures=failures,
-                      existing_direct_column_differences=known, implementation_sha256=digest.hexdigest(),
+                      distinct_limit_regression=distinct_regression, cli_render_modes=modes,
+                      existing_numeric_distinct_differences=numeric_difference, implementation_sha256=digest.hexdigest(),
                       comparison="query storage classes, hex value/quote renderings; SELECT file-state preservation",
                       sqlite_version=subprocess.check_output([args.sqlite, "--version"], text=True).strip())
         if args.output:

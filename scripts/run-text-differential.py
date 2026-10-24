@@ -75,7 +75,7 @@ def corpus(seed, count):
         "unicode(char(65535))", "instr(X'FF','')",
         "unhex(char(65534)||'41',char(65533))")
     for raw in [bytes([i]) for i in range(256)] + [
-            bytes.fromhex(h) for h in ["c0af", "eda080", "efbfbf", "f4908080", "ff8080808080", "c28080"]]:
+            bytes.fromhex(h) for h in ["c0af", "eda080", "efbfbf", "f4908080", "ff8080808080", "c28080", "cbbeb9a28f89934749", "ffbfbfbfbfbfbf"]]:
         add("unicode-bytes", f"unicode({blob_literal(raw)})")
     add("zeroblob", "zeroblob(NULL)", "zeroblob(-1)", "zeroblob('3.5')", "zeroblob(16)")
     add("sign", "sign('1x')", "sign(' 1.5 ')", "sign('abc')", "sign(X'31')",

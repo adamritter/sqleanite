@@ -179,7 +179,9 @@ def firstCodepoint : List UInt8 → Option Nat
 
 def unicode (v : Value) : Except String Value :=
   .ok (match firstCodepoint (bytes v).toList with
-    | none => .null | some n => .integer n)
+    | none => .null
+    -- func.c passes the unsigned decoder result to sqlite3_result_int.
+    | some n => .integer (Int32.ofInt (Int.ofNat n)).toInt)
 
 def charValue (values : List Value) : Except String Value := do
   let mut chars := #[]
