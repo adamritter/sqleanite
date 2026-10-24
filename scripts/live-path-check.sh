@@ -153,6 +153,18 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# String aggregates retain byte values and evaluate separators on each input row.
+if grep -q 'import SQLeanite.SQLite.AggregateConcat' SQLeanite/CoreAggregate.lean &&
+   grep -q 'term.separator.mapM (ctx.eval row)' SQLeanite/CoreAggregate.lean &&
+   grep -q 'state.step value (separator.getD' SQLeanite/CoreAggregate.lean &&
+   grep -q 'SQLSurface.value state.finish' SQLeanite/CoreAggregate.lean &&
+   grep -q 'AggregateConcat.State.first_separator_ignored' SQLeanite/ProofAxioms.lean &&
+   grep -q 'AggregateConcat.State.step_null' SQLeanite/ProofAxioms.lean; then
+  ok "string aggregates use the byte-preserving checked accumulator"
+else
+  fail "string aggregate execution or its registered contracts are missing"
+fi
+
 # Rebuilt and page-size-converted images retain application-owned header
 # fields through the existing proved freelist/header layout. WAL uses the
 # newest committed header, including a page-one overlay.

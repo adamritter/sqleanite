@@ -4467,6 +4467,51 @@ private def expectSQLiteWhereAliases : IO Unit := do
       "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
 
+private def expectSQLiteStringAggregates : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v,s);" ++
+    "INSERT INTO t VALUES(1,0,NULL,'!'),(2,0,'A',':'),(3,1,'a',NULL),(4,1,'A',':');" ++
+    "CREATE TABLE b(id INTEGER PRIMARY KEY,v,s);" ++
+    "INSERT INTO b VALUES(1,X'FF0080','!'),(2,X'410042',X'00FF'),(3,1,7),(4,1.0,NULL);" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,g,v,s);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT group_concat(v),group_concat(v,s),string_agg(v,s) FROM t;",
+      [[.text "A,a,A", .text "Aa:A", .text "Aa:A"]]),
+    ("SELECT group_concat(DISTINCT v),group_concat(DISTINCT v COLLATE NOCASE) FROM t;",
+      [[.text "A,a", .text "A"]]),
+    ("SELECT g,group_concat(v,s) FROM t GROUP BY g ORDER BY g;",
+      [[.integer 0, .text "A"], [.integer 1, .text "a:A"]]),
+    ("SELECT typeof(group_concat(v)),hex(group_concat(v,s)) FROM b;",
+      [[.text "text", .text "FF008000FF4100423731312E30"]]),
+    ("SELECT group_concat(DISTINCT v),group_concat(v) FROM b WHERE id>2;",
+      [[.text "1", .text "1,1.0"]]),
+    ("SELECT id,min(id),group_concat(v,s) FROM t;", [[.integer 1, .integer 1, .text "Aa:A"]]),
+    ("SELECT group_concat(v,s),typeof(group_concat(v)) FROM e;", [[.null, .text "null"]]),
+    ("SELECT group_concat(v,s) FROM t WHERE v IS NULL;", [[.null]]),
+    ("SELECT group_concat(v,s) FROM e GROUP BY g;", []),
+    ("SELECT typeof(group_concat('')),hex(group_concat(''));", [[.text "text", .text ""]]),
+    ("SELECT hex(group_concat(X'FF0080'));", [[.text "FF0080"]]),
+    ("SELECT group_concat(0 AND 0x10000000000000000);", [[.text "0"]]),
+    ("SELECT group_concat(v COLLATE missing,s) FROM t;", [[.text "Aa:A"]]),
+    ("SELECT group_concat(v,s) AS x FROM t HAVING x='Aa:A';", [[.text "Aa:A"]]),
+    ("SELECT group_concat(v,abs(-9223372036854775808)) FROM e;", [[.null]]),
+    ("SELECT group_concat(NULL,abs(-9223372036854775808)) LIMIT 0;", []),
+    ("SELECT group_concat(v,s) FROM t LIMIT 1 OFFSET 1;", [])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"string aggregate: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"string aggregate mismatch: {sql}"
+  for sql in ["SELECT group_concat(NULL,abs(-9223372036854775808));",
+      "SELECT group_concat('x',abs(-9223372036854775808));",
+      "SELECT group_concat(DISTINCT v,s) FROM e LIMIT 0;", "SELECT string_agg(v) FROM e LIMIT 0;",
+      "SELECT group_concat(DISTINCT v COLLATE missing) FROM e LIMIT 0;",
+      "SELECT group_concat(v,missing) FROM e LIMIT 0;", "SELECT group_concat(sum(v)) FROM e;",
+      "SELECT group_concat(v,abs(-9223372036854775808)) FROM t HAVING 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"string aggregate error omitted: {sql}"
+
 private def expectSQLiteGroupedExpressions : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,'A',2),(2,'a',1),(3,'b',4),(4,'B',3),(5,NULL,5),(6,1,6),(7,1.0,8);" ++
     "CREATE TABLE o(id INTEGER PRIMARY KEY,g,v);INSERT INTO o VALUES(1,1,9223372036854775807),(2,1,1),(3,2,2),(4,3,3);"
@@ -5320,6 +5365,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
   ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
+  ("SQLite string aggregates", expectSQLiteStringAggregates),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
   ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),
   ("SQLite numeric literal syntax and signed boundaries", expectSQLiteNumericLiterals),

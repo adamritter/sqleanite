@@ -1191,3 +1191,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreMultiFreelist.Layout.applicationId_preserved
 #print axioms SQLeanite.CoreMultiFreelist.Layout.userVersion_preserved
+
+#print axioms SQLeanite.SQLite.AggregateConcat.State.step_null
+#print axioms SQLeanite.SQLite.AggregateConcat.State.first_separator_ignored
+#print axioms SQLeanite.SQLite.AggregateConcat.run_nil

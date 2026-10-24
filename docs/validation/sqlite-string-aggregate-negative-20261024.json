@@ -1,0 +1,5819 @@
+{
+  "seed": 353850,
+  "random_cases": 60,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 366,
+      "matching_errors": 159
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 366,
+      "matching_errors": 159
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C312E302C622C2C2D322C61202C412C312E32352C622C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C622C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D322C312E3235\n3|312C312E30652B3330302C622C312E302C61202C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C312E307C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C312E307C627C7C2D327C61207C417C312E32357C627C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E307C417C4100427C627C62\n1|2D327C617CFF807C7C41\n2|7C312E32357C61207C317C2D327C312E3235\n3|317C312E30652B3330307C627C312E307C61207C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C312E302C622C2C2D322C61202C412C312E32352C622C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C622C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D322C312E3235\n3|312C312E30652B3330302C622C312E302C61202C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E303A3A312E3235413A3A61203741004200FF3100FF622D322C312E323562\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|33313331324533303A3A324433323A3A3331324533323335C3A93331324533303635324233333330333034312C36313A3A363132302C363237343130303432C3A94646383000FF33313A3A33313245333000FF36323244333200FF3631323000FF34312C333132453332333536323632\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|33313245333034313734313030343200FF363200FF3632\n1|3A3A324433322C3631C3A9464638303431\n2|3A3A33313245333233353A3A3631323000FF3331324433322C3331324533323335\n3|3331C3A9333132453330363532423333333033302C36323A3A33313245333000FF363132303632\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E3235312E30652B3330304161612062410042FF8031312E30622D32612041312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30414100426262\n1|2D3261FF8041\n2|312E32356120312D32312E3235\n3|31312E30652B33303062312E30612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|373137312E30372D3237312E323537312E30652B3330303741376137612037623741004237FF80373137312E30376237372D32376120374137312E323537623762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3037413741004237623762\n1|2D32376137FF80373741\n2|37312E32353761203731372D3237312E3235\n3|3137312E30652B333030376237312E303761203762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C612CFF802C312C622C4100422C412C61202C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C4100422C312E3235\n1|2D322C612CFF802CFF802C41\n2|2C312E32352C61202C312C31\n3|312C312E30652B3330302C622C622C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C312E307C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C627C617CFF807C317C627C4100427C417C61207C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E307C417C4100427C617C4100427C312E3235\n1|2D327C617CFF807CFF807C41\n2|7C312E32357C61207C317C31\n3|317C312E30652B3330307C627C627C627C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C312E3235\n1|2D322C612CFF802C41\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C312E3235\n1|2D322C612CFF80\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C312E3235\n1|2D322C612CFF802C41\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C612CFF802C312C622C4100422C412C61202C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C4100422C312E3235\n1|2D322C612CFF802CFF802C41\n2|2C312E32352C61202C312C31\n3|312C312E30652B3330302C622C622C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30312E323541376120312E30410042373100FF613731410042C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|\n2|312E323537612037313731\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3A3A333133313245333032443332333132453332333500FF33313245333036353242333333303330343136313736313230373632312E30343130303432464638303733313A3A363200FF36313A3A46463830373331312E3036323431303034322C3431312E3036313230C3A93331324533323335\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3331324533303431312E3034313030343200FF3631343130303432C3A93331324533323335\n1|324433323631464638303A3A464638302C3431\n2|33313245333233353736313230373331373331312E30\n3|333100FF333132453330363532423333333033303736323A3A3632312E30363236313230\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E3235312E30652B3330304161612062410042FF80316261FF803162410042416120312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E304141004261410042312E3235\n1|2D3261FF80FF8041\n2|312E323561203131\n3|31312E30652B3330306262626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|373137312E30372D3237312E323537312E30652B3330303741376137612037623741004237FF8037313762376137FF803731376237410042374137612037312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3037413741004237613741004237312E3235\n1|2D32376137FF8037FF803741\n2|37312E323537612037313731\n3|3137312E30652B333030376237623762376120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C312E32352C312CFF802C61202C612C61202C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C61202C41\n1|2D322C612CFF802C312C61\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C317C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C627C312E32357C317CFF807C61207C617C61207C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|317C417C4100427C312E32357C61207C41\n1|2D327C617CFF807C317C61\n2|7C312E32357C61207C31\n3|317C312E30652B3330307C627C627CFF807C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C312E32352C312CFF802C61202C612C61202C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C61202C41\n1|2D322C612CFF802C312C61\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3731312E30312E32353A3A4100FF612000FF41004200FF31312E3235312E3061203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|\n2|312E30312E323500FF612000FF31\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C333137333132443332312E3033313245333233353A3A333132453330363532423333333033303A3A34313A3A363100FF36313230363200FF3431303034324646383000FF3331373632333132453332333533313A3A46463830312E3036313230C3A93631373A3A363132303A3A3431\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|33313A3A343100FF3431303034323331324533323335312E30363132303A3A3431\n1|324433323A3A3631464638303331C3A93631\n2|312E30333132453332333500FF3631323000FF33313A3A37\n3|33313A3A333132453330363532423333333033303632373632464638303A3A36313230\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312D32312E3235312E30652B3330304161612062410042FF803162312E323531FF80612061612041\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3141410042312E3235612041\n1|2D3261FF803161\n2|312E3235612031\n3|31312E30652B3330306262FF806120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|37313731372D3237312E323537312E30652B3330303741376137612037623741004237FF803731376237312E3235373137FF8037612037613761203741\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3137413741004237312E32353761203741\n1|2D32376137FF8037313761\n2|37312E32353761203731\n3|3137312E30652B3330303762376237FF80376120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,abs(-9223372036854775808))),hex(group_concat(v,abs(-9223372036854775808))) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,abs(-9223372036854775808))) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)),hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C2C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|2C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C7C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|7C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C2C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|2C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3737\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|37\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) AS x FROM e WHERE id=1 GROUP BY g HAVING 0 ORDER BY min(id) DESC LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(group_concat(v COLLATE missing)) AS x FROM n WHERE id>3 GROUP BY g HAVING x IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM t GROUP BY g ORDER BY min(id) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|312E302C412C4100422C62\n3|312C312E30652B3330302C622C6120\n2|2C312E32352C61202C312C2D32\n1|2D322C612CFF802C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM z WHERE v IS NULL GROUP BY id%3 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(string_agg(v,7)) AS x,abs(-9223372036854775808) FROM tn WHERE id>3 GROUP BY g HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(hex(v),s)) AS x FROM e WHERE id=1 GROUP BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(string_agg(v,s)) AS x FROM tn WHERE id=1 GROUP BY id%3 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(DISTINCT v)) AS x,abs(-9223372036854775808) FROM z WHERE id=1 HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(string_agg(v,s)) AS x FROM tn WHERE id>3 GROUP BY g HAVING count(*)>0 ORDER BY x LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(string_agg(v,s)) AS x FROM tn ORDER BY min(id) DESC LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n WHERE id=1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x FROM tn WHERE id>3 GROUP BY id%3 HAVING x IS NOT NULL ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n WHERE id>3 HAVING NULL ORDER BY min(id) DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v,s COLLATE missing)) AS x,count(*) FROM n WHERE id=1 HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(group_concat(v,NULL)) AS x FROM n WHERE id>3 GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) AS x FROM tn WHERE id>3 HAVING x IS NOT NULL ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v,NULL)) AS x FROM z WHERE 0 HAVING NULL ORDER BY min(id) DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(string_agg(v,7)) AS x FROM n WHERE id=1 GROUP BY id%3 ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(string_agg(v,7)) AS x FROM e WHERE id=1 GROUP BY id%3 HAVING x IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(string_agg(v,s)) AS x,abs(-9223372036854775808) FROM z GROUP BY id%3 HAVING NULL ORDER BY min(id) DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(group_concat(v,'|')) AS x FROM t WHERE 0 GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM e GROUP BY g HAVING 0 ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,count(*) FROM t WHERE 0 GROUP BY g HAVING count(*)>0 ORDER BY min(id) DESC LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v COLLATE missing)) AS x FROM n WHERE v IS NULL HAVING NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(group_concat(v,NULL)) AS x FROM z GROUP BY g HAVING 0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,count(*) FROM tx GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v)) AS x FROM t WHERE v IS NULL GROUP BY g HAVING count(*)>0 ORDER BY min(id) DESC LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(group_concat(v,s)) AS x FROM tx WHERE id>3 GROUP BY g HAVING count(*)>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "5|2D3261FF803A3AFF802C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,hex(group_concat(DISTINCT v)) AS x FROM tx HAVING count(*)>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,abs(-9223372036854775808) FROM t WHERE v IS NULL GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x,count(*) FROM tx WHERE id=1 GROUP BY g HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(string_agg(v,s)) AS x FROM e WHERE id>3 GROUP BY g HAVING NULL ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(hex(v),s)) AS x,count(*) FROM tn WHERE 0 GROUP BY g HAVING 0 ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(X'FF0080'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "FF0080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(group_concat(NULL)),hex(group_concat(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat('x') WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT string_agg('x','|');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(DISTINCT 'a' COLLATE NOCASE);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(NULL,abs(-9223372036854775808)) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(0 AND 0x10000000000000000);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(0 AND missing) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(v,s) FROM t ORDER BY 1 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT group_concat(v,s) AS x FROM t HAVING x IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "11.0::-2::1.25\u00c3\u00a91.0e+300A,a::a ,b7A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT count(*) FROM t ORDER BY group_concat(v,s);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "24\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(group_concat(v,s)) FROM t UNION SELECT hex(group_concat(v,s)) FROM tx ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM t GROUP BY g ORDER BY x DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"string_agg\"(v,s) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "11.0::-2::1.25\u00c3\u00a91.0e+300A,a::a ,b7A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C312E302C622C2C2D322C61202C412C312E32352C622C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C622C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D322C312E3235\n3|312C312E30652B3330302C622C312E302C61202C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C312E307C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C312E307C627C7C2D327C61207C417C312E32357C627C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E307C417C4100427C627C62\n1|2D327C617CFF807C7C41\n2|7C312E32357C61207C317C2D327C312E3235\n3|317C312E30652B3330307C627C312E307C61207C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D32\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C312E302C622C2C2D322C61202C412C312E32352C622C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C622C62\n1|2D322C612CFF802C2C41\n2|2C312E32352C61202C312C2D322C312E3235\n3|312C312E30652B3330302C622C312E302C61202C62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E303A3A312E3235413A3A61203741004200FF3100FF622D322C312E323562\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|33313331324533303A3A324433323A3A3331324533323335C3A93331324533303635324233333330333034312C36313A3A363132302C363237343130303432C3A94646383000FF33313A3A33313245333000FF36323244333200FF3631323000FF34312C333132453332333536323632\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|33313245333034313734313030343200FF363200FF3632\n1|3A3A324433322C3631C3A9464638303431\n2|3A3A33313245333233353A3A3631323000FF3331324433322C3331324533323335\n3|3331C3A9333132453330363532423333333033302C36323A3A33313245333000FF363132303632\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E3235312E30652B3330304161612062410042FF8031312E30622D32612041312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30414100426262\n1|2D3261FF8041\n2|312E32356120312D32312E3235\n3|31312E30652B33303062312E30612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|373137312E30372D3237312E323537312E30652B3330303741376137612037623741004237FF80373137312E30376237372D32376120374137312E323537623762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3037413741004237623762\n1|2D32376137FF80373741\n2|37312E32353761203731372D3237312E3235\n3|3137312E30652B333030376237312E303761203762\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM t GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E30413741004200FF6262\n1|2D322C61C3A9FF8041\n2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C612CFF802C312C622C4100422C412C61202C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C4100422C312E3235\n1|2D322C612CFF802CFF802C41\n2|2C312E32352C61202C312C31\n3|312C312E30652B3330302C622C622C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C312E307C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C627C617CFF807C317C627C4100427C417C61207C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E307C417C4100427C617C4100427C312E3235\n1|2D327C617CFF807CFF807C41\n2|7C312E32357C61207C317C31\n3|317C312E30652B3330307C627C627C627C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C312E3235\n1|2D322C612CFF802C41\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C312E3235\n1|2D322C612CFF80\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C312E3235\n1|2D322C612CFF802C41\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312E302C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C612CFF802C312C622C4100422C412C61202C312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E302C412C4100422C612C4100422C312E3235\n1|2D322C612CFF802CFF802C41\n2|2C312E32352C61202C312C31\n3|312C312E30652B3330302C622C622C622C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|312E30312E323541376120312E30410042373100FF613731410042C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|\n2|312E323537612037313731\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3A3A333133313245333032443332333132453332333500FF33313245333036353242333333303330343136313736313230373632312E30343130303432464638303733313A3A363200FF36313A3A46463830373331312E3036323431303034322C3431312E3036313230C3A93331324533323335\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3331324533303431312E3034313030343200FF3631343130303432C3A93331324533323335\n1|324433323631464638303A3A464638302C3431\n2|33313245333233353736313230373331373331312E30\n3|333100FF333132453330363532423333333033303736323A3A3632312E30363236313230\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E3235312E30652B3330304161612062410042FF80316261FF803162410042416120312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E304141004261410042312E3235\n1|2D3261FF80FF8041\n2|312E323561203131\n3|31312E30652B3330306262626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|373137312E30372D3237312E323537312E30652B3330303741376137612037623741004237FF8037313762376137FF803731376237410042374137612037312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3037413741004237613741004237312E3235\n1|2D32376137FF8037FF803741\n2|37312E323537612037313731\n3|3137312E30652B333030376237623762376120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM tx;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM tx GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312E3041312E3041004200FF61410042C3A9312E3235\n1|2D3261FF803A3AFF802C41\n2|312E323537612037313731\n3|3100FF312E30652B33303037623A3A62312E30626120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C312E32352C312CFF802C61202C612C61202C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C61202C41\n1|2D322C612CFF802C312C61\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C317C317C2D327C312E32357C312E30652B3330307C417C617C61207C627C4100427CFF807C317C627C312E32357C317CFF807C61207C617C61207C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|317C417C4100427C312E32357C61207C41\n1|2D327C617CFF807C317C61\n2|7C312E32357C61207C31\n3|317C312E30652B3330307C627C627CFF807C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C61202C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C2D322C312E32352C312E30652B3330302C412C612C622C4100422CFF802C31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C6120\n1|2D322C612CFF802C31\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C312C312C2D322C312E32352C312E30652B3330302C412C612C61202C622C4100422CFF802C312C622C312E32352C312CFF802C61202C612C61202C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|312C412C4100422C312E32352C61202C41\n1|2D322C612CFF802C312C61\n2|2C312E32352C61202C31\n3|312C312E30652B3330302C622C622CFF802C6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3731312E30312E32353A3A4100FF612000FF41004200FF31312E3235312E3061203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|\n2|312E30312E323500FF612000FF31\n3|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C333137333132443332312E3033313245333233353A3A333132453330363532423333333033303A3A34313A3A363100FF36313230363200FF3431303034324646383000FF3331373632333132453332333533313A3A46463830312E3036313230C3A93631373A3A363132303A3A3431\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|33313A3A343100FF3431303034323331324533323335312E30363132303A3A3431\n1|324433323A3A3631464638303331C3A93631\n2|312E30333132453332333500FF3631323000FF33313A3A37\n3|33313A3A333132453330363532423333333033303632373632464638303A3A36313230\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|31312D32312E3235312E30652B3330304161612062410042FF803162312E323531FF80612061612041\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3141410042312E3235612041\n1|2D3261FF803161\n2|312E3235612031\n3|31312E30652B3330306262FF806120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|37313731372D3237312E323537312E30652B3330303741376137612037623741004237FF803731376237312E3235373137FF8037612037613761203741\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|3137413741004237312E32353761203741\n1|2D32376137FF8037313761\n2|37312E32353761203731\n3|3137312E30652B3330303762376237FF80376120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM tn;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C3137312D32312E30312E32353A3A312E30652B3330303A3A413A3A6100FF61206200FF410042FF8000FF313762312E323531FF80312E306120C3A9613A3A61203A3A41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM tn GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|313A3A4100FF410042312E3235312E3061203A3A41\n1|2D323A3A61FF8031C3A961\n2|312E30312E323500FF612000FF31\n3|313A3A312E30652B333030623762FF803A3A6120\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,abs(-9223372036854775808))),hex(group_concat(v,abs(-9223372036854775808))) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,abs(-9223372036854775808))) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)),hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM e GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM n GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C2C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|2C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|7C7C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,'|')) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|7C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s)),hex(group_concat(v,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,s)),hex(string_agg(v,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v)),hex(group_concat(DISTINCT v)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE RTRIM)),hex(group_concat(DISTINCT v COLLATE RTRIM)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v COLLATE missing)),hex(group_concat(v COLLATE missing)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|2C2C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v COLLATE missing)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|2C\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(CASE WHEN id%2=0 THEN v END,s)),hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(hex(v),s)),hex(group_concat(hex(v),s)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(hex(v),s)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,NULL)),hex(group_concat(v,NULL)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,NULL)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(string_agg(v,7)),hex(string_agg(v,7)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|3737\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(string_agg(v,7)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|37\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,s COLLATE missing)),hex(group_concat(v,s COLLATE missing)) FROM z;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s COLLATE missing)) AS x FROM z GROUP BY g ORDER BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\n1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v)),hex(group_concat(v)) AS x FROM e WHERE id=1 GROUP BY g HAVING 0 ORDER BY min(id) DESC LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(group_concat(v COLLATE missing)) AS x FROM n WHERE id>3 GROUP BY g HAVING x IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM t GROUP BY g ORDER BY min(id) DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|312E302C412C4100422C62\n3|312C312E30652B3330302C622C6120\n2|2C312E32352C61202C312C2D32\n1|2D322C612CFF802C\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM z WHERE v IS NULL GROUP BY id%3 ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(string_agg(v,7)) AS x,abs(-9223372036854775808) FROM tn WHERE id>3 GROUP BY g HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(hex(v),s)) AS x FROM e WHERE id=1 GROUP BY g;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(string_agg(v,s)) AS x FROM tn WHERE id=1 GROUP BY id%3 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(DISTINCT v)) AS x,abs(-9223372036854775808) FROM z WHERE id=1 HAVING 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(string_agg(v,s)) AS x FROM tn WHERE id>3 GROUP BY g HAVING count(*)>0 ORDER BY x LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(string_agg(v,s)) AS x FROM tn ORDER BY min(id) DESC LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n WHERE id=1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x FROM tn WHERE id>3 GROUP BY id%3 HAVING x IS NOT NULL ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(DISTINCT v COLLATE NOCASE)),hex(group_concat(DISTINCT v COLLATE NOCASE)) AS x FROM n WHERE id>3 HAVING NULL ORDER BY min(id) DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v,s COLLATE missing)) AS x,count(*) FROM n WHERE id=1 HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(group_concat(v,NULL)) AS x FROM n WHERE id>3 GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(v,'|')),hex(group_concat(v,'|')) AS x FROM tn WHERE id>3 HAVING x IS NOT NULL ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v,NULL)) AS x FROM z WHERE 0 HAVING NULL ORDER BY min(id) DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(string_agg(v,7)) AS x FROM n WHERE id=1 GROUP BY id%3 ORDER BY x LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(string_agg(v,7)) AS x FROM e WHERE id=1 GROUP BY id%3 HAVING x IS NOT NULL ORDER BY abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(string_agg(v,s)) AS x,abs(-9223372036854775808) FROM z GROUP BY id%3 HAVING NULL ORDER BY min(id) DESC LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(group_concat(v,'|')) AS x FROM t WHERE 0 GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v COLLATE RTRIM)) AS x FROM e GROUP BY g HAVING 0 ORDER BY x LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,count(*) FROM t WHERE 0 GROUP BY g HAVING count(*)>0 ORDER BY min(id) DESC LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v COLLATE missing)) AS x FROM n WHERE v IS NULL HAVING NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(group_concat(v,NULL)) AS x FROM z GROUP BY g HAVING 0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,count(*) FROM tx GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT min(id),hex(group_concat(DISTINCT v)) AS x FROM t WHERE v IS NULL GROUP BY g HAVING count(*)>0 ORDER BY min(id) DESC LIMIT 2 OFFSET 20;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(group_concat(v,s)) AS x FROM tx WHERE id>3 GROUP BY g HAVING count(*)>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "5|2D3261FF803A3AFF802C41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,hex(group_concat(DISTINCT v)) AS x FROM tx HAVING count(*)>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(CASE WHEN id%2=0 THEN v END,s)) AS x,abs(-9223372036854775808) FROM t WHERE v IS NULL GROUP BY id%3 HAVING 0 ORDER BY x LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v,CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE ',' END)) AS x,count(*) FROM tx WHERE id=1 GROUP BY g HAVING NULL ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(string_agg(v,s)) AS x FROM e WHERE id>3 GROUP BY g HAVING NULL ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(hex(v),s)) AS x,count(*) FROM tn WHERE 0 GROUP BY g HAVING 0 ORDER BY abs(-9223372036854775808) LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(X'FF0080'));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "FF0080\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(group_concat(NULL)),hex(group_concat(''));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat('x') WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT string_agg('x','|');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(DISTINCT 'a' COLLATE NOCASE);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(NULL,abs(-9223372036854775808)) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(0 AND 0x10000000000000000);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(0 AND missing) FROM e;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(v,s) FROM t ORDER BY 1 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT group_concat(v,s) AS x FROM t HAVING x IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: HAVING requires a supported aggregate query\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "11.0::-2::1.25\u00c3\u00a91.0e+300A,a::a ,b7A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT count(*) FROM t ORDER BY group_concat(v,s);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "24\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(group_concat(v,s)) FROM t UNION SELECT hex(group_concat(v,s)) FROM tx ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "31312E302D32312E323500FF312E30652B33303041613761203762312E30410042FF8037313A3A6200FF613A3AFF803731312E30624100422C416120C3A9312E3235\n31312E303A3A2D323A3A312E3235C3A9312E30652B333030412C613A3A61202C6237410042C3A9FF8000FF313A3A312E3000FF622D3200FF6120412C312E32356262\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT g,hex(group_concat(v,s)) AS x FROM t GROUP BY g ORDER BY x DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported aggregate result operator\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3A3A312E32353A3A612000FF312D322C312E3235\n3|31C3A9312E30652B3330302C623A3A312E3000FF612062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"string_agg\"(v,s) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "11.0::-2::1.25\u00c3\u00a91.0e+300A,a::a ,b7A\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "ec0164a8da29c01fd9ad81894233d3215e3916dc6f617a1e7b423aae4d95a7ba",
+  "executable_sha256": "8d0eb858893e0384783b954477f2c35c8ce0aa50e1f40a56c1369d88863d3f5b",
+  "harness_sha256": "5f2c9dfa548f89663de44a74105c5ec562c0419c4d45c2a361d30ef7a4f080bb",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare GROUP_CONCAT and STRING_AGG through both production file modes.\n\nCompare exact CLI bytes and matching positive error status, not error wording or\ncodes. Hex projections include every result byte, including NUL and invalid UTF-8.\nAll read queries must preserve main/WAL bytes. Cases include variable separators,\nDISTINCT collations, empty input, scalar wrappers, grouping and evaluation timing."
+}

@@ -1896,3 +1896,43 @@ the existing catalog/page-source inverse proofs continue to compile with those
 fields parameterized. Native code and its nine-binding audit boundary are
 unchanged. Reports use `sqlite-header-metadata-*20261024.json` under
 `docs/validation/`. These results do not establish full SQL or file-format parity.
+
+
+## Ordinary GROUP_CONCAT and STRING_AGG (2026-10-24)
+
+Production Core aggregates now include GROUP_CONCAT with one or two arguments
+and STRING_AGG with exactly two. Each row evaluates both supplied arguments,
+including NULL-value rows and the first accepted value. NULL values contribute
+nothing; NULL separators contribute zero bytes. The current non-NULL row's
+separator precedes its value after the first accepted row. Empty input and
+all-NULL input return NULL, while an accepted empty string produces TEXT.
+Numeric inputs use the pinned scalar rendering, and BLOB/TEXT conversion retains
+all bytes, including malformed UTF-8 and embedded NULs. The accumulator checks
+the configured byte limit including its terminating byte before appending.
+
+Single-argument DISTINCT keeps the first original representative using its
+collation and numeric equivalence before text conversion. Invalid arity, nested
+aggregates, unresolved arguments and required DISTINCT collations are rejected
+at preparation, including on empty input and LIMIT zero. The existing aggregate
+result/group/HAVING/ORDER routes use this accumulator. Aggregate-internal ORDER
+BY, FILTER and window execution remain separate work.
+
+The preceding source ec0164a8da29c01fd9ad81894233d3215e3916dc6f617a1e7b423aae4d95a7ba
+has 414 differences in the retained 732-outcome baseline, seed 353850. Development
+seed 353851 passes 1,212 outcomes. Final source is
+`d6ab9d23b818e390185397ed2a67082715d507980b196fa666d781650cd0dc55`.
+Fresh seed 353852 passes **2,612 outcomes**, including **1,200 matching positive
+error statuses**. Fresh grouped-expression seed 353853 passes **1,150 outcomes**,
+including 100 matching errors. These are both production file modes, with exact
+CLI bytes for successful reads and no main/WAL changes. Hex projections check
+complete bytes independently of the CLI's NUL truncation. Error codes and wording
+are not compared; actual near-gigabyte allocation boundaries are not exercised.
+
+All 206 executable tests, the full 272-job build, 1,063 registered headline
+proofs, verification audit and live-path audit pass. The reverse-file matrix
+passes 61 accepted cases and two declared unsupported shapes. New component
+lemmas cover NULL-step neutrality, the first separator's irrelevance to the
+accumulator, and the empty result. These are not whole-query equivalence proofs.
+Native code and its nine-binding audit boundary remain unchanged. Reports are
+`sqlite-string-aggregate-*20261024.json` under `docs/validation/`; these bounded
+results do not establish full SQLite compatibility.

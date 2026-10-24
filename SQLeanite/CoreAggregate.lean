@@ -1,5 +1,6 @@
 import SQLeanite.CoreExpr
 import SQLeanite.CoreEngine
+import SQLeanite.SQLite.AggregateConcat
 
 /-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
 Input rows are supplied by the production Core query path. Aggregate terms
@@ -7,7 +8,7 @@ feed a separately bound scalar result template; group keys remain separate. -/
 namespace SQLeanite.CoreAggregate
 
 inductive Function where
-  | count | sum | average | total | minimum | maximum
+  | count | sum | average | total | minimum | maximum | groupConcat
   deriving DecidableEq, Repr
 
 def function? (name : String) : Option Function :=
@@ -18,6 +19,7 @@ def function? (name : String) : Option Function :=
   | "total" => some .total
   | "min" => some .minimum
   | "max" => some .maximum
+  | "group_concat" | "string_agg" => some .groupConcat
   | _ => none
 
 def recognizes : Expr → Bool
@@ -31,6 +33,7 @@ structure Term where
   argument : Option Expr
   distinct : Bool := false
   collation : SQLite.Collation.Kind := .binary
+  separator : Option Expr := none
 
 def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
   | { expr := .call name arguments star, .. } => do
@@ -38,14 +41,24 @@ def term (ctx : CoreExpr.Context) : ResultColumn → Except String Term
       let distinct := isDistinctAggregateName name
       if function == .count && arguments.isEmpty && !distinct then
         return { function, argument := none }
-      unless !star && arguments.size == 1 do
+      let validArity := if function == .groupConcat then
+          arguments.size == 2 || (aggregateFunctionName name == "group_concat" && arguments.size == 1)
+        else arguments.size == 1
+      unless !star && validArity do
         throw "wrong number of arguments to aggregate function"
+      if distinct && arguments.size != 1 then
+        throw "DISTINCT aggregates must have exactly one argument"
       let argument := ctx.bindNames arguments[0]!
       ctx.validate argument
+      let separator ← if function == .groupConcat && arguments.size == 2 then do
+          let separator := ctx.bindNames arguments[1]!
+          ctx.validate separator
+          pure (some separator)
+        else pure none
       let collation ← if distinct || function == .minimum || function == .maximum then
           SQLite.ExprCollation.require (SQLite.ExprCollation.kind? argument)
         else pure SQLite.Collation.Kind.binary
-      return { function, argument := some argument, distinct, collation }
+      return { function, argument := some argument, distinct, collation, separator }
   | _ => .error "unsupported aggregate result expression"
 
 def terms (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Term) :=
@@ -68,6 +81,9 @@ def result (function : Function) (inputs : List Core.Value) : Except String Core
   | .total => .ok (SQLite.AggregateSum.total inputs)
   | .minimum => .ok (inputs.foldl (Core.chooseExtreme true) .null)
   | .maximum => .ok (inputs.foldl (Core.chooseExtreme false) .null)
+  | .groupConcat => do
+      let inputs ← inputs.mapM CoreExpr.value
+      SQLSurface.value (← SQLite.AggregateConcat.run (inputs.map (fun value => (value, .text ","))))
 
 /-- Preserve original representatives while applying the aggregate argument's
 collation only to TEXT. Equal INTEGER/REAL inputs still share a step. -/
@@ -92,9 +108,23 @@ def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
   match term.argument with
   | none => .integer <$> Core.countInteger rows.length
   | some expression =>
-      let inputs ← values ctx rows expression
-      resultWith term.collation term.function
-        (if term.distinct then uniqueValuesWith term.collation inputs else inputs)
+      if term.function == .groupConcat then
+        let mut state : SQLite.AggregateConcat.State := {}
+        let mut seen : List Core.Value := []
+        for row in rows do
+          let value ← ctx.eval row expression
+          -- Both arguments evaluate even on NULL rows and the first row.
+          let separator ← term.separator.mapM (ctx.eval row)
+          let key ← SQLSurface.value value
+          unless term.distinct && seen.any (fun old =>
+              SQLite.Collation.compareValue term.collation old key == .eq) do
+            state ← state.step value (separator.getD (.text ","))
+            if term.distinct then seen := key :: seen
+        SQLSurface.value state.finish
+      else
+        let inputs ← values ctx rows expression
+        resultWith term.collation term.function
+          (if term.distinct then uniqueValuesWith term.collation inputs else inputs)
 
 /-- Aggregate recognition includes aggregates nested inside scalar result
 operators. An aggregate's own arguments are still checked as scalar inputs. -/
@@ -201,7 +231,7 @@ def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
       return if selected then row :: tail else tail
 
 theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
-    Term.eval ctx rows ⟨.count, none, false, .binary⟩ =
+    Term.eval ctx rows ⟨.count, none, false, .binary, none⟩ =
       (.integer <$> Core.countInteger rows.length) := rfl
 
 theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)
