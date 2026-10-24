@@ -970,3 +970,16 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Runtime.Record.encodedSize_eq_length
 #print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference
 #print axioms SQLeanite.Runtime.Record.readRowWithSource_eq_reference
+
+-- SQLite scalar value layer on the live constant-expression path.
+#print axioms SQLeanite.SQLite.Numeric.fits_iff
+#print axioms SQLeanite.SQLite.Numeric.integerPrefix_bounds
+#print axioms SQLeanite.SQLite.Scalar.checkedInteger_exact
+#print axioms SQLeanite.SQLite.Scalar.add_integer_exact
+#print axioms SQLeanite.SQLite.Scalar.divide_integer_zero
+#print axioms SQLeanite.SQLite.Scalar.arithmetic_null_left
+#print axioms SQLeanite.SQLite.Scalar.arithmetic_null_right
+#print axioms SQLeanite.SQLite.Scalar.shift_left_large
+#print axioms SQLeanite.CoreSQL.executeConstantSelect_preserves_state
+#print axioms SQLeanite.CoreSQL.executeConstantSelect_at_most_one_row
+#print axioms SQLeanite.SQLite.FloatCodec.multiply128_reconstruct

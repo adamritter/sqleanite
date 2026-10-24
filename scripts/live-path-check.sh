@@ -69,6 +69,22 @@ else
   ok "no headline theorem depends on sorryAx"
 fi
 
+# Constant expressions use the pure scalar layer on the production translator.
+if grep -q 'SQLite.Scalar.admitted expression' SQLeanite/SQLSurface.lean &&
+   grep -q 'value (← SQLite.Scalar.eval expression)' SQLeanite/SQLSurface.lean &&
+   grep -q 'SQLSurface.literal expression' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeConstantSelect state select' SQLeanite/CoreSQL.lean &&
+   grep -q 'private def formatFloat : Float → String := SQLite.FloatCodec.render' SQLeanite/Value.lean &&
+   grep -q 'let value := SQLite.FloatCodec.decimalToBinary' SQLeanite/Value.lean &&
+   grep -q 'SQLite.FloatCodec.multiply128_reconstruct' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.Numeric.integerPrefix_bounds' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.Scalar.add_integer_exact' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.executeConstantSelect_preserves_state' SQLeanite/ProofAxioms.lean; then
+  ok "pure SQLite scalar layer and constant SELECT are wired into Core SQL"
+else
+  fail "scalar layer detached from the live translator or its proofs"
+fi
+
 # 5. Functions that carry the headline proofs must be reachable from the CLI.
 #    Checked structurally: the executor must call the planner, and Main must
 #    route --verified-file into the Core engine.

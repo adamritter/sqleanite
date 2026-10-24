@@ -1,4 +1,5 @@
 import Std
+import SQLeanite.SQLite.FloatCodec
 
 namespace SQLeanite
 
@@ -11,55 +12,8 @@ inductive Value where
   | blob (value : Array UInt8)
   deriving Repr, Inhabited
 
-private def decimalNormalizationSteps : Nat := 400
-
-private def normalizeDecimalFuel : Nat → Float → Int → Float × Int
-  | 0, value, exponent => (value, exponent)
-  | fuel + 1, value, exponent =>
-      if value >= 10.0 then normalizeDecimalFuel fuel (value / 10.0) (exponent + 1)
-      else if value < 1.0 then normalizeDecimalFuel fuel (value * 10.0) (exponent - 1)
-      else (value, exponent)
-
-/-- Normalize a finite, nonzero binary64 magnitude. Four hundred decimal
-shifts cover the full IEEE-754 binary64 exponent range, including subnormals. -/
-private def normalizeDecimal (value : Float) (exponent : Int := 0) : Float × Int :=
-  normalizeDecimalFuel decimalNormalizationSteps value exponent
-
-private def trimFraction (digits : List Char) : List Char :=
-  digits.reverse.dropWhile (· == '0') |>.reverse
-
-/-- SQLite-style 15-significant-digit rendering of a binary64 value. -/
-private def formatFloat (f : Float) : String :=
-  if !f.isFinite then if f.isNaN then "NaN" else if f < 0.0 then "-Inf" else "Inf"
-  else if f == 0.0 then "0.0"
-  else
-    let negative := f < 0.0
-    let magnitude := if negative then -f else f
-    let (scaled, initialExponent) := normalizeDecimal magnitude
-    let rounded := ((scaled * 100000000000000.0) + 0.5).toUInt64.toNat
-    let (significand, exponent) := if rounded >= 1000000000000000 then
-        (rounded / 10, initialExponent + 1)
-      else (rounded, initialExponent)
-    let raw := toString significand
-    let digits := String.mk (List.replicate (15 - raw.length) '0') ++ raw
-    let chars := digits.toList
-    let sign := if negative then "-" else ""
-    if exponent < -4 || exponent >= 15 then
-      let fraction := trimFraction chars.tail!
-      let mantissa := chars.head!.toString ++
-        (if fraction.isEmpty then ".0" else "." ++ String.mk fraction)
-      let exponentText := if exponent >= 0 then "+" ++ toString exponent else toString exponent
-      sign ++ mantissa ++ "e" ++ exponentText
-    else if exponent >= 14 then
-      sign ++ digits ++ String.mk (List.replicate (exponent.toNat + 1 - chars.length) '0') ++ ".0"
-    else if exponent >= 0 then
-      let split := exponent.toNat + 1
-      let whole := chars.take split
-      let fraction := trimFraction (chars.drop split)
-      sign ++ String.mk whole ++ (if fraction.isEmpty then ".0" else "." ++ String.mk fraction)
-    else
-      let fraction := trimFraction (List.replicate ((-exponent - 1).toNat) '0' ++ chars)
-      sign ++ "0." ++ String.mk fraction
+/-- SQLite 3.53.4's default 17-digit REAL representation. -/
+private def formatFloat : Float → String := SQLite.FloatCodec.render
 
 instance : ToString Value where
   toString
@@ -173,7 +127,8 @@ def Truth.toValue : Truth → Value
   | .true => .integer 1
   | .unknown => .null
 
-/-- A small allocation-free-in-native-code decimal parser used for SQL literals/coercions. -/
+/-- Decimal parsing follows sqlite3AtoF's bounded unsigned mantissa and
+exponent adjustment, then the ported sqlite3Fp10Convert2 conversion. -/
 def parseDecimal? (source : String) : Option Float := do
   let (negative, chars) :=
     match source.toList with
@@ -187,19 +142,23 @@ def parseDecimal? (source : String) : Option Float := do
     | _ :: '+' :: rest => String.mk rest |>.toInt?
     | _ :: rest => String.mk rest |>.toInt?
   let mut digits : Nat := 0
-  let mut fraction : Nat := 0
+  let mut decimalScale : Int := 0
   let mut afterDot := false
   let mut sawDigit := false
   for c in mantissa do
     if c == '.' && !afterDot then afterDot := true
     else if c.isDigit then
       sawDigit := true
-      digits := digits * 10 + (c.toNat - '0'.toNat)
-      if afterDot then fraction := fraction + 1
+      if afterDot then
+        if digits < 1844674407370955160 then
+          digits := digits * 10 + (c.toNat - '0'.toNat)
+          decimalScale := decimalScale - 1
+      else if digits < 1844674407370955160 then
+        digits := digits * 10 + (c.toNat - '0'.toNat)
+      else decimalScale := decimalScale + 1
     else failure
   if !sawDigit then failure
-  let decimalScale := exponent - Int.ofNat fraction
-  let value := Float.ofScientific digits (decimalScale < 0) decimalScale.natAbs
+  let value := SQLite.FloatCodec.decimalToBinary digits (decimalScale + exponent)
   pure (if negative then -value else value)
 
 def Value.toFloat? : Value → Option Float

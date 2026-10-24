@@ -18,38 +18,14 @@ inductive LiteralSyntax : Expr → Prop where
       LiteralSyntax (.unary .plus expression)
   | neg {expression : Expr} : LiteralSyntax expression →
       LiteralSyntax (.unary .neg expression)
+  | constantExpression (expression : Expr)
+      (admitted : SQLite.Scalar.admitted expression = true) : LiteralSyntax expression
 
 theorem literalSyntax_of_success {expression : Expr} {value : Core.Value}
     (success : literal expression = .ok value) : LiteralSyntax expression := by
-  cases expression with
-  | literal input => exact .literal input
-  | unary operation argument =>
-      cases operation with
-      | plus =>
-          exact .plus (literalSyntax_of_success
-            (by simpa [literal, SQLSurface.literal] using success))
-      | neg =>
-          cases decoded : SQLSurface.literal argument with
-          | error message =>
-              simp only [literal, SQLSurface.literal, decoded, Seq.seq, bind, Functor.map,
-                Except.bind] at success
-              cases success
-          | ok decodedValue =>
-              cases decodedValue with
-              | integer integer =>
-                  exact .neg (literalSyntax_of_success
-                    (by simpa [literal] using decoded))
-              | null | realBits | text | blob =>
-                  simp only [literal, SQLSurface.literal, decoded,
-                    Seq.seq, bind, Functor.map, Except.bind, SQLSurface.unsupported] at success
-                  cases success
-      | not | bitNot =>
-          simp [literal, SQLSurface.literal, SQLSurface.unsupported] at success
-  | column | star | binary | call | isNull | inList | collate | case_ |
-      scalarSubquery | inSubquery | existsSubquery =>
-      simp [literal, SQLSurface.literal, SQLSurface.unsupported] at success
-termination_by expression.height
-decreasing_by all_goals simp_all [Expr.height]
+  by_cases admitted : SQLite.Scalar.admitted expression = true
+  · exact .constantExpression expression admitted
+  · simp [literal, SQLSurface.literal, admitted, SQLSurface.unsupported] at success
 
 inductive PredicateSyntax : Expr → Prop where
   | columnRight (operation : BinaryOp)
@@ -368,25 +344,16 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
     {operand : CoreJoin.Operand}
     (success : joinOperand context expression = .ok operand) :
     JoinOperandSyntax expression := by
+  have constant (e : Expr)
+      (h : CoreJoin.Operand.literal <$> literal e = .ok operand) : JoinOperandSyntax e := by
+    cases decoded : literal e with
+    | error message => simp [decoded, Functor.map, Except.map] at h
+    | ok value => exact .literal (literalSyntax_of_success decoded)
   cases expression with
   | column qualifier name => exact .column qualifier name
   | literal value => exact .literal (.literal value)
-  | unary operation argument =>
-      cases decoded : literal (.unary operation argument) with
-      | error message =>
-          rw [show joinOperand context (.unary operation argument) =
-            CoreJoin.Operand.literal <$> literal (.unary operation argument) by
-              rfl, decoded] at success
-          change Except.error message = Except.ok operand at success
-          contradiction
-      | ok value => exact .literal (literalSyntax_of_success decoded)
-  | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
-      inSubquery | existsSubquery =>
-      all_goals
-        simp only [joinOperand, literal, SQLSurface.literal,
-          SQLSurface.unsupported] at success
-        change Except.error _ = Except.ok operand at success
-        contradiction
+  | unary | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
+      inSubquery | existsSubquery => exact constant _ success
 
 inductive JoinPredicateSyntax : Expr → Prop where
   | comparison (operation : BinaryOp)

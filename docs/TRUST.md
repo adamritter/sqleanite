@@ -4,6 +4,14 @@ This file records what SQLeanite currently proves, what it merely tests, and
 what must be trusted. It is intentionally narrower than a claim that SQLite is
 verified.
 
+The incremental [SQLite scalar port](SQLITE_PORT.md) adds constant expressions
+and tableless SELECTs on the live Core path. Its integer bounds, selected
+arithmetic laws, wide-product reconstruction, syntax admission and read-state
+preservation have registered proofs. Full scalar equivalence to C SQLite is
+differentially tested, not kernel-proved. The older relational read theorems
+remain scoped to their `TranslatedRead` constructors; the new tableless path
+does not silently expand those theorem claims. No host binding was added.
+
 ## Current architecture and claim
 
 There is **one** verified core. `--verified-file` (rollback journal) and

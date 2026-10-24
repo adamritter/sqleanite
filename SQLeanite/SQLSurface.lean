@@ -1,5 +1,6 @@
 import SQLeanite.Parser
 import SQLeanite.PhysicalCodec
+import SQLeanite.SQLite.Scalar
 
 /-!
 # Shared SQL value surface
@@ -45,14 +46,10 @@ def value (input : SQLeanite.Value) : Except String PhysicalCodec.Value :=
         .ok (.blob ⟨payload, bound⟩)
       else .error "MVP BLOB exceeds the 999-byte local-page limit"
 
-def literal : Expr → Except String PhysicalCodec.Value
-  | .literal input => value input
-  | .unary .plus expression => literal expression
-  | .unary .neg expression => do
-      let decoded ← literal expression
-      match decoded with
-      | .integer integer => .integer <$> signed64 (-integer.value)
-      | _ => unsupported "unary minus on non-INTEGER literal"
-  | _ => unsupported "non-literal INSERT value"
+/-- Constant expressions are checked by an independent syntax traversal before
+being evaluated. The physical conversion still checks all storage bounds. -/
+def literal (expression : Expr) : Except String PhysicalCodec.Value := do
+  if !SQLite.Scalar.admitted expression then unsupported "non-constant or unsupported expression"
+  else value (← SQLite.Scalar.eval expression)
 
 end SQLeanite.SQLSurface

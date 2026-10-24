@@ -129,6 +129,9 @@ private def expectInteger (expected : Int) : MatchM Unit := do
     match ← advance with
     | .integer found =>
         unless found == expected do mismatch s!"integer {expected}"
+    | .ident found =>
+        unless (found.toLower == "true" && expected == 1) ||
+            (found.toLower == "false" && expected == 0) do mismatch s!"integer {expected}"
     | _ => mismatch s!"integer {expected}"
 
 private def expectNat (expected : Nat) : MatchM Unit :=
@@ -186,12 +189,18 @@ private def expectLiteral : Value → MatchM Unit
 mutual
   private def matchExprFuel : Nat → Expr → MatchM Unit
     | 0, _ => mismatch "an expression within the grammar depth bound"
-    | fuel + 1, expression => do
-        if ← acceptSymbol "(" then
-          matchExprFuel fuel expression
-          expectSymbol ")"
-        else
-          matchExprCore fuel expression
+    | fuel + 1, expression => fun state =>
+        if isSymbol (nextSignificant state.remaining).1 "(" then
+          let wrapped : MatchM Unit := do
+            expectSymbol "("
+            matchExprFuel fuel expression
+            expectSymbol ")"
+          match wrapped state with
+          | .ok result => .ok result
+          -- Parentheses may wrap the left operand, not the whole expression:
+          -- (1+2)*3. Retry the AST node against the original token state.
+          | .error _ => matchExprCore fuel expression state
+        else matchExprCore fuel expression state
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value => expectLiteral value
@@ -222,6 +231,16 @@ mutual
                     mismatch s!"quoted identifier {expected}"
               | _ => mismatch s!"quoted identifier {expected}"
           | _, _ => mismatch "a supported quoted identifier"
+        else if name.startsWith "cast_" then
+          match arguments.toList, star with
+          | [argument], false =>
+              expectKeyword "cast"
+              expectSymbol "("
+              matchExprFuel fuel argument
+              expectKeyword "as"
+              expectName (name.drop 5).toString
+              expectSymbol ")"
+          | _, _ => mismatch "CAST(expression AS type)"
         else
           let distinct := isDistinctAggregateName name
           let displayed := aggregateFunctionName name
@@ -260,7 +279,19 @@ mutual
         expectSymbol ")"
     | fuel, .collate argument name =>
         matchExprFuel fuel argument *> expectKeyword "collate" *> expectName name
-    | _, .case_ _ _ _ => mismatch "a Core expression (CASE is outside the subset)"
+    | fuel, .case_ base branches otherwise => do
+        expectKeyword "case"
+        if let some expression := base then matchExprFuel fuel expression
+        if branches.isEmpty then mismatch "at least one WHEN branch"
+        for (condition, result) in branches do
+          expectKeyword "when"
+          matchExprFuel fuel condition
+          expectKeyword "then"
+          matchExprFuel fuel result
+        if let some expression := otherwise then
+          expectKeyword "else"
+          matchExprFuel fuel expression
+        expectKeyword "end"
     | _, .scalarSubquery _ => mismatch "a Core expression (subquery is outside the subset)"
     | _, .inSubquery _ _ _ => mismatch "a Core expression (subquery is outside the subset)"
     | _, .existsSubquery _ => mismatch "a Core expression (subquery is outside the subset)"

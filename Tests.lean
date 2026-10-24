@@ -3759,7 +3759,77 @@ private def expectCertifiedCoreTokenGrammar : IO Unit := do
   | .error _ => pure ()
   | .ok () => fail "independent Core grammar admitted a mismatched AST"
 
+private def expectSQLiteScalarCore : IO Unit := do
+  let samples : List (String × Value) := [
+    ("-1.5", .real (-1.5)), ("-7/3", .integer (-2)), ("7%-3", .integer 1),
+    ("9223372036854775807+1", .real (Float.ofInt 9223372036854775808)),
+    ("-9223372036854775808/-1", .real (Float.ofInt 9223372036854775808)),
+    ("1/0", .null), ("0*1e999", .null), ("5.5%2", .real 1.0),
+    ("'12x'+3", .integer 15), ("NOT '0.5x'", .integer 0),
+    ("-1>>64", .integer (-1)), ("1<<-1", .integer 0),
+    ("CAST('123e+5' AS INTEGER)", .integer 123),
+    ("CAST('1.0' AS NUMERIC)", .integer 1),
+    ("CAST('9223372036854775808' AS INTEGER)", .integer 9223372036854775807),
+    ("length('árvíz')", .integer 5), ("octet_length('árvíz')", .integer 7),
+    ("upper('Árvíz abc')", .text "ÁRVíZ ABC"),
+    ("CASE 1 WHEN 1.0 THEN 7 ELSE abs(-9223372036854775808) END", .integer 7),
+    ("coalesce(NULL,7,abs(-9223372036854775808))", .integer 7),
+    ("iif(0,1,NULL,2,1,3,abs(-9223372036854775808))", .integer 3)]
+  for (expression, expected) in samples do
+    let (_, results) ← match CoreSQL.execute Core.State.empty
+        s!"CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,{expression}); SELECT v FROM t;" with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"Core scalar {expression}: {message}"
+    let value ← match SQLSurface.value expected with
+      | .ok value => pure value
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [[value]] do
+      fail s!"Core scalar {expression}: wrong typed result"
+
+private def expectSQLiteScalarAdmission : IO Unit := do
+  for expression in ["coalesce(1,missing)", "coalesce(1,unknown_function())",
+      "CASE WHEN 1 THEN 7 ELSE 2 COLLATE NOCASE END", "abs(-9223372036854775808)"] do
+    match CoreSQL.execute Core.State.empty
+        s!"CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,{expression});" with
+    | .error _ => pure ()
+    | .ok _ => fail s!"Core scalar should reject {expression}"
+  let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST('12' AS INTEGER));"
+  let certificate ← match CoreTokenGrammar.parseCertified sql with
+    | .ok certificate => pure certificate
+    | .error message => fail message
+  let wrongTokens ← match lex
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,CAST('12' AS REAL));" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  match CoreTokenGrammar.check wrongTokens certificate.statements with
+  | .error _ => pure ()
+  | .ok _ => fail "Core grammar accepted a changed CAST type"
+
+private def expectSQLiteConstantSelect : IO Unit := do
+  let queries := [
+    ("SELECT 6*7;", [[42]]),
+    ("SELECT CASE WHEN 0 THEN abs(-9223372036854775808) ELSE 7 END;", [[7]]),
+    ("SELECT abs(-9223372036854775808) WHERE 0;", []),
+    ("SELECT abs(-9223372036854775808) LIMIT 0;", []),
+    ("SELECT abs(-9223372036854775808) LIMIT 1 OFFSET 1;", []),
+    ("SELECT 1 WHERE '0.5x';", [[1]]),
+    ("SELECT 1 UNION ALL SELECT 2;", [[1], [2]])]
+  for (sql, expected) in queries do
+    let (state, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"constant SELECT {sql}: {message}"
+    unless state.database.tables.isEmpty do fail "constant SELECT mutated the database"
+    let values ← expected.mapM fun row => row.mapM fun integer =>
+      match SQLSurface.value (.integer integer) with
+      | .ok value => pure value
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some values do
+      fail s!"constant SELECT wrong result: {sql}"
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("SQLite SELECT without FROM", expectSQLiteConstantSelect),
+  ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
+  ("SQLite scalar admission and CAST token certificate", expectSQLiteScalarAdmission),
   ("checked binary page search and shared record views", expectCheckedTablePages),
   ("read pager cache and short-read boundary", expectReadPagerBoundary),
   ("cached primary signed/overflow rows and write invalidation", expectCachedPrimaryEdgeRows),

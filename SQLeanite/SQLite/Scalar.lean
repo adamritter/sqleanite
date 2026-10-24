@@ -1,0 +1,323 @@
+import SQLeanite.Syntax
+import SQLeanite.SQLite.Numeric
+
+/-!
+Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
+CAST follows vdbemem.c; the small built-in set follows func.c. The evaluator
+uses the parsed expression tree instead of pretending to be a complete VDBE.
+No column affinity or collation is applied by this constant-expression layer.
+-/
+namespace SQLeanite.SQLite.Scalar
+
+def realResult (r : Float) : Value := if r.isNaN then .null else .real r
+
+/-- Overflow retries the operation in binary64 using the original operands,
+as OP_Add/Subtract/Multiply do (not by rounding the exact integer result). -/
+def checkedInteger (i : Int) (fallback : Unit → Float) : Value :=
+  if Numeric.fits i then .integer i else realResult (fallback ())
+
+def floating (op : BinaryOp) (left right : Value) : Value :=
+  let a := Numeric.real left
+  let b := Numeric.real right
+  match op with
+  | .add => realResult (a + b)
+  | .sub => realResult (a - b)
+  | .mul => realResult (a * b)
+  | .div => if b == 0.0 then .null else realResult (a / b)
+  | .mod =>
+      let divisor := Numeric.integer right
+      if divisor == 0 then .null
+      else .real (Float.ofInt ((Numeric.integer left).tmod divisor))
+  | _ => .null
+
+def arithmetic (op : BinaryOp) (left right : Value) : Value :=
+  match left, right with
+  | .null, _ | _, .null => .null
+  | _, _ =>
+    match Numeric.arithmetic left, Numeric.arithmetic right with
+    | .integer a, .integer b =>
+      match op with
+      | .add => checkedInteger (a + b) (fun _ => Numeric.real left + Numeric.real right)
+      | .sub => checkedInteger (a - b) (fun _ => Numeric.real left - Numeric.real right)
+      | .mul => checkedInteger (a * b) (fun _ => Numeric.real left * Numeric.real right)
+      | .div => if b == 0 then .null else
+          checkedInteger (a.tdiv b) (fun _ => Numeric.real left / Numeric.real right)
+      | .mod => if b == 0 then .null else .integer (a.tmod b)
+      | _ => .null
+    | _, _ => floating op left right
+
+/-- C's shift opcodes reverse direction for a negative count and saturate
+counts >= 64, rather than using the hardware's count modulo 64. -/
+def shift (leftward : Bool) (value amount : Int) : Int :=
+  let leftward := if amount < 0 then !leftward else leftward
+  let count := amount.natAbs
+  if count ≥ 64 then if !leftward && value < 0 then -1 else 0
+  else
+    let word := Int64.ofInt value
+    if leftward then (word <<< Int64.ofInt (Int.ofNat count)).toInt
+    else (word >>> Int64.ofInt (Int.ofNat count)).toInt
+
+def bitwise (op : BinaryOp) (left right : Value) : Value :=
+  match left, right with
+  | .null, _ | _, .null => .null
+  | _, _ =>
+    let a := Numeric.integer left
+    let b := Numeric.integer right
+    .integer (match op with
+      | .bitAnd => ((Int64.ofInt a) &&& (Int64.ofInt b)).toInt
+      | .bitOr => ((Int64.ofInt a) ||| (Int64.ofInt b)).toInt
+      | .shiftLeft => shift true a b
+      | .shiftRight => shift false a b
+      | _ => 0)
+
+def boolValue (b : Bool) : Value := .integer (if b then 1 else 0)
+
+def isNull : Value → Bool | .null => true | _ => false
+
+/-- TEXT conversions cannot silently replace invalid BLOB bytes: until the
+text value representation can carry them, those conversions are rejected. -/
+def text (v : Value) : Except String String :=
+  match v with
+  | .blob bytes => match String.fromUTF8? (ByteArray.mk bytes) with
+      | some s => .ok s
+      | none => .error "unsupported verified SQL: invalid UTF-8 BLOB to TEXT"
+  | _ => .ok (toString v)
+
+def comparison (op : BinaryOp) (a b : Value) : Value :=
+  if op == .is then boolValue (a == b)
+  else if op == .isNot then boolValue (!(a == b))
+  else if isNull a || isNull b then .null
+  else
+    let order := a.compare b
+    boolValue (match op with
+      | .eq => order == .eq | .ne => order != .eq
+      | .lt => order == .lt | .le => order != .gt
+      | .gt => order == .gt | .ge => order != .lt
+      | _ => false)
+
+def unary (op : UnaryOp) (v : Value) : Value :=
+  match op with
+  | .plus => v
+  | .neg => arithmetic .sub (.integer 0) v
+  | .not => (Numeric.truth v).not.toValue
+  | .bitNot => if isNull v then .null else .integer (~~~(Int64.ofInt (Numeric.integer v))).toInt
+
+def binary (op : BinaryOp) (a b : Value) : Except String Value :=
+  match op with
+  | .add | .sub | .mul | .div | .mod => .ok (arithmetic op a b)
+  | .bitAnd | .bitOr | .shiftLeft | .shiftRight => .ok (bitwise op a b)
+  | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
+  | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
+  | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
+  | .concat => do
+      if isNull a || isNull b then return .null
+      return .text ((← text a) ++ (← text b))
+  | _ => .error "unsupported scalar operator"
+
+inductive Affinity where
+  | integer | text | blob | real | numeric
+  deriving BEq, Repr
+
+/-- sqlite3AffinityType's precedence, including FLOATING POINT => INTEGER. -/
+def affinity (typeName : String) : Affinity :=
+  let s := typeName.toUpper
+  if (s.splitOn "INT").length > 1 then .integer
+  else if ["CHAR", "CLOB", "TEXT"].any (fun part => (s.splitOn part).length > 1) then .text
+  else if s.isEmpty || (s.splitOn "BLOB").length > 1 then .blob
+  else if ["REAL", "FLOA", "DOUB"].any (fun part => (s.splitOn part).length > 1) then .real
+  else .numeric
+
+def cast (typeName : String) (v : Value) : Except String Value := do
+  if isNull v then return .null
+  match affinity typeName with
+  | .integer => return .integer (Numeric.integer v)
+  | .real => return realResult (Numeric.real v)
+  | .numeric => return Numeric.numerify v
+  | .text => return .text (← text v)
+  | .blob => match v with
+      | .blob _ => return v
+      | _ => return .blob (← text v).toUTF8.data
+
+/-- CAST is the constant-expression form that carries affinity. Unary plus
+and other operators erase it, just as sqlite3ExprAffinity specifies. -/
+def expressionAffinity : Expr → Option Affinity
+  | .call name _ false =>
+      if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
+  | _ => none
+
+def numericAffinity : Affinity → Bool
+  | .integer | .real | .numeric => true
+  | _ => false
+
+def comparisonAffinity (a b : Option Affinity) : Affinity :=
+  match a, b with
+  | some a, some b => if numericAffinity a || numericAffinity b then .numeric else .blob
+  | some a, none | none, some a => a
+  | none, none => .blob
+
+/-- Comparison affinity is lossless: malformed text and BLOBs stay in their
+original storage classes, in contrast to the forced CAST conversions. -/
+def applyComparisonAffinity (aff : Affinity) (v : Value) : Value :=
+  if numericAffinity aff then
+    match v with
+    | .text s => if (Numeric.parsePrefix s).completeToNul then Numeric.arithmetic v else v
+    | _ => v
+  else if aff == .text then
+    match v with
+    | .integer _ | .real _ => .text (toString v)
+    | _ => v
+  else v
+
+def expressionComparison (op : BinaryOp) (left right : Expr) (a b : Value) : Value :=
+  let aff := comparisonAffinity (expressionAffinity left) (expressionAffinity right)
+  comparison op (applyComparisonAffinity aff a) (applyComparisonAffinity aff b)
+
+def typeOf : Value → String
+  | .null => "null" | .integer _ => "integer" | .real _ => "real"
+  | .text _ => "text" | .blob _ => "blob"
+
+def builtin (name : String) (args : Array Value) : Except String Value := do
+  if name.startsWith "cast_" && args.size == 1 then
+    return ← cast (name.drop 5).toString args[0]!
+  match name, args.toList with
+  | "typeof", [v] => return .text (typeOf v)
+  | "abs", [.integer i] =>
+      if i == Numeric.minInt then throw "integer overflow"
+      return .integer i.natAbs
+  | "abs", [v] =>
+      if isNull v then return .null
+      let r := Numeric.real v
+      return realResult (if r < 0.0 then -r else r)
+  | "length", [v] =>
+      match v with
+      | .null => return .null
+      | .blob bytes => return .integer bytes.size
+      | _ => return .integer ((← text v).toList.takeWhile (· != '\x00')).length
+  | "octet_length", [v] =>
+      match v with
+      | .null => return .null
+      | .blob bytes => return .integer bytes.size
+      | _ => return .integer (← text v).utf8ByteSize
+  | "lower", [v] | "upper", [v] =>
+      if isNull v then return .null
+      -- SQLite's built-ins fold ASCII only, independent of Unicode locale.
+      return .text (String.ofList ((← text v).toList.map fun c =>
+        if name == "lower" && 'A' ≤ c && c ≤ 'Z' then Char.ofNat (c.toNat + 32)
+        else if name == "upper" && 'a' ≤ c && c ≤ 'z' then Char.ofNat (c.toNat - 32)
+        else c))
+  | "nullif", [a, b] => return if a == b then .null else a
+  | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
+
+/-- Admission is a syntax traversal, independent of evaluation success. In
+particular, dead branches cannot hide column references or unsupported SQL. -/
+def forbidden : Expr → Bool
+  | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ => false
+  | .binary op _ _ => [.like, .glob, .match, .arrow, .arrowText].contains op
+  | .call name args star =>
+      let n := name.toLower
+      star || !(if n == "coalesce" then args.size ≥ 2
+        else if n == "ifnull" || n == "nullif" then args.size == 2
+        else if n == "iif" || n == "if" then args.size ≥ 2
+        else if n.startsWith "cast_" ||
+          ["typeof", "abs", "length", "octet_length", "lower", "upper"].contains n
+        then args.size == 1 else false)
+  | _ => true
+
+def admitted (e : Expr) : Bool := !e.any forbidden
+
+/-- expr.c's EP_IsTrue/EP_IsFalse and sqlite3ExprSimplifiedAndOr. Only
+nonnegative 32-bit integer literals acquire these flags; +0, -0, 0.0 and
+numeric strings do not. This preserves SQLite's observable error suppression. -/
+def staticTruth : Expr → Option Bool
+  | .literal (.integer i) => if 0 ≤ i && i ≤ 2147483647 then some (i != 0) else none
+  | .binary .and a b =>
+      match staticTruth a, staticTruth b with
+      | some false, _ | _, some false => some false
+      | some true, some true => some true
+      | _, _ => none
+  | .binary .or a b =>
+      match staticTruth a, staticTruth b with
+      | some true, _ | _, some true => some true
+      | some false, some false => some false
+      | _, _ => none
+  | _ => none
+
+def firstNonNull (eval : Expr → Except String Value) : List Expr → Except String Value
+  | [] => .ok .null
+  | x :: xs => do
+      let v ← eval x
+      if isNull v then firstNonNull eval xs else return v
+
+def conditional (eval : Expr → Except String Value) : List Expr → Except String Value
+  | [] => .ok .null
+  | [last] => eval last
+  | condition :: result :: rest => do
+      if Numeric.truth (← eval condition) == .true then eval result else conditional eval rest
+
+def branches (eval : Expr → Except String Value) (base : Option (Expr × Value))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String Value
+  | [] => match otherwise with | none => .ok .null | some e => eval e
+  | (condition, result) :: rest => do
+      let v ← eval condition
+      let selected : Bool := match base with
+        | none => Numeric.truth v == .true
+        | some (expression, b) =>
+            expressionComparison .eq expression condition b v == .integer 1
+      if selected then eval result else branches eval base otherwise rest
+
+/-- Fuel is supplied by the existing structural expression height. Recursing
+through CASE/function arrays is total, with no unbounded interpreter binding. -/
+def evalFuel : Nat → Expr → Except String Value
+  | 0, _ => .error "scalar expression depth exhausted"
+  | fuel + 1, e =>
+    let eval := evalFuel fuel
+    match e with
+    | .literal v => .ok v
+    | .unary op arg => unary op <$> eval arg
+    | .binary op a b => do
+        if op == .and || op == .or then
+          if let some truth := staticTruth e then return boolValue truth
+        let left ← eval a
+        let right ← eval b
+        if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
+          return expressionComparison op a b left right
+        binary op left right
+    | .isNull arg negated => do return boolValue (isNull (← eval arg) != negated)
+    | .call name args false =>
+        let n := name.toLower
+        if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
+        else if n == "iif" || n == "if" then conditional eval args.toList
+        else do builtin n (← args.mapM eval)
+    | .case_ base cases otherwise => do
+        let b ← base.mapM (fun e => do return (e, ← eval e))
+        branches eval b otherwise cases.toList
+    | _ => .error "unsupported constant expression"
+
+def eval (e : Expr) : Except String Value := evalFuel e.height e
+
+theorem checkedInteger_exact {i : Int} (fallback : Unit → Float)
+    (lower : Numeric.minInt ≤ i) (upper : i ≤ Numeric.maxInt) :
+    checkedInteger i fallback = .integer i := by
+  simp [checkedInteger, (Numeric.fits_iff i).mpr ⟨lower, upper⟩]
+
+theorem add_integer_exact (a b : Int)
+    (lower : Numeric.minInt ≤ a + b) (upper : a + b ≤ Numeric.maxInt) :
+    arithmetic .add (.integer a) (.integer b) = .integer (a + b) := by
+  simp only [arithmetic, Numeric.arithmetic]
+  exact checkedInteger_exact _ lower upper
+
+theorem divide_integer_zero (a : Int) :
+    arithmetic .div (.integer a) (.integer 0) = .null := by
+  simp [arithmetic, Numeric.arithmetic]
+
+theorem arithmetic_null_left (op : BinaryOp) (v : Value) :
+    arithmetic op .null v = .null := rfl
+
+theorem arithmetic_null_right (op : BinaryOp) (v : Value) :
+    arithmetic op v .null = .null := by cases v <;> rfl
+
+theorem shift_left_large {value amount : Int} (nonnegative : 0 ≤ amount)
+    (large : 64 ≤ amount.natAbs) : shift true value amount = 0 := by
+  simp [shift, Int.not_lt.mpr nonnegative, large]
+
+end SQLeanite.SQLite.Scalar

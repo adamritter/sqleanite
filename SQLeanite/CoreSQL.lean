@@ -575,9 +575,53 @@ def executeJoin (state : Core.State) (select : Select) :
   let (next, result) ← Core.execute state (.join leftTable rightTable query)
   return ⟨next, result, query.columns.length⟩
 
+/-- A SELECT without FROM has one implicit zero-column input row. Validate
+all expressions before evaluating WHERE, LIMIT, and then the result row;
+unselected expressions must not raise evaluation errors. -/
+def constantRow (select : Select) : Except String (Option (List Core.Value)) := do
+  unless select.sources.isEmpty && select.valueRows.isNone &&
+      select.groupBy.isEmpty && select.having.isNone && select.orderBy.isEmpty do
+    unsupported "constant SELECT shape"
+  unless select.columns.all (fun column => SQLite.Scalar.admitted column.expr) &&
+      select.where_.all SQLite.Scalar.admitted do
+    unsupported "constant SELECT expression"
+  if select.limit == some 0 then return none
+  if let some condition := select.where_ then
+    unless SQLite.Numeric.truth (← SQLite.Scalar.eval condition) == .true do return none
+  if select.offset > 0 then return none
+  return some (← select.columns.toList.mapM (fun column => literal column.expr))
+
+def executeConstantSelect (state : Core.State) (select : Select) :
+    Except String SelectExecution :=
+  (fun row => { state, result := { rows := row.toList }, width := select.columns.size }) <$>
+    constantRow select
+
+theorem executeConstantSelect_preserves_state {state : Core.State} {select : Select}
+    {execution : SelectExecution} (success : executeConstantSelect state select = .ok execution) :
+    execution.state = state := by
+  unfold executeConstantSelect at success
+  cases row : constantRow select with
+  | error message => simp [row, Functor.map, Except.map] at success
+  | ok value =>
+      simp [row, Functor.map, Except.map] at success
+      cases success
+      rfl
+
+theorem executeConstantSelect_at_most_one_row {state : Core.State} {select : Select}
+    {execution : SelectExecution} (success : executeConstantSelect state select = .ok execution) :
+    execution.result.rows.length ≤ 1 := by
+  unfold executeConstantSelect at success
+  cases row : constantRow select with
+  | error message => simp [row, Functor.map, Except.map] at success
+  | ok value =>
+      simp [row, Functor.map, Except.map] at success
+      cases success
+      cases value <;> simp
+
 def executeSelectBase (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   if select.sources.size = 2 then executeJoin state select
+  else if select.sources.isEmpty then executeConstantSelect state select
   else do
     unless select.sources.size = 1 &&
         select.having.isNone && select.offset = 0 do
