@@ -1,0 +1,2291 @@
+{
+  "seed": 353830,
+  "random_cases": 100,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 321,
+      "matching_errors": 166
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 321,
+      "matching_errors": 166
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n4\nx\n9223372036854775807\n9223372036854775807\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ninteger\nreal\ninteger\ninteger\ntext\ntext\ninteger\ninteger\ninteger\ninteger\nnull\nreal\ntext\ntext\ninteger\ninteger\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n4\nx\n9223372036854775807\n9223372036854775807\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ninteger\nreal\ninteger\ninteger\ntext\ntext\ninteger\ninteger\ninteger\ninteger\nnull\nreal\ntext\ntext\ninteger\ninteger\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS x FROM n WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS true FROM n WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\n2\n-3\n4\nx\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n\n1.0\n4\nx\n2\n1\nx\n4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n2\n-3\n4\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n1.0\n4\n2\n1\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n2\n4\nx\n9223372036854775807\n9223372036854775807\n1.0\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2.0\n3.0\n4.0\n9.2233720368547758e+18\n9.2233720368547758e+18\n9.2233720368547758e+18\n4.0\n2.0\n4.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\nnull\ntext\ntext\ntext\ntext\ntext\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS x FROM tx WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS true FROM tx WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\n2\n-3\n4\nx\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n\n1.0\n4\nx\n2\n1\nx\n4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n2\n-3\n4\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n1.0\n4\n2\n1\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS x FROM e WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE \"k\" IS NOT NULL ORDER BY k LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IS NULL LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k=1 ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM t WHERE k=1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IN (1,2,3) ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\n1\n2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k IN (1,2,3) ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n2|3\n3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k='1' ORDER BY id DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k=1 ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS true FROM tx WHERE true ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-9223372036854775808\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k=1 ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1.0\n1.0\n1.0\n1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k IS NULL ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k='1' ORDER BY id DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k=1 AND abs(-9223372036854775808) ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE \"k\" IS NOT NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k>1 ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k>1 ORDER BY id DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE \"k\" IS NOT NULL ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE \"k\" IS NOT NULL ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 1 AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k=0 OR abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT NULL AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT NULL AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT NULL AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT NULL AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT NULL AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v AS k FROM n AS s WHERE k=1 ORDER BY s.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n1\n1.0\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 0 AS true WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n4\nx\n9223372036854775807\n9223372036854775807\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ninteger\nreal\ninteger\ninteger\ntext\ntext\ninteger\ninteger\ninteger\ninteger\nnull\nreal\ntext\ntext\ninteger\ninteger\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n4\nx\n9223372036854775807\n9223372036854775807\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ninteger\nreal\ninteger\ninteger\ntext\ntext\ninteger\ninteger\ninteger\ninteger\nnull\nreal\ntext\ntext\ninteger\ninteger\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS x FROM n WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS true FROM n WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\n2\n-3\n4\nx\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n\n1.0\n4\nx\n2\n1\nx\n4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n2\n-3\n4\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n1.0\n4\n2\n1\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n2\n4\nx\n9223372036854775807\n9223372036854775807\n1.0\n4\nx\n2\nx\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2.0\n3\n5\n9.2233720368547758e+18\n9.2233720368547758e+18\n2\n2.0\n5\n3\n2\n5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2.0\n3.0\n4.0\n9.2233720368547758e+18\n9.2233720368547758e+18\n9.2233720368547758e+18\n4.0\n2.0\n4.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "null\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\ntext\nnull\ntext\ntext\ntext\ntext\ntext\ntext\ntext\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS x FROM tx WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS true FROM tx WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n1\n1.0\n2\n-3\n4\nx\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n\n1.0\n4\nx\n2\n1\nx\n4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n2\n-3\n4\n9223372036854775807\n-9223372036854775808\n9223372036854775807\n1\n1.0\n4\n2\n1\n4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM tx WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n4|5\n5|6\n6|7\n7|8\n8|9\n9|10\n10|11\n11|12\n12|13\n13|14\n14|15\n15|16\n16|17\n17|18\n18|19\n19|20\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM tx WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS x FROM e WHERE x=0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k>1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM n WHERE \"k\" IS NOT NULL ORDER BY k LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|3\n3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IS NULL LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k=1 ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM e WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM t WHERE k=1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM tx WHERE k IN (1,2,3) ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1\n1\n2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE k IN (1,2,3) ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n2|3\n3|4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k='1' ORDER BY id DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM e WHERE k=1 ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS true FROM tx WHERE true ORDER BY 1 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "\n-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-9223372036854775808\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE k=1 ORDER BY k;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1.0\n1.0\n1.0\n1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k IS NULL ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k='1' ORDER BY id DESC LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT typeof(v) AS k FROM n WHERE k=1 AND abs(-9223372036854775808) ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id AS k,id+1 AS k FROM t WHERE \"k\" IS NOT NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM t WHERE k>1 ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v+1 AS k FROM tx WHERE k>1 ORDER BY id DESC LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE \"k\" IS NOT NULL ORDER BY 1 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(v) AS k FROM tx WHERE \"k\" IS NOT NULL ORDER BY k LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 1 AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k=0 OR abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT NULL AS k WHERE k>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT NULL AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT NULL AS k WHERE k IS NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT NULL AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT NULL AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k>0 LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k IS NULL LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) AS k WHERE k=0 OR abs(-9223372036854775808) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v AS k FROM n AS s WHERE k=1 ORDER BY s.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound SELECT name\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n1.0\n1\n1.0\n1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 0 AS true WHERE true;",
+      "lean": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "cf7101680a8d4cbe6b74fc408b2607c2f2fa187a5e88243f19a03e59853e3321",
+  "executable_sha256": "18afa86ad6808bee2d238366a832db39938879c3686bfbc11144d9863f8d71cf",
+  "harness_sha256": "486ac27b2f3f2c41ac7b246513879188b27f53ac063cc373838e7a574e8817a9",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare single-source and source-free WHERE aliases with source-name precedence.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

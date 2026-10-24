@@ -1186,3 +1186,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreGrouped.insertRow_nil
 #print axioms SQLeanite.CoreGrouped.emitOrdered_limit_zero
+
+#print axioms SQLeanite.CoreOrder.resolveAliases_literal

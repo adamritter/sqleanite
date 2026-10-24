@@ -59,6 +59,22 @@ def resolveNamesFuel (ctx : CoreExpr.Context) (columns : List ResultColumn) : Na
           | .collate arg name => .collate (resolve arg) name
           | _ => expression
 
+/-- WHERE resolves result aliases after parser-level simplification. Source
+columns take precedence, and substituted result expressions are not recursively
+resolved against other result aliases. -/
+def resolveAliases (ctx : CoreExpr.Context) (columns : List ResultColumn) (expression : Expr) : Expr :=
+  let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
+  resolveNamesFuel ctx columns expression.height expression
+
+def needsAliases (ctx : CoreExpr.Context) (columns : List ResultColumn) (expression : Expr) : Bool :=
+  (SQLite.Scalar.prepare (ctx.bindNames expression)).any fun node =>
+    (bareName? node).any fun name =>
+      (ctx.column? none name).isNone && (aliasExpression? columns name).isSome
+
+theorem resolveAliases_literal (ctx : CoreExpr.Context) (columns : List ResultColumn)
+    (value : Value) (spelling : Option String) :
+    resolveAliases ctx columns (.literal value spelling) = .literal value spelling := rfl
+
 def resolvePreparedTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) : Expr → Except String Expr
   | .collate expression name => do
       let resolved ← resolvePreparedTerm ctx columns expression

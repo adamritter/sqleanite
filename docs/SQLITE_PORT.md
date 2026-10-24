@@ -1812,3 +1812,39 @@ group buckets and makes no scaling claim. Native code and its nine-binding audit
 boundary are unchanged. Reports use `sqlite-grouped-expression-*20261024.json`
 under `docs/validation/`. These bounded results do not establish 100% SQLite
 compatibility.
+
+
+## WHERE result aliases and direct-read admission (2026-10-24)
+
+Single-source and source-free WHERE expressions now resolve result aliases with
+source-column precedence. Qualified names remain source references, duplicate
+aliases select the first result, and substituted expressions are not recursively
+resolved against other output aliases. TRUE/FALSE result aliases bind before
+boolean evaluation when there is no shadowing source column. Parser-level
+simplification precedes substitution, so `0 AND alias` can remove an unused
+aggregate alias before it becomes an aggregate-function misuse.
+
+The direct Core query and persisted-query recognizers decline predicates with
+pending alias substitutions. The existing expression route resolves and validates
+them, including on empty input and LIMIT zero. This prevents a TRUE/FALSE alias
+from accidentally becoming a constant predicate in a page-directed read. Grouped
+WHERE and aggregate HAVING routes share the same resolver. Aggregate aliases in
+ordinary WHERE remain invalid unless parser-level simplification removes them.
+
+Initial seed 353830 at the preceding checkpoint recorded 162 differences in
+642 outcomes. Development seed 353831 passes 842 outcomes. Final source is
+`2d3b2c789e7010810ef4c385c190e705dc54cb7275c3268abaf46f8249aba0a2`.
+Fresh seed 353832 passes **all 1,448 outcomes**, including **788 matching errors**;
+the intentionally invalid alias/function cases are therefore not counted as
+successful reads. Fresh seed 353833 passes all 1,050 grouped-expression regression
+outcomes, including 82 matching errors. Both live file modes compare exact CLI
+bytes or ordinary positive error status, preserving main/WAL bytes on reads.
+Exact diagnostic wording and SQLite error codes are not compared.
+
+The fixed scalar regression passes 1,121 cases plus six matching errors. All
+204 executable tests, the complete 270-job build, 1,058 registered headline
+theorems, verification audit and updated live-path audit pass. The new component
+lemma shows alias resolution leaves literal values and spellings unchanged;
+it is not a proof of complete name-resolution equivalence. Native code and its
+nine-binding audit boundary are unchanged. Reports use
+`sqlite-where-alias-*20261024.json` under `docs/validation/`.

@@ -128,8 +128,7 @@ def prepare (ctx : CoreExpr.Context) (select : Select) : Except String Prepared 
   -- Validate HAVING before moving any terms, even when a false WHERE will
   -- suppress their evaluation. The moved terms contain no aggregate calls.
   discard <| (having.mapM prepareOne).run #[]
-  let where_ := select.where_.map (fun expression =>
-    ctx.bindNames (CoreAggregateHaving.resolve ctx columns expression))
+  let where_ := select.where_.map (CoreOrder.resolveAliases ctx columns)
   let (where_, having) := pushHaving ctx groups where_ having
   let _ ← where_.mapM ctx.validate
   if select.distinct then CoreExpr.validateDistinct (columns.map (fun c => ctx.bindNames c.expr))

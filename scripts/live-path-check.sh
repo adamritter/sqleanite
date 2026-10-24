@@ -153,6 +153,17 @@ else
   fail "numeric aggregate execution or its registered contracts are missing"
 fi
 
+# Raw aliases must not be mistaken for source-bound predicates by a direct
+# Core command or by the persisted-query recognizer.
+if grep -q 'select.where_.any (CoreOrder.needsAliases ctx select.columns.toList)' SQLeanite/CoreSQL.lean &&
+   grep -q 'where_ := select.where_.map (CoreOrder.resolveAliases' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeExpressionSelect state resolved source stored none' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreOrder.resolveAliases_literal' SQLeanite/ProofAxioms.lean; then
+  ok "WHERE aliases resolve before evaluation and bypass unresolved direct reads"
+else
+  fail "WHERE alias resolution detached from the live source-binding path"
+fi
+
 # General grouping must retain Core aggregates, source representatives and
 # predicate-before-output evaluation through the new expression grouping path.
 if grep -q 'CoreGrouped.run ctx select (stored.rows.map' SQLeanite/CoreSQL.lean &&

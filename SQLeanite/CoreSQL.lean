@@ -1070,6 +1070,8 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
 /-- A source-free aggregate consumes the SELECT's single implicit empty row,
 unless WHERE rejects it. It still emits one aggregate row for empty input. -/
 def constantRow (select : Select) : Except String (Option (List Core.Value)) := do
+  let aliasContext : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
+  let select := { select with where_ := select.where_.map (CoreOrder.resolveAliases aliasContext select.columns.toList) }
   if !select.groupBy.isEmpty then
     unless select.sources.isEmpty && select.valueRows.isNone do unsupported "constant grouped SELECT shape"
     let ctx : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
@@ -1197,6 +1199,7 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
   unless select.groupBy.isEmpty do
     unsupported "aggregate grouping"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let select := { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
   let prepared ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
@@ -1268,11 +1271,13 @@ def executeExpressionSelect (state : Core.State) (select : Select) (source : Tab
     executeAggregateSelect state select source stored
   else executeFilteredSelect state select source stored
 
-/-- Every single-source route, including page-directed reads, checks the same
-source/alias scope before a direct Core command can omit an AST qualifier. -/
+/-- Direct Core commands require source-bound names without pending result-alias
+substitution. Expression routes resolve WHERE aliases before scalar validation;
+page-directed reads must decline the same unresolved alias shape. -/
 def selectNamesBound (schema : Core.Schema) (source : TableRef) (select : Select) : Bool :=
   let ctx : CoreExpr.Context := { schema, sourceName := source.alias.getD source.name }
-  select.columns.all (fun result => ctx.namesBound result.expr) &&
+  !(select.where_.any (CoreOrder.needsAliases ctx select.columns.toList)) &&
+    select.columns.all (fun result => ctx.namesBound result.expr) &&
     select.where_.all ctx.namesBound && select.groupBy.all ctx.namesBound &&
     select.having.all ctx.namesBound &&
     ((resolvedOrdering schema source select).toOption.any (fun terms => terms.all (fun term => ctx.namesBound term.expr)))
@@ -1312,6 +1317,12 @@ def executeSelectBase (state : Core.State) (select : Select) :
       return ← executeAggregateSelect state select source stored
     unless selectNamesBound stored.schema source select do
       if !select.groupBy.isEmpty then return ← executeCollatedGroup state select source stored
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      if select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) then
+        unless selectNamesBound stored.schema source { select with where_ := none } do
+          unsupported "unbound SELECT result or ordering name"
+        let resolved := { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
+        return ← executeExpressionSelect state resolved source stored none
       unsupported "unbound SELECT name"
     match select.where_.mapM (predicate stored.schema) with
     | .error _ => executeExpressionSelect state select source stored none

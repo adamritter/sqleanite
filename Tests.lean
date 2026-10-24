@@ -4403,6 +4403,39 @@ private def expectSQLiteQuotedNames : IO Unit := do
     | .ok _ => fail s!"name binding omitted error: {sql}"
     | .error _ => pure ()
 
+private def expectSQLiteWhereAliases : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,x INTEGER);INSERT INTO t VALUES(1,1,0),(2,3,1),(3,NULL,0);" ++
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,v);CREATE INDEX t_v ON t(v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT v+1 AS k FROM t WHERE k>2;", [[.integer 4]]),
+    ("SELECT v AS x FROM t WHERE x=0 ORDER BY id;", [[.integer 1], [.null]]),
+    ("SELECT v AS k FROM t WHERE k IS NULL;", [[.null]]),
+    ("SELECT v AS k FROM t AS s WHERE k=1 ORDER BY s.id;", [[.integer 1]]),
+    ("SELECT v AS true FROM t WHERE true;", [[.integer 1], [.integer 3]]),
+    ("SELECT v AS false FROM t WHERE false;", [[.integer 1], [.integer 3]]),
+    ("SELECT v AS k FROM t WHERE 0 AND k>0;", []),
+    ("SELECT count(*) AS k FROM t WHERE 0 AND k>0;", [[.integer 0]]),
+    ("SELECT count(*) AS k WHERE 0 AND k>0;", [[.integer 0]]),
+    ("SELECT 1 AS k WHERE k=1;", [[.integer 1]]),
+    ("SELECT 0 AS true WHERE true;", []),
+    ("SELECT TRUE AS true WHERE true;", [[.integer 1]]),
+    ("SELECT 0 AS true WHERE true IS TRUE;", [[.integer 0]]),
+    ("SELECT id AS k,id+1 AS k FROM t WHERE k=1;", [[.integer 1, .integer 2]]),
+    ("SELECT sum(v) FROM t WHERE x=0 HAVING sum(v)=1;", [[.integer 1]]),
+    ("SELECT v AS k,count(*) FROM t WHERE k>1 GROUP BY k;", [[.integer 3, .integer 1]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"WHERE alias: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"WHERE alias mismatch: {sql}"
+  for sql in ["SELECT v AS k FROM t WHERE t.k=1;", "SELECT v AS k FROM e WHERE missing LIMIT 0;",
+      "SELECT count(*) AS k FROM t WHERE k>0;", "SELECT count(*) AS k WHERE k>0;",
+      "SELECT v AS k,k AS y FROM t WHERE y>0;", "SELECT 1 AS k WHERE 0 AND no_function(k);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"WHERE alias error omitted: {sql}"
+
 private def expectSQLiteGroupedExpressions : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,'A',2),(2,'a',1),(3,'b',4),(4,'B',3),(5,NULL,5),(6,1,6),(7,1.0,8);" ++
     "CREATE TABLE o(id INTEGER PRIMARY KEY,g,v);INSERT INTO o VALUES(1,1,9223372036854775807),(2,1,1),(3,2,2),(4,3,3);"
@@ -5254,6 +5287,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite quoted functions and argument limit", expectSQLiteQuotedFunctions),
   ("SQLite scalar and aggregate expression collations", expectSQLiteExpressionCollations),
   ("SQLite collated column groups and bounded finalization", expectSQLiteCollatedGroups),
+  ("SQLite WHERE result aliases", expectSQLiteWhereAliases),
   ("SQLite grouped expressions and HAVING", expectSQLiteGroupedExpressions),
   ("SQLite ungrouped aggregate HAVING", expectSQLiteAggregateHaving),
   ("SQLite ungrouped aggregate ordering", expectSQLiteAggregateOrder),
