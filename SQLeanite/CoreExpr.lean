@@ -9,6 +9,9 @@ namespace SQLeanite.CoreExpr
 structure Context where
   schema : Core.Schema
   sourceName : String
+  /-- Columns fixed by the selected equality search, only for WHERE's IN
+  materialization. Projection and assignment evaluation use their normal AST. -/
+  fixedColumns : List Nat := []
 
 def Context.column? (ctx : Context) (qualifier : Option String) (name : String) : Option Nat := do
   if qualifier.any (fun q => q.toLower != ctx.sourceName.toLower) then none
@@ -100,22 +103,33 @@ def Context.projectRows (ctx : Context) (expressions : List Expr) (rows : List (
     Except String (List ProjectedRow) :=
   rows.mapM (fun row => do return { source := row, output := ← ctx.projectRow row expressions })
 
+def Context.constantExpression (ctx : Context) (expression : Expr) : Bool :=
+  !expression.any (fun e => match e with
+    | .column qualifier name => !(ctx.column? qualifier name).any ctx.fixedColumns.contains
+    | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+    | _ => false)
+
 /-- Top-level AND terms use the same WHERE branch evaluator as constant SELECT. -/
 def Context.matches (ctx : Context) (row : List Core.Value) (condition : Option Expr) :
     Except String Bool :=
   match condition with
   | none => .ok true
-  | some expression => SQLite.Scalar.testTermsWith (ctx.lookup row) ctx.affinity
+  | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
+      ctx.constantExpression
       (SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression))
 
 /-- Constant constraints run before the table loop, including on an empty
 input. Preserve their relative order; names are checked independently first. -/
-def Context.constantMatches (ctx : Context) (condition : Option Expr) : Except String Bool :=
+def Context.constantMatchesOn (ctx : Context) (row : List Core.Value)
+    (condition : Option Expr) : Except String Bool :=
   match condition with
   | none => .ok true
-  | some expression => SQLite.Scalar.testTermsWith (ctx.lookup []) ctx.affinity
-      ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)).filter fun term =>
-        !term.any (fun e => match e with | .column .. => true | _ => false))
+  | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
+      ctx.constantExpression
+      ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)).filter ctx.constantExpression)
+
+def Context.constantMatches (ctx : Context) (condition : Option Expr) : Except String Bool :=
+  ctx.constantMatchesOn [] condition
 
 /-- Evaluate the condition before output expressions; DISTINCT compares the
 computed outputs while retaining their source rows for subsequent ordering. -/

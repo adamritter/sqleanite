@@ -69,6 +69,15 @@ else
   fail "general WAL recovery is detached from its committed-prefix contracts"
 fi
 
+# SQL IN uses the scalar evaluator and binds indexed searches before scanning.
+if grep -q 'evalInList eval operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'expressionSearch ctx stored select.where_' SQLeanite/CoreSQL.lean &&
+   grep -q 'Scalar.evalInList_empty' SQLeanite/ProofAxioms.lean; then
+  ok "IN expressions and constant indexed searches are on the production path"
+else
+  fail "IN evaluator or expression search route is missing"
+fi
+
 # 1. No Legacy* module survives.
 if ls SQLeanite/Legacy*.lean >/dev/null 2>&1; then
   fail "Legacy modules still present"

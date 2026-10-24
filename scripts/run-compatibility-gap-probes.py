@@ -40,6 +40,7 @@ def main():
     probes += [dict(name='unique_index',sql=setup+'CREATE UNIQUE INDEX tv ON t(v);'),
                dict(name='without_rowid',sql="CREATE TABLE w(k TEXT PRIMARY KEY,v) WITHOUT ROWID;INSERT INTO w VALUES('x',1);SELECT * FROM w;"),
                dict(name='nocase',sql="CREATE TABLE n(id INTEGER PRIMARY KEY,v TEXT COLLATE NOCASE);INSERT INTO n VALUES(1,'a');SELECT id FROM n WHERE v='A';")]
+    probes += [dict(name='in_fixed_column_rhs',sql='CREATE TABLE t(id INTEGER PRIMARY KEY,n);INSERT INTO t VALUES(1,1),(2,2);SELECT id FROM t WHERE id=1 AND id IN (1,abs(-9223372036854775808),id) ORDER BY id LIMIT 1;')]
     results=[]
     with tempfile.TemporaryDirectory(prefix='sqleanite-gaps-') as tmp:
         for i,probe in enumerate(probes):

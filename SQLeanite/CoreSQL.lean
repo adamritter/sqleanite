@@ -456,14 +456,85 @@ def rowUpdateCommands (tableName : String) (ctx : CoreExpr.Context)
       return .updateWhere tableName updates
         (some (.equal ctx.schema.primaryKey (.integer row.rowid))) :: commands
 
+/-- Plan the bounded equality/IN searches needed by expression scans. A
+primary-key equality takes precedence over IN membership; otherwise a constant
+primary-key IN list (or a sole indexed IN condition) is materialized before the
+row loop. This preserves errors in search keys even for empty tables/LIMIT 1.
+Other access-plan choices remain with the general scan. -/
+def expressionSearch (ctx : CoreExpr.Context) (stored : Core.Table)
+    (condition : Option Expr) : Except String (Option Core.Predicate) := do
+  let terms := condition.toList.flatMap fun expression =>
+    SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare expression)
+  let primaryColumn := fun expression => match expression with
+    | .column qualifier name => ctx.column? qualifier name == some stored.schema.primaryKey
+    | _ => false
+  let primaryEquality := terms.find? fun term => match term with
+    | .binary .eq a b =>
+        (primaryColumn a && SQLite.Scalar.constantExpression b) ||
+        (primaryColumn b && SQLite.Scalar.constantExpression a)
+    | _ => false
+  if let some (.binary .eq left right) := primaryEquality then
+    let value := if primaryColumn left then right else left
+    return some (.equal stored.schema.primaryKey
+      (← comparisonLiteral stored.schema stored.schema.primaryKey value))
+  let inColumn := fun term => match term with
+    | .inList (.column qualifier name) values false true =>
+        if !values.isEmpty && values.all SQLite.Scalar.constantExpression then
+          ctx.column? qualifier name
+        else none
+    | _ => none
+  let candidate := (terms.find? fun term => inColumn term == some stored.schema.primaryKey)
+    |>.orElse (fun _ => if terms.length == 1 then
+      terms.find? fun term => (inColumn term).any fun column =>
+        stored.indexes.any fun index => index.column == column
+      else none)
+  match candidate with
+  | some (.inList argument values false true) =>
+      let some column := inColumn (Expr.inList argument values false true) | return none
+      let affinity := (ctx.affinity argument).getD .blob
+      let keys ← values.toList.mapM fun expression => do
+        let value ← ctx.eval [] expression
+        SQLSurface.value (SQLite.Scalar.applyComparisonAffinity affinity value)
+      return keys.foldr (fun value remaining =>
+        some (match remaining with
+          | none => .equal column value
+          | some rest => .or (.equal column value) rest)) none
+  | _ => return none
+
+/-- A chosen primary-key equality fixes that column for WHERE's constant
+analysis. The actual row still supplies its value and comparison affinity. -/
+def expressionSearchContext (ctx : CoreExpr.Context) (search : Option Core.Predicate) :
+    CoreExpr.Context :=
+  match search with
+  | some (.equal column _) =>
+      if column == ctx.schema.primaryKey then { ctx with fixedColumns := [column] } else ctx
+  | _ => ctx
+
+/-- Constant propagation can make a whole WHERE term independent of the
+row loop. Evaluate those terms with the equality key before seeking the table,
+even when the search will find no row. Other columns remain unbound here. -/
+def expressionSearchReady (ctx : CoreExpr.Context) (search : Option Core.Predicate)
+    (condition : Option Expr) : Except String Bool :=
+  match search with
+  | some (.equal column value) =>
+      if ctx.fixedColumns.contains column then
+        let row : List Core.Value := (List.range ctx.schema.columns.length).map fun index =>
+          if index == column then value else .null
+        ctx.constantMatchesOn row condition
+      else .ok true
+  | _ => .ok true
+
 def expressionUpdatePlan (tableName : String) (alias : Option String) (stored : Core.Table)
     (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (List Core.Command) := do
-  let ctx : CoreExpr.Context := ⟨stored.schema, alias.getD tableName⟩
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let bound ← expressionAssignments ctx assignments
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return []
-  rowUpdateCommands tableName ctx bound condition stored.rows
+  let search ← expressionSearch ctx stored condition
+  let ctx := expressionSearchContext ctx search
+  unless ← expressionSearchReady ctx search condition do return []
+  rowUpdateCommands tableName ctx bound condition (stored.rows.filter (Core.selects search))
 
 def executeExpressionUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
@@ -529,10 +600,13 @@ def rowDeleteCommands (tableName : String) (ctx : CoreExpr.Context)
 
 def expressionDeletePlan (tableName : String) (alias : Option String) (stored : Core.Table)
     (condition : Option Expr) : Except String (List Core.Command) := do
-  let ctx : CoreExpr.Context := ⟨stored.schema, alias.getD tableName⟩
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return []
-  rowDeleteCommands tableName ctx condition stored.rows
+  let search ← expressionSearch ctx stored condition
+  let ctx := expressionSearchContext ctx search
+  unless ← expressionSearchReady ctx search condition do return []
+  rowDeleteCommands tableName ctx condition (stored.rows.filter (Core.selects search))
 
 def executeExpressionDelete (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (condition : Option Expr) :
@@ -857,17 +931,23 @@ sort, and all names are bound before either path can skip evaluation. -/
 def filteredSelectResult (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
   unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
-  let ctx : CoreExpr.Context := ⟨stored.schema, source.alias.getD source.name⟩
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   let expressions ← ctx.projection select.columns.toList
   let _ ← select.where_.mapM ctx.validate
   let _ ← select.orderBy.toList.mapM (fun term => ctx.validate term.expr)
   let ordering ← orderBy stored.schema select.orderBy.toList
   if select.limit != some 0 then
     unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
+  let search ← if select.limit == some 0 then pure none
+    else expressionSearch ctx stored select.where_
+  let ctx := expressionSearchContext ctx search
+  if select.limit != some 0 then
+    unless ← expressionSearchReady ctx search select.where_ do return ({}, expressions.length)
   let orderedScan := ordering.isEmpty ||
     (ordering.head?.any (fun term => term.1 == stored.schema.primaryKey))
   let query : Core.Query := {
     columns := List.range stored.schema.columns.length
+    predicate := search
     orderBy := if orderedScan then ordering else [] }
   let (_, result) ← Core.execute state (.query (canonical source.name) query)
   let remaining := if orderedScan || select.limit == some 0 then select.limit else none

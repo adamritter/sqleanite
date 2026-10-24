@@ -3917,6 +3917,44 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteInList : IO Unit := do
+  let cases : List (String × List Value) := [
+    ("SELECT NULL IN (), NULL NOT IN (), missing IN ();", [.integer 0, .integer 1, .integer 0]),
+    ("SELECT 1 IN (1,2), 1 NOT IN (1,2), 2 IN (1,NULL), NULL IN (1,2);",
+      [.integer 1, .integer 0, .null, .null]),
+    ("SELECT '1' IN (1), CAST('1' AS NUMERIC) IN (1), 1 IN (CAST('1' AS TEXT));",
+      [.integer 0, .integer 1, .integer 0]),
+    ("SELECT 1 IN (1,abs(-9223372036854775808)), abs(-9223372036854775808) IN ();",
+      [.integer 1, .integer 0])]
+  for (query, values) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty query with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"IN list: {message}"
+    let expected ← match values.mapM SQLSurface.value with
+      | .ok row => pure row
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [expected] do fail s!"IN list truth: {query}"
+  let indexed := "CREATE TABLE t(id INTEGER PRIMARY KEY,v); INSERT INTO t VALUES(1,1),(2,2); CREATE TABLE empty(id INTEGER PRIMARY KEY,v);"
+  let (_, results) ← match CoreSQL.execute Core.State.empty (indexed ++
+      "SELECT id FROM t WHERE id IN (1,abs(-9223372036854775808)) AND id=1 LIMIT 1;") with
+    | .ok outcome => pure outcome
+    | .error message => fail s!"primary equality before IN membership: {message}"
+  unless (results.getLast?).map (·.rows.length) == some 1 do
+    fail "primary equality did not bound the IN membership scan"
+  for query in [
+      "SELECT id FROM t WHERE id IN (1,abs(-9223372036854775808)) LIMIT 1;",
+      "SELECT id FROM t WHERE id IN (1,abs(-9223372036854775808)) AND id>0 LIMIT 1;",
+      "SELECT id FROM empty WHERE id=1 AND id IN (1,abs(-9223372036854775808),id);"] do
+    match CoreSQL.execute Core.State.empty (indexed ++ query) with
+    | .ok _ => fail "IN search did not materialize an invalid RHS"
+    | .error _ => pure ()
+  for query in ["SELECT 1 IN (1,2,abs(-9223372036854775808));",
+      "SELECT NULL IN (abs(-9223372036854775808),1);",
+      "SELECT unknown_function() IN ();", "SELECT 1 IN (1,missing);"] do
+    match CoreSQL.execute Core.State.empty query with
+    | .ok _ => fail s!"invalid IN expression accepted: {query}"
+    | .error _ => pure ()
+
 private def expectSQLiteWALRecoveryPrefix : IO Unit := do
   let header := CoreWALFileAdapter.header
   let page := Storage.Page.zero PhysicalCodec.pageSize
@@ -4179,6 +4217,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),
   ("SQLite WAL valid committed prefix", expectSQLiteWALRecoveryPrefix),
   ("SQLite row-expression DELETE", expectSQLiteRowDeletes),
   ("SQLite stable DISTINCT before LIMIT", expectSQLiteDistinctLimit),

@@ -238,6 +238,14 @@ def parserFalse : Expr → Bool
   | .literal (.integer 0) => true
   | _ => false
 
+/-- Every currently admitted scalar builtin is deterministic. An IN list
+without row references is materialized first when it has more than two terms;
+shorter or row-dependent lists use SQLite's comparison chain. -/
+def constantExpression (expression : Expr) : Bool :=
+  !expression.any (fun e => match e with
+    | .column .. | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+    | _ => false)
+
 def prepareFuel : Nat → Expr → Expr
   | 0, e => e
   | fuel + 1, e =>
@@ -253,7 +261,21 @@ def prepareFuel : Nat → Expr → Expr
     | .call name args star => .call name (args.map prepare) star
     | .isNull arg negated => .isNull (prepare arg) negated
     | .inList arg values negated affinity =>
-        .inList (prepare arg) (values.map prepare) negated affinity
+        let argument := prepare arg
+        if values.isEmpty then
+          let result : Expr := .literal (.integer (if negated then 1 else 0))
+          if hasFunction argument then
+            .binary (if negated then .or else .and) result argument
+          else result
+        else
+          let choices := values.map prepare
+          match choices.toList with
+          | [choice] =>
+            if constantExpression choice && affinity then
+              let equality := Expr.binary .eq argument (.unary .plus choice)
+              if negated then .unary .not equality else equality
+            else .inList argument choices negated affinity
+          | _ => .inList argument choices negated affinity
     | .collate arg name => .collate (prepare arg) name
     | .case_ base branches otherwise => .case_ (base.map prepare)
         (branches.map fun pair => (prepare pair.1, prepare pair.2)) (otherwise.map prepare)
@@ -265,7 +287,7 @@ def prepare (expression : Expr) : Expr := prepareFuel expression.height expressi
 /-- Admission is a syntax traversal, independent of evaluation success. In
 particular, dead branches cannot hide column references or unsupported SQL. -/
 def forbidden : Expr → Bool
-  | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ => false
+  | .literal _ | .unary _ _ | .isNull _ _ | .case_ _ _ _ | .inList .. => false
   | .binary op _ _ => [.like, .glob, .match, .arrow, .arrowText].contains op
   | .call name args star =>
       let n := name.toLower
@@ -329,13 +351,52 @@ def branches (eval : Expr → Except String Value)
             equal expression condition b v == .integer 1
       if selected then eval result else branches eval equal base otherwise rest
 
+def membership (affinity : Affinity) (left : Value) : List Value → Bool → Truth
+  | [], sawNull => if sawNull then .unknown else .false
+  | value :: values, sawNull =>
+      let equal := comparison .eq (applyComparisonAffinity affinity left)
+        (applyComparisonAffinity affinity value)
+      if equal == .integer 1 then .true
+      else membership affinity left values (sawNull || isNull value)
+
+def linearMembership (eval : Expr → Except String Value) (affinity : Affinity)
+    (left : Value) : List Expr → Bool → Except String Truth
+  | [], sawNull => .ok (if sawNull then .unknown else .false)
+  | expression :: expressions, sawNull => do
+      let value ← eval expression
+      let equal := comparison .eq (applyComparisonAffinity affinity left)
+        (applyComparisonAffinity affinity value)
+      if equal == .integer 1 then return .true
+      else linearMembership eval affinity left expressions (sawNull || isNull value)
+
+def evalInList (eval : Expr → Except String Value) (operandAffinity : Expr → Option Affinity)
+    (constant : Expr → Bool) (argument : Expr) (values : Array Expr) (negated applyLeftAffinity : Bool) :
+    Except String Value := do
+  if values.isEmpty then return boolValue negated
+  let affinity := if applyLeftAffinity then (operandAffinity argument).getD .blob else .blob
+  let truth ← if values.size > 2 && values.all constant then do
+      let right ← values.toList.mapM eval
+      let left ← eval argument
+      pure (membership affinity left right (isNull left))
+    else do
+      let left ← eval argument
+      linearMembership eval affinity left values.toList (isNull left)
+  return (if negated then truth.not else truth).toValue
+
+theorem evalInList_empty (eval : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (argument : Expr)
+    (negated applyLeftAffinity : Bool) :
+    evalInList eval operandAffinity constant argument #[] negated applyLeftAffinity =
+      .ok (boolValue negated) := by
+  simp [evalInList, pure, Except.pure]
+
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
-def evalFuelWith (lookup : Option String → String → Except String Value)
-    (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value
+def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : Nat → Expr → Except String Value
   | 0, _ => .error "scalar expression depth exhausted"
   | fuel + 1, e =>
-    let eval := evalFuelWith lookup operandAffinity fuel
+    let eval := evalFuelWithConstants lookup operandAffinity constant fuel
     match e with
     | .literal v => .ok v
     | .column qualifier name => lookup qualifier name
@@ -352,6 +413,8 @@ def evalFuelWith (lookup : Option String → String → Except String Value)
           return expressionComparisonWith operandAffinity op a b left right
         binary op left right
     | .isNull arg negated => do return boolValue (isNull (← eval arg) != negated)
+    | .inList argument values negated applyLeftAffinity =>
+        evalInList eval operandAffinity constant argument values negated applyLeftAffinity
     | .call name args false =>
         let n := name.toLower
         if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
@@ -362,6 +425,10 @@ def evalFuelWith (lookup : Option String → String → Except String Value)
         branches eval (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
     | _ => .error "unsupported constant expression"
 
+def evalFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value :=
+  evalFuelWithConstants lookup operandAffinity constantExpression
+
 def evalFuel : Nat → Expr → Except String Value :=
   evalFuelWith (fun _ _ => .error "unsupported constant expression") expressionAffinity
 
@@ -371,39 +438,48 @@ def eval (e : Expr) : Except String Value :=
 
 /-- The same evaluator with explicit column and affinity inputs. Admission and
 name resolution are checked independently before any row is evaluated. -/
+def evalWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
+    (e : Expr) : Except String Value :=
+  let expression := prepare e
+  evalFuelWithConstants lookup operandAffinity constant expression.height expression
+
 def evalWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
-  let expression := prepare e
-  evalFuelWith lookup operandAffinity expression.height expression
+  evalWithConstants lookup operandAffinity constantExpression e
 
 /-- WHERE branches use SQL three-valued truth but need only one truth outcome.
 Testing false is distinct from testing not-true: NULL matches neither. This
 preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
-def testFuelWith (lookup : Option String → String → Except String Value)
-    (operandAffinity : Expr → Option Affinity) :
+def testFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
     Nat → Bool → Expr → Except String Bool
   | 0, _, _ => .error "row predicate depth exhausted"
   | fuel + 1, wanted, expression => do
       if let some truth := staticTruth expression then
         return truth == wanted
       match expression with
-      | .unary .not arg => testFuelWith lookup operandAffinity fuel (!wanted) arg
+      | .unary .not arg => testFuelWithConstants lookup operandAffinity constant fuel (!wanted) arg
       | .binary .and left right =>
           if wanted then
-            if ← testFuelWith lookup operandAffinity fuel true left then testFuelWith lookup operandAffinity fuel true right
+            if ← testFuelWithConstants lookup operandAffinity constant fuel true left then testFuelWithConstants lookup operandAffinity constant fuel true right
             else return false
           else
-            if ← testFuelWith lookup operandAffinity fuel false left then return true
-            else testFuelWith lookup operandAffinity fuel false right
+            if ← testFuelWithConstants lookup operandAffinity constant fuel false left then return true
+            else testFuelWithConstants lookup operandAffinity constant fuel false right
       | .binary .or left right =>
           if wanted then
-            if ← testFuelWith lookup operandAffinity fuel true left then return true
-            else testFuelWith lookup operandAffinity fuel true right
+            if ← testFuelWithConstants lookup operandAffinity constant fuel true left then return true
+            else testFuelWithConstants lookup operandAffinity constant fuel true right
           else
-            if ← testFuelWith lookup operandAffinity fuel false left then testFuelWith lookup operandAffinity fuel false right
+            if ← testFuelWithConstants lookup operandAffinity constant fuel false left then testFuelWithConstants lookup operandAffinity constant fuel false right
             else return false
-      | _ => return Numeric.truth (← evalWith lookup operandAffinity expression) ==
+      | _ => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
           (if wanted then .true else .false)
+
+def testFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  testFuelWithConstants lookup operandAffinity constantExpression
 
 /-- where.c splits top-level AND into independent constraints before branch
 code generation. Parenthesized AND has the same AST and is split too. -/
@@ -411,13 +487,17 @@ def conditionTerms : Expr → List Expr
   | .binary .and left right => conditionTerms left ++ conditionTerms right
   | expression => [expression]
 
-def testTermsWith (lookup : Option String → String → Except String Value)
-    (operandAffinity : Expr → Option Affinity) : List Expr → Except String Bool
+def testTermsWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : List Expr → Except String Bool
   | [] => .ok true
   | expression :: rest => do
-      if ← testFuelWith lookup operandAffinity expression.height true expression then
-        testTermsWith lookup operandAffinity rest
+      if ← testFuelWithConstants lookup operandAffinity constant expression.height true expression then
+        testTermsWithConstants lookup operandAffinity constant rest
       else return false
+
+def testTermsWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : List Expr → Except String Bool :=
+  testTermsWithConstants lookup operandAffinity constantExpression
 
 def testWhere (expression : Expr) : Except String Bool :=
   testTermsWith (fun _ _ => .error "unbound column") expressionAffinity (conditionTerms (prepare expression))

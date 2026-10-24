@@ -1,0 +1,27 @@
+{
+  "seed": 353521,
+  "random_cases": 350,
+  "queries": 773,
+  "matching_errors": 24,
+  "result_rows": 21802,
+  "failures": [
+    {
+      "sql": "SELECT id FROM empty WHERE id=1 AND id IN (1,abs(-9223372036854775808),id);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    }
+  ],
+  "implementation_sha256": "bf1d7dda7804af23c4a0ce965f8689479b5ef0ea4675199417fb362c977c4c62",
+  "executable_sha256": "2539eac81dc0e39e97fc02d3ba9fb08b9dc0ab13b624ba9ad7795e4a463b6d04",
+  "harness_sha256": "183c3f2b5e8ef6ffd56f52dee7bec95a72afa6860dd1a9008c6db804ae93e29e",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite IN/NOT IN value, affinity, NULL, binding and error-order comparisons.\n\nExercises the production file reader with constant and row expressions, WHERE,\nempty lists and deterministic RHS materialization. Every query is compared;\nfailures are retained, never silently omitted from passing counts."
+}

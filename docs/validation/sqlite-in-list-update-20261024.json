@@ -1,0 +1,28 @@
+{
+  "seed": 353525,
+  "random_cases": 80,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "updates": 93,
+      "requested_updates": 93,
+      "rows_per_observation": 122,
+      "expected_errors": 9,
+      "rollback": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "updates": 93,
+      "requested_updates": 93,
+      "rows_per_observation": 122,
+      "expected_errors": 9,
+      "rollback": true
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "12306ff67f34848324db7a479cd5c77b592da2967bcdbbff64080eddaf4d4e34",
+  "executable_sha256": "42c59065e244b9be4360fdb6409709ec24848f8cfd6921ec02893c4ab5cfe9a4",
+  "harness_sha256": "f54a18d4fad85254bf1f1db0b866a3e2a6387071c6f3284f054dc2c602a04d69",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite-decoded storage classes, exact binary64, TEXT/BLOB bytes after each UPDATE; integrity; failed-statement bytes; rollback."
+}

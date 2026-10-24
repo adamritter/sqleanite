@@ -589,3 +589,41 @@ need SQLite-compatible locking and wal-index coordination. That separate
 open-reader counterexample remains unresolved. The format/recovery reference
 is SQLite's [WAL file format](https://www.sqlite.org/fileformat2.html#walformat)
 and the pinned source's `walIndexRecover`/`walDecodeFrame` routines.
+
+### Scalar IN/NOT IN and indexed search checkpoint (2026-10-24)
+
+Scalar IN and NOT IN now implement empty-list folding, SQL NULL truth, numeric
+comparison, and left-operand affinity without importing RHS column affinity.
+A singleton constant list normalizes to equality with unary plus on its RHS.
+Short or row-dependent lists use a short-circuit comparison chain; longer
+constant lists evaluate all RHS expressions before the LHS. Empty lists retain
+function binding while suppressing evaluation, following SQLite's parser rule.
+
+Expression scans also recognize primary-key equality and constant primary-key
+IN searches, plus a sole indexed IN constraint. Search keys are evaluated before
+the row scan; a stronger primary equality bounds the rows first. Columns fixed
+by that equality participate in WHERE's constant-IN classification. Entire
+WHERE terms made constant by that binding run before the lookup, including on
+empty tables. The normal projection and assignment evaluator keeps its original
+row and affinity information. These explicit rules do not implement SQLite's
+complete cost-based planner or every combination of competing constraints.
+
+Two development counterexamples changed the implementation: eager IN search
+keys were initially missed at LIMIT 1/empty tables, then fixed-column constant
+terms were initially evaluated too late on an empty table. Both reports remain
+in `docs/validation/sqlite-in-list-development-negative-20261024.json` and
+`docs/validation/sqlite-in-fixed-column-negative-20261024.json`.
+
+Frozen implementation SHA-256:
+`12306ff67f34848324db7a479cd5c77b592da2967bcdbbff64080eddaf4d4e34`.
+Fresh seed 353524 checked **773 SELECTs / 22,293 output rows**, including
+**26 matching rejections**, with no discrepancy. Seeds 353525 and 353526
+checked **186 UPDATEs** and **188 DELETEs** across both file modes, including
+IN predicates, 18/16 matching errors respectively, image integrity, failed
+statement byte preservation and rollback. Full build, **173 executable tests**,
+**968 registered headline theorems** and both audits passed. Reports are
+`docs/validation/sqlite-in-list-20261024.json`,
+`docs/validation/sqlite-in-list-update-20261024.json`, and
+`docs/validation/sqlite-in-list-delete-20261024.json`.
+Subquery IN, custom collations and complete planner/evaluation-order parity
+remain separate work; these results are not a compatibility percentage.

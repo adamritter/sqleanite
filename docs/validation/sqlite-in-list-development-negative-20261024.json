@@ -1,0 +1,53 @@
+{
+  "seed": 353520,
+  "random_cases": 150,
+  "queries": 362,
+  "matching_errors": 17,
+  "result_rows": 9602,
+  "failures": [
+    {
+      "sql": "SELECT id FROM t WHERE id IN (1,abs(-9223372036854775808)) ORDER BY id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    },
+    {
+      "sql": "SELECT id FROM empty WHERE id IN (1,abs(-9223372036854775808));",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    },
+    {
+      "sql": "SELECT id FROM empty WHERE id IN (1,2,abs(-9223372036854775808));",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    }
+  ],
+  "implementation_sha256": "7bdc67756357de53c0115a095d7eb301ad94e1d4ca8be85cabbb37b90ed1fde1",
+  "executable_sha256": "8c4c9bb21e01d77e4d9c901d83f2aeb7350e04b2ff6ba1a6c426087659df8527",
+  "harness_sha256": "2bbf48604f35683165480faf78a798489b643fc0614213884c19d39f7b650ebc",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite IN/NOT IN value, affinity, NULL, binding and error-order comparisons.\n\nExercises the production file reader with constant and row expressions, WHERE,\nempty lists and deterministic RHS materialization. Every query is compared;\nfailures are retained, never silently omitted from passing counts."
+}

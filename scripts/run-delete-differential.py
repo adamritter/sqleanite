@@ -33,6 +33,9 @@ def main():
               'CREATE TABLE empty(id INTEGER PRIMARY KEY,a INTEGER);',
               'CREATE TABLE tp(k TEXT PRIMARY KEY,v);',"INSERT INTO tp VALUES('a',1),('b',NULL),('ccc',2);"]
     queries=[
+        'DELETE FROM t WHERE id IN (1,3,5);',
+        "DELETE FROM tp WHERE k IN ('a','b');",
+        'DELETE FROM t WHERE a NOT IN (1,NULL,2);',
         'DELETE FROM t WHERE missing+1 AND 0;', 'DELETE FROM t WHERE 0 AND wrong.id;',
         'DELETE FROM t WHERE a+1>0;', 'DELETE FROM t AS x WHERE x.id%3=0;',
         "DELETE FROM tp WHERE length(k)>1 OR v+0=1;",
@@ -50,7 +53,7 @@ def main():
             "s=CAST(id AS TEXT)", 'NOT(a+0>=0 AND b+0)', 'b IS NULL OR id%2=0',
             f'length(s)={rng.randrange(3,6)}'])
         queries.append(f'DELETE FROM t WHERE {condition};')
-    errors=['DELETE FROM t WHERE id=1 OR abs(-9223372036854775808);',
+    errors=['DELETE FROM empty WHERE id IN (1,abs(-9223372036854775808));', 'DELETE FROM t WHERE id=1 OR abs(-9223372036854775808);',
             'DELETE FROM t WHERE abs(-9223372036854775808) AND 0;',
             'DELETE FROM t WHERE unknown_function(a);','DELETE FROM t WHERE wrong.a+1;',
             'DELETE FROM t WHERE unknown_function(id) AND 0;', 'DELETE FROM empty WHERE missing+1;',

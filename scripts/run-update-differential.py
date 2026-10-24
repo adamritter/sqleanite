@@ -50,6 +50,9 @@ def main():
               'CREATE TABLE tp(k TEXT PRIMARY KEY,v);',
               "INSERT INTO tp VALUES('a','hello'),('b',2);"]
     queries=[
+        'UPDATE t SET a=a+1 WHERE id IN (1,3,5);',
+        "UPDATE tp SET v=coalesce(v,0) WHERE k IN ('a','b');",
+        'UPDATE t SET n=n+1 WHERE a NOT IN (1,NULL,2);',
         "UPDATE tp SET v=upper(v)||k WHERE length(k)>0;",
         'UPDATE t SET a=b,b=a WHERE id<=10;',
         'UPDATE t SET s=upper(s),n=n+1 WHERE id%2=0;',
@@ -70,7 +73,7 @@ def main():
         condition=rng.choice([f'id%{rng.randrange(2,8)}={rng.randrange(2)}',
                               f'id>{rng.randrange(100,120)}','n+0>0',"instr(s,'1')>0",'id<0'])
         queries.append(f'UPDATE t SET {rng.choice(assignments)} WHERE {condition};')
-    errors=['UPDATE t SET a=unknown_function(),a=a+1 WHERE id<4;', 'UPDATE t SET a=missing WHERE 0;', 'UPDATE empty SET a=missing;',
+    errors=['UPDATE empty SET a=1 WHERE id IN (1,abs(-9223372036854775808));', 'UPDATE t SET a=unknown_function(),a=a+1 WHERE id<4;', 'UPDATE t SET a=missing WHERE 0;', 'UPDATE empty SET a=missing;',
             'UPDATE t SET a=missing,a=2;', 'UPDATE t SET a=wrong.a;',
             'UPDATE t SET n=CASE WHEN id=120 THEN NULL ELSE n+1 END;',
             'UPDATE t SET a=CASE WHEN id=120 THEN abs(-9223372036854775808) ELSE 2 END;',
