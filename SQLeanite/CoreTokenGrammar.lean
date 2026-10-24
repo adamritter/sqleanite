@@ -137,6 +137,49 @@ private def expectInteger (expected : Int) : MatchM Unit := do
 private def expectNat (expected : Nat) : MatchM Unit :=
   expectInteger (Int.ofNat expected)
 
+/-- LIMIT/OFFSET integer spellings are checked independently of the parser's
+normalized Nat fields. Negative limits are unbounded; negative offsets are zero.
+The count must fit the signed 64-bit LIMIT register; LIMIT zero skips
+OFFSET conversion, just as SQLite skips its OFFSET opcode sequence. -/
+private def limitValue : MatchM (Option Int) := do
+  let negative ← acceptSymbol "-"
+  unless negative do discard <| acceptSymbol "+"
+  match ← advance with
+  | .integer found => return some (if negative then -found else found)
+  | .real source =>
+      unless (parseDecimal? source).isSome do mismatch "a numeric LIMIT/OFFSET literal"
+      return none
+  | .string _ => return none
+  | .ident name =>
+      if name.toLower == "null" then return none
+      else if name.toLower == "true" then return some (if negative then -1 else 1)
+      else if name.toLower == "false" then return some 0
+      else mismatch "a literal LIMIT/OFFSET value"
+  | _ => mismatch "a literal LIMIT/OFFSET value"
+
+private def matchLimit (query : Select) : MatchM Unit := do
+  if ← acceptKeyword "limit" then
+    let first ← limitValue
+    let mut countValue := first
+    let mut skipValue := some (0 : Int)
+    if ← acceptSymbol "," then
+      skipValue := first
+      countValue ← limitValue
+    else if ← acceptKeyword "offset" then
+      skipValue ← limitValue
+    let some count := countValue | mismatch "an integer LIMIT"
+    let skip := skipValue.getD 0
+    unless (-9223372036854775808 : Int) ≤ count && count ≤ 9223372036854775807 do
+      mismatch "signed 64-bit LIMIT"
+    unless count == 0 || (skipValue.isSome && (-9223372036854775808 : Int) ≤ skip &&
+        skip ≤ 9223372036854775807) do mismatch "signed 64-bit OFFSET"
+    let limit := if count < 0 then none else some count.toNat
+    let offset := if count == 0 then 0 else (max 0 skip).toNat
+    unless query.limit == limit && query.offset == offset do
+      mismatch "the translated LIMIT/OFFSET values"
+  else unless query.limit.isNone && query.offset == 0 do mismatch "LIMIT/OFFSET clause"
+
+
 private def expectBinaryOp : BinaryOp → MatchM Unit
   | .add => expectSymbol "+"
   | .sub => expectSymbol "-"
@@ -501,15 +544,7 @@ private def matchSelect (query : Select) : MatchM Unit := do
     expectKeyword "order"
     expectKeyword "by"
     matchOrderTerms query.orderBy.toList
-  match query.limit with
-  | none =>
-      unless query.offset == 0 do mismatch "LIMIT before OFFSET"
-  | some limit =>
-      expectKeyword "limit"
-      expectNat limit
-      unless query.offset == 0 do
-        expectKeyword "offset"
-        expectNat query.offset
+  matchLimit query
 
 private def matchRows : List (Array Expr) → MatchM Unit
   | [] => mismatch "at least one VALUES row"

@@ -188,6 +188,40 @@ theorem scan_length_le (ctx : Context) (condition : Option Expr) (expressions : 
               subst output
               simpa using Nat.succ_le_succ (ih _ _ _ tail)
 
+/-- OFFSET skips surviving source rows before ordinary projection. DISTINCT
+must compute each skipped output to recognize duplicates. Once the skip count
+is exhausted, reuse the existing LIMIT-aware scan. -/
+def Context.scanWindow (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) : List (List Core.Value) → Nat → Option Nat → List (List Core.Value) →
+      Except String (List ProjectedRow)
+  | rows, 0, remaining, seen => ctx.scan condition expressions distinct rows remaining seen
+  | [], _ + 1, _, _ => .ok []
+  | row :: rows, skip + 1, remaining, seen => do
+      if remaining == some 0 then return []
+      if distinct then
+        match ← ctx.candidate condition expressions true seen row with
+        | none => return ← ctx.scanWindow condition expressions true rows (skip + 1) remaining seen
+        | some projected =>
+            return ← ctx.scanWindow condition expressions true rows skip remaining
+              (Core.distinctRowKey projected.output :: seen)
+      else
+        let selected ← ctx.matches row condition
+        return ← ctx.scanWindow condition expressions false rows
+          (if selected then skip else skip + 1) remaining seen
+
+theorem scanWindow_offset_zero (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows seen : List (List Core.Value)) (remaining : Option Nat) :
+    ctx.scanWindow condition expressions distinct rows 0 remaining seen =
+      ctx.scan condition expressions distinct rows remaining seen := by
+  cases rows <;> rfl
+
+theorem scanWindow_limit_zero (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows seen : List (List Core.Value)) (skip : Nat) :
+    ctx.scanWindow condition expressions distinct rows skip (some 0) seen = .ok [] := by
+  cases skip with
+  | zero => rw [scanWindow_offset_zero, scan_limit_zero]
+  | succ skip => cases rows <;> simp [Context.scanWindow, pure, Except.pure]
+
 theorem projectRow_width (ctx : Context) (row : List Core.Value)
     (expressions : List Expr) (output : List Core.Value)
     (success : ctx.projectRow row expressions = .ok output) :

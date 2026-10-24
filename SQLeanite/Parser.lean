@@ -391,6 +391,39 @@ private def constantInt? : Expr → Option Int
     | _ => none
   | _ => none
 
+private def skippedLimitLiteral : Expr → Bool
+  | .literal _ => true
+  | .unary .plus expression | .unary .neg expression => skippedLimitLiteral expression
+  | _ => false
+
+/-- Preserve the two LIMIT spellings until the count is known: count zero
+skips conversion of a literal offset, including NULL and out-of-range reals. -/
+private def parseLimitClause : ParserM (Option Nat × Nat × Bool) := do
+  unless ← acceptKeyword "limit" do return (none, 0, false)
+  let first ← parseExpr
+  let mut countExpression := first
+  let mut offsetExpression : Expr := .literal (.integer 0)
+  if ← acceptSymbol "," then
+    offsetExpression := first
+    countExpression ← parseExpr
+  else if ← acceptKeyword "offset" then
+    offsetExpression ← parseExpr
+  let count ← match constantInt? countExpression with
+    | some value => pure value
+    | none => throw "datatype mismatch"
+  unless (-9223372036854775808 : Int) ≤ count && count ≤ 9223372036854775807 do
+    throw "datatype mismatch"
+  let skip ← match constantInt? offsetExpression with
+    | some value => pure value
+    | none =>
+        if count == 0 && skippedLimitLiteral offsetExpression then pure 0
+        else throw "datatype mismatch"
+  unless count == 0 || ((-9223372036854775808 : Int) ≤ skip && skip ≤ 9223372036854775807) do
+    throw "datatype mismatch"
+  return (if count < 0 then none else some count.toNat,
+    if count == 0 then 0 else (max 0 skip).toNat, true)
+
+
 private def parseOptionalNameList : ParserM (Option (Array String)) := do
   if ← acceptSymbol "(" then
     let mut names := #[(← expectIdent)]
@@ -788,28 +821,7 @@ private def parseSelectAfterSelectFuel : Nat → Bool → ParserM Select
           let desc ← acceptKeyword "desc"
           if !desc then discard <| acceptKeyword "asc"
           orderBy := orderBy.push { expr := e, descending := desc }
-      let mut limit := none
-      let mut offset := 0
-      let mut hadLimit := false
-      if ← acceptKeyword "limit" then
-        hadLimit := true
-        let limitExpr ← parseExpr
-        match constantInt? limitExpr with
-        | some i => if i >= 0 then limit := some i.toNat else limit := none
-        | none => throw "datatype mismatch"
-        if ← acceptKeyword "offset" then
-          let offsetExpr ← parseExpr
-          match constantInt? offsetExpr with
-          | some i => offset := max 0 i |>.toNat
-          | none => throw "datatype mismatch"
-        else if ← acceptSymbol "," then
-          -- SQLite's `LIMIT offset,count` spelling.
-          let countExpr ← parseExpr
-          match constantInt? countExpr with
-          | some i =>
-            offset := limit.getD 0
-            limit := some (max 0 i).toNat
-          | none => throw "datatype mismatch"
+      let (limit, offset, hadLimit) ← parseLimitClause
       query := { query with orderBy, limit, offset }
       if !orderBy.isEmpty || hadLimit then
         let pending ← if ← acceptKeyword "union" then
@@ -856,27 +868,7 @@ private def parseValuesAfterValues (rows : Array (Array Expr)) : ParserM Select 
       let descending ← acceptKeyword "desc"
       if !descending then discard <| acceptKeyword "asc"
       orderBy := orderBy.push { expr := expression, descending }
-  let mut limit := none
-  let mut offset := 0
-  let mut hadLimit := false
-  if ← acceptKeyword "limit" then
-    hadLimit := true
-    let limitExpr ← parseExpr
-    match constantInt? limitExpr with
-    | some i => if i >= 0 then limit := some i.toNat else limit := none
-    | none => throw "datatype mismatch"
-    if ← acceptKeyword "offset" then
-      let offsetExpr ← parseExpr
-      match constantInt? offsetExpr with
-      | some i => offset := max 0 i |>.toNat
-      | none => throw "datatype mismatch"
-    else if ← acceptSymbol "," then
-      let countExpr ← parseExpr
-      match constantInt? countExpr with
-      | some i =>
-        offset := limit.getD 0
-        limit := some (max 0 i).toNat
-      | none => throw "datatype mismatch"
+  let (limit, offset, hadLimit) ← parseLimitClause
   query := { query with orderBy, limit, offset }
   if !orderBy.isEmpty || hadLimit then
     let pending ← if ← acceptKeyword "union" then

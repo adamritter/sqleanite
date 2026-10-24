@@ -1,0 +1,59 @@
+{
+  "seed": 353537,
+  "random_cases": 250,
+  "queries": 716,
+  "phases": [
+    {
+      "name": "unindexed",
+      "queries": 358,
+      "result_rows": 6469
+    },
+    {
+      "name": "indexed",
+      "queries": 358,
+      "result_rows": 6469
+    }
+  ],
+  "failures": [],
+  "matching_errors": 13,
+  "planner_order_diagnostics": [
+    {
+      "sql": "SELECT id FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1;",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matches": false,
+      "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+    },
+    {
+      "sql": "SELECT DISTINCT id%2 FROM t WHERE id<3 OR abs(-9223372036854775808) LIMIT 2;",
+      "lean": {
+        "exit_code": 0,
+        "stdout": "1\n0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matches": false,
+      "scope": "Planner-dependent scan order without ORDER BY; retained diagnostic, not a passing conformance case."
+    }
+  ],
+  "implementation_sha256": "07fdaa27f110076d842d6f1427e85b469a427c9f5beada5f46c2600f6237b664",
+  "executable_sha256": "3bb19e5292f83322ce58fc306a97c30b4e60034ffdb72ec21afa1719ed31a287",
+  "harness_sha256": {
+    "run-predicate-differential.py": "3a52bb1c0759837ae90891cce2ac6176a8651580f9e60d6debb1669666e1f919",
+    "run-compound-differential.py": "2f45653b94a6c5e32f74694362059ae153bd2a99d599373fcd6f4c98a06140db"
+  },
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "CLI rows, multiplicities, truth, LIMIT error suppression, binding and unchanged file; indexed/unindexed"
+}

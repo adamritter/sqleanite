@@ -951,9 +951,10 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
     orderBy := if orderedScan then ordering else [] }
   let (_, result) ← Core.execute state (.query (canonical source.name) query)
   let remaining := if orderedScan || select.limit == some 0 then select.limit else none
-  let projected ← ctx.scan select.where_ expressions select.distinct result.rows remaining []
+  let skip := if orderedScan then select.offset else 0
+  let projected ← ctx.scanWindow select.where_ expressions select.distinct result.rows skip remaining []
   let projected := if orderedScan then projected else
-    projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)
+    (projected.mergeSort (fun a b => !CoreExpr.sourceLess ordering b a)).drop select.offset
   return ({ result with rows := (Core.limitRows select.limit projected).map (·.output) },
     expressions.length)
 
@@ -993,8 +994,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
   if select.sources.size = 2 then executeJoin state select
   else if select.sources.isEmpty then executeConstantSelect state select
   else do
-    unless select.sources.size = 1 &&
-        select.having.isNone && select.offset = 0 do
+    unless select.sources.size = 1 && select.having.isNone do
       throw "unsupported general verified-MVP SQL: SELECT shape"
     let source ← match select.sources[0]? with
       | some source => .ok source
@@ -1009,7 +1009,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
     | .error _ => executeFilteredSelect state select source stored
     | .ok wherePredicate => do
       if !select.groupBy.isEmpty then
-        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+        if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
           unsupported "grouped DISTINCT, ORDER BY, or LIMIT"
         else
           let groups ← groupColumns stored.schema select.groupBy.toList
@@ -1024,19 +1024,19 @@ def executeSelectBase (state : Core.State) (select : Select) :
             ← sumColumn? stored.schema select.columns.toList,
             ← extremeColumn? stored.schema select.columns.toList with
         | some target, none, none =>
-          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
             unsupported "COUNT DISTINCT, ORDER BY, or LIMIT"
           else
             let (next, result) ← Core.execute state (.count tableName target wherePredicate)
             return ⟨next, result, 1⟩
         | none, some column, none =>
-          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
             unsupported "SUM DISTINCT, ORDER BY, or LIMIT"
           else
             let (next, result) ← Core.execute state (.sum tableName column wherePredicate)
             return ⟨next, result, 1⟩
         | none, none, some (minimum, column) =>
-          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome then
+          if select.distinct || !select.orderBy.isEmpty || select.limit.isSome || select.offset != 0 then
             unsupported "MIN/MAX DISTINCT, ORDER BY, or LIMIT"
           else
             let (next, result) ← Core.execute state
@@ -1047,7 +1047,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
           | .error _ => executeExpressionSelect state select source stored wherePredicate
           | .ok columns =>
             let ordering ← orderBy stored.schema select.orderBy.toList
-            if queryNeedsRepresentatives select.distinct columns ordering then
+            if select.offset != 0 || queryNeedsRepresentatives select.distinct columns ordering then
               executeFilteredSelect state select source stored
             else
               let query : Core.Query := {

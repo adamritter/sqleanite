@@ -1,0 +1,81 @@
+{
+  "seed": 353534,
+  "random_cases": 400,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 425,
+      "result_rows": 2736,
+      "matching_errors": 9
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 425,
+      "result_rows": 2736,
+      "matching_errors": 9
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT 9223372036854775808,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected the translated LIMIT/OFFSET values, found ;\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT 0 OFFSET 9223372036854775808;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected the translated LIMIT/OFFSET values, found ;\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT 9223372036854775808,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected the translated LIMIT/OFFSET values, found ;\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT 0 OFFSET 9223372036854775808;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected the translated LIMIT/OFFSET values, found ;\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "6607efb3cf33705f2b38b340ecd52554b9a25f57dcc539f9e33b07be01f250af",
+  "executable_sha256": "8aaa9a6d7f9cfd4e84a8f300e1c0f136617df369d55dbb778b0e9df2acf7629c",
+  "harness_sha256": "3f4b97cae901400d38440899dc10c8884ec562b0fdab199ab66487fc3a4f45c3",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare SQL LIMIT/OFFSET slicing, DISTINCT, skipped expressions and binding.\n\nUses independent databases and compares result order and rejection status.\nAll counterexamples remain in the report, including syntax rejected by the\ncertified grammar. This suite does not represent whole-SQLite coverage."
+}

@@ -1061,3 +1061,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.WALRead.Snapshot.readPage_newest
 
 #print axioms SQLeanite.SQLite.Scalar.evalInList_empty
+
+#print axioms SQLeanite.CoreExpr.scanWindow_offset_zero
+#print axioms SQLeanite.CoreExpr.scanWindow_limit_zero

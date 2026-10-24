@@ -25,16 +25,17 @@ ok()   { printf 'ok - %s\n' "$1"; }
 
 # Row-expression predicates remain on the production Core read boundary.
 if grep -q 'executeFilteredSelect state select source stored' SQLeanite/CoreSQL.lean &&
-   grep -q 'ctx.scan select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&
+   grep -q 'ctx.scanWindow select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeFilteredSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
-   grep -q 'CoreExpr.scan_length_le' SQLeanite/ProofAxioms.lean; then
+   grep -q 'CoreExpr.scan_length_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreExpr.scanWindow_limit_zero' SQLeanite/ProofAxioms.lean; then
   ok "row-expression WHERE uses bounded scans on Core query results"
 else
   fail "row-expression WHERE route or its registered contracts are missing"
 fi
 
 # DISTINCT source representatives must use the same route after file reopen.
-if [ "$(grep -c 'if queryNeedsRepresentatives select.distinct columns ordering then' SQLeanite/CoreSQL.lean)" -eq 2 ] &&
+if [ "$(grep -c 'queryNeedsRepresentatives select.distinct columns ordering then' SQLeanite/CoreSQL.lean)" -eq 2 ] &&
    grep -q 'directQuery : CoreSQL.queryNeedsRepresentatives' SQLeanite/CoreSQLReadText.lean; then
   ok "DISTINCT representative routing is shared by SQL and the persisted recognizer"
 else

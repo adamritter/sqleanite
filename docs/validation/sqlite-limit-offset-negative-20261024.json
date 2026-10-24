@@ -1,0 +1,2517 @@
+{
+  "seed": 353530,
+  "random_cases": 80,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 97,
+      "result_rows": 0,
+      "matching_errors": 8
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 97,
+      "result_rows": 0,
+      "matching_errors": 8
+    }
+  ],
+  "failures": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id<0 ORDER BY b DESC LIMIT 10,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 0,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "23\n31\n13\n41\n3\n5\n25\n27\n33\n21\n9\n7\n11\n17\n37\n29\n15\n39\n19\n35\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY b DESC LIMIT -5,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id LIMIT 1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t WHERE id%2=0 LIMIT 0 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE v+1>0 ORDER BY id LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 2 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 LIMIT -5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n4|\n6|1\n8|1.0\n10|0\n12|1.0\n14|-2\n16|1\n18|2\n20|2\n22|1.0\n24|2\n26|2\n28|1.0\n30|\n32|-2\n34|-2\n36|1.0\n38|0\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE v+1>0 LIMIT 2,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "8|1.0\n10|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 1,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n-2\n\n\n2\n2\n-2\n2\n1.0\n1\n0\n1\n1.0\n1.0\n-2\n0\n2\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT -5 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE v+1>0 LIMIT 50 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n33\n35\n36\n38\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT -5,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE v+1>0 ORDER BY id LIMIT 1,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n9\n11\n12\n13\n14\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n34\n36\n37\n39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id+1 FROM t ORDER BY b DESC LIMIT 10,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "41\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id<0 ORDER BY b DESC LIMIT -5 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY id DESC LIMIT 5 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE id<0 ORDER BY id LIMIT 10,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t WHERE id<0 ORDER BY id LIMIT -1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 10,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t WHERE id<0 ORDER BY b DESC LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 1 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 LIMIT 2147483648 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t WHERE v+1>0 ORDER BY id LIMIT 10,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY id LIMIT 2147483648 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t ORDER BY id LIMIT -5 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-2\n2|\n3|1.0\n4|\n5|-2\n6|1\n7|-2\n8|1.0\n9|\n10|0\n11|0\n12|1.0\n13|2\n14|-2\n15|2\n16|1\n17|1.0\n18|2\n19|0\n20|2\n21|0\n22|1.0\n23|0\n24|2\n25|1.0\n26|2\n27|0\n28|1.0\n29|1.0\n30|\n31|-2\n32|-2\n33|0\n34|-2\n35|0\n36|1.0\n37|\n38|0\n39|-2\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(v) FROM t LIMIT -5,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2D32\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(v) FROM t WHERE v+1>0 ORDER BY b DESC LIMIT -1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n30\n312E30\n312E30\n312E30\n312E30\n32\n30\n32\n32\n312E30\n312E30\n32\n31\n30\n31\n30\n312E30\n30\n312E30\n30\n32\n312E30\n30\n30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t WHERE id%2=0 LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 1,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "31\n312E30\n30\n2D32\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t LIMIT 50,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY id DESC LIMIT 50,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 50 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n1.0\n-2\n-2\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(v) FROM t ORDER BY id LIMIT 2,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n\n2D32\n31\n2D32\n312E30\n\n30\n30\n312E30\n32\n2D32\n32\n31\n312E30\n32\n30\n32\n30\n312E30\n30\n32\n312E30\n32\n30\n312E30\n312E30\n\n2D32\n2D32\n30\n2D32\n30\n312E30\n\n30\n2D32\n2D32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE v+1>0 ORDER BY id LIMIT -5 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n0\n1.0\n2\n2\n1\n1.0\n2\n0\n2\n0\n1.0\n0\n2\n1.0\n2\n0\n1.0\n1.0\n0\n0\n1.0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE id<0 ORDER BY id DESC LIMIT 2147483648 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE id%2=0 ORDER BY id DESC LIMIT -1,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40\n38\n36\n34\n32\n30\n28\n26\n24\n22\n20\n18\n16\n14\n12\n10\n8\n6\n4\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t ORDER BY b DESC LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT 2,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id+1 FROM t WHERE v+1>0 LIMIT 50,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t ORDER BY id LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE v+1>0 ORDER BY id LIMIT 50,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT -1,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n0\n-2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t ORDER BY id DESC LIMIT 10,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30|\n29|1.0\n28|1.0\n27|0\n26|2\n25|1.0\n24|2\n23|0\n22|1.0\n21|0\n20|2\n19|0\n18|2\n17|1.0\n16|1\n15|2\n14|-2\n13|2\n12|1.0\n11|0\n10|0\n9|\n8|1.0\n7|-2\n6|1\n5|-2\n4|\n3|1.0\n2|\n1|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 0,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "35\n23\n22\n3\n12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT v FROM t WHERE v+1>0 LIMIT 1,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE v+1>0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "38|0\n36|1.0\n35|0\n33|0\n29|1.0\n28|1.0\n27|0\n26|2\n25|1.0\n24|2\n23|0\n22|1.0\n21|0\n20|2\n19|0\n18|2\n17|1.0\n16|1\n15|2\n13|2\n12|1.0\n11|0\n10|0\n8|1.0\n6|1\n3|1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t LIMIT 2,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(v) FROM t ORDER BY id LIMIT -1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2D32\n\n312E30\n\n2D32\n31\n2D32\n312E30\n\n30\n30\n312E30\n32\n2D32\n32\n31\n312E30\n32\n30\n32\n30\n312E30\n30\n32\n312E30\n32\n30\n312E30\n312E30\n\n2D32\n2D32\n30\n2D32\n30\n312E30\n\n30\n2D32\n2D32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 0,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 ORDER BY id LIMIT -1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n4|\n6|1\n8|1.0\n10|0\n12|1.0\n14|-2\n16|1\n18|2\n20|2\n22|1.0\n24|2\n26|2\n28|1.0\n30|\n32|-2\n34|-2\n36|1.0\n38|0\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t ORDER BY b DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "35\n7\n23\n22\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 2,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n30\n2D32\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id LIMIT 2147483648 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n1\n1.0\n0\n1.0\n-2\n1\n2\n2\n1.0\n2\n2\n1.0\n\n-2\n-2\n1.0\n0\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t ORDER BY b DESC LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE v+1>0 ORDER BY id DESC LIMIT 1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "38\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY id LIMIT -1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY b DESC LIMIT 0,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY b DESC LIMIT 50,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT hex(v) FROM t WHERE v+1>0 ORDER BY id LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n31\n312E30\n30\n30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE id<0 LIMIT 2 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE id%2=0 ORDER BY id LIMIT 2 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n9\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY b DESC LIMIT -1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY id DESC LIMIT -1,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n312E30\n32\n31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id,v FROM t WHERE v+1>0 ORDER BY id LIMIT 1,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6|1\n8|1.0\n10|0\n11|0\n12|1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t LIMIT 1,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n\n-2\n1\n-2\n1.0\n\n0\n0\n1.0\n2\n-2\n2\n1\n1.0\n2\n0\n2\n0\n1.0\n0\n2\n1.0\n2\n0\n1.0\n1.0\n\n-2\n-2\n0\n-2\n0\n1.0\n\n0\n-2\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT +v FROM t WHERE v+1>0 LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1\n1.0\n0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id FROM t ORDER BY id DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "39\n38\n37\n36\n35\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE id<0 ORDER BY id DESC LIMIT 2,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE v+1>0 ORDER BY id LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 50,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY id LIMIT 10,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT -1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT 1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT 1,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t LIMIT +1 OFFSET +1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t ORDER BY id LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT id FROM t WHERE abs(-9223372036854775808) LIMIT 0 OFFSET 5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id<0 ORDER BY b DESC LIMIT 10,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 0,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "23\n31\n13\n41\n3\n5\n25\n27\n33\n21\n9\n7\n11\n17\n37\n29\n15\n39\n19\n35\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY b DESC LIMIT -5,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id LIMIT 1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t WHERE id%2=0 LIMIT 0 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE v+1>0 ORDER BY id LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 2 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 LIMIT -5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n4|\n6|1\n8|1.0\n10|0\n12|1.0\n14|-2\n16|1\n18|2\n20|2\n22|1.0\n24|2\n26|2\n28|1.0\n30|\n32|-2\n34|-2\n36|1.0\n38|0\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE v+1>0 LIMIT 2,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "8|1.0\n10|0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 1,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n-2\n\n\n2\n2\n-2\n2\n1.0\n1\n0\n1\n1.0\n1.0\n-2\n0\n2\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT -5 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE v+1>0 LIMIT 50 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n33\n35\n36\n38\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT -5,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE v+1>0 ORDER BY id LIMIT 1,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n9\n11\n12\n13\n14\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n34\n36\n37\n39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id+1 FROM t ORDER BY b DESC LIMIT 10,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "41\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE id<0 ORDER BY b DESC LIMIT -5 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY id DESC LIMIT 5 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE id<0 ORDER BY id LIMIT 10,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t WHERE id<0 ORDER BY id LIMIT -1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 10,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t WHERE id<0 ORDER BY b DESC LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 1 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 LIMIT 2147483648 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t WHERE v+1>0 ORDER BY id LIMIT 10,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY id LIMIT 2147483648 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t ORDER BY id LIMIT -5 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-2\n2|\n3|1.0\n4|\n5|-2\n6|1\n7|-2\n8|1.0\n9|\n10|0\n11|0\n12|1.0\n13|2\n14|-2\n15|2\n16|1\n17|1.0\n18|2\n19|0\n20|2\n21|0\n22|1.0\n23|0\n24|2\n25|1.0\n26|2\n27|0\n28|1.0\n29|1.0\n30|\n31|-2\n32|-2\n33|0\n34|-2\n35|0\n36|1.0\n37|\n38|0\n39|-2\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(v) FROM t LIMIT -5,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2D32\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(v) FROM t WHERE v+1>0 ORDER BY b DESC LIMIT -1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n30\n312E30\n312E30\n312E30\n312E30\n32\n30\n32\n32\n312E30\n312E30\n32\n31\n30\n31\n30\n312E30\n30\n312E30\n30\n32\n312E30\n30\n30\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t WHERE id%2=0 LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 1,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "31\n312E30\n30\n2D32\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t LIMIT 50,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY id DESC LIMIT 50,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT 50 OFFSET 10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n1.0\n-2\n-2\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(v) FROM t ORDER BY id LIMIT 2,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n\n2D32\n31\n2D32\n312E30\n\n30\n30\n312E30\n32\n2D32\n32\n31\n312E30\n32\n30\n32\n30\n312E30\n30\n32\n312E30\n32\n30\n312E30\n312E30\n\n2D32\n2D32\n30\n2D32\n30\n312E30\n\n30\n2D32\n2D32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE v+1>0 ORDER BY id LIMIT -5 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n0\n1.0\n2\n2\n1\n1.0\n2\n0\n2\n0\n1.0\n0\n2\n1.0\n2\n0\n1.0\n1.0\n0\n0\n1.0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE id<0 ORDER BY id DESC LIMIT 2147483648 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE id%2=0 ORDER BY id DESC LIMIT -1,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40\n38\n36\n34\n32\n30\n28\n26\n24\n22\n20\n18\n16\n14\n12\n10\n8\n6\n4\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t ORDER BY b DESC LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 LIMIT 2,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id+1 FROM t WHERE v+1>0 LIMIT 50,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t ORDER BY id LIMIT 2 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2\n\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE v+1>0 ORDER BY id LIMIT 50,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id%2=0 ORDER BY b DESC LIMIT -1,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1\n0\n-2\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t ORDER BY id DESC LIMIT 10,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30|\n29|1.0\n28|1.0\n27|0\n26|2\n25|1.0\n24|2\n23|0\n22|1.0\n21|0\n20|2\n19|0\n18|2\n17|1.0\n16|1\n15|2\n14|-2\n13|2\n12|1.0\n11|0\n10|0\n9|\n8|1.0\n7|-2\n6|1\n5|-2\n4|\n3|1.0\n2|\n1|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 0,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "35\n23\n22\n3\n12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT v FROM t WHERE v+1>0 LIMIT 1,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id,v FROM t WHERE v+1>0 ORDER BY id DESC LIMIT -5,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found 5\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "38|0\n36|1.0\n35|0\n33|0\n29|1.0\n28|1.0\n27|0\n26|2\n25|1.0\n24|2\n23|0\n22|1.0\n21|0\n20|2\n19|0\n18|2\n17|1.0\n16|1\n15|2\n13|2\n12|1.0\n11|0\n10|0\n8|1.0\n6|1\n3|1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t LIMIT 2,-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n0\n2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(v) FROM t ORDER BY id LIMIT -1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2D32\n\n312E30\n\n2D32\n31\n2D32\n312E30\n\n30\n30\n312E30\n32\n2D32\n32\n31\n312E30\n32\n30\n32\n30\n312E30\n30\n32\n312E30\n32\n30\n312E30\n312E30\n\n2D32\n2D32\n30\n2D32\n30\n312E30\n\n30\n2D32\n2D32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 ORDER BY id DESC LIMIT 0,1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE id%2=0 ORDER BY id LIMIT -1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n4|\n6|1\n8|1.0\n10|0\n12|1.0\n14|-2\n16|1\n18|2\n20|2\n22|1.0\n24|2\n26|2\n28|1.0\n30|\n32|-2\n34|-2\n36|1.0\n38|0\n40|-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t ORDER BY b DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "35\n7\n23\n22\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE id%2=0 LIMIT 2,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n30\n2D32\n32\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE id%2=0 ORDER BY id LIMIT 2147483648 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\n1\n1.0\n0\n1.0\n-2\n1\n2\n2\n1.0\n2\n2\n1.0\n\n-2\n-2\n1.0\n0\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t ORDER BY b DESC LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t WHERE v+1>0 ORDER BY id DESC LIMIT 1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "38\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id%2=0 LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY id LIMIT -1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY b DESC LIMIT 0,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY b DESC LIMIT 50,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected OFFSET, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT hex(v) FROM t WHERE v+1>0 ORDER BY id LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E30\n31\n312E30\n30\n30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE id<0 LIMIT 2 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE id%2=0 ORDER BY id LIMIT 2 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n9\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE id<0 ORDER BY b DESC LIMIT -1 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT hex(v) FROM t WHERE v+1>0 ORDER BY id DESC LIMIT -1,2147483648;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2147483648, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "30\n312E30\n32\n31\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id,v FROM t WHERE v+1>0 ORDER BY id LIMIT 1,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 5, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "6|1\n8|1.0\n10|0\n11|0\n12|1.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t LIMIT 1,50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 50, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n\n-2\n1\n-2\n1.0\n\n0\n0\n1.0\n2\n-2\n2\n1\n1.0\n2\n0\n2\n0\n1.0\n0\n2\n1.0\n2\n0\n1.0\n1.0\n\n-2\n-2\n0\n-2\n0\n1.0\n\n0\n-2\n-2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT +v FROM t WHERE v+1>0 LIMIT 5 OFFSET -5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1\n1.0\n0\n0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id FROM t ORDER BY id DESC LIMIT 5 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "39\n38\n37\n36\n35\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT id+1 FROM t WHERE id<0 ORDER BY id DESC LIMIT 2,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE v+1>0 ORDER BY id LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT +v FROM t WHERE v+1>0 ORDER BY b DESC LIMIT 50,-5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT DISTINCT v FROM t WHERE id<0 ORDER BY id LIMIT 10,0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 0, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT 1 OFFSET 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT -1 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected LIMIT before OFFSET, found LIMIT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT 1 OFFSET -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found OFFSET\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT 1,2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 2, found ,\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t LIMIT +1 OFFSET +1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected integer 1, found 1\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t LIMIT 0 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(-9223372036854775808) FROM t ORDER BY id LIMIT 1 OFFSET 50;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT id FROM t WHERE abs(-9223372036854775808) LIMIT 0 OFFSET 5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: SELECT shape\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "implementation_sha256": "12306ff67f34848324db7a479cd5c77b592da2967bcdbbff64080eddaf4d4e34",
+  "executable_sha256": "42c59065e244b9be4360fdb6409709ec24848f8cfd6921ec02893c4ab5cfe9a4",
+  "harness_sha256": "cfaf01842169f77cf35e779b29be6aef94826249154a886481d433cae5e442af",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare SQL LIMIT/OFFSET slicing, DISTINCT, skipped expressions and binding.\n\nUses independent databases and compares result order and rejection status.\nAll counterexamples remain in the report, including syntax rejected by the\ncertified grammar. This suite does not represent whole-SQLite coverage."
+}

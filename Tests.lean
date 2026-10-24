@@ -3917,6 +3917,36 @@ private def expectSQLiteRowPredicates : IO Unit := do
     | .ok _ => fail s!"invalid row predicate accepted: {query}"
     | .error _ => pure ()
 
+private def expectSQLiteLimitOffset : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,b); INSERT INTO t VALUES(1,1,1),(2,2,2),(3,1,3),(4,3,4);"
+  for (query, values) in [
+      ("SELECT id FROM t LIMIT 1 OFFSET 1;", [2]),
+      ("SELECT id FROM t LIMIT 1,2;", [2,3]),
+      ("SELECT id FROM t LIMIT -1 OFFSET 2;", [3,4]),
+      ("SELECT id FROM t LIMIT 0 OFFSET 1;", []),
+      ("SELECT id FROM t LIMIT 0 OFFSET NULL;", []),
+      ("SELECT id FROM t LIMIT NULL,0;", []),
+      ("SELECT id FROM t LIMIT 0 OFFSET 9223372036854775808;", []),
+      ("SELECT id FROM t LIMIT 1 OFFSET -3;", [1]),
+      ("SELECT id FROM t LIMIT +1 OFFSET +1;", [2]),
+      ("SELECT DISTINCT v FROM t ORDER BY id LIMIT 1 OFFSET 1;", [2]),
+      ("SELECT DISTINCT v FROM t ORDER BY id DESC LIMIT 1 OFFSET 1;", [1]),
+      ("SELECT DISTINCT v FROM t ORDER BY b DESC LIMIT 1 OFFSET 1;", [2]),
+      ("SELECT abs(-9223372036854775808) FROM t LIMIT 1 OFFSET 10;", [])] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ query) with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"LIMIT/OFFSET: {message}"
+    let expected ← match values.mapM (fun v => (fun x => [x]) <$> SQLSurface.value (.integer v)) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some expected do fail s!"LIMIT/OFFSET rows: {query}"
+  for query in ["SELECT DISTINCT abs(-9223372036854775808) FROM t LIMIT 1 OFFSET 10;",
+      "SELECT id FROM t WHERE abs(-9223372036854775808) LIMIT 1 OFFSET 10;",
+      "SELECT id FROM t LIMIT 9223372036854775808;", "SELECT missing FROM t LIMIT 0 OFFSET 5;"] do
+    match CoreSQL.execute Core.State.empty (setup ++ query) with
+    | .ok _ => fail s!"LIMIT/OFFSET suppressed a required error: {query}"
+    | .error _ => pure ()
+
 private def expectSQLiteInList : IO Unit := do
   let cases : List (String × List Value) := [
     ("SELECT NULL IN (), NULL NOT IN (), missing IN ();", [.integer 0, .integer 1, .integer 0]),
@@ -4217,6 +4247,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite scalar operations through Core SQL", expectSQLiteScalarCore),
   ("SQLite text/blob functions through certified Core SQL", expectSQLiteTextFunctions),
   ("SQLite row expressions and column comparison affinity", expectSQLiteRowExpressions),
+  ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),
   ("SQLite WAL valid committed prefix", expectSQLiteWALRecoveryPrefix),
   ("SQLite row-expression DELETE", expectSQLiteRowDeletes),

@@ -627,3 +627,35 @@ statement byte preservation and rollback. Full build, **173 executable tests**,
 `docs/validation/sqlite-in-list-delete-20261024.json`.
 Subquery IN, custom collations and complete planner/evaluation-order parity
 remain separate work; these results are not a compatibility percentage.
+
+
+### Single-table LIMIT/OFFSET checkpoint (2026-10-24)
+
+Single-table row scans now implement OFFSET after filtering and duplicate
+removal, including the comma spelling, negative limits, negative offsets and
+explicit OFFSET zero. When the source already supplies the requested order,
+skipped ordinary rows do not evaluate their projection; DISTINCT still
+computes the candidate key before skipping a unique output. Other source-column
+orders sort the representatives before slicing. Names remain bound on empty
+input and LIMIT zero. LIMIT zero skips literal OFFSET conversion, including
+NULL and out-of-range numeric literals, and normalizes the unused offset to zero.
+
+The independent grammar checks signed 64-bit literal limits and offsets against
+the translated query fields. General LIMIT expressions, aggregate/join slicing
+and arbitrary ORDER BY expressions remain outstanding. The original failed
+suite and the later zero-limit normalization counterexample are retained in
+`docs/validation/sqlite-limit-offset-negative-20261024.json` and
+`docs/validation/sqlite-limit-offset-zero-development-negative-20261024.json`.
+
+Frozen implementation SHA-256:
+`07fdaa27f110076d842d6f1427e85b469a427c9f5beada5f46c2600f6237b664`.
+Fresh seed 353536 checked **950 queries / 6,878 output rows** across both file
+modes, including **18 matching errors**, with no differences and unchanged
+main/WAL bytes. Seed 353537 checked **716 predicate queries / 12,938 output
+rows**, including indexed scans, plus **13 matching errors**. Reports are
+`docs/validation/sqlite-limit-offset-20261024.json` and
+`docs/validation/sqlite-predicate-limit-offset-20261024.json`.
+The full build, **174 executable tests**, **970 registered headline theorems**
+and both audits passed. New component contracts cover zero-offset equivalence
+and no scan evaluation for LIMIT zero. The retained gap inventory still has
+16 explicit rejections; this suite is not a whole-SQLite coverage percentage.

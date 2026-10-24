@@ -6,8 +6,8 @@ semantics, and proofs live in the same codebase; the command-line program uses
 the proof-carrying `Core` path rather than a shadow specification.
 
 The project currently builds with Lean 4.35.0 and has no Lake dependencies.
-The current suite passes all 173 executable tests and audits all
-968 registered headline theorems. The verification audit reports no `sorry`,
+The current suite passes all 174 executable tests and audits all
+970 registered headline theorems. The verification audit reports no `sorry`,
 `axiom`, `native_decide`, `unsafe`, or project-local `partial def`.
 Generate current source counts and theorem dependencies with
 `scripts/lean-manifest.sh`.

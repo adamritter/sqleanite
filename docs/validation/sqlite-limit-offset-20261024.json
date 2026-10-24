@@ -1,0 +1,24 @@
+{
+  "seed": 353536,
+  "random_cases": 450,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 475,
+      "result_rows": 3439,
+      "matching_errors": 9
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 475,
+      "result_rows": 3439,
+      "matching_errors": 9
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "07fdaa27f110076d842d6f1427e85b469a427c9f5beada5f46c2600f6237b664",
+  "executable_sha256": "3bb19e5292f83322ce58fc306a97c30b4e60034ffdb72ec21afa1719ed31a287",
+  "harness_sha256": "3f4b97cae901400d38440899dc10c8884ec562b0fdab199ab66487fc3a4f45c3",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare SQL LIMIT/OFFSET slicing, DISTINCT, skipped expressions and binding.\n\nUses independent databases and compares result order and rejection status.\nAll counterexamples remain in the report, including syntax rejected by the\ncertified grammar. This suite does not represent whole-SQLite coverage."
+}
