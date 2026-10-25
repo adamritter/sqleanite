@@ -1368,3 +1368,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileEngine.transactionChanged_equivalent
 #print axioms SQLeanite.CoreFileEngine.requiresPersistence_commit_unchanged
 #print axioms SQLeanite.CoreFileEngine.requiresPersistence_release_unchanged
+
+#print axioms SQLeanite.SQLite.Script.step_contents
+#print axioms SQLeanite.SQLite.Script.split_preserves_source
+#print axioms SQLeanite.SQLite.Script.semicolon_in_group

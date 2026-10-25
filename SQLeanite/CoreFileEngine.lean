@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Script
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreOptimizerBridge
 import Std.Sync.Mutex
@@ -406,16 +407,27 @@ private def runStatements (connection : Connection) (live : LiveState)
     IO (LiveState × Except String (List Core.Result)) :=
   runStatementsGo connection live statements []
 
+/-- Admit and execute one source statement at a time. A later parse error
+returns the live state after the completed prefix, including an open transaction. -/
+private def runChunks (connection : Connection) : LiveState → List String →
+    List Core.Result → IO (LiveState × Except String (List Core.Result))
+  | live, [], reversed => pure (live, .ok reversed.reverse)
+  | live, chunk :: chunks, reversed => do
+      match CoreTokenGrammar.parseStatements chunk with
+      | .error message => pure (live, .error message)
+      | .ok statements =>
+          let (next, result) ← runStatements connection live statements.toList
+          match result with
+          | .error message => pure (next, .error message)
+          | .ok results => runChunks connection next chunks (results.foldl (fun acc result => result :: acc) reversed)
+
 def execute (connection : Connection) (sql : String) :
     IO (Except String (List Core.Result)) :=
   connection.state.atomically do
     let current ← get
-    match CoreTokenGrammar.parseStatements sql with
-    | .error message => return .error message
-    | .ok statements =>
-        let (finalState, result) ← runStatements connection current statements.toList
-        set finalState
-        return result
+    let (finalState, result) ← runChunks connection current (SQLite.Script.split sql) []
+    set finalState
+    return result
 
 def snapshot (connection : Connection) : IO Core.State :=
   connection.state.atomically do return (← get).state

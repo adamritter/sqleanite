@@ -40,52 +40,22 @@ private def printCoreResults (results : List Core.Result) : IO Unit := do
     let bytes := renderCoreResult result
     unless bytes.isEmpty do stream.write bytes
 
-/-- A preflighted line from a script whose physical lines are independently
-parseable statements.  Keeping only the source and write bit lets large load
-files discard each statement AST before parsing the next one. -/
-private structure PreparedLine where
+/-- Retain original statement text and its write classification without keeping
+the complete parser AST alive while a large script executes. -/
+private structure PreparedStatement where
   sql : String
   writes : Bool
 
-private inductive LineQuote where
-  | none
-  | single
-  | double
-deriving BEq
-
-/-- A physical line is a safe script boundary only when it ends in a
-semicolon outside any SQL string or quoted identifier.  Toggling on each quote
-also handles SQL's doubled-quote escape: the two adjacent toggles cancel. -/
-private def standaloneSQLLine (line : String) : Bool :=
-  let finalQuote := line.foldl (init := LineQuote.none) fun quote char =>
-    match quote, char with
-    | .none, '\'' => .single
-    | .none, '"' => .double
-    | .single, '\'' => .none
-    | .double, '"' => .none
-    | current, _ => current
-  finalQuote == .none && line.trimAscii.toString.endsWith ";"
-
-/-- Classify the complete line through the certified grammar. Transaction
-control and reads can run on read-only files; a later write on the same line
-must still request writable access before execution. -/
-private def lineMightWrite (line : String) : Bool :=
-  match CoreTokenGrammar.parseStatements line with
+/-- Every complete source statement uses the certified grammar. A malformed
+statement is conservatively classified as a potential write for preflight. -/
+private def statementMightWrite (sql : String) : Bool :=
+  match CoreTokenGrammar.parseStatements sql with
   | .ok statements => statements.toList.any CoreFileEngine.statementWrites
   | .error _ => true
 
-/-- Recognize the line-oriented format emitted by the benchmark and import
-tools.  This is only an execution-space optimization: every nonempty line must
-end at an unquoted semicolon, and the ordinary parser still processes that
-line before execution.  Any multiline or otherwise general SQL script returns
-`none` and follows the original whole-script path. -/
-private def prepareLineScript? (sql : String) : Option (Array PreparedLine) :=
-  let lines := (sql.splitOn "\n").filter fun line => !line.trimAscii.toString.isEmpty
-  if lines.all standaloneSQLLine then
-    some <| lines.toArray.map fun line => {
-      sql := line
-      writes := lineMightWrite line }
-  else none
+private def prepareScript (sql : String) : Array PreparedStatement :=
+  (SQLite.Script.split sql).toArray.map fun source => {
+    sql := source, writes := statementMightWrite source }
 
 /-- Fail before logical execution when a mutating batch targets a file the OS
 will not open read/write.  Besides producing the SQLite-style diagnostic, this
@@ -93,24 +63,20 @@ prevents an earlier semantic error in a multi-statement batch from masking the
 more fundamental read-only condition.  Opening in `readWrite` does not truncate
 or otherwise modify the file. -/
 private def requireWritableFor (path : System.FilePath) (sql : String)
-    (prepared : Option (Array PreparedLine) := none) : IO Unit := do
+    (prepared : Option (Array PreparedStatement) := none) : IO Unit := do
   let writes := match prepared with
     | some lines => lines.any (fun line => line.writes)
-    | none => match CoreTokenGrammar.parseStatements sql with
-      | .ok statements => statements.toList.any CoreFileEngine.statementWrites
-      | .error _ => false
+    | none => (prepareScript sql).any (·.writes)
   if writes && (← path.pathExists) then
     try
       IO.FS.withFile path .readWrite fun _ => pure ()
     catch _ =>
       throw (IO.userError "attempt to write a readonly database")
 
-/-- Execute a preflighted line script while retaining neither the complete
-parser AST nor completed statement results.  Results are accumulated in the
-same order as `CoreFileEngine.execute`; load statements ordinarily contribute
-empty results, so this remains constant-space in the number of loaded rows. -/
-private def executePreparedLines (connection : CoreFileEngine.Connection)
-    (lines : Array PreparedLine) : IO (Except String (List Core.Result)) := do
+/-- Execute preflighted source statements, discarding each parsed AST before
+the next statement. Results are accumulated in execution order. -/
+private def executePreparedStatements (connection : CoreFileEngine.Connection)
+    (lines : Array PreparedStatement) : IO (Except String (List Core.Result)) := do
   let mut reversed : List Core.Result := []
   for line in lines do
     match ← CoreFileEngine.execute connection line.sql with
@@ -132,8 +98,8 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     directory := databasePath ++ ".sqleanite-lock", process }
   ProcessLock.withLock lock do
     let fileExists ← mainPath.pathExists
-    let prepared := prepareLineScript? sql
-    if fileExists then requireWritableFor mainPath sql prepared
+    let prepared := prepareScript sql
+    if fileExists then requireWritableFor mainPath sql (some prepared)
     -- The page-local insert. `CoreLazyWrite.insertPlan_refines` proves it denotes
     -- the ordered insert, but only under `WellFormedTree`, and nothing checks
     -- those premises at open time yet. So it stays behind an explicit opt-in
@@ -161,14 +127,10 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
       | some result => pure result
       | none => do
           let connection ← CoreFileEngine.reopen .system paths
-          match prepared with
-          | some lines => executePreparedLines connection lines
-          | none => CoreFileEngine.execute connection sql
+          executePreparedStatements connection prepared
     else do
       let connection ← CoreFileEngine.create .system paths
-      match prepared with
-      | some lines => executePreparedLines connection lines
-      | none => CoreFileEngine.execute connection sql
+      executePreparedStatements connection prepared
     match outcome with
     | .error message =>
         IO.eprintln s!"Error: {message}"
@@ -187,9 +149,8 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
   let process := (← IO.Process.getPID).toNat
   let lock : ProcessLock.Config := {
     directory := databasePath ++ ".sqleanite-lock", process }
-  let statements := match CoreTokenGrammar.parseStatements sql with
-    | .ok parsed => parsed.toList
-    | .error _ => []
+  let statements := (SQLite.Script.split sql).flatMap fun source =>
+    ((CoreTokenGrammar.parseStatements source).toOption.getD #[]).toList
   let run : IO (Except String (List Core.Result)) := do
     requireWritableFor databasePath sql
     unless ← (databasePath : System.FilePath).pathExists do

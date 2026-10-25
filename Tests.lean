@@ -4597,6 +4597,50 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteScriptPrefix : IO Unit := do
+  for sql in ["SELECT 'a;b';SELECT 2;", "SELECT 'a'';b';-- ; comment\nSELECT 3;",
+      "SELECT [a;b];/* ; comment */ SELECT `c;d`;", "SELECT 'unfinished;"] do
+    unless String.join (SQLite.Script.split sql) == sql do fail "script splitting changed original source"
+  unless (SQLite.Script.split "SELECT 'a'';b';SELECT 2;").length == 3 do fail "quoted semicolon split an SQL statement"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-script-prefix.db"
+    journal := ".lake/build/sqleanite-script-prefix.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  if (← CoreFileEngine.execute connection
+      "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);INSERT INTO t(v) VALUES('kept');SELECT 1 +;").isOk then
+    fail "script syntax error was ignored"
+  if (← CoreFileEngine.execute connection "INSERT INTO t(v) VALUES('second');SELECT 'unfinished").isOk then
+    fail "script lexical error was ignored"
+  let sqlite := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+  let inspect := fun path => IO.Process.output {
+    cmd := sqlite
+    args := #[path, "-batch", "-bail", "PRAGMA integrity_check;SELECT id,v FROM t ORDER BY id;SELECT seq FROM sqlite_sequence WHERE name='t';"] }
+  let c ← inspect paths.main.toString
+  unless c.exitCode == 0 && c.stdout == "ok\n1|kept\n2|second\n2\n" do
+    fail "completed script prefix was not persisted before a later error"
+  if (← CoreFileEngine.execute connection "BEGIN;INSERT INTO t(v) VALUES('pending');SELECT 1 +;").isOk then
+    fail "transaction script syntax error was ignored"
+  let state ← CoreFileEngine.snapshot connection
+  unless state.transactionSnapshot.isSome do fail "later syntax error discarded the live transaction"
+  let c ← inspect paths.main.toString
+  unless c.exitCode == 0 && c.stdout == "ok\n1|kept\n2|second\n2\n" do fail "syntax error published an open transaction"
+  match ← CoreFileEngine.execute connection "ROLLBACK;" with
+  | .ok _ => pure ()
+  | .error message => fail s!"script prefix rollback: {message}"
+  let wal : CoreWALFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-script-prefix-wal.db"
+    wal := ".lake/build/sqleanite-script-prefix-wal.db-wal" }
+  if ← wal.wal.pathExists then IO.FS.removeFile wal.wal
+  if ← wal.main.pathExists then IO.FS.removeFile wal.main
+  CoreWALFileAdapter.create .system wal Core.Database.empty
+  if (← CoreWALFileEngine.execute .system wal
+      "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);INSERT INTO t(v) VALUES('kept');SELECT 'unfinished").isOk then
+    fail "WAL script lexical error was ignored"
+  let c ← inspect wal.main.toString
+  unless c.exitCode == 0 && c.stdout == "ok\n1|kept\n1\n" do fail "WAL script lost its committed prefix"
+
 private def expectSQLiteReadTransaction : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');" with
     | .ok result => pure result
@@ -7226,6 +7270,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite script source preservation and committed prefixes", expectSQLiteScriptPrefix),
   ("SQLite read-only transaction publication", expectSQLiteReadTransaction),
   ("SQLite SAVEPOINT nesting, release and rollback", expectSQLiteSavepoint),
   ("SQLite AUTOINCREMENT history, ignored rows, rollback and persistence", expectSQLiteAutoIncrement),

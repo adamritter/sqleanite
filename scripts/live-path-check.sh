@@ -401,8 +401,12 @@ fi
 # Every production SQL entry point must replay the concrete token certificate.
 for entry in Main.lean SQLeanite/CoreFileEngine.lean \
     SQLeanite/CoreWALFileEngine.lean SQLeanite/CoreLazyFileEngine.lean; do
-  if grep -q 'CoreTokenGrammar.parseStatements sql' "$entry" &&
-     ! grep -Eq '(^|[^[:alnum:]_.])parse sql' "$entry"; then
+  case "$entry" in
+    SQLeanite/CoreFileEngine.lean|SQLeanite/CoreWALFileEngine.lean) token_source=chunk ;;
+    *) token_source=sql ;;
+  esac
+  if rg -F -q "CoreTokenGrammar.parseStatements $token_source" "$entry" &&
+     ! rg -q '(^|[^[:alnum:]_.])parse (sql|chunk)' "$entry"; then
     ok "$entry uses certified SQL admission"
   else
     fail "$entry bypasses the concrete SQL certificate"
@@ -1932,10 +1936,22 @@ fi
 if rg -q 'def transactionChanged' SQLeanite/CoreFileEngine.lean &&
    rg -F -q '.commit => transactionChanged state' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreSavepoint.releasesTransaction state name && transactionChanged state' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'CoreTokenGrammar.parseStatements line' Main.lean; then
+   rg -F -q 'CoreTokenGrammar.parseStatements sql' Main.lean; then
   echo 'ok - unchanged transactions skip publication and complete lines determine read-only access'
 else
   echo 'FAIL - read-only transaction publication or line classification is incomplete'
+  exit 1
+fi
+
+if rg -q 'SQLite.Script.split sql' SQLeanite/CoreFileEngine.lean &&
+   rg -q 'SQLite.Script.split sql' SQLeanite/CoreWALFileEngine.lean &&
+   rg -q 'SQLite.Script.split sql' Main.lean &&
+   rg -q 'CoreTokenGrammar.parseStatements chunk' SQLeanite/CoreFileEngine.lean &&
+   rg -q 'CoreTokenGrammar.parseStatements chunk' SQLeanite/CoreWALFileEngine.lean &&
+   rg -q 'theorem split_preserves_source' SQLeanite/SQLite/Script.lean; then
+  echo 'ok - script chunks preserve source and admit each statement before execution'
+else
+  echo 'FAIL - certified incremental script execution is incomplete'
   exit 1
 fi
 

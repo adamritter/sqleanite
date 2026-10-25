@@ -3994,3 +3994,49 @@ unsupported. Reports: `sqlite-read-transaction-*20261025.json`; harness:
 logical contents; no constant-time performance claim is made. It does not claim
 identical physical change counters for transactions that write and later restore
 the same values, concurrent SQLite WAL coordination, or complete SQL equivalence.
+
+## Committed prefixes of failing SQL scripts (2026-10-25)
+
+Both production file engines now admit and execute source statements incrementally.
+A later syntax or lexical error preserves earlier committed writes. An open
+transaction remains live on a retained Core connection after a parse error, and
+its pending changes remain unpublished. The CLI's file mode processes the same
+source chunks; WAL writer classification includes valid mutating statements even
+when a later chunk cannot be parsed.
+
+The pure Script scanner retains every original character, including whitespace,
+comments and literal spelling. Semicolons inside quoted strings, double/backtick/
+bracket identifiers and comments stay in their source group. Registered component
+proofs establish per-character preservation, complete source reconstruction and
+protection of grouped semicolons. Every chunk still goes through the independent
+certified lexer/parser. The audit checks the actual chunk admission calls and
+the source-preserving splitter on both engines. This is the admitted Core grammar;
+trigger-body BEGIN/END statement boundaries remain part of future trigger support.
+
+The original baseline report recorded **516 / 339** failures. A review found that
+the inherited harness incorrectly required unchanged bytes for any failing
+single-line input, including multi-statement scripts whose successful CREATE and
+INSERT prefix C had persisted. The preserved raw baseline has **291 logical
+observation differences** plus **48 incorrect byte-invariant-only failures**.
+The first development report recorded **636 / 216**; all 216 failures came solely
+from that invalid invariant, with zero logical observation differences. The
+retrospective review is explicitly labeled and is not a fresh evaluation.
+
+The corrected harness always compares complete independent C persisted
+observations, and requires unchanged Lean bytes when the reference C execution
+leaves its own main/WAL image unchanged. Corrected development seed 354282 passes
+**696 / 0**. Final-checkpoint fresh seed **354283** passes **3,024 / 0**, including
+**2880** expected errors, on twelve C-created fixtures and both file modes.
+Successful output, error status, catalog/pragma/typed rows, integrity, subsequent
+C writes and Lean reopens are checked. Read-transaction regression seed **354284**
+passes **768 / 0**; SAVEPOINT regression seed **354285** passes **366 / 0**.
+
+Implementation SHA-256: `7d8f1f86be35796656c2a867d462e3fefc56972b2d6fddf3efe03a0193f17188`.
+Final checks pass **340 build jobs, 250 executable tests, 1,190 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Live-connection tests cover durable prefixes, lexical errors,
+retained transactions and C reads of file/WAL results. Reports:
+`sqlite-script-error-*20261025.json`; harness: `scripts/run-script-error-differential.py`.
+Native bindings are unchanged. Exact diagnostics, partial CLI output before an
+error, trigger execution and concurrent SQLite WAL coordination are outside this
+scoped result; full SQLite compatibility remains unestablished.

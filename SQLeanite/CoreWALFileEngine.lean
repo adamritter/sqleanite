@@ -72,17 +72,28 @@ private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
     IO (Core.State × Except String (List Core.Result)) :=
   runStatementsGo syncOps paths state statements []
 
+/-- Preserve the executed prefix when a later source statement fails admission.
+The transaction state is carried between chunks until commit, rollback or error. -/
+private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
+    (paths : CoreWALFileAdapter.Paths) : Core.State → List String → List Core.Result →
+      IO (Core.State × Except String (List Core.Result))
+  | state, [], reversed => pure (state, .ok reversed.reverse)
+  | state, chunk :: chunks, reversed => do
+      match CoreTokenGrammar.parseStatements chunk with
+      | .error message => pure (state, .error message)
+      | .ok statements =>
+          let (next, result) ← runStatements syncOps paths state statements.toList
+          match result with
+          | .error message => pure (next, .error message)
+          | .ok results => runChunks syncOps paths next chunks (results.foldl (fun acc result => result :: acc) reversed)
+
 /-- Execute SQL against one immutable WAL snapshot. -/
 def execute (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) (sql : String) :
     IO (Except String (List Core.Result)) := do
   let database ← CoreWALFileAdapter.reopen paths
-  match CoreTokenGrammar.parseStatements sql with
-  | .error message => return .error message
-  | .ok statements =>
-      let (_, result) ← runStatements syncOps paths
-        { database := database } statements.toList
-      return result
+  let (_, result) ← runChunks syncOps paths { database := database } (SQLite.Script.split sql) []
+  return result
 
 def checkpoint (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) : IO Unit := do
