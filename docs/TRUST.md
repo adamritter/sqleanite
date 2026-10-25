@@ -1914,3 +1914,16 @@ The existing join optimizer and `TranslatedRead.join` refinement cover the
 expanded accepted join shape. Cross-language SQL/CTAS behavior is differentially
 tested, including C file observations and later writes, rather than kernel-proved
 against the upstream parser or evaluator. Native bindings are unchanged.
+
+
+### Join duplicate removal and windows (2026-10-25)
+
+The join query carries DISTINCT, OFFSET and explicit candidate scan-order
+metadata. Its common finish path preserves original representatives under the
+existing numeric DISTINCT key, then applies output ordering and the window.
+Component propositions establish key coverage, unique keys, zero LIMIT and a
+permutation before duplicate removal. Optimizer equality and SQL read refinement
+include the added fields. Scan-direction/source-exchange recognition is tested
+against the pinned C planner; it does not prove equivalence to its full cost
+model. Reverse-order and partial-sort negative evaluations are retained with
+separate final-checkpoint regression replays. No native binding changed.

@@ -1405,3 +1405,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreOptimizerBridge.fromJoinOperand_joinOperand
 
 #print axioms SQLeanite.CoreJoinUsing.declaredColumn_visible
+
+#print axioms SQLeanite.CoreJoin.distinctRows_keys
+#print axioms SQLeanite.CoreJoin.distinctRows_key_nodup
+#print axioms SQLeanite.CoreJoin.Query.finishRows_limit_zero
+
+#print axioms SQLeanite.CoreJoin.Query.distinctInputRows_perm

@@ -2056,4 +2056,17 @@ else
   exit 1
 fi
 
+if rg -q 'distinctRows query.columns rows' SQLeanite/CoreJoin.lean &&
+   rg -q 'orderedRows rows.*drop query.offset' SQLeanite/CoreJoin.lean &&
+   rg -q 'offset := select.offset' SQLeanite/CoreSQL.lean &&
+   rg -q 'distinct := select.distinct' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem distinctRows_key_nodup' SQLeanite/CoreJoin.lean &&
+   rg -q 'distinctScanOrder := joinDistinctScanOrder' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem Query.distinctInputRows_perm' SQLeanite/CoreJoin.lean; then
+  echo 'ok - join DISTINCT retains original representatives before ordering and OFFSET/LIMIT'
+else
+  echo 'FAIL - join DISTINCT/window live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

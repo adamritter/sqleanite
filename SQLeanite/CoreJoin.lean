@@ -1,5 +1,6 @@
 import SQLeanite.SQLite.PhysicalAffinity
 import SQLeanite.Core
+import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
 
 namespace SQLeanite
@@ -624,6 +625,21 @@ theorem foldInsertOrdered_perm (terms : List (ColumnRef × Bool))
       have inserted := (insertOrdered_perm terms row accumulator).append_left rows
       exact tail.trans (inserted.trans List.perm_middle)
 
+/-- Compare projected SQL numeric keys while retaining the first original
+joined row. Its unprojected values remain available to ORDER BY. -/
+def distinctRows (columns : List ColumnRef) (rows : List JoinedRow) : List JoinedRow :=
+  Core.stableDistinctBy (fun row => Core.distinctRowKey (projectRow columns row)) rows
+
+theorem distinctRows_keys (columns : List ColumnRef) (rows : List JoinedRow)
+    (key : List Core.Value) :
+    key ∈ (distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row)) ↔
+      key ∈ rows.map (fun row => Core.distinctRowKey (projectRow columns row)) :=
+  Core.mem_keys_stableDistinctBy _ _ _
+
+theorem distinctRows_key_nodup (columns : List ColumnRef) (rows : List JoinedRow) :
+    ((distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row))).Nodup :=
+  Core.stableDistinctBy_key_nodup _ _
+
 structure Query where
   columns : List ColumnRef
   on : Option Predicate
@@ -632,6 +648,9 @@ structure Query where
   where_ : Option Predicate := none
   orderBy : List (ColumnRef × Bool) := []
   limit : Option Nat := none
+  offset : Nat := 0
+  distinct : Bool := false
+  distinctScanOrder : List (ColumnRef × Bool) := []
 
 /-- Stable merge sort by the same strict order, replacing an O(n^2) insertion
 sort. `a ≤ b` is `¬ (b < a)`, so equal rows keep input order. -/
@@ -648,11 +667,31 @@ theorem Query.orderedRows_perm (query : Query) (rows : List JoinedRow) :
   · simp [Query.orderedRows, empty]
   · simpa [Query.orderedRows, empty] using List.mergeSort_perm rows (rowLe query.orderBy)
 
+/-- DISTINCT chooses its original representative in physical scan order.
+The SQL translator supplies a rowid traversal order when ORDER BY is satisfied
+by ordered table scans; the final output sorter remains independent. -/
+def Query.distinctInputRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
+  if query.distinctScanOrder.isEmpty then rows
+  else rows.mergeSort (rowLe query.distinctScanOrder)
+
+theorem Query.distinctInputRows_perm (query : Query) (rows : List JoinedRow) :
+    (query.distinctInputRows rows).Perm rows := by
+  by_cases empty : query.distinctScanOrder.isEmpty
+  · simp [Query.distinctInputRows, empty]
+  · simpa [Query.distinctInputRows, empty] using
+      List.mergeSort_perm rows (rowLe query.distinctScanOrder)
+
 def Query.finishRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
-  let rows := query.orderedRows rows
+  let rows := if query.distinct then query.distinctInputRows rows else rows
+  let rows := if query.distinct then distinctRows query.columns rows else rows
+  let rows := (query.orderedRows rows).drop query.offset
   match query.limit with
   | none => rows
   | some limit => rows.take limit
+
+theorem Query.finishRows_limit_zero (query : Query) (rows : List JoinedRow)
+    (zero : query.limit = some 0) : query.finishRows rows = [] := by
+  simp [Query.finishRows, zero]
 
 def Query.selectedRows (query : Query) (left right : List Core.Row) :
     List JoinedRow :=

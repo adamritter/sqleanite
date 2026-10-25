@@ -143,7 +143,6 @@ inductive TranslatedRead (state : Core.State) :
         rightSource.subquerySql = none ∧ leftSource.joinOn = none ∧
         rightSource.rightJoin = false)
       (noGroups : select.groupBy = #[]) (noHaving : select.having = none)
-      (notDistinct : select.distinct = false) (noOffset : select.offset = 0)
       (leftFound : state.database.findTable?
         (CoreSQL.resolveTableName state leftSource.name) = some left)
       (rightFound : state.database.findTable?
@@ -185,7 +184,7 @@ theorem translatedRead_noCollation {state : Core.State} {select : Select} {comma
       notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
       exact groups_noCollation stored.schema groups select.columns.toList outputs outputsTranslated
   | join select leftSource rightSource left right query noCompounds twoSources
-      plainSources noGroups noHaving notDistinct noOffset leftFound rightFound queryTranslated =>
+      plainSources noGroups noHaving leftFound rightFound queryTranslated =>
       exact joinQuery_noCollation select _ _ left.schema right.schema query queryTranslated
 
 theorem translatedRead_columnsCollation_false {state : Core.State} {select : Select}
@@ -299,13 +298,13 @@ theorem executeSelectBase_eq_core
             predicate }) <;>
         simp [execution] <;> rfl
   | join select leftSource rightSource left right query noCompounds twoSources
-      plainSources noGroups noHaving notDistinct noOffset leftFound rightFound
+      plainSources noGroups noHaving leftFound rightFound
       queryTranslated =>
       have sourceSize : select.sources.size = 2 := by
         rw [twoSources]
         rfl
       simp [CoreSQL.executeSelectBase, sourceSize, CoreSQL.executeJoin,
-        twoSources, plainSources, noGroups, noHaving, notDistinct, noOffset,
+        twoSources, plainSources, noGroups, noHaving,
         leftFound, rightFound, queryTranslated, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
@@ -835,7 +834,7 @@ theorem executeStatement_eq_core
           rcases outcome with ⟨actualNext, actualResult⟩
           simp only [CoreSQL.executeSelectFuel.executeArms, Except.map]
   | join select leftSource rightSource left right query noCompounds twoSources
-      plainSources noGroups noHaving notDistinct noOffset leftFound rightFound
+      plainSources noGroups noHaving leftFound rightFound
       queryTranslated =>
       have height := compoundHeight_eq_one select noCompounds
       have baseSelect : { select with compounds := #[] } = select := by
@@ -859,7 +858,7 @@ theorem executeStatement_eq_core
                 (CoreSQL.resolveTableName state rightSource.name) query).columns.length) := by
         rw [baseSelect]
         simp [CoreSQL.executeJoin, twoSources, plainSources, noGroups,
-          noHaving, notDistinct, noOffset, leftFound, rightFound,
+          noHaving, leftFound, rightFound,
           queryTranslated, bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state
             (.join (CoreSQL.resolveTableName state leftSource.name)

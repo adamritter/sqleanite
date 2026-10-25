@@ -1403,6 +1403,35 @@ def joinOrderBy (context : JoinContext) : List OrderTerm →
         (← joinOrderBy context terms)
   | _ => unsupported "join ORDER BY expression"
 
+/-- A rowid equality conjunct makes each surviving pair unique on either
+side. It can satisfy later ORDER terms without an inner table sort. -/
+def joinHasRowidEquality (left right : Core.Schema) : CoreJoin.Predicate → Bool
+  | .and first second => joinHasRowidEquality left right first ||
+      joinHasRowidEquality left right second
+  | predicate => decide (predicate = CoreJoin.rowidOn left.primaryKey right.primaryKey ∨
+      predicate = .equal (.column ⟨.right, right.primaryKey⟩) (.column ⟨.left, left.primaryKey⟩))
+
+/-- A leading rowid ORDER term can determine table traversal. INNER joins
+may exchange their sources; CROSS and LEFT joins retain the left outer loop.
+Terms of the outer row are constant within an inner scan. A leading inner
+rowid term can reverse that scan; other terms use a subsequent block sorter. -/
+def joinDistinctScanOrder (left right : Core.Schema) (mayExchange oneToOne : Bool)
+    (terms : List (CoreJoin.ColumnRef × Bool)) : List (CoreJoin.ColumnRef × Bool) :=
+  match terms with
+  | (reference, descending) :: rest =>
+      let outerSchema := if reference.side == .left then left else right
+      let innerSchema := if reference.side == .left then right else left
+      let innerSide := if reference.side == .left then CoreJoin.Side.right else .left
+      let inner := rest.find? (fun term => term.1.side == innerSide)
+      let fullyOrdered := oneToOne || inner.all (fun term => term.1.column == innerSchema.primaryKey)
+      if reference.column == outerSchema.primaryKey &&
+          (reference.side == .left || (mayExchange && fullyOrdered)) then
+        let innerDescending := inner.any fun term =>
+          term.1.column == innerSchema.primaryKey && term.2
+        [(reference, descending), (⟨innerSide, innerSchema.primaryKey⟩, innerDescending)]
+      else []
+  | [] => []
+
 /-- SQL compound operations use numeric comparison keys; output rows retain
 SQLite's selected original storage classes. -/
 def combineRows (operation : CompoundOp) (left right : List (List Core.Value)) :
@@ -1462,8 +1491,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
-  unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
-      select.offset = 0 do
+  unless select.groupBy.isEmpty && select.having.isNone do
     throw "unsupported general verified-MVP SQL: join SELECT shape"
   unless canonical leftSource.name = canonical leftTable &&
       canonical rightSource.name = canonical rightTable do
@@ -1482,14 +1510,22 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   let on := match explicitOn, sharedOn with
     | none, predicate | predicate, none => predicate
     | some left, some right => some (CoreJoin.Predicate.and left right)
+  let where_ ← select.where_.mapM (joinPredicate context)
+  let orderBy ← joinOrderBy context select.orderBy.toList
   return {
     columns := ← joinProjection context select.columns.toList
     on
     kind := if rightSource.leftJoin then .left else .inner
     rightWidth := rightSchema.columns.length
-    where_ := ← select.where_.mapM (joinPredicate context)
-    orderBy := ← joinOrderBy context select.orderBy.toList
-    limit := select.limit }
+    where_
+    orderBy
+    limit := select.limit
+    offset := select.offset
+    distinct := select.distinct
+    distinctScanOrder := joinDistinctScanOrder leftSchema rightSchema
+      (!rightSource.leftJoin && !rightSource.crossJoin)
+      (on.any (joinHasRowidEquality leftSchema rightSchema) ||
+        where_.any (joinHasRowidEquality leftSchema rightSchema)) orderBy }
 
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do
@@ -1499,8 +1535,7 @@ def executeJoin (state : Core.State) (select : Select) :
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
-  unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
-      select.offset = 0 do
+  unless select.groupBy.isEmpty && select.having.isNone do
     throw "unsupported general verified-MVP SQL: join SELECT shape"
   let leftTable := resolveTableName state leftSource.name
   let rightTable := resolveTableName state rightSource.name

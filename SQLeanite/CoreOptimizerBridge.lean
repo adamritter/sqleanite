@@ -538,7 +538,7 @@ theorem optimizeJoin_eq (leftName rightName : String)
     (query : CoreJoin.Query) :
     optimizeJoin leftName rightName query = query := by
   cases query with
-  | mk columns on kind rightWidth where_ orderBy limit =>
+  | mk columns on kind rightWidth where_ orderBy limit offset distinct distinctScanOrder =>
       cases kind <;> cases on <;> cases where_ <;>
         simp [optimizeJoin, optimizeJoinPredicate_eq,
           optimizeLeftOnPredicate_eq, optimizeLeftWherePredicate_eq]

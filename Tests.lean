@@ -7041,6 +7041,51 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinWindow : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,1),(2,1.0),(3,'1'),(4,NULL),(5,NULL);INSERT INTO r VALUES(1,1),(2,1.0),(3,NULL);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY a.id,b.id;",
+      [[.integer 1],[.text "1"],[.null]]),
+    ("SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY a.id DESC,b.id DESC;",
+      [[.null],[.text "1"],[.real 1.0]]),
+    ("SELECT DISTINCT a.k,b.k FROM l a CROSS JOIN r b WHERE a.id<3 ORDER BY a.id DESC,b.id;",
+      [[.real 1.0,.integer 1],[.real 1.0,.null]]),
+    ("SELECT DISTINCT a.k FROM l a JOIN r b USING(id) ORDER BY b.id DESC,a.id DESC;",
+      [[.text "1"],[.real 1.0]]),
+    ("SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY b.id DESC,a.id DESC;",
+      [[.null],[.text "1"],[.integer 1]]),
+    ("SELECT DISTINCT b.k FROM l a JOIN r b ORDER BY b.id DESC,a.k DESC,a.id LIMIT 1 OFFSET 1;",
+      [[.integer 1]]),
+    ("SELECT DISTINCT b.k FROM l a JOIN r b ON a.id=b.id ORDER BY b.id DESC,a.k DESC,a.id LIMIT 1 OFFSET 1;",
+      [[.real 1.0]]),
+    ("SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY a.id,b.id LIMIT -1 OFFSET 1;",
+      [[.text "1"],[.null]]),
+    ("SELECT DISTINCT a.k,b.k FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id,b.id LIMIT 1,2;",
+      [[.text "1",.null],[.null,.null]]),
+    ("SELECT DISTINCT a.k FROM l a JOIN r b ON a.id=b.id ORDER BY a.id LIMIT 1 OFFSET 1;",
+      [[.text "1"]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b USING(id) ORDER BY a.id,b.id LIMIT 2 OFFSET 3;",
+      [[.integer 4,.null],[.integer 5,.null]]),
+    ("SELECT DISTINCT k FROM l a NATURAL LEFT JOIN r b ORDER BY a.id,b.id LIMIT 2 OFFSET 1;",
+      [[.text "1"],[.null]]),
+    ("SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY a.id,b.id LIMIT 0 OFFSET 1.5;",[]),
+    ("SELECT a.k FROM l a CROSS JOIN r b ORDER BY a.id,b.id LIMIT 2 OFFSET 999999999999;",[])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join DISTINCT/window: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"join DISTINCT/window rows: {sql}"
+  let (created, _) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE made AS SELECT DISTINCT a.k FROM l a CROSS JOIN r b ORDER BY a.id,b.id LIMIT -1 OFFSET 1;") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := created.database.findTable? "made" | fail "join window CTAS missing"
+  unless table.rows.length == 2 do fail "join window CTAS lost DISTINCT/OFFSET"
+
 private def expectSQLiteJoinUsing : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,lv TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,rv TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO l VALUES(1,1,'l1'),(2,2,'l2'),(3,NULL,'l3');INSERT INTO r VALUES(1,'01','r1'),(4,'2','r4'),(3,NULL,'r3');INSERT INTO n VALUES(9,'z');"
   let cases : List (String × List (List Value)) := [
@@ -7641,6 +7686,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite join DISTINCT and LIMIT/OFFSET", expectSQLiteJoinWindow),
   ("SQLite USING/NATURAL merged columns and CTAS", expectSQLiteJoinUsing),
   ("SQLite stored-column join comparison affinity", expectSQLiteJoinAffinity),
   ("SQLite join keywords and optional ON", expectSQLiteJoinSyntax),

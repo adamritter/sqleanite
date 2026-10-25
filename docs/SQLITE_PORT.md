@@ -4374,3 +4374,58 @@ SQLite join equivalence. RIGHT/FULL, larger joins, general scalar join expressio
 DISTINCT/OFFSET and join ORDER BY aliases remain separate work. No native binding
 changed. Reports: `sqlite-join-using-*20261025.json`; harness:
 `scripts/run-join-using-differential.py`.
+
+
+## Joined DISTINCT and LIMIT/OFFSET (2026-10-25)
+
+Two-source joins now accept DISTINCT and a normalized OFFSET. Duplicate removal
+uses the existing SQL numeric keys, retaining original INTEGER/REAL/TEXT/BLOB/
+NULL representatives and the joined source row needed by subsequent ordering.
+The common join finish path then sorts, drops OFFSET and applies LIMIT. Merge,
+nested-loop and cold primary-key candidate paths all share that finish path.
+See SQLite's [DISTINCT rules](https://www.sqlite.org/lang_select.html#removal_of_duplicate_rows_distinct_processing)
+and [LIMIT/OFFSET rules](https://www.sqlite.org/lang_select.html#the_limit_clause).
+
+Original representatives depend on physical scan order. A leading rowid ORDER
+term can reverse an outer table scan; an inner rowid term can reverse the inner
+scan. INNER joins can exchange sources when this satisfies the complete order;
+CROSS and LEFT retain their outer source. A rowid equality conjunct makes later
+terms constant within each pair. Partial sorting retains the applicable original
+inner traversal. This recognition is explicit query metadata, derived from SQL
+references, join kind, predicate and schema, and never from comparison output.
+The new input-order proposition proves that it only permutes candidate pairs.
+This is not a port or equivalence proof of SQLite's complete cost planner.
+
+Baseline seed **354380** records **4,400 comparisons / 3,600 differences**.
+The initial development seed **354381** passed **4,592 / 0**, but fresh seed
+**354382** found **6 differences in 10,080 cases**: reverse rowid scans selected
+different original DISTINCT representatives and changed later OFFSET results.
+The expanded scan-order development seed **354385** then found **8 differences
+in 10,848 cases**, identifying source exchanges that could not satisfy the
+complete ORDER BY. Both negative reports and their checkpoint hashes remain.
+
+Final-checkpoint fresh seed **354386** passes **14,720 / 0**, plus 16 immutable-
+image/integrity checks. It includes eight new C-created fixtures, empty sides,
+three page sizes, both production file modes, mixed numeric/storage classes,
+six join forms, source ordering in both directions, partial sorts, filters,
+and literal/expression/comma LIMIT windows. Exact successful output is compared;
+errors compare status. Main/WAL bytes and independent typed C observations are
+unchanged. Regression replay reconstructs the original fixtures and reruns both
+engines: the earlier **6 / 0** and **8 / 0** results are regression metrics,
+not fresh examples. Persisted CTAS/INSERT SELECT seed **354387** passes **456 / 0**,
+including C catalog/column/index/typed-row/integrity observations, follow-up C
+writes and Lean reopening. The earlier 432-case write result is retained under
+its original checkpoint.
+
+Implementation SHA-256: `70882a83a6533c115820267d71a320d7c3637b9b829c3abd11fec90f0b851d06`.
+Final checks pass **350 build jobs, 260 executable tests, 1,218 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The four new propositions cover DISTINCT key coverage, key
+uniqueness, zero LIMIT and scan-order permutation. Existing join/read/optimizer
+refinements compile over the extended query structure. General scalar join
+expressions, explicit collations, ORDER BY aliases/ordinals, RIGHT/FULL and larger
+joins remain outside this checkpoint. Native bindings are unchanged. Reports:
+`sqlite-join-window-*20261025.json`; harnesses:
+`scripts/run-join-window-differential.py`,
+`scripts/run-join-window-write-differential.py`, and
+`scripts/run-saved-join-failures.py`.

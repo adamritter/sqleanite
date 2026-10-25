@@ -207,7 +207,7 @@ theorem optimize_joinPlan_eval (database : Core.Database)
       (joinSelectedPrefix query left right).map
         CoreOptimizerBridge.joinedRow := by
   cases query with
-  | mk columns on kind rightWidth where_ orderBy limit =>
+  | mk columns on kind rightWidth where_ orderBy limit offset distinct distinctScanOrder =>
       cases kind with
       | inner =>
           simpa [joinPlan, joinSelectedPrefix] using
