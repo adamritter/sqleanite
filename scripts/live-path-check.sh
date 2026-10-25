@@ -2254,7 +2254,7 @@ fi
 
 if rg -F -q 'let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'let _ ← joinAliasQuery { select with orderBy := #[], offset := 0 }' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'match joinAliasQuery { select with orderBy := #[], offset := 0 }' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreOrder.resolveNamesFuelWith_source' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreOrder.resolveNamesFuelWith_alias' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSQL.joinAliasQuery_existing' SQLeanite/ProofAxioms.lean &&
@@ -2274,6 +2274,20 @@ if rg -F -q 'columns := ← joinCompoundColumns context select.columns.toList' S
   printf 'ok - joined compound ORDER BY uses expanded result slots and bound source identities\n'
 else
   printf 'live-path check FAILED: joined compound result binding\n' >&2
+  status=1
+fi
+
+if rg -F -q 'let base ← executeSelectBaseComplete state { select with compounds := #[] }' SQLeanite/CoreSQL.lean &&
+   rg -F -q '| .error _ => executeJoinScalar state select' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let prepared ← joinScalarPrepare context' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'arguments.toList.findSome? effectiveName' SQLeanite/SQLite/ExprCollation.lean &&
+   rg -F -q 'let collations ← resultCollationsFuel query.compoundHeight state query' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.executeJoinScalar_preserves_state' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQLReadText.executeSelectBaseComplete_eq_core' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinScalarRowsM_pure' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined expression fallback binds original sources and preserves existing Core reads\n'
+else
+  printf 'live-path check FAILED: joined expression fallback\n' >&2
   status=1
 fi
 

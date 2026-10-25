@@ -5278,3 +5278,71 @@ It is retained without filtering as
 `sqlite-join-compound-fresh-20261025-summary.json` records exact compressed and
 uncompressed hashes, sizes, case count and executable/harness/source identities.
 The archived bytes were decompressed and checked against the original report.
+
+
+## General joined expressions: implementation checkpoint (2026-10-25)
+
+Two-source joins now admit general scalar projections, computed predicates,
+DISTINCT, ordering, grouping and aggregates through the existing Core expression
+engines. Binding maps each physical or coalesced source operand to a separate
+expression slot with its original affinity. The context is used for expression
+evaluation only: it creates no stored table and allocates no synthetic rowids.
+Dynamic ON evaluation records right-side matches before WHERE filtering and
+preserves unmatched outer rows. Existing successful Core reads remain the
+first execution path; the refinement theorem is retained for their original
+scope. Subqueries and joins with more than two sources remain unsupported.
+
+Scalar min/max/nullif now choose the first argument with any collation,
+including a column's implicit BINARY collation. CTAS independently validates
+its resulting column collations: a plain SELECT can legally use a later unknown
+collation that still makes CREATE TABLE AS fail. Output column binding, selected
+compound collation and expression evaluation retain their separate roles.
+
+Read baseline seed **354580** records **5,904 / 5,454** differences; write baseline
+**354585** records **1,040 / 848**. In-memory component drafts on 1,476 saved queries
+progressed from **968** differences (including incorrect output width), to **20**,
+to **8**. These are development-only component replays, not public execution,
+fresh evaluation or file/WAL evidence. Their complete negative results remain.
+Production development read seed **354581** passes **12,000 / 0** plus eight
+immutable-fixture checks. Initial write seed **354586** records **2,272 / 64**;
+all 64 accepted CTAS errors are preserved. After result-collation validation,
+write development **354589** passes **2,272 / 0**, and a strict replay of all
+64 saved failures passes **64 / 0** with unchanged files and error stdout.
+
+Fresh evaluation at the final source checkpoint is mixed:
+
+- Read seed **354582**: **24,640 cases / 2 differences**, plus 16 passing fixture
+  checks. Both differences are the same empty-right LEFT JOIN search-key
+  overflow in the two file modes. SQLeanite accepts a statement that C rejects;
+  this remains an open bug. All failures have a separately labelled replay input.
+- Write seed **354587**: **5,184 / 0**, including CTAS/INSERT SELECT, C catalog and
+  typed-row observations, follow-up C writes and Lean reopening. Immutability is
+  required whenever the reference leaves main/WAL bytes unchanged. This writer
+  harness compares error status, but not partial stdout when both engines fail.
+
+Both fresh corpora mix fixed controls and newly seeded data/query combinations
+across eight fixtures, six affinity classes, empty inputs and three page sizes.
+The read harness compares complete stdout even on errors. Regression checks pass
+**2,960 / 0** scalar-collation outcomes and **648 / 0** CTAS cases. The separate strict
+joined compound regression replay passes **1,600 / 0**, including complete stdout
+on errors and immutable main/WAL checks. It is not a fresh evaluation.
+
+An explicit overflow/order stress corpus still records **1,152 / 112** differences
+through the public executable: C skips evaluation of some rows using WHERE and
+scan/window planning while the port evaluates them too early. The earlier
+in-memory draft records **576 / 56** for the same query family. Neither result is
+filtered out of compatibility evidence. Planner-dependent evaluation and error
+streaming remain open work, alongside the existing SQL and file/WAL gaps.
+
+Checks pass **354 build jobs, 282 executable tests, 1,272 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. The new component proofs cover first-argument collation choice,
+preservation of existing successful execution, read-state preservation and the
+pure-ON row path; they do not establish full SQLite equivalence. Native bindings
+remain unchanged. Implementation SHA-256:
+`e66b4bc0df5366e57dac554a69a00ece80fa61747d2272ca4e80221a51e8873f`.
+Reports: `sqlite-join-scalar-*20261025.json` and
+`sqlite-join-evaluation-order-baseline-20261025.json`. Public harnesses:
+`scripts/run-join-scalar-differential.py`,
+`scripts/run-join-scalar-write-differential.py` and
+`scripts/run-join-evaluation-order-differential.py`.

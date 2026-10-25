@@ -1,0 +1,51 @@
+[
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "SELECT min(a,b COLLATE missing) FROM t LIMIT 0;",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "CREATE TABLE extra AS SELECT min(a,b COLLATE missing) FROM t LIMIT 0;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "CREATE TABLE extra AS SELECT 'a' COLLATE missing LIMIT 0;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "CREATE TABLE extra AS SELECT a FROM t UNION ALL SELECT 'a' COLLATE missing;",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "CREATE TABLE extra AS SELECT min(a,b COLLATE missing) FROM t UNION ALL SELECT 'a' COLLATE binary;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a');",
+    "sql": "CREATE TABLE extra AS SELECT 'a' COLLATE binary UNION ALL SELECT 'a' COLLATE missing;",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "setup": "",
+    "sql": "CREATE TABLE t(a);CREATE TABLE IF NOT EXISTS t AS SELECT 1 COLLATE missing;",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

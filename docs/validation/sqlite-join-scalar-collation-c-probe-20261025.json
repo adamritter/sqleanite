@@ -1,0 +1,293 @@
+{
+  "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'A');INSERT INTO r VALUES(1,'a');",
+  "cases": [
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 0,
+      "stdout": "A\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 0,
+      "stdout": "a\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: ambiguous column name: k\n  SELECT min(k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;\n             ^--- error here\n"
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: ambiguous column name: k\n  SELECT min(k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;\n             ^--- error here\n"
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 0,
+      "stdout": "A\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a JOIN r b ON a.id=b.id ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a LEFT JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "a\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "a\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a RIGHT JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(a.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(b.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\na\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\na\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(+a.k,b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 0,
+      "stdout": "\n\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(likely(a.k),b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    },
+    {
+      "sql": "SELECT min(coalesce(a.k,b.k),b.k COLLATE missing) FROM l a FULL JOIN r b USING(k) ;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+    }
+  ]
+}

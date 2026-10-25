@@ -1,0 +1,245 @@
+{
+  "evaluation": "Pinned C unit expectations, with typed JSON values; not a production differential evaluation",
+  "cases": [
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.id AS lid,b.id AS rid,a.k+b.k AS added,coalesce(a.k,b.k) AS chosen FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id,b.id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lid\":null,\"rid\":4,\"added\":null,\"chosen\":2},\n{\"lid\":1,\"rid\":1,\"added\":2,\"chosen\":\"01\"},\n{\"lid\":2,\"rid\":2,\"added\":0,\"chosen\":\"A\"},\n{\"lid\":3,\"rid\":null,\"added\":null,\"chosen\":null}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.id AS lid,b.id AS rid,typeof(k) AS kind,k+1 AS added FROM l a FULL JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lid\":null,\"rid\":2,\"kind\":\"text\",\"added\":1},\n{\"lid\":null,\"rid\":4,\"kind\":\"integer\",\"added\":3},\n{\"lid\":1,\"rid\":1,\"kind\":\"text\",\"added\":2},\n{\"lid\":2,\"rid\":null,\"kind\":\"text\",\"added\":1},\n{\"lid\":3,\"rid\":null,\"kind\":\"null\",\"added\":null}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT upper(a.k) AS chosen,a.id AS lid,b.id AS rid FROM l a JOIN r b ON a.id=b.id WHERE chosen='A' ORDER BY chosen;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"chosen\":\"A\",\"lid\":2,\"rid\":2}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON a.id+1=b.id ORDER BY a.id,b.id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lid\":null,\"rid\":1},\n{\"lid\":1,\"rid\":2},\n{\"lid\":2,\"rid\":null},\n{\"lid\":3,\"rid\":4}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON coalesce(a.k,0)=b.k WHERE b.id IS NOT NULL ORDER BY a.id,b.id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lid\":null,\"rid\":2},\n{\"lid\":null,\"rid\":4},\n{\"lid\":1,\"rid\":1}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT count(*) AS n,count(a.k) AS filled,sum(b.k) AS total FROM l a FULL JOIN r b ON a.id=b.id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"n\":4,\"filled\":2,\"total\":3.0}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.k AS key,count(*) AS n FROM l a FULL JOIN r b ON a.id=b.id GROUP BY a.k ORDER BY a.k;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"key\":null,\"n\":2},\n{\"key\":\"01\",\"n\":1},\n{\"key\":\"A\",\"n\":1}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT coalesce(a.k,b.k) AS chosen,a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON a.id=b.id ORDER BY chosen,a.id,b.id LIMIT 2 OFFSET 1;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"chosen\":2,\"lid\":null,\"rid\":4},\n{\"chosen\":\"01\",\"lid\":1,\"rid\":1}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT DISTINCT lower(a.k) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY chosen;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"chosen\":null},\n{\"chosen\":\"01\"},\n{\"chosen\":\"a\"}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.k+1 AS chosen FROM l a JOIN r b ON a.id=b.id UNION ALL SELECT 9 ORDER BY chosen;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"chosen\":1},\n{\"chosen\":2},\n{\"chosen\":9}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such function: not_a_function\n  SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.missing+1 FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: a.missing\n  SELECT a.missing+1 FROM l a JOIN r b ON a.id=b.id LIMIT 0;\n         ^--- error here\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT likely(a.k)+1 FROM l a JOIN r b ON a.id=b.id ORDER BY missing LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  ly(a.k)+1 FROM l a JOIN r b ON a.id=b.id ORDER BY missing LIMIT 0;\n                                      error here ---^\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);",
+      "sql": "SELECT a.k AS chosen,b.k AS next FROM l a JOIN r b ON a.id=b.id WHERE a.chosen+1;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: a.chosen\n  ,b.k AS next FROM l a JOIN r b ON a.id=b.id WHERE a.chosen+1;\n                                      error here ---^\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a,b COLLATE nocase) AS lo,max(a,b COLLATE nocase) AS hi,nullif(a,b COLLATE nocase) AS unequal FROM t ORDER BY id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lo\":\"A\",\"hi\":\"a\",\"unequal\":\"A\"},\n{\"lo\":\"z\",\"hi\":\"z \",\"unequal\":\"z \"}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(+a,b COLLATE nocase) AS plus,min(likely(a),b COLLATE nocase) AS hinted,min(CAST(a AS TEXT),b COLLATE nocase) AS casted FROM t ORDER BY id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"plus\":\"A\",\"hinted\":\"a\",\"casted\":\"A\"},\n{\"plus\":\"z\",\"hinted\":\"z\",\"casted\":\"z\"}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a,b COLLATE missing) AS lo,max(a,b COLLATE missing) AS hi,nullif(a,b COLLATE missing) AS unequal FROM t ORDER BY id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lo\":\"A\",\"hi\":\"a\",\"unequal\":\"A\"},\n{\"lo\":\"z\",\"hi\":\"z \",\"unequal\":\"z \"}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a COLLATE rtrim,b COLLATE missing) AS lo FROM t ORDER BY id;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "[{\"lo\":\"A\"},\n{\"lo\":\"z\"}]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a,b COLLATE missing) FROM t LIMIT 0;",
+      "expected_success": true,
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(likely(a),b COLLATE missing) FROM t LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a+0,b COLLATE missing) FROM t LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a,b COLLATE missing)='A' FROM t LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');",
+      "sql": "SELECT min(a,b COLLATE missing) FROM t ORDER BY 1 LIMIT 0;",
+      "expected_success": false,
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      }
+    }
+  ]
+}

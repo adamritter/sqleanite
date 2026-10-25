@@ -1481,3 +1481,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinCompoundOperand_sides
 #print axioms SQLeanite.CoreSQL.joinCompoundOperand_merged
 #print axioms SQLeanite.CoreSQL.joinCompoundStarColumns_projection
+
+#print axioms SQLeanite.SQLite.ExprCollation.argumentsKind_first
+#print axioms SQLeanite.SQLite.ExprCollation.argumentsKind_column
+#print axioms SQLeanite.CoreSQL.executeSelectBaseComplete_existing
+#print axioms SQLeanite.CoreSQL.joinScalarRowsM_pure
+
+#print axioms SQLeanite.CoreSQL.executeJoinScalar_preserves_state
+#print axioms SQLeanite.CoreSQLReadText.executeSelectBaseComplete_eq_core

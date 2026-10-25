@@ -75,7 +75,19 @@ def binaryKind? (left right : Expr) : Option Collation.Kind :=
   ofName ((name left).orElse fun _ => name right)
 
 def argumentsKind? (arguments : Array Expr) : Option Collation.Kind :=
-  ofName (arguments.foldl (fun found arg => found.orElse fun _ => name arg) none)
+  ofName (arguments.toList.findSome? effectiveName)
+
+/-- Scalar min/max/nullif use the first argument with any collation,
+including a declared column's BINARY default, before considering later args. -/
+theorem argumentsKind_first (first : Expr) (rest : List Expr) (selected : String)
+    (found : effectiveName first = some selected) :
+    argumentsKind? (first :: rest).toArray = ofName (some selected) := by
+  simp [argumentsKind?, found, List.findSome?]
+
+theorem argumentsKind_column (qualifier : Option String) (column : String) (rest : List Expr) :
+    argumentsKind? (Expr.column qualifier column :: rest).toArray = ofName (some "binary") := by
+  simp [argumentsKind?, effectiveName, name, nameFuel, columnDefaultFuel, Expr.height,
+    List.findSome?]
 
 def require (kind : Option Collation.Kind) : Except String Collation.Kind :=
   match kind with | some kind => .ok kind | none => .error "no such collation sequence"

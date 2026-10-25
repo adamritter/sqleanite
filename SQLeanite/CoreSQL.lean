@@ -2581,44 +2581,6 @@ def resultCollationFuel : Nat → Select → Bool
 def requiresCompoundCollation (select : Select) : Bool :=
   !select.compounds.isEmpty && resultCollationFuel select.compoundHeight select
 
-/-- Bind identifiers and expand stars before resolving each output column's
-explicit or declared collation. Joined stars expand with BINARY metadata;
-wrapped atoms retain their original explicit and inherited collation. -/
-def baseResultCollations (state : Core.State) (select : Select) (wrappedValues : Bool := false) :
-    Except String (List (Option String)) := do
-  if let some rows := select.valueRows then
-    return SQLite.Values.collations rows.toList wrappedValues
-  match select.sources.toList with
-  | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
-  | [source] =>
-      let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
-      let expanded ← CoreOrder.expandResults ctx select.columns.toList
-      return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
-  | [leftSource, rightSource] =>
-      let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
-      let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
-      let leftName := resolveTableName state leftSource.name
-      let rightName := resolveTableName state rightSource.name
-      let _ ← joinAliasQuery { select with orderBy := #[], offset := 0 }
-        leftName rightName left.schema right.schema left.rows right.rows
-      let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
-      return (← joinWrappedColumns context select.columns.toList).2
-  | _ => unsupported "compound source shape"
-
-/-- multiSelectCollSeq takes the first arm that supplies a collation for each
-output position. An unused later unknown name must not replace an earlier one. -/
-def resultCollationsFuel : Nat → Core.State → Select → Except String (List (Option String))
-  | 0, _, _ => .error "compound collation depth exhausted"
-  | fuel + 1, state, select => do
-      let first ← baseResultCollations state select
-      select.compounds.toList.foldlM (fun current (_, arm) => do
-        let next ← if arm.valueRows.isSome then baseResultCollations state arm true
-          else resultCollationsFuel fuel state arm
-        unless current.length == next.length do
-          throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
-        return current.zipWith (fun left right => left.orElse fun _ => right) next) first
-
 /-- These expression identities are internal bound slots, not SQL names.
 FULL's merged column is distinct from either source and from an explicit
 coalesce() call, as in SQLite's expression comparison. -/
@@ -2724,6 +2686,284 @@ def joinCompoundColumns (context : JoinContext) : List ResultColumn → Except S
               | throw "unbound joined result expression"
             pure [{ column with expr := bound }]
       return head ++ (← joinCompoundColumns context columns)
+
+
+def joinScalarInputs (context : JoinContext) : List CoreJoin.Operand :=
+  (joinSideColumns .left context.leftSchema.columns.length ++
+    joinSideColumns .right context.rightSchema.columns.length).map .column ++
+  context.shared.map (fun shared => .mergedColumn none shared.left shared.right)
+
+def joinScalarSlot (index : Nat) : Expr := .column none s!"__joined_{index}"
+
+def joinScalarOperand (context : JoinContext) (operand : CoreJoin.Operand) : Option Expr :=
+  (joinScalarInputs context).findIdx? (· == operand) |>.map joinScalarSlot
+
+def joinScalarBindFuel (context : JoinContext) : Nat → Expr → Option Expr
+  | 0, _ => none
+  | fuel + 1, expression => do
+      let bind := joinScalarBindFuel context fuel
+      match expression with
+      | .column qualifier name =>
+          joinScalarOperand context (← (joinNamedOperand context qualifier name).toOption)
+      | .literal .. => some expression
+      | .unary op arg => return .unary op (← bind arg)
+      | .binary op left right => return .binary op (← bind left) (← bind right)
+      | .call name args star => return .call name (← args.mapM bind) star
+      | .isNull arg negated => return .isNull (← bind arg) negated
+      | .inList arg values negated affinity =>
+          return .inList (← bind arg) (← values.mapM bind) negated affinity
+      | .collate arg name => return .collate (← bind arg) name
+      | .case_ base branches otherwise =>
+          return .case_ (← base.mapM bind)
+            (← branches.mapM fun (condition, result) => do return (← bind condition, ← bind result))
+            (← otherwise.mapM bind)
+      | _ => none
+
+def joinScalarBind (context : JoinContext) (expression : Expr) : Except String Expr := do
+  let expression := SQLite.Scalar.prepare (joinBindNames context expression)
+  let some result := joinScalarBindFuel context expression.height expression
+    | throw "unbound or unsupported joined expression"
+  return result
+
+/-- The expression context has no stored table or newly allocated rowids.
+Every input value is a bound source operand with its original affinity. -/
+def joinScalarContext (context : JoinContext) : Except String CoreExpr.Context := do
+  let columns ← (joinScalarInputs context).mapIdxM fun index operand => do
+    let source ← match operand with
+      | .column reference => joinColumnDefinition context reference
+      | .mergedColumn _ left _ => joinColumnDefinition context ⟨.left, left⟩
+      | _ => throw "invalid joined expression input"
+    return ({ name := s!"__joined_{index}", declaredType := CoreCreateTableAs.declaredType source.affinity } : Core.Column)
+  return { schema := { name := "__joined", columns, primaryKey := columns.length }, sourceName := "__joined" }
+
+def joinScalarResults (context : JoinContext) : List ResultColumn → Except String (List ResultColumn)
+  | [] => .ok []
+  | column :: columns => do
+      let head ← match column.expr with
+        | .star qualifier => do
+            let references ← joinCompoundStarReferences context qualifier
+            references.mapM fun reference => do
+              let some expr := joinScalarOperand context (joinStarOperand context reference)
+                | throw "invalid joined star input"
+              let definition ← joinColumnDefinition context reference
+              return ({ expr, alias := some definition.name } : ResultColumn)
+        | expression => do
+            let bound ← joinScalarBind context expression
+            pure [{ column with expr := bound }]
+      return head ++ (← joinScalarResults context columns)
+
+def joinScalarOrderExpression (context : JoinContext) (original expanded : List ResultColumn) :
+    Expr → Except String Expr
+  | .collate expression name => return .collate (← joinScalarOrderExpression context original expanded expression) name
+  | expression => do
+      if let some result := (CoreOrder.bareName? expression).bind (CoreOrder.aliasExpression? expanded) then
+        return result
+      joinScalarBind context (CoreOrder.resolveAliasesWith (joinHasColumn context) original expression)
+
+structure JoinScalarPrepared where
+  context : CoreExpr.Context
+  select : Select
+  on : Option CoreJoin.Predicate
+  onExpression : Option Expr := none
+
+def joinScalarPrepare (context : JoinContext) (select : Select) (rightSource : TableRef) :
+    Except String JoinScalarPrepared := do
+  let ctx ← joinScalarContext context
+  let columns ← joinScalarResults context select.columns.toList
+  unless !columns.isEmpty && columns.length ≤ SQLite.Limits.maxColumns do
+    throw "invalid SELECT result column count"
+  let resolve := CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList
+  let (on, deferred) := match rightSource.joinOn with
+    | none => (none, none)
+    | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+  let (on, onExpression) ← match on with
+    | none => pure (none, none)
+    | some expression => match joinPredicate context expression (rightSource.leftJoin || rightSource.rightJoin) with
+      | .ok predicate => pure (some predicate, none)
+      | .error _ => do
+          let bound ← joinScalarBind context expression
+          ctx.validate bound
+          pure (none, some bound)
+  let shared ← joinUsingPredicate context
+  let on := match on, shared with
+    | none, other | other, none => other
+    | some left, some right => some (.and left right)
+  let where_ ← (CoreOrder.combineAliasConditions (select.where_.map resolve) deferred).mapM (joinScalarBind context)
+  let order ← select.orderBy.mapM fun term => do
+    return { term with expr := ← joinScalarOrderExpression context select.columns.toList columns term.expr }
+  let groups ← select.groupBy.mapM (fun expression => joinScalarBind context (resolve expression))
+  let having ← select.having.mapM (fun expression => joinScalarBind context (resolve expression))
+  return { context := ctx, on, onExpression, select := { select with
+    columns := (columns.map (fun column => { column with alias := none })).toArray
+    sources := #[]
+    where_, orderBy := order, groupBy := groups, having } }
+
+def joinScalarRows (context : JoinContext) (source : TableRef) (on : Option CoreJoin.Predicate)
+    (left right : List Core.Row) : List CoreJoin.JoinedRow :=
+  if source.rightJoin then
+    CoreOuterJoin.joinedRows source.leftJoin context.leftSchema.columns.length context.rightSchema.columns.length on left right
+  else if source.leftJoin then CoreJoin.leftOuterRows on context.rightSchema.columns.length left right
+  else CoreJoin.matchingRows on none (CoreJoin.crossRows left right)
+
+def joinScalarMatches (context : JoinContext) (prepared : JoinScalarPrepared) (outer : Bool)
+    (row : CoreJoin.JoinedRow) : Except String Bool := do
+  unless CoreJoin.selects prepared.on row do return false
+  let some expression := prepared.onExpression | return true
+  let input := CoreJoin.projectRow (joinScalarInputs context) row
+  if !outer then return ← prepared.context.matches input (some expression)
+  let decision := SQLite.StaticCondition.conditionDecision (SQLite.Scalar.conditionTerms expression)
+  let value ← decision.run (fun atom => do
+    return SQLite.Numeric.truth (← prepared.context.eval input atom))
+  return value == .true
+
+/-- Match bookkeeping is completed before WHERE filtering. Dynamic ON values
+are evaluated once for each visited pair and can return an expression error. -/
+def joinScalarRowsM (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (left right : List Core.Row) : Except String (List CoreJoin.JoinedRow) := do
+  if prepared.onExpression.isNone then return joinScalarRows context source prepared.on left right
+  let (initial, matched) ← left.foldlM (fun (prior, matched) l => do
+    let found ← right.zipIdx.filterM (fun (r, _) => joinScalarMatches context prepared
+      (source.leftJoin || source.rightJoin) (l, r))
+    let output := if found.isEmpty && source.leftJoin then
+        [(l, CoreJoin.nullRow context.rightSchema.columns.length)]
+      else found.map (fun (r, _) => (l, r))
+    pure (prior ++ output, matched ++ found.map Prod.snd)) ([], [])
+  let remaining := if source.rightJoin then
+      (right.zipIdx.filter (fun (_, index) => !matched.contains index)).map
+        (fun (r, _) => (CoreJoin.nullRow context.leftSchema.columns.length, r))
+    else []
+  return initial ++ remaining
+
+def joinScalarAggregate (ctx : CoreExpr.Context) (select : Select) (rows : List (List Core.Value)) :
+    Except String (Core.Result × Nat) := do
+  if select.distinct then CoreExpr.validateDistinct (select.columns.toList.map (·.expr))
+  let prepared ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
+  let _ ← select.where_.mapM ctx.validate
+  if select.limit == some 0 then return ({}, prepared.results.expressions.length)
+  let enabled ← ctx.constantMatches select.where_
+  let inputs ← if enabled then CoreAggregate.selectRows ctx select.where_ rows else pure []
+  let values ← prepared.results.accumulate ctx inputs
+  let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+  let selected ← prepared.matches ctx values representative
+  let output ← if !selected || select.offset > 0 then pure []
+    else do pure [← prepared.finish ctx values representative]
+  return ({ rows := output }, prepared.results.expressions.length)
+
+def joinScalarRun (context : JoinContext) (prepared : JoinScalarPrepared)
+    (rows : List CoreJoin.JoinedRow) : Except String (Core.Result × Nat) := do
+  let ctx := prepared.context
+  let select := prepared.select
+  let inputs := rows.map (CoreJoin.projectRow (joinScalarInputs context))
+  if !select.groupBy.isEmpty then
+    let (rows, width) ← CoreGrouped.run ctx select inputs
+    return ({ rows }, width)
+  if select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) then
+    return ← joinScalarAggregate ctx select inputs
+  unless select.having.isNone do unsupported "HAVING requires an aggregate"
+  let expressions ← ctx.projection select.columns.toList
+  if select.distinct then CoreExpr.validateDistinct expressions
+  let _ ← select.where_.mapM ctx.validate
+  let terms ← CoreOrder.resolve ctx select.columns.toList select.orderBy.toList
+  let _ ← terms.mapM (CoreOrder.validateTerm ctx)
+  if select.limit == some 0 then return ({}, expressions.length)
+  unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
+  let projected ← if terms.isEmpty then
+      ctx.scanWindow select.where_ expressions select.distinct inputs select.offset select.limit []
+    else CoreOrder.scan ctx select.where_ expressions terms select.distinct inputs select.offset select.limit
+  return ({ rows := projected.map (·.output) }, expressions.length)
+
+def joinScalarResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+  let (leftSource, rightSource) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state rightSource.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {rightSource.name}"
+  let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select rightSource
+  let enabled ← if select.limit == some 0 then pure false
+    else prepared.context.constantMatches prepared.select.where_
+  let rows ← if enabled then joinScalarRowsM context prepared rightSource left.rows right.rows else pure []
+  joinScalarRun context prepared rows
+
+def executeJoinScalar (state : Core.State) (select : Select) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> joinScalarResult state select
+
+theorem executeJoinScalar_preserves_state {state : Core.State} {select : Select}
+    {result : SelectExecution} (success : executeJoinScalar state select = .ok result) :
+    result.state = state := by
+  unfold executeJoinScalar at success
+  cases executed : joinScalarResult state select with
+  | error message => simp [executed, Functor.map, Except.map] at success
+  | ok output =>
+      simp [executed, Functor.map, Except.map] at success
+      cases success
+      rfl
+
+/-- Extend only two-source queries. Successful existing execution remains
+authoritative, and all other source shapes keep their original error behavior. -/
+def executeSelectBaseComplete (state : Core.State) (select : Select) : Except String SelectExecution :=
+  if select.sources.size != 2 then executeSelectBase state select
+  else match executeSelectBase state select with
+    | .ok result => .ok result
+    | .error _ => executeJoinScalar state select
+
+theorem executeSelectBaseComplete_existing (state : Core.State) (select : Select)
+    (result : SelectExecution) (success : executeSelectBase state select = .ok result) :
+    executeSelectBaseComplete state select = .ok result := by
+  simp [executeSelectBaseComplete, success]
+
+theorem joinScalarRowsM_pure (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (left right : List Core.Row) (pureOn : prepared.onExpression = none) :
+    joinScalarRowsM context prepared source left right =
+      .ok (joinScalarRows context source prepared.on left right) := by
+  simp [joinScalarRowsM, pureOn, pure, Except.pure]
+
+/-- Bind identifiers and expand stars before resolving each output column's
+explicit or declared collation. Joined stars expand with BINARY metadata;
+wrapped atoms retain their original explicit and inherited collation. -/
+def baseResultCollations (state : Core.State) (select : Select) (wrappedValues : Bool := false) :
+    Except String (List (Option String)) := do
+  if let some rows := select.valueRows then
+    return SQLite.Values.collations rows.toList wrappedValues
+  match select.sources.toList with
+  | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
+  | [source] =>
+      let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      let expanded ← CoreOrder.expandResults ctx select.columns.toList
+      return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
+  | [leftSource, rightSource] =>
+      let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
+      let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
+      let leftName := resolveTableName state leftSource.name
+      let rightName := resolveTableName state rightSource.name
+      let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
+      match joinAliasQuery { select with orderBy := #[], offset := 0 }
+          leftName rightName left.schema right.schema left.rows right.rows with
+      | .ok _ => return (← joinWrappedColumns context select.columns.toList).2
+      | .error _ =>
+          let prepared ← joinScalarPrepare context { select with orderBy := #[], offset := 0 } rightSource
+          let _ ← joinScalarRun context { prepared with select := { prepared.select with limit := some 0 } } []
+          return prepared.select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
+  | _ => unsupported "compound source shape"
+
+/-- multiSelectCollSeq takes the first arm that supplies a collation for each
+output position. An unused later unknown name must not replace an earlier one. -/
+def resultCollationsFuel : Nat → Core.State → Select → Except String (List (Option String))
+  | 0, _, _ => .error "compound collation depth exhausted"
+  | fuel + 1, state, select => do
+      let first ← baseResultCollations state select
+      select.compounds.toList.foldlM (fun current (_, arm) => do
+        let next ← if arm.valueRows.isSome then baseResultCollations state arm true
+          else resultCollationsFuel fuel state arm
+        unless current.length == next.length do
+          throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+        return current.zipWith (fun left right => left.orElse fun _ => right) next) first
 
 /-- Expand source columns for compound ORDER BY alias/expression matching. -/
 def compoundTailArm (state : Core.State) (select : Select) : Except String CoreCompoundTail.Arm := do
@@ -2876,7 +3116,7 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
         let kinds ← if select.compounds.any (fun arm => arm.1 != .unionAll) then
             names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
           else pure []
-        let base ← executeSelectBase state { select with compounds := #[] }
+        let base ← executeSelectBaseComplete state { select with compounds := #[] }
         let rec executeCollatedArms (current : SelectExecution) :
             List (CompoundOp × Select) → Except String SelectExecution
           | [] => .ok current
@@ -2890,7 +3130,7 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
                 width := current.width }
               executeCollatedArms combined arms
         return ← executeCollatedArms base select.compounds.toList
-      let base ← executeSelectBase state { select with compounds := #[] }
+      let base ← executeSelectBaseComplete state { select with compounds := #[] }
       let rec executeArms (current : SelectExecution) :
           List (CompoundOp × Select) → Except String SelectExecution
         | [] => .ok current
@@ -3193,6 +3433,8 @@ selected rows are evaluated before the destination exists. -/
 def createTableAsCommands (state : Core.State) (name : String) (query : Select) :
     Except String (List Core.Command) := do
   SQLite.Limit.validate query.limitClause
+  let collations ← resultCollationsFuel query.compoundHeight state query
+  discard <| collations.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
   let selection ← executeSelect state query
   let definitions ← CoreCreateTableAs.columns state.database query
   unless definitions.size == selection.width do throw "CTAS output width mismatch"

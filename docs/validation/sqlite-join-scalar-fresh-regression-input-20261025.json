@@ -1,0 +1,355 @@
+{
+  "seed": 354582,
+  "random_cases": 64,
+  "cases": [
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n4|\n5|\n6|\n7|\n8|\n9|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false
+    },
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n4|\n5|\n6|\n7|\n8|\n9|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false
+    }
+  ],
+  "fixtures": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL);INSERT INTO l VALUES(2,0);INSERT INTO l VALUES(3,0.0);INSERT INTO l VALUES(4,1);INSERT INTO l VALUES(5,1.0);INSERT INTO l VALUES(6,'1');INSERT INTO l VALUES(7,'01');INSERT INTO l VALUES(8,X'31');INSERT INTO l VALUES(9,2);INSERT INTO l VALUES(10,2.5);INSERT INTO l VALUES(11,'a');INSERT INTO l VALUES(12,'A');INSERT INTO l VALUES(13,'a ');INSERT INTO l VALUES(14,'A  ');INSERT INTO r VALUES(1,NULL);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,0.0);INSERT INTO r VALUES(4,1);INSERT INTO r VALUES(5,1.0);INSERT INTO r VALUES(6,'1');INSERT INTO r VALUES(7,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL);INSERT INTO l VALUES(2,0);INSERT INTO l VALUES(3,0.0);INSERT INTO l VALUES(4,1);INSERT INTO l VALUES(5,1.0);INSERT INTO l VALUES(6,'1');INSERT INTO l VALUES(7,'01');INSERT INTO l VALUES(8,X'31');INSERT INTO l VALUES(9,2);INSERT INTO l VALUES(10,2.5);INSERT INTO l VALUES(11,'a');INSERT INTO l VALUES(12,'A');INSERT INTO l VALUES(13,'a ');INSERT INTO l VALUES(14,'A  ');INSERT INTO r VALUES(1,NULL);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,0.0);INSERT INTO r VALUES(4,1);INSERT INTO r VALUES(5,1.0);INSERT INTO r VALUES(6,'1');INSERT INTO r VALUES(7,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO r VALUES(1,9223372036854775807,1);INSERT INTO r VALUES(2,2,2);INSERT INTO r VALUES(3,X'00',3);INSERT INTO r VALUES(4,X'31FF',4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|39323233333732303336383534373735383037\n2|text|32\n3|blob|00\n4|blob|31FF\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|39323233333732303336383534373735383037\n2|text|32\n3|blob|00\n4|blob|31FF\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO r VALUES(1,9223372036854775807,1);INSERT INTO r VALUES(2,2,2);INSERT INTO r VALUES(3,X'00',3);INSERT INTO r VALUES(4,X'31FF',4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|39323233333732303336383534373735383037\n2|text|32\n3|blob|00\n4|blob|31FF\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|39323233333732303336383534373735383037\n2|text|32\n3|blob|00\n4|blob|31FF\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB,\"true\");INSERT INTO l VALUES(1,CAST(X'3100FF' AS TEXT),2);INSERT INTO l VALUES(2,1e-310,1);INSERT INTO l VALUES(3,X'31',0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|real|392E39393939393939393939393939363935652D333131\n3|blob|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|real|392E39393939393939393939393939363935652D333131\n3|blob|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB,\"true\");INSERT INTO l VALUES(1,CAST(X'3100FF' AS TEXT),2);INSERT INTO l VALUES(2,1e-310,1);INSERT INTO l VALUES(3,X'31',0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|real|392E39393939393939393939393939363935652D333131\n3|blob|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|real|392E39393939393939393939393939363935652D333131\n3|blob|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k REAL,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k ,\"false\");INSERT INTO l VALUES(1,9223372036854775807,7);INSERT INTO l VALUES(2,'01',6);INSERT INTO l VALUES(3,'1',5);INSERT INTO l VALUES(4,CAST(X'FF31' AS TEXT),4);INSERT INTO l VALUES(5,'  -2tail',3);INSERT INTO l VALUES(6,2,2);INSERT INTO l VALUES(7,'1x',1);INSERT INTO l VALUES(8,-9223372036854775808,0);INSERT INTO r VALUES(1,1,1);INSERT INTO r VALUES(2,'1',2);INSERT INTO r VALUES(3,X'00',3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,-1e999,5);INSERT INTO r VALUES(6,X'302E35FF',6);INSERT INTO r VALUES(7,-9223372036854775808,7);INSERT INTO r VALUES(8,X'31FF',8);INSERT INTO r VALUES(9,'1x',9);INSERT INTO r VALUES(10,1,10);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|real|392E32323333373230333638353437373538652B3138\n2|real|312E30\n3|real|312E30\n4|text|FF31\n5|text|20202D327461696C\n6|real|322E30\n7|text|3178\n8|real|2D392E32323333373230333638353437373538652B3138\n1|integer|31\n2|text|31\n3|blob|00\n4|blob|302E35FF\n5|real|2D496E66\n6|blob|302E35FF\n7|integer|2D39323233333732303336383534373735383038\n8|blob|31FF\n9|text|3178\n10|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|real|392E32323333373230333638353437373538652B3138\n2|real|312E30\n3|real|312E30\n4|text|FF31\n5|text|20202D327461696C\n6|real|322E30\n7|text|3178\n8|real|2D392E32323333373230333638353437373538652B3138\n1|integer|31\n2|text|31\n3|blob|00\n4|blob|302E35FF\n5|real|2D496E66\n6|blob|302E35FF\n7|integer|2D39323233333732303336383534373735383038\n8|blob|31FF\n9|text|3178\n10|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k REAL,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k ,\"false\");INSERT INTO l VALUES(1,9223372036854775807,7);INSERT INTO l VALUES(2,'01',6);INSERT INTO l VALUES(3,'1',5);INSERT INTO l VALUES(4,CAST(X'FF31' AS TEXT),4);INSERT INTO l VALUES(5,'  -2tail',3);INSERT INTO l VALUES(6,2,2);INSERT INTO l VALUES(7,'1x',1);INSERT INTO l VALUES(8,-9223372036854775808,0);INSERT INTO r VALUES(1,1,1);INSERT INTO r VALUES(2,'1',2);INSERT INTO r VALUES(3,X'00',3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,-1e999,5);INSERT INTO r VALUES(6,X'302E35FF',6);INSERT INTO r VALUES(7,-9223372036854775808,7);INSERT INTO r VALUES(8,X'31FF',8);INSERT INTO r VALUES(9,'1x',9);INSERT INTO r VALUES(10,1,10);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|real|392E32323333373230333638353437373538652B3138\n2|real|312E30\n3|real|312E30\n4|text|FF31\n5|text|20202D327461696C\n6|real|322E30\n7|text|3178\n8|real|2D392E32323333373230333638353437373538652B3138\n1|integer|31\n2|text|31\n3|blob|00\n4|blob|302E35FF\n5|real|2D496E66\n6|blob|302E35FF\n7|integer|2D39323233333732303336383534373735383038\n8|blob|31FF\n9|text|3178\n10|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|real|392E32323333373230333638353437373538652B3138\n2|real|312E30\n3|real|312E30\n4|text|FF31\n5|text|20202D327461696C\n6|real|322E30\n7|text|3178\n8|real|2D392E32323333373230333638353437373538652B3138\n1|integer|31\n2|text|31\n3|blob|00\n4|blob|302E35FF\n5|real|2D496E66\n6|blob|302E35FF\n7|integer|2D39323233333732303336383534373735383038\n8|blob|31FF\n9|text|3178\n10|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k ,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL,\"true\");INSERT INTO l VALUES(1,2,3);INSERT INTO l VALUES(2,X'31',2);INSERT INTO l VALUES(3,'a',1);INSERT INTO l VALUES(4,'0.5suffix',0);INSERT INTO r VALUES(1,X'302E35FF',1);INSERT INTO r VALUES(2,CAST(X'3100FF' AS TEXT),2);INSERT INTO r VALUES(3,1.0,3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,'A',5);INSERT INTO r VALUES(6,X'31FF',6);INSERT INTO r VALUES(7,-9223372036854775808,7);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|blob|31\n3|text|61\n4|text|302E35737566666978\n1|blob|302E35FF\n2|real|312E30\n3|real|312E30\n4|blob|302E35FF\n5|text|41\n6|blob|31FF\n7|real|2D392E32323333373230333638353437373538652B3138\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|blob|31\n3|text|61\n4|text|302E35737566666978\n1|blob|302E35FF\n2|real|312E30\n3|real|312E30\n4|blob|302E35FF\n5|text|41\n6|blob|31FF\n7|real|2D392E32323333373230333638353437373538652B3138\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k ,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL,\"true\");INSERT INTO l VALUES(1,2,3);INSERT INTO l VALUES(2,X'31',2);INSERT INTO l VALUES(3,'a',1);INSERT INTO l VALUES(4,'0.5suffix',0);INSERT INTO r VALUES(1,X'302E35FF',1);INSERT INTO r VALUES(2,CAST(X'3100FF' AS TEXT),2);INSERT INTO r VALUES(3,1.0,3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,'A',5);INSERT INTO r VALUES(6,X'31FF',6);INSERT INTO r VALUES(7,-9223372036854775808,7);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|blob|31\n3|text|61\n4|text|302E35737566666978\n1|blob|302E35FF\n2|real|312E30\n3|real|312E30\n4|blob|302E35FF\n5|text|41\n6|blob|31FF\n7|real|2D392E32323333373230333638353437373538652B3138\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|blob|31\n3|text|61\n4|text|302E35737566666978\n1|blob|302E35FF\n2|real|312E30\n3|real|312E30\n4|blob|302E35FF\n5|text|41\n6|blob|31FF\n7|real|2D392E32323333373230333638353437373538652B3138\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'A');INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,1e-310);INSERT INTO r VALUES(4,NULL);INSERT INTO r VALUES(5,2);INSERT INTO r VALUES(6,'  -2tail');INSERT INTO r VALUES(7,CAST(X'3100FF' AS TEXT));INSERT INTO r VALUES(8,-1e999);INSERT INTO r VALUES(9,X'31');INSERT INTO r VALUES(10,0);INSERT INTO r VALUES(11,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|41\n1|integer|31\n2|integer|30\n3|real|392E39393939393939393939393939363935652D333131\n4|null|\n5|integer|32\n6|text|20202D327461696C\n7|integer|31\n8|real|2D496E66\n9|blob|31\n10|integer|30\n11|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|41\n1|integer|31\n2|integer|30\n3|real|392E39393939393939393939393939363935652D333131\n4|null|\n5|integer|32\n6|text|20202D327461696C\n7|integer|31\n8|real|2D496E66\n9|blob|31\n10|integer|30\n11|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'A');INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,1e-310);INSERT INTO r VALUES(4,NULL);INSERT INTO r VALUES(5,2);INSERT INTO r VALUES(6,'  -2tail');INSERT INTO r VALUES(7,CAST(X'3100FF' AS TEXT));INSERT INTO r VALUES(8,-1e999);INSERT INTO r VALUES(9,X'31');INSERT INTO r VALUES(10,0);INSERT INTO r VALUES(11,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|41\n1|integer|31\n2|integer|30\n3|real|392E39393939393939393939393939363935652D333131\n4|null|\n5|integer|32\n6|text|20202D327461696C\n7|integer|31\n8|real|2D496E66\n9|blob|31\n10|integer|30\n11|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|41\n1|integer|31\n2|integer|30\n3|real|392E39393939393939393939393939363935652D333131\n4|null|\n5|integer|32\n6|text|20202D327461696C\n7|integer|31\n8|real|2D496E66\n9|blob|31\n10|integer|30\n11|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,-9223372036854775808,8);INSERT INTO l VALUES(2,'01',7);INSERT INTO l VALUES(3,0.0,6);INSERT INTO l VALUES(4,X'302E35FF',5);INSERT INTO l VALUES(5,'a',4);INSERT INTO l VALUES(6,1.0,3);INSERT INTO l VALUES(7,'1',2);INSERT INTO l VALUES(8,NULL,1);INSERT INTO l VALUES(9,0.0,0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|30\n4|blob|302E35FF\n5|text|61\n6|integer|31\n7|integer|31\n8|null|\n9|integer|30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|30\n4|blob|302E35FF\n5|text|61\n6|integer|31\n7|integer|31\n8|null|\n9|integer|30\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,-9223372036854775808,8);INSERT INTO l VALUES(2,'01',7);INSERT INTO l VALUES(3,0.0,6);INSERT INTO l VALUES(4,X'302E35FF',5);INSERT INTO l VALUES(5,'a',4);INSERT INTO l VALUES(6,1.0,3);INSERT INTO l VALUES(7,'1',2);INSERT INTO l VALUES(8,NULL,1);INSERT INTO l VALUES(9,0.0,0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|30\n4|blob|302E35FF\n5|text|61\n6|integer|31\n7|integer|31\n8|null|\n9|integer|30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|30\n4|blob|302E35FF\n5|text|61\n6|integer|31\n7|integer|31\n8|null|\n9|integer|30\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 2,
+  "implementation_sha256": "e66b4bc0df5366e57dac554a69a00ece80fa61747d2272ca4e80221a51e8873f",
+  "executable_sha256": "c959721016a8b07e76b1bce939e435198fef164ad4ec17dd2e4d534feafc8b66",
+  "harness_sha256": "cad82a73b7befca2f944114ee4d6ef4705dd3c9590721e05a02c70689ecf80a5",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare scalar expressions over two-source joins and source binding.\n\nFixed and newly seeded scalar projections, WHERE, aliases, DISTINCT, ordering\nand windows. Dynamic ON and aggregates are explicit broader controls; retain\nall mismatches, including partial output before an evaluation error. Full stdout/error status and immutable C images\nwith typed/integrity observations in both file modes.",
+  "selection": "All fresh-read mismatches; the full unfiltered report remains alongside this input.",
+  "selection_source_sha256": "d6dbb73d88825feb96730ed61199c14e9ba589577bfefca0f4aa884a0cce1c10",
+  "selection_source_file": "docs/validation/sqlite-join-scalar-fresh-20261025.json"
+}

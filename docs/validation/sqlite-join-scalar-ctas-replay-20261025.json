@@ -1,0 +1,1805 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-scalar-ctas-regression-input-20261025.json",
+  "input_sha256": "9c65f52ef27cf8a74465dfad5508a63d3877e320c372dc985235f1311206389c",
+  "cases": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,X'31','l-2');INSERT INTO l VALUES(3,1,'l-3');INSERT INTO r VALUES(1,2,'r-1');INSERT INTO r VALUES(2,'2','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,X'31','r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,'01','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'2','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a ','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,NULL,'l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,1,'l-3');ALTER TABLE l ADD COLUMN \"true\" INTEGER DEFAULT 1;ALTER TABLE r ADD COLUMN \"false\" TEXT DEFAULT '0';",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b ON a.id=b.id LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a LEFT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a RIGHT JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');",
+      "sql": "CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a FULL JOIN r b USING(k) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such collation sequence\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "e66b4bc0df5366e57dac554a69a00ece80fa61747d2272ca4e80221a51e8873f",
+  "executable_sha256": "c959721016a8b07e76b1bce939e435198fef164ad4ec17dd2e4d534feafc8b66",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

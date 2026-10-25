@@ -7195,6 +7195,54 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinedExpressions : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id AS lid,b.id AS rid,a.k+b.k AS added,coalesce(a.k,b.k) AS chosen FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id,b.id;", [[.null,.integer 4,.null,.integer 2],[.integer 1,.integer 1,.integer 2,.text "01"],[.integer 2,.integer 2,.integer 0,.text "A"],[.integer 3,.null,.null,.null]]),
+    ("SELECT a.id AS lid,b.id AS rid,typeof(k) AS kind,k+1 AS added FROM l a FULL JOIN r b USING(k) ORDER BY a.id,b.id;", [[.null,.integer 2,.text "text",.integer 1],[.null,.integer 4,.text "integer",.integer 3],[.integer 1,.integer 1,.text "text",.integer 2],[.integer 2,.null,.text "text",.integer 1],[.integer 3,.null,.text "null",.null]]),
+    ("SELECT upper(a.k) AS chosen,a.id AS lid,b.id AS rid FROM l a JOIN r b ON a.id=b.id WHERE chosen='A' ORDER BY chosen;", [[.text "A",.integer 2,.integer 2]]),
+    ("SELECT a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON a.id+1=b.id ORDER BY a.id,b.id;", [[.null,.integer 1],[.integer 1,.integer 2],[.integer 2,.null],[.integer 3,.integer 4]]),
+    ("SELECT a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON coalesce(a.k,0)=b.k WHERE b.id IS NOT NULL ORDER BY a.id,b.id;", [[.null,.integer 2],[.null,.integer 4],[.integer 1,.integer 1]]),
+    ("SELECT count(*) AS n,count(a.k) AS filled,sum(b.k) AS total FROM l a FULL JOIN r b ON a.id=b.id;", [[.integer 4,.integer 2,.real 3.0]]),
+    ("SELECT a.k AS key,count(*) AS n FROM l a FULL JOIN r b ON a.id=b.id GROUP BY a.k ORDER BY a.k;", [[.null,.integer 2],[.text "01",.integer 1],[.text "A",.integer 1]]),
+    ("SELECT coalesce(a.k,b.k) AS chosen,a.id AS lid,b.id AS rid FROM l a FULL JOIN r b ON a.id=b.id ORDER BY chosen,a.id,b.id LIMIT 2 OFFSET 1;", [[.integer 2,.null,.integer 4],[.text "01",.integer 1,.integer 1]]),
+    ("SELECT DISTINCT lower(a.k) AS chosen FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY chosen;", [[.null],[.text "01"],[.text "a"]]),
+    ("SELECT a.k+1 AS chosen FROM l a JOIN r b ON a.id=b.id UNION ALL SELECT 9 ORDER BY chosen;", [[.integer 1],[.integer 2],[.integer 9]]),
+    ("SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;", [])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined expression/collation: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined expression value, binding, affinity or function collation: {sql}"
+  for sql in ["CREATE TABLE Extra AS SELECT min(a.k,b.k COLLATE missing) AS chosen FROM l a JOIN r b ON a.id=b.id LIMIT 0;","SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;","SELECT a.missing+1 FROM l a JOIN r b ON a.id=b.id LIMIT 0;","SELECT likely(a.k)+1 FROM l a JOIN r b ON a.id=b.id ORDER BY missing LIMIT 0;","SELECT a.k AS chosen,b.k AS next FROM l a JOIN r b ON a.id=b.id WHERE a.chosen+1;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined expression or scalar collation omitted required validation: {sql}"
+
+private def expectSQLiteFunctionArgumentCollations : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b TEXT);INSERT INTO t VALUES(1,'A','a'),(2,'z ','z');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT min(a,b COLLATE nocase) AS lo,max(a,b COLLATE nocase) AS hi,nullif(a,b COLLATE nocase) AS unequal FROM t ORDER BY id;", [[.text "A",.text "a",.text "A"],[.text "z",.text "z ",.text "z "]]),
+    ("SELECT min(+a,b COLLATE nocase) AS plus,min(likely(a),b COLLATE nocase) AS hinted,min(CAST(a AS TEXT),b COLLATE nocase) AS casted FROM t ORDER BY id;", [[.text "A",.text "a",.text "A"],[.text "z",.text "z",.text "z"]]),
+    ("SELECT min(a,b COLLATE missing) AS lo,max(a,b COLLATE missing) AS hi,nullif(a,b COLLATE missing) AS unequal FROM t ORDER BY id;", [[.text "A",.text "a",.text "A"],[.text "z",.text "z ",.text "z "]]),
+    ("SELECT min(a COLLATE rtrim,b COLLATE missing) AS lo FROM t ORDER BY id;", [[.text "A"],[.text "z"]]),
+    ("SELECT min(a,b COLLATE missing) FROM t LIMIT 0;", [])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined expression/collation: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined expression value, binding, affinity or function collation: {sql}"
+  for sql in ["SELECT min(likely(a),b COLLATE missing) FROM t LIMIT 0;","SELECT min(a+0,b COLLATE missing) FROM t LIMIT 0;","SELECT min(a,b COLLATE missing)='A' FROM t LIMIT 0;","SELECT min(a,b COLLATE missing) FROM t ORDER BY 1 LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined expression or scalar collation omitted required validation: {sql}"
+
 private def expectSQLiteJoinCompoundBinding : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'a'),(2,'z');INSERT INTO r VALUES(1,'b'),(3,'c');"
   let cases : List (String × List (List Value)) := [
@@ -8414,6 +8462,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite FULL USING coalesced values, affinity, ordering and CTAS names", expectSQLiteFullUsing),
   ("SQLite joined predicate aliases and source-name priority", expectSQLiteJoinAliases),
   ("SQLite joined compound result slots and expression binding", expectSQLiteJoinCompoundBinding),
+  ("SQLite joined scalar expressions, aggregates and dynamic ON", expectSQLiteJoinedExpressions),
+  ("SQLite first scalar argument collation includes column defaults", expectSQLiteFunctionArgumentCollations),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

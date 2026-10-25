@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "e66b4bc0df5366e57dac554a69a00ece80fa61747d2272ca4e80221a51e8873f",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "e95cac972d0f82d15e08487d23b815ccad9ed2d772dda2adba1eb829fca355c9",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [353/354] Built Tests:c.o (18s)",
+        "\u2714 [354/354] Built sqleanite_tests:exe (343ms)",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "cdec874ec587f6af44238a946d24ca4242c8e64e43ea9f8097cd02cff81a8f4c",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "282 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "068d0e4c0e9e08186121ac9b1763419ba0c2ca401fe6d5b87500a0c33ca9f4bd",
+      "tail": [
+        "ok - empty-side outer ON keeps validation and preserves the existing join path",
+        "ok - joined projection wrappers retain DISTINCT and ORDER BY collations",
+        "ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering",
+        "ok - RIGHT shared-name binding selects right values and preserves star names",
+        "ok - FULL shared names coalesce values and retain source affinity and ordering",
+        "ok - joined ON/WHERE aliases preserve source priority and original result expressions",
+        "ok - joined compound ORDER BY uses expanded result slots and bound source identities",
+        "ok - joined expression fallback binds original sources and preserves existing Core reads"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "2a51625b82c340f8ad481d52a890d32406fbb7de4caaa46e024ba3c2be1fe641"
+}
