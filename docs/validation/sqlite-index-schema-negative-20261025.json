@@ -1,0 +1,5167 @@
+{
+  "seed": 354150,
+  "fixtures": 4,
+  "random_cases": 4,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean6.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean7.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v TEXT)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean8.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v TEXT)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean9.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean12.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean13.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean22.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean23.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean26.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean27.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean34.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean35.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*2e66bea5*/ ON t(v ASC);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean36.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*2e66bea5*/ ON t(v ASC);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean37.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*2be50093*/ ON T(V);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean38.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*2be50093*/ ON T(V);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean39.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*9631f87c*/ ON T(v);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean40.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*9631f87c*/ ON T(v);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean41.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*c3dff280*/ ON t(v ASC);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean42.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*c3dff280*/ ON t(v ASC);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean43.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|31\n2|text|312E35\n3|text|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343333363566343739303938\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343333363566343739303938\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343333363566343739303938\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343333363566343739303938\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343333363566343739303938\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean48.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean49.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean52.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean53.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean54.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean55.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean58.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean59.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean68.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean69.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean72.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean73.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean80.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean81.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*939aaf50*/ ON T(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*939aaf50*/ ON T(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*753ba87a*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*753ba87a*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*181ee38b*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*181ee38b*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*256efbd7*/ ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean88.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "REAL",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*256efbd7*/ ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean89.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|real|312E30\n2|real|312E35\n3|real|302E30\n4|real|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D306433303239663932346663\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D306433303239663932346663\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D306433303239663932346663\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D306433303239663932346663\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D306433303239663932346663\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean98.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean99.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v NUMERIC)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean100.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v NUMERIC)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean101.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean104.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean105.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean114.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean115.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean118.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean119.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean126.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean127.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*6942afca*/ ON T(v ASC);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean128.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*6942afca*/ ON T(v ASC);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean129.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*6992a58c*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*6992a58c*/ ON T(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*aa171e5d*/ ON T(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*aa171e5d*/ ON T(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*3d143d61*/ ON t(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "NUMERIC",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*3d143d61*/ ON t(v);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|integer|30\n4|integer|33\n5|blob|80FF00\n6|null|\n7|text|616C7068612D343063623665646333346166\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343063623665646333346166\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343063623665646333346166\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343063623665646333346166\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D343063623665646333346166\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "plain",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "quoted",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "comments",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*owner*/ ON t( /*column*/ v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean144.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean145.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v BLOB)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean146.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "key_ascending",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v BLOB)",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean147.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "tail_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);DELETE FROM t WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean150.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "tail_invalid",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v);broken \"unterminated",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean151.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_update",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "UPDATE t SET v='changed' WHERE id=1;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|6368616E676564\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_delete",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_drop",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "DROP TABLE t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: t\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_name",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Other ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean160.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_owner",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON missing(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean161.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such table: main.missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_kind",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE TABLE Ix(x)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean164.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "wrong_column",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(missing)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean165.db\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) - no such column: missing (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "leading_space",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": " CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "leading_comment",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "sqlite_integrity": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Ix) (11)\n"
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "damaged_plain",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix ON t(v)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean172.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "damaged_quoted",
+      "family": "defensive_integrity",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX \"Ix\" ON \"t\"(\"v\")",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean173.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "row 7 missing from index Ix\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*97d0519a*/ ON T(V ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean174.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*97d0519a*/ ON T(V ASC)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean175.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*62d81ee2*/ ON T(V)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*62d81ee2*/ ON T(V)",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX Ix /*27e6e361*/ ON t(v ASC);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean178.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX Ix /*27e6e361*/ ON t(v ASC);broken \"",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-index-schema-xea9st17/lean179.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "CREATE INDEX IX /*ab16135f*/ ON t(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "BLOB",
+      "label": "fresh_source",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "CREATE INDEX IX /*ab16135f*/ ON t(V);DELETE FROM t;",
+      "table_sql": null,
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|integer|31\n2|real|312E35\n3|real|302E30\n4|text|332E30\n5|blob|80FF00\n6|null|\n7|text|616C7068612D316439643336323565383931\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D316439643336323565383931\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D316439643336323565383931\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "declared_type": "TEXT PRIMARY KEY",
+      "label": "implicit_empty_sql",
+      "family": "sql_comparison",
+      "mode": "--verified-wal-file",
+      "index_sql": "",
+      "sql": "SELECT id,typeof(v),hex(v) FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D316439643336323565383931\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|text|616C7068612D316439643336323565383931\n2|null|\n",
+        "stderr": ""
+      },
+      "sqlite_integrity": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "read_bytes_unchanged": true,
+      "matched": true
+    }
+  ],
+  "families": {
+    "sql_comparison": {
+      "cases": 168,
+      "failures": 112
+    },
+    "defensive_integrity": {
+      "cases": 16,
+      "failures": 8
+    }
+  },
+  "failures": 120,
+  "implementation_sha256": "47972298ee143f6c39dce54485b13cf7558e6a7247af4eb8f052dcd3b5acc1ed",
+  "executable_sha256": "4f312353d35b596875ba6a04c66232dad4c2df4c63651e39bfe7fdfbababbaab",
+  "harness_sha256": "6425ea8e8aa721a438b87c85e06cfc81c11bf58429f422035a1879b3d0b27a42",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Catalog index admission and physical content checks against pinned SQLite.\n\nSQL comparisons use complete successful output bytes and positive errors.\nDamaged-index probes are separately labelled defensive integrity checks: SQLite\nmust diagnose corruption and Lean must reject admission; this is not an exact\nSQLite error-timing claim. Every read must preserve main/WAL bytes."
+}

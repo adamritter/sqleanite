@@ -1313,3 +1313,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaDropColumn.row_rowid
 #print axioms SQLeanite.CoreSchemaDropColumn.table_allowed
 #print axioms SQLeanite.CoreSchemaDropColumn.table_exact
+
+#print axioms SQLeanite.CoreSchemaSQL.firstTail_semicolon
+#print axioms SQLeanite.CoreDecode.readIndexEntry_rowid
+#print axioms SQLeanite.CoreDecode.readIndexEntry_accepted
+#print axioms SQLeanite.CoreDecode.checkedIndex_contents

@@ -1,5 +1,6 @@
 import SQLeanite.CoreFile
 import SQLeanite.CoreSQL
+import SQLeanite.CoreSchemaSQL
 import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.CanonicalIndexSQL
 import SQLeanite.CoreOverflow
@@ -1181,16 +1182,11 @@ The canonical recognizer runs first: for text this engine printed it inverts
 `CanonicalSchemaSQL.tableChars` by proof, so `decode (encode db)` does not
 depend on the correctness of the general SQL parser. Anything else -- notably
 files written by C SQLite, whose `CREATE TABLE` text we did not generate --
-falls through to the general parser as before. -/
+uses metadata-only parsing and the independent token grammar replay. -/
 def parseTableSchema (sql : String) : Option Core.Schema :=
   match CanonicalSchemaSQL.parse sql with
   | some schema => some schema
-  | none => do
-      let statements ← (parse sql).toOption
-      match statements.toList with
-      | [.createTable name columns constraints _] =>
-          (CoreSQL.schema name columns constraints).toOption
-      | _ => none
+  | none => CoreSchemaSQL.tableSchema sql
 
 /-- The canonical path is taken for every schema this engine prints. -/
 theorem parseTableSchema_tableSQL (schema : Core.Schema)
@@ -9734,40 +9730,72 @@ theorem validateCanonicalIndexesFrom_overflowEncoded
   simp only [Option.bind_eq_bind, Option.bind]
   rw [dif_pos True.intro]
 
+/-- Recover only index metadata. Empty SQL and NULL both denote an automatic
+primary index; every other entry must describe one supported CREATE INDEX. -/
+def indexMetadata (database : Core.Database) (entry : CatalogEntry) :
+    Option (Core.Table × Core.Index) := do
+  if entry.kind != "index" then none else do
+    let table ← CoreNames.table? database entry.table
+    let index ← match entry.sql with
+      | none => decodeCanonicalIndex table.schema table.schema.name { entry with table := table.schema.name }
+      | some sql =>
+          if sql.isEmpty then
+            decodeCanonicalIndex table.schema table.schema.name
+              { entry with table := table.schema.name, sql := none }
+          else do
+            let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
+            if spec.name.toLower != entry.name.toLower ||
+                spec.table.toLower != entry.table.toLower then none else do
+              let available ← (CoreSQL.prepareCreateIndex { database } entry.name false).toOption
+              if !available then none else do
+                let column ← (CoreSQL.indexColumn table.schema spec.column).toOption
+                some ⟨entry.name, column, spec.unique⟩
+    some (table, index)
+
+/-- SQLite may store integral REAL values with an INTEGER serial type. Apply
+only the column's read conversion; write affinity would hide corrupt types. -/
+def readIndexEntry (column : Core.Column) (entry : IndexEntry) : IndexEntry :=
+  { entry with value := SQLite.PhysicalAffinity.read column.affinity entry.value }
+
+@[simp] theorem readIndexEntry_rowid (column : Core.Column) (entry : IndexEntry) :
+    (readIndexEntry column entry).rowid = entry.rowid := rfl
+
+theorem readIndexEntry_accepted (column : Core.Column) (entry : IndexEntry)
+    (accepted : Core.columnAcceptsBool column entry.value = true) :
+    readIndexEntry column entry = entry := by
+  simp [readIndexEntry, Core.columnRead_eq_self accepted]
+
+/-- Both pure and IO acquisition pass through this exact content check before
+index metadata can be attached. It preserves record order and physical rowids. -/
+def checkedIndex (table : Core.Table) (index : Core.Index)
+    (physical : List IndexEntry) : Option Core.Table := do
+  let column ← table.schema.columns[index.column]?
+  if physical.map (readIndexEntry column) = expectedIndexEntries table index then
+    (table.addIndex index).toOption
+  else none
+
+theorem checkedIndex_contents {table updated : Core.Table} {index : Core.Index}
+    {physical : List IndexEntry}
+    (checked : checkedIndex table index physical = some updated) :
+    ∃ column, table.schema.columns[index.column]? = some column ∧
+      physical.map (readIndexEntry column) = expectedIndexEntries table index := by
+  unfold checkedIndex at checked
+  cases found : table.schema.columns[index.column]? with
+  | none => simp [found] at checked
+  | some column =>
+      simp only [found, Option.bind_eq_bind, Option.bind] at checked
+      split at checked
+      next contentsEqual => exact ⟨column, rfl, contentsEqual⟩
+      next => simp at checked
+
 def applyIndexFrom (source : PageSource) (database : Core.Database)
     (entry : CatalogEntry) : Option Core.Database := do
-  if _isIndex : entry.kind = "index" then
-    match entry.sql with
-    | none => do
-        let table ← database.findTable? entry.table
-        let index ← decodeCanonicalIndex table.schema table.schema.name entry
-        let physical ← decodeIndexSubtreeFrom source
-          (source.pageCount + 1) entry.rootPage
-        if _contentsMatch : physical = expectedIndexEntries table index then
-          let updated ← table.addIndex index |>.toOption
-          database.updateTable updated |>.toOption
-        else none
-    | some sql =>
-      match CanonicalIndexSQL.parse sql with
-      | some spec => do
-          let table ← CoreNames.table? database spec.table
-          if _nameMatches : spec.name.toLower = entry.name.toLower ∧ spec.table.toLower = entry.table.toLower then
-            let column ← (table.schema.columns.findIdx? (fun candidate =>
-              candidate.name = spec.column)).orElse fun _ =>
-                table.schema.columns.findIdx? (fun candidate => candidate.name.toLower == spec.column.toLower)
-            let index : Core.Index := ⟨entry.name, column, spec.unique⟩
-            let physical ← decodeIndexSubtreeFrom source
-              (source.pageCount + 1) entry.rootPage
-            if _contentsMatch : physical = expectedIndexEntries table index then
-              let updated ← table.addIndex index |>.toOption
-              database.updateTable updated |>.toOption
-            else none
-          else none
-      | none => do
-          let (state, _) ← (CoreSQL.execute { database := database } sql).toOption
-          some state.database
-  else
-    some database
+  if entry.kind = "index" then
+    let (table, index) ← indexMetadata database entry
+    let physical ← decodeIndexSubtreeFrom source (source.pageCount + 1) entry.rootPage
+    let updated ← checkedIndex table index physical
+    (database.updateTable updated).toOption
+  else some database
 
 
 /-- Process catalog entries in creation order, matching Table.addIndex and
@@ -9829,38 +9857,12 @@ theorem applyIndexes_ofList (physicalPages : List (List UInt8))
 
 def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
     (entry : CatalogEntry) : IO (Option Core.Database) := do
-  if _isIndex : entry.kind = "index" then
-    match entry.sql with
-    | none =>
-        let some table := database.findTable? entry.table | return none
-        let some index := decodeCanonicalIndex table.schema table.schema.name entry |
-          return none
-        let some physical ← decodeIndexSubtreeIOFrom source
-          (source.pageCount + 1) entry.rootPage | return none
-        if _contentsMatch : physical = expectedIndexEntries table index then
-          let some updated := (table.addIndex index).toOption | return none
-          return (database.updateTable updated).toOption
-        else return none
-    | some sql =>
-      match CanonicalIndexSQL.parse sql with
-      | some spec =>
-          let some table := CoreNames.table? database spec.table | return none
-          if _nameMatches : spec.name.toLower = entry.name.toLower ∧ spec.table.toLower = entry.table.toLower then
-            let some column := (table.schema.columns.findIdx?
-              (fun candidate => candidate.name = spec.column)).orElse (fun _ =>
-                table.schema.columns.findIdx? (fun candidate => candidate.name.toLower == spec.column.toLower)) | return none
-            let index : Core.Index := ⟨entry.name, column, spec.unique⟩
-            let some physical ← decodeIndexSubtreeIOFrom source
-              (source.pageCount + 1) entry.rootPage | return none
-            if _contentsMatch : physical = expectedIndexEntries table index then
-              let some updated := (table.addIndex index).toOption | return none
-              return (database.updateTable updated).toOption
-            else return none
-          else return none
-      | none =>
-          match (CoreSQL.execute { database := database } sql).toOption with
-          | some (state, _) => return some state.database
-          | none => return none
+  if entry.kind = "index" then
+    let some (table, index) := indexMetadata database entry | return none
+    let some physical ← decodeIndexSubtreeIOFrom source
+      (source.pageCount + 1) entry.rootPage | return none
+    let some updated := checkedIndex table index physical | return none
+    return (database.updateTable updated).toOption
   else return some database
 
 

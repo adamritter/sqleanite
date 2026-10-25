@@ -4597,6 +4597,67 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteIndexSchema : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL);CREATE INDEX Ix ON t(v ASC);INSERT INTO t VALUES(1,1),(2,1.5),(3,NULL);" with
+    | .ok result => pure result
+    | .error message => fail s!"ascending index setup: {message}"
+  let some image := CoreFile.encode state.database | fail "index schema encode failed"
+  let pages := image.pages.map (·.bytes)
+  let some catalog := CoreDecode.decodeCatalogForOpen pages.head! | fail "index catalog missing"
+  let some entry := catalog.find? (fun entry => entry.kind == "index") | fail "index entry missing"
+  let source := CoreDecode.PageSource.ofList pages
+  let ioSource : CoreDecode.IOPageSource := {
+    pageCount := pages.length
+    readPage := fun number => pure (CoreDecode.page? pages number) }
+  let database := state.database.withoutIndexes
+  for sql in ["CREATE INDEX Ix ON t(v)", "CREATE INDEX Ix ON t(v ASC)",
+      "CREATE INDEX Ix /* ; */ ON t(v);DELETE FROM t;",
+      "CREATE INDEX Ix ON t(v);broken \"", "CREATE INDEX IX ON T(V)"] do
+    let changed := { entry with sql := some sql }
+    let some pureLoaded := CoreDecode.applyIndexFrom source database changed |
+      fail s!"pure schema admission rejected {sql}"
+    let some ioLoaded ← CoreDecode.applyIndexIOFrom ioSource database changed |
+      fail s!"IO schema admission rejected {sql}"
+    unless pureLoaded.Equiv state.database && ioLoaded.Equiv state.database do
+      fail "catalog parsing changed table rows or index metadata"
+  for sql in ["UPDATE t SET v=9;", "DELETE FROM t;", "DROP TABLE t;",
+      "CREATE TABLE Ix(x)", "CREATE INDEX Other ON t(v)",
+      "CREATE INDEX Ix ON missing(v)", "CREATE INDEX Ix ON t(missing)",
+      " CREATE INDEX Ix ON t(v)", "/*prefix*/CREATE INDEX Ix ON t(v)",
+      "CREATE INDEX Ix ON t(v DESC)", "CREATE INDEX Ix ON t(v) WHERE v IS NOT NULL",
+      "CREATE INDEX Ix ON t(v+1)"] do
+    let changed := { entry with sql := some sql }
+    unless (CoreDecode.applyIndexFrom source database changed).isNone &&
+        (← CoreDecode.applyIndexIOFrom ioSource database changed).isNone do
+      fail s!"catalog accepted an unsupported or mismatched description: {sql}"
+  let some table := database.findTable? "t" | fail "index source missing"
+  let some (_, index) := CoreDecode.indexMetadata database entry | fail "index metadata missing"
+  let expected := CoreDecode.expectedIndexEntries table index
+  let some physicalInteger := (SQLSurface.value (.integer 1)).toOption | fail "integer conversion"
+  let compact := expected.map fun entry =>
+    if entry.rowid.value == 1 then { entry with value := physicalInteger } else entry
+  unless (CoreDecode.checkedIndex table index compact).isSome do
+    fail "integral REAL index serial type was rejected"
+  let some wrongType := (SQLSurface.value (.text "1")).toOption | fail "text conversion"
+  let damaged := expected.map fun entry =>
+    if entry.rowid.value == 1 then { entry with value := wrongType } else entry
+  unless (CoreDecode.checkedIndex table index damaged).isNone &&
+      (CoreDecode.checkedIndex table index expected.reverse).isNone &&
+      (CoreDecode.checkedIndex table index expected.tail!).isNone do
+    fail "index content validation changed types, ignored order, or missed an entry"
+  let first := "CREATE INDEX \"semi;colon\" ON t(\"v\");"
+  unless CoreSchemaSQL.firstStatement (first ++ "broken \"") == some first do
+    fail "schema first-statement boundary split a quoted identifier"
+  let parsedSchema := CoreDecode.parseTableSchema
+    "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL);DELETE FROM t;"
+  unless parsedSchema.isSome do fail "table metadata did not stop after its first statement"
+  unless (CoreDecode.parseTableSchema
+      "CREATE TABLE t(id INTEGER,v INTEGER,FOREIGN KEY(v) REFERENCES parent(id))").isNone do
+    fail "table metadata silently discarded a foreign key"
+  for sql in ["CREATE INDEX i ON t(v DESC);", "CREATE TABLE d(id INTEGER PRIMARY KEY DESC);"] do
+    if (CoreSQL.execute state sql).isOk then fail "unsupported descending metadata was discarded"
+
 private def expectSQLiteSchemaDropColumn : IO Unit := do
   for definition in ["A INTEGER,B TEXT,C INTEGER PRIMARY KEY",
       "A INTEGER,B TEXT PRIMARY KEY,C INTEGER", "A INTEGER,B TEXT,C INTEGER"] do
@@ -6540,6 +6601,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),
   ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
   ("SQLite ADD COLUMN and omitted trailing record fields", expectSQLiteSchemaAdd),
   ("SQLite empty index identifiers survive reopen and schema changes", expectSQLiteEmptyIndex),

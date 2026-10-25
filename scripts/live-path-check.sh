@@ -23,6 +23,17 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# Foreign schema loading never runs SQL and both index readers validate contents.
+if grep -q 'CoreSchemaSQL.tableSchema sql' SQLeanite/CoreDecode.lean &&
+   grep -q 'CoreTokenGrammar.parseCertified first' SQLeanite/CoreSchemaSQL.lean &&
+   [ "$(grep -c 'checkedIndex table index physical' SQLeanite/CoreDecode.lean)" -eq 3 ] &&
+   ! grep -q 'CoreSQL.execute' SQLeanite/CoreDecode.lean &&
+   grep -q 'CoreDecode.checkedIndex_contents' SQLeanite/ProofAxioms.lean; then
+  ok "foreign catalog admission is metadata-only and validates physical indexes"
+else
+  fail "foreign schema admission or index content checks are missing"
+fi
+
 # Row-expression predicates remain on the production Core read boundary.
 if grep -q 'executeFilteredSelect state select source stored' SQLeanite/CoreSQL.lean &&
    grep -q 'ctx.scanWindow select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&

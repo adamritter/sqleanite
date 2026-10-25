@@ -3248,3 +3248,64 @@ unchanged. Reports: `sqlite-schema-drop-column-*20261025.json`; harness:
 view/trigger dependencies and partial/expression indexes are not represented by
 this Core schema, so this checkpoint does not cover their DROP restrictions.
 Full SQL/database/WAL compatibility remains unfinished.
+
+
+## Foreign catalog index admission and explicit ASC (2026-10-25)
+
+Foreign index catalog SQL previously fell through to general SQL execution
+when its spelling was not recognized by the canonical printer inverse. A
+malformed entry could therefore execute UPDATE/DELETE or unrelated DDL during
+an open; a valid noncanonical CREATE INDEX also skipped physical index-content
+validation. The preserved baseline contains **184 cases / 120 differences**:
+112/168 SQL comparisons and 8/16 separately labelled defensive integrity
+probes. Setup initially failed because the pinned CLI enables defensive mode;
+the harness disables it only on temporary fixture-building connections before
+writable_schema modifications, never on production data or comparison readers.
+
+`CoreSchemaSQL` now extracts only the first lexical statement, preserving its
+original characters and stopping at a semicolon outside comments and quoted
+values/identifiers. As SQLite 3.53.4 `prepare.c:sqlite3InitCallback` does, catalog
+SQL must begin with CR before trimming, and the tail after the first statement
+is ignored, including a malformed tail. The independent Core token grammar
+replays this statement. Only a typed CREATE TABLE schema or a supported
+single-column CREATE INDEX description can be returned; no statement executes.
+Foreign CREATE TABLE fallback also uses this checked route, so a foreign key
+cannot be silently discarded by the general parser. Unsupported constraints
+remain explicit rejections, not implemented SQLite semantics.
+
+Both index readers share `indexMetadata` and `checkedIndex`: catalog identity,
+table/column binding, namespace and physical entries must agree. Every decoded
+entry retains its physical rowid and position. The only value conversion is
+SQLite's read-time REAL affinity, admitting integral REAL values stored with
+INTEGER serial types; applying write affinity here would hide corrupt types.
+NULL and empty automatic-index SQL both identify the implicit primary index.
+The strict generated-image recognizer and its existing inverse theorems remain
+unchanged. Explicit column PRIMARY KEY ASC and CREATE INDEX ASC now replay as
+the default ascending order; DESC metadata remains unsupported.
+
+New component contracts prove stopping at a lexical semicolon, preserving
+index-entry rowids, identity of read conversion on already-admitted values,
+and exact normalized contents as a necessary condition of checked admission.
+Executable regressions exercise pure and IO paths, quoted semicolons, ignored
+tails, wrong catalog identities/kinds, missing or reordered entries, incorrect
+storage classes and foreign-key rejection. The live-path audit checks that
+CoreDecode has no general SQL execution route and both readers use the check.
+
+The expanded development run has **744 cases / 0 differences**. Final-checkpoint
+fresh seed **354152** has **2,856 cases / 0 differences**: **2,808 SQL comparisons**
+and **48 defensive integrity probes**. The latter require SQLite to diagnose
+corruption and Lean to reject admission; they do not assert identical error
+timing. Four affinities and page sizes 512/4096/65536 run in both public file
+modes. Reads preserve main/WAL hashes. Valid explicit-index imports also undergo
+Lean UPDATE, independent C integrity/data observation, C INSERT and Lean reopen.
+The automatic-index empty-SQL case measures read admission. Complete output
+bytes and positive error status are compared without result normalization.
+
+Implementation SHA-256: `5bdbc2a28249b8ed01b2743a45716b83be32c1bcbeae99ef56ac23d5774abd8f`.
+All **316 build jobs, 236 executable tests, 1,149 headline component proofs**,
+both audits and the 61 accepted reverse-file cells pass; two reverse cells are
+still declared unsupported. Intermediate builds exposed Lean proof-reduction
+and syntax errors; the completed full build and final checks pass. Reports:
+`sqlite-index-schema-*20261025.json`; harness:
+`scripts/run-index-schema-differential.py`. Native bindings remain nine and
+unchanged. This checkpoint does not establish full SQL/database/WAL equivalence.

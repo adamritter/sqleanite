@@ -620,6 +620,7 @@ private def parseColumnDef : ParserM ColumnDef := do
     else if ← acceptKeyword "primary" then
       expectKeyword "key"
       primaryKey := true
+      discard <| acceptKeyword "asc"
       autoIncrement := ← acceptKeyword "autoincrement"
       if ← acceptKeyword "on" then
         expectKeyword "conflict"

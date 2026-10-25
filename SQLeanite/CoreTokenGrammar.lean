@@ -489,6 +489,18 @@ private def matchExprList : List Expr → MatchM Unit
         expectSymbol ","
         matchExpr next
 
+/-- ASC is the default index order. DESC remains rejected until the AST and
+physical index metadata can retain and execute that ordering. -/
+private def matchAscendingIndexExprs : List Expr → MatchM Unit
+  | [] => pure ()
+  | expression :: expressions => do
+      matchExpr expression
+      discard <| acceptKeyword "asc"
+      for next in expressions do
+        expectSymbol ","
+        matchExpr next
+        discard <| acceptKeyword "asc"
+
 private def matchNameList : List String → MatchM Unit
   | [] => pure ()
   | name :: names => do
@@ -531,6 +543,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       expectKeyword "primary"
       expectKeyword "key"
       sawPrimary := true
+      discard <| acceptKeyword "asc"
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         expectConflict column.conflict
@@ -851,7 +864,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "on"
       expectObjectName table
       expectSymbol "("
-      matchExprList expressions.toList
+      matchAscendingIndexExprs expressions.toList
       expectSymbol ")"
       match where_ with
       | some predicate => expectKeyword "where" *> matchExpr predicate
