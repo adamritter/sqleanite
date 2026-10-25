@@ -5028,3 +5028,53 @@ remain open. Native bindings are unchanged. Reports:
 `sqlite-join-wrappers-*20261025.json`; harnesses:
 `scripts/run-join-wrappers-differential.py` and
 `scripts/run-join-wrappers-write-differential.py`.
+
+
+## RIGHT/FULL joins with explicit or omitted ON (2026-10-25)
+
+The production path now executes two-source RIGHT and FULL joins with the
+existing supported predicates/projections. Matching rows retain left-scan order;
+FULL also retains unmatched left rows, and both forms append unmatched right
+rows. Match accounting uses ON before WHERE, so a later rejected match cannot
+create a spurious unmatched right row. Missing values cover every physical
+column, including rowid aliases. The shared query finisher applies result
+collations, DISTINCT, ordering and windows. Left-scan ordering shortcuts are
+disabled across the appended unmatched-right suffix. Compound-result metadata
+uses the same outer-join translation.
+
+Token replay still checks the classified join flags against the parsed source.
+Its old unconditional RIGHT/FULL rejection has been removed. The initial
+component implementation compiled but did not reach public execution because
+that guard remained: seed **354531** recorded **5,056 / 4,918** differences,
+writer seed **354535** recorded **1,320 / 1,296**, and the executable test failed.
+Those reports and the failing check record are preserved. The earlier baseline
+seed **354530** records **4,864 / 4,736**. Corrected development seed **354536**,
+expanded with compounds, records **5,568 / 96**; writer seed **354537** records
+**1,704 / 72**. All remaining differences are USING/NATURAL shared-name cases.
+
+Final-checkpoint fresh seed **354532** records **12,544 / 192**, plus 16 passing
+immutable-image/integrity checks. All **12,288 non-USING/NATURAL comparisons pass**.
+The 192 retained failures reject successful shared-name statements. Fresh writer
+seed **354533** records **3,696 / 144**, with all **3,504 non-USING/NATURAL cases
+passing**; its remaining failures have the same unsupported shared-name cause.
+These corpora include ordinary and unusual valid join spellings, invalid type
+combinations, omitted/constant/comparison ON, NULL extension, WHERE filtering,
+source emptiness, quoted/Boolean names, comparison affinity/collation, wrappers,
+DISTINCT, compounds, LIMIT/OFFSET, three page sizes and both file modes. Fixed
+controls and newly seeded fixtures/combinations are mixed, not all unseen cases.
+Full stdout/error status, immutable source images, C metadata/typed rows,
+integrity, follow-up C writes and Lean reopening are checked as applicable.
+Wrapper regression seed **354534** passes **11,232 / 0**, plus eight image checks.
+
+Implementation SHA-256: `1b55c245438d1fb11205567c0f99eaf0321cfdb5c00b874013fc2e1982ce5fe9`.
+Final checks pass **354 build jobs, 276 executable tests, 1,255 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. New component results characterize unmatched-right membership,
+empty-side padding, output width and read-state preservation. They do not prove
+full upstream SQL/planner equivalence. RIGHT/FULL USING and NATURAL remain
+explicitly unsupported pending shared-column value/name/affinity binding;
+general dynamic joined expressions and earlier planner-order negatives also
+remain open. Native bindings are unchanged. Reports:
+`sqlite-join-outer-*20261025.json`; harnesses:
+`scripts/run-join-outer-differential.py` and
+`scripts/run-join-outer-write-differential.py`.

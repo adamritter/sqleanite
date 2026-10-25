@@ -2215,4 +2215,16 @@ else
   status=1
 fi
 
+if rg -F -q 'if rightSource.rightJoin then return ← executeRightJoin state select leftSource rightSource' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'source.leftJoin == kind.left && source.rightJoin == kind.right' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CoreOuterJoin.eval rightSource.leftJoin left.schema.columns.length query left.rows right.rows' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem unmatchedRights_member' SQLeanite/CoreOuterJoin.lean &&
+   rg -q 'theorem eval_width' SQLeanite/CoreOuterJoin.lean &&
+   rg -q 'theorem executeRightJoin_preserves_state' SQLeanite/CoreSQL.lean; then
+  echo 'ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering'
+else
+  echo 'FAIL - RIGHT/FULL join live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

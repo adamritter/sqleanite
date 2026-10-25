@@ -1,4 +1,5 @@
 import SQLeanite.CoreJoinUsing
+import SQLeanite.CoreOuterJoin
 import SQLeanite.CoreSavepoint
 import SQLeanite.CoreAutoIncrement
 import SQLeanite.CoreEngine
@@ -1924,11 +1925,54 @@ theorem joinQueryComplete_existing (select : Select) (leftTable rightTable : Str
     joinQueryComplete select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
   simp [joinQueryComplete, joinQueryForRows, joinQueryWithZero, success]
 
+/-- RIGHT/FULL ON predicates use outer-join resolution and code generation.
+Shared-name output merging is a separate binding operation and is not silently
+approximated by this explicit-ON translation. -/
+def joinRightQuery (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query := do
+  let (leftSource, rightSource) ← match select.sources.toList with
+    | [left, right] => .ok (left, right)
+    | _ => unsupported "join source count"
+  unless rightSource.rightJoin && !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
+    unsupported "RIGHT/FULL shared-name binding"
+  let source := { rightSource with rightJoin := false, leftJoin := true }
+  joinQueryComplete { select with sources := #[leftSource, source] }
+    leftTable rightTable leftSchema rightSchema leftRows rightRows
+
+def rightJoinResult (state : Core.State) (select : Select)
+    (leftSource rightSource : TableRef) : Except String (Core.Result × Nat) := do
+  let leftTable := resolveTableName state leftSource.name
+  let rightTable := resolveTableName state rightSource.name
+  let some left := state.database.findTable? leftTable | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightTable | throw s!"no such table: {rightSource.name}"
+  let query ← joinRightQuery select leftTable rightTable left.schema right.schema left.rows right.rows
+  let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
+  let rows := CoreOuterJoin.eval rightSource.leftJoin left.schema.columns.length query left.rows right.rows
+  return ({ rows }, query.columns.length)
+
+def executeRightJoin (state : Core.State) (select : Select)
+    (leftSource rightSource : TableRef) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> rightJoinResult state select leftSource rightSource
+
+theorem executeRightJoin_preserves_state {state : Core.State} {select : Select}
+    {leftSource rightSource : TableRef} {execution : SelectExecution}
+    (success : executeRightJoin state select leftSource rightSource = .ok execution) :
+    execution.state = state := by
+  unfold executeRightJoin at success
+  cases result : rightJoinResult state select leftSource rightSource with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
+
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
+  if rightSource.rightJoin then return ← executeRightJoin state select leftSource rightSource
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
@@ -2390,7 +2434,8 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
       let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
       let leftName := resolveTableName state leftSource.name
       let rightName := resolveTableName state rightSource.name
-      let _ ← joinQueryComplete { select with orderBy := #[], offset := 0 }
+      let translate := if rightSource.rightJoin then joinRightQuery else joinQueryComplete
+      let _ ← translate { select with orderBy := #[], offset := 0 }
         leftName rightName left.schema right.schema left.rows right.rows
       let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
       return (← joinWrappedColumns context select.columns.toList).2

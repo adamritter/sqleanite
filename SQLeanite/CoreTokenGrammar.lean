@@ -758,7 +758,6 @@ private def matchTableFactor (source : TableRef) : MatchM Unit := do
   matchAlias source.alias
 
 private def matchJoinSource (source : TableRef) : MatchM Unit := do
-  unless !source.rightJoin do mismatch "an INNER, CROSS, comma or LEFT JOIN source"
   -- NATURAL/constraint conflicts are semantic errors, checked after a
   -- possible CTAS schema no-op. ON followed by USING is invalid syntax.
   unless !(source.joinOn.isSome && !source.usingColumns.isEmpty) do

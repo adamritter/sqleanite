@@ -1459,3 +1459,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.distinctCollatedRows_subset
 #print axioms SQLeanite.CoreJoin.distinctCollatedRows_pairwise
 #print axioms SQLeanite.CoreSQL.joinQueryComplete_existing
+
+#print axioms SQLeanite.CoreOuterJoin.unmatchedRights_member
+#print axioms SQLeanite.CoreOuterJoin.joinedRows_empty_left
+#print axioms SQLeanite.CoreOuterJoin.joinedRows_full_empty_right
+#print axioms SQLeanite.CoreOuterJoin.eval_width
+#print axioms SQLeanite.CoreSQL.executeRightJoin_preserves_state

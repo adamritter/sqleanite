@@ -1,0 +1,34 @@
+{
+  "implementation_sha256": "e169475b669e1ee3edc5416e36341389a9794e8589013acfb5bbe613353d01ce",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "0f2641e9c746dfadb368162212a8ea2b1ea134c2ec7b21ff865c5d0bfb8d59cf",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [353/354] Built Tests:c.o (17s)",
+        "\u2714 [354/354] Built sqleanite_tests:exe (341ms)",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 1,
+      "sha256": "47b7945d9bb6e7523792a6d3b6111b000973f49fbf83c57b72e1e741c3fbb997",
+      "tail": [
+        "ok - SQLite SUM/AVG/TOTAL numeric accumulators",
+        "ok - SQLite zero-LIMIT joins validate without value evaluation",
+        "ok - SQLite empty-side outer ON validates without value evaluation",
+        "ok - SQLite static joined conditions and outer-ON error ordering",
+        "ok - SQLite parser-time literal NULL-test preparation",
+        "ok - SQLite joined IN lists, NULL and left-operand affinity",
+        "ok - SQLite joined comparison collations and value-preserving wrappers",
+        "ok - SQLite joined projection wrappers and result collations"
+      ]
+    }
+  },
+  "comparison": "Initial component implementation before removal of the prior token-grammar RIGHT/FULL rejection. This failed executable regression and public-file evaluations; it is not a successful checkpoint."
+}

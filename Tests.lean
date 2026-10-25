@@ -7195,6 +7195,37 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteRightFullJoins : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'A'),(2,'B'),(4,'D');INSERT INTO r VALUES(2,'b'),(3,'C'),(5,'E');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id,b.id;",
+      [[.null,.integer 3],[.null,.integer 5],[.integer 2,.integer 2]]),
+    ("SELECT a.id,b.id FROM l a FULL OUTER JOIN r b ON a.id=b.id ORDER BY a.id,b.id;",
+      [[.null,.integer 3],[.null,.integer 5],[.integer 1,.null],[.integer 2,.integer 2],[.integer 4,.null]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id WHERE b.id IS NULL ORDER BY a.id,b.id;",
+      [[.integer 1,.null],[.integer 4,.null]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id WHERE a.id IS NULL ORDER BY a.id,b.id;",
+      [[.null,.integer 3],[.null,.integer 5]]),
+    ("SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id WHERE a.id=1 ORDER BY a.id,b.id;", [])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"RIGHT/FULL join: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"RIGHT/FULL null extension or WHERE accounting: {sql}"
+  let empty := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO r VALUES(2,'b');"
+  let (_, output) ← match CoreSQL.execute Core.State.empty (empty ++
+      "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(-9223372036854775808);") with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected ← match [[Value.null,.integer 2]].mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some expected do fail "empty FULL JOIN evaluated ON or lost padding"
+
 private def expectSQLiteJoinProjectionWrappers : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY);INSERT INTO l VALUES(1,'Z'),(2,'a'),(3,'A'),(4,'a ');INSERT INTO r VALUES(1);"
   let cases : List (String × List String) := [
@@ -8198,6 +8229,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
   ("SQLite joined projection wrappers and result collations", expectSQLiteJoinProjectionWrappers),
+  ("SQLite RIGHT/FULL join null extension and match accounting", expectSQLiteRightFullJoins),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),
