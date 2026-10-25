@@ -30,6 +30,11 @@ private def peek : ParserM Token := do
   let st ← get
   pure (nextTokenAt st.tokens st.pos).2
 
+private def peekAfter : ParserM Token := do
+  let st ← get
+  let (pos, _) := nextTokenAt st.tokens st.pos
+  pure (nextTokenAt st.tokens (pos + 1)).2
+
 private def advance : ParserM Token := do
   let st ← get
   let (pos, tok) := nextTokenAt st.tokens st.pos
@@ -74,9 +79,9 @@ private def expectSymbol (s : String) : ParserM Unit := do
   unless ← acceptSymbol s do throw (syntaxError (← peek))
 
 private def expectIdent : ParserM String := do
-  match ← advance with
-  | .ident s | .quotedIdent s _ | .string s => pure s
-  | tok => throw (syntaxError tok)
+  let token ← advance
+  let some name := SQLite.Identifier.nameToken token | throw (syntaxError token)
+  pure name
 
 private def expectPragmaName : ParserM String := do
   let token ← advance
@@ -96,10 +101,12 @@ private def parsePragmaArgument : ParserM Expr := do
       | .ident _ => pure (.column none name)
       | _ => pure (.literal (.text name))
 
-private def expectAlias : ParserM String := do
-  match ← advance with
-  | .ident s | .quotedIdent s _ | .string s => pure s
-  | tok => throw (syntaxError tok)
+private def expectAlias : ParserM String := expectIdent
+
+private def parseImplicitAlias : ParserM (Option String) := do
+  match SQLite.Identifier.aliasToken (← peek) with
+  | none => pure none
+  | some name => discard advance; pure (some name)
 
 private def parseQualifiedName : ParserM (Option String × String) := do
   let first ← expectIdent
@@ -217,6 +224,8 @@ mutual
             lhs := .unary .not (.binary .glob lhs (← parseExprFuel fuel 4))
           else if ← acceptKeyword "match" then
             lhs := .unary .not (.binary .match lhs (← parseExprFuel fuel 4))
+          else if ← acceptKeyword "regexp" then
+            lhs := .unary .not (.call "regexp" #[(← parseExprFuel fuel 4), lhs] false)
           else if ← acceptKeyword "null" then
             lhs := .isNull lhs true
           else if ← acceptKeyword "in" then
@@ -231,6 +240,9 @@ mutual
                 expectSymbol ")"
               lhs := .inList lhs values true
           else throw (syntaxError (← peek))
+        else if minPrec <= 3 && isKeyword (← peek) "regexp" then
+          discard advance
+          lhs := .call "regexp" #[(← parseExprFuel fuel 4), lhs] false
         else if minPrec <= 3 && isKeyword (← peek) "in" then
           discard <| advance
           if ← acceptSymbol "(" then
@@ -324,15 +336,20 @@ mutual
         throw s!"too many arguments on function {name}"
       let call := Expr.call (if distinct then distinctAggregateName name else name) args false
       pure (if ordering.isEmpty then call else .call "__sqlean_aggregate_order" (#[call] ++ ordering) false)
-    let call ← if ← acceptKeyword "filter" then do
+    let filtered := isKeyword (← peek) "filter" && isSymbol (← peekAfter) "("
+    let call ← if filtered then do
+        discard advance
         expectSymbol "("
         expectKeyword "where"
         let condition ← parseExprFuel fuel
         expectSymbol ")"
         pure (Expr.call "__sqlean_aggregate_filter" #[call, condition] false)
       else pure call
-    let isWindow ← acceptKeyword "over"
+    let next ← peekAfter
+    let isWindow := isKeyword (← peek) "over" &&
+      (isSymbol next "(" || SQLite.Identifier.windowNameToken next)
     if isWindow then
+      discard advance
       if ← acceptSymbol "(" then
         let mut depth := 1
         while depth > 0 do
@@ -359,7 +376,11 @@ mutual
         match parseDecimal? (SQLite.NumericLiteral.normalize s) with
         | some f => pure (.literal (.real f) (some (SQLite.NumericLiteral.normalize s)))
         | none => throw s!"invalid real number {s}"
-      | .string s => pure (.literal (.text s))
+      | .string s =>
+        if ← acceptSymbol "." then
+          if ← acceptSymbol "*" then pure (.star (some s))
+          else pure (.column (some s) (← expectIdent))
+        else pure (.literal (.text s))
       | .symbol "*" => pure (.star)
       | .symbol "?" => pure (.column none "?")
       | .symbol "(" =>
@@ -400,8 +421,7 @@ mutual
           expectKeyword "end"
           pure (.case_ base branches else_)
         else if keywordEq s "null" then pure (.literal .null)
-        else if ["from", "where", "group", "having", "order", "limit", "offset",
-            "union", "intersect", "except"].contains s.toLower then
+        else if (SQLite.Identifier.primaryToken false (.ident s)).isNone then
           throw (syntaxError (.ident s))
         else if ← acceptSymbol "(" then
           parseCallFuel fuel s
@@ -717,13 +737,8 @@ private def parseColumnDef : ParserM ColumnDef := do
 
 private def parseTableAlias : ParserM (Option String) := do
   if ← acceptKeyword "as" then some <$> expectAlias
-  else
-    match ← peek with
-    | .ident s =>
-      if ["where", "order", "limit", "offset", "group", "having", "join", "left", "right", "full",
-          "inner", "cross", "outer", "on", "using", "natural", "union", "intersect", "except", "returning"].contains s.toLower
-      then pure none else some <$> expectIdent
-    | _ => pure none
+  else parseImplicitAlias
+
 
 mutual
   private def parseTableFactorFuel : Nat → ParserM (Array TableRef)
@@ -858,14 +873,7 @@ private def parseResultColumn : ParserM ResultColumn := do
   let sourceSql := some (← tokenSource start stop)
   let alias ←
     if ← acceptKeyword "as" then some <$> expectAlias
-    else
-      match ← peek with
-      | .quotedIdent s _ | .string s => discard advance; pure (some s)
-      | .ident s =>
-        if ["from", "where", "order", "limit", "offset", "group", "having",
-            "union", "intersect", "except", "asc", "desc", "returning"].contains s.toLower then pure none
-        else discard advance; pure (some s)
-      | _ => pure none
+    else parseImplicitAlias
   pure { expr, alias, sourceSql }
 
 private def parseSelectAfterSelectFuel : Nat → Bool → ParserM Select

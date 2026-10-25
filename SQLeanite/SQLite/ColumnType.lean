@@ -1,4 +1,4 @@
-import SQLeanite.SQLite.PragmaSyntax
+import SQLeanite.SQLite.Identifier
 
 /-! SQLite 3.53.4 parse.y typetoken/typename/signed and build.c type metadata.
 The source span ends at its last token, before trailing comments. -/
@@ -7,11 +7,7 @@ namespace SQLeanite.SQLite.ColumnType
 def significant (tokens : List Token) : List Token :=
   tokens.filter fun token => match token with | .space _ | .eof => false | _ => true
 
-def word : Token → Bool
-  | .ident name => PragmaSyntax.bareName name &&
-      !["INDEXED", "LEFT", "RIGHT", "FULL", "INNER", "OUTER", "CROSS", "NATURAL"].contains name.toUpper
-  | .quotedIdent .. | .string _ => true
-  | _ => false
+def word (token : Token) : Bool := (Identifier.aliasToken token).isSome
 
 def number : Token → Bool
   | .integer _ source => source.all (fun text => !text.contains '_')

@@ -4597,6 +4597,44 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteIdentifierGrammar : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE \"select\"(\"from\" INTEGER PRIMARY KEY,v);INSERT INTO \"select\" VALUES(7,'kept');" with
+    | .ok result => pure result
+    | .error message => fail s!"quoted keyword declaration: {message}"
+  let expected ← match SQLSurface.value (.integer 7) with
+    | .ok value => pure value
+    | .error message => fail message
+  for sql in ["SELECT \"where\".\"from\" FROM \"select\" \"where\";",
+      "SELECT left.\"from\" FROM \"select\" AS left;",
+      "SELECT offset.\"from\" FROM \"select\" offset;",
+      "SELECT 'where'.'from' FROM \"select\" 'where';"] do
+    let (_, output) ← match CoreSQL.execute state sql with
+      | .ok result => pure result
+      | .error message => fail s!"SQLite identifier or alias rejected: {message}"
+    unless (output.getLast?).map (·.rows) == some [[expected]] do fail "identifier alias resolved to wrong column"
+  for sql in ["CREATE TABLE select(id INTEGER PRIMARY KEY);", "CREATE TABLE t(select INTEGER PRIMARY KEY);",
+      "CREATE INDEX select ON \"select\"(v);", "SELECT 1 AS select;", "SELECT 1 join;", "SELECT 1 indexed;",
+      "SELECT 1 regexp;", "SELECT length('a') regexp;",
+      "SELECT current_date.\"from\" FROM \"select\" AS current_date;",
+      "SELECT raise.\"from\" FROM \"select\" AS raise;"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"reserved keyword accepted as a name: {sql}"
+  for sql in ["SELECT 1 DESC;", "SELECT 1 OFFSET;", "SELECT 1 AS left;",
+      "SELECT length('a') filter;", "SELECT length('a') over;",
+      "SELECT length('a') over /* comment */ FROM \"select\";",
+      "SELECT sum(\"from\") FILTER (WHERE v='kept') FROM \"select\";"] do
+    if !(CoreSQL.execute state sql).isOk then fail s!"fallback identifier rejected: {sql}"
+  for (admitted, forged) in [
+      ("CREATE TABLE \"select\"(id INTEGER PRIMARY KEY);", "CREATE TABLE select(id INTEGER PRIMARY KEY);"),
+      ("SELECT 1 AS \"Alias\";", "SELECT 1 AS \"alias\";")] do
+    let parsed ← match CoreTokenGrammar.parseCertified admitted with
+      | .ok result => pure result
+      | .error message => fail message
+    let tokens ← match lex forged with
+      | .ok result => pure result
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay changed a declared identifier"
+
 private def expectSQLiteScriptPrefix : IO Unit := do
   for sql in ["SELECT 'a;b';SELECT 2;", "SELECT 'a'';b';-- ; comment\nSELECT 3;",
       "SELECT [a;b];/* ; comment */ SELECT `c;d`;", "SELECT 'unfinished;"] do
@@ -7270,6 +7308,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite identifier keywords and explicit/implicit aliases", expectSQLiteIdentifierGrammar),
   ("SQLite script source preservation and committed prefixes", expectSQLiteScriptPrefix),
   ("SQLite read-only transaction publication", expectSQLiteReadTransaction),
   ("SQLite SAVEPOINT nesting, release and rollback", expectSQLiteSavepoint),

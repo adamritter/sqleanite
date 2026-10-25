@@ -4040,3 +4040,45 @@ retained transactions and C reads of file/WAL results. Reports:
 Native bindings are unchanged. Exact diagnostics, partial CLI output before an
 error, trigger execution and concurrent SQLite WAL coordination are outside this
 scoped result; full SQLite compatibility remains unestablished.
+
+## SQLite identifier roles and contextual aliases (2026-10-25)
+
+The parser and independent token replay now share SQLite's nm and ids roles.
+Bare reserved keywords are rejected as declarations; INDEXED and join-kind
+keywords remain valid in explicit AS aliases but not implicit aliases or type
+words. Quoted table aliases work without AS. OFFSET/ASC/DESC fallback names and
+single-quoted qualified column/star references are admitted. Alias spelling is
+checked exactly because it is retained output metadata.
+
+FILTER and OVER after a function call follow tokenize.c lookahead rules, so
+ordinary aliases are not consumed as incomplete aggregate/window syntax. The
+expression-leading CAST/RAISE/clock keywords cannot silently become column
+references. REGEXP is recognized as an infix operation instead of an implicit
+result alias; this change does not implement regular-expression evaluation.
+The clock and window functions themselves remain separate unsupported work.
+Six registered component propositions cover the admitted-name relation and
+keyword/quoted/string roles; they are not a proof of the complete SQLite grammar.
+
+The original baseline records **2,156 comparisons / 706 differences**. The first
+development corpus passes **2,268 / 0** but targeted tests exposed OFFSET
+qualifiers and function aliases not covered by it. The expanded all-keyword
+corpus records **6,178 / 12** remaining differences (clock/RAISE qualifiers and
+REGEXP mistaken for an alias). Both negative reports and targeted diagnostics
+are retained. Final-checkpoint evaluation additionally includes single/backtick/
+bracket quoted qualifiers and randomized names on fresh C-created fixtures.
+
+Final-checkpoint fresh seed **354293** passes **19,410 / 0**, on three new
+C-created fixtures with 512/4096/65536-byte pages and both production file modes.
+Column-type regression seed **354294** passes **972 / 0** on the same source.
+Final checks pass **342 build jobs, 251 executable tests, 1,196 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Implementation SHA-256: `1fdc2e63baf4b38d6c166efbeac895e6bb1eaaa5cc591185d5abbad2b6d764c5`.
+Reports: `sqlite-identifier-*20261025.json`; harness:
+`scripts/run-identifier-grammar-differential.py`.
+
+The corpus compares complete successful output, error status, C catalog/pragma/
+typed-row/integrity observations, C follow-up writes and Lean reopening. It uses
+all 148 keyword spellings in the pinned source (including optional WITHIN),
+non-keyword/Unicode/empty names and multiple quoting forms. Exact diagnostics,
+concurrent WAL coordination, clock/window/regexp evaluation and the rest of SQL
+remain outside this scoped result. Native bindings are unchanged.

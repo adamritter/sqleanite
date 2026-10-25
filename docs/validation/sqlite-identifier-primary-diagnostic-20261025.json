@@ -1,0 +1,136 @@
+{
+  "implementation_sha256": "3c9faa3183f648a78fd7468152cfbe24e84ca2a00f63f8cdc2d7b10be96e5bdc",
+  "cases": [
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT current_date.id FROM t AS current_date;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT current_date.id FROM t AS current_date;\n                     ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT current_time.id FROM t AS current_time;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT current_time.id FROM t AS current_time;\n                     ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT current_timestamp.id FROM t AS current_timestamp;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT current_timestamp.id FROM t AS current_timestamp;\n                          ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT cast.id FROM t AS cast;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \".\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT cast.id FROM t AS cast;\n             ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT raise.id FROM t AS raise;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT raise.id FROM t AS raise;\n              ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT offset.id FROM t AS offset;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT left.id FROM t AS left;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT filter.id FROM t AS filter;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT over.id FROM t AS over;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(7);SELECT window.id FROM t AS window;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "scope": "Targeted qualified-primary diagnostics; not full equivalence."
+}

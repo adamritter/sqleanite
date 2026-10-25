@@ -81,15 +81,19 @@ private def expectSymbol (symbol : String) : MatchM Unit := do
   unless ← acceptSymbol symbol do mismatch symbol
 
 private def expectName (expected : String) : MatchM Unit := do
-  match tokenName? (← advance) with
+  match SQLite.Identifier.nameToken (← advance) with
   | some found =>
       unless found.toLower == expected.toLower do mismatch s!"name {expected}"
   | none => mismatch s!"name {expected}"
 
+private def expectPrimaryName (qualified : Bool) (expected : String) : MatchM Unit := do
+  let some found := SQLite.Identifier.primaryToken qualified (← advance) | mismatch "an expression identifier"
+  unless found.toLower == expected.toLower do mismatch "the parsed expression identifier"
+
 /-- A newly declared name is stored verbatim, so case is semantic metadata
 here even though references to an existing name compare case-insensitively. -/
 private def expectDeclaredName (expected : String) : MatchM Unit := do
-  match tokenName? (← advance) with
+  match SQLite.Identifier.nameToken (← advance) with
   | some found => unless found == expected do mismatch s!"declared name {expected}"
   | none => mismatch s!"declared name {expected}"
 
@@ -330,6 +334,14 @@ mutual
             if negated then expectKeyword "not"
             expectBinaryOp op
             matchExprFuel fuel right
+        | .call "regexp" arguments false =>
+            match arguments.toList with
+            | [pattern, input] =>
+                matchExprFuel fuel input
+                if negated then expectKeyword "not"
+                expectKeyword "regexp"
+                matchExprFuel fuel pattern
+            | _ => mismatch "REGEXP expression"
         | .call "like" arguments false =>
             match arguments.toList with
             | [pattern, input, escape] =>
@@ -349,12 +361,12 @@ mutual
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value spelling => expectLiteralSpelling value spelling
-    | _, .column none name => expectName name
+    | _, .column none name => expectPrimaryName false name
     | _, .column (some qualifier) name =>
-        expectObjectName qualifier *> expectSymbol "." *> expectName name
+        expectPrimaryName true qualifier *> expectSymbol "." *> expectName name
     | _, .star none => expectSymbol "*"
     | _, .star (some qualifier) =>
-        expectObjectName qualifier *> expectSymbol "." *> expectSymbol "*"
+        expectPrimaryName true qualifier *> expectSymbol "." *> expectSymbol "*"
     | fuel, .unary operation argument => do
         match operation with
         | .plus => expectSymbol "+"
@@ -562,8 +574,10 @@ private def matchOptionalNameList : Option (Array String) → MatchM Unit
 private def matchAlias : Option String → MatchM Unit
   | none => pure ()
   | some alias => do
-      discard <| acceptKeyword "as"
-      expectName alias
+      if ← acceptKeyword "as" then expectDeclaredName alias
+      else
+        let some found := SQLite.Identifier.aliasToken (← advance) | mismatch "an implicit alias"
+        unless found == alias do mismatch "the declared implicit alias"
 
 private def matchDefault (expression : Expr) (source : String) : MatchM Unit := do
   let before := (← get).remaining.dropWhile fun token => match token with | .space _ => true | _ => false
@@ -941,7 +955,7 @@ private def matchStatement : Statement → MatchM Unit
       matchInsertPrefix conflict
       expectObjectName table
       if ← acceptKeyword "as" then
-        unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
+        unless (SQLite.Identifier.nameToken (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
       matchSelect query
       unless returning.isEmpty do
@@ -993,7 +1007,7 @@ private def matchStatement : Statement → MatchM Unit
       matchInsertPrefix conflict
       expectObjectName table
       if ← acceptKeyword "as" then
-        unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
+        unless (SQLite.Identifier.nameToken (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
       if ← acceptKeyword "default" then
         expectKeyword "values"

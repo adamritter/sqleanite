@@ -1955,4 +1955,19 @@ else
   exit 1
 fi
 
+if rg -q 'SQLite.Identifier.nameToken token' SQLeanite/Parser.lean &&
+   rg -q 'SQLite.Identifier.aliasToken' SQLeanite/Parser.lean &&
+   rg -q 'SQLite.Identifier.windowNameToken next' SQLeanite/Parser.lean &&
+   rg -q 'SQLite.Identifier.nameToken' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'SQLite.Identifier.primaryToken' SQLeanite/Parser.lean &&
+   rg -q 'SQLite.Identifier.primaryToken' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'SQLite.Identifier.aliasToken' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'expectDeclaredName alias' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'Identifier.aliasToken token' SQLeanite/SQLite/ColumnType.lean; then
+  echo 'ok - SQLite name and implicit-alias grammars are shared and independently replayed'
+else
+  echo 'FAIL - identifier grammar or exact alias replay is incomplete'
+  exit 1
+fi
+
 exit $status

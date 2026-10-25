@@ -1,0 +1,71 @@
+{
+  "implementation_sha256": "098cd073de7ccdafebf18456afc151be2feca7fe80878c46964e9c3019b3beb3",
+  "cases": [
+    {
+      "sql": "SELECT length('a') filter;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \";\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "SELECT length('a') over;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \";\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "SELECT 1 DESC;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(cast INT);INSERT INTO t VALUES(7);SELECT cast FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"FROM\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"FROM\": syntax error\n  SELECT cast FROM t;\n              ^--- error here\n"
+      }
+    },
+    {
+      "sql": "CREATE TABLE t(x);INSERT INTO t VALUES(7);SELECT cast.x FROM t AS cast;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \".\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \".\": syntax error\n  SELECT cast.x FROM t AS cast;\n             ^--- error here\n"
+      }
+    }
+  ],
+  "scope": "Targeted diagnostic before contextual function-alias and OFFSET-qualifier fixes. Error text is recorded but not required equal."
+}

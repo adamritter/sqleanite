@@ -1372,3 +1372,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Script.step_contents
 #print axioms SQLeanite.SQLite.Script.split_preserves_source
 #print axioms SQLeanite.SQLite.Script.semicolon_in_group
+
+#print axioms SQLeanite.SQLite.Identifier.aliasToken_name
+#print axioms SQLeanite.SQLite.Identifier.aliasToken_join
+#print axioms SQLeanite.SQLite.Identifier.aliasToken_quoted
+#print axioms SQLeanite.SQLite.Identifier.windowNameToken_quoted
+
+#print axioms SQLeanite.SQLite.Identifier.primaryToken_quoted
+#print axioms SQLeanite.SQLite.Identifier.primaryToken_string
