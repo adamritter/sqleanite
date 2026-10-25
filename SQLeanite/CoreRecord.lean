@@ -88,7 +88,34 @@ theorem rowRecord_fields {schema : Core.Schema} {row : Core.Row}
   next bound => exact congrArg PhysicalRecord.fields (Option.some.inj encoded.symm)
   next unbounded => contradiction
 
-def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
+/-- SQLite may leave pre-ADD-COLUMN records shorter than the current schema.
+The admitted schema has no declared DEFAULT, so omitted visible fields are NULL.
+A hidden rowid is reconstructed separately and must never be padded as data. -/
+def completeFields (schema : Core.Schema) (fields : List RecordField) : List RecordField :=
+  fields ++ List.replicate (schema.catalogColumns.length - fields.length) .null
+
+theorem completeFields_full (schema : Core.Schema) (fields : List RecordField)
+    (full : schema.catalogColumns.length ≤ fields.length) :
+    completeFields schema fields = fields := by
+  simp [completeFields, Nat.sub_eq_zero_of_le full]
+
+theorem completeFields_record {schema : Core.Schema} {row : Core.Row}
+    (valid : row.WellFormed schema) :
+    completeFields schema (rowRecordFields schema row) = rowRecordFields schema row := by
+  apply completeFields_full
+  unfold rowRecordFields
+  split
+  next standard =>
+    simp only [List.length_map, List.length_take]
+    simp only [Core.Schema.catalogColumns, standard.1, ↓reduceIte, List.length_take]
+    have width := valid.1
+    omega
+  next legacy =>
+    rw [encodeFields_length, valid.1]
+    unfold Core.Schema.catalogColumns
+    split <;> simp [Nat.min_le_right]
+
+def decodeRowFieldsExact (schema : Core.Schema) (rowid : Core.Integer)
     (fields : List RecordField) : Option Core.Row :=
   if schema.hasHiddenRowid = true ∧ fields.length = schema.primaryKey then
     match decodeFields fields with
@@ -105,10 +132,10 @@ def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
         | .error _ => none
     | none => none
 
-theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
+theorem decodeRowFieldsExact_record {schema : Core.Schema} {row : Core.Row}
     (valid : row.WellFormed schema) :
-    decodeRowFields schema row.rowid (rowRecordFields schema row) = some row := by
-  unfold decodeRowFields rowRecordFields
+    decodeRowFieldsExact schema row.rowid (rowRecordFields schema row) = some row := by
+  unfold decodeRowFieldsExact rowRecordFields
   split
   next standard =>
     have bound : schema.primaryKey < row.values.length := by omega
@@ -136,6 +163,17 @@ theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
     rw [decodeRowValues_encode row.rowid schema.primaryKey row.values valid.2.1]
     simp only
     rw [Core.readColumnValues_eq_self _ _ valid.2.2, Core.Row.create_self schema row valid]
+
+def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
+    (fields : List RecordField) : Option Core.Row :=
+  decodeRowFieldsExact schema rowid (completeFields schema fields)
+
+theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
+    (valid : row.WellFormed schema) :
+    decodeRowFields schema row.rowid (rowRecordFields schema row) = some row := by
+  unfold decodeRowFields
+  rw [completeFields_record valid]
+  exact decodeRowFieldsExact_record valid
 
 def encodeCell? (schema : Core.Schema) (row : Core.Row) :
     Option (List UInt8) := do

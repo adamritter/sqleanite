@@ -2,6 +2,7 @@ import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
 import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreSchemaRename
+import SQLeanite.CoreSchemaAdd
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
@@ -2230,6 +2231,24 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .alterAddColumn table definition => do
+      let tableName := resolveTableName state table
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {table}"
+      if stored.schema.catalogColumns.any (fun column => canonical column.name == canonical definition.name) then
+        throw s!"duplicate column name: {definition.name}"
+      unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
+        throw "too many columns"
+      unless columnAllowed definition && !definition.primaryKey &&
+          definition.notNullConflict == .abort && definition.conflict == .abort do
+        unsupported "ADD COLUMN constraint or default"
+      if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
+        unsupported "reserved internal rowid column name"
+      let column : Core.Column := { name := definition.name, notNull := definition.notNull, declaredType := declaredTypeName definition.declaredType }
+      let updated ← CoreSchemaAdd.table stored column
+      let database ← state.database.updateTable updated
+      return ({ state with database }, [{}])
   | .alterRenameTable table name => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with

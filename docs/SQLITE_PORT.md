@@ -3165,3 +3165,50 @@ declared unsupported cells. Native code and its nine-binding boundary are
 unchanged. Reports: `sqlite-empty-index-*20261025.json`; harness:
 `scripts/run-empty-index-differential.py`. This removes one identifier-domain
 restriction; it is not a claim of full SQL/database/WAL compatibility.
+
+## ADD COLUMN and omitted trailing fields (2026-10-25)
+
+The production Core executes `ALTER TABLE ... ADD [COLUMN]` for ordinary
+columns without a DEFAULT. The new visible field is inserted before a hidden
+rowid, if present. Physical/declared key positions, the absent-key sentinel and
+index positions shift consistently, while existing values and rowids are
+retained. The new field initially contains NULL. NOT NULL additions to populated
+tables fail; empty-table additions succeed. Case-insensitive duplicate names,
+primary/unique additions, the 2,000-column bound and unsupported constraints are
+checked before publication. Public write classification and transaction handling
+include ADD COLUMN. Declared name/type/constraint tokens are checked by the
+existing column recognizer.
+
+SQLite can leave earlier records unchanged after adding columns. `CoreRecord`
+now pads omitted trailing visible fields with NULL before decoding, then
+reconstructs a hidden rowid separately. This is valid for the admitted schema,
+which has no declared DEFAULT. Both byte-list and IO record readers use the same
+function. `completeFields_record` proves padding leaves every valid generated
+record unchanged; the original row/cell inverse theorem keeps its name and
+premises through the exact decoder. Additional component theorems describe list
+length, rowid retention and the exact checked table transformation. The first
+component build exposed a missing minimum-bound simplification and a multiline
+record formatting error; both were fixed before final evaluation.
+
+Retained baseline seed 354130: **438 differences / 468 scenarios**. Development
+seed 354131: **918 scenarios, zero differences**. Fresh seed 354132 regenerates
+100 statements and fixture values, and rotates declared primary-key positions:
+**2,178 scenarios, zero differences**, including 114 positive-error outcomes.
+Both public modes, 512/4096/65536-byte pages, integer aliases, hidden rowids with
+or without TEXT primary keys, empty/populated tables, quoted/empty/dotted names,
+rowid shadowing, affinity, indexes and transactions are covered. Incoming C
+fixtures include preexisting ADD COLUMN operations whose older records omit
+fields, plus malformed/NUL TEXT and overflowing values. Each scenario includes
+a subsequent C ADD COLUMN/update and Lean reopen. Full successful output bytes,
+C-observed names/column/index metadata, stored types/hex values and integrity are
+compared. Failed single statements retain main/WAL bytes. Large passing captures
+are hashed only after their full comparisons.
+
+Implementation SHA-256: `7deebde3064da20e4cd659091c4e596dc864288969afcf6974490c09f1346c78`.
+The final checks record **312 build jobs, 234 executable tests, 1,141 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+declared unsupported cells. Native code and its nine-binding boundary are
+unchanged. Reports: `sqlite-schema-add-*20261025.json`; harness:
+`scripts/run-schema-add-differential.py`. Declared defaults (including explicit
+DEFAULT NULL), CHECK/generated/foreign-key additions, non-ABORT schema conflict
+policies, DROP COLUMN and full SQL/database/WAL compatibility remain unfinished.

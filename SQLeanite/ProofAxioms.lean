@@ -1302,3 +1302,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaRename.replace_exact
 
 #print axioms SQLeanite.Core.Index.wellFormed_rename
+
+#print axioms SQLeanite.CoreSchemaAdd.insertAt_length
+#print axioms SQLeanite.CoreSchemaAdd.row_rowid
+#print axioms SQLeanite.CoreSchemaAdd.table_exact
+#print axioms SQLeanite.CoreRecord.completeFields_full
+#print axioms SQLeanite.CoreRecord.completeFields_record

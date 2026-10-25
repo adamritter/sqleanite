@@ -4597,6 +4597,58 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaAdd : IO Unit := do
+  for key in ["INTEGER PRIMARY KEY","INTEGER","TEXT PRIMARY KEY"] do
+    let sql := s!"CREATE TABLE t(Id {key},V TEXT);CREATE INDEX Vi ON t(V);" ++
+      "INSERT INTO t(Id,V,rowid) VALUES(1,'one',17),(2,NULL,91);"
+    let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail message
+    let some before := state.database.findTable? "t" | fail "ADD source missing"
+    let (next, _) ← match CoreSQL.execute state
+        "ALTER TABLE T ADD COLUMN Added TEXT;ALTER TABLE t ADD Another INTEGER;" with
+      | .ok result => pure result
+      | .error message => fail s!"ADD COLUMN: {message}"
+    let some after := next.database.findTable? "t" | fail "ADD target missing"
+    unless after.schema.catalogColumns.map (·.name) == ["Id","V","Added","Another"] do
+      fail "ADD misplaced a visible column or exposed the internal rowid"
+    unless after.rows.map (·.rowid) == before.rows.map (·.rowid) &&
+        decide (after.indexes = before.indexes) do fail "ADD changed rowids or existing index positions"
+    for (old, current) in before.rows.zip after.rows do
+      let fields := CoreRecord.rowRecordFields before.schema old
+      unless decide (CoreRecord.decodeRowFields after.schema old.rowid fields = some current) do
+        fail "older record did not acquire NULLs for omitted added columns"
+    let some image := CoreFile.encode next.database | fail "ADD encode failed"
+    let some reopened := CoreDecode.decode image.fileBytes | fail "ADD reopen failed"
+    let some restored := reopened.findTable? "t" | fail "ADD table missing after reopen"
+    unless decide (restored.schema = after.schema) && decide (restored.rows = after.rows) do
+      fail "ADD metadata or values changed after reopen"
+    let (_, results) ← match CoreSQL.execute { database := reopened }
+        "UPDATE t SET Added=3,Another='4';SELECT typeof(Added),Added,typeof(Another),Another FROM t ORDER BY oid;" with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected : List (List Value) := List.replicate 2 [.text "text",.text "3",.text "integer",.integer 4]
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail "added column affinity changed"
+    for sql in ["ALTER TABLE t ADD Required TEXT NOT NULL;", "ALTER TABLE t ADD ID;",
+        "ALTER TABLE t ADD NewKey INTEGER PRIMARY KEY;", "ALTER TABLE t ADD UniqueValue UNIQUE;"] do
+      if (CoreSQL.execute state sql).isOk then fail s!"ADD constraint error omitted: {sql}"
+    let (rolled, _) ← match CoreSQL.execute state "BEGIN;ALTER TABLE t ADD Rolled;ROLLBACK;" with
+      | .ok result => pure result
+      | .error message => fail message
+    let some rolledTable := rolled.database.findTable? "t" | fail "ADD rollback lost table"
+    unless decide (rolledTable.schema = before.schema) do fail "ADD rollback kept new column"
+  unless (CoreSQL.execute Core.State.empty
+      "CREATE TABLE e(Id INTEGER PRIMARY KEY);ALTER TABLE e ADD Required TEXT NOT NULL;INSERT INTO e VALUES(1,'ok');").isOk do
+    fail "empty-table ADD NOT NULL rejected"
+  let parsed ← match CoreTokenGrammar.parseCertified "ALTER TABLE t ADD NewName TEXT;" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  if (CoreTokenGrammar.check parsed.tokens #[.alterAddColumn "t" { name := "newname", declaredType := "TEXT" }]).isOk then
+    fail "ADD checker changed the declared column spelling"
+
 private def expectSQLiteEmptyIndex : IO Unit := do
   let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT);INSERT INTO users VALUES(1,'one'),(2,'two');" ++
     "CREATE UNIQUE INDEX \"\" ON users(Label);"
@@ -6433,6 +6485,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite ADD COLUMN and omitted trailing record fields", expectSQLiteSchemaAdd),
   ("SQLite empty index identifiers survive reopen and schema changes", expectSQLiteEmptyIndex),
   ("SQLite table and column renames preserve rows and index metadata", expectSQLiteSchemaRename),
   ("SQLite case-insensitive binding preserves schema spelling", expectSQLiteSchemaCase),

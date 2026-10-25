@@ -779,6 +779,13 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   expectKeyword "into"
 
 private def matchStatement : Statement → MatchM Unit
+  | .alterAddColumn table column => do
+      expectKeyword "alter"
+      expectKeyword "table"
+      expectObjectName table
+      expectKeyword "add"
+      discard <| acceptKeyword "column"
+      matchColumn column
   | .alterRenameTable table name => do
       expectKeyword "alter"
       expectKeyword "table"

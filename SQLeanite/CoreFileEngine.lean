@@ -103,7 +103,7 @@ def create (syncOps : CoreFileAdapter.SyncOps)
   reopen syncOps paths
 
 def statementWrites : Statement → Bool
-  | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. => true
+  | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. => true
   | _ => false
 
 def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
