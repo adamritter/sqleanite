@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "77d18c4107a089388846d585e7b36d439fddc74d98649668b10f817ee5042fd6",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "e5fd61dd1f8d2ac9322e5fab801a401d101951e07fd817c5288bc3b7dc1feb0f",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [351/352] Built Tests:c.o (17s)",
+        "\u2714 [352/352] Built sqleanite_tests:exe (338ms)",
+        "Build completed successfully (352 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "1dff874a7853371c2d128654e4217b71dad5cb3c125bff6d7e6f76e68e40adfd",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "274 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "08b08e00b5b105a034ef483bddeeb1ff9d773ff564904f429f38e9e97f2ae43b",
+      "tail": [
+        "ok - joined declared-name priority is shared with CTAS metadata",
+        "ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding",
+        "ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests",
+        "ok - joined IN lists preserve left affinity, nullable equality and positive grammar",
+        "ok - literal NULL tests use parser token classification before scalar admission",
+        "ok - static joined conditions retain resolution and code-generation checks",
+        "ok - zero-LIMIT joins validate predicates without evaluating their values",
+        "ok - empty-side outer ON keeps validation and preserves the existing join path"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "e1d3cf074680138b606c3d5b4af09fd70174c346b2a6165b3dd52e47f1101912"
+}

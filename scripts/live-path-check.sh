@@ -2182,7 +2182,7 @@ else
   status=1
 fi
 
-if rg -F -q 'let query ← joinQueryWithZero select leftTable rightTable left.schema right.schema' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'let query ← joinQueryForRows select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
    rg -F -q '(CoreSQL.joinQueryWithZero select leftName rightName' SQLeanite/CoreLazyFileEngine.lean &&
    rg -F -q 'unless joinStaticAdmitted context prepared rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
    rg -q 'theorem joinZeroQuery_limit' SQLeanite/CoreSQL.lean &&
@@ -2190,6 +2190,17 @@ if rg -F -q 'let query ← joinQueryWithZero select leftTable rightTable left.sc
   echo 'ok - zero-LIMIT joins validate predicates without evaluating their values'
 else
   echo 'FAIL - zero-LIMIT join live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'unless rightSource.leftJoin && (leftRows.isEmpty || rightRows.isEmpty)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'unless joinStaticAdmitted context prepared true' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem Query.eval_empty_left' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem Query.eval_empty_right_on' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem joinQueryForRows_existing' SQLeanite/CoreSQL.lean; then
+  echo 'ok - empty-side outer ON keeps validation and preserves the existing join path'
+else
+  echo 'FAIL - empty-side outer ON live-path audit failed' >&2
   status=1
 fi
 

@@ -1783,6 +1783,41 @@ theorem joinQueryWithZero_existing (select : Select) (leftTable rightTable : Str
     joinQueryWithZero select leftTable rightTable leftSchema rightSchema = .ok query := by
   simp [joinQueryWithZero, success]
 
+/-- An outer ON expression has no candidate pair to evaluate when either
+input is empty. Resolution/code-generation checks still use the original ON;
+WHERE and every other query component retain ordinary translation. -/
+def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query := do
+  let (leftSource, rightSource) ← match select.sources.toList with
+    | [left, right] => .ok (left, right)
+    | _ => unsupported "join source count"
+  unless rightSource.leftJoin && (leftRows.isEmpty || rightRows.isEmpty) do
+    unsupported "outer ON requires an empty input"
+  let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
+  for expression in rightSource.joinOn.toList do
+    let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+    unless joinStaticAdmitted context prepared true do
+      unsupported "unbound or invalid empty-input outer ON"
+  joinQueryWithZero { select with sources := #[leftSource, { rightSource with joinOn := none }] }
+    leftTable rightTable leftSchema rightSchema
+
+def joinQueryForRows (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query :=
+  match joinQueryWithZero select leftTable rightTable leftSchema rightSchema with
+  | .ok query => .ok query
+  | .error message =>
+      match joinEmptyOnQuery select leftTable rightTable leftSchema rightSchema leftRows rightRows with
+      | .ok query => .ok query
+      | .error _ => .error message
+
+theorem joinQueryForRows_existing (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) (query : CoreJoin.Query)
+    (success : joinQuery select leftTable rightTable leftSchema rightSchema = .ok query) :
+    joinQueryForRows select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
+  simp [joinQueryForRows, joinQueryWithZero, success]
+
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do
   let (leftSource, rightSource) ← match select.sources.toList with
@@ -1801,7 +1836,7 @@ def executeJoin (state : Core.State) (select : Select) :
   let right ← match state.database.findTable? rightTable with
     | some table => .ok table
     | none => .error s!"no such table: {rightSource.name}"
-  let query ← joinQueryWithZero select leftTable rightTable left.schema right.schema
+  let query ← joinQueryForRows select leftTable rightTable left.schema right.schema left.rows right.rows
   let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
   let (next, result) ← Core.execute state (.join leftTable rightTable query)
   return ⟨next, result, query.columns.length⟩
@@ -2247,8 +2282,8 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   | [leftSource, rightSource] =>
       let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
       let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
-      let query ← joinQueryWithZero { select with orderBy := #[], offset := 0 }
-        (resolveTableName state leftSource.name) (resolveTableName state rightSource.name) left.schema right.schema
+      let query ← joinQueryForRows { select with orderBy := #[], offset := 0 }
+        (resolveTableName state leftSource.name) (resolveTableName state rightSource.name) left.schema right.schema left.rows right.rows
       return List.replicate query.columns.length (some "binary")
   | _ => unsupported "compound source shape"
 

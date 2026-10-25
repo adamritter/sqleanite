@@ -1451,3 +1451,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Query.eval_limit_zero
 #print axioms SQLeanite.CoreSQL.joinZeroQuery_limit
 #print axioms SQLeanite.CoreSQL.joinQueryWithZero_existing
+
+#print axioms SQLeanite.CoreJoin.Query.eval_empty_left
+#print axioms SQLeanite.CoreJoin.Query.eval_empty_right_on
+#print axioms SQLeanite.CoreSQL.joinQueryForRows_existing

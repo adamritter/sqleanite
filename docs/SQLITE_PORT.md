@@ -4936,3 +4936,44 @@ translations are preserved. They are not complete SQL or planner equivalence
 proofs. Native bindings are unchanged. Reports: `sqlite-join-zero-limit-*20261025.json`;
 harnesses: `scripts/run-join-zero-limit-differential.py` and
 `scripts/run-join-zero-limit-write-differential.py`.
+
+
+## Empty-input outer-ON evaluation (2026-10-25)
+
+A LEFT JOIN with either input empty now validates its original ON expression
+without evaluating its value. The fallback is guarded by actual input emptiness
+and the outer-join kind. Name/arity and outer-ON code-generation checks remain
+mandatory; WHERE, projection, ordering and source metadata retain ordinary
+translation. The same interpretation supplies compound-result metadata. Existing
+successful translations and unsuccessful fallback diagnostics are preserved.
+
+Baseline seed **354510** records **3,648 comparisons / 992 differences**,
+including 800 empty-input failures and 192 nonempty-input controls. Development
+seed **354511**, expanded with compound operations, records **4,096 / 172**.
+All 172 remaining failures are nonempty-input controls: 150 rejected successful
+statements and 22 partial-error-output differences. These negatives are retained.
+
+Final-checkpoint fresh seed **354512** records **8,832 / 462**, plus 16 passing
+immutable-image/integrity checks. All **6,624 empty-input comparisons pass**;
+the 462 failures are rejected successful statements in nonempty-input controls.
+The corpus includes fixed controls and newly seeded values/combinations, not
+8,832 wholly unseen inputs. It compares full stdout/error status, NULL extension,
+WHERE filters, LIMIT/OFFSET, compound operations, function/signature/collation
+errors, Boolean-name shadowing and three page sizes in both file modes.
+Persisted fresh seed **354513** records **1,632 / 108**. All **1,360 empty-input
+write cases pass**; every remaining failure rejects a successful nonempty-input
+statement. Independent C catalog/typed-row/integrity checks, subsequent C writes
+and Lean reopening are included. Static-condition writer regression seed
+**354514** passes **1,632 / 0**, including the fixed empty-input cases that still
+failed at the previous checkpoint. This regression is reported separately from
+the broader fresh corpus; the older negative reports remain unchanged.
+
+Implementation SHA-256: `77d18c4107a089388846d585e7b36d439fddc74d98649668b10f817ee5042fd6`.
+Final checks pass **352 build jobs, 274 executable tests, 1,247 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Component theorems prove empty-left output, outer-ON independence
+with an empty right input, and preservation of existing translations. They do
+not establish complete upstream planner or dynamic-expression equivalence.
+Native bindings are unchanged. Reports: `sqlite-join-empty-on-*20261025.json`;
+harnesses: `scripts/run-join-empty-on-differential.py` and
+`scripts/run-join-empty-on-write-differential.py`.

@@ -858,6 +858,23 @@ theorem Query.eval_limit_zero (query : Query) (left right : List Core.Row)
     (zero : query.limit = some 0) : query.eval left right = [] := by
   simp [Query.eval, Query.selectedRows, Query.finishRows, zero]
 
+theorem Query.finishRows_nil (query : Query) : query.finishRows [] = [] := by
+  simp [Query.finishRows, Query.lookupInputRows, Query.distinctInputRows,
+    Query.orderedRows, distinctRows, Core.stableDistinctBy]
+  split <;> rfl
+
+theorem Query.eval_empty_left (query : Query) (right : List Core.Row) :
+    query.eval [] right = [] := by
+  cases kind : query.kind <;>
+    simp [Query.eval, Query.selectedRows, kind, crossRows, matchingRows,
+      leftOuterRows, Query.finishRows_nil]
+
+theorem Query.eval_empty_right_on (query : Query) (left : List Core.Row)
+    (on : Option Predicate) (outer : query.kind = .left) :
+    { query with on }.eval left [] = query.eval left [] := by
+  simp [Query.eval, Query.selectedRows, outer, leftOuterRows, leftOuterFor,
+    Query.finishRows, Query.lookupInputRows, Query.distinctInputRows, Query.orderedRows]
+
 /-- Execute the certified primary-key join after a page reader has discarded
 left rows above the greatest possible right key. -/
 def Query.evalPrimaryKeyCandidates (query : Query)

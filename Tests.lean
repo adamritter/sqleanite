@@ -7041,6 +7041,34 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinEmptyOuterOn : IO Unit := do
+  for setup in [
+      "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);",
+      "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'bad'),(2,'bad');",
+      "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO r VALUES(1,'bad');"] do
+    let (_, expected) ← match CoreSQL.execute Core.State.empty (setup ++
+        "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 1 ORDER BY a.id,b.id;") with
+      | .ok result => pure result
+      | .error message => fail message
+    for predicate in ["abs(-9223372036854775808)", "abs(a.k)", "coalesce(a.k,b.k)",
+        "json_extract(a.k,'$')", "a.k+b.k>0", "a.k LIKE '%a%'", "abs(-9223372036854775808) OR 1"] do
+      let (_, actual) ← match CoreSQL.execute Core.State.empty (setup ++
+          s!"SELECT a.id,b.id FROM l a LEFT JOIN r b ON {predicate} ORDER BY a.id,b.id;") with
+        | .ok result => pure result
+        | .error message => fail s!"empty outer ON {predicate}: {message}"
+      unless (actual.getLast?).map (·.rows) == (expected.getLast?).map (·.rows) do
+        fail "empty outer ON changed its null-extension rows"
+    for predicate in ["not_a_function(a.k)", "coalesce(missing,1)", "sum(a.k)",
+        "abs(a.k,a.k)", "likelihood(a.k,2.0)", "min(a.k COLLATE missing,'x')", "-0x8000000000000000"] do
+      if (CoreSQL.execute Core.State.empty (setup ++
+          s!"SELECT a.id,b.id FROM l a LEFT JOIN r b ON {predicate};")).isOk then
+        fail s!"empty outer ON suppressed a required error: {predicate}"
+
+  let nonempty := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,1);INSERT INTO r VALUES(1,1);"
+  if (CoreSQL.execute Core.State.empty (nonempty ++
+      "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(-9223372036854775808);")).isOk then
+    fail "nonempty outer ON lost its runtime overflow"
+
 private def expectSQLiteJoinZeroLimit : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'bad');INSERT INTO r VALUES(1,2);"
   for predicate in ["abs(-9223372036854775808)","abs(a.k)","coalesce(a.k,b.k)",
@@ -8136,6 +8164,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
   ("SQLite zero-LIMIT joins validate without value evaluation", expectSQLiteJoinZeroLimit),
+  ("SQLite empty-side outer ON validates without value evaluation", expectSQLiteJoinEmptyOuterOn),
   ("SQLite static joined conditions and outer-ON error ordering", expectSQLiteJoinStaticConditions),
   ("SQLite parser-time literal NULL-test preparation", expectSQLiteLiteralNullPreparation),
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
