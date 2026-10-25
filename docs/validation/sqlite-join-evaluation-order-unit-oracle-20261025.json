@@ -1,0 +1,360 @@
+{
+  "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+  "cases": [
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2\n3|3\n4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2\n3|3\n4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|2\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2\n3|3\n4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|2\n3|3\n4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "code": 0,
+      "stdout": "4|4|3\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "3|3|2\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.k IS NULL;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE coalesce(a.k,0)>1;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 OR b.id>1;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    }
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

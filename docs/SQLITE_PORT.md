@@ -5346,3 +5346,59 @@ Reports: `sqlite-join-scalar-*20261025.json` and
 `scripts/run-join-scalar-differential.py`,
 `scripts/run-join-scalar-write-differential.py` and
 `scripts/run-join-evaluation-order-differential.py`.
+
+
+## Joined scan direction and early WHERE evaluation (2026-10-25)
+
+General expression joins now derive left-rowid traversal from the leading ORDER
+term and retain the unmatched-right suffix separately. WHERE predicates can
+reduce an outer side only through a conservative source-null test adapted from
+the pinned SQLite expr.c/select.c rules. Source-local WHERE terms are applied
+before ON when their source survives that reduction. Ordinary functions, IS,
+CASE and mixed OR expressions do not spuriously prove a non-null source.
+
+A fully ordered rowid scan applies OFFSET before evaluating ordinary projection.
+Transient non-rowid equality indexes retain a separate sorting path; RIGHT/FULL
+suffixes require the final sort. Dynamic rowid lookup expressions and output
+aliases are bound to their original sources before scan planning. The component
+proofs establish the AND/OR structure of the conservative null test and that
+reduction cannot add an outer side. They are not a proof of complete planner or
+SQL equivalence. Generated source slots, schema affinity and native bindings
+remain unchanged.
+
+The public overflow/order baseline records **1,152 / 112** differences; all 112
+saved failures pass a strict regression replay at this checkpoint, comparing
+stdout on errors, immutable main/WAL bytes and C integrity. A preliminary
+in-memory component replay passes **576 / 0**; its exact draft source is retained
+as a diagnostic text artifact, outside the production source tree.
+
+Expanded development seed **354591** records **4,800 / 214** differences: 14
+successful C statements were rejected because OFFSET did not skip projection,
+and 200 both-error cases lost rows emitted before the error. The complete result
+is preserved. After ordered-scan window handling, a strict replay of all 214
+passes the 14 status failures and retains **200 partial-output differences**.
+The seven distinct successful cases have executable regressions.
+
+Fresh final-source seed **354592** records **10,240 / 330** differences, with all
+16 immutable-fixture checks passing. Error/success status agrees in every case;
+328 differences are missing output before an error, and two are the same
+unordered INNER JOIN row-sequence mismatch in both file modes. The latter needs
+a right-driven computed-rowid lookup. No mismatches are discarded or relabelled
+as passes. Fixed controls and newly seeded safe values, overflow positions and
+windows are mixed across eight fixtures and three page sizes. Every fresh
+failure is also retained in a labelled replay input.
+
+A separate fresh general-expression corpus, seed **354593**, passes
+**24,640 / 0** plus 16 immutable-fixture checks. Write regression seed **354594**
+passes **2,272 / 0** with typed C file observations, follow-up writes and reopening.
+Those successful corpora do not close the older empty-search bug: its explicit
+saved control still records **2 / 2** at this checkpoint. Error-prefix streaming
+and empty-input search-key evaluation remain active work.
+
+Checks pass **354 build jobs, 283 executable tests, 1,275 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. Implementation SHA-256:
+`e5393de5c68de27afdfff694acb6c351bcc2ef0707c31ea77c121914d910a126`.
+Reports: `sqlite-join-evaluation-order-*20261025.json`; harness:
+`scripts/run-join-evaluation-order-differential.py`. This is an implementation
+checkpoint with documented open differences, not full SQLite compatibility.

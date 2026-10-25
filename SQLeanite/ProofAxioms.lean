@@ -1489,3 +1489,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.executeJoinScalar_preserves_state
 #print axioms SQLeanite.CoreSQLReadText.executeSelectBaseComplete_eq_core
+
+#print axioms SQLeanite.CoreSQL.joinScalarNullWalk_or
+#print axioms SQLeanite.CoreSQL.joinScalarNullRejects_and
+
+#print axioms SQLeanite.CoreSQL.joinScalarReducedSource_no_new_outer

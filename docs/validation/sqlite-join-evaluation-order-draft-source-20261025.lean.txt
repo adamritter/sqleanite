@@ -1,0 +1,150 @@
+import SQLeanite.CoreSQL
+import SQLeanite.SQLite.CLI
+import Lean.Data.Json
+
+namespace SQLeanite.CoreSQL
+
+-- Development component: not part of the frozen production checkpoint.
+def orderDraftReference (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expression : Expr) : Option CoreJoin.ColumnRef := do
+  let .column qualifier name := SQLite.ExprCollation.strip expression | none
+  let index ← prepared.context.column? qualifier name
+  let .column reference ← (joinScalarInputs context)[index]? | none
+  return reference
+
+def orderDraftOnlySide (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (expression : Expr) : Bool :=
+  !expression.any (fun expression => match expression with
+    | .column .. => !(orderDraftReference context prepared expression).any (fun ref => ref.side == side)
+    | _ => false)
+
+/-- Conservative counterpart of expr.c:impliesNotNullRow. Ordinary functions,
+IS, CASE and nested null tests do not establish a non-null source row. -/
+def orderDraftNullWalk (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let walk := orderDraftNullWalk context prepared side fuel
+      match expression with
+      | .column .. => (orderDraftReference context prepared expression).any (fun ref => ref.side == side)
+      | .collate arg _ | .unary _ arg => walk arg
+      | .binary .and left right | .binary .or left right => walk left && walk right
+      | .binary op left right =>
+          ![.is, .isNot, .like, .glob, .match, .arrow, .arrowText].contains op && (walk left || walk right)
+      | .inList arg values _ _ => !values.isEmpty && walk arg
+      | .call name args _ =>
+          (SQLite.Scalar.scalarFunctionName name).startsWith "cast_" && args.size == 1 &&
+            args.toList.any walk
+      | _ => false
+
+def orderDraftNullRejects (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let inspect := orderDraftNullRejects context prepared side fuel
+      match expression with
+      | .collate arg _ => inspect arg
+      | .call name args false =>
+          match SQLite.Probability.input? name args with
+          | some arg => inspect arg
+          | none => orderDraftNullWalk context prepared side (fuel + 1) expression
+      | .binary .and left right => inspect left || inspect right
+      | .isNull arg true => orderDraftNullWalk context prepared side fuel arg
+      | _ => orderDraftNullWalk context prepared side (fuel + 1) expression
+
+def orderDraftProbe (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let inspect := orderDraftProbe context prepared side fuel
+      match expression with
+      | .collate arg _ => inspect arg
+      | .binary .and left right => inspect left || inspect right
+      | .binary .eq left right =>
+          let other := if side == .left then CoreJoin.Side.right else .left
+          let schema := if side == .left then context.leftSchema else context.rightSchema
+          let probes := fun column value =>
+            (orderDraftReference context prepared column).any (fun ref => ref.side == side && ref.column == schema.primaryKey) &&
+              orderDraftOnlySide context prepared other value
+          probes left right || probes right left
+      | _ => false
+
+def orderDraftResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+  let (leftSource, originalRight) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state originalRight.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select originalRight
+  let where_ := prepared.select.where_
+  let source := { originalRight with
+    leftJoin := originalRight.leftJoin && !where_.any (fun expr => orderDraftNullRejects context prepared .right expr.height expr)
+    rightJoin := originalRight.rightJoin && !where_.any (fun expr => orderDraftNullRejects context prepared .left expr.height expr) }
+  let enabled ← if select.limit == some 0 then pure false else prepared.context.constantMatches where_
+  let rows ← if enabled then do
+      let leftTerms := if source.rightJoin then [] else
+        (where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+          (fun term => orderDraftOnlySide context prepared .left term && !prepared.context.constantExpression term)
+      let left ← left.rows.filterM fun row => do
+        let input := CoreJoin.projectRow (joinScalarInputs context) (row, CoreJoin.nullRow context.rightSchema.columns.length)
+        leftTerms.allM (fun term => prepared.context.matches input (some term))
+      let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+      let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+      let on ← originalRight.joinOn.mapM (joinScalarBind context)
+      let probesLeft := on.any (fun e => orderDraftProbe context prepared .left e.height e)
+      let probesRight := on.any (fun e => orderDraftProbe context prepared .right e.height e)
+      let exchanged := !source.leftJoin && !source.rightJoin && !source.crossJoin && probesLeft && !probesRight
+      let reverse := !aggregate && !exchanged && terms.head?.any (fun term =>
+        term.descending && (orderDraftReference context prepared term.expr).any
+          (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+      joinScalarRowsM context prepared source (if reverse then left.reverse else left) right.rows
+    else pure []
+  joinScalarRun context prepared rows
+
+def orderDraftExecute (state : Core.State) (select : Select) : Except String SelectExecution :=
+  match executeSelectBase state select with
+  | .ok result => .ok result
+  | .error _ => (fun result => ⟨state, result.1, result.2⟩) <$> orderDraftResult state select
+
+end SQLeanite.CoreSQL
+
+open SQLeanite
+open Lean
+
+private def draftValueBytes : PhysicalCodec.Value → ByteArray
+  | .null => ByteArray.empty
+  | .integer value => (toString value.value).toUTF8
+  | .realBits bits => (toString (SQLeanite.Value.real
+      (Float.ofBits (UInt64.ofNat bits.val)))).toUTF8
+  | .text text => ByteArray.mk (SQLite.CLI.listTextBytes text.bytes).toArray
+  | .blob blob => ByteArray.mk (SQLite.CLI.listTextBytes blob.bytes).toArray
+
+private def draftRender (result : Core.Result) : ByteArray :=
+  result.rows.foldl (fun output row =>
+    let fields := (row.map draftValueBytes).intersperse "|".toUTF8
+    (fields.foldl (· ++ ·) output) ++ "\n".toUTF8) ByteArray.empty
+
+def main (args : List String) : IO Unit := do
+  let some path := args.head? | throw (IO.userError "expected input file")
+  let lines := (← IO.FS.readFile path).splitOn "\n"
+  let setup :: queries := lines | throw (IO.userError "missing setup")
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => throw (IO.userError message)
+  for query in queries do
+    unless query.isEmpty do
+      let result := do
+        let statements ← CoreTokenGrammar.parseStatements query
+        let [.select select] := statements.toList | throw "expected one SELECT"
+        CoreSQL.orderDraftExecute state select
+      let (code, bytes, error) := match result with
+        | .ok execution => (0, draftRender execution.result, "")
+        | .error message => (1, ByteArray.empty, message)
+      IO.println (Json.mkObj [("code", toJson code),
+        ("stdout_bytes", toJson (bytes.data.toList.map UInt8.toNat)), ("stderr", toJson error)]).compress

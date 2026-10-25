@@ -1,0 +1,3149 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-evaluation-order-baseline-20261025.json",
+  "input_sha256": "b3e3af51bdf5f240a40dcebc485e0e9ec2f88f332102352d030e0c19094924ee",
+  "cases": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|2\n3|3|3\n4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2\n3|3\n4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|4|3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|3|2\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "e5393de5c68de27afdfff694acb6c351bcc2ef0707c31ea77c121914d910a126",
+  "executable_sha256": "5a0cd11f713c100510bcd3b5776081d849f5164d4820abba09d76196f6753844",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

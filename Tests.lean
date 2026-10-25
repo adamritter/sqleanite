@@ -7195,6 +7195,98 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinEvaluationOrder : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 3],[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2],[.integer 3,.integer 3],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3]]),
+    ("SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 3],[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2],[.integer 3,.integer 3],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3]]),
+    ("SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 2]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 3],[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2],[.integer 3,.integer 3],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3]]),
+    ("SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a RIGHT JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 3],[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 4]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 3]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 2,.integer 2],[.integer 3,.integer 3],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3]]),
+    ("SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3]]),
+    ("SELECT count(*) FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 4,.integer 4,.integer 3]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 1;",[[.integer 3,.integer 3,.integer 2]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined evaluation order: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined evaluation order or early filter: {sql}"
+  for sql in ["SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.k IS NULL;",
+    "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE coalesce(a.k,0)>1;",
+    "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id>1 OR b.id>1;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined WHERE incorrectly removed a required ON evaluation: {sql}"
+
+  let offsetCases : List (String × List (List Value)) := [
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id+0=b.id WHERE a.id<4 ORDER BY a.id ASC,b.id LIMIT 4 OFFSET 2;",[[.integer 3,.integer 3,.integer 3]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,3);INSERT INTO r VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO r VALUES(2,5);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,4);INSERT INTO l VALUES(4,-5);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 WHERE a.id>1 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",[[.integer 5,.integer 4,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,3);INSERT INTO r VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO r VALUES(2,5);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,4);INSERT INTO l VALUES(4,-5);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 3;",[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,-3);INSERT INTO l VALUES(2,-5);INSERT INTO r VALUES(2,0);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,-4);INSERT INTO l VALUES(4,5);INSERT INTO r VALUES(4,0);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 WHERE a.id>1 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",[[.integer 5,.integer 4,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,-3);INSERT INTO l VALUES(2,-5);INSERT INTO r VALUES(2,0);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,-4);INSERT INTO l VALUES(4,5);INSERT INTO r VALUES(4,0);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 3;",[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,3);INSERT INTO r VALUES(1,-5);INSERT INTO l VALUES(2,-5);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,-2);INSERT INTO l VALUES(4,-4);INSERT INTO r VALUES(4,3);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.k+1 WHERE a.id>1 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",[[.integer 4,.integer 4,.integer 4]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,3);INSERT INTO r VALUES(1,-5);INSERT INTO l VALUES(2,-5);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,-2);INSERT INTO l VALUES(4,-4);INSERT INTO r VALUES(4,3);SELECT abs(a.k),a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1 OFFSET 3;",[])]
+  for (sql, values) in offsetCases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"joined scan OFFSET: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined scan OFFSET evaluated a skipped projection: {sql}"
+
 private def expectSQLiteJoinedExpressions : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);"
   let cases : List (String × List (List Value)) := [
@@ -8463,6 +8555,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined predicate aliases and source-name priority", expectSQLiteJoinAliases),
   ("SQLite joined compound result slots and expression binding", expectSQLiteJoinCompoundBinding),
   ("SQLite joined scalar expressions, aggregates and dynamic ON", expectSQLiteJoinedExpressions),
+  ("SQLite joined evaluation order and early WHERE filtering", expectSQLiteJoinEvaluationOrder),
   ("SQLite first scalar argument collation includes column defaults", expectSQLiteFunctionArgumentCollations),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),

@@ -2291,4 +2291,15 @@ else
   status=1
 fi
 
+if rg -F -q 'let source := joinScalarReducedSource context prepared originalRight' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinScalarRowsM context prepared source (if reverse then left.reverse else left) right' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinScalarOnlySide context prepared .left term' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinScalarNullWalk_or' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinScalarReducedSource_no_new_outer' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined expression scans preserve source direction and conservative outer reduction\n'
+else
+  printf 'live-path check FAILED: joined expression scan planning\n' >&2
+  status=1
+fi
+
 exit $status

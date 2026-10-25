@@ -2850,7 +2850,7 @@ def joinScalarAggregate (ctx : CoreExpr.Context) (select : Select) (rows : List 
   return ({ rows := output }, prepared.results.expressions.length)
 
 def joinScalarRun (context : JoinContext) (prepared : JoinScalarPrepared)
-    (rows : List CoreJoin.JoinedRow) : Except String (Core.Result × Nat) := do
+    (rows : List CoreJoin.JoinedRow) (orderedInput : Bool := false) : Except String (Core.Result × Nat) := do
   let ctx := prepared.context
   let select := prepared.select
   let inputs := rows.map (CoreJoin.projectRow (joinScalarInputs context))
@@ -2867,28 +2867,172 @@ def joinScalarRun (context : JoinContext) (prepared : JoinScalarPrepared)
   let _ ← terms.mapM (CoreOrder.validateTerm ctx)
   if select.limit == some 0 then return ({}, expressions.length)
   unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
-  let projected ← if terms.isEmpty then
+  let projected ← if terms.isEmpty || orderedInput then
       ctx.scanWindow select.where_ expressions select.distinct inputs select.offset select.limit []
     else CoreOrder.scan ctx select.where_ expressions terms select.distinct inputs select.offset select.limit
   return ({ rows := projected.map (·.output) }, expressions.length)
 
+def joinScalarReference (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expression : Expr) : Option CoreJoin.ColumnRef := do
+  let .column qualifier name := SQLite.ExprCollation.strip expression | none
+  let index ← prepared.context.column? qualifier name
+  let .column reference ← (joinScalarInputs context)[index]? | none
+  return reference
+
+def joinScalarOnlySide (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (expression : Expr) : Bool :=
+  !expression.any (fun expression => match expression with
+    | .column .. => !(joinScalarReference context prepared expression).any (fun ref => ref.side == side)
+    | _ => false)
+
+/-- Conservative counterpart of expr.c:impliesNotNullRow. Ordinary functions,
+IS, CASE and nested null tests do not establish a non-null source row. -/
+def joinScalarNullWalk (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let walk := joinScalarNullWalk context prepared side fuel
+      match expression with
+      | .column .. => (joinScalarReference context prepared expression).any (fun ref => ref.side == side)
+      | .collate arg _ | .unary _ arg => walk arg
+      | .binary .and left right | .binary .or left right => walk left && walk right
+      | .binary op left right =>
+          ![.is, .isNot, .like, .glob, .match, .arrow, .arrowText].contains op && (walk left || walk right)
+      | .inList arg values _ _ => !values.isEmpty && walk arg
+      | .call name args _ =>
+          (SQLite.Scalar.scalarFunctionName name).startsWith "cast_" && args.size == 1 &&
+            args.toList.any walk
+      | _ => false
+
+def joinScalarNullRejects (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let inspect := joinScalarNullRejects context prepared side fuel
+      match expression with
+      | .collate arg _ => inspect arg
+      | .call name args false =>
+          match SQLite.Probability.input? name args with
+          | some arg => inspect arg
+          | none => joinScalarNullWalk context prepared side (fuel + 1) expression
+      | .binary .and left right => inspect left || inspect right
+      | .isNull arg true => joinScalarNullWalk context prepared side fuel arg
+      | _ => joinScalarNullWalk context prepared side (fuel + 1) expression
+
+/-- Both alternatives must reject a missing source before an OR expression
+can establish a non-null source. This is a syntactic optimizer property. -/
+theorem joinScalarNullWalk_or (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (fuel : Nat) (left right : Expr) :
+    joinScalarNullWalk context prepared side (fuel + 1) (.binary .or left right) =
+      (joinScalarNullWalk context prepared side fuel left &&
+        joinScalarNullWalk context prepared side fuel right) := rfl
+
+/-- Top-level WHERE conjuncts each suffice for the conservative non-null test;
+ON terms are never included by this function's caller. -/
+theorem joinScalarNullRejects_and (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (fuel : Nat) (left right : Expr) :
+    joinScalarNullRejects context prepared side (fuel + 1) (.binary .and left right) =
+      (joinScalarNullRejects context prepared side fuel left ||
+        joinScalarNullRejects context prepared side fuel right) := rfl
+
+def joinScalarProbesRowid (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let inspect := joinScalarProbesRowid context prepared side fuel
+      match expression with
+      | .collate arg _ => inspect arg
+      | .binary .and left right => inspect left || inspect right
+      | .binary .eq left right =>
+          let other := if side == .left then CoreJoin.Side.right else .left
+          let schema := if side == .left then context.leftSchema else context.rightSchema
+          let probes := fun column value =>
+            (joinScalarReference context prepared column).any (fun ref => ref.side == side && ref.column == schema.primaryKey) &&
+              joinScalarOnlySide context prepared other value
+          probes left right || probes right left
+      | _ => false
+
+/-- An equality lookup on a non-rowid inner column can use a transient index.
+Its rowid suffix is not treated as an ordered table scan by SQLite's planner. -/
+def joinScalarAutomaticProbe (context : JoinContext) (prepared : JoinScalarPrepared) : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let inspect := joinScalarAutomaticProbe context prepared fuel
+      match expression with
+      | .collate arg _ => inspect arg
+      | .binary .and left right => inspect left || inspect right
+      | .binary .eq left right =>
+          let probes := fun column value =>
+            (joinScalarReference context prepared column).any (fun ref =>
+              ref.side == .right && ref.column != context.rightSchema.primaryKey) &&
+              joinScalarOnlySide context prepared .left value
+          probes left right || probes right left
+      | _ => false
+
+/-- Only WHERE can remove an outer side. A condition that admits a missing
+source leaves that side's unmatched-row bookkeeping in place. -/
+def joinScalarReducedSource (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) : TableRef :=
+  { source with
+    leftJoin := source.leftJoin && !prepared.select.where_.any
+      (fun expr => joinScalarNullRejects context prepared .right expr.height expr)
+    rightJoin := source.rightJoin && !prepared.select.where_.any
+      (fun expr => joinScalarNullRejects context prepared .left expr.height expr) }
+
+theorem joinScalarReducedSource_no_new_outer (context : JoinContext)
+    (prepared : JoinScalarPrepared) (source : TableRef) :
+    ((joinScalarReducedSource context prepared source).leftJoin = true → source.leftJoin = true) ∧
+    ((joinScalarReducedSource context prepared source).rightJoin = true → source.rightJoin = true) := by
+  constructor <;> intro kept <;>
+    simp only [joinScalarReducedSource, Bool.and_eq_true] at kept <;> exact kept.1
+
 def joinScalarResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
-  let (leftSource, rightSource) ← match select.sources.toList with
+  let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
     | _ => unsupported "joined expression source count"
-  unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone && leftSource.joinOn.isNone do
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
     unsupported "joined expression sources"
   let leftName := resolveTableName state leftSource.name
-  let rightName := resolveTableName state rightSource.name
+  let rightName := resolveTableName state originalRight.name
   let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
-  let some right := state.database.findTable? rightName | throw s!"no such table: {rightSource.name}"
-  let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
   unless context.leftName != context.rightName do throw "ambiguous join source names"
-  let prepared ← joinScalarPrepare context select rightSource
-  let enabled ← if select.limit == some 0 then pure false
-    else prepared.context.constantMatches prepared.select.where_
-  let rows ← if enabled then joinScalarRowsM context prepared rightSource left.rows right.rows else pure []
-  joinScalarRun context prepared rows
+  let prepared ← joinScalarPrepare context select originalRight
+  let where_ := prepared.select.where_
+  let source := joinScalarReducedSource context prepared originalRight
+  let enabled ← if select.limit == some 0 then pure false else prepared.context.constantMatches where_
+  let (rows, ordered) ← if enabled then do
+      let leftTerms := if source.rightJoin then [] else
+        (where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+          (fun term => joinScalarOnlySide context prepared .left term && !prepared.context.constantExpression term)
+      let left ← left.rows.filterM fun row => do
+        let input := CoreJoin.projectRow (joinScalarInputs context) (row, CoreJoin.nullRow context.rightSchema.columns.length)
+        leftTerms.allM (fun term => prepared.context.matches input (some term))
+      let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+      let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+      let (on, _) := match originalRight.joinOn with
+        | none => (none, none)
+        | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+      let on ← on.mapM (joinScalarBind context)
+      let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
+      let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+      let exchanged := !source.leftJoin && !source.rightJoin && !source.crossJoin && probesLeft && !probesRight
+      let leadingLeft := !aggregate && !exchanged && terms.head?.any (fun term =>
+        (joinScalarReference context prepared term.expr).any
+          (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+      let reverse := leadingLeft && terms.head?.any (·.descending)
+      let automatic := on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
+      let ordered := leadingLeft && !source.rightJoin && (probesRight || !automatic) &&
+        terms.all (fun term => (joinScalarReference context prepared term.expr).any
+          (fun ref => ref.side == .left || ref.column == context.rightSchema.primaryKey))
+      let reverseRight := ordered && (terms.find? (fun term =>
+        (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .right))).any (·.descending)
+      let right := if reverseRight then right.rows.reverse else right.rows
+      let rows ← joinScalarRowsM context prepared source (if reverse then left.reverse else left) right
+      pure (rows, ordered)
+    else pure ([], false)
+  joinScalarRun context prepared rows ordered
 
 def executeJoinScalar (state : Core.State) (select : Select) : Except String SelectExecution :=
   (fun result => ⟨state, result.1, result.2⟩) <$> joinScalarResult state select
