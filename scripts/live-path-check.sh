@@ -744,6 +744,18 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# IGNORE classifies typed constraint conflicts, leaving ordinary errors intact.
+if grep -q 'CoreInsertIgnore.shouldInsert stored values' SQLeanite/CoreSQL.lean &&
+   grep -q 'if conflict == .ignore then ignoreInsertRows' SQLeanite/CoreSQL.lean &&
+   grep -q 'ignoreInsertRows state tableName stored.schema columns rows.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'unless expressions.all SQLite.Scalar.admitted' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreInsertIgnore.shouldInsert_no_conflict' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.executeIgnoredInsert_skips' SQLeanite/ProofAxioms.lean; then
+  ok "INSERT OR IGNORE keeps typed constraints separate from expression errors"
+else
+  fail "INSERT OR IGNORE is disconnected from checked conflict handling"
+fi
+
 # RETURNING binds the actual table name and materializes old row outputs
 # before Core commands can be published by either public file engine.
 if grep -q 'executeDeleteReturning state tableName alias stored where_ returning' SQLeanite/CoreSQL.lean &&

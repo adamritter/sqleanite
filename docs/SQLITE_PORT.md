@@ -2533,3 +2533,51 @@ Reports are `docs/validation/sqlite-delete-returning-20261025.json`,
 development reports. Harness: `scripts/run-delete-returning-differential.py`.
 INSERT/UPDATE RETURNING, RETURNING subqueries, triggers and virtual tables
 remain separate work. These results do not establish whole-SQLite equivalence.
+
+## INSERT OR IGNORE and discarded-input binding (2026-10-25)
+
+INSERT OR IGNORE now handles the admitted Core schema's NOT NULL, rowid,
+declared primary-key and explicit UNIQUE conflicts. Both VALUES and SELECT
+sources use `CoreInsertIgnore.shouldInsert` followed by the ordinary checked
+Core insertion. Constraint decisions use the current typed row and table,
+not exception-message matching. Each accepted row changes the table before
+checking the next; skipped rows retain the state and do not reserve a generated
+rowid. INTEGER PRIMARY KEY datatype errors, expression failures and physical
+value errors still fail the statement. The existing pure statement boundary
+keeps an error from publishing an already processed prefix.
+
+A generated development case exposed a pre-existing issue with repeated
+INSERT target names: their discarded values were not bound. `rowValues` now
+checks every input expression before selecting the first value assigned to a
+repeated target. Thus an unused unknown column/function or invalid function
+arity fails preparation, while an unused valid expression that would fail only
+at runtime is not evaluated. Zero-AND binding follows the existing Scalar
+preparation rules. This correction applies to ordinary INSERT as well.
+
+Two kernel-checked component theorems establish that an admitted insertion has
+no checked key conflict and that a skipped insertion preserves the exact Core
+state with zero changes. Existing INSERT/REPLACE refinement statements retain
+their premises and conclusions. No native binding was added or changed.
+
+Retained baseline: **66 differences / 114 executions**. Development seed
+354001: **16 differences / 364 executions**, all from discarded-input binding;
+these failures remain in `sqlite-ignore-insert-development-20261025.json`.
+Final-checkpoint seed 354002 uses 120 new generated INSERTs and fresh source
+fixtures: **954 public-file executions, zero differences**, including 522
+positive-error outcomes. The matrix includes page sizes 512/4096/65536, both
+file modes, within-statement conflicts, NULL uniqueness, numeric affinity,
+malformed TEXT, generated and signed-endpoint rowids, self-insertion, empty
+SELECTs and transaction rollback/commit. All scripts are observed independently
+with pinned SQLite for every table's type/hex values and integrity; rejected
+single statements retain their main/WAL byte images. Error comparison checks
+rejection, not exact messages/codes or partial outputs of preceding statements.
+
+Implementation SHA-256: `6add864d465a4813212b8210640e354bb3c441b8ddd8ba588bab86ebf2893e2b`. The matching report
+records a successful **296-job build, 221 executable tests**, both required
+audits and 61 accepted reverse-file cells with two declared unsupported cells.
+Reports: `docs/validation/sqlite-ignore-insert-20261025.json` and
+`sqlite-ignore-insert-checks-20261025.json`; harness:
+`scripts/run-ignore-insert-differential.py`. This checkpoint does not implement
+UPDATE IGNORE, FAIL/ROLLBACK conflict policies, schema CHECK/foreign-key/default
+constraints, nullable non-integer primary keys or the INT64_MAX random-rowid
+fallback. It is not a claim of full SQLite compatibility.

@@ -13,6 +13,7 @@ import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
 import SQLeanite.CoreGrouped
 import SQLeanite.CoreReturning
+import SQLeanite.CoreInsertIgnore
 import SQLeanite.SQLite.Values
 
 namespace SQLeanite
@@ -314,6 +315,9 @@ def groupOutputs (schema : Core.Schema) (groups : List Nat) :
 
 def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
     (expressions : Array Expr) : Except String (List Core.Value) := do
+  -- Repeated target names discard later values at runtime, but SQLite still
+  -- binds their expressions and functions before assigning input columns.
+  unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
   if expressions.isEmpty then
     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
     return List.replicate schema.columns.length .null
@@ -357,6 +361,30 @@ private def insertRows (state : Core.State) (table : String)
         if replacing then .replace table values else .insert table values
       let (next, result) ← Core.execute state command
       let (finalState, results) ← insertRows next table schema columns replacing rows
+      return (finalState, result :: results)
+
+def executeIgnoredInsert (state : Core.State) (table : String) (stored : Core.Table)
+    (values : List Core.Value) : Except String (Core.State × Core.Result) := do
+  if ← CoreInsertIgnore.shouldInsert stored values then Core.execute state (.insert table values)
+  else return (state, {})
+
+theorem executeIgnoredInsert_skips (state : Core.State) (table : String) (stored : Core.Table)
+    (values : List Core.Value) (skip : CoreInsertIgnore.shouldInsert stored values = .ok false) :
+    executeIgnoredInsert state table stored values = .ok (state, {}) := by
+  simp [executeIgnoredInsert, skip, bind, Except.bind, pure, Except.pure]
+
+/-- Recheck conflicts after each successful row. A skipped row contributes no
+change and does not reserve a rowid; ordinary expression failures still abort. -/
+def ignoreInsertRows (state : Core.State) (table : String) (schema : Core.Schema)
+    (columns : Option (Array String)) : List (Array Expr) → Except String (Core.State × List Core.Result)
+  | [] => .ok (state, [])
+  | expressions :: rows => do
+      let values ← rowValues schema columns expressions
+      let stored ← match state.database.findTable? table with
+        | some stored => pure stored
+        | none => throw s!"no such table: {table}"
+      let (next, result) ← executeIgnoredInsert state table stored values
+      let (finalState, results) ← ignoreInsertRows next table schema columns rows
       return (finalState, result :: results)
 
 theorem insertRows_singleton (state : Core.State) (table : String)
@@ -1769,7 +1797,7 @@ use the ordinary INSERT affinity, rowid and conflict-policy machinery. -/
 def executeInsertSelect (state : Core.State) (table : String)
     (columns : Option (Array String)) (query : Select) (conflict : ConflictAction) :
     Except String (Core.State × List Core.Result) := do
-  unless conflict == .default || conflict == .abort || conflict == .replace do
+  unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
     throw "unsupported general verified-MVP SQL: INSERT conflict policy"
   let tableName := canonical table
   let stored ← match state.database.findTable? tableName with
@@ -1778,7 +1806,8 @@ def executeInsertSelect (state : Core.State) (table : String)
   let selection ← executeSelect state query
   checkInsertSelectColumns stored.schema columns selection.width
   let rows ← selection.result.rows.mapM selectedRowExpressions
-  insertSelection state tableName stored columns (conflict == .replace) rows
+  if conflict == .ignore then ignoreInsertRows state tableName stored.schema columns rows
+  else insertSelection state tableName stored columns (conflict == .replace) rows
 
 theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
     (same : width = schema.visibleColumns.length) :
@@ -1877,13 +1906,15 @@ def executeStatement (state : Core.State) :
         executeCommand state (.createIndex tableName {
           name := canonical name, column := columnIndex, unique })
   | .insert table columns rows conflict => do
-      unless conflict == .default || conflict == .abort || conflict == .replace do
+      unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
         throw "unsupported general verified-MVP SQL: INSERT conflict policy"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      if conflict == .replace && stored.indexes.any (·.unique) then
+      if conflict == .ignore then
+        ignoreInsertRows state tableName stored.schema columns rows.toList
+      else if conflict == .replace && stored.indexes.any (·.unique) then
         replaceUniqueRows state tableName stored.schema columns rows.toList
       else
         insertRows state tableName stored.schema columns (conflict == .replace) rows.toList

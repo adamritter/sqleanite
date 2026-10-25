@@ -1,0 +1,3137 @@
+{
+  "seed": 354000,
+  "fixtures": 1,
+  "random_cases": 30,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'new',9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,'new',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,NULL,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES('bad',NULL,9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1.5,'x',9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('new',NULL),('next',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|null||null|\n4|text|6E657874|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,'skip',7),(9,'keep',9),(10,'skip',9),(11,'keep',11);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n9|text|6B656570|integer|39|null|\n11|text|6B656570|integer|3131|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES(NULL,9),('new',10);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,abs(-9223372036854775808),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,'skip',9),(9,abs(-9223372036854775808),10);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,v,u) VALUES('ok',abs(-9223372036854775808),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6F6B|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v,u FROM src;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|80FF|integer|39|null|\n4|text|62|integer|33|null|\n5|text|312E35|blob|31|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t SELECT * FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v,u FROM t ORDER BY id DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT 'a',9 UNION ALL SELECT 'b',9 UNION ALL SELECT 'c',10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|integer|39|null|\n4|text|63|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('a',9),('b',9) UNION ALL SELECT 'c',10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|integer|39|null|\n4|text|63|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v FROM src WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(missing) SELECT v FROM src WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: table t has no column named missing\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('x');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,'x',9,NULL,0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: table t has 4 columns but 5 values were supplied\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO keyed VALUES('a',3),('c',5),('a',6),(NULL,7);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n3|text|63|integer|35\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES(CAST(X'80FF' AS TEXT),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|80FF|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(9,'a',1.0),(10,'b','2'),(11,'c',X'31');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n11|text|63|blob|31|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nINSERT OR IGNORE INTO t(v,u) VALUES('new',9),('skip',9);\nROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nINSERT OR IGNORE INTO t(v,u) VALUES('new',9),('skip',9);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nINSERT INTO t(v,u) VALUES('new',9);\nINSERT OR IGNORE INTO t(v,u) VALUES(abs(-9223372036854775808),1);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,'a',9,NULL),(3,'b','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n4|text|61|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,1.5,X'31',NULL),(0,'a'||char(0)||'b',1,NULL),(9,X'00FF',NULL,NULL),(2,CAST(X'80FF' AS TEXT),2,NULL),(NULL,1.5,3,NULL),(NULL,'a','1',NULL),(3,'a',X'31',NULL),(2,CAST(X'80FF' AS TEXT),3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|blob|31|null|\n9|blob|00FF|null||null|\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,'a'||char(0)||'b',9,NULL),(-1,CAST(X'80FF' AS TEXT),NULL,NULL),(1,'a',2,NULL),(9,1.5,3,NULL),(0,'a'||char(0)||'b',1,NULL),(1,'a',1,NULL),(4,X'00FF',NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES('bad',X'00FF',1,NULL),(NULL,X'00FF',0,NULL),(4,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,1.5,3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(0,'a',0,NULL),(10,1.5,3,NULL),(1,'b',0,NULL),(-1,'b',1.0,NULL),(1,'a',2,NULL),(-1,'b','1',NULL),(0,'b',1.0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|61|integer|30|null|\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(-1,CAST(X'80FF' AS TEXT),2,NULL),(3,CAST(X'80FF' AS TEXT),X'31',NULL),(1.25,NULL,'1',NULL),(0,CAST(X'80FF' AS TEXT),1,NULL),(1,1.5,1,NULL),(2,'b','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'a'||char(0)||'b',NULL,NULL),(4,'b',2,NULL),(9,'b','1',NULL),(2,X'00FF',2,NULL),(3,X'00FF',2,NULL),(NULL,1.5,2,NULL),(3,NULL,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'a'||char(0)||'b',NULL,NULL),(2,CAST(X'80FF' AS TEXT),NULL,NULL),(3,'b','1',NULL),(3,NULL,9,NULL),(NULL,CAST(X'80FF' AS TEXT),0,NULL),(2,'b',X'31',NULL),(1,1.5,'1',NULL),(4,'a'||char(0)||'b',3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n4|text|610062|integer|33|null|\n10|text|610062|null||null|\n11|text|80FF|integer|30|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,'a'||char(0)||'b',NULL,NULL),(3,CAST(X'80FF' AS TEXT),NULL,NULL),(1,'a',NULL,NULL),(10,'a',1.0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'b',NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|62|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'b',2,NULL),(10,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES('bad',1.5,X'31',NULL),(9,NULL,3,NULL),(0,1.5,2,NULL),(0,CAST(X'80FF' AS TEXT),3,NULL),(1,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(3,'a',1.0,NULL),(2,'a'||char(0)||'b',2,NULL),(10,CAST(X'80FF' AS TEXT),1.0,NULL),(3,X'00FF','1',NULL),(NULL,X'00FF',NULL,NULL),(3,CAST(X'80FF' AS TEXT),0,NULL),(9,NULL,NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|blob|00FF|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,1.5,1.0,NULL),(0,'a','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,1.5,1,NULL),(3,'a',9,NULL),(NULL,NULL,1.0,NULL),(2,1.5,2,NULL),(9,CAST(X'80FF' AS TEXT),'1',NULL),(0,'a',1,NULL),(1.25,'a'||char(0)||'b',1,NULL),(1.25,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(-1,'a'||char(0)||'b',2,NULL),(9,'a',1.0,NULL),(3,'b',3,NULL),(1,'b',2,NULL),(NULL,NULL,1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|62|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,CAST(X'80FF' AS TEXT),0,NULL),(0,NULL,0,NULL),('bad',X'00FF',X'31',NULL),(9,'b',9,NULL),(4,1.5,'1',NULL),(0,CAST(X'80FF' AS TEXT),'1',NULL),(1,'a',1,NULL),(9,X'00FF','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(2,'a','1',NULL),(10,CAST(X'80FF' AS TEXT),'1',NULL),(9,'a'||char(0)||'b','1',NULL),(1.25,'a',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'a',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|61|integer|30|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(3,CAST(X'80FF' AS TEXT),2,NULL),(-1,1.5,X'31',NULL),(1.25,'a',3,NULL),(NULL,'a'||char(0)||'b','1',NULL),(NULL,1.5,NULL,NULL),(1.25,X'00FF',3,NULL),(10,'a'||char(0)||'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,CAST(X'80FF' AS TEXT),2,NULL),(0,'b',3,NULL),(1.25,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(0,X'00FF','1',NULL),(9,NULL,'1',NULL),(1,X'00FF',1,NULL),(NULL,'a',0,NULL),(1.25,X'00FF',1.0,NULL),(-1,1.5,1.0,NULL),('bad','b',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(2,1.5,1,NULL),(-1,NULL,2,NULL),(3,'a'||char(0)||'b',9,NULL),(10,CAST(X'80FF' AS TEXT),3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|610062|integer|39|null|\n10|text|80FF|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(NULL,'a'||char(0)||'b',NULL,NULL),(1,'a',0,NULL),(4,CAST(X'80FF' AS TEXT),1.0,NULL),(9,1.5,NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|610062|null||null|\n9|text|312E35|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,NULL,'1',NULL),(1,CAST(X'80FF' AS TEXT),1.0,NULL),(4,CAST(X'80FF' AS TEXT),X'31',NULL),(1,1.5,1,NULL),(-1,'b',X'31',NULL),(0,X'00FF',X'31',NULL),(1.25,'a',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,X'00FF',9,NULL),(NULL,X'00FF',NULL,NULL),(1,'b',0,NULL),(2,1.5,X'31',NULL),('bad','a',9,NULL),(4,'a'||char(0)||'b',NULL,NULL),(1.25,'b',X'31',NULL),(1,'a'||char(0)||'b',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,CAST(X'80FF' AS TEXT),1.0,NULL),(3,X'00FF',9,NULL),('bad',NULL,NULL,NULL),(0,NULL,9,NULL),(10,1.5,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(NULL,X'00FF',3,NULL),(1.25,'b',1,NULL),('bad',NULL,NULL,NULL),(NULL,NULL,0,NULL),(9,CAST(X'80FF' AS TEXT),2,NULL),(-1,'a'||char(0)||'b',3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'new',9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,'new',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,NULL,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES('bad',NULL,9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1.5,'x',9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('new',NULL),('next',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|null||null|\n4|text|6E657874|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,'skip',7),(9,'keep',9),(10,'skip',9),(11,'keep',11);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n9|text|6B656570|integer|39|null|\n11|text|6B656570|integer|3131|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES(NULL,9),('new',10);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,abs(-9223372036854775808),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(1,'skip',9),(9,abs(-9223372036854775808),10);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,v,u) VALUES('ok',abs(-9223372036854775808),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6F6B|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v,u FROM src;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|80FF|integer|39|null|\n4|text|62|integer|33|null|\n5|text|312E35|blob|31|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t SELECT * FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v,u FROM t ORDER BY id DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT 'a',9 UNION ALL SELECT 'b',9 UNION ALL SELECT 'c',10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|integer|39|null|\n4|text|63|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('a',9),('b',9) UNION ALL SELECT 'c',10;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|integer|39|null|\n4|text|63|integer|3130|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) SELECT v FROM src WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(missing) SELECT v FROM src WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: table t has no column named missing\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES('x');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,'x',9,NULL,0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: table t has 4 columns but 5 values were supplied\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO keyed VALUES('a',3),('c',5),('a',6),(NULL,7);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n3|text|63|integer|35\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(v,u) VALUES(CAST(X'80FF' AS TEXT),9);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|80FF|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t(id,v,u) VALUES(9,'a',1.0),(10,'b','2'),(11,'c',X'31');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n11|text|63|blob|31|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nINSERT OR IGNORE INTO t(v,u) VALUES('new',9),('skip',9);\nROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nINSERT OR IGNORE INTO t(v,u) VALUES('new',9),('skip',9);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|6E6577|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nINSERT INTO t(v,u) VALUES('new',9);\nINSERT OR IGNORE INTO t(v,u) VALUES(abs(-9223372036854775808),1);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,'a',9,NULL),(3,'b','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n4|text|61|integer|39|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,1.5,X'31',NULL),(0,'a'||char(0)||'b',1,NULL),(9,X'00FF',NULL,NULL),(2,CAST(X'80FF' AS TEXT),2,NULL),(NULL,1.5,3,NULL),(NULL,'a','1',NULL),(3,'a',X'31',NULL),(2,CAST(X'80FF' AS TEXT),3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|61|blob|31|null|\n9|blob|00FF|null||null|\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,'a'||char(0)||'b',9,NULL),(-1,CAST(X'80FF' AS TEXT),NULL,NULL),(1,'a',2,NULL),(9,1.5,3,NULL),(0,'a'||char(0)||'b',1,NULL),(1,'a',1,NULL),(4,X'00FF',NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES('bad',X'00FF',1,NULL),(NULL,X'00FF',0,NULL),(4,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,1.5,3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(0,'a',0,NULL),(10,1.5,3,NULL),(1,'b',0,NULL),(-1,'b',1.0,NULL),(1,'a',2,NULL),(-1,'b','1',NULL),(0,'b',1.0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|61|integer|30|null|\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|312E35|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(-1,CAST(X'80FF' AS TEXT),2,NULL),(3,CAST(X'80FF' AS TEXT),X'31',NULL),(1.25,NULL,'1',NULL),(0,CAST(X'80FF' AS TEXT),1,NULL),(1,1.5,1,NULL),(2,'b','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'a'||char(0)||'b',NULL,NULL),(4,'b',2,NULL),(9,'b','1',NULL),(2,X'00FF',2,NULL),(3,X'00FF',2,NULL),(NULL,1.5,2,NULL),(3,NULL,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'a'||char(0)||'b',NULL,NULL),(2,CAST(X'80FF' AS TEXT),NULL,NULL),(3,'b','1',NULL),(3,NULL,9,NULL),(NULL,CAST(X'80FF' AS TEXT),0,NULL),(2,'b',X'31',NULL),(1,1.5,'1',NULL),(4,'a'||char(0)||'b',3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n4|text|610062|integer|33|null|\n10|text|610062|null||null|\n11|text|80FF|integer|30|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,'a'||char(0)||'b',NULL,NULL),(3,CAST(X'80FF' AS TEXT),NULL,NULL),(1,'a',NULL,NULL),(10,'a',1.0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'b',NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|62|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,'b',2,NULL),(10,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES('bad',1.5,X'31',NULL),(9,NULL,3,NULL),(0,1.5,2,NULL),(0,CAST(X'80FF' AS TEXT),3,NULL),(1,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(3,'a',1.0,NULL),(2,'a'||char(0)||'b',2,NULL),(10,CAST(X'80FF' AS TEXT),1.0,NULL),(3,X'00FF','1',NULL),(NULL,X'00FF',NULL,NULL),(3,CAST(X'80FF' AS TEXT),0,NULL),(9,NULL,NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|blob|00FF|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1,1.5,1.0,NULL),(0,'a','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,1.5,1,NULL),(3,'a',9,NULL),(NULL,NULL,1.0,NULL),(2,1.5,2,NULL),(9,CAST(X'80FF' AS TEXT),'1',NULL),(0,'a',1,NULL),(1.25,'a'||char(0)||'b',1,NULL),(1.25,'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(-1,'a'||char(0)||'b',2,NULL),(9,'a',1.0,NULL),(3,'b',3,NULL),(1,'b',2,NULL),(NULL,NULL,1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|62|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(1.25,CAST(X'80FF' AS TEXT),0,NULL),(0,NULL,0,NULL),('bad',X'00FF',X'31',NULL),(9,'b',9,NULL),(4,1.5,'1',NULL),(0,CAST(X'80FF' AS TEXT),'1',NULL),(1,'a',1,NULL),(9,X'00FF','1',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(2,'a','1',NULL),(10,CAST(X'80FF' AS TEXT),'1',NULL),(9,'a'||char(0)||'b','1',NULL),(1.25,'a',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(10,'a',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n10|text|61|integer|30|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(3,CAST(X'80FF' AS TEXT),2,NULL),(-1,1.5,X'31',NULL),(1.25,'a',3,NULL),(NULL,'a'||char(0)||'b','1',NULL),(NULL,1.5,NULL,NULL),(1.25,X'00FF',3,NULL),(10,'a'||char(0)||'b',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,CAST(X'80FF' AS TEXT),2,NULL),(0,'b',3,NULL),(1.25,'a',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(0,X'00FF','1',NULL),(9,NULL,'1',NULL),(1,X'00FF',1,NULL),(NULL,'a',0,NULL),(1.25,X'00FF',1.0,NULL),(-1,1.5,1.0,NULL),('bad','b',0,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(2,1.5,1,NULL),(-1,NULL,2,NULL),(3,'a'||char(0)||'b',9,NULL),(10,CAST(X'80FF' AS TEXT),3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|610062|integer|39|null|\n10|text|80FF|integer|33|null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(NULL,'a'||char(0)||'b',NULL,NULL),(1,'a',0,NULL),(4,CAST(X'80FF' AS TEXT),1.0,NULL),(9,1.5,NULL,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n3|text|610062|null||null|\n9|text|312E35|null||null|\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(9,NULL,'1',NULL),(1,CAST(X'80FF' AS TEXT),1.0,NULL),(4,CAST(X'80FF' AS TEXT),X'31',NULL),(1,1.5,1,NULL),(-1,'b',X'31',NULL),(0,X'00FF',X'31',NULL),(1.25,'a',X'31',NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,X'00FF',9,NULL),(NULL,X'00FF',NULL,NULL),(1,'b',0,NULL),(2,1.5,X'31',NULL),('bad','a',9,NULL),(4,'a'||char(0)||'b',NULL,NULL),(1.25,'b',X'31',NULL),(1,'a'||char(0)||'b',1,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(4,CAST(X'80FF' AS TEXT),1.0,NULL),(3,X'00FF',9,NULL),('bad',NULL,NULL,NULL),(0,NULL,9,NULL),(10,1.5,9,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR IGNORE INTO t VALUES(NULL,X'00FF',3,NULL),(1.25,'b',1,NULL),('bad',NULL,NULL,NULL),(NULL,NULL,0,NULL),(9,CAST(X'80FF' AS TEXT),2,NULL),(-1,'a'||char(0)||'b',3,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT conflict policy\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: datatype mismatch\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|61|integer|31|null|\n2|text|62|integer|32|real|332E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|610062|integer|32\n2|text|80FF|integer|39\n3|text|610062|text|31\n4|text|62|real|312E30\n5|text|62|integer|33\n6|blob|00FF|real|312E30\n7|real|312E35|blob|31\n8|blob|00FF|real|312E30\n9|text|610062|integer|32\n10|null||real|312E30\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    }
+  ],
+  "failures": 66,
+  "implementation_sha256": "14b4f2a548a59acc951a24946239c4b02cb55e21b4f6690aff75eaae5ef04b0a",
+  "executable_sha256": "79c93b798bbb02a8d9f04c6c1227d6141a5242703782eb12716b57747c521e60",
+  "harness_sha256": "00a59c57146f85e4018833f3a9028bdd51a7d297a71afb1c746e08d4355cbfd9",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "INSERT OR IGNORE public-file differential against pinned SQLite.\n\nCompare successful output bytes, positive errors, and independently observed\nstored rows, storage classes, and integrity after every script. Failed single\nstatements must retain main/WAL bytes. Large successful captures are stored\nas byte counts, SHA-256 and previews after full-byte comparison. Failures keep\nfull captures. This is not full SQLite equivalence."
+}

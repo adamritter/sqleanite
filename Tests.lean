@@ -4597,6 +4597,39 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteInsertIgnore : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "INSERT INTO t VALUES(1,'a',1),(3,'c',3);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let sql := "INSERT OR IGNORE INTO t VALUES(1,'skip',9),(NULL,NULL,9),(NULL,'d',4),(5,'skip',4),(NULL,'e',5);"
+  let (state, results) ← match CoreSQL.execute initial sql with
+    | .ok result => pure result
+    | .error message => fail s!"INSERT OR IGNORE: {message}"
+  unless (results.map (·.changes)).sum == 2 do fail "INSERT OR IGNORE change count"
+  let (_, selected) ← match CoreSQL.execute state "SELECT id,v FROM t ORDER BY id;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected : List (List Value) := [[.integer 1, .text "a"], [.integer 3, .text "c"],
+    [.integer 4, .text "d"], [.integer 5, .text "e"]]
+  let expected ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (selected.getLast?).map (·.rows) == some expected do fail "INSERT OR IGNORE row allocation"
+  for sql in ["INSERT OR IGNORE INTO t VALUES('bad',NULL,9);",
+      "INSERT OR IGNORE INTO t VALUES(1,abs(-9223372036854775808),1);",
+      "INSERT OR IGNORE INTO t VALUES(1.5,'x',9);", "INSERT OR IGNORE INTO t VALUES(9,'x');",
+      "INSERT OR IGNORE INTO t(v,v,u) VALUES('ok',no_function(),9);",
+      "INSERT OR IGNORE INTO t(v,v,u) VALUES('ok',missing,9);",
+      "INSERT OR IGNORE INTO t(v,v,u) VALUES('ok',0 AND no_function(),9);"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"INSERT OR IGNORE swallowed a non-constraint error: {sql}"
+  let (copied, results) ← match CoreSQL.execute initial "INSERT OR IGNORE INTO t SELECT * FROM t;" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (results.map (·.changes)).sum == 0 && copied.database.tables.length == initial.database.tables.length do
+    fail "INSERT OR IGNORE SELECT duplicate rows"
+
 private def expectSQLiteDeleteReturning : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(3,'c'),(1,'a'),(2,'b');"
   let cases : List (String × List (List Value)) := [
@@ -5861,6 +5894,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite INSERT OR IGNORE constraints and row allocation", expectSQLiteInsertIgnore),
   ("SQLite DELETE RETURNING old values and atomic errors", expectSQLiteDeleteReturning),
   ("SQLite VALUES queries, compound windows and metadata checking", expectSQLiteValuesQuery),
   ("SQLite INSERT SELECT snapshots, affinity and empty sources", expectSQLiteInsertSelect),

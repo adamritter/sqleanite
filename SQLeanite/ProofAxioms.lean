@@ -1248,3 +1248,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Values.directCount_le_length
 
 #print axioms SQLeanite.CoreReturning.deletionOutput_length
+
+#print axioms SQLeanite.CoreInsertIgnore.shouldInsert_no_conflict
+#print axioms SQLeanite.CoreSQL.executeIgnoredInsert_skips
