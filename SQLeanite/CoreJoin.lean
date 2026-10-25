@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Collation
 import SQLeanite.SQLite.PhysicalAffinity
 import SQLeanite.Core
 import SQLeanite.CoreDistinct
@@ -640,13 +641,47 @@ theorem distinctRows_key_nodup (columns : List ColumnRef) (rows : List JoinedRow
     ((distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row))).Nodup :=
   Core.stableDistinctBy_key_nodup _ _
 
+structure OrderTerm where
+  reference : ColumnRef
+  descending : Bool := false
+  nullsFirst : Option Bool := none
+  collation : SQLite.Collation.Kind := .binary
+
+def OrderTerm.compareValues (term : OrderTerm) (left right : Core.Value) : Ordering :=
+  match left, right with
+  | .null, .null => .eq
+  | .null, _ => if term.nullsFirst.getD (!term.descending) then .lt else .gt
+  | _, .null => if term.nullsFirst.getD (!term.descending) then .gt else .lt
+  | _, _ =>
+      if term.descending then SQLite.Collation.compareValue term.collation right left
+      else SQLite.Collation.compareValue term.collation left right
+
+theorem OrderTerm.compareValues_null_left (term : OrderTerm) (right : Core.Value)
+    (present : right ≠ .null) : term.compareValues .null right =
+      if term.nullsFirst.getD (!term.descending) then .lt else .gt := by
+  cases right <;> simp_all [OrderTerm.compareValues]
+
+theorem OrderTerm.compareValues_null_right (term : OrderTerm) (left : Core.Value)
+    (present : left ≠ .null) : term.compareValues left .null =
+      if term.nullsFirst.getD (!term.descending) then .gt else .lt := by
+  cases left <;> simp_all [OrderTerm.compareValues]
+
+def orderedRowLess : List OrderTerm → JoinedRow → JoinedRow → Bool
+  | [], _, _ => false
+  | term :: terms, left, right =>
+      let order := term.compareValues (term.reference.value left) (term.reference.value right)
+      if order == .eq then orderedRowLess terms left right else order == .lt
+
+def orderedRowLe (terms : List OrderTerm) (left right : JoinedRow) : Bool :=
+  !orderedRowLess terms right left
+
 structure Query where
   columns : List ColumnRef
   on : Option Predicate
   kind : JoinKind := .inner
   rightWidth : Nat := 0
   where_ : Option Predicate := none
-  orderBy : List (ColumnRef × Bool) := []
+  orderBy : List OrderTerm := []
   limit : Option Nat := none
   offset : Nat := 0
   distinct : Bool := false
@@ -659,13 +694,13 @@ def rowLe (terms : List (ColumnRef × Bool)) (left right : JoinedRow) : Bool :=
 
 def Query.orderedRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
   if query.orderBy.isEmpty then rows
-  else rows.mergeSort (rowLe query.orderBy)
+  else rows.mergeSort (orderedRowLe query.orderBy)
 
 theorem Query.orderedRows_perm (query : Query) (rows : List JoinedRow) :
     (query.orderedRows rows).Perm rows := by
   by_cases empty : query.orderBy.isEmpty
   · simp [Query.orderedRows, empty]
-  · simpa [Query.orderedRows, empty] using List.mergeSort_perm rows (rowLe query.orderBy)
+  · simpa [Query.orderedRows, empty] using List.mergeSort_perm rows (orderedRowLe query.orderBy)
 
 /-- DISTINCT chooses its original representative in physical scan order.
 The SQL translator supplies a rowid traversal order when ORDER BY is satisfied

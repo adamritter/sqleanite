@@ -7041,6 +7041,44 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinSort : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,NULL),(2,'A'),(3,'a '),(4,'a');INSERT INTO r VALUES(1,'a'),(2,NULL),(3,'B');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.k COLLATE nocase ASC NULLS LAST,a.id;",
+      [[.integer 2,.integer 2],[.integer 4,.null],[.integer 3,.integer 3],[.integer 1,.integer 1]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.k COLLATE rtrim ASC NULLS FIRST,a.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2],[.integer 3,.integer 3],[.integer 4,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.k COLLATE nocase DESC NULLS FIRST,a.id;",
+      [[.integer 1,.integer 1],[.integer 3,.integer 3],[.integer 2,.integer 2],[.integer 4,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY b.k DESC NULLS FIRST,a.id;",
+      [[.integer 2,.integer 2],[.integer 4,.null],[.integer 1,.integer 1],[.integer 3,.integer 3]]),
+    ("SELECT a.id AS seq,b.k AS z FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY z COLLATE nocase ASC NULLS LAST,seq;",
+      [[.integer 1,.text "a"],[.integer 3,.text "B"],[.integer 2,.null],[.integer 4,.null]]),
+    ("SELECT a.id,a.k FROM l a JOIN r b ON a.id=b.id ORDER BY 2 COLLATE nocase DESC NULLS LAST,1;",
+      [[.integer 3,.text "a "],[.integer 2,.text "A"],[.integer 1,.null]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join NULL/collation sort: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"join NULL/collation ordering rows: {sql}"
+  for term in ["a.k", "NULL", "true", "1"] do
+    if (CoreSQL.execute Core.State.empty
+        (setup ++ s!"SELECT a.id FROM l a,r b ORDER BY {term} COLLATE missing LIMIT 0;")).isOk then
+      fail "join ordering dropped an unknown collation"
+  let parsed ← match CoreTokenGrammar.parseCertified
+      "SELECT a.id FROM l a,r b ORDER BY a.k COLLATE nocase NULLS LAST;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "join sort AST missing"
+  let some term := query.orderBy[0]? | fail "join order term missing"
+  if (CoreTokenGrammar.check parsed.tokens #[.select { query with
+      orderBy := query.orderBy.set! 0 { term with nullsFirst := some true } }]).isOk then
+    fail "join token replay accepted changed NULL placement"
+
 private def expectSQLiteJoinOrder : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'b'),(2,'a');INSERT INTO r VALUES(1,'c'),(2,'d');"
   let cases : List (String × List (List Value)) := [
@@ -7731,6 +7769,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite join NULL placement and collations", expectSQLiteJoinSort),
   ("SQLite join ORDER BY names and positions", expectSQLiteJoinOrder),
   ("SQLite join DISTINCT and LIMIT/OFFSET", expectSQLiteJoinWindow),
   ("SQLite USING/NATURAL merged columns and CTAS", expectSQLiteJoinUsing),

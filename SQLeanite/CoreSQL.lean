@@ -1439,7 +1439,7 @@ def joinOrderConstant : Expr → Bool
 def joinOrderReference (context : JoinContext)
     (columns : List (CoreJoin.ColumnRef × Option String)) (expression : Expr) :
     Except String (Option CoreJoin.ColumnRef) := do
-  let expression := SQLite.Scalar.prepare expression
+  let expression := SQLite.Scalar.prepare (CoreOrder.keyExpression expression)
   if let some name := CoreOrder.bareName? expression then
     if let some output := columns.find? (fun output => output.2.any (fun alias => canonical alias == canonical name)) then
       return some output.1
@@ -1462,17 +1462,20 @@ def joinOrderReference (context : JoinContext)
 
 def joinOrderBy (context : JoinContext)
     (columns : List (CoreJoin.ColumnRef × Option String)) : List OrderTerm →
-    Except String (List (CoreJoin.ColumnRef × Bool))
+    Except String (List CoreJoin.OrderTerm)
   | [] => .ok []
   | term :: terms => do
+      let specification ← CoreOrder.specification term
       let reference ← joinOrderReference context columns term.expr
       let rest ← joinOrderBy context columns terms
       match reference with
       | none => return rest
       | some reference =>
-          unless term.nullsFirst.all (· == !term.descending) do
-            unsupported "non-default join NULL ordering"
-          return (reference, term.descending) :: rest
+          return {
+            reference
+            descending := specification.descending
+            nullsFirst := some specification.nullsFirst
+            collation := specification.collation } :: rest
 
 /-- A rowid equality conjunct makes each surviving pair unique on either
 side. It can satisfy later ORDER terms without an inner table sort. -/
@@ -1597,7 +1600,8 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     distinctScanOrder := joinDistinctScanOrder leftSchema rightSchema
       (!rightSource.leftJoin && !rightSource.crossJoin)
       (on.any (joinHasRowidEquality leftSchema rightSchema) ||
-        where_.any (joinHasRowidEquality leftSchema rightSchema)) orderBy }
+        where_.any (joinHasRowidEquality leftSchema rightSchema))
+      (orderBy.map (fun term => (term.reference, term.descending))) }
 
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do

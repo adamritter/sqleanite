@@ -1413,3 +1413,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Query.distinctInputRows_perm
 
 #print axioms SQLeanite.CoreSQL.joinOrderColumns_projection
+
+#print axioms SQLeanite.CoreJoin.OrderTerm.compareValues_null_left
+#print axioms SQLeanite.CoreJoin.OrderTerm.compareValues_null_right

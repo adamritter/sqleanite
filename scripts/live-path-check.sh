@@ -2079,4 +2079,16 @@ else
   status=1
 fi
 
+if rg -q 'let specification ← CoreOrder.specification term' SQLeanite/CoreSQL.lean &&
+   rg -q 'CoreOrder.keyExpression expression' SQLeanite/CoreSQL.lean &&
+   rg -q 'nullsFirst := some specification.nullsFirst' SQLeanite/CoreSQL.lean &&
+   rg -q 'collation := specification.collation' SQLeanite/CoreSQL.lean &&
+   rg -q 'orderedRowLe query.orderBy' SQLeanite/CoreJoin.lean &&
+   rg -q 'SQLite.Collation.compareValue term.collation' SQLeanite/CoreJoin.lean; then
+  echo 'ok - join ordering carries explicit NULL placement and collation into the stable sorter'
+else
+  echo 'FAIL - join NULL/collation ordering live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

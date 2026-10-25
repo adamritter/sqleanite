@@ -4471,3 +4471,42 @@ join ordering collations and general scalar sort expressions remain separate
 work. Native bindings are unchanged. Reports: `sqlite-join-order-*20261025.json`;
 harnesses: `scripts/run-join-order-differential.py` and
 `scripts/run-join-order-write-differential.py`.
+
+
+## Joined NULL placement and ordering collations (2026-10-25)
+
+Join sort terms now carry a column reference, direction, optional NULL placement
+and BINARY/NOCASE/RTRIM collation. NULL placement is applied independently of
+direction; non-NULL comparison reuses the existing pure byte/numeric collation
+implementation. The stable sorter uses these terms, while physical scan-order
+metadata remains separate for DISTINCT representative selection. Aliases and
+ordinals resolve through the existing expanded projection after ordering
+COLLATE wrappers are interpreted. Unknown collations are validated even for
+constant sort terms and zero LIMIT. CTAS schema no-ops still defer semantic
+validation until after the existing-table decision.
+
+Baseline seed **354400** records **5,900 comparisons / 4,060 differences**.
+Development seed **354401** passes **9,042 / 0**. Final-checkpoint fresh seed
+**354402** passes **24,624 / 0**, plus 16 immutable-image/integrity checks.
+Eight C-created fixtures cover empty and nonempty joins, three page sizes,
+both file modes, mixed numeric/text/BLOB/NULL data, case and trailing-space
+comparisons, embedded NUL text, both directions, all NULL-placement forms,
+quoted/nested/unknown collations, aliases, ordinals, DISTINCT and windows.
+Complete successful CLI bytes and error status are compared, with independent
+typed C observations and immutable main/WAL images. Large passing captures are
+hashed only after full comparison; failing captures are retained whole.
+Persisted CTAS seed **354403** passes **840 / 0**, including C metadata/typed-row/
+integrity observations, C follow-up writes and Lean reopening. ORDER BY name/
+position regression seed **354404** passes **9,464 / 0**, plus eight image checks.
+
+Implementation SHA-256: `ba090f3219ae89f538c381287f7dbd26832d82105199584e5870d6117ab83570`.
+Final checks pass **350 build jobs, 262 executable tests, 1,221 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The two new propositions specify NULL placement against a present
+value in both operand orders. Existing sort-permutation and join/read/optimizer
+refinements compile with the extended sort terms. These are component claims,
+not a full SQLite collation or SQL equivalence proof. Projection/comparison
+collations, general scalar join expressions and wider join forms remain separate
+work. Native bindings are unchanged. Reports: `sqlite-join-sort-*20261025.json`;
+harnesses: `scripts/run-join-sort-differential.py` and
+`scripts/run-join-sort-write-differential.py`.
