@@ -5225,7 +5225,7 @@ star ordering and previously recorded planner/file/WAL gaps remain. Reports:
 `scripts/run-join-alias-differential.py`.
 
 
-## Joined compound result binding: development checkpoint (2026-10-25)
+## Joined compound result binding (2026-10-25)
 
 Compound ORDER BY now binds joined source references to explicit internal
 identities and expands stars in the same order as the live join projection.
@@ -5241,8 +5241,14 @@ rejected successful statements, 148 accepted C errors and 48 wrong successful
 outputs. Expanded development seed **354571** passes **15,552 / 0**, including
 empty inputs, stars mixed with expressions, later-arm aliases, quoted source
 names, all four compound operations, CTAS/INSERT SELECT and invalid widths,
-positions and collations. This is a development checkpoint; the larger fresh
-final-checkpoint comparison is still running and is not yet reported as passed.
+positions and collations. Final-checkpoint fresh seed **354572** passes
+**31,744 / 0**, with eight fixtures covering all six declared affinity classes,
+empty inputs, three page sizes and both file modes. Fixed controls are mixed
+with newly seeded data/query combinations; the corpus is not entirely unseen.
+The combined harness compares successful stdout, error status, independent C
+catalog/typed-row/integrity observations, subsequent C writes, Lean reopening
+and main/WAL immutability whenever C leaves those bytes unchanged. Its both-error
+branch does not compare partial stdout or error text.
 
 A separate strict replay of all **1,600 baseline read-only failures passes
 1,600 / 0**, rerunning both engines and comparing stdout even on errors, main/WAL
@@ -5265,3 +5271,10 @@ Implementation SHA-256:
 Reports: `sqlite-join-compound-*20261025.json`; combined harness:
 `scripts/run-join-compound-differential.py`. This checkpoint does not establish
 full SQLite SQL/file/WAL equivalence.
+
+The complete fresh report exceeds GitHub's single-file size limit as plain JSON.
+It is retained without filtering as
+`sqlite-join-compound-fresh-20261025.json.gz`; the accompanying
+`sqlite-join-compound-fresh-20261025-summary.json` records exact compressed and
+uncompressed hashes, sizes, case count and executable/harness/source identities.
+The archived bytes were decompressed and checked against the original report.

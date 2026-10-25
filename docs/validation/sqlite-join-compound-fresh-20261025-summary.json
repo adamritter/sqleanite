@@ -1,0 +1,18 @@
+{
+  "seed": 354572,
+  "fixtures": 8,
+  "random_cases": 64,
+  "failures": 0,
+  "implementation_sha256": "e41adcbc93954901cca1934f0fb2ffbbdc4b5bd83770a25775a5b806ef01eeba",
+  "executable_sha256": "3b16a0da1be9c77ad7c0085c7d8237002072621c3ec260221ee0968b2e03a03d",
+  "harness_sha256": "a9f53924bec2fbb4f3f695a088ed83936532264344d7f42ae84a619873524e92",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare joined compound result slots and ORDER BY source/name binding.\n\nCompare complete successful output, error status, independent C catalog/pragma/\ntyped-row/integrity observations, follow-up C writes and Lean reopening in both\nfile modes. Main/WAL bytes must stay unchanged whenever C leaves them unchanged.\nStars, USING/NATURAL, merged outer columns, expression identity, aliases, set operations and writes are checked. Every mismatch is retained.",
+  "case_count": 31744,
+  "artifact": "sqlite-join-compound-fresh-20261025.json.gz",
+  "artifact_format": "gzip-compressed complete JSON report; no cases removed",
+  "uncompressed_bytes": 136969338,
+  "uncompressed_sha256": "e3547a0d8709bd24b4154d3c53147f2cb939e9c2aa4607cb63072dfb6ab77430",
+  "compressed_bytes": 1433212,
+  "compressed_sha256": "2b0a55fdadf58a6228b15a090f870bf29bac046a41ceab347d85fc79b471626e"
+}
