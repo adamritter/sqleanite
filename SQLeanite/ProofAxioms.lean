@@ -1233,3 +1233,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.HeaderVersion.unknown_read
 #print axioms SQLeanite.SQLite.HeaderVersion.unknown_write
 #print axioms SQLeanite.SQLite.HeaderVersion.schema_low_byte
+
+#print axioms SQLeanite.CoreSchemaDrop.table_exact
+#print axioms SQLeanite.CoreSchemaDrop.table_member
+#print axioms SQLeanite.CoreSchemaDrop.index_exact
+#print axioms SQLeanite.CoreSQL.executeStatement_dropTable_noop
+#print axioms SQLeanite.CoreSQL.executeStatement_dropIndex_noop

@@ -4597,6 +4597,36 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteDrop : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE INDEX tv ON t(v);" ++
+    "CREATE TABLE k(id TEXT PRIMARY KEY,v);INSERT INTO t VALUES(1,7),(2,8);" ++
+    "INSERT INTO k VALUES('a',9);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"DROP seed: {message}"
+  let apply := fun sql => do
+    match CoreSQL.execute initial sql with
+    | .ok (state, _) => pure state
+    | .error message => fail s!"DROP execution: {sql}: {message}"
+  let dropped ← apply "DROP TABLE t;"
+  unless (dropped.database.findTable? "t").isNone && (dropped.database.findTable? "k").isSome do
+    fail "DROP TABLE changed the wrong tables"
+  let withoutIndex ← apply "DROP INDEX tv;"
+  let some kept := withoutIndex.database.findTable? "t" | fail "DROP INDEX removed its table"
+  unless kept.indexes.isEmpty && kept.rows.length == 2 do fail "DROP INDEX lost rows or retained metadata"
+  let rolledBack ← apply "BEGIN;DROP INDEX tv;DROP TABLE k;ROLLBACK;"
+  unless rolledBack.database.contents == initial.database.contents do fail "DROP rollback lost schema or rows"
+  let noops ← apply "DROP TABLE IF EXISTS absent;DROP INDEX IF EXISTS t;"
+  unless noops.database.contents == initial.database.contents do fail "DROP IF EXISTS changed contents"
+  for sql in ["DROP TABLE absent;", "DROP INDEX absent;", "DROP INDEX sqlite_autoindex_k_1;",
+      "DROP INDEX IF EXISTS sqlite_autoindex_k_1;", "DROP TABLE IF EXISTS sqlite_schema;",
+      "DROP TABLE IF EXISTS sqlite_temp_master;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"DROP error omitted: {sql}"
+  unless CoreFileEngine.statementWrites (.dropTable "t") &&
+      CoreFileEngine.statementWrites (.dropIndex "tv") do fail "DROP did not request persistence"
+  unless CoreSQL.schemaNoop initial (.dropTable "absent" true) &&
+      CoreSQL.schemaNoop initial (.dropIndex "absent" true) do fail "DROP no-op requested persistence"
+
 private def expectSQLiteHeaderVersions : IO Unit := do
   let header := CoreFile.databaseHeader ⟨3, by decide⟩
   for read in ([0, 1, 2] : List UInt8) do
@@ -5741,6 +5771,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite DROP tables and indexes with transaction rollback", expectSQLiteDrop),
   ("SQLite file read/write versions and schema-format admission", expectSQLiteHeaderVersions),
   ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),
   ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),

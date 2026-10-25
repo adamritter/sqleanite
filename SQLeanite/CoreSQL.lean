@@ -1,4 +1,5 @@
 import SQLeanite.CoreEngine
+import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
@@ -1673,8 +1674,35 @@ def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool)
     if ifNotExists then return false else throw s!"index already exists: {name}"
   return true
 
+def prepareDropTable (state : Core.State) (name : String) (ifExists : Bool) :
+    Except String Bool := do
+  let name := canonical name
+  if ["sqlite_schema", "sqlite_master", "sqlite_temp_schema", "sqlite_temp_master"].contains name then
+    throw s!"table {name} may not be dropped"
+  if (state.database.findTable? name).isSome then return true
+  if ifExists then return false
+  throw s!"no such table: {name}"
+
+def indexOwner? (state : Core.State) (name : String) : Option Core.Table :=
+  state.database.tables.find? fun stored =>
+    stored.indexes.any fun index => index.name == canonical name
+
+def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
+    Except String Bool := do
+  match indexOwner? state name with
+  | none =>
+      if ifExists then return false
+      throw s!"no such index: {name}"
+  | some stored =>
+      if stored.indexes.any (fun index =>
+          index.name == canonical name && index.isImplicitPrimary stored.schema) then
+        throw "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped"
+      return true
+
 /-- A successful schema no-op must also skip physical publication. -/
 def schemaNoop (state : Core.State) : Statement → Bool
+  | .dropTable name ifExists => (prepareDropTable state name ifExists).toOption == some false
+  | .dropIndex name ifExists => (prepareDropIndex state name ifExists).toOption == some false
   | .createTable name _ _ ifNotExists => (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
       (state.database.findTable? (canonical table)).isSome &&
@@ -1683,6 +1711,18 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .dropTable name ifExists => do
+      unless ← prepareDropTable state name ifExists do return (state, [{}])
+      let database ← CoreSchemaDrop.table state.database (canonical name)
+      return ({ state with database }, [{}])
+  | .dropIndex name ifExists => do
+      unless ← prepareDropIndex state name ifExists do return (state, [{}])
+      let stored ← match indexOwner? state name with
+        | some stored => pure stored
+        | none => throw s!"no such index: {name}"
+      let updated ← CoreSchemaDrop.index stored (canonical name)
+      let database ← state.database.updateTable updated
+      return ({ state with database }, [{}])
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       executeCommand state (.createTable (← schema name columns constraints))
@@ -1748,6 +1788,16 @@ def executeStatement (state : Core.State) :
   | .commit => executeCommand state .commit
   | .rollback => executeCommand state .rollback
   | _ => unsupported "statement"
+
+theorem executeStatement_dropTable_noop (state : Core.State) (name : String) (ifExists : Bool)
+    (skipped : prepareDropTable state name ifExists = .ok false) :
+    executeStatement state (.dropTable name ifExists) = .ok (state, [{}]) := by
+  simp [executeStatement, skipped, bind, Except.bind, pure, Except.pure]
+
+theorem executeStatement_dropIndex_noop (state : Core.State) (name : String) (ifExists : Bool)
+    (skipped : prepareDropIndex state name ifExists = .ok false) :
+    executeStatement state (.dropIndex name ifExists) = .ok (state, [{}]) := by
+  simp [executeStatement, skipped, bind, Except.bind, pure, Except.pure]
 
 theorem executeStatement_createTable_noop (state : Core.State) (name : String)
     (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)

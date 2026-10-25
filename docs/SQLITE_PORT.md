@@ -2363,3 +2363,42 @@ validation passes 61 accepted cells and two declared unsupported shapes. The
 three new component proofs cover unknown read versions, read-only write
 versions and schema low-byte dependence. No native binding or audit-allowlist
 change was made. Reports use `sqlite-header-version-*20261025.*`.
+
+## DROP TABLE and DROP INDEX (2026-10-25)
+
+The independent token grammar and public Core execution now accept DROP TABLE
+and DROP INDEX, including IF EXISTS and existing single-token quoted-name
+forms. Removing a table removes its owned indexes and retains other tables;
+removing an explicit index retains the table's schema and rows. Primary-key
+automatic indexes and the built-in schema tables remain protected. Missing
+objects produce errors unless IF EXISTS applies. Logical changes use the
+existing transaction snapshot, so ROLLBACK restores schema and rows together;
+COMMIT and standalone statements use the ordinary file/WAL persistence path.
+Missing-object no-ops skip publication. Qualified DROP names, views, triggers
+and their dependencies remain outside this extension.
+
+Baseline 353960 at source 29f9ec7dcd2ee44485f8fc31f2fd109064d503c8b79eef90887b18310961f3a2
+records 156 differences in 210 outcomes. Development 353961 passes 210.
+Final source is `9f8f4f169565a7e05419296c2045ad84d04447d5368fa4fb0984427e7d762b3b`.
+Fresh seed 353962 passes **630 script outcomes**, including 198
+matching positive errors. Separate read-only-format seed 353963 passes **210
+outcomes**, including 186 matching positive errors. Each script uses
+independent copies of a newly generated SQLite database with three tables,
+ordinary/unique/automatic indexes and overflow data, at 512-, 4,096- and
+65,536-byte page sizes, through both public file modes. After every script,
+successful or failed, pinned SQLite compares the complete remaining object
+names and row values and requires integrity_check=ok. This includes rollback,
+commit, recreation and a second DROP failing after the first was persisted.
+No SQL result filtering or diagnostic-oracle shortcut is used.
+
+All 217 executable tests, the 290-job build, 1,094 registered headline proofs,
+verification audit and live-path audit pass. The first full build found a
+nonexistent test-only Except helper; the corrected second build passes.
+Reverse validation passes 61 accepted cells and two declared unsupported
+shapes. Component proofs state the retained table membership, unchanged rows
+and schema after index removal, and exact schema no-op state. Native code and
+its nine-binding audit list are unchanged. Reports use `sqlite-drop-*20261025.json`.
+
+The retained broad SQL gap inventory was also rerun with --require-compatible;
+it still exits nonzero. Its report, `sqlite-compatibility-gaps-after-drop-20261025.json`,
+is a diagnostic inventory, not a coverage percentage or a claim of completion.

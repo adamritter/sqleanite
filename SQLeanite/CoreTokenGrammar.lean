@@ -688,6 +688,16 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   expectKeyword "into"
 
 private def matchStatement : Statement → MatchM Unit
+  | .dropTable name ifExists => do
+      expectKeyword "drop"
+      expectKeyword "table"
+      if ifExists then expectKeyword "if" *> expectKeyword "exists"
+      expectName name
+  | .dropIndex name ifExists => do
+      expectKeyword "drop"
+      expectKeyword "index"
+      if ifExists then expectKeyword "if" *> expectKeyword "exists"
+      expectName name
   | .createTable name columns constraints ifNotExists => do
       unless constraints.isEmpty do mismatch "column-level Core constraints"
       expectKeyword "create"

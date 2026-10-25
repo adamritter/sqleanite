@@ -744,6 +744,18 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# DROP shares the transaction/persistence machinery with other schema writes.
+if grep -q 'CoreSchemaDrop.table state.database' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSchemaDrop.index stored' SQLeanite/CoreSQL.lean &&
+   grep -q '.dropTable .. | .dropIndex ..' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'dropTable name ifExists => (prepareDropTable' SQLeanite/CoreSQL.lean &&
+   grep -q 'dropIndex name ifExists => (prepareDropIndex' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSchemaDrop.index_exact' SQLeanite/ProofAxioms.lean; then
+  ok "DROP tables/indexes retains Core invariants and uses schema-write persistence"
+else
+  fail "DROP execution is disconnected from transaction persistence or its contracts"
+fi
+
 # Header-format restrictions must cover cold reads and in-transaction writes.
 if grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreFileEngine.lean &&
    grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreLazyFileEngine.lean &&
