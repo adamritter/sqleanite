@@ -2182,4 +2182,15 @@ else
   status=1
 fi
 
+if rg -F -q 'let query ← joinQueryWithZero select leftTable rightTable left.schema right.schema' SQLeanite/CoreSQL.lean &&
+   rg -F -q '(CoreSQL.joinQueryWithZero select leftName rightName' SQLeanite/CoreLazyFileEngine.lean &&
+   rg -F -q 'unless joinStaticAdmitted context prepared rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem joinZeroQuery_limit' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem Query.eval_limit_zero' SQLeanite/CoreJoin.lean; then
+  echo 'ok - zero-LIMIT joins validate predicates without evaluating their values'
+else
+  echo 'FAIL - zero-LIMIT join live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

@@ -4897,3 +4897,42 @@ expressions and the recorded execution/planner negatives remain open work.
 Native bindings are unchanged. Reports: `sqlite-join-static-*20261025.json`;
 harnesses: `scripts/run-join-static-differential.py` and
 `scripts/run-join-static-write-differential.py`.
+
+
+## Zero-LIMIT joined predicate evaluation (2026-10-25)
+
+The ordinary and cold join paths now share a zero-LIMIT fallback. Original ON
+and WHERE expressions retain source-name, function-signature and generated
+numeric/collation validation, including the outer-ON distinction. Only after
+those checks can predicate value evaluation be omitted. Source/USING metadata,
+projection and ordering still use the ordinary translator. Successful existing
+translations are unchanged. This adds no dynamic function implementation.
+
+Baseline seed **354500** records **2,736 comparisons / 858 differences**, all
+successful C statements rejected by eager value evaluation or admission.
+Development seed **354501** passes **3,840 / 0**. Final-checkpoint fresh seed
+**354502** passes **8,320 / 0**, plus 16 immutable-image/integrity checks.
+The eight C-created fixtures combine fixed controls with newly seeded inputs
+and predicate combinations; not every case is previously unseen. Full stdout
+and error status are compared in both file modes, across three page sizes,
+including empty sources, Boolean-name shadowing, required preparation errors,
+ORDER BY and OFFSET. Independent C typed observations check the source images.
+Persisted CTAS/INSERT SELECT seed **354503** passes **1,632 / 0**, with C metadata,
+typed rows, integrity, subsequent C writes and Lean reopening.
+
+Static-condition writer regression seed **354504** records **1,632 / 12**.
+All remaining differences reject successful C statements with an empty input
+and nonzero/unlimited LEFT JOIN ON evaluation. The previous six catalog-state
+differences, caused by failing an initial zero-LIMIT CTAS before a later failing
+INSERT, no longer occur. The remaining negative results are preserved; this
+checkpoint does not claim general empty-input or dynamic-expression equivalence.
+
+Implementation SHA-256: `bf4cd22673473502c173c0a9765c96cd4d8b721f92aba43e51add1abb4ddf469`.
+Final checks pass **352 build jobs, 273 executable tests, 1,244 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. New component propositions prove that a zero-limit query has no
+output, the fallback always returns such a limit, and existing successful
+translations are preserved. They are not complete SQL or planner equivalence
+proofs. Native bindings are unchanged. Reports: `sqlite-join-zero-limit-*20261025.json`;
+harnesses: `scripts/run-join-zero-limit-differential.py` and
+`scripts/run-join-zero-limit-write-differential.py`.

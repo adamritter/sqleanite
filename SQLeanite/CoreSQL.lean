@@ -1676,6 +1676,15 @@ structure SelectExecution where
   result : Core.Result
   width : Nat
 
+def joinContext (leftSource rightSource : TableRef) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) : Except String JoinContext := do
+  return {
+    leftTable, rightTable
+    leftName := canonical (leftSource.alias.getD leftSource.name)
+    rightName := canonical (rightSource.alias.getD rightSource.name)
+    leftSchema, rightSchema
+    shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource }
+
 /-- Translate the supported two-source SQL shape independently of a materialized
 database.  Both the ordinary engine and cold page-directed execution use this
 single interpretation, preventing the fast path from acquiring subtly
@@ -1693,13 +1702,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   unless canonical leftSource.name = canonical leftTable &&
       canonical rightSource.name = canonical rightTable do
     throw "join source/schema mismatch"
-  let context : JoinContext := {
-    leftTable, rightTable
-    leftName := canonical (leftSource.alias.getD leftSource.name)
-    rightName := canonical (rightSource.alias.getD rightSource.name)
-    leftSchema
-    rightSchema
-    shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource }
+  let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
   if context.leftName == context.rightName then
     throw "join sources require distinct names or aliases"
   let explicitOn ← rightSource.joinOn.mapM (fun expression => joinPredicate context expression rightSource.leftJoin)
@@ -1729,6 +1732,57 @@ def joinQuery (select : Select) (leftTable rightTable : String)
         where_.any (joinHasRowidEquality leftSchema rightSchema))
       (orderBy.map (fun term => (term.reference, term.descending))) }
 
+/-- LIMIT zero still resolves the original predicates and validates every
+operation that SQLite would generate, but emits no predicate value evaluation.
+Projection, ordering and source checks retain the ordinary join translator. -/
+def joinZeroLayout (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query := do
+  unless select.limit == some 0 do unsupported "zero-limit join requires LIMIT 0"
+  let (leftSource, rightSource) ← match select.sources.toList with
+    | [left, right] => .ok (left, right)
+    | _ => unsupported "join source count"
+  let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
+  for expression in rightSource.joinOn.toList do
+    let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+    unless joinStaticAdmitted context prepared rightSource.leftJoin do
+      unsupported "unbound or invalid zero-limit join ON"
+  for expression in select.where_.toList do
+    let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+    unless joinStaticAdmitted context prepared do
+      unsupported "unbound or invalid zero-limit join WHERE"
+  joinQuery { select with sources := #[leftSource, { rightSource with joinOn := none }], where_ := none }
+    leftTable rightTable leftSchema rightSchema
+
+def joinZeroQuery (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query :=
+  (fun query => { query with limit := some 0 }) <$>
+    joinZeroLayout select leftTable rightTable leftSchema rightSchema
+
+theorem joinZeroQuery_limit (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (query : CoreJoin.Query)
+    (success : joinZeroQuery select leftTable rightTable leftSchema rightSchema = .ok query) :
+    query.limit = some 0 := by
+  cases translated : joinZeroLayout select leftTable rightTable leftSchema rightSchema with
+  | error message => simp [joinZeroQuery, translated, Functor.map, Except.map] at success
+  | ok layout =>
+      simp [joinZeroQuery, translated, Functor.map, Except.map] at success
+      subst query
+      rfl
+
+def joinQueryWithZero (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query :=
+  match joinQuery select leftTable rightTable leftSchema rightSchema with
+  | .ok query => .ok query
+  | .error message =>
+      if select.limit == some 0 then joinZeroQuery select leftTable rightTable leftSchema rightSchema
+      else .error message
+
+theorem joinQueryWithZero_existing (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (query : CoreJoin.Query)
+    (success : joinQuery select leftTable rightTable leftSchema rightSchema = .ok query) :
+    joinQueryWithZero select leftTable rightTable leftSchema rightSchema = .ok query := by
+  simp [joinQueryWithZero, success]
+
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do
   let (leftSource, rightSource) ← match select.sources.toList with
@@ -1747,7 +1801,7 @@ def executeJoin (state : Core.State) (select : Select) :
   let right ← match state.database.findTable? rightTable with
     | some table => .ok table
     | none => .error s!"no such table: {rightSource.name}"
-  let query ← joinQuery select leftTable rightTable left.schema right.schema
+  let query ← joinQueryWithZero select leftTable rightTable left.schema right.schema
   let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
   let (next, result) ← Core.execute state (.join leftTable rightTable query)
   return ⟨next, result, query.columns.length⟩
@@ -2193,7 +2247,7 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   | [leftSource, rightSource] =>
       let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
       let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
-      let query ← joinQuery { select with orderBy := #[], limit := none, offset := 0 }
+      let query ← joinQueryWithZero { select with orderBy := #[], offset := 0 }
         (resolveTableName state leftSource.name) (resolveTableName state rightSource.name) left.schema right.schema
       return List.replicate query.columns.length (some "binary")
   | _ => unsupported "compound source shape"

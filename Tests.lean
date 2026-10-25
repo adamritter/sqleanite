@@ -7041,6 +7041,29 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinZeroLimit : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'bad');INSERT INTO r VALUES(1,2);"
+  for predicate in ["abs(-9223372036854775808)","abs(a.k)","coalesce(a.k,b.k)",
+      "json_extract(a.k,'$')","a.k+b.k>0","a.k LIKE 'a%'",
+      "abs(-9223372036854775808) OR 1"] do
+    for source in [s!"l a LEFT JOIN r b ON {predicate}", s!"l a,r b WHERE {predicate}"] do
+      let sql := s!"SELECT a.id,b.id FROM {source} ORDER BY 2,1 LIMIT 0;"
+      let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+        | .ok result => pure result
+        | .error message => fail s!"zero-limit join: {sql}: {message}"
+      unless (output.getLast?).map (·.rows) == some [] do fail "zero-limit join returned rows"
+  for predicate in ["not_a_function(a.k)","coalesce(missing,1)","sum(a.k)",
+      "abs(a.k,a.k)","likelihood(a.k,2.0)","min(a.k COLLATE missing,'x')",
+      "1 OR min(a.k COLLATE missing,'x')", "-0x8000000000000000"] do
+    let sql := s!"SELECT a.id,b.id FROM l a LEFT JOIN r b ON {predicate} LIMIT 0;"
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"zero-limit join suppressed a required error: {sql}"
+  let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE Extra AS SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(-9223372036854775808) OR 1 LIMIT 0;SELECT * FROM Extra;") with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [] do fail "zero-limit CTAS returned rows"
+
 private def expectSQLiteJoinStaticConditions : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'bad'),(2,NULL);INSERT INTO r VALUES(1,1);"
   for (predicate, selected) in [("0 AND abs(-9223372036854775808)",false),
@@ -8112,6 +8135,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite zero-LIMIT joins validate without value evaluation", expectSQLiteJoinZeroLimit),
   ("SQLite static joined conditions and outer-ON error ordering", expectSQLiteJoinStaticConditions),
   ("SQLite parser-time literal NULL-test preparation", expectSQLiteLiteralNullPreparation),
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),

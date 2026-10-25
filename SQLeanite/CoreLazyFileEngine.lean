@@ -70,7 +70,7 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
     let rightName := storedName geometry rightName
     let some lookup ← CoreFileAdapter.lookupGeneratedPrimaryJoin paths
         leftName rightName | return none
-    let some query := (CoreSQL.joinQuery select leftName rightName
+    let some query := (CoreSQL.joinQueryWithZero select leftName rightName
         lookup.leftSchema lookup.rightSchema).toOption | return none
     let optimized := CoreOptimizerBridge.optimizeJoin leftName rightName query
     unless optimized.on = some (CoreJoin.rowidOn

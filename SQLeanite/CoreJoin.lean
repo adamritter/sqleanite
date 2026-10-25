@@ -854,6 +854,10 @@ def Query.eval (query : Query) (left right : List Core.Row) :
     List (List Core.Value) :=
   (query.selectedRows left right).map (projectRow query.columns)
 
+theorem Query.eval_limit_zero (query : Query) (left right : List Core.Row)
+    (zero : query.limit = some 0) : query.eval left right = [] := by
+  simp [Query.eval, Query.selectedRows, Query.finishRows, zero]
+
 /-- Execute the certified primary-key join after a page reader has discarded
 left rows above the greatest possible right key. -/
 def Query.evalPrimaryKeyCandidates (query : Query)

@@ -1447,3 +1447,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Predicate.constant_eval
 
 #print axioms SQLeanite.SQLite.StaticCondition.Decision.result_correct
+
+#print axioms SQLeanite.CoreJoin.Query.eval_limit_zero
+#print axioms SQLeanite.CoreSQL.joinZeroQuery_limit
+#print axioms SQLeanite.CoreSQL.joinQueryWithZero_existing
