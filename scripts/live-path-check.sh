@@ -185,6 +185,14 @@ else
 fi
 
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
+if grep -q 'Format.evaluate values' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'Format.field_count_ignored' SQLeanite/ProofAxioms.lean &&
+   grep -q 'FloatCodec.decode17 value' SQLeanite/SQLite/Format.lean; then
+  ok "SQLite printf conversion and decimal rounding are on the public scalar path"
+else
+  fail "SQLite printf conversion and decimal rounding are disconnected"
+fi
+
 if grep -q 'Math.evaluate? name args.toList' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'Math.accepts n args.size' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'Math.rounding_integer' SQLeanite/ProofAxioms.lean &&

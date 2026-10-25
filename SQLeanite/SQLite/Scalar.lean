@@ -1,6 +1,7 @@
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Math
+import SQLeanite.SQLite.Format
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.Text
 import SQLeanite.SQLite.UnicodeEscape
@@ -278,6 +279,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "format", values | "printf", values => Format.evaluate values
   | "like", [pattern, input] => Pattern.evaluate false pattern input
   | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
   | "glob", [pattern, input] => Pattern.evaluate true pattern input
@@ -453,6 +455,7 @@ def forbidden : Expr → Bool
       star || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
         else if Probability.recognizesName n then (Probability.input? n args).isSome
+        else if n == "format" || n == "printf" then true
         else if Math.accepts n args.size then true
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2

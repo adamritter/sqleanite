@@ -2165,3 +2165,48 @@ proofs cover numeric INTEGER preservation, rounding INTEGER preservation and
 NULL unary results, not complete numerical equivalence. The nine project-native
 bindings and their audit list remain unchanged. Evidence uses
 `sqlite-math-*20261024.json` under `docs/validation/`.
+
+## SQL format / printf (2026-10-24–25)
+
+FORMAT and PRINTF now execute on the public scalar path with SQL argument-stream
+semantics, including zero arguments, missing arguments, ignored %n, %% and early
+termination on unknown/internal conversion codes. An empty format or a leading
+unknown conversion yields NULL; a successfully processed empty field yields
+empty TEXT. The parser follows pinned flag precedence, 32-bit width/precision
+wrapping, signed star arguments, and ignored l/ll length modifiers.
+
+Integer formatting includes signed/unsigned 64-bit conversion, octal/hexadecimal,
+uppercase pointer notation, ordinal suffixes, prefixes, precision, zero padding
+and decimal separators. Strings retain arbitrary bytes, stop input at NUL, and
+support byte or UTF-8-span precision and continuation-byte width accounting.
+%c retains its SQL first-character/repetition semantics, including embedded NUL.
+%q/%Q/%w quoting and %#q/%#Q control-code escapes follow the pinned source;
+notably NULL %q/%w inputs produce (NULL) in 3.53.4. Floating formats use a general
+port of sqlite3FpDecode with the existing integer power tables and 17-digit
+round-trip shortening, 16/20 significant-digit limits, alternate forms,
+zero/infinity rules, exponential selection and width/precision handling. No host
+printf or new native binding is used. Output and temporary allocation sizes are
+checked before constructing padding or repeated text. The actual 1 GB boundary
+and allocation failure behavior have not been exhaustively exercised.
+
+Baseline 353910 at source 6f1fb1df2ecfa1e81c2cc24582b62919108cd9a4f6633ada9ebc789a3267f919
+records 4,086 differences, including two failed bulk writes, across 4,102 read
+outcomes. Development 353911 passes 4,542 reads and 4,512 stored values. Final
+source is
+`8dcc714019b29c141cdd9966e5c0ce2920390ab799b652260c67e5e767e4586b`.
+Fresh 353912 passes **7,418 read outcomes**, including **18 matching positive
+error statuses**, and **7,388 stored values**. This includes a new generated
+format-grammar corpus and explicit floating rounding boundaries. Both file modes
+compare storage types and exact hex/CLI output, require unchanged main/WAL bytes
+on reads, and compare persisted storage classes and raw bytes with integrity
+checks. Python SQLite 3.45.1 is only the file observer; the result oracle is the
+pinned SQLite 3.53.4 CLI. This is bounded behavior evidence, not exhaustive printf
+or full SQL equivalence. Error codes and messages are not compared.
+
+The existing scalar regression passes 1,121 expressions and six error cases.
+All 212 executable tests, the 284-job build, 1,079 registered headline proofs,
+verification audit and live-path audit pass. Reverse-file validation passes
+61 accepted cells and two declared unsupported shapes. Component proofs cover
+zero arguments, NULL format input and %n's unchanged argument stream. The nine
+project-native bindings and their audit list are unchanged. Reports use
+`sqlite-format-*20261024.json` under `docs/validation/`.

@@ -1,0 +1,26 @@
+{
+  "seed": 353911,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 2271,
+      "matching_errors": 9,
+      "stored_values": 2256
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 2271,
+      "matching_errors": 9,
+      "stored_values": 2256
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "8dcc714019b29c141cdd9966e5c0ce2920390ab799b652260c67e5e767e4586b",
+  "executable_sha256": "b29a8af7666e5667d0248d89aea586ab422fdb6dfd20d5179c456949cb16e239",
+  "harness_sha256": "7ee61bbe781b39ffabe0c30844f1c961e949f9fd8d814429243674d25b6d91d0",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare the pinned SQLite format()/printf() behavior in both live file modes.\n\nRead queries compare exact CLI bytes and positive error status, preserving\nmain/WAL bytes. A separate bulk write compares storage classes, binary64 bits\nand raw bytes using Python SQLite only as an independent file observer, and\nrequires integrity_check. This is bounded numerical evidence, not a proof of\nfull printf equivalence or coverage of every length boundary.",
+  "observer_sqlite_version": "3.45.1",
+  "write_transaction": true
+}

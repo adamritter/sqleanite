@@ -1215,3 +1215,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Math.numeric_integer
 #print axioms SQLeanite.SQLite.Math.rounding_integer
 #print axioms SQLeanite.SQLite.Math.unary_null
+
+#print axioms SQLeanite.SQLite.Format.evaluate_no_arguments
+#print axioms SQLeanite.SQLite.Format.evaluate_null
+#print axioms SQLeanite.SQLite.Format.field_count_ignored

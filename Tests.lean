@@ -4597,6 +4597,50 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteFormat : IO Unit := do
+  let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT typeof(format()),hex(format());", [[.text "null", .text ""]]),
+    ("SELECT typeof(format('')),hex(format(''));", [[.text "null", .text ""]]),
+    ("SELECT typeof(format('%n')),hex(format('%n'));", [[.text "text", .text ""]]),
+    ("SELECT typeof(format('%n%d|%s',12,'x')),hex(format('%n%d|%s',12,'x'));", [[.text "text", .text "31327C78"]]),
+    ("SELECT typeof(format('%q|%Q|%w',NULL,NULL,NULL)),hex(format('%q|%Q|%w',NULL,NULL,NULL));", [[.text "text", .text "284E554C4C297C4E554C4C7C284E554C4C29"]]),
+    ("SELECT typeof(format('%#Q',CAST(X'010A1B5C27' AS TEXT))),hex(format('%#Q',CAST(X'010A1B5C27' AS TEXT)));", [[.text "text", .text "756E6973747228275C75303030315C75303030615C75303031625C5C27272729"]]),
+    ("SELECT typeof(format('%#q','a\\b')),hex(format('%#q','a\\b'));", [[.text "text", .text "615C5C62"]]),
+    ("SELECT typeof(format('%#!.2Q','árvíz')),hex(format('%#!.2Q','árvíz'));", [[.text "text", .text "27C3A17227"]]),
+    ("SELECT typeof(format('%!.1s',X'C0808080')),hex(format('%!.1s',X'C0808080'));", [[.text "text", .text "C0808080"]]),
+    ("SELECT typeof(format('%5.3c',X'F09F9880')),hex(format('%5.3c',X'F09F9880'));", [[.text "text", .text "2020F09F9880F09F9880F09F9880"]]),
+    ("SELECT typeof(format('%-5.3c',X'80')),hex(format('%-5.3c',X'80'));", [[.text "text", .text "808080202020"]]),
+    ("SELECT typeof(format('%c|%c',NULL,42)),hex(format('%c|%c',NULL,42));", [[.text "text", .text "007C34"]]),
+    ("SELECT typeof(format('hello%')),hex(format('hello%'));", [[.text "text", .text "68656C6C6F25"]]),
+    ("SELECT typeof(format('before%Yafter',12)),hex(format('before%Yafter',12));", [[.text "text", .text "6265666F7265"]]),
+    ("SELECT typeof(format('%Y')),hex(format('%Y'));", [[.text "null", .text ""]]),
+    ("SELECT typeof(format('%08d|%#08x|%u|%r',-12,255,-1,112)),hex(format('%08d|%#08x|%u|%r',-12,255,-1,112));", [[.text "text", .text "2D303030303031327C307830303030303066667C31383434363734343037333730393535313631357C3131327468"]]),
+    ("SELECT typeof(format('%+ d|% +d|%-05d',3,3,3)),hex(format('%+ d|% +d|%-05d',3,3,3));", [[.text "text", .text "20337C2B337C3030303033"]]),
+    ("SELECT typeof(format('%*.*f',-12,3,12.3455)),hex(format('%*.*f',-12,3,12.3455));", [[.text "text", .text "31322E333435202020202020"]]),
+    ("SELECT typeof(format('%!.17g|%.17g',49.47,49.47)),hex(format('%!.17g|%.17g',49.47,49.47));", [[.text "text", .text "34392E34377C34392E3437"]]),
+    ("SELECT typeof(format('%!g|%#g|%,.2f',100,100,123456.789)),hex(format('%!g|%#g|%,.2f',100,100,123456.789));", [[.text "text", .text "3130302E307C3130302E3030307C3132332C3435362E3739"]]),
+    ("SELECT typeof(format('%#.0f|%+.0f|%.0f',-0.1,-0.1,-0.1)),hex(format('%#.0f|%+.0f|%.0f',-0.1,-0.1,-0.1));", [[.text "text", .text "302E7C2D307C2D30"]]),
+    ("SELECT typeof(format('%e|%!e|%g|%#g',0.00001,0.00001,1e30,1e30)),hex(format('%e|%!e|%g|%#g',0.00001,0.00001,1e30,1e30));", [[.text "text", .text "312E303030303030652D30357C312E30652D30357C31652B33307C312E3030303030652B3330"]]),
+    ("SELECT typeof(format('%0g|%+g',1e999,1e999)),hex(format('%0g|%+g',1e999,1e999));", [[.text "text", .text "39652B3939397C2B496E66"]]),
+    ("SELECT typeof(format('%*.*s|%d',-2147483648,-2147483648,'abc',7)),hex(format('%*.*s|%d',-2147483648,-2147483648,'abc',7));", [[.text "text", .text "6162637C37"]]),
+    ("SELECT typeof(format('%2147483648d|%.2147483648f',12,12.75)),hex(format('%2147483648d|%.2147483648f',12,12.75));", [[.text "text", .text "31327C3133"]]),
+    ("SELECT typeof(format(X'2564002573',42,'tail')),hex(format(X'2564002573',42,'tail'));", [[.text "text", .text "3432"]]),
+    ("SELECT typeof(printf('%.0o|%.0x|%.0d',0,0,0)),hex(printf('%.0o|%.0x|%.0d',0,0,0));", [[.text "text", .text "307C307C30"]]),
+    ("SELECT typeof(format('%s|%d|%f')),hex(format('%s|%d|%f'));", [[.text "text", .text "7C307C302E303030303030"]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"format functions: {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"format function mismatch: {sql}"
+  for sql in ["SELECT format('%2000000000s','a');", "SELECT format('%.2000000000d',1);",
+      "SELECT format('%2000000000c','a');", "SELECT format('%2000000000f',1);",
+      "SELECT format('%s',missing) FROM e LIMIT 0;", "SELECT format('%s',abs(-9223372036854775808));"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"format function error omitted: {sql}"
+
 private def expectSQLiteMath : IO Unit := do
   let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × List (List Value)) := [
@@ -5579,6 +5623,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite byte-preserving format and printf", expectSQLiteFormat),
   ("SQLite math functions and exact floating remainder", expectSQLiteMath),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),
   ("SQLite string aggregates", expectSQLiteStringAggregates),
