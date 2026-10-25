@@ -692,6 +692,7 @@ structure Query where
   offset : Nat := 0
   distinct : Bool := false
   distinctScanOrder : List (ColumnRef × Bool) := []
+  lookupScanOrder : List (ColumnRef × Bool) := []
 
 /-- Stable merge sort by the same strict order, replacing an O(n^2) insertion
 sort. `a ≤ b` is `¬ (b < a)`, so equal rows keep input order. -/
@@ -710,19 +711,34 @@ theorem Query.orderedRows_perm (query : Query) (rows : List JoinedRow) :
 
 /-- DISTINCT chooses its original representative in physical scan order.
 The SQL translator supplies a rowid traversal order when ORDER BY is satisfied
-by ordered table scans; the final output sorter remains independent. -/
+by ordered table scans. A point-lookup plan already fixes its traversal;
+the final output sorter remains independent. -/
 def Query.distinctInputRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
-  if query.distinctScanOrder.isEmpty then rows
+  if !query.lookupScanOrder.isEmpty || query.distinctScanOrder.isEmpty then rows
   else rows.mergeSort (rowLe query.distinctScanOrder)
 
 theorem Query.distinctInputRows_perm (query : Query) (rows : List JoinedRow) :
     (query.distinctInputRows rows).Perm rows := by
-  by_cases empty : query.distinctScanOrder.isEmpty
+  by_cases empty : (!query.lookupScanOrder.isEmpty || query.distinctScanOrder.isEmpty) = true
   · simp [Query.distinctInputRows, empty]
   · simpa [Query.distinctInputRows, empty] using
       List.mergeSort_perm rows (rowLe query.distinctScanOrder)
 
+/-- The SQL translator can recognize a right scan probing the left rowid.
+This order applies before DISTINCT, stable output sorting and row windows. -/
+def Query.lookupInputRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
+  if query.lookupScanOrder.isEmpty then rows
+  else rows.mergeSort (rowLe query.lookupScanOrder)
+
+theorem Query.lookupInputRows_perm (query : Query) (rows : List JoinedRow) :
+    (query.lookupInputRows rows).Perm rows := by
+  by_cases empty : query.lookupScanOrder.isEmpty
+  · simp [Query.lookupInputRows, empty]
+  · simpa [Query.lookupInputRows, empty] using
+      List.mergeSort_perm rows (rowLe query.lookupScanOrder)
+
 def Query.finishRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
+  let rows := query.lookupInputRows rows
   let rows := if query.distinct then query.distinctInputRows rows else rows
   let rows := if query.distinct then distinctRows query.columns rows else rows
   let rows := (query.orderedRows rows).drop query.offset

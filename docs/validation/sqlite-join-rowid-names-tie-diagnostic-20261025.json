@@ -1,0 +1,56 @@
+{
+  "evaluation": "diagnostic replay with added unique tie-break terms; original exact-output differences remain failures",
+  "input_sha256": "92765f07cb739ba467f04018c7806c47e3b8b1860f3b0aba056296426f3681b4",
+  "implementation_sha256": "53124e866ceff943ff59d418452c774adc5788c6317603d75863226c45dc8cfb",
+  "cases": [
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT,rowid TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT,ROWID NUMERIC);INSERT INTO l VALUES(1,'2','l-1','01');INSERT INTO l VALUES(2,1,'l-2','a');INSERT INTO l VALUES(3,2,'l-3','01');INSERT INTO l VALUES(4,'01','l-4','2');INSERT INTO l VALUES(5,'A','l-5',2);INSERT INTO r VALUES(1,'A','r-1','a');INSERT INTO r VALUES(2,'2','r-2','a');",
+      "original_sql": "SELECT a.*,b.* FROM l a JOIN r b USING(rowid) ORDER BY rowid;",
+      "original_rows_equal_as_multiset": true,
+      "original_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (ROWID=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (ROWID=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+        "stderr": ""
+      },
+      "control_sql": "SELECT a.*,b.* FROM l a JOIN r b USING(rowid) ORDER BY rowid,a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|1|l-2|a|1|A|r-1|a\n2|1|l-2|a|2|2|r-2|a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1|l-2|a|1|A|r-1|a\n2|1|l-2|a|2|2|r-2|a\n",
+        "stderr": ""
+      },
+      "control_matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id TEXT PRIMARY KEY,K NUMERIC,left_only TEXT,rowid TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k BLOB,right_only TEXT,ROWID NUMERIC);INSERT INTO l VALUES(1,'2','l-1','01');INSERT INTO l VALUES(2,1,'l-2','a');INSERT INTO l VALUES(3,2,'l-3','01');INSERT INTO l VALUES(4,'01','l-4','2');INSERT INTO l VALUES(5,'A','l-5',2);INSERT INTO r VALUES(1,'A','r-1','a');INSERT INTO r VALUES(2,'2','r-2','a');",
+      "original_sql": "SELECT a.*,b.* FROM l a JOIN r b USING(rowid) ORDER BY rowid;",
+      "original_rows_equal_as_multiset": true,
+      "original_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (ROWID=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (ROWID=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+        "stderr": ""
+      },
+      "control_sql": "SELECT a.*,b.* FROM l a JOIN r b USING(rowid) ORDER BY rowid,a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|1|l-2|a|1|A|r-1|a\n2|1|l-2|a|2|2|r-2|a\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|1|l-2|a|1|A|r-1|a\n2|1|l-2|a|2|2|r-2|a\n",
+        "stderr": ""
+      },
+      "control_matched": true
+    }
+  ],
+  "control_failures": 0
+}

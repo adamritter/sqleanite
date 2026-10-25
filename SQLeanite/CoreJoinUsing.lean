@@ -19,6 +19,32 @@ theorem declaredColumn_visible (schema : Core.Schema) (name : String) (index : N
     index ∈ schema.visibleColumnIndices := by
   exact schema.declaredColumn_visible name index found
 
+/-- Resolve each eligible source in declaration-only or rowid-fallback mode.
+Keep source positions so execution and CTAS derive the same source column. -/
+def columnCandidates (declaredOnly : Bool) (sources : List CoreExpr.Context)
+    (qualifier : Option String) (name : String) : List (Nat × Nat) :=
+  sources.zipIdx.filterMap fun (source, sourceIndex) => do
+    if qualifier.any (fun owner => owner.toLower != source.sourceName.toLower) then none
+    else do
+      let position ← if declaredOnly then source.schema.declaredColumn? name
+        else source.schema.column? name
+      some (sourceIndex, position)
+
+/-- A declared name anywhere in the eligible sources takes precedence over
+implicit rowid aliases elsewhere. Ambiguity remains for the caller to check. -/
+def nameCandidates (sources : List CoreExpr.Context) (qualifier : Option String)
+    (name : String) : List (Nat × Nat) :=
+  let declared := columnCandidates true sources qualifier name
+  if declared.isEmpty then columnCandidates false sources qualifier name else declared
+
+theorem nameCandidates_declared (sources : List CoreExpr.Context)
+    (qualifier : Option String) (name : String)
+    (present : columnCandidates true sources qualifier name ≠ []) :
+    nameCandidates sources qualifier name = columnCandidates true sources qualifier name := by
+  cases found : columnCandidates true sources qualifier name with
+  | nil => exact False.elim (present found)
+  | cons head tail => simp [nameCandidates, found]
+
 def columns (left right : Core.Schema) (source : TableRef) : Except String (List Column) := do
   if source.naturalJoin && (source.joinOn.isSome || !source.usingColumns.isEmpty) then
     throw "a NATURAL join may not have an ON or USING clause"

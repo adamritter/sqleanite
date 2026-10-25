@@ -1,0 +1,68 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "input_file": "docs/validation/sqlite-join-rowid-names-development-20261025.json",
+  "input_sha256": "bb156add2888b73e250745d807ed036fcc8da9fe05348c0e2cb0e643d05a6fe3",
+  "cases": [
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT,ROWID NUMERIC);INSERT INTO l VALUES(1,'2','l-1');INSERT INTO l VALUES(2,'a','l-2');INSERT INTO l VALUES(3,'A','l-3');INSERT INTO l VALUES(4,'a','l-4');INSERT INTO l VALUES(5,'01','l-5');INSERT INTO r VALUES(1,NULL,'r-1',2);INSERT INTO r VALUES(2,2,'r-2',1);INSERT INTO r VALUES(3,'01','r-3',NULL);INSERT INTO r VALUES(4,'01','r-4','01');",
+      "sql": "SELECT rowid,a.id,b.id FROM l a,r b WHERE rowid=a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|1\n1|1|2\n1|1|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|1\n1|1|2\n1|1|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER,right_only TEXT,ROWID NUMERIC);INSERT INTO l VALUES(1,'2','l-1');INSERT INTO l VALUES(2,'a','l-2');INSERT INTO l VALUES(3,'A','l-3');INSERT INTO l VALUES(4,'a','l-4');INSERT INTO l VALUES(5,'01','l-5');INSERT INTO r VALUES(1,NULL,'r-1',2);INSERT INTO r VALUES(2,2,'r-2',1);INSERT INTO r VALUES(3,'01','r-3',NULL);INSERT INTO r VALUES(4,'01','r-4','01');",
+      "sql": "SELECT rowid,a.id,b.id FROM l a,r b WHERE rowid=a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|2|1\n1|1|2\n1|1|4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|2|1\n1|1|2\n1|1|4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "53124e866ceff943ff59d418452c774adc5788c6317603d75863226c45dc8cfb",
+  "executable_sha256": "493a20dd49ba6925ff5061f16c001d837c7476f3ec2f9de0448d0c88c97c5c07",
+  "harness_sha256": "1b3a5b2a46dd0cd190fd2a075c38f26ee263e6bf09213db6f29ac48ad8094634",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

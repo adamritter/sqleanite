@@ -2114,4 +2114,15 @@ else
   status=1
 fi
 
+if rg -F -q 'CoreJoinUsing.nameCandidates sources none columnName' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreJoinUsing.nameCandidates context.sources qualifier name' SQLeanite/CoreCreateTableAs.lean &&
+   rg -q 'theorem nameCandidates_declared' SQLeanite/CoreJoinUsing.lean &&
+   rg -q 'let rows := query.lookupInputRows rows' SQLeanite/CoreJoin.lean &&
+   rg -q 'let lookupScanOrder := joinLookupScanOrder' SQLeanite/CoreSQL.lean; then
+  echo 'ok - joined declared-name priority is shared with CTAS metadata'
+else
+  echo 'FAIL - joined declared-name priority live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

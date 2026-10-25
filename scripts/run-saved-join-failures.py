@@ -20,7 +20,8 @@ def main():
   for old in original['cases']:
    if old['matched']:continue
    folder=Path(tmp)/str(len(cases));folder.mkdir();left=folder/'lean.db';right=folder/'sqlite.db'
-   fixture=next(f for f in original['fixtures'] if f['fixture']==old['fixture'] and f['mode']==old['mode'])
+   fixture=(next(f for f in original['fixtures'] if f['fixture']==old['fixture'] and f['mode']==old['mode'])
+    if isinstance(original['fixtures'],list) else dict(setup=old['schema_sql']))
    prepared=csql(right,fixture['setup']);assert prepared['code']==0,prepared;shutil.copyfile(right,left)
    bl=snapshot(left);br=snapshot(right);l=run([str(binary),old['mode'],str(left)],old['sql']);r=csql(right,old['sql'])
    unchanged=bl==snapshot(left) and br==snapshot(right);li=csql(left,'PRAGMA integrity_check;');ri=csql(right,'PRAGMA integrity_check;')

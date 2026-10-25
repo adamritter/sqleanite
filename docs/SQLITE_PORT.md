@@ -4589,3 +4589,53 @@ an additional hidden bookkeeping column; cross-source declared-rowid priority
 remains separate work. Native bindings are unchanged. Reports:
 `sqlite-column-visibility-*20261025.json`; harness:
 `scripts/run-column-visibility-differential.py`.
+
+
+## Declared rowid names across joined sources (2026-10-25)
+
+Join name resolution now searches all eligible sources for declared columns
+before falling back to implicit rowid spellings. A declared `rowid`, `oid` or
+`_rowid_` on one side therefore takes precedence over the other side's implicit
+alias. Qualified references remain source-local; multiple declared matches
+still require USING/NATURAL merging or produce ambiguity. The shared candidate
+resolver also drives CTAS column names and affinities. Its component theorem
+states that a nonempty declared candidate list is returned unchanged.
+
+Baseline seed **354430** records **568 comparisons / 172 differences**, all
+valid C statements rejected as ambiguous. Initial development seed **354431**
+records **948 / 2** after name binding was corrected. Those two exact-output
+differences exposed the right scan used when the left rowid is probed from a
+right-side value. The recognized scan order is now explicit query metadata,
+applied before DISTINCT, stable output sorting and windows. CROSS/LEFT joins
+retain their fixed outer source; two-rowid equalities retain the existing scan
+recognition. A permutation theorem states that this ordering retains all input
+pairs. This recognition is not SQLite's full cost planner, and it does not add
+a new indexed access implementation. Expanded scan development seed **354434**
+passes **1,488 / 0**; exact replay of the two earlier failures passes **2 / 0**.
+
+Final-checkpoint fresh seed **354432** records **3,360 / 2**. The two remaining
+exact-output differences occur in one fixture in both file modes: an automatic
+covering index changes the order of rows tied on `ORDER BY rowid`. Full rows
+agree as a multiset, but the primary exact-output metric remains a failure.
+A separately labelled diagnostic replay adds unique `a.id,b.id` tie breakers
+and passes **2 / 0**; that control is neither a fresh evaluation nor a replacement
+for the two negative results. Automatic-index traversal remains open work.
+
+The fresh corpus uses twelve new C-created fixtures covering all three rowid
+spellings, neither/one/both sources declaring them, mixed affinities, empty sides,
+three page sizes, both file modes, qualified/quoted names, USING/NATURAL, CTAS,
+filters and LIMIT/OFFSET. Successful output/error status is compared together
+with independent C catalog/column/index metadata, typed rows, integrity,
+follow-up writes and Lean reopening. Immutable main/WAL images are checked
+whenever C leaves its image unchanged. DISTINCT/window regression seed **354435**
+passes **6,912 / 0**, plus eight immutable-image checks. Joined-atom write
+regression seed **354436** passes **504 / 0**.
+
+Implementation SHA-256: `53124e866ceff943ff59d418452c774adc5788c6317603d75863226c45dc8cfb`.
+Final checks pass **350 build jobs, 266 executable tests, 1,226 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The earlier development checkpoint and both fresh negatives remain
+in the reports. Native bindings are unchanged. Reports:
+`sqlite-join-rowid-names-*20261025.json`; harness:
+`scripts/run-join-rowid-names-differential.py`. The saved read-only failure replay
+also accepts fixtures embedded in per-case file-write reports.

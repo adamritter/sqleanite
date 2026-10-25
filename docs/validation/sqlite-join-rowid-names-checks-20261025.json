@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "53124e866ceff943ff59d418452c774adc5788c6317603d75863226c45dc8cfb",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "e184ef83f4cea4fa57e4c960c310c83a6b46193b3ce25b417b3912fbbd204667",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [349/350] Built Tests:c.o (16s)",
+        "\u2714 [350/350] Built sqleanite_tests:exe (354ms)",
+        "Build completed successfully (350 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "28a54fc3f4687e61de4763c01c68a0e6772a58522b20c11e5af450ad09590854",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "266 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "549f24115bff98ad6cb0426085f0af4ae986777e2a4260fe737633577ed43061",
+      "tail": [
+        "ok - stored join-column affinity is preserved through optimizer translation and execution",
+        "ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata",
+        "ok - join DISTINCT retains original representatives before ordering and OFFSET/LIMIT",
+        "ok - join ORDER BY aliases and positions use the exact expanded projection",
+        "ok - join ordering carries explicit NULL placement and collation into the stable sorter",
+        "ok - joined literal/name atoms preserve column values, grammar and projection collation",
+        "ok - SQL column binding shares visible names and explicit rowid aliases",
+        "ok - joined declared-name priority is shared with CTAS metadata"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "c8cccd09d935c92644afbb4bbd344ae425379ad835d95e6c1985d77a0ad22595"
+}

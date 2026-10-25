@@ -28,8 +28,8 @@ def contexts (database : Core.Database) (query : Select) : Except String Context
 
 def column? (context : Context) (qualifier : Option String) (name : String) :
     Option (String × SQLite.Affinity) :=
-  match context.sources.zipIdx.filterMap (fun (source, sourceIndex) => do
-    let position ← source.column? qualifier name
+  match (CoreJoinUsing.nameCandidates context.sources qualifier name).filterMap (fun (sourceIndex, position) => do
+    let source ← context.sources[sourceIndex]?
     if qualifier.isNone && sourceIndex == 1 &&
         CoreJoinUsing.suppressesName context.shared name position then none
     else do

@@ -7041,6 +7041,56 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinLookupScan : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,rowid NUMERIC);INSERT INTO l VALUES(1,'a'),(2,'b');INSERT INTO r VALUES(1,2),(2,1),(3,NULL),(4,1);"
+  for (source, tail, expected) in [
+      ("l a,r b", "", [[2,2,1],[1,1,2],[1,1,4]]),
+      ("l a,r b", " LIMIT 2", [[2,2,1],[1,1,2]]),
+      ("l a,r b", " ORDER BY a.id DESC", [[2,2,1],[1,1,2],[1,1,4]]),
+      ("l a,r b", " ORDER BY b.id DESC,a.k", [[1,1,4],[1,1,2],[2,2,1]]),
+      ("l a CROSS JOIN r b", "", [[1,1,2],[1,1,4],[2,2,1]])] do
+    let sql := s!"SELECT rowid,a.id,b.id FROM {source} WHERE rowid=a.id{tail};"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join rowid lookup scan: {message}"
+    let expected ← match expected.mapM (List.mapM (fun number : Int => SQLSurface.value (.integer number))) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"join rowid lookup traversal differs: {sql}"
+
+private def expectSQLiteJoinRowidNames : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,rowid TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,v);INSERT INTO l VALUES(1,'declared'),(2,NULL);INSERT INTO r VALUES(1,'a'),(3,'b');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT rowid,a.id,b.id FROM l a,r b ORDER BY a.id,b.id;",
+      [[.text "declared",.integer 1,.integer 1],[.text "declared",.integer 1,.integer 3],
+       [.null,.integer 2,.integer 1],[.null,.integer 2,.integer 3]]),
+    ("SELECT rowid,a.rowid,b.rowid FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id;",
+      [[.text "declared",.text "declared",.integer 1],[.null,.null,.null]]),
+    ("SELECT rowid,a.id,b.id FROM r a LEFT JOIN l b ON a.id=b.id ORDER BY a.id;",
+      [[.text "declared",.integer 1,.integer 1],[.null,.integer 3,.null]]),
+    ("SELECT a.id,b.id FROM l a,r b WHERE rowid='declared' ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1],[.integer 1,.integer 3]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined rowid name binding: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined rowid rows: {sql}"
+  for sql in ["SELECT oid FROM l a,r b;", "SELECT * FROM l a JOIN r b USING(rowid);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"invalid joined rowid name accepted: {sql}"
+  let (created, _) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE made AS SELECT rowid FROM l a,r b ORDER BY a.id,b.id;") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := created.database.findTable? "made" | fail "joined rowid CTAS missing"
+  unless table.schema.catalogColumns.map (·.name) == ["rowid"] &&
+      table.schema.catalogColumns.map (·.affinity) == [.text] && table.rows.length == 4 do
+    fail "joined rowid CTAS lost declared-column metadata"
+
 private def expectSQLiteColumnVisibility : IO Unit := do
   let setup := "CREATE TABLE n(v);INSERT INTO n VALUES('a'),('b');CREATE TABLE t(k TEXT PRIMARY KEY,v);INSERT INTO t VALUES('x','c');CREATE TABLE s(rowid,oid,_rowid_);INSERT INTO s VALUES(31,41,51);CREATE TABLE named(id INTEGER PRIMARY KEY,__sqleanite_rowid TEXT);INSERT INTO named VALUES(8,'declared');"
   let invalid := [
@@ -7847,6 +7897,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),
+  ("SQLite declared rowid names across joined sources", expectSQLiteJoinRowidNames),
   ("SQLite visible column names and implicit rowid aliases", expectSQLiteColumnVisibility),
   ("SQLite joined literal and name atoms", expectSQLiteJoinAtoms),
   ("SQLite join NULL placement and collations", expectSQLiteJoinSort),

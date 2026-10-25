@@ -1277,15 +1277,17 @@ def joinColumn (context : JoinContext) (qualifier : Option String) (name : Strin
         return ⟨.right, ← column context.rightSchema columnName⟩
       else throw s!"no such table or alias: {owner}"
   | none =>
-      let left := findColumn? context.leftSchema columnName
-      let right := findColumn? context.rightSchema columnName
-      match left, right with
-      | some index, none => .ok ⟨.left, index⟩
-      | none, some index => .ok ⟨.right, index⟩
-      | some li, some ri =>
+      let sources : List CoreExpr.Context := [
+        { schema := context.leftSchema, sourceName := context.leftName },
+        { schema := context.rightSchema, sourceName := context.rightName }]
+      match CoreJoinUsing.nameCandidates sources none columnName with
+      | [(0, index)] => .ok ⟨.left, index⟩
+      | [(1, index)] => .ok ⟨.right, index⟩
+      | [(0, li), (1, ri)] =>
           if CoreJoinUsing.merges context.shared name li ri then .ok ⟨.left, li⟩
           else .error s!"ambiguous column name: {name}"
-      | none, none => .error s!"no such column: {name}"
+      | [] => .error s!"no such column: {name}"
+      | _ => .error s!"ambiguous column name: {name}"
 
 def joinHasColumn (context : JoinContext) (name : String) : Bool :=
   (findColumn? context.leftSchema name).isSome || (findColumn? context.rightSchema name).isSome
@@ -1528,6 +1530,27 @@ def joinDistinctScanOrder (left right : Core.Schema) (mayExchange oneToOne : Boo
       else []
   | [] => []
 
+/-- A rowid equality can make the left table the point-lookup inner side.
+Coercion of the right operand does not change which source drives that scan. -/
+def joinProbesLeftRowid (left : Core.Schema) : CoreJoin.Predicate → Bool
+  | .and first second => joinProbesLeftRowid left first || joinProbesLeftRowid left second
+  | .equal (.column ⟨.left, index⟩) (.column ⟨.right, _⟩)
+  | .equal (.column ⟨.left, index⟩) (.coercedColumn _ ⟨.right, _⟩)
+  | .equal (.column ⟨.right, _⟩) (.column ⟨.left, index⟩)
+  | .equal (.coercedColumn _ ⟨.right, _⟩) (.column ⟨.left, index⟩) => index == left.primaryKey
+  | _ => false
+
+def joinLookupScanOrder (left right : Core.Schema) (mayExchange : Bool)
+    (on where_ : Option CoreJoin.Predicate) (terms : List CoreJoin.OrderTerm) :
+    List (CoreJoin.ColumnRef × Bool) :=
+  if mayExchange &&
+      !(on.any (joinHasRowidEquality left right) || where_.any (joinHasRowidEquality left right)) &&
+      (on.any (joinProbesLeftRowid left) || where_.any (joinProbesLeftRowid left)) then
+    let descending := terms.head?.any fun term =>
+      term.reference.side == .right && term.reference.column == right.primaryKey && term.descending
+    [(⟨.right, right.primaryKey⟩, descending), (⟨.left, left.primaryKey⟩, false)]
+  else []
+
 /-- SQL compound operations use numeric comparison keys; output rows retain
 SQLite's selected original storage classes. -/
 def combineRows (operation : CompoundOp) (left right : List (List Core.Value)) :
@@ -1609,6 +1632,8 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   let where_ ← select.where_.mapM (joinPredicate context)
   let orderColumns ← joinOrderColumns context select.columns.toList
   let orderBy ← joinOrderBy context orderColumns select.orderBy.toList
+  let mayExchange := !rightSource.leftJoin && !rightSource.crossJoin
+  let lookupScanOrder := joinLookupScanOrder leftSchema rightSchema mayExchange on where_ orderBy
   return {
     columns := ← joinProjection context select.columns.toList
     on
@@ -1619,8 +1644,9 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     limit := select.limit
     offset := select.offset
     distinct := select.distinct
+    lookupScanOrder
     distinctScanOrder := joinDistinctScanOrder leftSchema rightSchema
-      (!rightSource.leftJoin && !rightSource.crossJoin)
+      mayExchange
       (on.any (joinHasRowidEquality leftSchema rightSchema) ||
         where_.any (joinHasRowidEquality leftSchema rightSchema))
       (orderBy.map (fun term => (term.reference, term.descending))) }
