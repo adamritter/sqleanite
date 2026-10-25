@@ -1,0 +1,2050 @@
+{
+  "evaluation": "C-backed development diagnostic; fixed cases, not fresh evaluation",
+  "cases": [
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n2|2|1\n2|2|2\n3|3|1\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n2|2|1\n2|2|2\n3|3|1\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n2|2|1\n2|2|2\n2|2|3\n3|3|1\n3|3|2\n3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n2|2|1\n2|2|2\n2|2|3\n3|3|1\n3|3|2\n3|3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|0\n2|2|0\n3|3|0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|0\n2|2|0\n3|3|0\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n2|0\n2|1\n2|2\n2|3\n3|0\n3|1\n3|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n2|0\n2|1\n2|2\n2|3\n3|0\n3|1\n3|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n2|2|1\n2|2|2\n3|3|1\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n2|2|1\n2|2|2\n3|3|1\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|2\n2|2|2\n3|3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n2|2|1\n2|2|2\n2|2|3\n3|3|1\n3|3|2\n3|3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n2|2|1\n2|2|2\n2|2|3\n3|3|1\n3|3|2\n3|3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|0\n2|2|0\n3|3|0\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|0\n2|2|0\n3|3|0\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|1\n2|2|1\n3|3|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n2|0\n2|1\n2|2\n2|3\n3|0\n3|1\n3|2\n3|3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n2|0\n2|1\n2|2\n2|3\n3|0\n3|1\n3|2\n3|3\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1|\n2|2|\n3|3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|0\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|0\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n2|1\n3|1\n1|2\n2|2\n3|2\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n1|1|2\n1|1|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|0\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|0\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|0\n1|1\n1|2\n1|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "variant": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "81fb8c9e6f7967a97cab5f6fa939c7808efba6fb895a7f1c421b740b7e5ee160",
+  "executable_sha256": "825721cc255721be5001e0b757ec40e0afb9a11a1159a4cba4ea1ce055244152",
+  "harness_sha256": "469ea2af27ac8b503cc6e37d62da7790b4a6ae893fee3aafc5c525977d446c12",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

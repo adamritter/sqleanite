@@ -1,0 +1,69 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-scalar-fresh-regression-input-20261025.json",
+  "input_sha256": "4b9174f6a564a42e618f98678c66d5bbb2433c8b379a79120c144ffdab2866ea",
+  "cases": [
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,-9223372036854775808,8);INSERT INTO l VALUES(2,'01',7);INSERT INTO l VALUES(3,0.0,6);INSERT INTO l VALUES(4,X'302E35FF',5);INSERT INTO l VALUES(5,'a',4);INSERT INTO l VALUES(6,1.0,3);INSERT INTO l VALUES(7,'1',2);INSERT INTO l VALUES(8,NULL,1);INSERT INTO l VALUES(9,0.0,0);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,-9223372036854775808,8);INSERT INTO l VALUES(2,'01',7);INSERT INTO l VALUES(3,0.0,6);INSERT INTO l VALUES(4,X'302E35FF',5);INSERT INTO l VALUES(5,'a',4);INSERT INTO l VALUES(6,1.0,3);INSERT INTO l VALUES(7,'1',2);INSERT INTO l VALUES(8,NULL,1);INSERT INTO l VALUES(9,0.0,0);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "81fb8c9e6f7967a97cab5f6fa939c7808efba6fb895a7f1c421b740b7e5ee160",
+  "executable_sha256": "825721cc255721be5001e0b757ec40e0afb9a11a1159a4cba4ea1ce055244152",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

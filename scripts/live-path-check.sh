@@ -2292,7 +2292,7 @@ else
 fi
 
 if rg -F -q 'let source := joinScalarReducedSource context prepared originalRight' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'joinScalarRowsM context prepared source left right traversal.exchanged' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchRows context prepared source plan traversal.exchanged inner outer' SQLeanite/CoreSQL.lean &&
    rg -F -q 'joinScalarOnlySide context prepared outerSide term' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreSQL.joinScalarNullWalk_or' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSQL.joinScalarReducedSource_no_new_outer' SQLeanite/ProofAxioms.lean; then
@@ -2313,6 +2313,17 @@ if rg -F -q '(joinScalarReadReport state select).toExcept' SQLeanite/CoreSQL.lea
   printf 'ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution\n'
 else
   printf 'live-path check FAILED: joined read observation or streaming path\n' >&2
+  status=1
+fi
+
+if rg -F -q 'joinSearchCandidates context prepared source exchanged outer plan.access inner' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let plan := joinSearchPlan context prepared source traversal on' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let outer ← match traversal.root with' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinSearchCandidates_point_error' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinSearchCandidates_automatic_empty' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined cursor initialization preserves computed key errors and empty scan termination\n'
+else
+  printf 'live-path check FAILED: joined cursor initialization\n' >&2
   status=1
 fi
 

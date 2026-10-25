@@ -1504,3 +1504,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.observeJoinedSelect_refines
 
 #print axioms SQLeanite.CoreSQL.joinScalarRowsM_exchange_inner
+
+#print axioms SQLeanite.CoreSQL.joinSearchCandidates_point_error
+#print axioms SQLeanite.CoreSQL.joinSearchCandidates_scan_empty
+#print axioms SQLeanite.CoreSQL.joinSearchCandidates_automatic_empty

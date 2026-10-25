@@ -7195,6 +7195,70 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinCursorInitialization : IO Unit := do
+  let cases : List (String × String × Bool × List (List Value)) := [
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)<b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>b.id ORDER BY a.id,b.id DESC;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON b.id IN(abs(a.k),a.id);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a JOIN r b ON 0 AND abs(a.k)=b.id;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.k;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)<b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)>b.id ORDER BY a.id,b.id DESC;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id IN(abs(a.k),a.id);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON 0 AND abs(a.k)=b.id;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)<b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)>b.id ORDER BY a.id,b.id DESC;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id IN(abs(a.k),a.id);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.k;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)<b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)>b.id ORDER BY a.id,b.id DESC;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id IN(abs(a.k),a.id);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON 0 AND abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k;",false,[[.integer 1,.null],[.integer 2,.null],[.integer 3,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)<b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)>b.id ORDER BY a.id,b.id DESC;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id IN(abs(a.k),a.id);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,2),(3,3);","SELECT a.id,b.id FROM l a FULL JOIN r b ON 0 AND abs(a.k)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k;",true,[[.integer 1,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id LIMIT 1;",false,[[.integer 1,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k ORDER BY a.id LIMIT 1;",false,[[.integer 1,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)<b.id ORDER BY a.id,b.id DESC;",false,[[.integer 1,.null],[.integer 2,.null],[.integer 3,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;",true,[[.integer 1,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;",false,[[.integer 1,.null],[.integer 2,.null],[.integer 3,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON json_extract(a.k,'$');",false,[[.integer 1,.null],[.integer 2,.null],[.integer 3,.null]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);","SELECT a.id,b.id FROM l a JOIN r b ON abs(-9223372036854775808)=b.id;",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);","SELECT a.id,b.id FROM l a JOIN r b ON b.id IN(abs(-9223372036854775808),1);",true,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);","SELECT a.id,b.id FROM l a JOIN r b ON b.id IN(abs(-9223372036854775808),1) ORDER BY a.id,b.id;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id WHERE 0;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);","SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id LIMIT 0;",false,[]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);","SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN(1,2);",false,[[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 1],[.integer 3,.integer 3,.integer 1],[.integer 1,.integer 1,.integer 2],[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 2]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);","SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN(1,2) ORDER BY a.id,b.id;",false,[[.integer 1,.integer 1,.integer 1],[.integer 1,.integer 1,.integer 2],[.integer 2,.integer 2,.integer 1],[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 1],[.integer 3,.integer 3,.integer 2]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);","SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN(1,2) ORDER BY b.id DESC,a.id;",false,[[.integer 1,.integer 1,.integer 2],[.integer 2,.integer 2,.integer 2],[.integer 3,.integer 3,.integer 2],[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 1],[.integer 3,.integer 3,.integer 1]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);","SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;",false,[[.integer 1,.integer 1,.integer 1],[.integer 1,.integer 1,.integer 2],[.integer 1,.integer 1,.integer 3],[.integer 2,.integer 2,.integer 1],[.integer 2,.integer 2,.integer 2],[.integer 2,.integer 2,.integer 3],[.integer 3,.integer 3,.integer 1],[.integer 3,.integer 3,.integer 2],[.integer 3,.integer 3,.integer 3]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,3);INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);","SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;",false,[[.integer 1,.integer 1,.integer 0],[.integer 2,.integer 2,.integer 0],[.integer 3,.integer 3,.integer 0]])]
+  for (setup, sql, expectedError, values) in cases do
+    let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+      | .ok result => pure result
+      | .error message => fail message
+    let statements ← match CoreTokenGrammar.parseStatements sql with
+      | .ok result => pure result
+      | .error message => fail message
+    let [.select query] := statements.toList | fail "cursor initialization fixture was not a SELECT"
+    let some report := CoreSQL.observeJoinedSelect? state query | fail "cursor observation was missing"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless report.execution.result.rows == expected && report.error.isSome == expectedError do
+      fail s!"joined cursor initialization or emitted prefix differs: {sql}"
+
 private def expectSQLiteComputedJoinTraversal : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,0);INSERT INTO l VALUES(2,-3);INSERT INTO r VALUES(2,3);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(4,3);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3,.integer 4,.integer 2]]),
@@ -8631,6 +8695,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined compound result slots and expression binding", expectSQLiteJoinCompoundBinding),
   ("SQLite joined scalar expressions, aggregates and dynamic ON", expectSQLiteJoinedExpressions),
   ("SQLite joined evaluation order and early WHERE filtering", expectSQLiteJoinEvaluationOrder),
+  ("SQLite joined cursor initialization and empty-input search keys", expectSQLiteJoinCursorInitialization),
   ("SQLite joined read prefixes survive errors in both file modes", expectSQLiteJoinedReadPrefix),
   ("SQLite computed rowid lookup traversal in streaming and sorted joins", expectSQLiteComputedJoinTraversal),
   ("SQLite first scalar argument collation includes column defaults", expectSQLiteFunctionArgumentCollations),

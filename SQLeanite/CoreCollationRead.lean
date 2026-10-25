@@ -199,11 +199,21 @@ theorem joinProjection_noCollation (context : CoreSQL.JoinContext)
               · exact joinColumn_noCollation context column output head
               · exact ih outputs tail column member
 
+theorem joinQueryBound_noCollation (select : Select) (source : TableRef)
+    (context : CoreSQL.JoinContext) (query : CoreJoin.Query)
+    (success : CoreSQL.joinQueryBound select source context = .ok query) :
+    ∀ column ∈ select.columns.toList, NoExplicitCollation column.expr := by
+  unfold CoreSQL.joinQueryBound at success
+  simp only [bind, Except.bind, pure, Except.pure, CoreSQL.unsupported] at success
+  repeat' (split at success)
+  all_goals try contradiction
+  all_goals exact joinProjection_noCollation _ _ _ (by assumption)
+
 theorem joinQuery_noCollation (select : Select) (leftTable rightTable : String)
     (left right : Core.Schema) (query : CoreJoin.Query)
     (success : CoreSQL.joinQuery select leftTable rightTable left right = .ok query) :
     ∀ column ∈ select.columns.toList, NoExplicitCollation column.expr := by
-  unfold CoreSQL.joinQuery CoreSQL.joinQueryBound at success
+  unfold CoreSQL.joinQuery at success
   by_cases aliases : CoreSQL.joinAliasesNeeded select left right = true
   · simp [aliases, CoreSQL.unsupported, bind, Except.bind] at success
   simp [aliases, bind, Except.bind, pure, Except.pure] at success
@@ -219,6 +229,6 @@ theorem joinQuery_noCollation (select : Select) (leftTable rightTable : String)
         simp only [sources, bind, Except.bind, pure, Except.pure, CoreSQL.unsupported] at success
         repeat' (split at success)
         all_goals try contradiction
-        all_goals exact joinProjection_noCollation _ _ _ (by assumption)
+        all_goals exact joinQueryBound_noCollation _ _ _ _ (by assumption)
 
 end SQLeanite.CoreSQLReadText

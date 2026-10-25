@@ -1,0 +1,42 @@
+import hashlib,json,os,shutil,subprocess,tempfile
+from pathlib import Path
+root=Path.cwd(); c=os.environ['SQLITE3_BIN']; binary=root/'.lake/build/bin/sqleanite'
+queries=[
+ 'SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);',
+ 'SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2);',
+ 'SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY a.id,b.id;',
+ 'SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id IN (1,2) ORDER BY b.id DESC,a.id;',
+ 'SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON b.id=2;',
+ 'SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS TRUE ORDER BY a.id,b.id;',
+ 'SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON b.id IS FALSE ORDER BY a.id,b.id;',
+ 'SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b ON TRUE IS b.id ORDER BY a.id,b.id;',
+ 'SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND 0;',
+ 'SELECT a.id,b.id FROM l a LEFT JOIN r b ON 0 AND abs(a.k)=b.id;',
+ 'SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.k AND abs(a.k)>0;',
+ 'SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)>0 AND abs(a.k)=b.k;',
+ 'SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) ORDER BY a.id,b.id;',
+ 'SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id=1 AND abs(a.k)=b.id;',
+ 'SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.id AND b.id=1;',
+]
+def run(args,sql):
+ r=subprocess.run(args,input=sql.encode(),capture_output=True,timeout=120);return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
+rows=[]
+with tempfile.TemporaryDirectory(prefix='sqleanite-search-focused-') as tmp:
+ for variant in range(4):
+  setup='CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);'
+  setup+='INSERT INTO l VALUES(1,1),(2,'+('2' if variant<2 else '-9223372036854775808')+'),(3,3);'
+  if variant%2==0:setup+='INSERT INTO r VALUES(0,0),(1,1),(2,2),(3,3);'
+  base=Path(tmp)/f'{variant}.db';assert run([c,str(base)],setup)['code']==0
+  for mode in ['--verified-file','--verified-wal-file']:
+   l=Path(tmp)/f'{variant}-{mode}-l.db';r=Path(tmp)/f'{variant}-{mode}-r.db';shutil.copyfile(base,l);shutil.copyfile(base,r)
+   before_l=l.read_bytes();before_r=r.read_bytes()
+   for sql in queries:
+    lr=run([str(binary),mode,str(l)],sql);cr=run([c,'-batch','-bail',str(r)],sql)
+    rows.append(dict(variant=variant,setup=setup,mode=mode,sql=sql,lean=lr,sqlite=cr,matched=bool(lr['code'])==bool(cr['code']) and lr['stdout']==cr['stdout']))
+   assert l.read_bytes()==before_l and r.read_bytes()==before_r
+h=hashlib.sha256()
+for p in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+fails=sum(not x['matched'] for x in rows)
+out=dict(evaluation='C-backed development diagnostic; fixed cases, not fresh evaluation',cases=rows,failures=fails,implementation_sha256=h.hexdigest(),executable_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([c,'--version'],text=True).strip())
+(root/'docs/validation/sqlite-join-search-focused-corrected-20261025.json').write_text(json.dumps(out,indent=2)+'\n');print(len(rows),fails)
+raise SystemExit(bool(fails))

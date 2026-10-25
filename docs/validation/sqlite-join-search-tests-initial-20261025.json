@@ -1,0 +1,8 @@
+{
+  "exit_code": 1,
+  "implementation_sha256": "23c51e1d8343a3124ca633b621746bc96d76ed9953509287a35bf81dd01febce",
+  "log_sha256": "d5d4c1a2f01c3ed4954af498b9837babcf159b7a16b7355607a44a7e269364a6",
+  "failures": [
+    "not ok - SQLite empty-side outer ON validates without value evaluation: empty outer ON json_extract(a.k,'$'): unsupported or unbound row expression"
+  ]
+}

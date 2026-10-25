@@ -5470,3 +5470,103 @@ and its callback/cache/file IO seam is explicitly unproved. All nine native
 bindings and their audit allowlist are unchanged. Reports and diagnostic source:
 `sqlite-join-stream-*20261025.*`; public harnesses remain the joined read,
 evaluation-order, writer and script regression harnesses listed above.
+
+
+## Joined cursor initialization and empty search inputs (2026-10-25)
+
+Joined expression execution now represents scan, rowid equality, rowid IN,
+rowid-range and automatic-index lookup initialization separately. Selected
+search keys are evaluated before seeking their candidate rows, including empty
+inputs. A Rewind or empty automatic-index construction can instead end an inner
+cursor nest before its key is evaluated. LEFT joins retain their unmatched-row
+path. Search predicates use their original affinity and collation, unary plus
+disqualifies a bare indexed column, and Boolean IS TRUE/FALSE does not become an
+equality seek.
+
+The shared traversal plan also represents a constant rowid cursor that opens
+before the other source and handles constant IN visitation order. Range start
+and end constraints follow scan direction. Automatic lookup constraints are
+chosen in term order with index-affinity checks. ON name/function resolution and
+code-generation admission are independent of whether a builtin value evaluator
+is reached. Empty-pair adapters no longer erase computed cursor keys; ignored
+non-key ON expressions still preserve their earlier behavior. A scan ordered
+only by its outer rowid may emit and stop at LIMIT even when the inner cursor
+uses an automatic index.
+
+This remains a partial implementation of SQLite's planner: it does not implement
+the complete cost/statistics search or general constant propagation. No C query
+engine, native binding or opaque-audit expansion is used at runtime. The new
+component proofs establish point-key error propagation, empty Rewind behavior
+and empty automatic-index termination. The existing collation theorem keeps its
+original statement; its proof is factored through a separate bound-query lemma.
+
+The preserved initial empty-search baseline, seed **354600**, records
+**5,184 / 252** differences at the earlier scalar checkpoint. Its exact original
+harness is retained. An expanded baseline, seed **354601**, records
+**16,800 / 1,636** at the streaming checkpoint. Both include ordinary-file and
+WAL-file execution against pinned C-created databases; no failures are removed.
+
+Initial cursor development, source
+`23c51e1d8343a3124ca633b621746bc96d76ed9953509287a35bf81dd01febce`, records
+**16,992 / 656** at seed **354620**. The initial focused diagnostic records
+**120 / 16**, and the existing executable suite rejects an accidentally lost
+empty-input JSON-function admission. These negatives are preserved, including
+the source patch. The initial general read and order development corpora pass
+**12,000 / 0** and **4,800 / 0**, respectively; they are not final-source checks.
+
+After repairing RIGHT/FULL empty adapters, Boolean IS, constant cursor traversal
+and ON admission, development seed **354623** passes **16,992 / 0**. All 656 saved
+failures pass a strict replay, and the two older saved scalar-search failures
+also pass. The focused diagnostic passes **120 / 0** and order development
+passes **4,800 / 0**. These results use source
+`81fb8c9e6f7967a97cab5f6fa939c7808efba6fb895a7f1c421b740b7e5ee160`.
+A newly added executable control then exposes the remaining outer-only ORDER BY
+case with LIMIT; that negative and its C oracle are retained separately.
+
+Fresh evaluation at the final source checkpoint
+`da7dadea628d68a8700ea2d350c8576fb7613dff6d4c83eda2fb908a7b8205ab`:
+
+- Empty-search seed **354626**: **35,136 / 50**, plus 16 passing immutable-fixture checks.
+- Joined order seed **354627**: **16,128 / 0**, plus 24 passing immutable-fixture
+  checks.
+- General scalar read seed **354628**: **24,640 / 0**, plus 16 passing
+  immutable-fixture checks.
+- Joined writer seed **354629**: **5,184 / 0**.
+
+The 50 fresh empty-search differences are retained without filtering: 42 C
+errors are accepted because a legacy RIGHT empty adapter skips ON terms after
+WHERE removes the outer side; eight C successes are rejected when transitive
+rowid constraints select the opposite outer cursor. Every failure also appears
+in a labelled saved-case replay input. This fresh result does not establish
+complete empty-search compatibility.
+
+The read corpora compare exact stdout even on errors, success/error status,
+immutable main/WAL bytes and pinned-C integrity/typed observations. The writer
+corpus checks C catalog and typed contents, follow-up C writes and Lean reopening,
+and requires unchanged bytes when C leaves its files unchanged; its both-error
+branch does not compare partial stdout. Corpora mix fixed controls and newly
+seeded values, overflow positions and windows across three page sizes. Counts
+are scoped differential outcomes, not a percentage of SQLite compatibility.
+
+Final checks pass **354 build jobs, 286 executable tests, 1,286 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+explicitly unsupported. The executable suite includes 47 C-backed cursor
+controls. Native bindings remain nine; native source SHA-256 is unchanged at
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+
+A new, independent constant-search baseline at this same final checkpoint,
+seed **354640**, records **7,328 / 252** differences: 144 C errors are accepted,
+and 108 C successes are rejected. It includes empty and nonempty sources.
+The next work is fixed-column propagation and inner-source WHERE filtering
+before ON evaluation. This negative is retained alongside the existing SQL,
+planner, file-format and concurrent-WAL gaps; this is not full SQLite
+compatibility.
+
+Reports: `sqlite-join-empty-search-*20261025.*`,
+`sqlite-join-search-*20261025.*`, and
+`sqlite-join-constant-search-baseline-20261025.json`. Public harnesses:
+`scripts/run-join-empty-search-differential.py`,
+`scripts/run-join-constant-search-differential.py` and the existing joined
+read/order/write and strict saved-failure harnesses. Focused diagnostic harness
+sources and intermediate production patches are retained as labelled text
+artifacts outside the production source tree.
