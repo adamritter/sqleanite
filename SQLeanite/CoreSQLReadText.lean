@@ -303,7 +303,7 @@ theorem executeSelectBase_eq_core
       have sourceSize : select.sources.size = 2 := by
         rw [twoSources]
         rfl
-      simp [CoreSQL.executeSelectBase, sourceSize, CoreSQL.executeJoin, CoreSQL.joinQueryForRows, CoreSQL.joinQueryWithZero,
+      simp [CoreSQL.executeSelectBase, sourceSize, CoreSQL.executeJoin, CoreSQL.joinQueryComplete, CoreSQL.joinQueryForRows, CoreSQL.joinQueryWithZero,
         twoSources, plainSources, noGroups, noHaving,
         leftFound, rightFound, queryTranslated, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
@@ -857,7 +857,7 @@ theorem executeStatement_eq_core
                 (CoreSQL.resolveTableName state leftSource.name)
                 (CoreSQL.resolveTableName state rightSource.name) query).columns.length) := by
         rw [baseSelect]
-        simp [CoreSQL.executeJoin, CoreSQL.joinQueryForRows, CoreSQL.joinQueryWithZero, twoSources, plainSources, noGroups,
+        simp [CoreSQL.executeJoin, CoreSQL.joinQueryComplete, CoreSQL.joinQueryForRows, CoreSQL.joinQueryWithZero, twoSources, plainSources, noGroups,
           noHaving, leftFound, rightFound,
           queryTranslated, bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state

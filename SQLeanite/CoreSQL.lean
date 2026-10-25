@@ -1818,6 +1818,112 @@ theorem joinQueryForRows_existing (select : Select) (leftTable rightTable : Stri
     joinQueryForRows select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
   simp [joinQueryForRows, joinQueryWithZero, success]
 
+/-- These leading wrappers preserve values. Their collation and CTAS affinity
+metadata are read from the original expression separately. -/
+def joinValueBaseFuel : Nat → Expr → Expr
+  | 0, expression => expression
+  | fuel + 1, expression => match expression with
+    | .unary .plus argument | .collate argument _ => joinValueBaseFuel fuel argument
+    | .call name arguments false => match SQLite.Probability.input? name arguments with
+      | some argument => joinValueBaseFuel fuel argument
+      | none => expression
+    | _ => expression
+
+def joinWrappedColumns (context : JoinContext) (columns : List ResultColumn) :
+    Except String (List ResultColumn × List (Option String)) := do
+  let parts ← columns.mapM fun column => do
+    let bound := joinBindNames context column.expr
+    let base := joinValueBaseFuel bound.height bound
+    let references ← joinResultExpr context base
+    let name := match bound with
+      | .star _ => some "binary"
+      | _ => SQLite.ExprCollation.effectiveName bound
+    pure ({ column with expr := base }, List.replicate references.length name)
+  return (parts.map Prod.fst, (parts.map Prod.snd).flatten)
+
+/-- Top-level aliases/positions inherit their selected result's collation;
+source expressions retain their own metadata. -/
+def joinOrderOutputPosition? (columns : List (CoreJoin.Operand × Option String))
+    (expression : Expr) : Option Nat :=
+  let expression := SQLite.Scalar.prepare (CoreOrder.keyExpression expression)
+  match (CoreOrder.bareName? expression).bind (fun name =>
+      columns.findIdx? (fun output => output.2.any (fun alias => canonical alias == canonical name))) with
+  | some position => some position
+  | none => (CoreOrder.ordinal? expression).bind fun position =>
+      if 1 ≤ position && position.toNat ≤ columns.length then some (position.toNat - 1) else none
+
+def joinWrappedOrderReference (context : JoinContext)
+    (columns : List (CoreJoin.Operand × Option String)) (expression : Expr) :
+    Except String (Option CoreJoin.ColumnRef) :=
+  match joinOrderReference context columns expression with
+  | .ok reference => .ok reference
+  | .error message => do
+      let key := SQLite.Scalar.prepare (CoreOrder.keyExpression expression)
+      if (CoreOrder.ordinal? key).isSome then throw message
+      let bound := joinBindNames context key
+      let base := joinValueBaseFuel bound.height bound
+      if base.any SQLite.StaticCondition.resolutionForbidden then throw message
+      let reference ← joinOperand context base
+      joinOrderOutputReference reference
+
+def joinWrappedOrderBy (context : JoinContext)
+    (columns : List (CoreJoin.Operand × Option String)) (names : List (Option String))
+    (terms : List OrderTerm) : Except String (List CoreJoin.OrderTerm) := do
+  let terms ← terms.mapM fun term => do
+    let selected := (joinOrderOutputPosition? columns term.expr).bind (fun position => names[position]?.getD none)
+    let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.ofName
+      ((SQLite.ExprCollation.name term.expr).orElse (fun _ => selected)))
+    let reference ← joinWrappedOrderReference context columns term.expr
+    pure (reference.map fun reference => ({
+      reference := reference
+      descending := term.descending
+      nullsFirst := some (term.nullsFirst.getD (!term.descending))
+      collation := kind } : CoreJoin.OrderTerm))
+  return terms.filterMap id
+
+/-- Normalize only value-preserving projection wrappers, then reuse the same
+join predicates, source validation and row windows. Original output collations
+control DISTINCT, alias/ordinal ordering and later compound metadata. -/
+def joinWrappedQuery (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query := do
+  let (leftSource, rightSource) ← match select.sources.toList with
+    | [left, right] => .ok (left, right)
+    | _ => unsupported "join source count"
+  let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
+  let (columns, names) ← joinWrappedColumns context select.columns.toList
+  let orderColumns ← joinOrderColumns context columns
+  let orderBy ← joinWrappedOrderBy context orderColumns names select.orderBy.toList
+  let kinds ← if select.distinct then names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
+    else pure []
+  let query ← joinQueryForRows { select with columns := columns.toArray, orderBy := #[] }
+    leftTable rightTable leftSchema rightSchema leftRows rightRows
+  let mayExchange := !rightSource.leftJoin && !rightSource.crossJoin
+  return { query with
+    orderBy
+    distinctCollations := if kinds.all (· == .binary) then [] else kinds
+    lookupScanOrder := joinLookupScanOrder leftSchema rightSchema mayExchange query.on query.where_ orderBy
+    distinctScanOrder := joinDistinctScanOrder leftSchema rightSchema mayExchange
+      (query.on.any (joinHasRowidEquality leftSchema rightSchema) ||
+        query.where_.any (joinHasRowidEquality leftSchema rightSchema))
+      (orderBy.map (fun term => (term.reference, term.descending))) }
+
+def joinQueryComplete (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query :=
+  match joinQueryForRows select leftTable rightTable leftSchema rightSchema leftRows rightRows with
+  | .ok query => .ok query
+  | .error message =>
+      match joinWrappedQuery select leftTable rightTable leftSchema rightSchema leftRows rightRows with
+      | .ok query => .ok query
+      | .error _ => .error message
+
+theorem joinQueryComplete_existing (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) (query : CoreJoin.Query)
+    (success : joinQuery select leftTable rightTable leftSchema rightSchema = .ok query) :
+    joinQueryComplete select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
+  simp [joinQueryComplete, joinQueryForRows, joinQueryWithZero, success]
+
 def executeJoin (state : Core.State) (select : Select) :
     Except String SelectExecution := do
   let (leftSource, rightSource) ← match select.sources.toList with
@@ -1836,7 +1942,7 @@ def executeJoin (state : Core.State) (select : Select) :
   let right ← match state.database.findTable? rightTable with
     | some table => .ok table
     | none => .error s!"no such table: {rightSource.name}"
-  let query ← joinQueryForRows select leftTable rightTable left.schema right.schema left.rows right.rows
+  let query ← joinQueryComplete select leftTable rightTable left.schema right.schema left.rows right.rows
   let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
   let (next, result) ← Core.execute state (.join leftTable rightTable query)
   return ⟨next, result, query.columns.length⟩
@@ -2266,8 +2372,8 @@ def requiresCompoundCollation (select : Select) : Bool :=
   !select.compounds.isEmpty && resultCollationFuel select.compoundHeight select
 
 /-- Bind identifiers and expand stars before resolving each output column's
-explicit or declared collation. A supported join projects only stored columns,
-whose admitted schema collation is BINARY. -/
+explicit or declared collation. Joined stars expand with BINARY metadata;
+wrapped atoms retain their original explicit and inherited collation. -/
 def baseResultCollations (state : Core.State) (select : Select) (wrappedValues : Bool := false) :
     Except String (List (Option String)) := do
   if let some rows := select.valueRows then
@@ -2282,9 +2388,12 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   | [leftSource, rightSource] =>
       let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
       let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
-      let query ← joinQueryForRows { select with orderBy := #[], offset := 0 }
-        (resolveTableName state leftSource.name) (resolveTableName state rightSource.name) left.schema right.schema left.rows right.rows
-      return List.replicate query.columns.length (some "binary")
+      let leftName := resolveTableName state leftSource.name
+      let rightName := resolveTableName state rightSource.name
+      let _ ← joinQueryComplete { select with orderBy := #[], offset := 0 }
+        leftName rightName left.schema right.schema left.rows right.rows
+      let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
+      return (← joinWrappedColumns context select.columns.toList).2
   | _ => unsupported "compound source shape"
 
 /-- multiSelectCollSeq takes the first arm that supplies a collation for each

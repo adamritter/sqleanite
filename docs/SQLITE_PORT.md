@@ -4977,3 +4977,54 @@ not establish complete upstream planner or dynamic-expression equivalence.
 Native bindings are unchanged. Reports: `sqlite-join-empty-on-*20261025.json`;
 harnesses: `scripts/run-join-empty-on-differential.py` and
 `scripts/run-join-empty-on-write-differential.py`.
+
+
+## Joined projection wrappers and result collations (2026-10-25)
+
+Joined column/literal projections now accept leading unary plus, COLLATE and
+valid likely/unlikely/likelihood wrappers. Value translation uses the existing
+atom interpreter, while original expression metadata supplies DISTINCT and
+ORDER BY comparison. Explicit ORDER BY collations override inherited output
+collations; top-level output aliases and positions inherit them. Direct source
+expressions keep their own metadata. Star expansion preserves slot order and
+BINARY source metadata. Compound queries now distinguish absent result collation
+from inherited BINARY: unlike a plain column or unary plus, likely(column) does
+not supply the column's default collation. CTAS still derives names and affinity
+from the original expressions. Invalid arities/probabilities, ordinal positions
+and required collations remain errors; an unused COLLATE name need not be resolved.
+
+The join query carries separate DISTINCT comparison kinds. Collated duplicate
+elimination retains original joined rows, preserving unselected ORDER BY values
+and stored bytes. The BINARY-only path retains the existing numeric-key operation.
+The optimizer preserves this metadata. Existing successful SQL translations and
+their fast-subset proof relation remain unchanged; the new wrapper translation
+has its own fallback rather than asserting that all result collations are absent.
+
+Baseline seed **354520** records **7,200 comparisons / 5,450 differences**, all
+successful C statements previously rejected. Development seed **354521** passes
+**9,792 / 0** after expanding the fixed byte-value fixture; persisted development
+seed **354525** passes **1,200 / 0**. Final-checkpoint fresh seed **354522** passes
+**23,104 / 0**, plus 16 immutable-image/integrity checks. This expanded corpus also
+checks right-arm compound collation priority. It mixes fixed controls and newly
+seeded inputs/combinations; the total is not a count of wholly unseen examples.
+Coverage includes nested wrappers, aliases, ordinal/source ordering, NULL
+extension, Boolean-name binding, mixed numeric storage classes, invalid UTF-8,
+embedded NUL, NOCASE byte-length distinctions, RTRIM, compound sets, LIMIT/OFFSET,
+three page sizes and both file modes. Full stdout and error status are compared,
+with independent C typed observations of immutable source images.
+
+Persisted fresh seed **354523** passes **3,216 / 0**, including CTAS/INSERT SELECT,
+compound affinity/name metadata, typed rows, integrity, subsequent C writes and
+Lean reopening. Atom regression seed **354524** passes **8,272 / 0**, plus eight
+image checks. Implementation SHA-256:
+`bbb0eda14bbb325dd8ebb346f66da5f8b8439d6808e5984095995553f22135f5`.
+Final checks pass **352 build jobs, 275 executable tests, 1,250 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. New component theorems establish original-row retention and pairwise
+absence of collated duplicates, plus preservation of existing translations.
+They do not prove complete SQLite expression/planner equivalence. General joined
+scalar evaluation, RIGHT/FULL joins and the recorded planner-order negatives
+remain open. Native bindings are unchanged. Reports:
+`sqlite-join-wrappers-*20261025.json`; harnesses:
+`scripts/run-join-wrappers-differential.py` and
+`scripts/run-join-wrappers-write-differential.py`.

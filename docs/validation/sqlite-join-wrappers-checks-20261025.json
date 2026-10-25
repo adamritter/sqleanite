@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "bbb0eda14bbb325dd8ebb346f66da5f8b8439d6808e5984095995553f22135f5",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "19ff2a2ec3c0b9cb7522ae25aa8f9805d81e5107ec694ac488e7407a1f5c54c3",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [351/352] Built Tests:c.o (18s)",
+        "\u2714 [352/352] Built sqleanite_tests:exe (334ms)",
+        "Build completed successfully (352 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "4383d326d1e23055aa9dc2795391f21e15d576f9dc242c3c61403f3885ce8990",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "275 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "00033c587ed7c2e69790acf841a4191c778346e40d2f6ddbbe4ec010bbf1c850",
+      "tail": [
+        "ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding",
+        "ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests",
+        "ok - joined IN lists preserve left affinity, nullable equality and positive grammar",
+        "ok - literal NULL tests use parser token classification before scalar admission",
+        "ok - static joined conditions retain resolution and code-generation checks",
+        "ok - zero-LIMIT joins validate predicates without evaluating their values",
+        "ok - empty-side outer ON keeps validation and preserves the existing join path",
+        "ok - joined projection wrappers retain DISTINCT and ORDER BY collations"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "2d87ccdabcf90ad3fed030c7b1d2a9c0991600ac1f327a8f618a247350dceab1"
+}

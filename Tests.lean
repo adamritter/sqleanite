@@ -7195,6 +7195,34 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinProjectionWrappers : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY);INSERT INTO l VALUES(1,'Z'),(2,'a'),(3,'A'),(4,'a ');INSERT INTO r VALUES(1);"
+  let cases : List (String × List String) := [
+    ("SELECT DISTINCT a.k COLLATE nocase FROM l a,r b ORDER BY 1;", ["a","a ","Z"]),
+    ("SELECT DISTINCT likely(a.k COLLATE nocase) AS x FROM l a,r b ORDER BY x;", ["a","a ","Z"]),
+    ("SELECT DISTINCT +a.k COLLATE rtrim FROM l a,r b ORDER BY 1;", ["A","Z","a"]),
+    ("SELECT a.k COLLATE nocase AS x FROM l a,r b ORDER BY x COLLATE binary;", ["A","Z","a","a "]),
+    ("SELECT +a.k FROM l a,r b ORDER BY likely(a.k);", ["A","Z","a","a "]),
+    ("SELECT a.k COLLATE missing FROM l a,r b ORDER BY a.id;", ["Z","a","A","a "]),
+    ("SELECT a.k COLLATE nocase FROM l a,r b UNION SELECT 'A' ORDER BY 1;", ["A","a ","Z"]),
+    ("SELECT likely(a.k) FROM l a,r b UNION SELECT 'A' COLLATE nocase ORDER BY 1;", ["A","a ","Z"]),
+    ("SELECT +a.k FROM l a,r b UNION SELECT 'A' COLLATE nocase ORDER BY 1;", ["A","Z","a","a "])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined projection wrapper: {sql}: {message}"
+    let expected ← match values.mapM (fun value => do return [← SQLSurface.value (.text value)]) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined projection wrapper values: {sql}"
+  for sql in ["SELECT DISTINCT a.k COLLATE missing FROM l a,r b LIMIT 0;",
+      "SELECT a.k COLLATE missing FROM l a,r b ORDER BY 1 LIMIT 0;",
+      "SELECT likely(a.k) FROM l a,r b ORDER BY 0;",
+      "SELECT likelihood(a.k,2.0) FROM l a,r b LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined projection wrapper omitted required validation: {sql}"
+
 private def expectSQLiteJoinComparisonWrappers : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,'A'),(2,'a '),(3,NULL);INSERT INTO r VALUES(1,'a'),(2,'A '),(3,NULL);"
   for (condition, values) in [
@@ -8169,6 +8197,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite parser-time literal NULL-test preparation", expectSQLiteLiteralNullPreparation),
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
+  ("SQLite joined projection wrappers and result collations", expectSQLiteJoinProjectionWrappers),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

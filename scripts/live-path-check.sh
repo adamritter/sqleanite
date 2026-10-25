@@ -2182,7 +2182,7 @@ else
   status=1
 fi
 
-if rg -F -q 'let query ← joinQueryForRows select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'let query ← joinQueryComplete select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
    rg -F -q '(CoreSQL.joinQueryWithZero select leftName rightName' SQLeanite/CoreLazyFileEngine.lean &&
    rg -F -q 'unless joinStaticAdmitted context prepared rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
    rg -q 'theorem joinZeroQuery_limit' SQLeanite/CoreSQL.lean &&
@@ -2201,6 +2201,17 @@ if rg -F -q 'unless rightSource.leftJoin && (leftRows.isEmpty || rightRows.isEmp
   echo 'ok - empty-side outer ON keeps validation and preserves the existing join path'
 else
   echo 'FAIL - empty-side outer ON live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'let (columns, names) ← joinWrappedColumns context select.columns.toList' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinWrappedOrderBy context orderColumns names select.orderBy.toList' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'if query.distinct then query.distinctOutputRows rows else rows' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem distinctCollatedRows_pairwise' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem joinQueryComplete_existing' SQLeanite/CoreSQL.lean; then
+  echo 'ok - joined projection wrappers retain DISTINCT and ORDER BY collations'
+else
+  echo 'FAIL - joined projection wrapper live-path audit failed' >&2
   status=1
 fi
 

@@ -738,6 +738,47 @@ theorem distinctRows_key_nodup (columns : List Operand) (rows : List JoinedRow) 
     ((distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row))).Nodup :=
   Core.stableDistinctBy_key_nodup _ _
 
+/-- Compare projected values using each result slot's explicit collation.
+Unspecified trailing slots retain the schema's BINARY comparison. -/
+def projectionEqual : List Operand → List SQLite.Collation.Kind → JoinedRow → JoinedRow → Bool
+  | [], _, _, _ => true
+  | column :: columns, kinds, left, right =>
+      SQLite.Collation.compareValue (kinds.headD .binary)
+        (column.value left) (column.value right) == .eq &&
+          projectionEqual columns kinds.tail left right
+
+/-- Keep original joined rows so nonselected ORDER BY columns remain available.
+Only comparison metadata affects duplicate elimination. -/
+def distinctCollatedRows (columns : List Operand) (kinds : List SQLite.Collation.Kind) :
+    List JoinedRow → List JoinedRow
+  | [] => []
+  | row :: rows => row :: (distinctCollatedRows columns kinds rows).filter
+      (fun other => !projectionEqual columns kinds row other)
+
+theorem distinctCollatedRows_subset (columns : List Operand) (kinds : List SQLite.Collation.Kind)
+    (rows : List JoinedRow) : distinctCollatedRows columns kinds rows ⊆ rows := by
+  induction rows with
+  | nil => simp [distinctCollatedRows]
+  | cons first rest ih =>
+      intro row member
+      simp only [distinctCollatedRows, List.mem_cons, List.mem_filter] at member
+      rcases member with rfl | ⟨kept, _⟩
+      · simp
+      · exact List.mem_cons_of_mem first (ih kept)
+
+theorem distinctCollatedRows_pairwise (columns : List Operand) (kinds : List SQLite.Collation.Kind)
+    (rows : List JoinedRow) :
+    (distinctCollatedRows columns kinds rows).Pairwise
+      (fun left right => projectionEqual columns kinds left right = false) := by
+  induction rows with
+  | nil => simp [distinctCollatedRows]
+  | cons first rest ih =>
+      simp only [distinctCollatedRows, List.pairwise_cons]
+      constructor
+      · intro row member
+        simpa using (List.mem_filter.mp member).2
+      · exact ih.filter _
+
 structure OrderTerm where
   reference : ColumnRef
   descending : Bool := false
@@ -784,6 +825,7 @@ structure Query where
   distinct : Bool := false
   distinctScanOrder : List (ColumnRef × Bool) := []
   lookupScanOrder : List (ColumnRef × Bool) := []
+  distinctCollations : List SQLite.Collation.Kind := []
 
 /-- Stable merge sort by the same strict order, replacing an O(n^2) insertion
 sort. `a ≤ b` is `¬ (b < a)`, so equal rows keep input order. -/
@@ -828,10 +870,14 @@ theorem Query.lookupInputRows_perm (query : Query) (rows : List JoinedRow) :
   · simpa [Query.lookupInputRows, empty] using
       List.mergeSort_perm rows (rowLe query.lookupScanOrder)
 
+def Query.distinctOutputRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
+  if query.distinctCollations.isEmpty then distinctRows query.columns rows
+  else distinctCollatedRows query.columns query.distinctCollations rows
+
 def Query.finishRows (query : Query) (rows : List JoinedRow) : List JoinedRow :=
   let rows := query.lookupInputRows rows
   let rows := if query.distinct then query.distinctInputRows rows else rows
-  let rows := if query.distinct then distinctRows query.columns rows else rows
+  let rows := if query.distinct then query.distinctOutputRows rows else rows
   let rows := (query.orderedRows rows).drop query.offset
   match query.limit with
   | none => rows
@@ -860,7 +906,7 @@ theorem Query.eval_limit_zero (query : Query) (left right : List Core.Row)
 
 theorem Query.finishRows_nil (query : Query) : query.finishRows [] = [] := by
   simp [Query.finishRows, Query.lookupInputRows, Query.distinctInputRows,
-    Query.orderedRows, distinctRows, Core.stableDistinctBy]
+    Query.orderedRows, Query.distinctOutputRows, distinctRows, distinctCollatedRows, Core.stableDistinctBy]
   split <;> rfl
 
 theorem Query.eval_empty_left (query : Query) (right : List Core.Row) :
@@ -873,7 +919,7 @@ theorem Query.eval_empty_right_on (query : Query) (left : List Core.Row)
     (on : Option Predicate) (outer : query.kind = .left) :
     { query with on }.eval left [] = query.eval left [] := by
   simp [Query.eval, Query.selectedRows, outer, leftOuterRows, leftOuterFor,
-    Query.finishRows, Query.lookupInputRows, Query.distinctInputRows, Query.orderedRows]
+    Query.finishRows, Query.lookupInputRows, Query.distinctInputRows, Query.orderedRows, Query.distinctOutputRows]
 
 /-- Execute the certified primary-key join after a page reader has discarded
 left rows above the greatest possible right key. -/
