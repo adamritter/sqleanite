@@ -993,8 +993,10 @@ private def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Na
       | some schemaName => schemaName ++ "." ++ objectName
       | none => if temporary then "temp." ++ objectName else objectName
     if ← acceptKeyword "as" then
-      expectKeyword "select"
-      pure (.createTableAs name (← parseSelectAfterSelect))
+      let query ← if ← acceptKeyword "select" then parseSelectAfterSelect
+        else if ← acceptKeyword "values" then parseValuesAfterValues (← parseValuesRows)
+        else throw (syntaxError (← peek))
+      pure (.createTableAs name query ifNotExists)
     else
       expectSymbol "("
       let mut columns := #[]

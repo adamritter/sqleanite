@@ -23,6 +23,17 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# CTAS derives checked metadata and publishes only through a Core command trace.
+if grep -q 'executeCreateTableAs state name query ifNotExists' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreCreateTableAs.columns state.database query' SQLeanite/CoreSQL.lean &&
+   grep -q 'column.sourceSql == some source' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreSQL.executeCreateTableAs_trace' SQLeanite/ProofAxioms.lean &&
+   grep -q '.createTableAs .. | .createTable ..' SQLeanite/CoreFileEngine.lean; then
+  ok "CTAS certifies column metadata and executes a Core creation/insertion trace"
+else
+  fail "CTAS source metadata, Core trace or persistence wiring is missing"
+fi
+
 # PRAGMA atoms retain lexical spelling and explicit schema qualification.
 if grep -q 'pure (.pragma name arg schema)' SQLeanite/Parser.lean &&
    grep -q 'matchPragmaArgument expression' SQLeanite/CoreTokenGrammar.lean &&

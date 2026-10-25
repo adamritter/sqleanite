@@ -481,7 +481,7 @@ theorem Select.compoundHeight_positive (query : Select) : 0 < query.compoundHeig
 inductive Statement where
   | createTable (name : String) (columns : Array ColumnDef)
       (constraints : Array TableConstraintDef := #[]) (ifNotExists : Bool := false)
-  | createTableAs (name : String) (query : Select)
+  | createTableAs (name : String) (query : Select) (ifNotExists : Bool := false)
   | createView (name : String) (columns : Option (Array String)) (query : Select)
       (ifNotExists : Bool := false) (temporary : Bool := false) (sourceSql : String := "")
   | dropTable (name : String) (ifExists : Bool := false)

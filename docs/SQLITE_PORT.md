@@ -3423,3 +3423,53 @@ harness: `scripts/run-pragma-arguments-differential.py`. Intermediate proof
 failures and the negative keyword result led to the completed final build;
 no failing result was relabelled as passing. Native code/bindings are unchanged.
 Full SQL/database/WAL compatibility remains unfinished.
+
+## CREATE TABLE AS SELECT / VALUES and exact expression names (2026-10-25)
+
+CTAS now derives an unconstrained ordinary Core schema from the SELECT result,
+then inserts its evaluated rows through the checked Core commands. Source
+NOT NULL/PRIMARY KEY declarations and indexes are not copied. New rowids are
+allocated in selection order. IF NOT EXISTS checks the shared object namespace
+before binding or evaluating the source, and the existing transaction and file
+publication boundaries include CTAS.
+
+CoreCreateTableAs follows the pinned select.c/expr.c rules for inherited column
+names, expression source names, boolean names, declared affinities and compound
+result types. INTEGER/TEXT/NUMERIC/REAL affinities print INT/TEXT/NUM/REAL;
+BLOB/no affinity has an empty type. COLLATE and likelihood wrappers affect name
+inheritance separately from affinity. Case-insensitive duplicate names use the
+SQLite colon-suffix rule. The later randomized suffix path remains explicitly
+unsupported; this is not a claim to support every CTAS result shape.
+
+The lexer now retains comments as whitespace tokens and re-escapes string
+literal quotes when rendering tokens. The independent result-column replay
+checks the exact consumed source text, so the AST cannot supply an arbitrary
+CTAS column name. Nonempty block comments extending to end-of-input are accepted
+as tokenize.c specifies; the exact two-byte /* remains an invalid expression.
+Unit cases cover copied constraints, ordering/rowids, VALUES, duplicate names,
+escaped/commented expressions, forged source text, rollback and codec inversion.
+The two new component contracts cover fresh name allocation and the exact CTAS
+Core command trace; they are not full SQLite-equivalence proofs.
+
+Baseline seed 354180: **180 comparisons / 156 differences**. Development seed
+354181: **300 / 6 differences**, all caused by the end-of-input block-comment
+rule; this negative result is retained. After the fix, final-checkpoint fresh
+seed **354182** has **2,340 comparisons / 0 differences**, including **72 positive
+error cases**. Nine C-created fixtures cover page sizes 512/4096/65536, mixed-case
+names, rotated column positions, nullable TEXT keys, older records after C ADD
+COLUMN, long/overflow payloads and malformed TEXT. Both public file modes are
+checked against pinned SQLite 3.53.4 using complete successful output and
+independent C observations of catalog identities, column/index metadata,
+typed values, rowids and integrity. C subsequently alters each database and
+both engines reopen it. Explicit ORDER BY supplies ordering where CTAS rowid
+assignment depends on source order. Errors compare failure status, not exact
+messages. Original catalog SQL text is not compared; canonical rewriting is
+still a separate compatibility limitation.
+
+Implementation SHA-256: `b9698970fca6ece06386e71904fd1df9753a9aa7b176e8c30da65a5e0d071415`.
+Final checks pass **322 build jobs, 239 executable tests, 1,156 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells
+remain declared unsupported. Reports: `sqlite-create-table-as-*20261025.json`;
+harness: `scripts/run-create-table-as-differential.py`. Native code and the
+nine-binding trust boundary are unchanged. Full SQL/database/WAL compatibility
+is not established.

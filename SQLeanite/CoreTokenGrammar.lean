@@ -618,8 +618,15 @@ private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit :=
     expectConflict constraint.conflict
   else unless constraint.conflict == .abort do mismatch "the default table-key conflict action"
 
+private def skipSpaceTokens (tokens : List Token) : List Token :=
+  tokens.dropWhile fun token => match token with | .space _ => true | _ => false
+
 private def matchResultColumn (column : ResultColumn) : MatchM Unit := do
+  let before := skipSpaceTokens (← get).remaining
   matchExpr column.expr
+  let after := skipSpaceTokens (← get).remaining
+  let source := (String.join ((before.take (before.length - after.length)).map Token.render)).trimAscii.toString
+  unless column.sourceSql == some source do mismatch "the original result-expression source"
   matchAlias column.alias
 
 private def matchResultColumns : List ResultColumn → MatchM Unit
@@ -868,6 +875,13 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "index"
       if ifExists then expectKeyword "if" *> expectKeyword "exists"
       expectName name
+  | .createTableAs name query ifNotExists => do
+      expectKeyword "create"
+      expectKeyword "table"
+      if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
+      expectDeclaredName name
+      expectKeyword "as"
+      matchSelect query
   | .createTable name columns constraints ifNotExists => do
       expectKeyword "create"
       expectKeyword "table"

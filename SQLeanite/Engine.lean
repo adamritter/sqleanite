@@ -3928,10 +3928,11 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       let withTable := { db with
         tables := db.tables ++ [table], indexes := db.indexes ++ automaticIndexes.toList }
       pure (if table.usesAutoincrement then ensureSequenceTable withTable else withTable, {})
-  | .createTableAs name query => do
+  | .createTableAs name query ifNotExists => do
     if reservedSchemaName name then
       throw s!"object name reserved for internal use: {unqualifiedName name}"
-    if (findTable? db name).isSome then throw s!"table {name} already exists"
+    if (findTable? db name).isSome then
+      if ifNotExists then return (db, {}) else throw s!"table {name} already exists"
     let selected ← executeSelect db query
     let columns := selected.columns.map fun column => { name := column }
     let table : Table := { name, columns }

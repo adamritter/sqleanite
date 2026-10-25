@@ -4597,6 +4597,71 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteCreateTableAs : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE source(Id INTEGER PRIMARY KEY,Label TEXT NOT NULL,Val REAL);CREATE INDEX LabelIndex ON source(Label);INSERT INTO source VALUES(3,'three',3.5),(17,'seventeen',17.5);CREATE TABLE Copy AS SELECT * FROM source ORDER BY Id DESC;" with
+    | .ok result => pure result
+    | .error message => fail s!"CTAS setup: {message}"
+  let some copy := state.database.findTable? "Copy" | fail "CTAS table missing"
+  unless copy.schema.catalogColumns.map (·.name) == ["Id","Label","Val"] &&
+      copy.schema.catalogColumns.map (·.declaredType) == ["INT","TEXT","REAL"] do
+    fail "CTAS names or affinity-derived declared types differ"
+  unless copy.schema.catalogColumns.all (fun column => !column.notNull &&
+      !column.integerPrimaryKey && !column.textPrimaryKey) && copy.indexes.isEmpty do
+    fail "CTAS inherited source constraints or indexes"
+  unless copy.rows.map (fun row => row.rowid.value) == [1,2] do fail "CTAS did not allocate consecutive fresh rowids"
+  let (_, selected) ← match CoreSQL.execute state "SELECT rowid,Id FROM Copy ORDER BY rowid;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected : List (List Value) := [[.integer 1,.integer 17],[.integer 2,.integer 3]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (selected.getLast?).map (·.rows) == some rows do fail "CTAS rowids lost SELECT order"
+  let (more, _) ← match CoreSQL.execute state
+      "CREATE TABLE Dup AS SELECT Id AS A,Val AS a,Label AS \"a:1\" FROM source ORDER BY Id;CREATE TABLE Exprs AS SELECT 'a''b',1 /*inside*/ + 2,true,likely(1);CREATE TABLE Vals AS VALUES(1,2),(3,4);" with
+    | .ok result => pure result
+    | .error message => fail s!"CTAS derived columns: {message}"
+  let some duplicates := more.database.findTable? "Dup" | fail "CTAS duplicate-name table missing"
+  unless duplicates.schema.catalogColumns.map (·.name) == ["A","a:1","a:2"] do
+    fail "CTAS duplicate-name suffixes differ"
+  let some expressions := more.database.findTable? "Exprs" | fail "CTAS expression table missing"
+  unless expressions.schema.catalogColumns.map (·.name) ==
+      ["'a''b'","1 /*inside*/ + 2","column3","likely(1)"] do
+    fail "CTAS lost quoted text, comments or boolean column naming"
+  let some values := more.database.findTable? "Vals" | fail "CTAS VALUES table missing"
+  unless values.schema.catalogColumns.map (·.name) == ["column1","column2"] &&
+      values.rows.length == 2 do fail "CTAS VALUES metadata or rows differ"
+  let (unchanged, _) ← match CoreSQL.execute state
+      "CREATE TABLE IF NOT EXISTS copy AS SELECT abs(-9223372036854775808) FROM missing;" with
+    | .ok result => pure result
+    | .error message => fail s!"CTAS IF NOT EXISTS evaluated source: {message}"
+  unless unchanged.database.Equiv state.database do fail "CTAS IF NOT EXISTS changed the database"
+  let (rolled, _) ← match CoreSQL.execute state
+      "BEGIN;CREATE TABLE Rolled AS SELECT * FROM source;ROLLBACK;" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless rolled.database.Equiv state.database do fail "CTAS rollback changed the database"
+  let (more, _) ← match CoreSQL.execute more "CREATE TABLE Unclosed AS SELECT 1/*notclosed" with
+    | .ok result => pure result
+    | .error message => fail s!"SQLite permits a nonempty block comment ending at EOF: {message}"
+  let some commentTable := more.database.findTable? "Unclosed" | fail "CTAS EOF-comment table missing"
+  unless commentTable.schema.catalogColumns.map (·.name) == ["1/*notclosed"] do
+    fail "CTAS lost a block comment ending at EOF"
+  if (CoreSQL.execute more "SELECT 1/*").isOk then fail "two-byte slash-star must not become a comment"
+  let some image := CoreFile.encode more.database | fail "CTAS encode failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "CTAS reopen failed"
+  unless reopened.Equiv more.database do fail "CTAS metadata/data changed on reopen"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE CheckSource AS SELECT 1 /*kept*/ + 2;" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  match parsed.statements.toList with
+  | [.createTableAs name query ifNotExists] =>
+      let forged := { query with columns := query.columns.map fun column => { column with sourceSql := some "forged" } }
+      if (CoreTokenGrammar.check parsed.tokens #[.createTableAs name forged ifNotExists]).isOk then
+        fail "CTAS accepted forged source text as a stored column name"
+  | _ => fail "CTAS parser returned a different statement shape"
+
 private def expectSQLitePragmaArguments : IO Unit := do
   let definitions := [("01","zeroone"),("1","one"),("0x1","hex"),("1.0","floating"),
     ("-1","negative"),("CAST","casted"),("current_date","clock"),("true","truth")]
@@ -6707,6 +6772,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),
   ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),
   ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
   ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),

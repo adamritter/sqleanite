@@ -1,5 +1,6 @@
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
+import SQLeanite.CoreCreateTableAs
 import SQLeanite.CoreSchemaPragma
 import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreSchemaRename
@@ -2186,6 +2187,34 @@ def prepareCreateTable (state : Core.State) (name : String) (ifNotExists : Bool)
   if indexNameExists state name then throw s!"there is already an index named {name}"
   return true
 
+/-- CTAS emits one ordinary CREATE followed by ordinary Core INSERTs. The
+selected rows are evaluated before the destination exists. -/
+def createTableAsCommands (state : Core.State) (name : String) (query : Select) :
+    Except String (List Core.Command) := do
+  let selection ← executeSelect state query
+  let definitions ← CoreCreateTableAs.columns state.database query
+  unless definitions.size == selection.width do throw "CTAS output width mismatch"
+  let schema ← schema name definitions #[]
+  let inputs ← selection.result.rows.mapM selectedRowExpressions
+  let values ← inputs.mapM (rowValues schema none)
+  return .createTable schema :: values.map (Core.Command.insert name)
+
+def executeCreateTableAs (state : Core.State) (name : String) (query : Select)
+    (ifNotExists : Bool) : Except String (Core.State × List Core.Result) := do
+  unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
+  let commands ← createTableAsCommands state name query
+  let (next, _) ← runCoreCommands state commands
+  return (next, [{}])
+
+theorem executeCreateTableAs_trace (state : Core.State) (name : String)
+    (query : Select) (ifNotExists : Bool) (commands : List Core.Command)
+    (fresh : prepareCreateTable state name ifNotExists = .ok true)
+    (planned : createTableAsCommands state name query = .ok commands) :
+    executeCreateTableAs state name query ifNotExists =
+      (fun outcome => (outcome.1, [{}])) <$> runCoreCommands state commands := by
+  simp only [executeCreateTableAs, fresh, planned, bind, Except.bind, pure, Except.pure]
+  cases result : runCoreCommands state commands <;> rfl
+
 /-- The target table must already have been resolved before checking the
 index name. Existing indexes skip expression binding under IF NOT EXISTS. -/
 def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool) :
@@ -2225,7 +2254,8 @@ def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
 def schemaNoop (state : Core.State) : Statement → Bool
   | .dropTable name ifExists => (prepareDropTable state name ifExists).toOption == some false
   | .dropIndex name ifExists => (prepareDropIndex state name ifExists).toOption == some false
-  | .createTable name _ _ ifNotExists => (prepareCreateTable state name ifNotExists).toOption == some false
+  | .createTable name _ _ ifNotExists | .createTableAs name _ ifNotExists =>
+      (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
       (state.database.findTable? (resolveTableName state table)).isSome &&
         (prepareCreateIndex state name ifNotExists).toOption == some false
@@ -2233,6 +2263,7 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .createTableAs name query ifNotExists => executeCreateTableAs state name query ifNotExists
   | .alterDropColumn table name => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with

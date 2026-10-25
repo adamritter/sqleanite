@@ -18,7 +18,7 @@ def Token.render : Token → String
   | .space s => s
   | .ident s => s
   | .quotedIdent _ source => source
-  | .string s => "'" ++ s ++ "'"
+  | .string s => "'" ++ s.replace "'" "''" ++ "'"
   | .integer i source => source.getD (toString i)
   | .real s => s
   | .symbol s => s
@@ -40,7 +40,7 @@ private def scanQuoted (quote : Char) (cs : List Char) (acc : List Char) :
     else scanQuoted quote rest (c :: acc)
 
 private def skipBlockComment : List Char → Except String (List Char)
-  | [] => .error "unterminated block comment"
+  | [] => .ok []
   | '*' :: '/' :: rest => .ok rest
   | _ :: rest => skipBlockComment rest
 
@@ -142,10 +142,13 @@ def lexicalStep : List Char → Except String (Option LexStep)
         let (suffix, tail) := takeWhile Char.isWhitespace rest
         pure (some ⟨[.space (String.mk (c :: suffix))], tail⟩)
       else if c == '-' && rest.head? == some '-' then
-        pure (some ⟨[], rest.dropWhile (fun x => x != '\n')⟩)
-      else if c == '/' && rest.head? == some '*' then
+        let tail := rest.dropWhile (fun x => x != '\n')
+        let original := c :: rest
+        pure (some ⟨[.space (String.ofList (original.take (original.length - tail.length)))], tail⟩)
+      else if c == '/' && rest.head? == some '*' && !rest.tail!.isEmpty then
         let tail ← skipBlockComment rest.tail!
-        pure (some ⟨[], tail⟩)
+        let original := c :: rest
+        pure (some ⟨[.space (String.ofList (original.take (original.length - tail.length)))], tail⟩)
       else if c == '\'' then
         let (s, tail) ← scanQuoted '\'' rest []
         pure (some ⟨[.string s], tail⟩)

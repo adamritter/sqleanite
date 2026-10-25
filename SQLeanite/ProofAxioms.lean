@@ -1325,3 +1325,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.PragmaSyntax.numeric_integer_spelling
 #print axioms SQLeanite.CoreSchemaPragma.scopedRows_temp
+
+#print axioms SQLeanite.CoreCreateTableAs.uniqueName_unoccupied
+#print axioms SQLeanite.CoreSQL.executeCreateTableAs_trace
