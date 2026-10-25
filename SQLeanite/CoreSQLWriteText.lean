@@ -46,7 +46,7 @@ inductive TranslatedWrite (state : Core.State) :
       (expressions : Array Expr) (conflict : ConflictAction)
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (values : List Core.Value)
-      (ordinaryNull : conflict = .default → CoreNullConflict.active stored.schema = false)
+      (ordinarySchema : conflict = .default → CoreDefaultConflict.active stored.schema = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
@@ -79,7 +79,7 @@ inductive TranslatedWrite (state : Core.State) :
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (updates : List (Nat × Core.Value))
       (predicate : Option Core.Predicate)
-      (ordinaryNull : conflict = .default → CoreNullConflict.active stored.schema = false)
+      (ordinarySchema : conflict = .default → CoreDefaultConflict.active stored.schema = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (namesBound : CoreSQL.writeNamesBound stored.schema table alias assignments where_ = true)
@@ -109,10 +109,10 @@ theorem executeStatement_eq_core
       simp [CoreSQL.executeStatement, ready, found, expressionName, columnFound,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
-  | insert table columns expressions conflict allowed stored values ordinaryNull found
+  | insert table columns expressions conflict allowed stored values ordinarySchema found
       translation =>
       rcases allowed with rfl | rfl <;>
-        simp [CoreSQL.executeStatement, found, ordinaryNull,
+        simp [CoreSQL.executeStatement, found, ordinarySchema,
           CoreSQL.insertRows_singleton, translation,
           CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
           bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
@@ -126,9 +126,9 @@ theorem executeStatement_eq_core
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | update table alias assignments where_ conflict allowed stored updates
-      predicate ordinaryNull found namesBound assignmentsTranslated predicateTranslated =>
+      predicate ordinarySchema found namesBound assignmentsTranslated predicateTranslated =>
       rcases allowed with rfl | rfl <;>
-        simp [CoreSQL.executeStatement, found, ordinaryNull, namesBound, assignmentsTranslated,
+        simp [CoreSQL.executeStatement, found, ordinarySchema, namesBound, assignmentsTranslated,
           predicateTranslated, CoreSQL.executeCommand_eq_core,
           CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind,
           pure, Except.pure, pure, oneResult]
@@ -142,7 +142,7 @@ inductive TranslatedInsertRows (state : Core.State) :
       (rows : Array (Array Expr)) (conflict : ConflictAction)
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (values : List (List Core.Value))
-      (ordinaryNull : conflict = .default → CoreNullConflict.active stored.schema = false)
+      (ordinarySchema : conflict = .default → CoreDefaultConflict.active stored.schema = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : rows.toList.mapM
@@ -214,9 +214,9 @@ theorem executeStatement_insertRows_eq_core
     CoreSQL.executeStatement state statement =
       executeWriteCommands state commands := by
   cases translated with
-  | insert table columns rows conflict allowed stored values ordinaryNull found translation =>
+  | insert table columns rows conflict allowed stored values ordinarySchema found translation =>
       rcases allowed with rfl | rfl <;>
-        simp [CoreSQL.executeStatement, found, ordinaryNull,
+        simp [CoreSQL.executeStatement, found, ordinarySchema,
           CoreSQL.insertRows_eq_runCoreCommands, translation,
           executeWriteCommands, map_toCore_inserts, map_comp_toCore_inserts,
           bind, Functor.map, Except.bind, pure, Except.pure, pure]

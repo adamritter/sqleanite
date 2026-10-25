@@ -13,7 +13,7 @@ attribute [local instance] lexOrd
 abbrev Value := PhysicalCodec.Value
 abbrev Integer := FileFormat.SignedInteger .eight
 
-/-- Schema-level NOT NULL policies supported by the atomic Core SQL boundary.
+/-- Schema constraint policies supported by the atomic Core SQL boundary.
 FAIL/ROLLBACK require a distinct statement outcome and are not represented yet. -/
 inductive NotNullConflict where
   | abort | ignore | replace
@@ -41,7 +41,15 @@ structure Column where
   notNullConflictOnly : notNullConflict ≠ .abort →
       notNull = true ∧ (integerPrimaryKey = true → integerPrimaryNotNull = true) := by
     simp_all
+  primaryConflict : NotNullConflict := .abort
+  primaryConflictOnly : primaryConflict ≠ .abort → (integerPrimaryKey || textPrimaryKey) = true := by
+    simp_all
   deriving DecidableEq, Repr
+
+def Column.withPrimaryConflict (column : Column) (policy : NotNullConflict) : Option Column :=
+  if valid : (column.integerPrimaryKey || column.textPrimaryKey) = true then
+    some { column with primaryConflict := policy, primaryConflictOnly := fun _ => valid }
+  else if policy = .abort then some column else none
 
 def Column.withNotNullConflict (column : Column) (policy : NotNullConflict) : Option Column :=
   if valid : column.notNull = true ∧

@@ -565,6 +565,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawNotNull := false
   let mut notNullConflict := ConflictAction.abort
   let mut sawPrimary := false
+  let mut primaryConflict := ConflictAction.abort
   let mut sawCollation := false
   let mut scanning := true
   while scanning do
@@ -582,17 +583,18 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       expectKeyword "primary"
       expectKeyword "key"
       sawPrimary := true
+      primaryConflict := .abort
       discard <| acceptKeyword "asc"
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
-        expectConflict column.conflict
+        primaryConflict := ← matchConflictAction
     else if isKeyword (← peek) "collate" then
       expectKeyword "collate"
       expectName column.collation
       sawCollation := true
     else
       scanning := false
-  unless sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey &&
+  unless sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 

@@ -1332,3 +1332,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Column.restoreNotNullConflict
 #print axioms SQLeanite.CoreNullConflict.insert_skips
 #print axioms SQLeanite.CoreNullConflict.update_skips
+
+#print axioms SQLeanite.CanonicalSchemaSQL.primaryFromBase_inverse
+#print axioms SQLeanite.CoreDefaultConflict.commands_last
+#print axioms SQLeanite.CoreDefaultConflict.plan_skips_null
+#print axioms SQLeanite.CoreSQL.executeSchemaRow_skips

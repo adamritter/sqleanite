@@ -4597,6 +4597,58 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaPrimaryConflict : IO Unit := do
+  let (ignored, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY ON CONFLICT IGNORE,a TEXT NOT NULL ON CONFLICT IGNORE);CREATE UNIQUE INDEX u ON t(a);INSERT INTO t VALUES(1,'a'),(2,'b');INSERT INTO t VALUES(1,'b'),(3,NULL);" with
+    | .ok result => pure result
+    | .error message => fail s!"primary IGNORE setup: {message}"
+  let some table := ignored.database.findTable? "t" | fail "primary-policy table missing"
+  unless table.rows.map (fun row => row.rowid.value) == [1,2] do fail "rowid IGNORE did not precede unique/NULL constraints"
+  for sql in ["INSERT OR ABORT INTO t VALUES(1,'c');", "INSERT INTO t VALUES(3,'b');"] do
+    if (CoreSQL.execute ignored sql).isOk then fail s!"primary IGNORE suppressed another constraint: {sql}"
+  let (replaced, output) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE r(id INTEGER PRIMARY KEY ON CONFLICT REPLACE,a TEXT);INSERT INTO r VALUES(1,'a'),(2,'b');UPDATE r SET id=id+1 RETURNING id,a;" with
+    | .ok result => pure result
+    | .error message => fail s!"primary REPLACE pending rowids: {message}"
+  let some table := replaced.database.findTable? "r" | fail "replacement table missing"
+  unless table.rows.map (fun row => row.rowid.value) == [3] do fail "REPLACE update did not re-seek pending rowids"
+  let expected : List (List Value) := [[.integer 2,.text "a"],[.integer 3,.text "a"]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some rows do fail "REPLACE returning used an overwritten row's stale value"
+  let (textKey, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE k(id TEXT,a TEXT NOT NULL ON CONFLICT REPLACE,PRIMARY KEY(id) ON CONFLICT REPLACE);INSERT INTO k VALUES('a','old'),('b','kept');INSERT INTO k VALUES('a','new');" with
+    | .ok result => pure result
+    | .error message => fail s!"table-level TEXT key REPLACE: {message}"
+  let some table := textKey.database.findTable? "k" | fail "text replacement table missing"
+  unless table.rows.map (fun row => row.rowid.value) == [2,3] do fail "TEXT REPLACE failed to allocate before deleting"
+  for sql in [
+      "CREATE TABLE x(id TEXT PRIMARY KEY ON CONFLICT IGNORE,a);CREATE UNIQUE INDEX u ON x(a);INSERT INTO x VALUES('a',1),('b',2);INSERT INTO x VALUES('a',2);",
+      "CREATE TABLE x(id INTEGER PRIMARY KEY ON CONFLICT REPLACE,a);CREATE UNIQUE INDEX u ON x(a);INSERT INTO x VALUES(1,1);INSERT INTO x VALUES(1,1);",
+      "CREATE TABLE x(id INTEGER PRIMARY KEY ON CONFLICT FAIL);",
+      "CREATE TABLE x(id TEXT,PRIMARY KEY(id) ON CONFLICT ROLLBACK);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"primary policy accepted an aborting or unsupported case: {sql}"
+  for kind in ["INTEGER", "TEXT"] do
+    for policy in ["IGNORE", "REPLACE"] do
+      for nullPolicy in ["IGNORE", "REPLACE"] do
+        let sql := s!"CREATE TABLE \"quoted.key\"(\"Key\" {kind} PRIMARY KEY ON CONFLICT {policy} NOT NULL ON CONFLICT {nullPolicy},n);INSERT INTO \"quoted.key\" VALUES(1,'x');"
+        let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+          | .ok result => pure result
+          | .error message => fail message
+        let some image := CoreFile.encode state.database | fail "primary policy encode failed"
+        let some decoded := CoreDecode.decode image.fileBytes | fail "primary policy decode failed"
+        unless decoded.Equiv state.database do fail "primary/NULL policies changed during codec roundtrip"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE t(id INTEGER PRIMARY KEY);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  match parsed.statements.toList with
+  | [.createTable name columns constraints flag] =>
+      let forged := columns.map fun column => { column with conflict := .ignore }
+      if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints flag]).isOk then
+        fail "token replay accepted an invented PRIMARY KEY conflict policy"
+  | _ => fail "unexpected primary policy AST"
+
 private def expectSQLiteSchemaNullConflict : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT NOT NULL ON CONFLICT IGNORE,b INT NOT NULL);INSERT INTO t VALUES(1,'one',1),(2,NULL,2),(3,'three',3);"
   let (state, _) ← match CoreSQL.execute Core.State.empty setup with
@@ -4641,7 +4693,7 @@ private def expectSQLiteSchemaNullConflict : IO Unit := do
   for sql in ["CREATE TABLE x(a NOT NULL,b NOT NULL ON CONFLICT IGNORE);INSERT INTO x VALUES(NULL,NULL);",
       "CREATE TABLE x(a NOT NULL ON CONFLICT REPLACE);INSERT INTO x VALUES(NULL);",
       "CREATE TABLE x(a NOT NULL ON CONFLICT IGNORE NOT NULL);INSERT INTO x VALUES(NULL);",
-      "CREATE TABLE x(a INTEGER PRIMARY KEY ON CONFLICT IGNORE);",
+      "CREATE TABLE x(a INTEGER PRIMARY KEY ON CONFLICT FAIL);",
       "CREATE TABLE x(a NOT NULL ON CONFLICT FAIL);"] do
     if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"accepted unsupported or aborting constraint: {sql}"
   let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE x(a NOT NULL);" with
@@ -5243,7 +5295,7 @@ private def expectSQLiteTablePrimary : IO Unit := do
   -- must not be dropped and silently interpreted as ascending BINARY/ABORT.
   for sql in ["CREATE TABLE t(k TEXT,v,PRIMARY KEY(k DESC));",
       "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k COLLATE nocase));",
-      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k) ON CONFLICT IGNORE);"] do
+      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k) ON CONFLICT FAIL);"] do
     if (CoreSQL.execute Core.State.empty sql).isOk then fail "unsupported table-key semantics silently discarded"
     if (CoreDecode.parseTableSchema sql).isSome then fail "foreign table-key semantics silently discarded"
   let parsed ← match CoreTokenGrammar.parseCertified
@@ -6829,6 +6881,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite primary-key schema policies, precedence and pending rowids", expectSQLiteSchemaPrimaryConflict),
   ("SQLite schema NOT NULL conflict policies and persisted overrides", expectSQLiteSchemaNullConflict),
   ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),
   ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),

@@ -1832,12 +1832,11 @@ else
   printf 'skip - binary or configured SQLite reference unavailable\n'
 fi
 
-exit $status
 
 if grep -q 'import SQLeanite.CoreNullConflict' SQLeanite/CoreSQL.lean &&
    grep -q 'schemaInsertRows state tableName stored.schema' SQLeanite/CoreSQL.lean &&
-   grep -q 'executeSchemaNullUpdate state tableName' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreNullConflict.shouldWrite ctx.schema values true' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeSchemaUpdate state tableName' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreNullConflict.shouldWrite stored.schema values old.isSome' SQLeanite/CoreDefaultConflict.lean &&
    grep -q 'notNullConflict == column.notNullConflict' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'notNullConflictChars column.notNullConflict' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'Core.Column.restoreNotNullConflict' SQLeanite/ProofAxioms.lean; then
@@ -1846,3 +1845,16 @@ else
   echo 'FAIL - schema NOT NULL policy wiring is incomplete'
   exit 1
 fi
+
+if grep -q 'CoreDefaultConflict.plan stored values' SQLeanite/CoreSQL.lean &&
+   grep -q 'schemaReplacementRows state tableName' SQLeanite/CoreSQL.lean &&
+   grep -q 'primaryConflict == column.conflict' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'primaryConflictChars column.primaryConflict' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'CanonicalSchemaSQL.primaryFromBase_inverse' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreDefaultConflict.commands_last' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - primary-key schema policies use checked Core traces and invertible SQL'
+else
+  echo 'FAIL - primary-key schema policy wiring is incomplete'
+  exit 1
+fi
+exit $status

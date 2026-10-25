@@ -3528,3 +3528,77 @@ component proof failures. Reports: `sqlite-schema-null-conflict-*20261025.json`;
 harness: `scripts/run-schema-null-conflict-differential.py`. Native code and its
 nine-binding boundary are unchanged. Full SQL/database/WAL compatibility remains
 unfinished.
+
+## Persisted PRIMARY KEY IGNORE / REPLACE policies (2026-10-25)
+
+Column and single-column table PRIMARY KEY declarations now retain and execute
+ABORT/IGNORE/REPLACE for the admitted INTEGER rowid aliases and TEXT keys.
+Core.Column stores the policy with an invariant requiring an actual declared
+key. Table-level lowering carries the action onto the target column while
+preserving names/positions; its size/name proofs cover every action parameter.
+The independent token replay also checks that an absent column ON CONFLICT
+means ABORT, preventing a forged action from entering through an AST.
+
+CoreDefaultConflict checks the actual typed candidate against the current
+rows. Ordered NOT NULL checks precede uniqueness. A non-REPLACE rowid conflict
+is handled before explicit unique indexes, whose default action is ABORT;
+TEXT primary-key policies are checked after those indexes. REPLACE deletion is
+deferred until checks that can skip or abort have completed. This order matters:
+INTEGER PRIMARY KEY IGNORE can skip a row that also conflicts with an explicit
+index, while TEXT PRIMARY KEY IGNORE does not suppress that index's ABORT.
+REPLACE first allocates an insertion rowid against the original table, then
+emits checked Core point deletions and one insertion. Explicit statement OR
+actions retain their override behavior. Ordinary atomic errors discard the
+statement; schema FAIL/ROLLBACK remain unsupported.
+
+Default schema writes share this planner across VALUES, SELECT and RETURNING.
+For UPDATE with a schema REPLACE policy, selected rowids are frozen and then
+re-sought before each RHS evaluation. A prior replacement may delete a later
+row or overwrite its pending rowid; stale values must not be reused. RETURNING
+retains output already produced by an accepted candidate even if a later row
+replaces it. SQL change counts count accepted candidates, excluding conflict
+deletions. Component contracts cover the trace's final insertion and unchanged
+state/output when a candidate is skipped; the old single-command relations now
+exclude all active default schema-policy dispatch, not just NULL policies.
+
+The canonical writer uses a quoted INTEGER/TEXT type and a trailing PRIMARY KEY
+ON CONFLICT clause for nondefault key policies. This keeps explicit NOT NULL
+and its policy independent of the rowid's internal non-NULL invariant. A plain
+column recognizer is composed with key restoration, and the complete existing
+schema inversion theorem remains kernel-checked for every admitted schema.
+The intermediate base recognizer can end before a key constraint; complete
+column/schema recognition still requires the actual constraint and separators.
+
+Baseline seed 354200: **480 comparisons / 480 differences**. Development seed
+354201: **780 / 0**. Final-checkpoint fresh seed **354202** has **3,576 comparisons
+/ 0 differences**, including **974 positive error cases**. Twelve C-created
+fixtures cover all three page sizes, column/table declarations, rotated column
+positions, INTEGER/TEXT and nullable/NOT NULL keys, mixed schema/statement
+policies, explicit unique indexes, repeated/duplicate INSERT targets,
+RETURNING, pending UPDATE replacements, schema rename/ADD and long/overflow
+keys and malformed TEXT. Complete successful outputs, error status and
+independent C catalog/metadata/typed-row/integrity observations are compared.
+C performs a further duplicate-key write before both engines reopen every file.
+Single failing statements preserve Lean main/WAL hashes. Original schema SQL
+text and exact error messages remain outside this measurement. A separate
+final-source NULL-policy regression, seed **354195**, passes **888 / 0**.
+
+An intermediate full check failed because the older table-key test still
+expected IGNORE to be unsupported. That result is retained; the expectation
+now tests still-unsupported FAIL, while new positive tests exercise IGNORE.
+Inspection also found that the new NULL/key wiring checks had been appended
+after the live-path script's terminal exit and were unreachable. They now run
+before the exit and pass. The earlier NULL checkpoint's audit exit status was
+accurately recorded as zero, but its newly appended wiring check did not run;
+its independent unit, proof and differential results are unchanged. The final
+checks explicitly rerun the corrected audit and tests. Unchanged verification
+and reverse-file results are retained only after asserting the identical
+production source hash.
+
+Implementation SHA-256: `246eaeac593566ece6d002cb771877c534a9f9313a6e883dfb3988b1ff08d296`.
+Final checks pass **326 build jobs, 241 executable tests, 1,163 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. Reports: `sqlite-schema-primary-*20261025.json`; harness:
+`scripts/run-schema-primary-conflict-differential.py`. Native code and its
+nine-binding boundary are unchanged. These results do not establish complete
+SQLite SQL/database/WAL equivalence.
