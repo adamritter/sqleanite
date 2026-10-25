@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "7c16988bea24bac9cc6d3cd11cb842a559b37d706a53ae85daf2b988bd829f6d",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "9b2161f77f063fd7b744f9c58b4837b13bd1150b06517d1c91f33b43d2435dbd",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [345/346] Built Tests:c.o (17s)",
+        "\u2714 [346/346] Built sqleanite_tests:exe (355ms)",
+        "Build completed successfully (346 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "92fe4f45df34741fee115a296a5f02a3e7fed562c3f590a053a96217399508b6",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "255 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "a3b45867042c78f59c95fc5a0dc0e01dfe1a22f2c95f18dff5e737135beda67b",
+      "tail": [
+        "ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE",
+        "ok - unchanged transactions skip publication and write dispatch checks access",
+        "ok - script chunks preserve source and admit each statement before execution",
+        "ok - SQLite name and implicit-alias grammars are shared and independently replayed",
+        "ok - CAST type spans are independently validated and use explicit expression affinity",
+        "ok - completed statements emit in order and actual write dispatch checks OS access",
+        "ok - DEFERRED and ignored TRANSACTION names are independently replayed",
+        "ok - LIMIT expression tokens and normalized windows are independently checked"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "47e7c14903c85becdafedd422189ce068e75a4d5b1cfa031051d8b31b9a3e5f8"
+}

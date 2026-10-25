@@ -1882,3 +1882,22 @@ that guarded dispatch point, and the optional page-local INSERT path performs
 the same check. `CoreFileAdapter.requireWritableAccess` moves the pre-existing
 Lean IO file-open check out of the CLI batch preflight; it adds no project-native
 binding. Actual OS permission enforcement remains part of the IO boundary.
+
+
+### LIMIT expression replay and empty writes (2026-10-25)
+
+`SQLite.Limit` evaluates the existing admitted pure scalar subset. The original
+count/offset expression trees and comma spelling are retained separately from
+the normalized Nat window; `CoreTokenGrammar` replays their tokens and derives
+that window independently. CTAS alone can carry a failed LIMIT validation past
+certification, and `createTableAsCommands` checks it after the schema no-op gate.
+The source is still fully replayed; no target value is inferred from test results.
+The integer and zero-count propositions are component properties.
+
+Both file engines use `CoreFileEngine.dataWriteNoop` only for DML with zero
+reported changes and equal complete logical contents. This comparison includes
+sqlite_sequence and avoids suppressing its required initialization. It runs only
+on the publication path; it is not an O(1) claim. COMMIT/RELEASE keep their separate
+snapshot decision, and write-access checks still precede execution. Public-CLI
+regressions check unchanged main/WAL bytes and subsequent C-visible sequence
+initialization. No native binding or OS assumption changed.

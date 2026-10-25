@@ -137,6 +137,34 @@ def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   | .release name => CoreSavepoint.releasesTransaction state name && transactionChanged state
   | _ => statementWrites statement && state.transactionSnapshot.isNone
 
+/-- A zero-row DML statement need not publish an unchanged database. The
+content comparison is necessary even with zero reported changes: AUTOINCREMENT
+may still initialize or advance sqlite_sequence. Transaction controls are not
+DML and must retain their snapshot-based publication decision. -/
+def dataWriteNoop (current next : Core.State) (statement : Statement)
+    (results : List Core.Result) : Bool :=
+  match statement with
+  | .insert .. | .insertSelect .. | .update .. | .delete .. =>
+      !(results.any (fun result => result.changes != 0)) &&
+        current.database.contents == next.database.contents
+  | _ => false
+
+theorem dataWriteNoop_insertSelect (current next : Core.State) (table : String)
+    (columns : Option (Array String)) (query : Select) (conflict : ConflictAction)
+    (returning : Array ResultColumn) (results : List Core.Result)
+    (zeroChanges : results.any (fun result => result.changes != 0) = false)
+    (same : current.database.Equiv next.database) :
+    dataWriteNoop current next (.insertSelect table columns query conflict returning) results = true := by
+  simp [dataWriteNoop, zeroChanges, Core.Database.Equiv] at *
+  exact same
+
+theorem dataWriteNoop_commit (current next : Core.State) (results : List Core.Result) :
+    dataWriteNoop current next .commit results = false := rfl
+
+theorem dataWriteNoop_release (current next : Core.State) (name : String)
+    (results : List Core.Result) :
+    dataWriteNoop current next (.release name) results = false := rfl
+
 theorem requiresPersistence_commit_unchanged (state : Core.State)
     (unchanged : transactionChanged state = false) :
     requiresPersistence state .commit = false := by simp [requiresPersistence, unchanged]
@@ -400,7 +428,8 @@ private def runStatementsGo (connection : Connection) : LiveState →
       match execution with
       | .error message => pure (cached, .error message)
       | .ok (executed, results) => do
-          let advanced ← if requiresPersistence live.state statement then
+          let advanced ← if requiresPersistence live.state statement &&
+              !dataWriteNoop live.state executed.state statement results then
             let persisted ← persistIfNeeded connection live.state
               executed.state statement
             pure (executed.retarget persisted)

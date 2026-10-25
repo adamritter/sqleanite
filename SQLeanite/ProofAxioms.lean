@@ -1388,3 +1388,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreFileEngine.requiresWriteAccess_readOnly
 #print axioms SQLeanite.CoreFileEngine.requiresWriteAccess_schemaNoop
+
+#print axioms SQLeanite.SQLite.Limit.integer_of_fits
+#print axioms SQLeanite.SQLite.Limit.resolve_zero
+
+#print axioms SQLeanite.CoreFileEngine.dataWriteNoop_insertSelect
+#print axioms SQLeanite.CoreFileEngine.dataWriteNoop_commit
+#print axioms SQLeanite.CoreFileEngine.dataWriteNoop_release

@@ -2421,6 +2421,7 @@ def prepareCreateTable (state : Core.State) (name : String) (ifNotExists : Bool)
 selected rows are evaluated before the destination exists. -/
 def createTableAsCommands (state : Core.State) (name : String) (query : Select) :
     Except String (List Core.Command) := do
+  SQLite.Limit.validate query.limitClause
   let selection ← executeSelect state query
   let definitions ← CoreCreateTableAs.columns state.database query
   unless definitions.size == selection.width do throw "CTAS output width mismatch"

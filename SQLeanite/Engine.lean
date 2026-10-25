@@ -3146,6 +3146,7 @@ private def prioritizeMinMaxRow (db : Database) (envs : Array Env) (maximum : Bo
     pure (#[envs[index]!] ++ envs.extract 0 index ++ envs.extract (index + 1) envs.size)
 
 private def executeSimpleSelect (db : Database) (query : Select) : Except String QueryResult := do
+  SQLite.Limit.validate query.limitClause
   if let some expressionRows := query.valueRows then
     let rows ← expressionRows.mapM fun row => row.mapM (evalWithDb db #[])
     let width := query.columns.size

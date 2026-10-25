@@ -56,7 +56,8 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
       | .ok (next, results) => do
           let persisted ←
             if CoreFileEngine.requiresPersistence state statement &&
-                !CoreSQL.schemaNoop state statement then do
+                !CoreSQL.schemaNoop state statement &&
+                !CoreFileEngine.dataWriteNoop state next statement results then do
               let reopened ← CoreWALFileAdapter.commit syncOps paths next.database
               unless CoreFileEngine.databaseContents reopened ==
                   CoreFileEngine.databaseContents next.database do

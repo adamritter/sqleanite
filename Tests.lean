@@ -7041,6 +7041,82 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteEmptyWritePublication : IO Unit := do
+  let sqlite := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+  let input : System.FilePath := ".lake/build/sqleanite-empty-write.sql"
+  for mode in ["--verified-file", "--verified-wal-file"] do
+    let path : System.FilePath := s!".lake/build/sqleanite-empty-write{mode}.db"
+    let wal : System.FilePath := path.toString ++ "-wal"
+    for file in [wal, path] do
+      if ← file.pathExists then IO.FS.removeFile file
+    let created ← IO.Process.output { cmd := sqlite, args := #[path.toString,
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');CREATE TABLE a(id INTEGER PRIMARY KEY AUTOINCREMENT,v);" ] }
+    unless created.exitCode == 0 do fail created.stderr
+    let before ← IO.FS.readBinFile path
+    IO.FS.writeFile input "INSERT INTO t SELECT 2,'new' LIMIT 0;UPDATE t SET v='new' WHERE id<0;DELETE FROM t WHERE id<0;"
+    let result ← IO.Process.output { cmd := ".lake/build/bin/sqleanite", args := #[mode,path.toString,input.toString] }
+    unless result.exitCode == 0 do fail result.stderr
+    unless (← IO.FS.readBinFile path) == before && !(← wal.pathExists) do
+      fail "zero-row DML changed main or WAL bytes"
+    IO.FS.writeFile input "INSERT INTO a(v) SELECT 'new' LIMIT 0;"
+    let result ← IO.Process.output { cmd := ".lake/build/bin/sqleanite", args := #[mode,path.toString,input.toString] }
+    unless result.exitCode == 0 do fail result.stderr
+    let observed ← IO.Process.output { cmd := sqlite, args := #[path.toString,
+      "PRAGMA integrity_check;SELECT name,seq FROM sqlite_sequence;SELECT id,v FROM t;" ] }
+    unless observed.exitCode == 0 && observed.stdout == "ok\na|0\n1|old\n" do
+      fail "zero-row AUTOINCREMENT statement lost its sequence initialization"
+
+private def expectSQLiteLimitExpressions : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES(1),(2),(3),(4);"
+  for (clause, values) in [
+      ("LIMIT '1.0'", [1]),
+      ("LIMIT 1.0 OFFSET length('x')", [2]),
+      ("LIMIT abs(-2) OFFSET CAST('1' AS TEXT)", [2,3]),
+      ("LIMIT 1+1,4/2", [3,4]),
+      ("LIMIT '-9223372036854775808'", [1,2,3,4]),
+      ("LIMIT 0xFFFFFFFFFFFFFFFF OFFSET -1.0", [1,2,3,4]),
+      ("LIMIT CASE WHEN 1 THEN 2 ELSE 0 END", [1,2]),
+      ("LIMIT iif(1,1,abs(-9223372036854775808))", [1]),
+      ("LIMIT 0 OFFSET abs(-9223372036854775808)", []),
+      ("LIMIT abs(-9223372036854775808),0", []),
+      ("LIMIT 0 AND missing", []),
+      ("LIMIT 0 AND abs(-9223372036854775808)", [])] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty
+        (setup ++ "SELECT id FROM t ORDER BY id " ++ clause ++ ";") with
+      | .ok outcome => pure outcome
+      | .error message => fail s!"LIMIT expression: {clause}: {message}"
+    let expected ← match values.mapM (fun value => (fun x => [x]) <$> SQLSurface.value (.integer value)) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some expected do fail s!"LIMIT expression rows: {clause}"
+  for clause in ["LIMIT 1.5", "LIMIT '1x'", "LIMIT X'31'", "LIMIT NULL",
+      "LIMIT -9223372036854775808.0", "LIMIT 1e999", "LIMIT abs(-9223372036854775808)",
+      "LIMIT 0 OFFSET not_a_function()", "LIMIT 0 OFFSET missing", "LIMIT 0 AND not_a_function()"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ "SELECT id FROM t " ++ clause ++ ";")).isOk then
+      fail s!"invalid LIMIT expression accepted: {clause}"
+  for expression in ["1.5", "NULL", "missing", "not_a_function()", "abs(-9223372036854775808)"] do
+    let query := s!" AS SELECT 1 LIMIT {expression};"
+    unless (CoreSQL.execute Core.State.empty
+        (setup ++ "CREATE TABLE IF NOT EXISTS t" ++ query)).isOk do
+      fail "CTAS schema no-op evaluated unused LIMIT"
+    if (CoreSQL.execute Core.State.empty ("CREATE TABLE fresh" ++ query)).isOk then
+      fail "CTAS omitted required LIMIT error for a new table"
+  unless !(CoreSQL.execute Core.State.empty
+      (setup ++ "CREATE TABLE IF NOT EXISTS t AS SELECT 1 LIMIT (;" )).isOk do
+    fail "CTAS schema no-op hid invalid syntax"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT 1 LIMIT abs(-2) OFFSET 1;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "LIMIT replay fixture is not SELECT"
+  let some clause := query.limitClause | fail "LIMIT original expressions missing"
+  for forged in [{ query with limit := some 3 }, { query with offset := 0 },
+      { query with limitClause := none },
+      { query with limitClause := some { clause with count := .literal (.integer 2) } },
+      { query with limitClause := some { clause with comma := true } },
+      { query with limitClause := some { clause with offset := none } }] do
+    if (CoreTokenGrammar.check parsed.tokens #[.select forged]).isOk then
+      fail "LIMIT replay trusted changed expression, spelling or normalized window"
+
 private def expectSQLiteLimitOffset : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,b); INSERT INTO t VALUES(1,1,1),(2,2,2),(3,1,3),(4,3,4);"
   for (query, values) in [
@@ -7450,6 +7526,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite zero-row writes preserve files and publish sequence initialization", expectSQLiteEmptyWritePublication),
+  ("SQLite constant LIMIT/OFFSET expressions and independent replay", expectSQLiteLimitExpressions),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),
   ("SQLite IN-list truth, affinity and evaluation", expectSQLiteInList),
   ("SQLite WAL valid committed prefix", expectSQLiteWALRecoveryPrefix),

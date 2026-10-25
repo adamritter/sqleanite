@@ -172,52 +172,6 @@ private def expectInteger (expected : Int) : MatchM Unit := do
 private def expectNat (expected : Nat) : MatchM Unit :=
   expectInteger (Int.ofNat expected)
 
-/-- LIMIT/OFFSET integer spellings are checked independently of the parser's
-normalized Nat fields. Negative limits are unbounded; negative offsets are zero.
-The count must fit the signed 64-bit LIMIT register; LIMIT zero skips
-OFFSET conversion, just as SQLite skips its OFFSET opcode sequence. -/
-private def limitValue : MatchM (Option Int) := do
-  let negative ← acceptSymbol "-"
-  unless negative do discard <| acceptSymbol "+"
-  match ← advance with
-  | .integer found source =>
-      if source.any (fun s => s.toLower.startsWith "0x") && found ≥ 18446744073709551616 then
-        mismatch "a hexadecimal literal fitting 64 bits"
-      return some (if negative then -found else found)
-  | .real source =>
-      unless (parseDecimal? (SQLite.NumericLiteral.normalize source)).isSome do mismatch "a numeric LIMIT/OFFSET literal"
-      return none
-  | .string _ => return none
-  | .ident name =>
-      if name.toLower == "null" then return none
-      else if name.toLower == "true" then return some (if negative then -1 else 1)
-      else if name.toLower == "false" then return some 0
-      else mismatch "a literal LIMIT/OFFSET value"
-  | _ => mismatch "a literal LIMIT/OFFSET value"
-
-private def matchLimit (query : Select) : MatchM Unit := do
-  if ← acceptKeyword "limit" then
-    let first ← limitValue
-    let mut countValue := first
-    let mut skipValue := some (0 : Int)
-    if ← acceptSymbol "," then
-      skipValue := first
-      countValue ← limitValue
-    else if ← acceptKeyword "offset" then
-      skipValue ← limitValue
-    let some count := countValue | mismatch "an integer LIMIT"
-    let skip := skipValue.getD 0
-    unless (-9223372036854775808 : Int) ≤ count && count ≤ 9223372036854775807 do
-      mismatch "signed 64-bit LIMIT"
-    unless count == 0 || (skipValue.isSome && (-9223372036854775808 : Int) ≤ skip &&
-        skip ≤ 9223372036854775807) do mismatch "signed 64-bit OFFSET"
-    let limit := if count < 0 then none else some count.toNat
-    let offset := if count == 0 then 0 else (max 0 skip).toNat
-    unless query.limit == limit && query.offset == offset do
-      mismatch "the translated LIMIT/OFFSET values"
-  else unless query.limit.isNone && query.offset == 0 do mismatch "LIMIT/OFFSET clause"
-
-
 private def expectBinaryOp : BinaryOp → MatchM Unit
   | .add => expectSymbol "+"
   | .sub => expectSymbol "-"
@@ -530,6 +484,32 @@ private def matchExpr (expression : Expr) : MatchM Unit := do
   -- A fixed allowance avoids recomputing the remaining token-list length for
   -- every literal in a bulk INSERT (which would make certification quadratic).
   matchExprFuel (expression.height + 1001) expression
+
+/-- Replay the original expressions and independently derive the normalized
+execution window. No computed count can substitute for source-token checking. -/
+private def matchLimit (query : Select) (deferErrors : Bool := false) : MatchM Unit := do
+  match query.limitClause with
+  | none =>
+      unless query.limit.isNone && query.offset == 0 do mismatch "LIMIT/OFFSET clause"
+  | some clause =>
+      expectKeyword "limit"
+      if clause.comma then
+        let some offset := clause.offset | mismatch "a comma LIMIT offset"
+        matchExpr offset
+        expectSymbol ","
+        matchExpr clause.count
+      else
+        matchExpr clause.count
+        if let some offset := clause.offset then
+          expectKeyword "offset"
+          matchExpr offset
+      let (limit, offset) ← match SQLite.Limit.resolve clause with
+        | .ok result => pure result
+        | .error _ =>
+            if deferErrors then pure (none, 0)
+            else mismatch "admitted LIMIT/OFFSET expressions"
+      unless query.limit == limit && query.offset == offset do
+        mismatch "the translated LIMIT/OFFSET values"
 
 private def matchExprList : List Expr → MatchM Unit
   | [] => pure ()
@@ -862,11 +842,11 @@ private def matchCompoundOp : CompoundOp → MatchM Unit
 
 private def matchSelectArm (query : Select) : MatchM Unit := do
   unless query.compounds.isEmpty && query.orderBy.isEmpty &&
-      query.limit.isNone && query.offset == 0 do
+      query.limit.isNone && query.offset == 0 && query.limitClause.isNone do
     mismatch "a compound SELECT arm without a local tail clause"
   matchSelectBase query
 
-private def matchSelect (query : Select) : MatchM Unit := do
+private def matchSelect (query : Select) (deferLimitErrors : Bool := false) : MatchM Unit := do
   matchSelectBase query
   for arm in query.compounds do
     matchCompoundOp arm.1
@@ -879,7 +859,7 @@ private def matchSelect (query : Select) : MatchM Unit := do
     expectKeyword "order"
     expectKeyword "by"
     matchOrderTerms query.orderBy.toList
-  matchLimit query
+  matchLimit query deferLimitErrors
 
 
 /-- Replay a tuple's target names against consecutive flattened AST pairs,
@@ -1002,7 +982,9 @@ private def matchStatement : Statement → MatchM Unit
       if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
       expectDeclaredName name
       expectKeyword "as"
-      matchSelect query
+      -- CTAS rechecks LIMIT evaluation after its possible schema no-op.
+      -- All original expression tokens are still replayed here.
+      matchSelect query true
   | .createTable name columns constraints ifNotExists => do
       expectKeyword "create"
       expectKeyword "table"

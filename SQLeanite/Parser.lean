@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Limit
 import SQLeanite.SQLite.ColumnType
 import SQLeanite.SQLite.CastType
 import SQLeanite.SQLite.DefaultSyntax
@@ -474,55 +475,22 @@ private def parseExpr (minPrec : Nat := 0) : ParserM Expr :=
 private def parseUnary : ParserM Expr :=
   parseUnaryFuel (Nat.succ parserExpressionDepth)
 
-private def constantInt? : Expr → Option Int
-  | .literal (.integer value) _ => some value
-  | .call "__sqlean_boolean_true" #[] false => some 1
-  | .call "__sqlean_boolean_false" #[] false => some 0
-  | .unary .plus expr => constantInt? expr
-  | .unary .neg expr => (-·) <$> constantInt? expr
-  | .binary op left right => do
-    let a ← constantInt? left
-    let b ← constantInt? right
-    match op with
-    | .add => some (a + b)
-    | .sub => some (a - b)
-    | .mul => some (a * b)
-    | .div => if b == 0 then none else some (a / b)
-    | .mod => if b == 0 then none else some (a % b)
-    | _ => none
-  | _ => none
-
-private def skippedLimitLiteral : Expr → Bool
-  | .literal _ _ => true
-  | .unary .plus expression | .unary .neg expression => skippedLimitLiteral expression
-  | _ => false
-
-/-- Preserve the two LIMIT spellings until the count is known: count zero
-skips conversion of a literal offset, including NULL and out-of-range reals. -/
-private def parseLimitClause : ParserM (Option Nat × Nat × Bool) := do
-  unless ← acceptKeyword "limit" do return (none, 0, false)
+/-- Retain the original expression tree, including the comma spelling, for
+independent replay; use the same scalar operations as other SQL expressions. -/
+private def parseLimitClause : ParserM (Option Nat × Nat × Option LimitClause) := do
+  unless ← acceptKeyword "limit" do return (none, 0, none)
   let first ← parseExpr
-  let mut countExpression := first
-  let mut offsetExpression : Expr := .literal (.integer 0)
-  if ← acceptSymbol "," then
-    offsetExpression := first
-    countExpression ← parseExpr
-  else if ← acceptKeyword "offset" then
-    offsetExpression ← parseExpr
-  let count ← match constantInt? countExpression with
-    | some value => pure value
-    | none => throw "datatype mismatch"
-  unless (-9223372036854775808 : Int) ≤ count && count ≤ 9223372036854775807 do
-    throw "datatype mismatch"
-  let skip ← match constantInt? offsetExpression with
-    | some value => pure value
-    | none =>
-        if count == 0 && skippedLimitLiteral offsetExpression then pure 0
-        else throw "datatype mismatch"
-  unless count == 0 || ((-9223372036854775808 : Int) ≤ skip && skip ≤ 9223372036854775807) do
-    throw "datatype mismatch"
-  return (if count < 0 then none else some count.toNat,
-    if count == 0 then 0 else (max 0 skip).toNat, true)
+  let clause ← if ← acceptSymbol "," then do
+      let count ← parseExpr
+      pure ({ count, offset := some first, comma := true } : LimitClause)
+    else do
+      let offset ← if ← acceptKeyword "offset" then some <$> parseExpr else pure none
+      pure ({ count := first, offset } : LimitClause)
+  -- CTAS can discard its SELECT when IF NOT EXISTS finds an existing table.
+  -- Keep failed expressions intact; certified ordinary SELECTs reject them,
+  -- while CTAS checks them only after its schema no-op decision.
+  let (limit, offset) := (SQLite.Limit.resolve clause).toOption.getD (none, 0)
+  return (limit, offset, some clause)
 
 
 private def parseOptionalNameList : ParserM (Option (Array String)) := do
@@ -945,9 +913,9 @@ private def parseSelectAfterSelectFuel : Nat → Bool → ParserM Select
           if !desc then discard <| acceptKeyword "asc"
           let nullsFirst ← parseNullOrder
           orderBy := orderBy.push { expr := e, descending := desc, nullsFirst }
-      let (limit, offset, hadLimit) ← parseLimitClause
-      query := { query with orderBy, limit, offset }
-      if !orderBy.isEmpty || hadLimit then
+      let (limit, offset, limitClause) ← parseLimitClause
+      query := { query with orderBy, limit, offset, limitClause }
+      if !orderBy.isEmpty || limitClause.isSome then
         let pending ← if ← acceptKeyword "union" then
             pure (some (if ← acceptKeyword "all" then "UNION ALL" else "UNION"))
           else if ← acceptKeyword "except" then pure (some "EXCEPT")
@@ -994,9 +962,9 @@ private def parseValuesAfterValues (rows : Array (Array Expr)) : ParserM Select 
       if !descending then discard <| acceptKeyword "asc"
       let nullsFirst ← parseNullOrder
       orderBy := orderBy.push { expr := expression, descending, nullsFirst }
-  let (limit, offset, hadLimit) ← parseLimitClause
-  query := { query with orderBy, limit, offset }
-  if !orderBy.isEmpty || hadLimit then
+  let (limit, offset, limitClause) ← parseLimitClause
+  query := { query with orderBy, limit, offset, limitClause }
+  if !orderBy.isEmpty || limitClause.isSome then
     let pending ← if ← acceptKeyword "union" then
         pure (some (if ← acceptKeyword "all" then "UNION ALL" else "UNION"))
       else if ← acceptKeyword "except" then pure (some "EXCEPT")
@@ -1250,7 +1218,7 @@ private def recursiveCteParts? (name : String) (query : Select) :
   match query.compounds with
   | #[(operation, step)] =>
       if step.referencesSource name then
-        some ({ query with compounds := #[], orderBy := #[], limit := none, offset := 0 },
+        some ({ query with compounds := #[], orderBy := #[], limit := none, offset := 0, limitClause := none },
           step, operation == .unionAll)
       else none
   | _ => none

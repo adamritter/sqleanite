@@ -432,6 +432,14 @@ inductive CompoundOp where
   | unionAll | unionDistinct | except | intersect
   deriving Repr, DecidableEq
 
+/-- Original LIMIT expressions and spelling, retained for independent token
+replay even after the admitted constant expressions are evaluated. -/
+structure LimitClause where
+  count : Expr
+  offset : Option Expr := none
+  comma : Bool := false
+  deriving Repr
+
 structure Select where
   columns : Array ResultColumn
   valueRows : Option (Array (Array Expr)) := none
@@ -444,6 +452,7 @@ structure Select where
   limit : Option Nat := none
   offset : Nat := 0
   compounds : Array (CompoundOp × Select) := #[]
+  limitClause : Option LimitClause := none
   deriving Repr
 
 mutual

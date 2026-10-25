@@ -2005,4 +2005,25 @@ else
   exit 1
 fi
 
+if rg -F -q 'SQLite.Limit.resolve clause' SQLeanite/Parser.lean &&
+   rg -F -q 'SQLite.Limit.resolve clause' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'matchExpr clause.count' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'SQLite.Limit.validate query.limitClause' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'Numeric.applyAffinity value' SQLeanite/SQLite/Limit.lean &&
+   rg -F -q 'let skip ← if count == 0 then pure 0' SQLeanite/SQLite/Limit.lean; then
+  echo 'ok - LIMIT expression tokens and normalized windows are independently checked'
+else
+  echo 'FAIL - LIMIT expression evaluation or token replay is disconnected'
+  exit 1
+fi
+
+if rg -F -q '!dataWriteNoop live.state executed.state statement results' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q '!CoreFileEngine.dataWriteNoop state next statement results' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'current.database.contents == next.database.contents' SQLeanite/CoreFileEngine.lean; then
+  echo 'ok - zero-row DML publication checks complete contents including sequence rows'
+else
+  echo 'FAIL - zero-row DML publication guard is disconnected'
+  exit 1
+fi
+
 exit $status

@@ -4198,3 +4198,60 @@ Reports: `sqlite-transaction-name-*20261025.json`; harness:
 `scripts/run-transaction-name-differential.py`. Native bindings are unchanged.
 Full SQL coverage, same-line CLI continuation, partial output within a failing
 SELECT and concurrent SQLite WAL coordination remain outstanding.
+
+
+## Constant LIMIT/OFFSET expressions and zero-row publication (2026-10-25)
+
+LIMIT and OFFSET now evaluate admitted deterministic scalar expressions, with
+SQLite numeric affinity and signed-64-bit integer validation. Numeric text and
+integral reals work; fractional, NULL, BLOB and out-of-range results fail. The
+comma spelling preserves its reversed count/offset order. Both expression trees
+are retained in the AST and independently replayed against source tokens before
+the normalized execution window is accepted. A zero count skips offset execution,
+while preparation still rejects unsupported names/functions. These rules follow
+the [SQLite LIMIT specification](https://www.sqlite.org/lang_select.html#the_limit_clause)
+and pinned OP_MustBeInt / computeLimitRegisters implementation.
+
+CTAS retains failed constant expressions rather than rejecting them during broad
+parsing. Its certified token replay still checks all source expressions and their
+normalized fields. Runtime CTAS rejects their failed validation only after the
+existing-table no-op decision; ordinary SELECT admission rejects them directly.
+Thus CREATE TABLE IF NOT EXISTS on an existing table ignores an unused LIMIT
+error while still rejecting malformed syntax. The legacy conformance engine also
+validates the retained expressions; it is not used by the public executable.
+
+Zero-row INSERT/UPDATE/DELETE now skip physical publication only when their
+reported change count is zero and their complete logical database is unchanged.
+AUTOINCREMENT can create or advance sqlite_sequence even with zero returned
+rows, so the logical-content check is necessary. COMMIT and RELEASE retain their
+snapshot-based publication rules. Actual write-access checks are unchanged.
+
+Baseline seed **354330** records **644 comparisons / 330 differences**. Expanded
+development seed **354331** records **1,224 / 24**, all remaining cases being
+existing-table CTAS no-ops. After that correction, seed **354332** passes
+**2,592 / 0**. The first fresh seed **354333** records **5,040 / 42**: logical
+results agree, but a strengthened main/WAL immutability check catches unnecessary
+publication for empty INSERT SELECT statements. All negative reports are retained.
+
+After the publication fix, final-checkpoint fresh seed **354335** passes
+**5,040 / 0**, on three fresh C-created fixtures, 512/4096/65536-byte pages and
+both production file modes. It compares successful output, error status, full
+C catalog/pragma/typed-row/integrity observations, later C writes and Lean reopens.
+Whenever C leaves its main/WAL image unchanged, Lean must also leave its own
+image unchanged. AUTOINCREMENT regression seed **354336** passes **426 / 0**;
+read-transaction regression seed **354337** passes **576 / 0** on the same source.
+Earlier, before the publication change, integer-window regression seed **354334**
+passes **410 / 0** and grouped-expression resurvey seed **354340** passes
+**530 / 0**; those reports retain their distinct checkpoint hashes.
+
+Implementation SHA-256: `6c63be9eea93447a5a90039fb6311705736391112bb9361b2423e4d1a50de76d`.
+Final checks pass **346 build jobs, 256 executable tests, 1,207 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The five new component propositions cover integer acceptance,
+zero-count offset skipping, unchanged empty INSERT SELECT publication, and
+exclusion of COMMIT/RELEASE from that empty-DML rule. These do not prove complete
+SQLite SQL or file equivalence. Subquery/nondeterministic LIMIT expressions,
+exact diagnostics, same-line CLI error continuation and concurrent WAL remain
+outside this result. Native bindings are unchanged. Reports:
+`sqlite-limit-expression-*20261025.json`; harness:
+`scripts/run-limit-expression-differential.py`.
