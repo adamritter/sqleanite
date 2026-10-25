@@ -1227,3 +1227,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.DatabaseSize.pageCount_zero
 #print axioms SQLeanite.SQLite.DatabaseSize.pageCount_stale
 #print axioms SQLeanite.SQLite.DatabaseSize.pageCount_current
+
+#print axioms SQLeanite.CoreFileAdapter.headerUsablePageSize?_partition

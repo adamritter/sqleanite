@@ -40,7 +40,7 @@ private def encodeImage (database : Core.Database)
 
 /-- Application metadata comes from the committed WAL snapshot when page one
 has an overlay, and otherwise from the main database header. -/
-private def readMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
+private def writeMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
   let main ← IO.FS.readBinFile paths.main
   let first ← if ← paths.wal.pathExists then do
       let bytes ← IO.FS.readBinFile paths.wal
@@ -56,9 +56,11 @@ private def readMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata :
           | some bytes => pure bytes
           | none => throw (IO.userError "WAL snapshot has no metadata page")
     else pure (main.extract 0 100).toList
-  let some metadata := CoreMultiFreelist.HeaderMetadata.decode? first |
+  let some (header, _) := FileFormat.decodeDatabaseHeader first |
     throw (IO.userError "invalid database application metadata")
-  return metadata
+  unless header.headerPrefix.reservedSpace = 0 do
+    throw (IO.userError "unsupported reserved-byte database writes")
+  return CoreMultiFreelist.HeaderMetadata.fromHeader header
 
 def header : PhysicalWAL.Header := {
   checkpointSequence := ⟨0, by decide⟩
@@ -87,12 +89,12 @@ private def readWAL (paths : Paths) : IO Core.Database := do
     throw (IO.userError "invalid database header in SQLite WAL snapshot")
   let some usable := CoreFileAdapter.headerUsablePageSize? header |
     throw (IO.userError "unsupported page geometry in SQLite WAL snapshot")
-  unless usable.val = snapshot.pageSize && header.textEncoding.val = 1 do
+  unless header.headerPrefix.pageSize = snapshot.pageSize && header.textEncoding.val = 1 do
     throw (IO.userError "SQLite WAL/header geometry or text encoding mismatch")
   let source : CoreDecode.IOPageSource := {
     usable
     pageCount := snapshot.pageCount
-    readPage := fun pageNumber => pure (read pageNumber) }
+    readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
   match ← CoreDecode.decodeFromIOPageSource source with
   | some database => return database
   | none => throw (IO.userError "invalid recovered SQLite WAL database")
@@ -127,7 +129,7 @@ WAL writes every target page, so reopening never depends on uncheckpointed
 main-file contents. -/
 def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
     IO Core.Database := do
-  let metadata ← readMetadata paths
+  let metadata ← writeMetadata paths
   let image ← encodeImage database metadata
   if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
     let wal := CoreWAL.forCoreImage header image fits
@@ -154,7 +156,7 @@ then delete the WAL. A crash before deletion still has the complete WAL; a
 reader after deletion sees the synced main file. -/
 def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   let database ← reopen paths
-  let metadata ← readMetadata paths
+  let metadata ← writeMetadata paths
   let image ← encodeImage database metadata
   IO.FS.writeBinFile paths.main (bytes image.fileBytes)
   syncOps.syncFile paths.main

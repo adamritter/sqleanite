@@ -967,18 +967,16 @@ private def decodedIndexPageCached (cache : PageReadCache)
           return some page
       | none => return none
 
-/-- Turn the semantic SQLite page size in a validated zero-reserved-byte
-header into the proof-carrying geometry consumed by the general decoder. -/
+/-- The physical page size includes an optional reserved tail. B-tree cells
+and overflow payloads use only the remaining, at least 480, usable bytes. -/
 def headerUsablePageSize? (header : FileFormat.DatabaseHeader) :
     Option FileFormat.UsablePageSize := do
   let pageSize := header.headerPrefix.pageSize
   if valid : FileFormat.ValidSQLitePageSize pageSize then
-    if _unreserved : header.headerPrefix.reservedSpace = 0 then
+    if minimum : 480 ≤ pageSize - header.headerPrefix.reservedSpace.toNat then
       some {
-        val := pageSize
-        atLeastMinimum := by
-          simp [FileFormat.ValidSQLitePageSize] at valid
-          omega
+        val := pageSize - header.headerPrefix.reservedSpace.toNat
+        atLeastMinimum := minimum
         atMostMaximum := by
           simp [FileFormat.ValidSQLitePageSize] at valid
           omega }
@@ -988,7 +986,7 @@ def headerUsablePageSize? (header : FileFormat.DatabaseHeader) :
 theorem headerUsablePageSize?_val {header : FileFormat.DatabaseHeader}
     {usable : FileFormat.UsablePageSize}
     (decoded : headerUsablePageSize? header = some usable) :
-    usable.val = header.headerPrefix.pageSize := by
+    usable.val = header.headerPrefix.pageSize - header.headerPrefix.reservedSpace.toNat := by
   unfold headerUsablePageSize? at decoded
   dsimp only at decoded
   split at decoded
@@ -999,6 +997,16 @@ theorem headerUsablePageSize?_val {header : FileFormat.DatabaseHeader}
       exact (congrArg FileFormat.UsablePageSize.val equal).symm
     next => contradiction
   next => contradiction
+
+/-- Every admitted page partitions exactly into payload geometry and its
+reserved tail; natural-number subtraction cannot conceal an oversized tail. -/
+theorem headerUsablePageSize?_partition {header : FileFormat.DatabaseHeader}
+    {usable : FileFormat.UsablePageSize}
+    (decoded : headerUsablePageSize? header = some usable) :
+    usable.val + header.headerPrefix.reservedSpace.toNat = header.headerPrefix.pageSize := by
+  have geometry := headerUsablePageSize?_val decoded
+  have minimum := usable.atLeastMinimum
+  omega
 
 def generatedImageStamp (paths : Paths) : IO Bool := do
   let bytes ← SyscallVFS.preadBytes paths.main.toString 0 100
@@ -1034,7 +1042,7 @@ def reopen (paths : Paths) : IO Core.Database := do
     let usable ← match headerUsablePageSize? header with
       | some usable => pure usable
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
-    let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat usable.val |
+    let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat header.headerPrefix.pageSize |
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     unless header.textEncoding.val = 1 do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
@@ -1047,7 +1055,7 @@ def reopen (paths : Paths) : IO Core.Database := do
     -- still decode -- using the fixed-size `byteArrayPageSource` here silently
     -- broke the 1024-byte differential case.
     let whole ← IO.FS.readBinFile paths.main
-    let pageBytes := usable.val
+    let pageBytes := header.headerPrefix.pageSize
     let source : CoreDecode.IOPageSource := {
       -- `usable` is defaulted on `IOPageSource`, and omitting it here is what
       -- broke the 1024-byte differential case: the slices were the header's page
@@ -1058,7 +1066,7 @@ def reopen (paths : Paths) : IO Core.Database := do
       readPage := fun pageNumber => pure <|
         if pageNumber = 0 || count < pageNumber then none
         else
-          SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber }
+          (SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber).map (List.take usable.val) }
     match ← CoreDecode.decodeFromIOPageSource source with
     | some database => return database
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
@@ -1075,7 +1083,8 @@ def loadPageState (paths : Paths) (database : Core.Database) :
   let some (header, _) := FileFormat.decodeDatabaseHeader firstPageBytes |
     return none
   let count := header.databaseSizePages.val
-  unless input.size = count * PhysicalCodec.pageSize do return none
+  unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
+      header.headerPrefix.reservedSpace = 0 && input.size = count * PhysicalCodec.pageSize do return none
   return CorePageLoad.load? (byteArrayPageSource input count) database
 
 
@@ -1092,7 +1101,8 @@ def loadWidePageState (paths : Paths) (database : Core.Database) :
   let some (header, _) := FileFormat.decodeDatabaseHeader firstPageBytes |
     return none
   let count := header.databaseSizePages.val
-  unless input.size = count * PhysicalCodec.pageSize do return none
+  unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
+      header.headerPrefix.reservedSpace = 0 && input.size = count * PhysicalCodec.pageSize do return none
   let source := byteArrayPageSource input count
   match loaded : CoreWidePageLoad.load? source database with
   | none => return none
@@ -4142,8 +4152,19 @@ private def initializePersistentJournal (syncOps : SyncOps) (paths : Paths) :
     SyscallVFS.renamePath paths.journalTemp.toString paths.journal.toString
     syncOps.syncDeletion paths.main
 
+/-- The current encoder has no representation for extension-owned reserved
+bytes. Reject before journal activation or image publication until a writer
+that preserves this geometry is implemented. -/
+private def requireUnreservedWrite (path : System.FilePath) : IO Unit := do
+  let bytes ← SyscallVFS.preadBytes path.toString 0 100
+  let some (header, _) := FileFormat.decodeDatabaseHeader bytes.toList |
+    throw (IO.userError "invalid database header before write")
+  unless header.headerPrefix.reservedSpace = 0 do
+    throw (IO.userError "unsupported reserved-byte database writes")
+
 private def activatePersistentJournal (syncOps : SyncOps) (paths : Paths)
     (journal : PhysicalJournalCodec.PersistentEncodable) : IO Unit := do
+  requireUnreservedWrite paths.main
   SyscallVFS.pwriteBytes paths.journal.toString 0
     (PhysicalJournalCodec.encodePersistentActiveBytes journal)
   syncOps.syncFile paths.journal
@@ -4196,6 +4217,8 @@ def needsPageSizeConversion (paths : Paths) : IO Bool :=
     let headerBytes ← handle.read 100
     let some (header, _) := FileFormat.decodeDatabaseHeader headerBytes.data.toList |
       throw (IO.userError "invalid database header before write")
+    unless header.headerPrefix.reservedSpace = 0 do
+      throw (IO.userError "unsupported reserved-byte database writes")
     return header.headerPrefix.pageSizeField.val != PhysicalCodec.pageSize
 
 /-- Encode a complete canonical image before publication. This branch changes
@@ -4203,6 +4226,7 @@ the page size to 4096, and uses atomic image replacement rather than claiming
 that the ordinary same-geometry rollback-journal trace was executed. -/
 def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
     IO ValidatedOpenState := do
+  requireUnreservedWrite paths.main
   recoverInPlace syncOps paths
   let main ← IO.FS.realPath paths.main
   let metadata ← main.metadata

@@ -2287,3 +2287,35 @@ and two declared unsupported shapes. Component proofs establish the zero,
 stale-counter and current-counter branches of page-count selection. Native
 code and its nine-binding audit list are unchanged. Reports use
 `sqlite-header-size-*20261025.json` under `docs/validation/`.
+
+## Reserved-byte page reads (2026-10-25)
+
+Physical file offsets, page counts and WAL frame sizes now use the complete
+page size. Table/index cells, schema pages and overflow chains receive only
+the usable prefix, excluding the reserved tail. Header admission requires at
+least 480 usable bytes. Fixed-4096 write caches decline reserved geometry.
+The encoder still does not preserve extension-owned reserved bytes: rollback
+writes, WAL writes and checkpoints reject these inputs before publication.
+This is a read-compatibility improvement and explicit write limitation.
+
+Baseline 353940 at source b6d78537e72fc93ab1a3a00a652a3e0ea9ba7623bc776cfb3f8475eb784a43b7
+records 133 differences in 147 read cases. Development 353941 passes 189 cases.
+Final source is `a803f1eb0d84ec584304df85dbfc3c90f91d1cb371670ff7bf8eead86d3e78db`.
+Fresh 353942 passes **350 exact successful read comparisons** across 28
+SQLite-created fixtures. Physical sizes range from 512 to 65,536 bytes; tails
+include 1, 16, 32 and 255 bytes plus fresh randomized valid sizes. The fixtures
+include table/index interior pages, payload overflow, and committed WAL
+overlays after the producer closes. Reserved tails are filled with random
+bytes, SQLite integrity_check succeeds, and Lean reads leave main/WAL bytes
+unchanged. The independent oracle is the pinned SQLite 3.53.4 CLI.
+
+Separately, **54 unsupported-write guard regressions** pass: UPDATE and WAL
+checkpoint operations produce the stated unsupported diagnostic and leave
+main/WAL contents unchanged. These refusals are not counted as compatible
+SQLite writes. Native code and the nine-binding audit boundary are unchanged.
+All 215 executable tests, the 286-job build, 1,086 registered headline proofs,
+verification audit and live-path audit pass. The reverse-file suite passes
+61 accepted cells and two declared unsupported shapes. Unit examples cover
+physical/usable geometry, the 480-byte minimum and invalid sizes; the new
+component theorem proves the exact usable-plus-reserved partition. Reports
+use `sqlite-reserved-pages-*20261025.json` in `docs/validation/`.

@@ -186,7 +186,7 @@ fi
 
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
 if grep -q 'SQLite.DatabaseSize.pageCount? header input.length PhysicalCodec.pageSize' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat usable.val' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat header.headerPrefix.pageSize' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'SQLite.DatabaseSize.pageBytes main snapshot.pageSize' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'DatabaseSize.pageCount_stale' SQLeanite/ProofAxioms.lean; then
   ok "SQLite valid and stale header sizes share the bounded file/WAL geometry rules"
@@ -248,7 +248,7 @@ fi
 if grep -q 'let metadata ← previousMetadata.orElse' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareBulkCommit? old database (some metadata)' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'let layout := { baseLayout with metadata }' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'let metadata ← readMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'let metadata ← writeMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'snapshot.readPage base 1' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'Layout.applicationId_preserved' SQLeanite/ProofAxioms.lean &&
    grep -q 'Layout.userVersion_preserved' SQLeanite/ProofAxioms.lean; then
@@ -724,11 +724,11 @@ fi
 
 # The general open must derive its page geometry from the validated header, not
 # from the 4096-byte constant. It previously did this by passing `usable` to
-# `filePageSourceFor`; it now slices a single buffered read using `usable.val`,
+# `filePageSourceFor`; it now strides a buffered read by physical page size,
 # which is faster but just as easy to get wrong -- substituting the fixed-size
 # `byteArrayPageSource` here silently broke the 1024-byte differential case, so
 # both the positive and the negative check are asserted.
-if grep -q 'let pageBytes := usable.val' \
+if grep -q 'let pageBytes := header.headerPrefix.pageSize' \
      SQLeanite/CoreFileAdapter.lean &&
    ! grep -q 'byteArrayPageSource whole count' \
      SQLeanite/CoreFileAdapter.lean &&
@@ -742,6 +742,17 @@ if grep -q 'let pageBytes := usable.val' \
   ok "general opens carry the validated SQLite page size through decoding"
 else
   fail "general opens detached from dynamic page-size validation"
+fi
+
+# Physical strides include reserved tails; record decoders receive usable bytes.
+if grep -q 'pageBytes whole pageBytes pageNumber).map (List.take usable.val)' SQLeanite/CoreFileAdapter.lean &&
+   grep -q '(read pageNumber).map (List.take usable.val)' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'requireUnreservedWrite paths.main' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'unsupported reserved-byte database writes' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'headerUsablePageSize?_partition' SQLeanite/ProofAxioms.lean; then
+  ok "reserved tails are excluded from decoding and unsupported writers fail before publication"
+else
+  fail "reserved-page geometry or unsupported-write guards are disconnected"
 fi
 
 if grep -q 'CellPagination.paginateCells' SQLeanite/CoreFile.lean; then

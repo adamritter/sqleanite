@@ -4597,6 +4597,25 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteReservedPages : IO Unit := do
+  let header := CoreFile.databaseHeader ⟨3, by decide⟩
+  let cases : List (Nat × UInt8 × Nat) :=
+    [(512, 0, 512), (512, 1, 511), (512, 32, 480),
+      (1024, 255, 769), (4096, 255, 3841), (1, 255, 65281)]
+  for (field, reserved, expected) in cases do
+    let candidate := { header with headerPrefix := { header.headerPrefix with
+      pageSizeField := ⟨field % 2^16, Nat.mod_lt _ (by decide)⟩
+      reservedSpace := reserved } }
+    let some usable := CoreFileAdapter.headerUsablePageSize? candidate |
+      fail "reserved-tail geometry rejected"
+    unless usable.val == expected do fail "reserved-tail geometry used physical page size"
+  for (field, reserved) in [(512, (33 : UInt8)), (512, 255), (0, 0), (1023, 0)] do
+    let candidate := { header with headerPrefix := { header.headerPrefix with
+      pageSizeField := ⟨field % 2^16, Nat.mod_lt _ (by decide)⟩
+      reservedSpace := reserved } }
+    unless (CoreFileAdapter.headerUsablePageSize? candidate).isNone do
+      fail "invalid physical or usable page size admitted"
+
 private def expectSQLiteHeaderSize : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,7);" with
@@ -5700,6 +5719,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),
   ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),
   ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),
   ("SQLite byte-preserving format and printf", expectSQLiteFormat),
