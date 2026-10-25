@@ -4597,6 +4597,35 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteHeaderSize : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,7);" with
+    | .ok value => pure value
+    | .error message => fail message
+  let some image := CorePageCodec.encodeChecked state.database | fail "header-size image encoder failed"
+  let some (header, rest) := FileFormat.decodeDatabaseHeader image.fileBytes | fail "header-size header missing"
+  let unset := { header with databaseSizePages := ⟨0, by decide⟩ }
+  let stale := { header with
+    databaseSizePages := ⟨999, by decide⟩
+    versionValidFor := ⟨0, by decide⟩ }
+  let cases : List (FileFormat.DatabaseHeader × List UInt8) :=
+    [(header, []), (unset, []), (stale, []), (header, [1,2,3]), (header, List.replicate 4096 0)]
+  for (candidate, tail) in cases do
+    let input := FileFormat.encodeDatabaseHeader candidate ++ rest ++ tail
+    let some decoded := CoreFileAdapter.physicalImage? input | fail "compatible header size rejected"
+    unless decoded.pageCount == image.pageCount do fail "header size selected the wrong logical image"
+    for index in [:image.pageCount] do
+      unless (decoded.read index).bytes == ((input.drop (index * 4096)).take 4096).toArray do
+        fail "header-size decode changed a page"
+  let tooLarge := { header with databaseSizePages := ⟨999, by decide⟩ }
+  unless (SQLite.DatabaseSize.pageCount? tooLarge image.fileBytes.length 4096).isNone do
+    fail "current size beyond EOF accepted"
+  unless SQLite.DatabaseSize.filePages 4097 4096 == 2 do fail "file page count was not rounded up"
+  unless SQLite.DatabaseSize.pageBytes (ByteArray.mk #[1,2,3]) 4 1 = some [1,2,3,0] do
+    fail "partial final page was not zero-filled"
+  unless (SQLite.DatabaseSize.pageBytes (ByteArray.mk #[1,2,3]) 4 2).isNone do
+    fail "page starting beyond EOF was accepted"
+
 private def expectSQLiteSchemaPages : IO Unit := do
   let first : CoreFile.CatalogEntry := {
     kind := "table", name := "a", table := "a", rootPage := 2, sql := "CREATE TABLE a(id INTEGER PRIMARY KEY,v)" }
@@ -5671,6 +5700,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),
   ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),
   ("SQLite byte-preserving format and printf", expectSQLiteFormat),
   ("SQLite math functions and exact floating remainder", expectSQLiteMath),

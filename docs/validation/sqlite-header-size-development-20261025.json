@@ -1,0 +1,3084 @@
+{
+  "seed": 353931,
+  "random_cases": 4,
+  "cases": [
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/10/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/11/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 2048,
+      "mode": "--verified-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 512,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 2048,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 512,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1553,
+      "mode": "--verified-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1553,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1032,
+      "mode": "--verified-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1032,
+      "mode": "--verified-wal-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 512,
+      "input_bytes": 1536,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/36/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/37/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 16384,
+      "mode": "--verified-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 4096,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 16384,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 4096,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12305,
+      "mode": "--verified-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12305,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 8200,
+      "mode": "--verified-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 8200,
+      "mode": "--verified-wal-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 4096,
+      "input_bytes": 12288,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "ordinary",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "zero-size",
+      "declared_size": 0,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "mismatched-zero",
+      "declared_size": 0,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-small",
+      "declared_size": 1,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "stale-large",
+      "declared_size": 1000,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/62/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "trusted-too-large",
+      "declared_size": 1000,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-header-size-a3bjh6u_/63/lean.db\n"
+      },
+      "sqlite_read": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: database disk image is malformed (11)\n"
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 262144,
+      "mode": "--verified-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 65536,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 262144,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-full-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 65536,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196625,
+      "mode": "--verified-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196625,
+      "mode": "--verified-wal-file",
+      "mutation": "ignored-short-tail",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 17,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 131080,
+      "mode": "--verified-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 131080,
+      "mode": "--verified-wal-file",
+      "mutation": "partial-empty-last-page",
+      "declared_size": null,
+      "counter_mismatch": false,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "0|\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n3|integer|12\n1|12\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2691398991,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 2671161572,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 1175210134,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    },
+    {
+      "page_size": 65536,
+      "input_bytes": 196608,
+      "mode": "--verified-wal-file",
+      "mutation": "random-stale",
+      "declared_size": 193749641,
+      "counter_mismatch": true,
+      "tail_bytes": 0,
+      "read_matched": true,
+      "lean_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "sqlite_read": {
+        "code": 0,
+        "stdout": "1|integer|7\n2|integer|8\n2|15\n",
+        "stderr": ""
+      },
+      "write_matched": true,
+      "lean_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite_write": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "lean_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      },
+      "sqlite_after": {
+        "code": 0,
+        "stdout": "ok\n1|integer|17\n2|integer|8\n3|integer|12\n3|37\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "failed_case_indices": [],
+  "implementation_sha256": "b6d78537e72fc93ab1a3a00a652a3e0ea9ba7623bc776cfb3f8475eb784a43b7",
+  "executable_sha256": "26c917002b00b56cc1370531870de5843e069534f2bda0470e27cc1083d1a410",
+  "harness_sha256": "92e533ec60e4211c0e7adaa8ec06e2abe02c3ec646b514fa3a98328620c49866",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Check SQLite header-size validity against the physical file size.\n\nCreate files with pinned SQLite, independently modify the size/counter fields,\nand compare read behavior and subsequent writes in the two public file modes.\nSuccessful persisted results are checked by the pinned CLI with integrity_check.\nRead snapshots must preserve both main and WAL bytes. Not a concurrency test."
+}

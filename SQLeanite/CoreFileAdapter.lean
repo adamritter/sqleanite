@@ -1,4 +1,5 @@
 import SQLeanite.CoreDecode
+import SQLeanite.SQLite.DatabaseSize
 import SQLeanite.CoreFreelist
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CoreOverflow
@@ -204,8 +205,10 @@ def physicalImage? (input : List UInt8) :
     Option (GrowableStorage.Image PhysicalCodec.pageSize) := do
   let (header, _) ← FileFormat.decodeDatabaseHeader input
   if _pageSize : header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize then
-    let count := header.databaseSizePages.val
-    let (decoded, suffix) ← DiskFormat.decodeSizedPages PhysicalCodec.pageSize count input
+    let count ← SQLite.DatabaseSize.pageCount? header input.length PhysicalCodec.pageSize
+    let needed := count * PhysicalCodec.pageSize
+    let normalized := input.take needed ++ List.replicate (needed - input.length) 0
+    let (decoded, suffix) ← DiskFormat.decodeSizedPages PhysicalCodec.pageSize count normalized
     if _consumed : suffix = [] then
       let pages := decoded.pages.toArray
       some {
@@ -285,10 +288,10 @@ private def readPageCount (handle : IO.FS.Handle)
   let (header, _) ← match FileFormat.decodeDatabaseHeader firstPage with
     | some decoded => pure decoded
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {path}")
-  let count := header.databaseSizePages.val
   let metadata ← path.metadata
-  unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize &&
-      metadata.byteSize.toNat = count * PhysicalCodec.pageSize do
+  let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat PhysicalCodec.pageSize |
+    throw (IO.userError s!"invalid general MVP SQLite image: {path}")
+  unless header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize do
     throw (IO.userError s!"invalid general MVP SQLite image: {path}")
   return count
 
@@ -1031,9 +1034,9 @@ def reopen (paths : Paths) : IO Core.Database := do
     let usable ← match headerUsablePageSize? header with
       | some usable => pure usable
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
-    let count := header.databaseSizePages.val
-    unless header.textEncoding.val = 1 &&
-        metadata.byteSize.toNat = count * usable.val do
+    let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat usable.val |
+      throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
+    unless header.textEncoding.val = 1 do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     handle.rewind
     -- Read the file once and slice pages out of the buffer rather than issuing a
@@ -1055,10 +1058,7 @@ def reopen (paths : Paths) : IO Core.Database := do
       readPage := fun pageNumber => pure <|
         if pageNumber = 0 || count < pageNumber then none
         else
-          let start := (pageNumber - 1) * pageBytes
-          let stop := start + pageBytes
-          if stop ≤ whole.size then some (whole.extract start stop).data.toList
-          else none }
+          SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber }
     match ← CoreDecode.decodeFromIOPageSource source with
     | some database => return database
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")

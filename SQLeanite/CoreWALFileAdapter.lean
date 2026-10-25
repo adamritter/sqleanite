@@ -79,12 +79,7 @@ private def readWAL (paths : Paths) : IO Core.Database := do
     | .error message => throw (IO.userError message)
   let some snapshot := recovered | readMain paths
   let main ← IO.FS.readBinFile paths.main
-  let base := fun pageNumber =>
-    if pageNumber = 0 then none
-    else
-      let start := (pageNumber - 1) * snapshot.pageSize
-      let stop := start + snapshot.pageSize
-      if stop ≤ main.size then some (main.extract start stop).data.toList else none
+  let base := SQLite.DatabaseSize.pageBytes main snapshot.pageSize
   let read := snapshot.readPage base
   let some firstPage := read 1 |
     throw (IO.userError "SQLite WAL snapshot has no database header")

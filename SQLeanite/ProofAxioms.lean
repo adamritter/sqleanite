@@ -1223,3 +1223,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.catalogFields_nil
 #print axioms SQLeanite.CoreDecode.catalogWalk_empty
 #print axioms SQLeanite.CoreDecode.catalogWalk_exhausted
+
+#print axioms SQLeanite.SQLite.DatabaseSize.pageCount_zero
+#print axioms SQLeanite.SQLite.DatabaseSize.pageCount_stale
+#print axioms SQLeanite.SQLite.DatabaseSize.pageCount_current

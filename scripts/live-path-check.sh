@@ -185,6 +185,15 @@ else
 fi
 
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
+if grep -q 'SQLite.DatabaseSize.pageCount? header input.length PhysicalCodec.pageSize' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat usable.val' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'SQLite.DatabaseSize.pageBytes main snapshot.pageSize' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'DatabaseSize.pageCount_stale' SQLeanite/ProofAxioms.lean; then
+  ok "SQLite valid and stale header sizes share the bounded file/WAL geometry rules"
+else
+  fail "SQLite header-size validity is disconnected from file decoding"
+fi
+
 if grep -q 'let some catalog ← catalogIOFrom source' SQLeanite/CoreDecode.lean &&
    grep -q 'resolvedTablePayloadIOFrom source (source.pageCount + 1) cell' SQLeanite/CoreDecode.lean &&
    grep -q 'CoreDecode.catalogWalk_exhausted' SQLeanite/ProofAxioms.lean &&

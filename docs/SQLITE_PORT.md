@@ -2250,3 +2250,40 @@ Component proofs cover an empty catalog record, completed traversal and an
 exhausted budget; they do not prove complete SQLite file equivalence. Native
 code and the nine-binding audit boundary are unchanged. Reports use
 `sqlite-schema-pages-*20261025.*` under `docs/validation/`.
+
+## Header page-count validity and physical tails (2026-10-25)
+
+General opens and bulk pre-images now follow lockBtree/pagerPagecount: a nonzero
+header page count is authoritative only when the change counter equals
+version-valid-for. Otherwise the physical byte length, rounded up to whole
+pages, supplies the count. A current count beyond physical EOF is rejected;
+physical bytes/pages beyond a smaller current logical image are ignored.
+A partial final base-file page is zero-filled, including when the WAL reader
+falls back to a main-file page. This follows the ordinary SQLite VFS short-read
+behavior. Reads retain original bytes, and bulk pre-images retain the actual
+header bytes rather than silently rewriting stale size/counter fields.
+Existing generated-image fast paths keep their stricter layout admission and
+fall back to the general path when needed.
+
+Baseline 353930 at source 3df3663e354335944dcd79bbe27974d414175c6a4aa40358aa8abea9854d9fb1
+has 36 differing cases out of 48. Development 353931 passes 78 cases, including
+an added partial empty-index-page fixture. Final source:
+`b6d78537e72fc93ab1a3a00a652a3e0ea9ba7623bc776cfb3f8475eb784a43b7`.
+Fresh 353932 passes **438 read cases**: **432 exact successful results and six
+matching positive corruption errors**. All **432 applicable write cases** also
+pass: UPDATE/INSERT results agree and pinned SQLite integrity_check returns ok.
+The fresh corpus varies table contents, file sizes, stale 32-bit counters and
+size fields, and uses 512-, 4,096- and 65,536-byte pages in both file modes.
+It covers zero sizes, stale small/large sizes, trusted overlarge sizes, ignored
+full/partial tails, and partial final empty pages. Input bytes remain unchanged
+on reads. These are closed-file comparisons; concurrent locks and caches,
+exact error diagnostics and arbitrary truncated-page behavior are not proved.
+
+Fresh multi-page-schema regression 353933 passes 227 outcomes, including ten
+matching corruption errors and committed WAL overlays. All 214 executable
+tests, the 286-job build, 1,085 registered headline proofs, verification audit
+and live-path audit pass. Reverse-file validation passes 61 accepted cells
+and two declared unsupported shapes. Component proofs establish the zero,
+stale-counter and current-counter branches of page-count selection. Native
+code and its nine-binding audit list are unchanged. Reports use
+`sqlite-header-size-*20261025.json` under `docs/validation/`.
