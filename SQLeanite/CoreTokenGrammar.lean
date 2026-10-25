@@ -790,7 +790,7 @@ private def matchStatement : Statement → MatchM Unit
       unless returning.isEmpty do
         expectKeyword "returning"
         matchResultColumns returning.toList
-  | .update table alias assignments where_ conflict => do
+  | .update table alias assignments where_ conflict returning => do
       expectKeyword "update"
       unless conflict == .default do
         expectKeyword "or"
@@ -802,6 +802,9 @@ private def matchStatement : Statement → MatchM Unit
       match where_ with
       | some predicate => expectKeyword "where" *> matchExpr predicate
       | none => pure ()
+      unless returning.isEmpty do
+        expectKeyword "returning"
+        matchResultColumns returning.toList
   | .select query => matchSelect query
   | .begin => do
       expectKeyword "begin"

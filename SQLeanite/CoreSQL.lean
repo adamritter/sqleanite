@@ -873,6 +873,84 @@ def executeReplacedUpdate (state : Core.State) (tableName : String) (alias : Opt
   let (next, results) ← replacedUpdateRows state tableName ctx bound rowids
   return (next, [{ changes := (results.map (·.changes)).sum }])
 
+/-- RETURNING forces the two-phase UPDATE path even for IGNORE. Values are
+read from the current pending row; its original name binds RETURNING while the
+UPDATE alias remains the source for RHS and WHERE expressions. -/
+def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (conflict : ConflictAction) (projection : List Expr)
+    (rowid : Core.Integer) : Except String (Core.State × Option (List Core.Value)) := do
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {tableName}"
+  let some row := stored.findRowid? rowid | return (state, none)
+  let updates ← evaluateAssignments ctx row assignments
+  let values := Core.applyAssignments row.values updates
+  let outcome ← if conflict == .ignore then
+      CoreUpdateIgnore.row state tableName ctx.schema rowid values
+    else if conflict == .replace then do
+      let trace ← CoreUpdateReplace.plan stored rowid values
+      let (next, _) ← runCoreCommands state trace
+      pure (next, { changes := 1 })
+    else do
+      let _ ← Core.Row.create ctx.schema values
+      let (removed, _) ← Core.execute state (.deleteWhere tableName
+        (some (.equal ctx.schema.primaryKey (.integer rowid))))
+      Core.execute removed (.insert tableName values)
+  CoreReturning.updatedOutput outputCtx values projection outcome
+
+theorem updateReturningRow_missing (state : Core.State) (tableName : String)
+    (ctx outputCtx : CoreExpr.Context) (assignments : List (Nat × Expr)) (conflict : ConflictAction)
+    (projection : List Expr) (rowid : Core.Integer) (stored : Core.Table)
+    (found : state.database.findTable? tableName = some stored) (missing : stored.findRowid? rowid = none) :
+    updateReturningRow state tableName ctx outputCtx assignments conflict projection rowid = .ok (state, none) := by
+  simp [updateReturningRow, found, missing, bind, Except.bind, pure, Except.pure]
+
+def updateReturningRows (state : Core.State) (tableName : String) (ctx outputCtx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (conflict : ConflictAction) (projection : List Expr) :
+    List Core.Integer → Except String (Core.State × List (List Core.Value))
+  | [] => .ok (state, [])
+  | rowid :: rowids => do
+      let (next, output) ← updateReturningRow state tableName ctx outputCtx assignments conflict projection rowid
+      let (finalState, outputs) ← updateReturningRows next tableName ctx outputCtx assignments conflict projection rowids
+      return (finalState, output.toList ++ outputs)
+
+theorem updateReturningRows_length_le (state : Core.State) (tableName : String)
+    (ctx outputCtx : CoreExpr.Context) (assignments : List (Nat × Expr)) (conflict : ConflictAction)
+    (projection : List Expr) (rowids : List Core.Integer) (next : Core.State) (outputs : List (List Core.Value))
+    (success : updateReturningRows state tableName ctx outputCtx assignments conflict projection rowids = .ok (next, outputs)) :
+    outputs.length ≤ rowids.length := by
+  induction rowids generalizing state next outputs with
+  | nil =>
+      simp [updateReturningRows] at success
+      rcases success with ⟨_, rfl⟩
+      simp
+  | cons rowid rowids ih =>
+      cases head : updateReturningRow state tableName ctx outputCtx assignments conflict projection rowid with
+      | error message => simp [updateReturningRows, head, bind, Except.bind] at success
+      | ok pair =>
+          rcases pair with ⟨middle, output⟩
+          cases tail : updateReturningRows middle tableName ctx outputCtx assignments conflict projection rowids with
+          | error message => simp [updateReturningRows, head, tail, bind, Except.bind] at success
+          | ok pair =>
+              rcases pair with ⟨finalState, more⟩
+              simp [updateReturningRows, head, tail, bind, Except.bind, pure, Except.pure] at success
+              rcases success with ⟨_, rfl⟩
+              have bound := ih middle finalState more tail
+              cases output <;> simp_all <;> omega
+
+def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr)
+    (conflict : ConflictAction) (returning : Array ResultColumn) :
+    Except String (Core.State × List Core.Result) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let bound ← expressionAssignmentsWith true ctx assignments
+  let projection ← CoreReturning.prepare outputCtx returning.toList
+  let trace ← expressionDeletePlan tableName alias stored condition
+  let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
+  let (next, outputs) ← updateReturningRows state tableName ctx outputCtx bound conflict projection rowids
+  return (next, [{ rows := outputs, changes := outputs.length }])
+
 def executeExpressionDelete (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (condition : Option Expr) :
     Except String (Core.State × List Core.Result) := do
@@ -2087,7 +2165,7 @@ def executeStatement (state : Core.State) :
       match where_.mapM (predicate stored.schema) with
       | .ok condition => executeCommand state (.deleteWhere tableName condition)
       | .error _ => executeExpressionDelete state tableName alias stored where_
-  | .update table alias assignments where_ conflict => do
+  | .update table alias assignments where_ conflict returning => do
       unless conflict == .default || conflict == .abort || conflict == .ignore || conflict == .replace do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
       let tableName := canonical table
@@ -2095,6 +2173,8 @@ def executeStatement (state : Core.State) :
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
+      if !returning.isEmpty then
+        return ← executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning
       if conflict == .ignore then
         return ← executeIgnoredUpdate state tableName alias stored assignments.toList where_
       if conflict == .replace then

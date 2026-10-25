@@ -4597,6 +4597,47 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteUpdateReturning : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "CREATE INDEX tv ON t(v);INSERT INTO t VALUES(1,'b',1),(2,'a',2),(3,'c',3);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × Nat × List (List Value)) := [
+    ("UPDATE OR IGNORE t SET u=100 WHERE v>='a' RETURNING id,v,u;", 1,
+      [[.integer 1,.text "b",.integer 100]]),
+    ("UPDATE OR REPLACE t SET id=id+1,v=v||'x' RETURNING id,v,u;", 3,
+      [[.integer 2,.text "bx",.integer 1],[.integer 3,.text "bxx",.integer 1],[.integer 4,.text "bxxx",.integer 1]]),
+    ("UPDATE t SET v=v||'x',u=u+10 RETURNING t.id,t.v,t.u;", 3,
+      [[.integer 1,.text "bx",.integer 11],[.integer 2,.text "ax",.integer 12],[.integer 3,.text "cx",.integer 13]]),
+    ("UPDATE OR IGNORE t SET v=NULL RETURNING abs(-9223372036854775808);", 0, []),
+    ("UPDATE t AS x SET v=x.v||'x' WHERE x.id=1 RETURNING t.id,t.v;", 1, [[.integer 1,.text "bx"]]),
+    ("UPDATE OR IGNORE t SET u=u+1 RETURNING id,v,u;", 1, [[.integer 3,.text "c",.integer 4]]),
+    ("UPDATE t SET v=v WHERE 0 RETURNING abs(-9223372036854775808);", 0, [])]
+  for (sql, changes, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"UPDATE RETURNING: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows && (results.map (·.changes)).sum == changes do
+      fail s!"UPDATE RETURNING mismatch: {sql}"
+  for sql in ["UPDATE t AS x SET v='x' RETURNING x.id;",
+      "UPDATE OR IGNORE t SET v=NULL RETURNING missing;",
+      "UPDATE t SET v='x' WHERE 0 RETURNING no_function();",
+      "UPDATE t SET v='x' RETURNING t.*;", "UPDATE t SET v='x' RETURNING sum(id);",
+      "UPDATE t SET v='x' RETURNING 0 AND no_function();",
+      "UPDATE t SET v='x' RETURNING CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE id END;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"UPDATE RETURNING swallowed error: {sql}"
+  let sql := "UPDATE t SET v='x' RETURNING id;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.update table alias assignments condition conflict _) := parsed.statements[0]? | fail "missing UPDATE AST"
+  let forged : Array Statement := #[.update table alias assignments condition conflict #[{ expr := .literal (.integer 99) }]]
+  if (CoreTokenGrammar.check parsed.tokens forged).isOk then fail "UPDATE RETURNING accepted forged output expression"
+
 private def expectSQLiteInsertReturning : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
     "INSERT INTO t VALUES(1,'a',1),(2,'b',2);CREATE TABLE implicit(v,w);"
@@ -6025,6 +6066,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite UPDATE RETURNING uses pending rows and accepted new values", expectSQLiteUpdateReturning),
   ("SQLite INSERT RETURNING collects accepted rows before later replacements", expectSQLiteInsertReturning),
   ("SQLite UPDATE OR REPLACE re-seeks surviving pending rows", expectSQLiteUpdateReplace),
   ("SQLite UPDATE OR IGNORE and sequential key changes", expectSQLiteUpdateIgnore),

@@ -26,8 +26,8 @@ inductive CoreStatementForm : Statement → Prop where
       CoreStatementForm (.insert table columns rows conflict returning)
   | delete (table alias where_ returning) :
       CoreStatementForm (.delete table alias where_ returning)
-  | update (table alias assignments where_ conflict) :
-      CoreStatementForm (.update table alias assignments where_ conflict)
+  | update (table alias assignments where_ conflict returning) :
+      CoreStatementForm (.update table alias assignments where_ conflict returning)
   | select (query) : CoreStatementForm (.select query)
   | begin : CoreStatementForm .begin
   | commit : CoreStatementForm .commit
@@ -49,7 +49,7 @@ theorem statementForm_of_execute_success {state next : Core.State}
       exact .createIndex ..
   | insert table columns rows conflict returning => exact .insert ..
   | delete table alias where_ returning => exact .delete ..
-  | update table alias assignments where_ conflict => exact .update ..
+  | update table alias assignments where_ conflict returning => exact .update ..
   | select query => exact .select query
   | begin => exact .begin
   | commit => exact .commit

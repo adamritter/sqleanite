@@ -4129,7 +4129,8 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       let columns := resultNames db representative returning
       let result : QueryResult := { columns, rows, changes, reportsChanges := true }
       pure (next, result)
-  | .update name alias assignments where_ conflict => do
+  | .update name alias assignments where_ conflict returning => do
+    unless returning.isEmpty do throw "UPDATE RETURNING is implemented by the production Core engine"
     if nameEq name "sqlite_master" || nameEq name "sqlite_schema" then
       if !db.writableSchema then throw "table sqlite_master may not be modified"
       let sqlAssignment ← optionOr (assignments.find? fun assignment => nameEq assignment.1 "sql")

@@ -1114,7 +1114,12 @@ private def parseUpdate (insideTrigger : Bool := false) : ParserM Statement := d
     expectSymbol "="
     assignments := assignments.push (name, ← parseExpr)
   let where_ ← if ← acceptKeyword "where" then some <$> parseExpr else pure none
-  pure (.update table alias assignments where_ conflict)
+  let mut returning := #[]
+  if ← acceptKeyword "returning" then
+    if insideTrigger then throw "cannot use RETURNING in a trigger"
+    returning := returning.push (← parseResultColumn)
+    while ← acceptSymbol "," do returning := returning.push (← parseResultColumn)
+  pure (.update table alias assignments where_ conflict returning)
 
 private def Select.referencesSourceFuel : Nat → Select → String → Bool
   | 0, _, _ => false

@@ -2749,3 +2749,50 @@ nine-binding boundary are unchanged. Reports use
 `scripts/run-insert-returning-differential.py`. UPDATE RETURNING, RETURNING
 subqueries, UPSERT, triggers, virtual tables, schema defaults and full SQLite
 compatibility remain separate work.
+
+
+## UPDATE RETURNING with two-phase selection (2026-10-25)
+
+UPDATE now retains and independently replays its RETURNING expressions. The
+production path binds RHS/WHERE using the UPDATE alias and RETURNING using the
+original target table name. As in pinned SQLite's RETURNING-trigger path,
+matching rowids are collected before modification, even for IGNORE. Each
+pending row is re-read from the current table, so earlier REPLACE deletions or
+rowid moves affect later candidates. Accepted rows collect their new values
+immediately; later replacements do not remove those output rows. A regression
+with an indexed WHERE clause distinguishes this order from ordinary one-pass
+UPDATE IGNORE, where a different row may win the same unique conflict.
+
+All mutations use checked Core commands, with the existing typed IGNORE and
+REPLACE helpers. Missing/ignored pending rows emit no output and do not evaluate
+RETURNING expressions. Late expression or constraint errors discard the whole
+statement. `CoreReturning.updatedOutput_zero`,
+`CoreSQL.updateReturningRow_missing` and
+`CoreSQL.updateReturningRows_length_le` prove these component skip/count
+properties. No-RETURNING update-refinement statements keep their original
+premises and conclusions. The syntax-form classification extends to the new
+field. The conformance-only Engine explicitly rejects nonempty UPDATE
+RETURNING; the public executable continues exclusively through Core.
+
+Retained baseline seed 354040: **228 differences / 428 executions**.
+Development seed 354041: **1,056 executions, zero differences**.
+Final-checkpoint seed 354042 uses 160 new generated statements and three new
+C-created fixtures: **2,082 executions, zero differences**, including 932
+positive-error outcomes. Both file modes, 512/4096/65536-byte pages,
+DEFAULT/ABORT/IGNORE/REPLACE behavior, interacting key changes, repeated
+assignments, aliases, empty selections, transactions, type/hex output,
+malformed and embedded-NUL TEXT, overflowing BLOBs and the 2,000/2,001 output
+column boundary are exercised. Successful output bytes and independently
+observed persisted types/hex values plus integrity are compared. Failed
+individual statements retain main/WAL bytes. Exact error codes/messages and
+partial output from preceding statements are not covered by that comparison.
+
+Implementation SHA-256: `b4e9fe4a22a8717afe1669873a4c2c9cfdcca2e995f7795f5026e6e88e37368d`.
+The matching checks report records a successful **304-job build, 225 executable
+tests, 1,113 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. Native code and its
+nine-binding boundary are unchanged. Reports use
+`sqlite-update-returning-*20261025.json`; harness:
+`scripts/run-update-returning-differential.py`. RETURNING subqueries, triggers,
+virtual tables, schema defaults, FAIL/ROLLBACK conflict behavior and full SQL/
+database/WAL compatibility remain separate work.

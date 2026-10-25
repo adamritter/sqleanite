@@ -744,6 +744,19 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# RETURNING disables one-pass UPDATE and preserves outputs of accepted rows.
+if grep -q 'executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.updatedOutput outputCtx values projection outcome' SQLeanite/CoreSQL.lean &&
+   grep -q 'updateReturningRows state tableName ctx outputCtx bound conflict projection rowids' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.updatedOutput_zero' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.updateReturningRow_missing' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.updateReturningRows_length_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'update table alias assignments where_ conflict returning' SQLeanite/CoreTokenGrammar.lean; then
+  ok "UPDATE RETURNING freezes selected rowids and materializes accepted new values"
+else
+  fail "UPDATE RETURNING is disconnected from checked row selection or output"
+fi
+
 # INSERT RETURNING preserves accepted-row output before a later REPLACE.
 if grep -q 'executeInsertReturning state table columns (.inr query) conflict returning' SQLeanite/CoreSQL.lean &&
    grep -q 'executeInsertReturning state table columns (.inl rows) conflict returning' SQLeanite/CoreSQL.lean &&

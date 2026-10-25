@@ -499,7 +499,7 @@ inductive Statement where
   | delete (table : String) (alias : Option String) (where_ : Option Expr)
       (returning : Array ResultColumn := #[])
   | update (table : String) (alias : Option String) (assignments : Array (String × Expr))
-      (where_ : Option Expr) (conflict : ConflictAction := .default)
+      (where_ : Option Expr) (conflict : ConflictAction := .default) (returning : Array ResultColumn := #[])
   | withRecursive (name : String) (columns : Array String) (seed : Select)
       (step : Select) (all : Bool) (body : Statement)
   | withCte (name : String) (columns : Array String) (source body : Statement)

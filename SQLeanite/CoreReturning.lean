@@ -2,7 +2,7 @@ import SQLeanite.CoreAggregate
 
 /-! RETURNING expressions use the modified table's original name, not its
 DELETE alias. Output is materialized before a successful statement is exposed.
-Callers support scalar INSERT and DELETE RETURNING on admitted Core tables. -/
+Callers support scalar INSERT/UPDATE/DELETE RETURNING on admitted Core tables. -/
 namespace SQLeanite.CoreReturning
 
 /-- Function binding in trigger.c's RETURNING expansion precedes zero-AND
@@ -20,6 +20,19 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except Stri
   let expressions ← ctx.projection columns
   unless expressions.length ≤ SQLite.Limits.maxColumns do throw "too many columns in RETURNING"
   return expressions
+
+/-- A skipped point update supplies no RETURNING row and never evaluates
+its output expressions. Accepted point updates materialize their new values. -/
+def updatedOutput (ctx : CoreExpr.Context) (values : List Core.Value) (expressions : List Expr)
+    (outcome : Core.State × Core.Result) : Except String (Core.State × Option (List Core.Value)) := do
+  if outcome.2.changes == 0 then return (outcome.1, none)
+  let output ← ctx.projectRow values expressions
+  return (outcome.1, some output)
+
+theorem updatedOutput_zero (ctx : CoreExpr.Context) (values : List Core.Value) (expressions : List Expr)
+    (state : Core.State) (result : Core.Result) (skipped : result.changes = 0) :
+    updatedOutput ctx values expressions (state, result) = .ok (state, none) := by
+  simp [updatedOutput, skipped, pure, Except.pure]
 
 /-- Only exact rowid deletions produced by the DELETE planner can supply an
 old row. Missing rows and other command shapes are errors, never omissions. -/
