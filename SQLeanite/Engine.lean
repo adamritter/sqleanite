@@ -4351,6 +4351,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     match db.transactionSnapshot with
     | none => throw "cannot rollback - no transaction is active"
     | some snapshot => pure (db.restoreSnapshot snapshot, {})
+  | .savepoint _ | .release _ | .rollbackTo _ => throw "SAVEPOINT is supported by the production Core engine"
   | .reindex => pure (db, {})
   | .pragma name argument _schema =>
     let enabled := match argument with

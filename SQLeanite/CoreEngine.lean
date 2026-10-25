@@ -1216,9 +1216,17 @@ def Command.writes : Command → Bool
       .updateWhere .. => true
   | _ => false
 
+/-- A named transaction mark. The oldest mark owns the transaction only when
+SAVEPOINT opened it outside an existing BEGIN. Snapshots are immutable values. -/
+structure Savepoint where
+  name : String
+  snapshot : Database
+  startsTransaction : Bool
+
 structure State where
   database : Database
   transactionSnapshot : Option Database := none
+  savepoints : List Savepoint := []
 
 def State.empty : State := { database := Database.empty }
 
@@ -1306,7 +1314,7 @@ def execute (state : State) : Command → Except String (State × Result)
       else .ok ({ state with transactionSnapshot := some state.database }, {})
   | .commit =>
       if state.transactionSnapshot.isSome then
-        .ok ({ state with transactionSnapshot := none }, {})
+        .ok ({ state with transactionSnapshot := none, savepoints := [] }, {})
       else .error "cannot commit - no transaction is active"
   | .rollback =>
       match state.transactionSnapshot with

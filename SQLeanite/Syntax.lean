@@ -513,6 +513,9 @@ inductive Statement where
   | select (query : Select)
   | values (rows : Array (Array Expr))
   | begin | commit | rollback
+  | savepoint (name : String)
+  | release (name : String)
+  | rollbackTo (name : String)
   | reindex
   | pragma (name : String) (argument : Option Expr) (schema : Option String := none)
   deriving Repr

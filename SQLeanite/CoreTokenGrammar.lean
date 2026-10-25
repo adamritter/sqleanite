@@ -1053,6 +1053,19 @@ private def matchStatement : Statement → MatchM Unit
       if isKeyword (← peek) "end" then expectKeyword "end"
       else expectKeyword "commit"
       discard <| acceptKeyword "transaction"
+  | .savepoint name => do
+      expectKeyword "savepoint"
+      matchPragmaName name
+  | .release name => do
+      expectKeyword "release"
+      discard <| acceptKeyword "savepoint"
+      matchPragmaName name
+  | .rollbackTo name => do
+      expectKeyword "rollback"
+      discard <| acceptKeyword "transaction"
+      expectKeyword "to"
+      discard <| acceptKeyword "savepoint"
+      matchPragmaName name
   | .rollback => do
       expectKeyword "rollback"
       discard <| acceptKeyword "transaction"

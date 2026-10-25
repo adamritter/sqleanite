@@ -109,6 +109,7 @@ def statementWrites : Statement → Bool
 def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   match statement with
   | .commit => state.transactionSnapshot.isSome
+  | .release name => CoreSavepoint.releasesTransaction state name
   | _ => statementWrites statement && state.transactionSnapshot.isNone
 
 theorem requiresPersistence_write_in_transaction (state : Core.State)

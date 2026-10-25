@@ -4597,6 +4597,67 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSavepoint : IO Unit := do
+  let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);" ++
+    "SAVEPOINT outer;INSERT INTO t(v) VALUES('kept');SAVEPOINT inner;" ++
+    "INSERT INTO t(v) VALUES('discard');ROLLBACK TRANSACTION TO SAVEPOINT inner;" ++
+    "INSERT INTO t(v) VALUES('second');RELEASE SAVEPOINT outer;SELECT id,v FROM t ORDER BY id;"
+  let (state, output) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok result => pure result
+    | .error message => fail s!"SAVEPOINT nested rollback and release: {message}"
+  let expected ← match [[Value.integer 1, .text "kept"], [.integer 2, .text "second"]].mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some expected do fail "SAVEPOINT restored wrong rows or sequence history"
+  unless state.transactionSnapshot.isNone && state.savepoints.isEmpty do fail "outer RELEASE left transaction active"
+  let (next, _) ← match CoreSQL.execute state
+      "BEGIN;SAVEPOINT s;INSERT INTO t(v) VALUES('pending');RELEASE s;ROLLBACK;" with
+    | .ok result => pure result
+    | .error message => fail s!"SAVEPOINT inside BEGIN: {message}"
+  unless next.database.Equiv state.database do fail "inner RELEASE committed the enclosing BEGIN"
+  let (next, _) ← match CoreSQL.execute state
+      "SAVEPOINT s;CREATE TABLE gone(id INTEGER PRIMARY KEY);ROLLBACK TO s;RELEASE s;" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless next.database.Equiv state.database do fail "ROLLBACK TO failed to restore schema"
+  for sql in ["SAVEPOINT s;COMMIT;RELEASE s;", "SAVEPOINT s;ROLLBACK;RELEASE s;",
+      "ROLLBACK TO missing;", "RELEASE missing;", "SAVEPOINT s;BEGIN;",
+      "SAVEPOINT select;", "SAVEPOINT transaction;", "SAVEPOINT join;"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"SAVEPOINT expected error missing: {sql}"
+  let parsed ← match CoreTokenGrammar.parseCertified "SAVEPOINT real;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let tokens ← match lex "SAVEPOINT forged;" with
+    | .ok result => pure result
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay forged SAVEPOINT name"
+
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-savepoint-live.db"
+    journal := ".lake/build/sqleanite-savepoint-live.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  let execute := fun sql => do
+    match ← CoreFileEngine.execute connection sql with
+    | .ok _ => pure ()
+    | .error message => fail s!"SAVEPOINT live connection: {message}"
+  execute "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);"
+  let before ← IO.FS.readBinFile paths.main
+  execute "SAVEPOINT outer;INSERT INTO t(v) VALUES('pending');SAVEPOINT inner;INSERT INTO t(v) VALUES('also pending');RELEASE inner;"
+  unless (← IO.FS.readBinFile paths.main) == before do fail "inner RELEASE published uncommitted data"
+  if (← CoreFileEngine.execute connection "ROLLBACK TO missing;").isOk then fail "missing SAVEPOINT was accepted"
+  execute "ROLLBACK TO outer;INSERT INTO t(v) VALUES('committed');RELEASE outer;"
+  let c ← IO.Process.output {
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+    args := #[paths.main.toString, "-batch", "-bail", "SELECT id,v FROM t;SELECT seq FROM sqlite_sequence WHERE name='t';"] }
+  unless c.exitCode == 0 && c.stdout == "1|committed\n1\n" do fail "outer RELEASE did not publish rows and sequence to C"
+  let committed ← IO.FS.readBinFile paths.main
+  execute "BEGIN;SAVEPOINT inner;INSERT INTO t(v) VALUES('pending');RELEASE inner;"
+  unless (← IO.FS.readBinFile paths.main) == committed do fail "RELEASE within BEGIN published early"
+  execute "ROLLBACK;"
+  unless (← IO.FS.readBinFile paths.main) == committed do fail "ROLLBACK changed committed file bytes"
+
 private def expectSQLiteAutoIncrement : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v TEXT NOT NULL);" ++
     "INSERT OR IGNORE INTO t(v) VALUES(NULL);INSERT INTO t(v) VALUES('first');DELETE FROM t;" ++
@@ -7132,6 +7193,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite SAVEPOINT nesting, release and rollback", expectSQLiteSavepoint),
   ("SQLite AUTOINCREMENT history, ignored rows, rollback and persistence", expectSQLiteAutoIncrement),
   ("SQLite indexed primary types, NULL namespaces and exact numeric equality", expectSQLiteIndexedPrimaryTypes),
   ("SQLite column types, exact spans, empty affinity and canonical persistence", expectSQLiteColumnTypes),

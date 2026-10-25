@@ -35,6 +35,9 @@ inductive CoreStatementForm : Statement → Prop where
   | update (table alias assignments where_ conflict returning) :
       CoreStatementForm (.update table alias assignments where_ conflict returning)
   | select (query) : CoreStatementForm (.select query)
+  | savepoint (name) : CoreStatementForm (.savepoint name)
+  | release (name) : CoreStatementForm (.release name)
+  | rollbackTo (name) : CoreStatementForm (.rollbackTo name)
   | begin : CoreStatementForm .begin
   | commit : CoreStatementForm .commit
   | rollback : CoreStatementForm .rollback
@@ -63,6 +66,9 @@ theorem statementForm_of_execute_success {state next : Core.State}
   | update table alias assignments where_ conflict returning => exact .update ..
   | select query => exact .select query
   | pragma name argument schema => exact .pragma name argument schema
+  | savepoint name => exact .savepoint name
+  | release name => exact .release name
+  | rollbackTo name => exact .rollbackTo name
   | begin => exact .begin
   | commit => exact .commit
   | rollback => exact .rollback

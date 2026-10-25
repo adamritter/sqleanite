@@ -1357,3 +1357,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAutoIncrement.finish_unchanged
 #print axioms SQLeanite.CanonicalSchemaSQL.fromAuto_inverse
 #print axioms SQLeanite.CanonicalSchemaSQL.parseAutoBody_append
+
+#print axioms SQLeanite.CoreSavepoint.push_transaction
+#print axioms SQLeanite.CoreSavepoint.release_push
+#print axioms SQLeanite.CoreSavepoint.rollbackTo_push
+#print axioms SQLeanite.CoreSavepoint.release_database
+#print axioms SQLeanite.CoreSavepoint.rollbackTo_snapshot
+#print axioms SQLeanite.CoreSavepoint.releasesTransaction_push

@@ -1,3 +1,4 @@
+import SQLeanite.CoreSavepoint
 import SQLeanite.CoreAutoIncrement
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
@@ -2652,6 +2653,9 @@ def executeStatement (state : Core.State) :
   | .select select => do
       let execution ← executeSelect state select
       return (execution.state, [execution.result])
+  | .savepoint name => .ok (CoreSavepoint.push state name, [{}])
+  | .release name => do return (← CoreSavepoint.release state name, [{}])
+  | .rollbackTo name => do return (← CoreSavepoint.rollbackTo state name, [{}])
   | .begin => executeCommand state .begin
   | .commit => executeCommand state .commit
   | .rollback => executeCommand state .rollback

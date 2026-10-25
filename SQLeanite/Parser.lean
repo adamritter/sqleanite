@@ -1378,7 +1378,16 @@ private def parseStatement : ParserM Statement := do
   else if ← acceptKeyword "begin" then discard <| acceptKeyword "transaction"; pure .begin
   else if ← acceptKeyword "commit" then discard <| acceptKeyword "transaction"; pure .commit
   else if ← acceptKeyword "end" then discard <| acceptKeyword "transaction"; pure .commit
-  else if ← acceptKeyword "rollback" then discard <| acceptKeyword "transaction"; pure .rollback
+  else if ← acceptKeyword "savepoint" then pure (.savepoint (← expectPragmaName))
+  else if ← acceptKeyword "release" then
+    discard <| acceptKeyword "savepoint"
+    pure (.release (← expectPragmaName))
+  else if ← acceptKeyword "rollback" then
+    discard <| acceptKeyword "transaction"
+    if ← acceptKeyword "to" then
+      discard <| acceptKeyword "savepoint"
+      pure (.rollbackTo (← expectPragmaName))
+    else pure .rollback
   else if ← acceptKeyword "reindex" then pure .reindex
   else if ← acceptKeyword "analyze" then
     if (← peek) != .eof && !isSymbol (← peek) ";" then discard <| advance

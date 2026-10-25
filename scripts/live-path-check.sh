@@ -1915,4 +1915,18 @@ else
   echo 'FAIL - AUTOINCREMENT SQL, sequence or file wiring is incomplete'
   exit 1
 fi
+if rg -q 'CoreSavepoint.push' SQLeanite/CoreSQL.lean &&
+   rg -q 'CoreSavepoint.rollbackTo' SQLeanite/CoreSQL.lean &&
+   rg -q 'CoreSavepoint.release' SQLeanite/CoreSQL.lean &&
+   rg -q 'CoreSavepoint.releasesTransaction' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'savepoints := []' SQLeanite/CoreEngine.lean &&
+   rg -q 'remaining name state.savepoints' SQLeanite/CoreSavepoint.lean &&
+   rg -q 'theorem rollbackTo_snapshot' SQLeanite/CoreSavepoint.lean &&
+   rg -F -q '.rollbackTo name => do' SQLeanite/CoreTokenGrammar.lean; then
+  echo 'ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE'
+else
+  echo 'FAIL - SAVEPOINT execution, grammar or publication guard is missing'
+  exit 1
+fi
+
 exit $status

@@ -3913,3 +3913,51 @@ boundary are unchanged. These scoped results do not establish full SQLite
 compatibility: concurrent WAL coordination, ordinary random rowid allocation at
 INT64_MAX (including sqlite_sequence's own rowids), exact diagnostics and other
 unimplemented SQL remain separate work.
+
+## SAVEPOINT, RELEASE and ROLLBACK TO (2026-10-25)
+
+The production Core now keeps a stack of immutable named database snapshots.
+SAVEPOINT opens a transaction if needed. ROLLBACK TO restores the newest matching
+mark and removes younger marks, while retaining the target. RELEASE removes the
+target and younger marks; only release of the mark that opened the transaction
+commits it. Within BEGIN, releasing all named marks leaves BEGIN active. COMMIT
+and full ROLLBACK discard every named mark. Duplicate names and ASCII case
+matching follow [SQLite's savepoint rules](https://www.sqlite.org/lang_savepoint.html).
+
+The parser and independent token replay cover optional SAVEPOINT/TRANSACTION
+words and the shared SQLite name grammar. Quoted keyword names remain valid;
+reserved bare keywords are rejected. Core component proofs establish push/open,
+release-after-push, rollback-after-push, release preserving the current database,
+restoration of the exact named snapshot and ownership of the outer transaction.
+Both file engines use the same RELEASE persistence decision. The legacy test
+interpreter explicitly rejects the new statements; public execution stays in Core.
+
+Baseline seed 354260 records **234 comparisons / 156 differences**. Development
+seed 354261 passes **366 / 0**; the earlier expanded corpus, seed 354262, passes
+**3,384 / 0**. An independent keyword-name corpus exposed **384 / 144** differences
+on that source. The report is retained, and the parser/replay fix was evaluated
+again on fresh examples rather than treating the earlier passing corpus as full
+coverage.
+
+Final-checkpoint fresh seed **354265** passes **1,944 / 0**, including **336**
+expected errors. Twelve C-created fixtures cover three page sizes, both file
+modes, nested/duplicate names, repeated rollback, schema changes, AUTOINCREMENT
+history, reads during a transaction, failed statements and abandoned transactions.
+Comparisons include successful output, error status, C catalog/pragma/typed-row/
+integrity observations, subsequent C writes and Lean reopening. Fresh name seed
+**354266** passes **504 / 0**; AUTOINCREMENT regression seed **354267** passes
+**498 / 0**, on the same final source.
+
+A live-connection executable regression additionally checks unchanged physical
+bytes after inner RELEASE, state preservation after a missing-savepoint error,
+rollback of sequence history, visibility to C after outer RELEASE and the
+continued activity of an enclosing BEGIN.
+
+Implementation SHA-256: `6689d98ebd32b65f640803319971eaf0afd5d7e5f7cdda6e97e21c84cd40a2b3`.
+Final checks pass **338 build jobs, 248 executable tests, 1,184 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Reports: `sqlite-savepoint-*20261025.json`; harnesses:
+`scripts/run-savepoint-differential.py` and `scripts/run-savepoint-name-differential.py`.
+These are scoped SQL/file/component results. Read-only transaction publication,
+transaction lock modes, concurrent SQLite WAL coordination, exact diagnostics
+and the remaining SQL features are separate work. Native bindings are unchanged.
