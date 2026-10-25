@@ -1494,3 +1494,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinScalarNullRejects_and
 
 #print axioms SQLeanite.CoreSQL.joinScalarReducedSource_no_new_outer
+
+#print axioms SQLeanite.CoreSQL.joinStreamStep_stopped
+#print axioms SQLeanite.CoreSQL.joinStreamRight_stopped
+#print axioms SQLeanite.CoreSQL.joinStreamSuffix_stopped
+#print axioms SQLeanite.CoreSQL.joinStreamLeft_stopped
+#print axioms SQLeanite.CoreSQL.executeSelectBaseObserved_refines
+#print axioms SQLeanite.CoreSQL.executeSelect_without_compounds
+#print axioms SQLeanite.CoreSQL.observeJoinedSelect_refines
+
+#print axioms SQLeanite.CoreSQL.joinScalarRowsM_exchange_inner

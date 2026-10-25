@@ -44,14 +44,25 @@ theorem needsWriter_false_member (statements : List Statement)
   | true => exact False.elim (readOnly statement member writes)
 
 private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
-    (paths : CoreWALFileAdapter.Paths) : Core.State → List Statement →
+    (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) : Core.State → List Statement →
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, statement :: statements, reversed => do
       if CoreFileEngine.requiresWriteAccess state statement then
         CoreFileAdapter.requireWritableAccess paths.main
         CoreWALFileAdapter.requireWritableFormat paths
-      match executeStatement state statement with
+      let execution ← match statement with
+        | .select select =>
+            match CoreSQL.observeJoinedSelect? state select with
+            | none => pure (executeStatement state statement)
+            | some observed =>
+                match observed.toExcept with
+                | .error message => do
+                    onResults [observed.execution.result]
+                    pure (.error message)
+                | .ok result => pure (.ok (result.state, [result.result]))
+        | _ => pure (executeStatement state statement)
+      match execution with
       | .error message => pure (state, .error message)
       | .ok (next, results) => do
           let persisted ←
@@ -64,15 +75,15 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
                 throw (IO.userError "WAL commit reopened different logical contents")
               pure { next with database := reopened }
             else pure next
-          runStatementsGo syncOps paths persisted statements
+          runStatementsGo syncOps paths onResults persisted statements
             (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Stack-safe execution of a WAL statement batch. -/
 private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
-    (paths : CoreWALFileAdapter.Paths) (state : Core.State)
+    (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) (state : Core.State)
     (statements : List Statement) :
     IO (Core.State × Except String (List Core.Result)) :=
-  runStatementsGo syncOps paths state statements []
+  runStatementsGo syncOps paths onResults state statements []
 
 /-- Preserve the executed prefix when a later source statement fails admission.
 The transaction state is carried between chunks until commit, rollback or error. -/
@@ -84,7 +95,7 @@ private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
       match CoreTokenGrammar.parseStatements chunk with
       | .error message => pure (state, .error message)
       | .ok statements =>
-          let (next, result) ← runStatements syncOps paths state statements.toList
+          let (next, result) ← runStatements syncOps paths onResults state statements.toList
           match result with
           | .error message => pure (next, .error message)
           | .ok results => do

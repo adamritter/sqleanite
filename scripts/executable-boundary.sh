@@ -36,6 +36,7 @@ trap 'rm -f "$entries" "$scratch" "$observed"' EXIT
 # entry|class|evidence (audited theorem, or "-" for boundary)|note
 cat > "$entries" <<'ROWS'
 CoreFileEngine.execute|seam|Core.execute_insert_exact|Statement effects and their composition to SQLite bytes are proved; the IO wrapper that opens the file, dispatches statements and commits is not.
+CoreFileEngine.executeObserved|seam|CoreSQL.observeJoinedSelect_refines|Joined observations erase to the ordinary Core SELECT result; output callbacks, connection cache handling and file IO are not proved. Other statements retain the existing execute path.
 CoreFileEngine.reopen|seam|CorePageLoad.open?_represents|Validating open is proved to reconstruct the represented database; the file reading around it is IO.
 CoreFileEngine.create|seam|CoreFileAdapter.commit_crash_atomic|Image creation commits through the proved rollback plan; directory and handle handling is IO.
 CoreFileEngine.snapshot|seam|CorePageLoad.open?_decode|Returns the validated open state; no theorem about the IO handle lifetime.

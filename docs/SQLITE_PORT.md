@@ -5402,3 +5402,71 @@ unsupported. Implementation SHA-256:
 Reports: `sqlite-join-evaluation-order-*20261025.json`; harness:
 `scripts/run-join-evaluation-order-differential.py`. This is an implementation
 checkpoint with documented open differences, not full SQLite compatibility.
+
+
+## Joined read prefixes and shared traversal planning (2026-10-25)
+
+Two-source, non-compound SELECTs now retain rows produced before a later
+expression error. A structural joined iterator evaluates ON, WHERE, projection,
+DISTINCT and the scan window in visitation order, and stops before evaluating
+further rows after an error or a satisfied LIMIT. OFFSET skips ordinary
+projection when DISTINCT does not require it. The iterator tracks matched right
+rows before WHERE and preserves the unmatched-right suffix for RIGHT/FULL joins.
+A shared traversal plan chooses the outer source for computed rowid probes and
+the scan direction; materialized sorting and streaming use that same plan.
+
+The ordinary Core SELECT API still returns its existing Except result. The new
+observed read report additionally carries a successful prefix on errors; an
+explicit refinement theorem proves that erasing the observation agrees with the
+ordinary two-source, non-compound execution. File and WAL execution expose these
+observations to the CLI and preserve the live state after failed reads. Successful
+statements are observed after required publication. This buffers a prefix until
+the statement completes or fails; it does not claim real-time row delivery.
+Failed CTAS and INSERT SELECT retain the ordinary atomic execution path.
+
+A development-only in-memory component replay passes **2,400 / 0**; its input
+transformation and draft source hash are recorded separately. Production
+regression replay of all 330 previously saved failures passes **330 / 0**,
+including error stdout, and development seed **354610** passes **4,800 / 0** plus
+eight immutable-fixture checks. Script-output regression seed **354613** passes
+**4,392 / 0**, including partial stdout; script-error seed **354614** passes
+**1,980 / 0** with typed C observations and follow-up state checks, but its
+both-error branch does not compare partial stdout.
+
+The first fresh checkpoint, source `bd447141846fc66e469e1c5b17a51b88e6a230706afd98d34631bb7dd7aa4f2c`,
+records **16,128 / 6** differences at seed **354611**. All six are retained: a
+right-driven computed rowid probe visited rows in the wrong order before a
+bounded sort and evaluated an overflowing projection that C skipped. The shared
+traversal fix passes all six in a strict saved-case replay. Five C-backed
+executable controls also cover the computed lookup and unvisited source-local
+WHERE conditions. The initial fresh scalar and writer corpora passed
+**24,640 / 0** and **5,184 / 0**, respectively; those earlier passes are not used
+as final-source evidence.
+
+Fresh evaluation after the traversal correction, on frozen source
+`56839610d77ab28c39ad61858bb2d99d556c77765b0c0b9495eb762e89bbea6c`, passes:
+
+- Joined evaluation-order seed **354616**: **16,128 / 0**, plus 24 passing
+  immutable-fixture checks. Complete stdout is compared even on errors.
+- General-expression read seed **354617**: **24,640 / 0**, plus 16 passing
+  immutable-fixture checks, also including error stdout.
+- Joined writer seed **354618**: **5,184 / 0**, with C integrity, catalog and typed
+  contents, follow-up C writes and Lean reopening. This harness compares error
+  status, but not partial stdout when both executions fail.
+
+These corpora mix fixed controls and newly seeded values, overflow positions and
+windows. They exercise the public executable in ordinary-file and WAL-file modes
+on C-created files at three page sizes. They are scoped evidence, not a complete
+SQLite test suite. Empty-input search-key evaluation, general planner behavior,
+other SELECT shapes' error prefixes and the existing file/WAL gaps remain open.
+
+Checks pass **354 build jobs, 285 executable tests, 1,283 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. The component proofs cover stopped iterators, source exchange and
+observation erasure, not SQLite equivalence. The first boundary audit correctly
+rejected the undocumented new observer entry point; that negative result is
+preserved. The entry point now has a classification tied to the refinement proof,
+and its callback/cache/file IO seam is explicitly unproved. All nine native
+bindings and their audit allowlist are unchanged. Reports and diagnostic source:
+`sqlite-join-stream-*20261025.*`; public harnesses remain the joined read,
+evaluation-order, writer and script regression harnesses listed above.

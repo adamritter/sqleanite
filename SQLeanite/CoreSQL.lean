@@ -2819,7 +2819,10 @@ def joinScalarMatches (context : JoinContext) (prepared : JoinScalarPrepared) (o
 /-- Match bookkeeping is completed before WHERE filtering. Dynamic ON values
 are evaluated once for each visited pair and can return an expression error. -/
 def joinScalarRowsM (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
-    (left right : List Core.Row) : Except String (List CoreJoin.JoinedRow) := do
+    (left right : List Core.Row) (exchanged : Bool := false) : Except String (List CoreJoin.JoinedRow) := do
+  if exchanged && !source.leftJoin && !source.rightJoin then
+    return ← (right.flatMap (fun r => left.map (fun l => (l, r)))).filterM
+      (joinScalarMatches context prepared false)
   if prepared.onExpression.isNone then return joinScalarRows context source prepared.on left right
   let (initial, matched) ← left.foldlM (fun (prior, matched) l => do
     let found ← right.zipIdx.filterM (fun (r, _) => joinScalarMatches context prepared
@@ -2986,7 +2989,42 @@ theorem joinScalarReducedSource_no_new_outer (context : JoinContext)
   constructor <;> intro kept <;>
     simp only [joinScalarReducedSource, Bool.and_eq_true] at kept <;> exact kept.1
 
-def joinScalarResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+/-- One source traversal plan serves both streaming and materialized results.
+A right-driven rowid lookup also determines the order in which a bounded sorter
+sees candidates; it must not be changed to a left-driven cross product. -/
+structure JoinScalarTraversal where
+  exchanged : Bool
+  reverseLeft : Bool
+  reverseRight : Bool
+  ordered : Bool
+
+def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (terms : List OrderTerm) (on : Option Expr) : JoinScalarTraversal :=
+  let aggregate := !prepared.select.groupBy.isEmpty ||
+    prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+  let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
+  let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+  let exchanged := !source.leftJoin && !source.rightJoin && !source.crossJoin && probesLeft && !probesRight
+  let outerSide := if exchanged then CoreJoin.Side.right else .left
+  let outerSchema := if exchanged then context.rightSchema else context.leftSchema
+  let innerSchema := if exchanged then context.leftSchema else context.rightSchema
+  let leadingOuter := !aggregate && terms.head?.any (fun term =>
+    (joinScalarReference context prepared term.expr).any
+      (fun ref => ref.side == outerSide && ref.column == outerSchema.primaryKey))
+  let outerReverse := leadingOuter && terms.head?.any (·.descending)
+  let automatic := !exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
+  let innerPoint := if exchanged then probesLeft else probesRight
+  let ordered := leadingOuter && !source.rightJoin && (innerPoint || !automatic) &&
+    terms.all (fun term => (joinScalarReference context prepared term.expr).any
+      (fun ref => ref.side == outerSide || ref.column == innerSchema.primaryKey))
+  let innerReverse := ordered && (terms.find? (fun term =>
+    (joinScalarReference context prepared term.expr).any (fun ref => ref.side != outerSide))).any (·.descending)
+  { exchanged
+    reverseLeft := if exchanged then innerReverse else outerReverse
+    reverseRight := if exchanged then outerReverse else innerReverse
+    ordered }
+
+def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
   let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
     | _ => unsupported "joined expression source count"
@@ -3003,36 +3041,193 @@ def joinScalarResult (state : Core.State) (select : Select) : Except String (Cor
   let source := joinScalarReducedSource context prepared originalRight
   let enabled ← if select.limit == some 0 then pure false else prepared.context.constantMatches where_
   let (rows, ordered) ← if enabled then do
-      let leftTerms := if source.rightJoin then [] else
-        (where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
-          (fun term => joinScalarOnlySide context prepared .left term && !prepared.context.constantExpression term)
-      let left ← left.rows.filterM fun row => do
-        let input := CoreJoin.projectRow (joinScalarInputs context) (row, CoreJoin.nullRow context.rightSchema.columns.length)
-        leftTerms.allM (fun term => prepared.context.matches input (some term))
       let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
-      let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
       let (on, _) := match originalRight.joinOn with
         | none => (none, none)
         | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
       let on ← on.mapM (joinScalarBind context)
-      let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
-      let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
-      let exchanged := !source.leftJoin && !source.rightJoin && !source.crossJoin && probesLeft && !probesRight
-      let leadingLeft := !aggregate && !exchanged && terms.head?.any (fun term =>
-        (joinScalarReference context prepared term.expr).any
-          (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
-      let reverse := leadingLeft && terms.head?.any (·.descending)
-      let automatic := on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
-      let ordered := leadingLeft && !source.rightJoin && (probesRight || !automatic) &&
-        terms.all (fun term => (joinScalarReference context prepared term.expr).any
-          (fun ref => ref.side == .left || ref.column == context.rightSchema.primaryKey))
-      let reverseRight := ordered && (terms.find? (fun term =>
-        (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .right))).any (·.descending)
-      let right := if reverseRight then right.rows.reverse else right.rows
-      let rows ← joinScalarRowsM context prepared source (if reverse then left.reverse else left) right
-      pure (rows, ordered)
+      let traversal := joinScalarTraversal context prepared source terms on
+      let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
+      let early := if source.rightJoin then [] else
+        (where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+          (fun term => joinScalarOnlySide context prepared outerSide term && !prepared.context.constantExpression term)
+      let outer ← (if traversal.exchanged then right.rows else left.rows).filterM fun row => do
+        let input := CoreJoin.projectRow (joinScalarInputs context)
+          (if traversal.exchanged then (CoreJoin.nullRow context.leftSchema.columns.length, row)
+            else (row, CoreJoin.nullRow context.rightSchema.columns.length))
+        early.allM (fun term => prepared.context.matches input (some term))
+      let left := if traversal.exchanged then left.rows else outer
+      let right := if traversal.exchanged then outer else right.rows
+      let left := if traversal.reverseLeft then left.reverse else left
+      let right := if traversal.reverseRight then right.reverse else right
+      let rows ← joinScalarRowsM context prepared source left right traversal.exchanged
+      pure (rows, traversal.ordered)
     else pure ([], false)
   joinScalarRun context prepared rows ordered
+
+structure JoinReadReport where
+  result : Core.Result := {}
+  width : Nat := 0
+  error : Option String := none
+
+structure JoinStreamState where
+  reversed : List (List Core.Value) := []
+  seen : List (List Core.Value) := []
+  skip : Nat := 0
+  remaining : Option Nat := none
+  error : Option String := none
+
+def JoinStreamState.stopped (state : JoinStreamState) : Bool :=
+  state.error.isSome || state.remaining == some 0
+
+def joinStreamStep (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) (state : JoinStreamState) (row : CoreJoin.JoinedRow) : JoinStreamState := Id.run do
+  if state.stopped then return state
+  let ctx := prepared.context
+  let input := CoreJoin.projectRow (joinScalarInputs context) row
+  let selected := ctx.matches input prepared.select.where_
+  match selected with
+  | .error message => return { state with error := some message }
+  | .ok false => return state
+  | .ok true =>
+      if state.skip > 0 && !prepared.select.distinct then return { state with skip := state.skip - 1 }
+      match ctx.projectRow input expressions with
+      | .error message => return { state with error := some message }
+      | .ok output =>
+          if prepared.select.distinct && state.seen.any (CoreExpr.distinctEqual expressions output) then return state
+          let state := { state with seen := Core.distinctRowKey output :: state.seen }
+          if state.skip > 0 then return { state with skip := state.skip - 1 }
+          return { state with reversed := output :: state.reversed, remaining := state.remaining.map (· - 1) }
+
+def joinStreamRight (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (expressions : List Expr) (exchanged : Bool) (outer : Core.Row) :
+    List (Core.Row × Nat) → JoinStreamState → Bool → List Nat → JoinStreamState × Bool × List Nat
+  | [], state, found, matched => (state, found, matched)
+  | (inner, index) :: rest, state, found, matched =>
+      if state.stopped then (state, found, matched)
+      else
+        let row := if exchanged then (inner, outer) else (outer, inner)
+        match joinScalarMatches context prepared (source.leftJoin || source.rightJoin) row with
+        | .error message => ({ state with error := some message }, found, matched)
+        | .ok false => joinStreamRight context prepared source expressions exchanged outer rest state found matched
+        | .ok true => joinStreamRight context prepared source expressions exchanged outer rest
+            (joinStreamStep context prepared expressions state row) true (index :: matched)
+
+def joinStreamSuffix (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) : List Core.Row → JoinStreamState → JoinStreamState
+  | [], state => state
+  | row :: rows, state =>
+      if state.stopped then state else
+      joinStreamSuffix context prepared expressions rows
+        (joinStreamStep context prepared expressions state (CoreJoin.nullRow context.leftSchema.columns.length, row))
+
+def joinStreamLeft (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (expressions early : List Expr) (exchanged : Bool) (inner : List (Core.Row × Nat)) :
+    List Core.Row → JoinStreamState → List Nat → JoinStreamState
+  | [], state, matched =>
+      if source.rightJoin then joinStreamSuffix context prepared expressions
+        ((inner.filter (fun (_, index) => !matched.contains index)).map Prod.fst) state else state
+  | outer :: rest, state, matched =>
+      if state.stopped then state
+      else
+        let input := CoreJoin.projectRow (joinScalarInputs context)
+          (if exchanged then (CoreJoin.nullRow context.leftSchema.columns.length, outer)
+            else (outer, CoreJoin.nullRow context.rightSchema.columns.length))
+        match early.allM (fun term => prepared.context.matches input (some term)) with
+        | .error message => { state with error := some message }
+        | .ok false => joinStreamLeft context prepared source expressions early exchanged inner rest state matched
+        | .ok true =>
+            let (state, found, matched) := joinStreamRight context prepared source expressions exchanged outer inner state false matched
+            let state := if !found && source.leftJoin then joinStreamStep context prepared expressions state
+                (outer, CoreJoin.nullRow context.rightSchema.columns.length) else state
+            joinStreamLeft context prepared source expressions early exchanged inner rest state matched
+
+def joinStreamPrepared (state : Core.State) (select : Select) : Except String JoinReadReport := do
+  let (leftSource, originalRight) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state originalRight.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select originalRight
+  let source := joinScalarReducedSource context prepared originalRight
+  let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+  let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+  let (on, _) := match originalRight.joinOn with
+    | none => (none, none)
+    | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+  let on ← on.mapM (joinScalarBind context)
+  let traversal := joinScalarTraversal context prepared source terms on
+  if aggregate || (!terms.isEmpty && !traversal.ordered) then
+    let (result, width) ← joinScalarMaterializedResult state select
+    return { result, width }
+  let ctx := prepared.context
+  unless prepared.select.having.isNone do unsupported "HAVING requires an aggregate"
+  let expressions ← ctx.projection prepared.select.columns.toList
+  if prepared.select.distinct then CoreExpr.validateDistinct expressions
+  let _ ← prepared.select.where_.mapM ctx.validate
+  let _ ← terms.mapM (CoreOrder.validateTerm ctx)
+  let width := expressions.length
+  if select.limit == some 0 then return { width }
+  unless ← ctx.constantMatches prepared.select.where_ do return { width }
+  let right := if traversal.reverseRight then right.rows.reverse else right.rows
+  let left := if traversal.reverseLeft then left.rows.reverse else left.rows
+  let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
+  let early := if source.rightJoin then [] else
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+      (fun term => joinScalarOnlySide context prepared outerSide term && !ctx.constantExpression term)
+  let initial : JoinStreamState := { skip := select.offset, remaining := select.limit }
+  let result := if traversal.exchanged then
+      joinStreamLeft context prepared source expressions early true left.zipIdx right initial []
+    else joinStreamLeft context prepared source expressions early false right.zipIdx left initial []
+  return { result := { rows := result.reversed.reverse }, width, error := result.error }
+
+def JoinReadReport.toExcept (report : JoinReadReport) : Except String (Core.Result × Nat) :=
+  match report.error with
+  | none => .ok (report.result, report.width)
+  | some message => .error message
+
+/-- Preparation failures have no emitted prefix. Runtime failures in a streamed
+scan retain exactly the rows produced before the failing step. -/
+def joinScalarReadReport (state : Core.State) (select : Select) : JoinReadReport :=
+  match joinStreamPrepared state select with
+  | .ok report => report
+  | .error message => { error := some message }
+
+def joinScalarResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) :=
+  (joinScalarReadReport state select).toExcept
+
+theorem joinStreamStep_stopped (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) (state : JoinStreamState) (row : CoreJoin.JoinedRow)
+    (stopped : state.stopped = true) :
+    joinStreamStep context prepared expressions state row = state := by
+  simp [joinStreamStep, stopped]
+
+theorem joinStreamRight_stopped (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (expressions : List Expr) (exchanged : Bool) (outer : Core.Row)
+    (rows : List (Core.Row × Nat)) (state : JoinStreamState) (found : Bool) (matched : List Nat)
+    (stopped : state.stopped = true) :
+    joinStreamRight context prepared source expressions exchanged outer rows state found matched =
+      (state, found, matched) := by
+  cases rows <;> simp [joinStreamRight, stopped]
+
+theorem joinStreamSuffix_stopped (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) (rows : List Core.Row) (state : JoinStreamState)
+    (stopped : state.stopped = true) :
+    joinStreamSuffix context prepared expressions rows state = state := by
+  cases rows <;> simp [joinStreamSuffix, stopped]
+
+theorem joinStreamLeft_stopped (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (expressions early : List Expr) (exchanged : Bool)
+    (inner : List (Core.Row × Nat)) (outer : List Core.Row) (state : JoinStreamState)
+    (matched : List Nat) (stopped : state.stopped = true) :
+    joinStreamLeft context prepared source expressions early exchanged inner outer state matched = state := by
+  cases outer <;> simp [joinStreamLeft, stopped, joinStreamSuffix_stopped context prepared expressions _ state stopped]
 
 def executeJoinScalar (state : Core.State) (select : Select) : Except String SelectExecution :=
   (fun result => ⟨state, result.1, result.2⟩) <$> joinScalarResult state select
@@ -3066,6 +3261,14 @@ theorem joinScalarRowsM_pure (context : JoinContext) (prepared : JoinScalarPrepa
     joinScalarRowsM context prepared source left right =
       .ok (joinScalarRows context source prepared.on left right) := by
   simp [joinScalarRowsM, pureOn, pure, Except.pure]
+
+theorem joinScalarRowsM_exchange_inner (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (left right : List Core.Row)
+    (noLeft : source.leftJoin = false) (noRight : source.rightJoin = false) :
+    joinScalarRowsM context prepared source left right true =
+      (right.flatMap (fun r => left.map (fun l => (l, r)))).filterM
+        (joinScalarMatches context prepared false) := by
+  simp [joinScalarRowsM, noLeft, noRight]
 
 /-- Bind identifiers and expand stars before resolving each output column's
 explicit or declared collation. Joined stars expand with BINARY metadata;
@@ -3294,6 +3497,69 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
 def executeSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   executeSelectFuel select.compoundHeight state select
+
+/-- Read-only observation retains a typed row prefix separately from the
+ordinary success/error result. It cannot turn a failure into a successful read. -/
+structure ObservedSelect where
+  execution : SelectExecution
+  error : Option String := none
+
+def ObservedSelect.toExcept (report : ObservedSelect) : Except String SelectExecution :=
+  match report.error with
+  | none => .ok report.execution
+  | some message => .error message
+
+def executeSelectBaseObserved (state : Core.State) (select : Select) : ObservedSelect :=
+  match executeSelectBase state select with
+  | .ok execution => { execution }
+  | .error _ =>
+      let report := joinScalarReadReport state select
+      { execution := ⟨state, report.result, report.width⟩, error := report.error }
+
+theorem executeSelectBaseObserved_refines (state : Core.State) (select : Select)
+    (twoSources : select.sources.size = 2) :
+    (executeSelectBaseObserved state select).toExcept = executeSelectBaseComplete state select := by
+  cases base : executeSelectBase state select with
+  | ok execution => simp [executeSelectBaseObserved, ObservedSelect.toExcept,
+      executeSelectBaseComplete, twoSources, base]
+  | error message =>
+      cases failure : (joinScalarReadReport state select).error <;>
+        simp [executeSelectBaseObserved, ObservedSelect.toExcept, executeSelectBaseComplete,
+          twoSources, base, executeJoinScalar, joinScalarResult, JoinReadReport.toExcept,
+          failure, Functor.map, Except.map]
+
+theorem executeSelect_without_compounds (state : Core.State) (select : Select)
+    (noCompounds : select.compounds = #[]) :
+    executeSelect state select = executeSelectBaseComplete state select := by
+  have height : select.compoundHeight = 1 := by
+    rw [show select.compoundHeight = selectCompoundListHeight select.compounds.toList + 1 by
+      cases select
+      rfl, noCompounds]
+    rfl
+  have cleared : { select with compounds := #[] } = select := by
+    cases select
+    simp_all
+  cases base : executeSelectBaseComplete state select <;>
+    simp [executeSelect, height, executeSelectFuel, requiresCompoundCollation, noCompounds,
+      cleared, base, executeSelectFuel.executeArms, bind, Except.bind]
+
+/-- Add observation only to a complete two-source leaf. Compound operators keep
+owning their materialization and result publication. -/
+def observeJoinedSelect? (state : Core.State) (select : Select) : Option ObservedSelect :=
+  if select.sources.size = 2 ∧ select.compounds = #[] then
+    some (executeSelectBaseObserved state select)
+  else none
+
+theorem observeJoinedSelect_refines (state : Core.State) (select : Select)
+    (report : ObservedSelect) (observed : observeJoinedSelect? state select = some report) :
+    report.toExcept = executeSelect state select := by
+  unfold observeJoinedSelect? at observed
+  split at observed
+  next supported =>
+    cases Option.some.inj observed
+    rw [executeSelectBaseObserved_refines state select supported.1,
+      executeSelect_without_compounds state select supported.2]
+  next unsupported => simp at observed
 
 /-- A declared non-rowid key also needs the allocate-before-delete REPLACE
 trace, even when its automatic index is the only unique index. -/

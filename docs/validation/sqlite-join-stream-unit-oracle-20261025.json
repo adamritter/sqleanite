@@ -1,0 +1,48 @@
+{
+  "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,3);",
+  "cases": [
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id;",
+      "code": 1,
+      "stdout": "1|1|1\n2|2|2\n",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id;",
+      "code": 1,
+      "stdout": "1|1|1\n2|2|2\n",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC LIMIT 1 OFFSET 1;",
+      "code": 0,
+      "stdout": "2|2|2\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k;",
+      "code": 1,
+      "stdout": "1|1\n2|2\n",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k LIMIT 1;",
+      "code": 0,
+      "stdout": "1|1\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.k+1;",
+      "code": 0,
+      "stdout": "2|1\n3|2\n",
+      "stderr": ""
+    },
+    {
+      "sql": "SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Parse error near line 1: no such function: not_a_function\n  SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;\n         ^--- error here\n"
+    }
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

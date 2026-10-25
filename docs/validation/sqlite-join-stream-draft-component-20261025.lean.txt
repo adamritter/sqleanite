@@ -1,0 +1,183 @@
+import SQLeanite.CoreSQL
+import SQLeanite.SQLite.CLI
+import Lean.Data.Json
+
+namespace SQLeanite.CoreSQL
+
+structure StreamDraftReport where
+  result : Core.Result := {}
+  width : Nat := 0
+  error : Option String := none
+
+structure StreamDraftState where
+  reversed : List (List Core.Value) := []
+  seen : List (List Core.Value) := []
+  skip : Nat := 0
+  remaining : Option Nat := none
+  error : Option String := none
+
+def StreamDraftState.stopped (state : StreamDraftState) : Bool :=
+  state.error.isSome || state.remaining == some 0
+
+def streamDraftStep (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) (state : StreamDraftState) (row : CoreJoin.JoinedRow) : StreamDraftState := Id.run do
+  if state.stopped then return state
+  let ctx := prepared.context
+  let input := CoreJoin.projectRow (joinScalarInputs context) row
+  let selected := ctx.matches input prepared.select.where_
+  match selected with
+  | .error message => return { state with error := some message }
+  | .ok false => return state
+  | .ok true =>
+      if state.skip > 0 && !prepared.select.distinct then return { state with skip := state.skip - 1 }
+      match ctx.projectRow input expressions with
+      | .error message => return { state with error := some message }
+      | .ok output =>
+          if prepared.select.distinct && state.seen.any (CoreExpr.distinctEqual expressions output) then return state
+          let state := { state with seen := Core.distinctRowKey output :: state.seen }
+          if state.skip > 0 then return { state with skip := state.skip - 1 }
+          return { state with reversed := output :: state.reversed, remaining := state.remaining.map (· - 1) }
+
+def streamDraftRight (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (expressions : List Expr) (exchanged : Bool) (outer : Core.Row) :
+    List (Core.Row × Nat) → StreamDraftState → Bool → List Nat → StreamDraftState × Bool × List Nat
+  | [], state, found, matched => (state, found, matched)
+  | (inner, index) :: rest, state, found, matched =>
+      if state.stopped then (state, found, matched)
+      else
+        let row := if exchanged then (inner, outer) else (outer, inner)
+        match joinScalarMatches context prepared (source.leftJoin || source.rightJoin) row with
+        | .error message => ({ state with error := some message }, found, matched)
+        | .ok false => streamDraftRight context prepared source expressions exchanged outer rest state found matched
+        | .ok true => streamDraftRight context prepared source expressions exchanged outer rest
+            (streamDraftStep context prepared expressions state row) true (index :: matched)
+
+def streamDraftSuffix (context : JoinContext) (prepared : JoinScalarPrepared)
+    (expressions : List Expr) : List Core.Row → StreamDraftState → StreamDraftState
+  | [], state => state
+  | row :: rows, state =>
+      if state.stopped then state else
+      streamDraftSuffix context prepared expressions rows
+        (streamDraftStep context prepared expressions state (CoreJoin.nullRow context.leftSchema.columns.length, row))
+
+def streamDraftLeft (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (expressions early : List Expr) (exchanged : Bool) (inner : List (Core.Row × Nat)) :
+    List Core.Row → StreamDraftState → List Nat → StreamDraftState
+  | [], state, matched =>
+      if source.rightJoin then streamDraftSuffix context prepared expressions
+        ((inner.filter (fun (_, index) => !matched.contains index)).map Prod.fst) state else state
+  | outer :: rest, state, matched =>
+      if state.stopped then state
+      else
+        let input := CoreJoin.projectRow (joinScalarInputs context)
+          (if exchanged then (CoreJoin.nullRow context.leftSchema.columns.length, outer)
+            else (outer, CoreJoin.nullRow context.rightSchema.columns.length))
+        match early.allM (fun term => prepared.context.matches input (some term)) with
+        | .error message => { state with error := some message }
+        | .ok false => streamDraftLeft context prepared source expressions early exchanged inner rest state matched
+        | .ok true =>
+            let (state, found, matched) := streamDraftRight context prepared source expressions exchanged outer inner state false matched
+            let state := if !found && source.leftJoin then streamDraftStep context prepared expressions state
+                (outer, CoreJoin.nullRow context.rightSchema.columns.length) else state
+            streamDraftLeft context prepared source expressions early exchanged inner rest state matched
+
+def streamDraftPrepared (state : Core.State) (select : Select) : Except String StreamDraftReport := do
+  let (leftSource, originalRight) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state originalRight.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select originalRight
+  let source := joinScalarReducedSource context prepared originalRight
+  let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+  let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+  let (on, _) := match originalRight.joinOn with
+    | none => (none, none)
+    | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+  let on ← on.mapM (joinScalarBind context)
+  let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
+  let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+  let exchanged := !source.leftJoin && !source.rightJoin && !source.crossJoin && probesLeft && !probesRight
+  let leadingLeft := !aggregate && !exchanged && terms.head?.any (fun term =>
+    (joinScalarReference context prepared term.expr).any
+      (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+  let reverse := leadingLeft && terms.head?.any (·.descending)
+  let automatic := on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
+  let ordered := leadingLeft && !source.rightJoin && (probesRight || !automatic) &&
+    terms.all (fun term => (joinScalarReference context prepared term.expr).any
+      (fun ref => ref.side == .left || ref.column == context.rightSchema.primaryKey))
+  if aggregate || (!terms.isEmpty && !ordered) then
+    let (result, width) ← joinScalarResult state select
+    return { result, width }
+  let ctx := prepared.context
+  unless prepared.select.having.isNone do unsupported "HAVING requires an aggregate"
+  let expressions ← ctx.projection prepared.select.columns.toList
+  if prepared.select.distinct then CoreExpr.validateDistinct expressions
+  let _ ← prepared.select.where_.mapM ctx.validate
+  let _ ← terms.mapM (CoreOrder.validateTerm ctx)
+  let width := expressions.length
+  if select.limit == some 0 then return { width }
+  unless ← ctx.constantMatches prepared.select.where_ do return { width }
+  let reverseRight := ordered && (terms.find? (fun term =>
+    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .right))).any (·.descending)
+  let right := if reverseRight then right.rows.reverse else right.rows
+  let left := if reverse then left.rows.reverse else left.rows
+  let outerSide := if exchanged then CoreJoin.Side.right else .left
+  let early := if source.rightJoin then [] else
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+      (fun term => joinScalarOnlySide context prepared outerSide term && !ctx.constantExpression term)
+  let initial : StreamDraftState := { skip := select.offset, remaining := select.limit }
+  let result := if exchanged then
+      streamDraftLeft context prepared source expressions early true left.zipIdx right initial []
+    else streamDraftLeft context prepared source expressions early false right.zipIdx left initial []
+  return { result := { rows := result.reversed.reverse }, width, error := result.error }
+
+def streamDraftReport (state : Core.State) (select : Select) : StreamDraftReport :=
+  match executeSelectBase state select with
+  | .ok execution => { result := execution.result, width := execution.width }
+  | .error _ => match streamDraftPrepared state select with
+    | .ok report => report
+    | .error message => { error := some message }
+
+end SQLeanite.CoreSQL
+
+open SQLeanite
+open Lean
+
+private def draftValueBytes : PhysicalCodec.Value → ByteArray
+  | .null => ByteArray.empty
+  | .integer value => (toString value.value).toUTF8
+  | .realBits bits => (toString (SQLeanite.Value.real
+      (Float.ofBits (UInt64.ofNat bits.val)))).toUTF8
+  | .text text => ByteArray.mk (SQLite.CLI.listTextBytes text.bytes).toArray
+  | .blob blob => ByteArray.mk (SQLite.CLI.listTextBytes blob.bytes).toArray
+
+private def draftRender (result : Core.Result) : ByteArray :=
+  result.rows.foldl (fun output row =>
+    let fields := (row.map draftValueBytes).intersperse "|".toUTF8
+    (fields.foldl (· ++ ·) output) ++ "\n".toUTF8) ByteArray.empty
+
+def main (args : List String) : IO Unit := do
+  let some path := args.head? | throw (IO.userError "expected input file")
+  let lines := (← IO.FS.readFile path).splitOn "\n"
+  let setup :: queries := lines | throw (IO.userError "missing setup")
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => throw (IO.userError message)
+  for query in queries do
+    unless query.isEmpty do
+      let result := do
+        let statements ← CoreTokenGrammar.parseStatements query
+        let [.select select] := statements.toList | throw "expected one SELECT"
+        pure (CoreSQL.streamDraftReport state select)
+      let (code, bytes, error) := match result with
+        | .ok report => (if report.error.isSome then 1 else 0, draftRender report.result, report.error.getD "")
+        | .error message => (1, ByteArray.empty, message)
+      IO.println (Json.mkObj [("code", toJson code),
+        ("stdout_bytes", toJson (bytes.data.toList.map UInt8.toNat)), ("stderr", toJson error)]).compress

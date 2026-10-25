@@ -333,12 +333,19 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
     | none => commitFull connection next
   else return next
 
-private def executeStatement (connection : Connection) (live : LiveState)
-    (statement : Statement) :
+private def executeStatement (connection : Connection) (onResults : List Core.Result → IO Unit)
+    (live : LiveState) (statement : Statement) :
     IO (LiveState × Except String (LiveState × List Core.Result)) := do
   let state := live.state
   match statement with
-  | .select select =>
+  | .select select => do
+      if let some observed := CoreSQL.observeJoinedSelect? state select then
+        match observed.toExcept with
+        | .error message =>
+            onResults [observed.execution.result]
+            return (live, .error message)
+        | .ok execution =>
+            return (live, .ok (live.retarget execution.state, [execution.result]))
       match CoreSQL.simpleQuery? state select with
       | some (tableName, query) =>
           match found : state.database.findTable? tableName with
@@ -416,7 +423,7 @@ private def executeStatement (connection : Connection) (live : LiveState)
           return (live, .ok
             (LiveState.invalidateCertificates result.1, result.2))
 
-private def runStatementsGo (connection : Connection) : LiveState →
+private def runStatementsGo (connection : Connection) (onResults : List Core.Result → IO Unit) : LiveState →
     List Statement → List Core.Result →
       IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
@@ -424,7 +431,7 @@ private def runStatementsGo (connection : Connection) : LiveState →
       if requiresWriteAccess live.state statement then
         CoreFileAdapter.requireWritableAccess connection.paths.main
         CoreFileAdapter.requireWritableFormat connection.paths.main
-      let (cached, execution) ← executeStatement connection live statement
+      let (cached, execution) ← executeStatement connection onResults live statement
       match execution with
       | .error message => pure (cached, .error message)
       | .ok (executed, results) => do
@@ -440,37 +447,45 @@ private def runStatementsGo (connection : Connection) : LiveState →
             -- entry after every SELECT, turning a routed lookup back into an
             -- O(table) operation.
             pure executed
-          runStatementsGo connection advanced statements
+          runStatementsGo connection onResults advanced statements
             (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Stack-safe execution of a statement batch.  `runStatementsGo` accumulates
 results in reverse order, so it does no work after its recursive IO call. -/
-private def runStatements (connection : Connection) (live : LiveState)
+private def runStatements (connection : Connection) (onResults : List Core.Result → IO Unit) (live : LiveState)
     (statements : List Statement) :
     IO (LiveState × Except String (List Core.Result)) :=
-  runStatementsGo connection live statements []
+  runStatementsGo connection onResults live statements []
 
 /-- Admit and execute one source statement at a time. A later parse error
 returns the live state after the completed prefix, including an open transaction. -/
-private def runChunks (connection : Connection) : LiveState → List String →
+private def runChunks (connection : Connection) (onResults : List Core.Result → IO Unit) : LiveState → List String →
     List Core.Result → IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
   | live, chunk :: chunks, reversed => do
       match CoreTokenGrammar.parseStatements chunk with
       | .error message => pure (live, .error message)
       | .ok statements =>
-          let (next, result) ← runStatements connection live statements.toList
+          let (next, result) ← runStatements connection onResults live statements.toList
           match result with
           | .error message => pure (next, .error message)
-          | .ok results => runChunks connection next chunks (results.foldl (fun acc result => result :: acc) reversed)
+          | .ok results => do
+              onResults results
+              runChunks connection onResults next chunks (results.foldl (fun acc result => result :: acc) reversed)
 
-def execute (connection : Connection) (sql : String) :
-    IO (Except String (List Core.Result)) :=
+/-- Observe completed statements after publication and a streamed read's row
+prefix before its error. Failed reads leave the live database state unchanged. -/
+def executeObserved (connection : Connection) (sql : String)
+    (onResults : List Core.Result → IO Unit) : IO (Except String (List Core.Result)) :=
   connection.state.atomically do
     let current ← get
-    let (finalState, result) ← runChunks connection current (SQLite.Script.split sql) []
+    let (finalState, result) ← runChunks connection onResults current (SQLite.Script.split sql) []
     set finalState
     return result
+
+/-- The ordinary API erases observations while retaining its existing result. -/
+def execute (connection : Connection) (sql : String) : IO (Except String (List Core.Result)) :=
+  executeObserved connection sql (fun _ => pure ())
 
 def snapshot (connection : Connection) : IO Core.State :=
   connection.state.atomically do return (← get).state

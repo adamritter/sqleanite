@@ -43,14 +43,14 @@ private def printCoreResults (results : List Core.Result) : IO Unit := do
 private def prepareScript (sql : String) : Array String :=
   (SQLite.Script.split sql).toArray
 
-/-- Admit and print each completed source statement in order.
-A later error retains output from all earlier successful statements. -/
+/-- Print observed results in source order, including a streamed SELECT's
+emitted prefix when a later row in that same statement fails. -/
 private def executePreparedStatements (connection : CoreFileEngine.Connection)
     (lines : Array String) : IO (Except String Unit) := do
   for line in lines do
-    match ← CoreFileEngine.execute connection line with
+    match ← CoreFileEngine.executeObserved connection line printCoreResults with
     | .error message => return .error message
-    | .ok results => printCoreResults results
+    | .ok _ => pure ()
   return .ok ()
 
 private def coreBatch (databasePath : String) (args : List String) : IO UInt32 := do

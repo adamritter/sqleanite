@@ -7195,6 +7195,81 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteComputedJoinTraversal : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,0);INSERT INTO l VALUES(2,-3);INSERT INTO r VALUES(2,3);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(4,3);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.k+1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3,.integer 4,.integer 2]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,0);INSERT INTO l VALUES(2,-3);INSERT INTO r VALUES(2,3);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(4,3);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.k+1 WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3,.integer 4,.integer 2]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,2);INSERT INTO r VALUES(1,0);INSERT INTO l VALUES(2,-3);INSERT INTO r VALUES(2,3);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(4,3);INSERT INTO r VALUES(4,5);SELECT abs(a.k),a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.k+1 WHERE a.id>1 ORDER BY a.id DESC,b.id LIMIT 1;",[[.integer 3,.integer 4,.integer 2]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(1,2);SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.k+1 WHERE abs(a.k)>0 ORDER BY a.id DESC LIMIT 1;",[[.integer 3,.integer 3,.integer 1]]),
+    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);INSERT INTO r VALUES(1,2);SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.k+1 ORDER BY b.id DESC LIMIT 1;",[[.integer 3,.integer 3,.integer 1]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"computed rowid traversal: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"computed rowid lookup changed traversal or filtered an unvisited inner row: {sql}"
+
+private def expectSQLiteJoinedReadPrefix : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,3);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × Bool × List (List Value)) := [
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id;",true,[[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 2]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id;",true,[[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 2]]),
+    ("SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id ORDER BY a.id DESC LIMIT 1 OFFSET 1;",false,[[.integer 2,.integer 2,.integer 2]]),
+    ("SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k;",true,[[.integer 1,.integer 1],[.integer 2,.integer 2]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k LIMIT 1;",false,[[.integer 1,.integer 1]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.k+1;",false,[[.integer 2,.integer 1],[.integer 3,.integer 2]]),
+    ("SELECT not_a_function(a.k) FROM l a JOIN r b ON a.id=b.id LIMIT 0;",true,[])]
+  for (sql, expectedError, values) in cases do
+    let statements ← match CoreTokenGrammar.parseStatements sql with
+      | .ok result => pure result
+      | .error message => fail message
+    let [.select query] := statements.toList | fail "joined prefix fixture was not a SELECT"
+    let some report := CoreSQL.observeJoinedSelect? state query | fail "joined read observation was missing"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless report.execution.result.rows == expected && report.error.isSome == expectedError do
+      fail s!"joined emitted prefix or status differs: {sql}"
+    unless report.toExcept.isOk == (CoreSQL.executeSelect state query).isOk do
+      fail "joined observation changed ordinary success/error status"
+  let script := "SELECT 7;SELECT abs(a.k),a.id,b.id FROM l a JOIN r b ON a.id=b.id;SELECT 9;"
+  let expected ← match ([[.integer 7],[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 2]] : List (List Value)).mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-joined-prefix.db"
+    journal := ".lake/build/sqleanite-joined-prefix.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  if !(← CoreFileEngine.execute connection setup).isOk then fail "joined prefix file setup"
+  let before ← IO.FS.readBinFile paths.main
+  let emitted ← IO.mkRef ([] : List (List Core.Value))
+  let observe := fun (results : List Core.Result) => emitted.modify (fun rows => rows ++ results.flatMap (·.rows))
+  if (← CoreFileEngine.executeObserved connection script observe).isOk then fail "joined file overflow was lost"
+  unless (← emitted.get) == expected do fail "joined file lost or duplicated the emitted prefix"
+  unless (← IO.FS.readBinFile paths.main) == before do fail "failed joined read changed main bytes"
+  let wal : CoreWALFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-joined-prefix-wal.db"
+    wal := ".lake/build/sqleanite-joined-prefix-wal.db-wal" }
+  if ← wal.wal.pathExists then IO.FS.removeFile wal.wal
+  if ← wal.main.pathExists then IO.FS.removeFile wal.main
+  CoreWALFileAdapter.create .system wal Core.Database.empty
+  if !(← CoreWALFileEngine.execute .system wal setup).isOk then fail "joined prefix WAL setup"
+  let beforeMain ← IO.FS.readBinFile wal.main
+  let beforeWal ← IO.FS.readBinFile wal.wal
+  emitted.set []
+  if (← CoreWALFileEngine.executeObserved .system wal script observe).isOk then fail "joined WAL overflow was lost"
+  unless (← emitted.get) == expected do fail "joined WAL lost or duplicated the emitted prefix"
+  unless (← IO.FS.readBinFile wal.main) == beforeMain && (← IO.FS.readBinFile wal.wal) == beforeWal do
+    fail "failed joined read changed main/WAL bytes"
+
 private def expectSQLiteJoinEvaluationOrder : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO r VALUES(1,1);INSERT INTO l VALUES(2,2);INSERT INTO r VALUES(2,2);INSERT INTO l VALUES(3,3);INSERT INTO r VALUES(3,3);INSERT INTO l VALUES(4,4);INSERT INTO r VALUES(4,4);"
   let cases : List (String × List (List Value)) := [
@@ -8556,6 +8631,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined compound result slots and expression binding", expectSQLiteJoinCompoundBinding),
   ("SQLite joined scalar expressions, aggregates and dynamic ON", expectSQLiteJoinedExpressions),
   ("SQLite joined evaluation order and early WHERE filtering", expectSQLiteJoinEvaluationOrder),
+  ("SQLite joined read prefixes survive errors in both file modes", expectSQLiteJoinedReadPrefix),
+  ("SQLite computed rowid lookup traversal in streaming and sorted joins", expectSQLiteComputedJoinTraversal),
   ("SQLite first scalar argument collation includes column defaults", expectSQLiteFunctionArgumentCollations),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),

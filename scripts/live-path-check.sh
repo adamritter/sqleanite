@@ -1986,7 +1986,7 @@ if rg -F -q 'if requiresWriteAccess live.state statement then' SQLeanite/CoreFil
    rg -F -q 'CoreFileAdapter.requireWritableAccess connection.paths.main' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreLazyWrite.lean &&
-   rg -F -q '| .ok results => printCoreResults results' Main.lean &&
+   rg -F -q 'CoreFileEngine.executeObserved connection line printCoreResults' Main.lean &&
    rg -F -q 'CoreWALFileEngine.executeObserved .system paths sql printCoreResults' Main.lean &&
    rg -F -q 'onResults results' SQLeanite/CoreWALFileEngine.lean; then
   echo 'ok - completed statements emit in order and actual write dispatch checks OS access'
@@ -2292,13 +2292,27 @@ else
 fi
 
 if rg -F -q 'let source := joinScalarReducedSource context prepared originalRight' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'joinScalarRowsM context prepared source (if reverse then left.reverse else left) right' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'joinScalarOnlySide context prepared .left term' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinScalarRowsM context prepared source left right traversal.exchanged' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinScalarOnlySide context prepared outerSide term' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreSQL.joinScalarNullWalk_or' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSQL.joinScalarReducedSource_no_new_outer' SQLeanite/ProofAxioms.lean; then
   printf 'ok - joined expression scans preserve source direction and conservative outer reduction\n'
 else
   printf 'live-path check FAILED: joined expression scan planning\n' >&2
+  status=1
+fi
+
+if rg -F -q '(joinScalarReadReport state select).toExcept' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'if state.stopped then state' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.observeJoinedSelect? state select' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSQL.observeJoinedSelect? state select' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'onResults [observed.execution.result]' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'onResults [observed.execution.result]' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreFileEngine.executeObserved connection line printCoreResults' Main.lean &&
+   rg -F -q 'CoreSQL.observeJoinedSelect_refines' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution\n'
+else
+  printf 'live-path check FAILED: joined read observation or streaming path\n' >&2
   status=1
 fi
 
