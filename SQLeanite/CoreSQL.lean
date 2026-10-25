@@ -1290,7 +1290,14 @@ def joinColumn (context : JoinContext) (qualifier : Option String) (name : Strin
           else .error s!"ambiguous column name: {name}"
       | none, none => .error s!"no such column: {name}"
 
-def joinOperand (context : JoinContext) : Expr → Except String CoreJoin.Operand
+def joinHasColumn (context : JoinContext) (name : String) : Bool :=
+  (findColumn? context.leftSchema name).isSome || (findColumn? context.rightSchema name).isSome
+
+def joinBindNames (context : JoinContext) (expression : Expr) : Expr :=
+  SQLite.Scalar.bindNames (joinHasColumn context) expression
+
+def joinOperand (context : JoinContext) (expression : Expr) : Except String CoreJoin.Operand :=
+  match joinBindNames context expression with
   | .column qualifier name => .column <$> joinColumn context qualifier name
   | expression => .literal <$> literal expression
 
@@ -1371,25 +1378,37 @@ def joinVisibleColumns (side : CoreJoin.Side) (schema : Core.Schema) :
     List CoreJoin.ColumnRef :=
   schema.visibleColumnIndices.map fun index => ⟨side, index⟩
 
-def joinResultColumn (context : JoinContext) : ResultColumn →
-    Except String (List CoreJoin.ColumnRef)
-  | { expr := .column qualifier name, .. } =>
-      return [← joinColumn context qualifier name]
-  | { expr := .star none, .. } =>
-      .ok (joinVisibleColumns .left context.leftSchema ++
+/-- Literal/unary atoms are total before row evaluation. Boolean keywords
+are constants only after source-column name binding has left them unbound. -/
+def joinLiteralExpression : Expr → Bool
+  | .literal .. => true
+  | .unary _ expression => joinLiteralExpression expression
+  | expression => (SQLite.Scalar.booleanKeyword? expression).isSome
+
+def joinResultExpr (context : JoinContext) : Expr → Except String (List CoreJoin.Operand)
+  | .column qualifier name => return [.column (← joinColumn context qualifier name)]
+  | .star none =>
+      .ok ((joinVisibleColumns .left context.leftSchema ++
         (joinVisibleColumns .right context.rightSchema).filter
-          (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column))
-  | { expr := .star (some qualifier), .. } =>
+          (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column)).map
+            CoreJoin.Operand.column)
+  | .star (some qualifier) =>
       let owner := canonical qualifier
       if owner == context.leftName then
-        .ok (joinVisibleColumns .left context.leftSchema)
+        .ok ((joinVisibleColumns .left context.leftSchema).map CoreJoin.Operand.column)
       else if owner == context.rightName then
-        .ok (joinVisibleColumns .right context.rightSchema)
+        .ok ((joinVisibleColumns .right context.rightSchema).map CoreJoin.Operand.column)
       else .error s!"no such table or alias: {qualifier}"
-  | _ => unsupported "join projection"
+  | expression => do
+      unless joinLiteralExpression expression do unsupported "join projection"
+      return [.literal (← literal expression)]
+
+def joinResultColumn (context : JoinContext) (column : ResultColumn) :
+    Except String (List CoreJoin.Operand) :=
+  joinResultExpr context (joinBindNames context column.expr)
 
 def joinProjection (context : JoinContext) : List ResultColumn →
-    Except String (List CoreJoin.ColumnRef)
+    Except String (List CoreJoin.Operand)
   | [] => .ok []
   | result :: results =>
       return (← joinResultColumn context result) ++ (← joinProjection context results)
@@ -1397,15 +1416,16 @@ def joinProjection (context : JoinContext) : List ResultColumn →
 /-- Only explicit aliases and expanded stars provide ORDER BY result names.
 A plain selected source column retains ordinary ambiguity checks. -/
 def joinOrderName (context : JoinContext) (column : ResultColumn)
-    (reference : CoreJoin.ColumnRef) : Option String :=
-  match column.expr with
-  | .star _ =>
+    (operand : CoreJoin.Operand) : Option String :=
+  match column.expr, operand with
+  | .star _, .column reference =>
       let schema := if reference.side == .left then context.leftSchema else context.rightSchema
       (schema.columns[reference.column]?).map (·.name)
-  | _ => column.alias
+  | .star _, _ => none
+  | _, _ => column.alias
 
 def joinOrderColumns (context : JoinContext) : List ResultColumn →
-    Except String (List (CoreJoin.ColumnRef × Option String))
+    Except String (List (CoreJoin.Operand × Option String))
   | [] => .ok []
   | column :: columns => do
       let references ← joinResultColumn context column
@@ -1436,18 +1456,23 @@ def joinOrderConstant : Expr → Bool
   | .unary _ expression => joinOrderConstant expression
   | _ => false
 
+def joinOrderOutputReference : CoreJoin.Operand → Except String (Option CoreJoin.ColumnRef)
+  | .column reference => .ok (some reference)
+  | .literal _ => .ok none
+  | .coercedColumn .. => unsupported "coerced join output ordering"
+
 def joinOrderReference (context : JoinContext)
-    (columns : List (CoreJoin.ColumnRef × Option String)) (expression : Expr) :
+    (columns : List (CoreJoin.Operand × Option String)) (expression : Expr) :
     Except String (Option CoreJoin.ColumnRef) := do
   let expression := SQLite.Scalar.prepare (CoreOrder.keyExpression expression)
   if let some name := CoreOrder.bareName? expression then
     if let some output := columns.find? (fun output => output.2.any (fun alias => canonical alias == canonical name)) then
-      return some output.1
+      return ← joinOrderOutputReference output.1
   if let some position := CoreOrder.ordinal? expression then
     unless 1 ≤ position && position.toNat ≤ columns.length do
       throw "ORDER BY position is outside the result columns"
     let some output := columns[position.toNat - 1]? | throw "ORDER BY position is out of range"
-    return some output.1
+    return ← joinOrderOutputReference output.1
   if joinOrderConstant expression then return none
   if let some name := SQLite.Scalar.quotedIdentifier? expression then
     return some (← joinColumn context none name)
@@ -1461,7 +1486,7 @@ def joinOrderReference (context : JoinContext)
   | _ => unsupported "join ORDER BY expression"
 
 def joinOrderBy (context : JoinContext)
-    (columns : List (CoreJoin.ColumnRef × Option String)) : List OrderTerm →
+    (columns : List (CoreJoin.Operand × Option String)) : List OrderTerm →
     Except String (List CoreJoin.OrderTerm)
   | [] => .ok []
   | term :: terms => do

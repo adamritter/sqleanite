@@ -363,6 +363,8 @@ inductive JoinOperandSyntax : Expr → Prop where
       JoinOperandSyntax (.column qualifier name)
   | literal {expression : Expr} : LiteralSyntax expression →
       JoinOperandSyntax expression
+  | bound (context : JoinContext) (expression : Expr) :
+      JoinOperandSyntax (joinBindNames context expression) → JoinOperandSyntax expression
 
 theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
     {operand : CoreJoin.Operand}
@@ -373,11 +375,13 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
     cases decoded : literal e with
     | error message => simp [decoded, Functor.map, Except.map] at h
     | ok value => exact .literal (literalSyntax_of_success decoded)
-  cases expression with
+  apply JoinOperandSyntax.bound context expression
+  cases bound : joinBindNames context expression with
   | column qualifier name => exact .column qualifier name
   | literal value spelling => exact .literal (.literal value spelling)
   | unary | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
-      inSubquery | existsSubquery => exact constant _ success
+      inSubquery | existsSubquery =>
+      exact constant _ (by simpa [joinOperand, bound] using success)
 
 inductive JoinPredicateSyntax : Expr → Prop where
   | comparison (operation : BinaryOp)

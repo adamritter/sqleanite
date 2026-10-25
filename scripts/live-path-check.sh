@@ -2091,4 +2091,16 @@ else
   status=1
 fi
 
+if rg -F -q 'joinResultExpr context (joinBindNames context column.expr)' SQLeanite/CoreSQL.lean &&
+   rg -q 'match joinBindNames context expression with' SQLeanite/CoreSQL.lean &&
+   rg -q 'columns : List Operand' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem projectRow_columns' SQLeanite/CoreJoin.lean &&
+   rg -q 'bindNamesFuel_preserves_collation' SQLeanite/CoreCollationRead.lean &&
+   rg -q 'JoinOperandSyntax.bound context expression' SQLeanite/CoreSQLGrammar.lean; then
+  echo 'ok - joined literal/name atoms preserve column values, grammar and projection collation'
+else
+  echo 'FAIL - joined literal/name atom live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

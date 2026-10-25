@@ -1168,7 +1168,7 @@ private def expectOptimizerSemantics : IO Unit := do
           CoreOptimizerBridge.joinedRow do
     fail "proved optimizer changed the embedded live inner join"
   let joinQuery : CoreJoin.Query := {
-    columns := [⟨.left, 0⟩, ⟨.right, 0⟩]
+    columns := [.column ⟨.left, 0⟩, .column ⟨.right, 0⟩]
     on := some joinEquality }
   let optimizedJoin := CoreOptimizerBridge.optimizeJoin "left" "right" joinQuery
   unless optimizedJoin.eval coreRows rightCoreRows ==
@@ -1183,7 +1183,7 @@ private def expectOptimizerSemantics : IO Unit := do
         CoreOptimizerBridge.joinedRow do
     fail "proved optimizer changed width-aware live left-outer rows"
   let leftJoinQuery : CoreJoin.Query := {
-    columns := [⟨.left, 0⟩, ⟨.right, 0⟩]
+    columns := [.column ⟨.left, 0⟩, .column ⟨.right, 0⟩]
     on := some joinEquality
     kind := .left
     rightWidth := 1 }
@@ -1517,7 +1517,7 @@ private def expectCoreMergeJoin : IO Unit := do
     | some table => pure table
     | none => fail "merge join setup lost its right table"
   let query : CoreJoin.Query := {
-    columns := [⟨.left, 0⟩, ⟨.left, 1⟩, ⟨.right, 1⟩]
+    columns := [.column ⟨.left, 0⟩, .column ⟨.left, 1⟩, .column ⟨.right, 1⟩]
     on := some (CoreJoin.rowidOn left.schema.primaryKey right.schema.primaryKey) }
   unless query.evalPlanned left right == query.eval left.rows right.rows do
     fail "primary-key merge join changed nested-loop semantics"
@@ -7041,6 +7041,43 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinAtoms : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT,true INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,false INTEGER);INSERT INTO l VALUES(1,'a',1),(2,'b',0),(3,NULL,NULL);INSERT INTO r VALUES(1,'A',0),(2,'B',1);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT DISTINCT 1,NULL,'x',X'80FF',1.5,-1,~1,NOT NULL FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY 1;",
+      [[.integer 1,.null,.text "x",.blob #[128,255],.real 1.5,.integer (-1),.integer (-2),.null]]),
+    ("SELECT true,false FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id;",
+      [[.integer 1,.integer 0],[.integer 0,.integer 1],[.null,.null]]),
+    ("SELECT \"true\",\"false\" FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY a.id;",
+      [[.integer 1,.integer 0],[.integer 0,.integer 1],[.null,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE true=1 ORDER BY a.id;",
+      [[.integer 1,.integer 1]]),
+    ("SELECT a.id,b.id FROM l a NATURAL LEFT JOIN r b WHERE true=1 ORDER BY a.id;",
+      [[.integer 1,.null]]),
+    ("SELECT \"k\",true,false FROM l a NATURAL LEFT JOIN r b ORDER BY a.id;",
+      [[.text "a",.integer 1,.null],[.text "b",.integer 0,.null],[.null,.null,.null]]),
+    ("SELECT 1 AS z,a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id ORDER BY z DESC,a.id;",
+      [[.integer 1,.integer 1,.integer 1],[.integer 1,.integer 2,.integer 2],[.integer 1,.integer 3,.null]]),
+    ("SELECT DISTINCT 1 FROM l a,r b ORDER BY 1 LIMIT 1 OFFSET 1;",[])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join atoms: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"join atom rows: {sql}"
+  for sql in ["SELECT \"k\" FROM l a,r b;", "SELECT \"missing\" FROM l a,r b LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"invalid quoted join name accepted: {sql}"
+  let (created, _) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE made AS SELECT DISTINCT 1 AS x,'one' AS y,X'80FF' AS z FROM l a,r b ORDER BY 1;") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := created.database.findTable? "made" | fail "join atom CTAS missing"
+  unless table.rows.length == 1 && table.schema.visibleColumns.map (·.name) == ["x","y","z"] do
+    fail "join atom CTAS metadata or DISTINCT rows differ"
+
 private def expectSQLiteJoinSort : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,NULL),(2,'A'),(3,'a '),(4,'a');INSERT INTO r VALUES(1,'a'),(2,NULL),(3,'B');"
   let cases : List (String × List (List Value)) := [
@@ -7769,6 +7806,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite joined literal and name atoms", expectSQLiteJoinAtoms),
   ("SQLite join NULL placement and collations", expectSQLiteJoinSort),
   ("SQLite join ORDER BY names and positions", expectSQLiteJoinOrder),
   ("SQLite join DISTINCT and LIMIT/OFFSET", expectSQLiteJoinWindow),

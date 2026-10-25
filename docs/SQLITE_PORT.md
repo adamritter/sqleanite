@@ -4510,3 +4510,44 @@ collations, general scalar join expressions and wider join forms remain separate
 work. Native bindings are unchanged. Reports: `sqlite-join-sort-*20261025.json`;
 harnesses: `scripts/run-join-sort-differential.py` and
 `scripts/run-join-sort-write-differential.py`.
+
+
+## Joined literal and quoted/Boolean atoms (2026-10-25)
+
+Joined projections now share the existing operand representation for source
+columns and literal values. Literal INTEGER/REAL/TEXT/BLOB/NULL and unary atoms
+participate in DISTINCT, aliases, result-position ordering, compounds and
+LIMIT/OFFSET. Ordering by a literal output remains a constant term. Source
+columns retain their original stored values, including LEFT JOIN NULL padding.
+
+Schema-dependent name binding precedes join operand/projection translation.
+Quoted identifiers resolve as columns, and a declared TRUE/FALSE column shadows
+its Boolean keyword. Ambiguous names still fail, including on empty results.
+The grammar's positive bound-name constructor records this normalization; the
+existing no-explicit-projection-collation proof is preserved through it.
+
+Baseline seed **354410** records **4,980 comparisons / 3,664 differences**:
+3,654 rejected valid statements, eight accepted invalid statements and two
+successful queries with wrong rows from Boolean column shadowing. Development
+seed **354411** passes **6,084 / 0**. Final-checkpoint fresh seed **354412** passes
+**17,184 / 0**, plus 16 immutable-image/integrity checks. Eight new C-created
+fixtures cover empty sides, three input page sizes, both production file modes,
+mixed storage classes, Boolean column presence/ambiguity, merged names, outer
+padding, DISTINCT, aliases, ordering positions, compound outputs and windows.
+Complete successful output and error status are compared; independent C typed
+observations and unchanged main/WAL bytes are checked. Persisted CTAS/INSERT
+SELECT seed **354413** passes **1,008 / 0**, including independent C metadata,
+typed rows, integrity, follow-up writes and Lean reopening. Join sort regression
+seed **354414** passes **11,992 / 0**, plus eight immutable-image checks.
+
+Implementation SHA-256: `c4f887a4e4c53c8380d365db9db3ac8c3d120d39fc16a5f33208666571e93c58`.
+Final checks pass **350 build jobs, 263 executable tests, 1,222 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The new component theorem proves that embedding existing column
+projections in operand projections preserves every value. Existing join/read/
+optimizer refinements compile with the extended projection; this does not prove
+complete SQLite expression equivalence. General scalar expressions over joined
+columns, projection/comparison collations and wider join forms remain separate
+work. Native bindings are unchanged. Reports: `sqlite-join-atoms-*20261025.json`;
+harnesses: `scripts/run-join-atoms-differential.py` and
+`scripts/run-join-atoms-write-differential.py`.

@@ -1416,3 +1416,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreJoin.OrderTerm.compareValues_null_left
 #print axioms SQLeanite.CoreJoin.OrderTerm.compareValues_null_right
+
+#print axioms SQLeanite.CoreJoin.projectRow_columns

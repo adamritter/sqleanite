@@ -582,13 +582,19 @@ theorem rowidJoinSpec_eq_matchingRows (leftSchema rightSchema : Core.Schema)
       intro pair member
       simp [selects]
 
-def projectRow (columns : List ColumnRef) (row : JoinedRow) :
+def projectRow (columns : List Operand) (row : JoinedRow) :
     List Core.Value :=
   columns.map fun column => column.value row
 
-theorem projectRow_length (columns : List ColumnRef) (row : JoinedRow) :
+theorem projectRow_length (columns : List Operand) (row : JoinedRow) :
     (projectRow columns row).length = columns.length := by
   simp [projectRow]
+
+/-- Existing column projections keep exactly their original values when
+embedded in the operand projection used by literal and column atoms. -/
+theorem projectRow_columns (columns : List ColumnRef) (row : JoinedRow) :
+    projectRow (columns.map Operand.column) row = columns.map (fun column => column.value row) := by
+  simp [projectRow, Operand.value, List.map_map]
 
 def rowLess : List (ColumnRef × Bool) → JoinedRow → JoinedRow → Bool
   | [], _, _ => false
@@ -628,16 +634,16 @@ theorem foldInsertOrdered_perm (terms : List (ColumnRef × Bool))
 
 /-- Compare projected SQL numeric keys while retaining the first original
 joined row. Its unprojected values remain available to ORDER BY. -/
-def distinctRows (columns : List ColumnRef) (rows : List JoinedRow) : List JoinedRow :=
+def distinctRows (columns : List Operand) (rows : List JoinedRow) : List JoinedRow :=
   Core.stableDistinctBy (fun row => Core.distinctRowKey (projectRow columns row)) rows
 
-theorem distinctRows_keys (columns : List ColumnRef) (rows : List JoinedRow)
+theorem distinctRows_keys (columns : List Operand) (rows : List JoinedRow)
     (key : List Core.Value) :
     key ∈ (distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row)) ↔
       key ∈ rows.map (fun row => Core.distinctRowKey (projectRow columns row)) :=
   Core.mem_keys_stableDistinctBy _ _ _
 
-theorem distinctRows_key_nodup (columns : List ColumnRef) (rows : List JoinedRow) :
+theorem distinctRows_key_nodup (columns : List Operand) (rows : List JoinedRow) :
     ((distinctRows columns rows).map (fun row => Core.distinctRowKey (projectRow columns row))).Nodup :=
   Core.stableDistinctBy_key_nodup _ _
 
@@ -676,7 +682,7 @@ def orderedRowLe (terms : List OrderTerm) (left right : JoinedRow) : Bool :=
   !orderedRowLess terms right left
 
 structure Query where
-  columns : List ColumnRef
+  columns : List Operand
   on : Option Predicate
   kind : JoinKind := .inner
   rightWidth : Nat := 0

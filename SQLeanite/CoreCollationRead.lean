@@ -141,16 +141,47 @@ theorem groups_noCollation (schema : Core.Schema) (groups : List Nat)
               · exact groupOutput_noCollation column (CoreSQL.groupOutputSyntax_of_success head)
               · exact ih outputs tail column member
 
+private theorem joinLiteral_noCollation (expression : Expr)
+    (admitted : CoreSQL.joinLiteralExpression expression = true) :
+    NoExplicitCollation expression := by
+  intro fuel
+  induction fuel generalizing expression with
+  | zero => rfl
+  | succ fuel ih =>
+      cases expression
+      case literal value spelling => rfl
+      case unary operation argument => exact ih argument admitted
+      case call name arguments star =>
+        have present : (SQLite.Scalar.booleanKeyword? (.call name arguments star)).isSome = true := admitted
+        cases marked : SQLite.Scalar.booleanKeyword? (.call name arguments star) with
+        | none => simp [marked] at present
+        | some truth => exact SQLite.Scalar.booleanKeyword_noCollation _ truth (fuel + 1) marked
+      all_goals simp [CoreSQL.joinLiteralExpression, SQLite.Scalar.booleanKeyword?] at admitted
+
+private theorem joinResultExpr_noCollation (context : CoreSQL.JoinContext) (expression : Expr)
+    (operands : List CoreJoin.Operand)
+    (success : CoreSQL.joinResultExpr context expression = .ok operands) :
+    NoExplicitCollation expression := by
+  by_cases constant : CoreSQL.joinLiteralExpression expression = true
+  · exact joinLiteral_noCollation expression constant
+  · cases expression <;> simp_all [CoreSQL.joinResultExpr, CoreSQL.unsupported, bind, Except.bind]
+    all_goals intro fuel; cases fuel <;> rfl
+
 private theorem joinColumn_noCollation (context : CoreSQL.JoinContext) (column : ResultColumn)
-    (references : List CoreJoin.ColumnRef)
-    (success : CoreSQL.joinResultColumn context column = .ok references) :
+    (operands : List CoreJoin.Operand)
+    (success : CoreSQL.joinResultColumn context column = .ok operands) :
     NoExplicitCollation column.expr := by
-  fun_cases CoreSQL.joinResultColumn context column <;>
-    simp_all [CoreSQL.joinResultColumn, CoreSQL.unsupported]
-  all_goals intro fuel; cases fuel <;> rfl
+  have bound := joinResultExpr_noCollation context (CoreSQL.joinBindNames context column.expr) operands success
+  intro fuel
+  have preserved := SQLite.Scalar.bindNamesFuel_preserves_collation
+    (CoreSQL.joinHasColumn context) column.expr.height fuel column.expr
+  calc SQLite.ExprCollation.nameFuel fuel column.expr
+      = SQLite.ExprCollation.nameFuel fuel (CoreSQL.joinBindNames context column.expr) := by
+          simpa [CoreSQL.joinBindNames, SQLite.Scalar.bindNames] using preserved.symm
+    _ = none := bound fuel
 
 theorem joinProjection_noCollation (context : CoreSQL.JoinContext)
-    (columns : List ResultColumn) (references : List CoreJoin.ColumnRef)
+    (columns : List ResultColumn) (references : List CoreJoin.Operand)
     (success : CoreSQL.joinProjection context columns = .ok references) :
     ∀ column ∈ columns, NoExplicitCollation column.expr := by
   induction columns generalizing references with
