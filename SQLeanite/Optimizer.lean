@@ -24,6 +24,7 @@ def foldConstants : Predicate → Predicate
   | .operandsEqual left right => .operandsEqual left right
   | .operandsNotEqual left right => .operandsNotEqual left right
   | .operandsCompare operation left right => .operandsCompare operation left right
+  | .operandTruthy operand => .operandTruthy operand
   | .operandIsNull operand => .operandIsNull operand
   | .isNull column => .isNull column
   | .not predicate => foldNot (foldConstants predicate)
@@ -48,7 +49,7 @@ theorem foldConstants_eval (predicate : Predicate) (row : Row) :
     (foldConstants predicate).eval row = predicate.eval row := by
   induction predicate generalizing row with
   | constant | truthy | equals | notEquals | compare | operandsEqual |
-      operandsNotEqual | operandsCompare | operandIsNull | isNull => rfl
+      operandsNotEqual | operandsCompare | operandTruthy | operandIsNull | isNull => rfl
   | not predicate induction =>
       simp only [foldConstants, foldNot_eval, Predicate.eval, induction]
   | and left right leftInduction rightInduction =>

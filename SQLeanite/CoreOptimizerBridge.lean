@@ -165,6 +165,7 @@ theorem joinOperand_value (operand : CoreJoin.Operand)
             CoreJoin.ColumnRef.value]
 
 def joinPredicate : CoreJoin.Predicate → QuerySemantics.Predicate
+  | .truthy operand => .operandTruthy (joinOperand operand)
   | .equal left right => .operandsEqual (joinOperand left) (joinOperand right)
   | .notEqual left right =>
       .operandsNotEqual (joinOperand left) (joinOperand right)
@@ -188,6 +189,7 @@ def fromJoinOperand? : QuerySemantics.Operand → Option CoreJoin.Operand
   | _ => none
 
 def fromJoinPredicate? : QuerySemantics.Predicate → Option CoreJoin.Predicate
+  | .operandTruthy operand => return .truthy (← fromJoinOperand? operand)
   | .operandsEqual left right =>
       return .equal (← fromJoinOperand? left) (← fromJoinOperand? right)
   | .operandsNotEqual left right =>
@@ -223,7 +225,7 @@ theorem joinPredicate_eval (predicate : CoreJoin.Predicate)
     (joinPredicate predicate).eval (joinedRow row) = predicate.eval row := by
   induction predicate <;>
     simp_all [joinPredicate, QuerySemantics.Predicate.eval,
-      QuerySemantics.sqlEquals, CoreJoin.Predicate.eval, joinOperand_value]
+      QuerySemantics.sqlEquals, QuerySemantics.valueTruth, CoreJoin.Predicate.eval, joinOperand_value]
 
 /-- SQL `ON` and post-join `WHERE` are both selection conditions for an inner
 join. `TRUE` is the identity when either optional clause is absent. -/

@@ -1425,3 +1425,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoinUsing.nameCandidates_declared
 
 #print axioms SQLeanite.CoreJoin.Query.lookupInputRows_perm
+
+#print axioms SQLeanite.CoreJoin.Predicate.truthy_null

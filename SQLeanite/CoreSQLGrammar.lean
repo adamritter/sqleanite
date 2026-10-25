@@ -384,6 +384,10 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
       exact constant _ (by simpa [joinOperand, bound] using success)
 
 inductive JoinPredicateSyntax : Expr → Prop where
+  | truthy {expression : Expr} : JoinOperandSyntax expression → JoinPredicateSyntax expression
+  | prepared (context : JoinContext) (expression : Expr) :
+      JoinPredicateSyntax (SQLite.Scalar.prepare (joinBindNames context expression)) →
+        JoinPredicateSyntax expression
   | comparison (operation : BinaryOp)
       (allowed : operation = .eq ∨ operation = .ne ∨ operation = .lt ∨
         operation = .le ∨ operation = .gt ∨ operation = .ge)
@@ -420,9 +424,17 @@ private theorem joinComparisonOperands_of_success {context : JoinContext}
             (joinOperandSyntax_of_success leftResult)
             (joinOperandSyntax_of_success rightResult)
 
-theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Expr}
+private theorem joinTruthSyntax_of_success {context : JoinContext} {expression : Expr}
     {predicate : CoreJoin.Predicate}
-    (success : joinPredicate context expression = .ok predicate) :
+    (success : CoreJoin.Predicate.truthy <$> joinOperand context expression = .ok predicate) :
+    JoinPredicateSyntax expression := by
+  cases translated : joinOperand context expression with
+  | error message => simp [translated, Functor.map, Except.map] at success
+  | ok operand => exact .truthy (joinOperandSyntax_of_success translated)
+
+theorem joinPredicateRawSyntax_of_success {context : JoinContext} {expression : Expr}
+    {predicate : CoreJoin.Predicate}
+    (success : joinPredicateRaw context expression = .ok predicate) :
     JoinPredicateSyntax expression := by
   cases expression with
   | binary operation left right =>
@@ -434,42 +446,42 @@ theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Exp
       | gt => exact joinComparisonOperands_of_success (by simp) _ success
       | ge => exact joinComparisonOperands_of_success (by simp) _ success
       | and =>
-          change CoreJoin.Predicate.and <$> joinPredicate context left <*>
-            joinPredicate context right = Except.ok predicate at success
-          cases leftResult : joinPredicate context left with
+          change CoreJoin.Predicate.and <$> joinPredicateRaw context left <*>
+            joinPredicateRaw context right = Except.ok predicate at success
+          cases leftResult : joinPredicateRaw context left with
           | error message =>
               rw [leftResult] at success
               change Except.error message = Except.ok predicate at success
               contradiction
           | ok leftPredicate =>
-              cases rightResult : joinPredicate context right with
+              cases rightResult : joinPredicateRaw context right with
               | error message =>
                   rw [leftResult, rightResult] at success
                   change Except.error message = Except.ok predicate at success
                   contradiction
               | ok rightPredicate =>
-                  exact .and (joinPredicateSyntax_of_success leftResult)
-                    (joinPredicateSyntax_of_success rightResult)
+                  exact .and (joinPredicateRawSyntax_of_success leftResult)
+                    (joinPredicateRawSyntax_of_success rightResult)
       | or =>
-          change CoreJoin.Predicate.or <$> joinPredicate context left <*>
-            joinPredicate context right = Except.ok predicate at success
-          cases leftResult : joinPredicate context left with
+          change CoreJoin.Predicate.or <$> joinPredicateRaw context left <*>
+            joinPredicateRaw context right = Except.ok predicate at success
+          cases leftResult : joinPredicateRaw context left with
           | error message =>
               rw [leftResult] at success
               change Except.error message = Except.ok predicate at success
               contradiction
           | ok leftPredicate =>
-              cases rightResult : joinPredicate context right with
+              cases rightResult : joinPredicateRaw context right with
               | error message =>
                   rw [leftResult, rightResult] at success
                   change Except.error message = Except.ok predicate at success
                   contradiction
               | ok rightPredicate =>
-                  exact .or (joinPredicateSyntax_of_success leftResult)
-                    (joinPredicateSyntax_of_success rightResult)
+                  exact .or (joinPredicateRawSyntax_of_success leftResult)
+                    (joinPredicateRawSyntax_of_success rightResult)
       | add | sub | mul | div | mod | is | isNot | like | glob | «match» |
           concat | bitAnd | bitOr | shiftLeft | shiftRight | arrow | arrowText =>
-          simp [joinPredicate, unsupported] at success
+          exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
   | isNull operand negated =>
       cases negated with
       | false =>
@@ -495,19 +507,25 @@ theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Exp
   | unary operation argument =>
       cases operation with
       | not =>
-          change CoreJoin.Predicate.not <$> joinPredicate context argument =
+          change CoreJoin.Predicate.not <$> joinPredicateRaw context argument =
             Except.ok predicate at success
-          cases translated : joinPredicate context argument with
+          cases translated : joinPredicateRaw context argument with
           | error message =>
               rw [translated] at success
               change Except.error message = Except.ok predicate at success
               contradiction
-          | ok nested => exact .not (joinPredicateSyntax_of_success translated)
-      | plus | neg | bitNot => simp [joinPredicate, unsupported] at success
+          | ok nested => exact .not (joinPredicateRawSyntax_of_success translated)
+      | plus | neg | bitNot => exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
   | literal | column | star | call | inList | collate | case_ | scalarSubquery |
-      inSubquery | existsSubquery => simp [joinPredicate, unsupported] at success
+      inSubquery | existsSubquery => exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
 termination_by expression.height
 decreasing_by all_goals simp_all [Expr.height] <;> omega
+
+theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Expr}
+    {predicate : CoreJoin.Predicate}
+    (success : joinPredicate context expression = .ok predicate) :
+    JoinPredicateSyntax expression :=
+  .prepared context expression (joinPredicateRawSyntax_of_success success)
 
 end CoreSQL
 end SQLeanite

@@ -27,14 +27,9 @@ def Row.lookup : Row → ColumnPath → Core.Value
 def sqlEquals (left right : Core.Value) : Truth :=
   PhysicalQuery.sqlEquals left right
 
-/-- SQL truth conversion for the exact physical values used by the Core.
-The live bridge only emits comparison predicates, but retaining truthiness in
-the denotation lets the optimizer state general filter-fusion laws. -/
-def valueTruth : Core.Value → Truth
-  | .null => .unknown
-  | .integer value => if value.value = 0 then .false else .true
-  | .realBits bits => if Binary64.isZero bits then .false else .true
-  | .text _ | .blob _ => .false
+/-- SQL truth conversion shared with executable joined predicates, including
+numeric prefixes in stored TEXT/BLOB values. -/
+def valueTruth (value : Core.Value) : Truth := SQLite.PhysicalAffinity.truth value
 
 /-- A comparison operand in the denotational language. Unlike the original
 single-table predicate constructors, this form can name both sides of a join.
@@ -61,6 +56,7 @@ inductive Predicate where
   | operandsEqual (left right : Operand)
   | operandsNotEqual (left right : Operand)
   | operandsCompare (operation : PhysicalQuery.Comparison) (left right : Operand)
+  | operandTruthy (operand : Operand)
   | operandIsNull (operand : Operand)
   | isNull (column : ColumnPath)
   | not (predicate : Predicate)
@@ -81,6 +77,7 @@ def Predicate.eval : Predicate → Row → Truth
       Truth.not (sqlEquals (left.value row) (right.value row))
   | .operandsCompare operation left right, row =>
       PhysicalQuery.sqlCompare operation (left.value row) (right.value row)
+  | .operandTruthy operand, row => valueTruth (operand.value row)
   | .operandIsNull operand, row => if operand.value row = .null then .true else .false
   | .isNull column, row => if row.lookup column = .null then .true else .false
   | .not predicate, row => Truth.not (predicate.eval row)

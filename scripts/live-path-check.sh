@@ -2125,4 +2125,15 @@ else
   status=1
 fi
 
+if rg -F -q 'joinPredicateRaw context (SQLite.Scalar.prepare (joinBindNames context expression))' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'SQLite.PhysicalAffinity.truth (operand.value row)' SQLeanite/CoreJoin.lean &&
+   rg -F -q 'Numeric.truth (.textBytes value.bytes.toArray)' SQLeanite/SQLite/PhysicalAffinity.lean &&
+   rg -F -q '.operandTruthy (joinOperand operand)' SQLeanite/CoreOptimizerBridge.lean &&
+   rg -q 'JoinPredicateSyntax expression' SQLeanite/CoreSQLGrammar.lean; then
+  echo 'ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding'
+else
+  echo 'FAIL - joined truth atom live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

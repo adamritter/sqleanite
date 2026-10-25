@@ -7041,6 +7041,45 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinTruth : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,NULL),(2,0),(3,2),(4,0.5),(5,'1tail'),(6,X'302E35FF'),(7,'x');INSERT INTO r VALUES(1,NULL),(2,1);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,b.id FROM l a JOIN r b ON a.k ORDER BY a.id,b.id;",
+      [[.integer 3,.integer 1],[.integer 3,.integer 2],[.integer 4,.integer 1],[.integer 4,.integer 2],
+       [.integer 5,.integer 1],[.integer 5,.integer 2],[.integer 6,.integer 1],[.integer 6,.integer 2]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k ORDER BY a.id;",
+      [[.integer 3,.null],[.integer 4,.null],[.integer 5,.null],[.integer 6,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE NOT a.k ORDER BY a.id;",
+      [[.integer 2,.integer 2],[.integer 7,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE b.k ORDER BY a.id;",
+      [[.integer 2,.integer 2]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL ORDER BY a.id LIMIT 2;",
+      [[.integer 1,.null],[.integer 2,.null]]),
+    ("SELECT a.id,b.id FROM l a,r b WHERE 0 AND missing ORDER BY a.id,b.id;",[]),
+    ("SELECT a.id,b.id FROM l a,r b WHERE NULL ORDER BY a.id,b.id;",[])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join truth: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"join truth rows: {sql}"
+  for sql in ["SELECT a.id FROM l a,r b WHERE 1 OR missing;",
+      "SELECT a.id FROM l a,r b WHERE false AND missing;",
+      "SELECT a.id FROM l a,r b WHERE 0 AND not_a_function();"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"join truth preparation erased a required name/function error: {sql}"
+  let (_, output) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE l(id INTEGER PRIMARY KEY,true);CREATE TABLE r(id INTEGER PRIMARY KEY);INSERT INTO l VALUES(1,2),(2,0);INSERT INTO r VALUES(1);SELECT a.id,b.id FROM l a,r b WHERE true ORDER BY a.id,b.id;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let one ← match SQLSurface.value (.integer 1) with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [[one,one]] do
+    fail "bare Boolean-name truth conversion lost source-column shadowing"
+
 private def expectSQLiteJoinLookupScan : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,rowid NUMERIC);INSERT INTO l VALUES(1,'a'),(2,'b');INSERT INTO r VALUES(1,2),(2,1),(3,NULL),(4,1);"
   for (source, tail, expected) in [
@@ -7897,6 +7936,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),
   ("SQLite declared rowid names across joined sources", expectSQLiteJoinRowidNames),
   ("SQLite visible column names and implicit rowid aliases", expectSQLiteColumnVisibility),

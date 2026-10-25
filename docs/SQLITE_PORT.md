@@ -4639,3 +4639,47 @@ in the reports. Native bindings are unchanged. Reports:
 `sqlite-join-rowid-names-*20261025.json`; harness:
 `scripts/run-join-rowid-names-differential.py`. The saved read-only failure replay
 also accepts fixtures embedded in per-case file-write reports.
+
+
+## Truth conversion in joined ON/WHERE (2026-10-25)
+
+Joined predicates now admit standalone literal/column truth operands and their
+AND/OR/NOT combinations. Physical truth conversion preserves NULL as UNKNOWN,
+recognizes both signed REAL zeros, and reads numeric prefixes from TEXT/BLOB
+bytes without changing the stored value. It shares the existing scalar numeric
+scanner. The live join predicate and its optimizer embedding use this conversion;
+the older abstract column-truth denotation now uses it too, instead of treating
+all TEXT/BLOB values as false. Logical optimizer and cost refinements still
+compile. See SQLite's [Boolean expression rules](https://www.sqlite.org/lang_expr.html#booleanexpr).
+
+Schema-dependent binding runs before the existing parser-level preparation.
+Declared TRUE/FALSE names therefore retain their column meaning. The limited
+zero-AND simplification preserves SQLite's distinctions between integer zero,
+Boolean keywords and expressions carrying function calls. The positive grammar
+records preparation explicitly; it does not bypass the independent parser replay.
+
+Baseline seed **354440** records **5,688 comparisons / 5,144 differences**, all
+valid C statements rejected by the previous join predicate translator.
+Development seed **354441** passes **4,410 / 0**. Final-checkpoint fresh seed
+**354442** passes **12,400 / 0**, plus 16 immutable-image/integrity checks. Eight
+new C-created fixtures cover empty sides, three page sizes, both file modes,
+NULL/numeric/text/BLOB values, numeric prefixes and malformed UTF-8, embedded NUL,
+subnormal/infinite REALs, Boolean-name shadowing, outer padding, logical
+combinations and row windows. Complete successful output and error status are
+compared, with independent C typed observations and immutable main/WAL images.
+Persisted CTAS/INSERT SELECT seed **354443** passes **1,248 / 0**, including C
+catalog/column/index metadata, typed rows, integrity, follow-up writes and Lean
+reopening. Joined-atom regression seed **354444** passes **8,272 / 0**, plus eight
+immutable-image checks.
+
+Implementation SHA-256: `88b89c69ef1d30275f913f4cd0467e3ac4be4315111d447ad6dd33e10ac83c9c`.
+Final checks pass **350 build jobs, 267 executable tests, 1,227 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The new component proposition preserves UNKNOWN for a NULL truth
+operand; the bidirectional optimizer embedding and evaluation refinements cover
+the new predicate constructor. This is not complete SQLite expression or planner
+equivalence. General joined row arithmetic/functions, IS comparisons and the
+previously recorded automatic-index tie-order differences remain separate work.
+Native bindings are unchanged. Reports: `sqlite-join-truth-*20261025.json`;
+harnesses: `scripts/run-join-truth-differential.py` and
+`scripts/run-join-truth-write-differential.py`.

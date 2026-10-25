@@ -1,4 +1,5 @@
 import SQLeanite.PhysicalCodec
+import SQLeanite.Binary64
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.Numeric
 
@@ -54,6 +55,15 @@ def numeric : PhysicalCodec.Value → PhysicalCodec.Value
       | some value => numberValue value
       | none => v
   | v => v
+
+/-- Boolean contexts use numeric prefixes of TEXT/BLOB, independently of
+comparison affinity. NULL retains SQL's third truth value. -/
+def truth : PhysicalCodec.Value → Truth
+  | .null => .unknown
+  | .integer value => if value.value = 0 then .false else .true
+  | .realBits bits => if Binary64.isZero bits then .false else .true
+  | .text value => Numeric.truth (.textBytes value.bytes.toArray)
+  | .blob value => Numeric.truth (.blob value.bytes.toArray)
 
 /-- Comparisons only need to convert TEXT and leave already numeric operands
 in their original representation; the existing exact numeric comparator

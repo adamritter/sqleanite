@@ -61,7 +61,7 @@ theorem Cost.total_le {left right : Cost} (bounded : left.LE right) :
 Boolean connective bookkeeping is not counted as a value comparison. -/
 def Predicate.comparisonCount : Predicate → Nat
   | .constant _ => 0
-  | .truthy _ | .equals _ _ | .notEquals _ _ | .compare _ _ _ | .operandsEqual _ _ | .operandsNotEqual _ _ | .operandsCompare _ _ _ | .operandIsNull _ | .isNull _ => 1
+  | .truthy _ | .equals _ _ | .notEquals _ _ | .compare _ _ _ | .operandsEqual _ _ | .operandsNotEqual _ _ | .operandsCompare _ _ _ | .operandTruthy _ | .operandIsNull _ | .isNull _ => 1
   | .not predicate | .onLeft predicate | .onRight predicate =>
       predicate.comparisonCount
   | .and left right | .or left right =>
@@ -86,7 +86,7 @@ private theorem foldOr_comparisonCount_le (left right : Predicate) :
 theorem foldConstants_comparisonCount_le (predicate : Predicate) :
     (foldConstants predicate).comparisonCount ≤ predicate.comparisonCount := by
   induction predicate with
-  | constant | truthy | equals | notEquals | compare | operandsEqual | operandsNotEqual | operandsCompare | operandIsNull | isNull =>
+  | constant | truthy | equals | notEquals | compare | operandsEqual | operandsNotEqual | operandsCompare | operandTruthy | operandIsNull | isNull =>
       exact Nat.le_refl _
   | not predicate induction =>
       exact Nat.le_trans (foldNot_comparisonCount_le (foldConstants predicate))

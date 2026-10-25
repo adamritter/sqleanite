@@ -46,6 +46,7 @@ theorem Operand.coercedColumn_null (affinity : SQLite.Affinity) (reference : Col
   simp [Operand.value, missing, SQLite.PhysicalAffinity.comparison_null]
 
 inductive Predicate where
+  | truthy (operand : Operand)
   | equal (left right : Operand)
   | notEqual (left right : Operand)
   | compare (operation : PhysicalQuery.Comparison) (left right : Operand)
@@ -56,6 +57,7 @@ inductive Predicate where
   deriving DecidableEq
 
 def Predicate.eval : Predicate → JoinedRow → Truth
+  | .truthy operand, row => SQLite.PhysicalAffinity.truth (operand.value row)
   | .equal left right, row => PhysicalQuery.sqlEquals (left.value row) (right.value row)
   | .notEqual left right, row => Truth.not (PhysicalQuery.sqlEquals (left.value row) (right.value row))
   | .compare operation left right, row =>
@@ -68,7 +70,7 @@ def Predicate.eval : Predicate → JoinedRow → Truth
 def Predicate.leftOnly : Predicate → Bool
   | .equal left right | .notEqual left right | .compare _ left right =>
       left.leftOnly && right.leftOnly
-  | .isNull operand => operand.leftOnly
+  | .truthy operand | .isNull operand => operand.leftOnly
   | .not predicate => predicate.leftOnly
   | .and left right | .or left right => left.leftOnly && right.leftOnly
 
@@ -99,7 +101,7 @@ theorem Predicate.eval_leftOnly {predicate : Predicate}
       simp [Predicate.eval,
         Operand.value_leftOnly only.1 left firstRight secondRight,
         Operand.value_leftOnly only.2 left firstRight secondRight]
-  | isNull operand =>
+  | truthy operand | isNull operand =>
       simp [Predicate.eval,
         Operand.value_leftOnly only left firstRight secondRight]
   | not predicate induction =>
@@ -110,6 +112,10 @@ theorem Predicate.eval_leftOnly {predicate : Predicate}
   | or first second firstInduction secondInduction =>
       simp only [Predicate.leftOnly, Bool.and_eq_true] at only
       simp [Predicate.eval, firstInduction only.1, secondInduction only.2]
+
+theorem Predicate.truthy_null (operand : Operand) (row : JoinedRow)
+    (missing : operand.value row = .null) : (Predicate.truthy operand).eval row = .unknown := by
+  simp [Predicate.eval, missing, SQLite.PhysicalAffinity.truth]
 
 def crossRows (left right : List Core.Row) : List JoinedRow :=
   left.flatMap fun leftRow => right.map fun rightRow => (leftRow, rightRow)

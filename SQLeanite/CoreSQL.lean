@@ -1346,7 +1346,7 @@ def joinUsingPredicate (context : JoinContext) : Except String (Option CoreJoin.
       (← joinOperandCoerce context aff left) (← joinOperandCoerce context aff right)
     return some ((prior.map (fun predicate => .and predicate comparison)).getD comparison)) none
 
-def joinPredicate (context : JoinContext) : Expr →
+def joinPredicateRaw (context : JoinContext) : Expr →
     Except String CoreJoin.Predicate
   | .binary .eq left right =>
       joinComparison context .equal left right
@@ -1362,12 +1362,17 @@ def joinPredicate (context : JoinContext) : Expr →
       joinComparison context (.compare .greaterEqual) left right
   | .isNull operand false => .isNull <$> joinOperand context operand
   | .isNull operand true => .not <$> (.isNull <$> joinOperand context operand)
-  | .unary .not expression => .not <$> joinPredicate context expression
+  | .unary .not expression => .not <$> joinPredicateRaw context expression
   | .binary .and left right =>
-      .and <$> joinPredicate context left <*> joinPredicate context right
+      .and <$> joinPredicateRaw context left <*> joinPredicateRaw context right
   | .binary .or left right =>
-      .or <$> joinPredicate context left <*> joinPredicate context right
-  | _ => unsupported "join predicate"
+      .or <$> joinPredicateRaw context left <*> joinPredicateRaw context right
+  | expression => .truthy <$> joinOperand context expression
+
+/-- Name binding precedes SQLite's parser-level zero-AND preparation, so a
+source TRUE/FALSE column cannot be folded into its keyword's literal value. -/
+def joinPredicate (context : JoinContext) (expression : Expr) : Except String CoreJoin.Predicate :=
+  joinPredicateRaw context (SQLite.Scalar.prepare (joinBindNames context expression))
 
 def joinSideColumns (side : CoreJoin.Side) (count : Nat) :
     List CoreJoin.ColumnRef :=
