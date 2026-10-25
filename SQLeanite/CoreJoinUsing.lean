@@ -12,13 +12,12 @@ structure Column where
   deriving Repr, DecidableEq
 
 def declaredColumn? (schema : Core.Schema) (name : String) : Option Nat :=
-  schema.visibleColumnIndices.find? fun index =>
-    (schema.columns[index]?).any (fun column => column.name.toLower == name.toLower)
+  schema.declaredColumn? name
 
 theorem declaredColumn_visible (schema : Core.Schema) (name : String) (index : Nat)
     (found : declaredColumn? schema name = some index) :
     index ∈ schema.visibleColumnIndices := by
-  exact List.mem_of_find?_eq_some found
+  exact schema.declaredColumn_visible name index found
 
 def columns (left right : Core.Schema) (source : TableRef) : Except String (List Column) := do
   if source.naturalJoin && (source.joinOn.isSome || !source.usingColumns.isEmpty) then

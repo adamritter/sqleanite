@@ -228,10 +228,7 @@ def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
   return SQLite.PhysicalAffinity.comparison aff value
 
 def findColumn? (schema : Core.Schema) (name : String) : Option Nat :=
-  match schema.columns.findIdx? (fun column => canonical column.name == canonical name) with
-  | some index => some index
-  | none => if ["rowid", "oid", "_rowid_"].contains (canonical name) then
-      some schema.primaryKey else none
+  schema.column? name
 
 def column (schema : Core.Schema) (name : String) : Except String Nat :=
   match findColumn? schema name with

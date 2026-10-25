@@ -7041,6 +7041,47 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteColumnVisibility : IO Unit := do
+  let setup := "CREATE TABLE n(v);INSERT INTO n VALUES('a'),('b');CREATE TABLE t(k TEXT PRIMARY KEY,v);INSERT INTO t VALUES('x','c');CREATE TABLE s(rowid,oid,_rowid_);INSERT INTO s VALUES(31,41,51);CREATE TABLE named(id INTEGER PRIMARY KEY,__sqleanite_rowid TEXT);INSERT INTO named VALUES(8,'declared');"
+  let invalid := [
+    "SELECT __sqleanite_rowid FROM n;",
+    "SELECT n.__sqleanite_rowid FROM n;",
+    "SELECT __sqleanite_rowid FROM t;",
+    "SELECT v FROM n ORDER BY __sqleanite_rowid;",
+    "SELECT sum(__sqleanite_rowid) FROM n;",
+    "SELECT count(*) FROM n WHERE __sqleanite_rowid=1;",
+    "SELECT v FROM n GROUP BY __sqleanite_rowid;",
+    "SELECT a.__sqleanite_rowid,b.k FROM n a,t b LIMIT 0;",
+    "UPDATE n SET v='wrong' WHERE __sqleanite_rowid=1;",
+    "UPDATE n SET __sqleanite_rowid=9;",
+    "DELETE FROM n WHERE __sqleanite_rowid=1;",
+    "INSERT INTO n(__sqleanite_rowid,v) VALUES(9,'wrong');",
+    "CREATE INDEX bad ON n(__sqleanite_rowid);",
+    "CREATE INDEX bad ON n(rowid);"]
+  for sql in invalid do
+    for empty in ["", "DELETE FROM n;DELETE FROM t;"] do
+      if (CoreSQL.execute Core.State.empty (setup ++ empty ++ sql)).isOk then
+        fail s!"internal column name escaped into SQL: {sql}"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT rowid,oid,_rowid_,v FROM n ORDER BY rowid;",
+      [[.integer 1,.integer 1,.integer 1,.text "a"],[.integer 2,.integer 2,.integer 2,.text "b"]]),
+    ("SELECT rowid AS __sqleanite_rowid,v FROM n ORDER BY __sqleanite_rowid DESC;",
+      [[.integer 2,.text "b"],[.integer 1,.text "a"]]),
+    ("SELECT a.rowid AS __sqleanite_rowid,b.k FROM n a,t b ORDER BY __sqleanite_rowid;",
+      [[.integer 1,.text "x"],[.integer 2,.text "x"]]),
+    ("UPDATE n SET rowid=8 WHERE oid=1;SELECT rowid,v FROM n ORDER BY rowid;",
+      [[.integer 2,.text "b"],[.integer 8,.text "a"]]),
+    ("SELECT rowid,oid,_rowid_ FROM s;",[[.integer 31,.integer 41,.integer 51]]),
+    ("SELECT __sqleanite_rowid,rowid FROM named;",[[.text "declared",.integer 8]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"visible column lookup: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"visible column rows: {sql}"
+
 private def expectSQLiteJoinAtoms : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT,true INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,false INTEGER);INSERT INTO l VALUES(1,'a',1),(2,'b',0),(3,NULL,NULL);INSERT INTO r VALUES(1,'A',0),(2,'B',1);"
   let cases : List (String × List (List Value)) := [
@@ -7806,6 +7847,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite visible column names and implicit rowid aliases", expectSQLiteColumnVisibility),
   ("SQLite joined literal and name atoms", expectSQLiteJoinAtoms),
   ("SQLite join NULL placement and collations", expectSQLiteJoinSort),
   ("SQLite join ORDER BY names and positions", expectSQLiteJoinOrder),

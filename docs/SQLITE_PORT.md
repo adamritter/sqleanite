@@ -4551,3 +4551,41 @@ columns, projection/comparison collations and wider join forms remain separate
 work. Native bindings are unchanged. Reports: `sqlite-join-atoms-*20261025.json`;
 harnesses: `scripts/run-join-atoms-differential.py` and
 `scripts/run-join-atoms-write-differential.py`.
+
+
+## Visible SQL columns and implicit rowid names (2026-10-25)
+
+SQL name lookup now searches visible schema positions before falling back to
+`rowid`, `oid` or `_rowid_`. The internal bookkeeping column is absent from that
+lookup. CoreSQL, row-expression binding and USING/NATURAL metadata share this
+visible-column implementation. Index declarations retain their declared-only
+lookup. Output aliases remain independent, and an explicitly declared column
+with the internal spelling remains accessible in schemas with an INTEGER
+PRIMARY KEY. See SQLite's [rowid naming rules](https://www.sqlite.org/lang_createtable.html#rowid).
+
+Baseline seed **354420** records **100 comparisons / 48 differences**, including
+reads and writes through the internal bookkeeping name. Development seed
+**354421** passes **372 / 0**. Final-checkpoint fresh seed **354422** passes
+**1,312 / 0**, across eight C-created fixtures, three input page sizes and both
+production file modes. It covers empty/nonempty tables, quoted/case-varied names,
+projections, sorting, grouping, predicates, joins, dead expression branches,
+RETURNING, assignment/insert targets, index declarations, CTAS and schema edits.
+Positive controls exercise declared names, output aliases and all three rowid
+spellings, including their shadowing by declared columns. Complete successful
+output and error status are compared, together with independent C catalog,
+column/index metadata, typed rows, integrity, follow-up writes and Lean reopening.
+Main/WAL images must remain unchanged whenever C leaves them unchanged.
+Joined-atom regression seed **354423** passes **8,272 / 0**, plus eight immutable-
+image checks.
+
+Implementation SHA-256: `c0aa7522986a9d83943812e7c8d263cafed16458595818ca955eab74982b09bd`.
+Final checks pass **350 build jobs, 264 executable tests, 1,224 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Two new component propositions restrict declared-name results to
+visible positions and general lookup results to visible positions or explicit
+rowid aliases. These are internal lookup claims, not complete SQLite name-
+resolution equivalence. A declared `__sqleanite_rowid` still cannot coexist with
+an additional hidden bookkeeping column; cross-source declared-rowid priority
+remains separate work. Native bindings are unchanged. Reports:
+`sqlite-column-visibility-*20261025.json`; harness:
+`scripts/run-column-visibility-differential.py`.

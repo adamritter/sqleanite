@@ -2103,4 +2103,15 @@ else
   status=1
 fi
 
+if rg -F -q 'schema.column? name' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'ctx.schema.column? name' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'schema.declaredColumn? name' SQLeanite/CoreJoinUsing.lean &&
+   rg -q 'theorem Schema.column_visible_or_rowid' SQLeanite/Core.lean &&
+   rg -F -q 'schema.catalogColumns.findIdx?' SQLeanite/CoreSQL.lean; then
+  echo 'ok - SQL column binding shares visible names and explicit rowid aliases'
+else
+  echo 'FAIL - SQL column visibility live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

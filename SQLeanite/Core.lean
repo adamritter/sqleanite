@@ -204,6 +204,38 @@ def Schema.visibleColumnIndices (schema : Schema) : List Nat :=
 def Schema.visibleColumns (schema : Schema) : List Column :=
   schema.visibleColumnIndices.filterMap fun index => schema.columns[index]?
 
+/-- SQL declared-column names range over visible physical positions only.
+The bookkeeping column of an implicit rowid is not a declared SQL name. -/
+def Schema.declaredColumn? (schema : Schema) (name : String) : Option Nat :=
+  schema.visibleColumnIndices.find? fun index =>
+    (schema.columns[index]?).any (fun column => column.name.toLower == name.toLower)
+
+theorem Schema.declaredColumn_visible (schema : Schema) (name : String) (index : Nat)
+    (found : schema.declaredColumn? name = some index) :
+    index ∈ schema.visibleColumnIndices :=
+  List.mem_of_find?_eq_some found
+
+/-- Declared columns shadow SQLite's three implicit rowid spellings. -/
+def Schema.column? (schema : Schema) (name : String) : Option Nat :=
+  match schema.declaredColumn? name with
+  | some index => some index
+  | none => if ["rowid", "oid", "_rowid_"].contains name.toLower then
+      some schema.primaryKey else none
+
+theorem Schema.column_visible_or_rowid (schema : Schema) (name : String) (index : Nat)
+    (found : schema.column? name = some index) :
+    index ∈ schema.visibleColumnIndices ∨
+      (["rowid", "oid", "_rowid_"].contains name.toLower = true ∧ index = schema.primaryKey) := by
+  cases declared : schema.declaredColumn? name with
+  | some position =>
+      have equal : position = index := by simpa [Schema.column?, declared] using found
+      exact Or.inl (schema.declaredColumn_visible name index (equal ▸ declared))
+  | none =>
+      simp only [Schema.column?, declared] at found
+      split at found
+      next alias => exact Or.inr ⟨alias, (Option.some.inj found).symm⟩
+      next => cases found
+
 def Schema.declaredPrimaryKey? (schema : Schema) : Option Nat :=
   schema.columns[schema.declaredPrimaryKey]?
     |>.map fun _ => schema.declaredPrimaryKey

@@ -1418,3 +1418,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.OrderTerm.compareValues_null_right
 
 #print axioms SQLeanite.CoreJoin.projectRow_columns
+
+#print axioms SQLeanite.Core.Schema.declaredColumn_visible
+#print axioms SQLeanite.Core.Schema.column_visible_or_rowid
