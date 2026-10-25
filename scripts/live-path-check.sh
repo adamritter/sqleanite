@@ -450,6 +450,19 @@ else
   fail "packed-page recognition lost its whole-pointer ordering guard"
 fi
 
+if grep -q 'let definitions ← tablePrimaryColumns definitions constraints' SQLeanite/CoreSQL.lean &&
+   grep -q 'matchTablePrimary constraint' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'collations := collations.push collation' SQLeanite/Parser.lean &&
+   grep -q 'descending := descending.push desc' SQLeanite/Parser.lean &&
+   grep -q 'CoreSQL.markPrimaryColumn_names' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.tablePrimaryColumns_empty' SQLeanite/ProofAxioms.lean &&
+   grep -q 'match insertValueIndex schema.primaryKey targetIndex indices' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.insertValueIndex_rowid' SQLeanite/ProofAxioms.lean; then
+  ok "table PRIMARY KEY syntax retains metadata and lowers through checked Core schemas"
+else
+  fail "table-key metadata or checked lowering detached from the live path"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

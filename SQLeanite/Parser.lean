@@ -510,6 +510,8 @@ private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
   if primary || (← acceptKeyword "unique") then
     expectSymbol "("
     let mut columns := #[]
+    let mut collations : Array (Option String) := #[]
+    let mut descending : Array Bool := #[]
     let mut autoIncrement := false
     let mut done := false
     while !done do
@@ -518,16 +520,17 @@ private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
         throw "expressions prohibited in PRIMARY KEY and UNIQUE constraints"
       if primary && columns.size == 1 then
         autoIncrement := ← acceptKeyword "autoincrement"
-      if ← acceptKeyword "collate" then discard <| expectIdent
-      discard <| acceptKeyword "asc"
-      discard <| acceptKeyword "desc"
+      let collation ← if ← acceptKeyword "collate" then some <$> expectIdent else pure none
+      collations := collations.push collation
+      let desc ← if ← acceptKeyword "asc" then pure false else acceptKeyword "desc"
+      descending := descending.push desc
       done := !(← acceptSymbol ",")
     expectSymbol ")"
     let conflict ← if ← acceptKeyword "on" then
         expectKeyword "conflict" *> parseConflictAction
       else pure .abort
     consumeIgnoredConstraintNames
-    pure (some { columns, primaryKey := primary, autoIncrement, conflict })
+    pure (some { columns, collations, descending, primaryKey := primary, autoIncrement, conflict })
   else if ← acceptKeyword "check" then
     expectSymbol "("
     let sourceStart ← currentTokenPos

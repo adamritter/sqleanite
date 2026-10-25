@@ -41,10 +41,57 @@ def columnAllowed (column : ColumnDef) : Bool :=
   column.references.isNone && column.check.isNone && !column.autoIncrement &&
   column.collation.toLower == "binary"
 
+/-- Mark a table-level key without changing column order, names or other
+column constraints. The caller validates that its target exists uniquely. -/
+def markPrimaryColumn (name : String) (definitions : Array ColumnDef) : Array ColumnDef :=
+  definitions.map fun column =>
+    if canonical column.name == canonical name then { column with primaryKey := true }
+    else column
+
+theorem markPrimaryColumn_size (name : String) (definitions : Array ColumnDef) :
+    (markPrimaryColumn name definitions).size = definitions.size := by
+  simp [markPrimaryColumn]
+
+theorem markPrimaryColumn_names (name : String) (definitions : Array ColumnDef) :
+    (markPrimaryColumn name definitions).toList.map (·.name) = definitions.toList.map (·.name) := by
+  simp only [markPrimaryColumn, Array.toList_map, List.map_map]
+  apply List.map_congr_left
+  intro column _
+  simp only [Function.comp_apply]
+  split <;> rfl
+
+/-- Single-column table keys lower to the same Core key as column declarations.
+Unlike column-level INTEGER PRIMARY KEY DESC, table-level DESC still aliases
+the rowid in SQLite. Its index-only collation/direction therefore has no effect.
+TEXT keys require the admitted ascending BINARY index representation. -/
+def tablePrimaryColumns (definitions : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : Except String (Array ColumnDef) :=
+  match constraints.toList with
+  | [] => .ok definitions
+  | [constraint] => do
+      unless constraint.primaryKey && constraint.columns.size == 1 &&
+          !constraint.autoIncrement && constraint.check.isNone && constraint.conflict == .abort do
+        unsupported "table constraint"
+      unless constraint.collations.size == 1 && constraint.descending.size == 1 do
+        unsupported "table key metadata width"
+      if definitions.any (·.primaryKey) then throw "table has more than one primary key"
+      let name := constraint.columns[0]!
+      let column ← match definitions.toList.find? (fun column => canonical column.name == canonical name) with
+        | some column => .ok column
+        | none => .error s!"no such column: {name}"
+      let integerAlias := (declaredTypeName column.declaredType).toLower == "integer"
+      unless integerAlias || (!constraint.descending[0]! &&
+          constraint.collations[0]!.all (fun name => canonical name == "binary")) do
+        unsupported "table key index collation or direction"
+      return markPrimaryColumn name definitions
+  | _ => unsupported "multiple table constraints"
+
+theorem tablePrimaryColumns_empty (definitions : Array ColumnDef) :
+    tablePrimaryColumns definitions #[] = .ok definitions := rfl
+
 def schema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
-  unless constraints.isEmpty do
-    throw "unsupported general verified-MVP SQL: table constraints"
+  let definitions ← tablePrimaryColumns definitions constraints
   unless definitions.toList.all columnAllowed do
     throw "unsupported general verified-MVP SQL: column constraint"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
@@ -316,10 +363,27 @@ def groupOutputs (schema : Core.Schema) (groups : List Nat) :
       return (← groupOutput schema groups result) ::
         (← groupOutputs schema groups results)
 
+/-- SQLite's aTabColMap keeps the first ordinary target; ipkColumn is
+reassigned at every rowid/INTEGER PRIMARY KEY alias, keeping the last one. -/
+def insertValueIndex (rowidColumn target : Nat) (indices : List Nat) : Option Nat :=
+  if target == rowidColumn then
+    ((indices.zipIdx.filter (fun entry => entry.1 == target)).getLast?).map (·.2)
+  else indices.findIdx? (· == target)
+
+theorem insertValueIndex_rowid (rowidColumn : Nat) (indices : List Nat) :
+    insertValueIndex rowidColumn rowidColumn indices =
+      ((indices.zipIdx.filter (fun entry => entry.1 == rowidColumn)).getLast?).map (·.2) := by
+  simp [insertValueIndex]
+
+theorem insertValueIndex_ordinary (rowidColumn target : Nat) (indices : List Nat)
+    (different : target ≠ rowidColumn) :
+    insertValueIndex rowidColumn target indices = indices.findIdx? (· == target) := by
+  simp [insertValueIndex, different]
+
 def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
     (expressions : Array Expr) : Except String (List Core.Value) := do
-  -- Repeated target names discard later values at runtime, but SQLite still
-  -- binds their expressions and functions before assigning input columns.
+  -- Repeated targets keep the first ordinary value and the last rowid value.
+  -- SQLite still binds discarded expressions and functions before assignment.
   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
   if expressions.isEmpty then
     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
@@ -339,7 +403,7 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
         throw "INSERT column/value count mismatch"
       let indices ← names.toList.mapM (column schema)
       schema.columns.mapIdxM fun targetIndex target =>
-        match indices.findIdx? (· == targetIndex) with
+        match insertValueIndex schema.primaryKey targetIndex indices with
         | some index => columnLiteral target expressions[index]!
         | none => .ok .null
 

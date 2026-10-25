@@ -4597,6 +4597,67 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteTablePrimary : IO Unit := do
+  for typ in ["INTEGER","TEXT"] do
+    let keys := ["PRIMARY KEY(k)", "CONSTRAINT pk PRIMARY KEY(k ASC)",
+      "PRIMARY KEY(k COLLATE BINARY ASC) ON CONFLICT ABORT"] ++
+      (if typ == "INTEGER" then ["PRIMARY KEY(k DESC)", "PRIMARY KEY(k COLLATE unknown_collation DESC)"] else [])
+    for key in keys do
+      let sql := s!"CREATE TABLE t(v,k {typ},{key});" ++
+        "INSERT INTO t(v,k) VALUES('a',NULL),('b',NULL);SELECT rowid,k,v FROM t ORDER BY rowid;"
+      let (state, results) ← match CoreSQL.execute Core.State.empty sql with
+        | .ok result => pure result
+        | .error message => fail s!"table primary key: {message}"
+      let expected : List (List Value) :=
+        [[.integer 1,if typ == "INTEGER" then .integer 1 else .null,.text "a"],
+         [.integer 2,if typ == "INTEGER" then .integer 2 else .null,.text "b"]]
+      let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+        | .ok rows => pure rows
+        | .error message => fail message
+      unless (results.getLast?).map (·.rows) == some rows do fail s!"table key mismatch: {key}"
+      let some image := CoreFile.encode state.database | fail "table key encode failed"
+      let some reopened := CoreDecode.decode image.fileBytes | fail "table key reopen failed"
+      let some table := reopened.findTable? "t" | fail "table key disappeared"
+      unless table.schema.declaredPrimaryKey == 1 && table.rows.length == 2 do
+        fail "table key changed column position on reopen"
+  for sql in ["CREATE TABLE t(k TEXT,v,PRIMARY KEY(missing));",
+      "CREATE TABLE t(k INTEGER PRIMARY KEY,v,PRIMARY KEY(k));",
+      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k),PRIMARY KEY(v));",
+      "CREATE TABLE t(k TEXT,PRIMARY KEY(k),v);",
+      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k ASC DESC));"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"invalid table key admitted: {sql}"
+  let setup := "CREATE TABLE t(k INTEGER,v,PRIMARY KEY(k));INSERT INTO t VALUES(1,'one'),(2,'two');"
+  for (statement, expected) in [
+      ("INSERT INTO t(rowid,k,v) VALUES(-10,NULL,'new') RETURNING k;", 3),
+      ("INSERT INTO t(k,rowid,v) VALUES(NULL,-10,'new') RETURNING k;", -10),
+      ("INSERT INTO t(k,k,v) VALUES(11,12,'new') RETURNING k;", 12),
+      ("INSERT INTO t(rowid,k,v) VALUES(abs(-9223372036854775808),12,'new') RETURNING k;", 12)] do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ statement) with
+      | .ok result => pure result
+      | .error message => fail s!"INSERT rowid alias: {message}"
+    let value ← match SQLSurface.value (.integer expected) with
+      | .ok value => pure value
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [[value]] do fail "INSERT rowid alias did not use last value"
+  -- These valid SQLite features remain outside Core; their parsed metadata
+  -- must not be dropped and silently interpreted as ascending BINARY/ABORT.
+  for sql in ["CREATE TABLE t(k TEXT,v,PRIMARY KEY(k DESC));",
+      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k COLLATE nocase));",
+      "CREATE TABLE t(k TEXT,v,PRIMARY KEY(k) ON CONFLICT IGNORE);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail "unsupported table-key semantics silently discarded"
+    if (CoreDecode.parseTableSchema sql).isSome then fail "foreign table-key semantics silently discarded"
+  let parsed ← match CoreTokenGrammar.parseCertified
+      "CREATE TABLE t(k TEXT,v,CONSTRAINT pk PRIMARY KEY(k COLLATE binary));" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.createTable name columns constraints ifNotExists) := parsed.statements[0]? | fail "missing table-key AST"
+  let some constraint := constraints[0]? | fail "missing table-key constraint"
+  for forged in [{ constraint with columns := #["v"] },
+      { constraint with collations := #[some "nocase"] },
+      { constraint with descending := #[true] }, { constraint with conflict := .ignore }] do
+    if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns #[forged] ifNotExists]).isOk then
+      fail "table-key token certificate accepted changed semantics"
+
 private def expectSQLiteNullableTextPrimary : IO Unit := do
   let setup := "CREATE TABLE k(k TEXT PRIMARY KEY,v);" ++
     "INSERT INTO k VALUES('a','one'),('b','two'),(NULL,'null1'),(NULL,'null2');" ++
@@ -6168,6 +6229,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite checked single-column table PRIMARY KEY", expectSQLiteTablePrimary),
   ("SQLite nullable TEXT primary keys and persisted NOT NULL", expectSQLiteNullableTextPrimary),
   ("SQLite row-value UPDATE assignments preserve width and simultaneous RHS", expectSQLiteUpdateTuples),
   ("SQLite UPDATE RETURNING uses pending rows and accepted new values", expectSQLiteUpdateReturning),

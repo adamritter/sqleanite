@@ -553,6 +553,28 @@ private def matchColumns : List ColumnDef → MatchM Unit
         expectSymbol ","
         matchColumn next
 
+private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit := do
+  unless constraint.primaryKey && constraint.columns.size == 1 &&
+      constraint.collations.size == 1 && constraint.descending.size == 1 &&
+      constraint.check.isNone && !constraint.autoIncrement do
+    mismatch "a single-column table PRIMARY KEY"
+  if ← acceptKeyword "constraint" then
+    unless (tokenName? (← advance)).isSome do mismatch "a constraint name"
+  expectKeyword "primary"
+  expectKeyword "key"
+  expectSymbol "("
+  expectName constraint.columns[0]!
+  if let some collation := constraint.collations[0]! then
+    expectKeyword "collate"
+    expectName collation
+  if constraint.descending[0]! then expectKeyword "desc"
+  else discard <| acceptKeyword "asc"
+  expectSymbol ")"
+  if ← acceptKeyword "on" then
+    expectKeyword "conflict"
+    expectConflict constraint.conflict
+  else unless constraint.conflict == .abort do mismatch "the default table-key conflict action"
+
 private def matchResultColumn (column : ResultColumn) : MatchM Unit := do
   matchExpr column.expr
   matchAlias column.alias
@@ -774,7 +796,6 @@ private def matchStatement : Statement → MatchM Unit
       if ifExists then expectKeyword "if" *> expectKeyword "exists"
       expectName name
   | .createTable name columns constraints ifNotExists => do
-      unless constraints.isEmpty do mismatch "column-level Core constraints"
       expectKeyword "create"
       expectKeyword "table"
       if ifNotExists then
@@ -782,6 +803,9 @@ private def matchStatement : Statement → MatchM Unit
       expectQualifiedName name
       expectSymbol "("
       matchColumns columns.toList
+      for constraint in constraints do
+        expectSymbol ","
+        matchTablePrimary constraint
       expectSymbol ")"
   | .createIndex name table expressions unique where_ ifNotExists => do
       expectKeyword "create"

@@ -2900,3 +2900,52 @@ are unchanged. Reports use `sqlite-text-primary-*20261025.json`; harnesses are
 `scripts/run-pointer-layout-differential.py`. Composite keys, other declared
 primary-key types, broader schema constraints and full SQL/database/WAL
 compatibility remain unfinished.
+
+
+## Single-column table PRIMARY KEY and INSERT rowid aliases (2026-10-25)
+
+The live parser/checker/schema path now accepts single-column table PRIMARY
+KEY declarations for the existing INTEGER and TEXT key types. Named constraints,
+explicit ASC, BINARY collation and ON CONFLICT ABORT are admitted. INTEGER table
+keys retain SQLite's rowid-alias behavior even with DESC or an index-only
+collation name. TEXT descending/non-BINARY index forms remain unsupported.
+`TableConstraintDef` now retains per-column collation and direction instead of
+silently discarding them, including when reading a foreign schema. The checker
+replays that exact metadata. Forged key targets, collations, directions and
+conflict actions are rejected. Column order is preserved by `markPrimaryColumn`;
+its size/name component laws and the no-table-constraint identity are registered.
+
+The initial SQL differential also exposed an existing INSERT mapping error.
+SQLite `insert.c` keeps the first input for ordinary repeated target columns,
+but updates `ipkColumn` at every rowid/INTEGER PRIMARY KEY alias. `insertValueIndex`
+now implements that distinction for named INSERT targets. For example, after
+rows 1 and 2, `INSERT ... (rowid,k) VALUES(-10,NULL)` allocates row 3 when k is the
+INTEGER alias. Reversing those names uses -10. Discarded single-VALUES expressions
+are bound but not evaluated. INSERT SELECT already evaluates its source output.
+Component laws record both first-ordinary and last-rowid selection. Existing
+SQL-to-Core refinement statements retain their premises and conclusions, with
+the corrected `rowValues` definition. Native code is unchanged.
+
+Retained baseline seed 354070: **402 differences / 402 executions** (source
+34eecfa8843a28181a7c20435d3ddf1a9dd3dfba501255a2f4125cd7d9db324b,
+before the preceding pointer-order repair). Development seed 354071 found the
+rowid-alias issue: **2 differences / 642 executions**. After correction, seed
+354072 passed **924 executions**. Final seed 354073 regenerates initial data
+and 120 SQL statements: **3,132 executions, zero differences**, including 1,258
+positive-error outcomes. Both public file modes, all three 512/4096/65536-byte
+page sizes, INTEGER/nullable TEXT/required TEXT keys and different key-column
+positions are exercised. Successful output bytes, catalog object identities,
+column/index metadata, persisted types/hex values and integrity are compared,
+followed by independent C insertion and Lean reopen. Failed individual statements
+retain main/WAL bytes; exact diagnostic text/codes and prior partial output are
+not compared. Two test elaboration errors were fixed before final validation.
+
+Implementation SHA-256: `8cd515d153dcac0c36a1e2971081be9e787617e107fa0d03a315d8f6901871cd`.
+The matching report records a successful **306-job build, 228 executable tests,
+1,125 headline component proofs**, both audits, and 61 accepted reverse-file
+cells with two declared unsupported cells. Reports use
+`sqlite-table-primary-*20261025.json`; harness:
+`scripts/run-table-primary-differential.py`. Composite keys, schema conflict
+defaults beyond ABORT, other key types and full compatibility remain unfinished.
+A separate retained counterexample set for multiple-VALUES unused-expression
+evaluation is the next task; this checkpoint does not claim that property.

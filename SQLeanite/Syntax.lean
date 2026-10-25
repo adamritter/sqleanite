@@ -417,6 +417,9 @@ end AggregateOrder
 
 structure TableConstraintDef where
   columns : Array String
+  /-- Per-key-column syntax retained for checked admission and foreign schemas. -/
+  collations : Array (Option String) := #[]
+  descending : Array Bool := #[]
   primaryKey : Bool := false
   autoIncrement : Bool := false
   conflict : ConflictAction := .abort

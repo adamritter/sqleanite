@@ -1279,3 +1279,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreDecode.ascendingCellPointers_leafPointers
 #print axioms SQLeanite.CoreDecode.ascendingCellPointers_next
+
+#print axioms SQLeanite.CoreSQL.markPrimaryColumn_size
+#print axioms SQLeanite.CoreSQL.markPrimaryColumn_names
+#print axioms SQLeanite.CoreSQL.tablePrimaryColumns_empty
+
+#print axioms SQLeanite.CoreSQL.insertValueIndex_rowid
+#print axioms SQLeanite.CoreSQL.insertValueIndex_ordinary
