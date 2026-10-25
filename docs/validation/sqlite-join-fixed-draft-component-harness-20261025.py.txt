@@ -1,0 +1,19 @@
+import hashlib,json,subprocess
+from pathlib import Path
+root=Path.cwd(); c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'; logs=Path('/dev/shm/sqleanite-tools-20261024/logs')
+records=[];inputs=[]
+for fixture in range(4):
+ p=Path(f'/tmp/join-fixed-draft-{fixture}.sql');lines=p.read_text().splitlines();setup=lines[0];queries=lines[1:];out=logs/f'join-fixed-draft-{fixture}.jsonl';results=[json.loads(line) for line in out.read_text().splitlines()];assert len(results)==len(queries)
+ inputs.append(dict(fixture=fixture,setup=setup,input_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),output_sha256=hashlib.sha256(out.read_bytes()).hexdigest(),component_exit_code=0))
+ for sql,l in zip(queries,results):
+  result=subprocess.run([c,'-batch','-bail',':memory:'],input=(setup+sql).encode(),capture_output=True,timeout=30)
+  r=dict(code=result.returncode,stdout_bytes=list(result.stdout),stderr=result.stderr.decode('latin1'))
+  records.append(dict(fixture=fixture,sql=sql,lean=l,sqlite=r,matched=bool(l['code'])==bool(r['code']) and l['stdout_bytes']==r['stdout_bytes']))
+print('component',len(records),sum(not c['matched'] for c in records))
+h=hashlib.sha256()
+for p in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+report=dict(evaluation='Development-only in-memory component draft replay of a saved constant-search corpus. Not production execution, file/WAL evidence, or fresh cases. The input setup omits only PRAGMA page_size, and all SELECTs remain unchanged. Pinned C is rerun in memory for exact output including error prefixes.',inputs=inputs,cases=records,failures=sum(not c['matched'] for c in records),base_implementation_sha256=h.hexdigest(),draft_sha256=hashlib.sha256(Path('/tmp/JoinFixedDraftMain.lean').read_bytes()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([c,'--version'],text=True).strip())
+(root/'docs/validation/sqlite-join-fixed-draft-component-20261025.json').write_text(json.dumps(report,indent=2)+'\n')
+(root/'docs/validation/sqlite-join-fixed-draft-component-source-20261025.lean.txt').write_bytes(Path('/tmp/JoinFixedDraftMain.lean').read_bytes())
+(root/'docs/validation/sqlite-join-fixed-draft-component-harness-20261025.py.txt').write_bytes(Path(__file__).read_bytes())
+raise SystemExit(bool(report['failures']))

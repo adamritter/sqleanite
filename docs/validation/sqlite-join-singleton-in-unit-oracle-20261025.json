@@ -1,0 +1,42 @@
+{
+  "evaluation": "Pinned-C fixed singleton-IN controls, including CROSS traversal fences.",
+  "cases": [
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      }
+    }
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

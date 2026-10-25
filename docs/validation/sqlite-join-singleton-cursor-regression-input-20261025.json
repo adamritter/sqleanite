@@ -1,0 +1,3775 @@
+{
+  "evaluation": "All original failing controls selected for strict saved-case replay; not new examples.",
+  "cases": [
+    {
+      "fixture": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 7,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 7,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 10,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 10,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 16,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 16,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 18,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 18,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 21,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 21,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 22,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 22,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 23,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 23,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 25,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 25,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 26,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 26,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 27,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 27,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 28,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 28,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 47,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 47,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 50,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 50,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 51,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 51,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 53,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 53,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 60,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 60,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 61,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 61,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 62,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 62,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 63,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 63,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 90,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 90,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 91,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 91,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 92,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 92,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 93,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 93,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 111,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 111,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 112,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 112,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 113,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 113,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 116,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 116,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 117,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 117,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 118,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 118,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 121,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 121,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 123,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 123,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 130,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 130,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 132,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 132,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 136,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 136,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 138,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 138,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 141,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 141,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 143,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 143,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 146,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 146,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 148,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 148,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 170,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 170,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|\n2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 171,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 171,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 172,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 172,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 173,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 173,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 191,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 191,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 193,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 193,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 196,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 196,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 198,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    },
+    {
+      "fixture": 198,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": false
+    }
+  ],
+  "failures": 98,
+  "implementation_sha256": "fd06ae52c1258ace0ccbb8480d5c3d19103228e47338f83cd75f5859703cac62",
+  "harness_sha256": "d3c85e8bf0c3c6daedcdf526051be455ecbf65f4a12e4a17b5d9b6d100b36454",
+  "input_sha256": "56a418982c3705bb9663adca83ca0b4811d28ca4f3d85136068cb4dcf4436784",
+  "fixtures": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 6,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 8,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 9,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 11,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 12,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 12,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 13,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 13,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 14,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 14,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 15,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 15,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 16,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 16,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 17,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 17,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 18,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 18,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 19,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 19,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 20,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 20,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 21,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 21,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 23,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 23,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 24,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 24,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 25,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 25,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 26,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 26,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 27,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 27,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 29,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 29,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 30,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 30,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 31,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 31,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 32,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 32,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 33,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 33,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 34,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 34,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 35,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 35,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 36,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 36,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 37,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 37,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 38,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 38,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 39,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 39,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 40,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 40,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 41,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 41,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 42,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 42,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 43,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 43,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 44,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 44,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 45,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 45,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 46,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 46,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 47,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 47,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 48,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 48,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 49,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 49,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 50,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 50,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 51,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 51,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 52,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 52,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 53,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 53,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 54,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 54,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 55,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 55,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 56,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 56,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 57,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 57,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 58,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 58,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 59,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 59,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 60,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 60,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 61,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 61,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 62,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 62,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 63,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 63,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 64,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 64,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 65,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 65,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 66,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 66,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 67,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 67,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 68,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 68,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 69,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 69,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 70,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 70,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 71,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 71,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 72,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 72,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 73,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 73,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 74,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 74,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 75,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 75,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 76,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 76,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 77,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 77,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 78,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 78,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 79,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 79,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 80,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 80,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 81,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 81,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 82,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 82,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 83,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 83,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 84,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 84,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 85,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 85,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 86,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 86,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 87,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 87,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 88,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 88,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 89,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 89,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 90,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 90,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 91,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 91,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 92,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 92,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 93,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 93,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 94,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 94,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 95,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 95,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 96,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 96,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 97,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 97,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 98,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 98,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 99,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 99,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 100,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 100,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 101,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 101,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 102,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 102,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 103,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 103,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 104,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 104,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 105,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 105,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 106,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 106,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 107,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 107,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 108,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 108,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 109,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 109,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 110,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 110,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 111,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 111,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 112,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 112,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 113,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 113,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 114,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 114,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 115,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 115,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 116,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 116,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 117,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 117,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 118,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 118,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 119,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 119,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 120,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 120,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 121,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 121,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 122,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 122,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 123,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 123,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 124,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 124,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 125,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 125,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 126,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 126,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 127,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 127,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 128,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 128,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 129,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 129,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 130,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 130,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 131,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 131,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 132,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 132,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 133,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 133,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 134,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 134,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 135,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 135,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 136,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 136,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 137,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 137,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 138,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 138,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 139,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 139,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 140,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 140,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 141,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 141,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 142,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 142,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 143,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 143,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 144,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 144,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 145,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 145,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 146,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 146,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 147,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 147,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 149,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 149,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 150,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 150,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 151,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 151,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 152,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 152,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 153,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 153,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 154,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 154,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 155,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 155,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 156,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 156,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 157,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 157,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 158,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 158,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 159,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 159,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 160,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 160,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 161,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 161,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 162,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 162,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 163,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 163,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 164,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 164,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 165,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 165,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 166,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 166,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 167,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 167,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 168,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 168,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 169,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 169,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 170,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 170,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 171,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 171,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 172,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 172,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 173,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 173,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 174,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 174,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 175,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 175,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 176,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 176,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 177,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 177,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 178,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 178,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 179,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 179,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 180,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 180,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 181,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 181,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 182,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 182,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 183,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 183,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 184,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 184,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 185,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 185,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 186,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 186,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 187,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 187,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 188,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 188,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 189,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 189,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 190,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 190,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 191,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 191,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 192,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 192,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 193,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 193,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 194,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 194,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 195,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 195,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 196,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 196,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 197,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 197,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 198,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 198,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 199,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    },
+    {
+      "fixture": 199,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);"
+    }
+  ]
+}

@@ -1,0 +1,2253 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-declared-null-regression-input-20261025.json",
+  "input_sha256": "58fc15e3aca956795dc525ab48c6bf89de092f9338e757832ef8abd9e47506d8",
+  "cases": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 14,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 14,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 15,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 15,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 29,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 29,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 30,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 30,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 38,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 38,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 40,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id>0 AND a.k IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 40,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id>0 AND a.k IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 42,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 42,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 43,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 43,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 56,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 56,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 57,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 57,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 70,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 70,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 71,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 71,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 154,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 154,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 155,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 155,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 210,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 210,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 211,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 211,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 224,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 224,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 225,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 225,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 232,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 232,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 238,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 238,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 239,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 239,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 240,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 240,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NOT NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 248,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 248,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 250,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id>0 AND a.k IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 250,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id>0 AND a.k IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 252,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 252,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 253,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 253,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 266,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 266,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 267,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 267,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 280,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 280,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 281,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 281,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 336,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 336,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 337,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 337,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 358,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 358,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=1 AND b.id=a.id WHERE b.k IS NOT NULL AND a.id>0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 364,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 364,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 365,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 365,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37",
+  "executable_sha256": "84bbc501ae283b3e66a3c0e825c149668b2e8fcf78eb15f9bbccfef0c9d86949",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

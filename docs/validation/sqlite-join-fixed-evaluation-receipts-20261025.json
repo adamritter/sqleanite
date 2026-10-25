@@ -1,0 +1,35 @@
+{
+  "implementation_sha256": "bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37",
+  "actual_process_completions": [
+    {
+      "session": 3871,
+      "exit_code": 1,
+      "report": "sqlite-join-fixed-fresh-20261025.json"
+    },
+    {
+      "session": 83531,
+      "exit_code": 0,
+      "report": "sqlite-join-fixed-reduced-fresh-20261025.json"
+    },
+    {
+      "session": 60834,
+      "exit_code": 0,
+      "report": "sqlite-join-fixed-scalar-fresh-20261025.json"
+    },
+    {
+      "session": 98853,
+      "exit_code": 0,
+      "report": "sqlite-join-fixed-order-fresh-20261025.json"
+    },
+    {
+      "session": 1963,
+      "exit_code": 0,
+      "report": "sqlite-join-fixed-write-fresh-20261025.json"
+    },
+    {
+      "session": 98790,
+      "exit_code": 1,
+      "report": "sqlite-join-fixed-orientation-baseline-20261025.json"
+    }
+  ]
+}

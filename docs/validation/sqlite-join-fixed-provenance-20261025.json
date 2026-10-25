@@ -1,0 +1,18 @@
+{
+  "base_published_commit": "c88a38ae6d6ed0c6266ef53e04d77b7aa43cf801",
+  "final_implementation_sha256": "bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37",
+  "patches": [
+    {
+      "path": "sqlite-join-fixed-before-declared-null-source-20261025.patch.txt",
+      "sha256": "7697c40ae4fc154ee6eab6b689cffc9b237eb8c573b71fdbd5d702d9631ca25d"
+    },
+    {
+      "path": "sqlite-join-fixed-initial-source-20261025.patch.txt",
+      "sha256": "850fa6272a551168ed8daeb026f44ea130770f7857cab5f18650c718ff9d570d"
+    },
+    {
+      "path": "sqlite-join-fixed-key-order-source-20261025.patch.txt",
+      "sha256": "14b6622cc1755e26160e3b56bb7d90fd96c83c0269f122b0ca47c5565a335739"
+    }
+  ]
+}

@@ -1515,3 +1515,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinEmptyOnQuery_where_failure
 
 #print axioms SQLeanite.CoreSQL.joinScalarNullRejectsVisit_unpeeled_notNull
+
+#print axioms SQLeanite.CoreSQL.joinFixedLookup_unfixed
+#print axioms SQLeanite.CoreSQL.joinSearchMatches_without_inner_filter
+
+#print axioms SQLeanite.CoreSQL.joinSearchKeyOrder_perm
+
+#print axioms SQLeanite.CoreSQL.joinScalarOriginallyNullable_outer

@@ -2346,4 +2346,31 @@ else
   status=1
 fi
 
+if rg -F -q 'joinFixedMatches prepared input plan.fixed early' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchMatches context prepared source plan row' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinFixedLookup_unfixed' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinSearchMatches_without_inner_filter' SQLeanite/ProofAxioms.lean; then
+  echo "ok - joined fixed-column preparation and inner WHERE filters remain live"
+else
+  echo "not ok - joined fixed-column or inner filter execution is missing"
+  status=1
+fi
+
+if rg -F -q 'joinSearchKeys context prepared side terms' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchDerivedRightRoot context prepared leftRoot on' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinSearchKeyOrder_perm' SQLeanite/ProofAxioms.lean; then
+  echo "ok - original and virtual joined search constraints preserve every candidate"
+else
+  echo "not ok - joined search term ordering is not wired into execution"
+  status=1
+fi
+
+if rg -F -q 'joinScalarColumnNotNull context ref' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinScalarOriginallyNullable_outer' SQLeanite/ProofAxioms.lean; then
+  echo "ok - declared non-null columns retain outer-source preparation metadata"
+else
+  echo "not ok - declared join nullability is not wired into execution"
+  status=1
+fi
+
 exit $status

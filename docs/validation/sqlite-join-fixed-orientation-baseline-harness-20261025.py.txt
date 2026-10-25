@@ -1,0 +1,40 @@
+import hashlib,itertools,json,shutil,subprocess,tempfile
+from pathlib import Path
+root=Path.cwd();c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';binary=root/'.lake/build/bin/sqleanite';cases=[];fixtures=[]
+def run(args,sql):
+ r=subprocess.run(args,input=sql.encode(),capture_output=True,timeout=30);return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
+def csql(path,sql):return run([c,'-batch','-bail',str(path)],sql)
+def snapshot(path):return {s:hashlib.sha256(Path(str(path)+s).read_bytes()).hexdigest() for s in ['', '-wal'] if Path(str(path)+s).exists()}
+conditions=['1=b.id AND abs(a.k)=b.id','1=b.k AND abs(a.k)=b.k',
+ 'abs(a.k)=b.id AND 1=b.id','abs(a.k)=b.k AND 1=b.k',
+ 'b.id=1 AND b.id=abs(a.k)','b.k=1 AND b.k=abs(a.k)',
+ 'b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER)','b.k=1 AND abs(a.k)=coalesce(b.k,1)',
+ "b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k",'b.k=1 AND abs(a.k) IS b.k',
+ 'b.k=1 AND abs(a.k)!=b.k','b.k=1 AND abs(a.k) IN (b.k)',
+ 'b.k=1 AND abs(a.k)=b.k+0','b.k=1 AND abs(a.k)=+b.k',
+ 'b.k=1 AND abs(a.k)=-b.k','b.k=1 AND abs(a.k)=CASE WHEN 1 THEN b.k END',
+ 'b.k=1 AND abs(a.k)>b.k','b.k=1 AND b.k<abs(a.k)',
+ 'b.k=1 AND abs(a.k) BETWEEN b.k AND 3','b.k=1 AND b.k BETWEEN abs(a.k) AND 3']
+with tempfile.TemporaryDirectory(prefix='join-fixed-orientation-',dir='/dev/shm') as tmp:
+ for fixture,(typ,present) in enumerate(itertools.product(['INTEGER','TEXT','BLOB'],[False,True])):
+  folder=Path(tmp)/str(fixture);folder.mkdir();base=folder/'base.db';setup=f'CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k {typ});INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);'
+  if present:setup+='INSERT INTO r VALUES(1,1),(2,2);'
+  assert csql(base,setup)['code']==0
+  for mode in ['--verified-file','--verified-wal-file']:
+   lp=folder/(mode+'-lean.db');rp=folder/(mode+'-c.db');shutil.copyfile(base,lp);shutil.copyfile(base,rp);bl=snapshot(lp);br=snapshot(rp)
+   for kind,condition in itertools.product(['JOIN','CROSS JOIN','LEFT JOIN','RIGHT JOIN','FULL JOIN'],conditions):
+    sql=f'SELECT a.id,b.id FROM l a {kind} r b ON {condition};'
+    l=run([str(binary),mode,str(lp)],sql);r=csql(rp,sql)
+    item=dict(fixture=fixture,mode=mode,sql=sql,lean=l,sqlite=r,matched=bool(l['code'])==bool(r['code']) and l['stdout']==r['stdout'])
+    if not item['matched']:item['diagnostic_sqlite_plan']=csql(rp,'EXPLAIN QUERY PLAN '+sql)
+    cases.append(item)
+   li=csql(lp,'PRAGMA integrity_check;');ri=csql(rp,'PRAGMA integrity_check;')
+   fixtures.append(dict(fixture=fixture,mode=mode,setup=setup,unchanged_lean=bl==snapshot(lp),unchanged_sqlite=br==snapshot(rp),integrity_lean=li,integrity_sqlite=ri,matched=bl==snapshot(lp) and br==snapshot(rp) and li['code']==ri['code']==0 and li['stdout']==ri['stdout']=='ok\n'))
+h=hashlib.sha256()
+for p in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+report=dict(evaluation='Focused discovery corpus: fixed expression shapes, not fresh seeded evaluation. Exact stdout including errors, status and unchanged main/WAL bytes; pinned-C integrity.',cases=cases,fixtures=fixtures,failures=sum(not x['matched'] for x in cases)+sum(not x['matched'] for x in fixtures),implementation_sha256=h.hexdigest(),executable_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([c,'--version'],text=True).strip())
+(root/'docs/validation/sqlite-join-fixed-orientation-baseline-20261025.json').write_text(json.dumps(report,indent=2)+'\n')
+(root/'docs/validation/sqlite-join-fixed-orientation-baseline-harness-20261025.py.txt').write_bytes(Path(__file__).read_bytes())
+print(json.dumps(dict(cases=len(cases),fixtures=len(fixtures),failures=report['failures'])))
+for typ in sorted(set((x['fixture'],x['sql']) for x in cases if not x['matched'])): print(typ)
+raise SystemExit(bool(report['failures']))

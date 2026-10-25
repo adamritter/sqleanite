@@ -1,0 +1,393 @@
+{
+  "evaluation": "Saved focused-discovery failures for regression replay, not fresh evaluation.",
+  "source_report": "sqlite-join-fixed-orientation-baseline-20261025.json",
+  "implementation_sha256": "bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37",
+  "cases": [
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "diagnostic_sqlite_plan": {
+        "code": 0,
+        "stdout": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC PARTIAL COVERING INDEX (k=?)\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 4,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 5,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,-2);INSERT INTO r VALUES(1,1),(2,2);",
+      "unchanged_lean": true,
+      "unchanged_sqlite": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ]
+}

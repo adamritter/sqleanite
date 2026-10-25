@@ -1,0 +1,153 @@
+{
+  "evaluation": "Focused development check of all pinned-C singleton-IN controls through both public file modes; includes exact error stdout and unchanged file bytes.",
+  "cases": [
+    {
+      "fixture": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id IN (1) AND abs(a.k) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k) WHERE b.id IN (1) ORDER BY a.id,b.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "7fcfbb06d1213ff17c1f1a03f05d7ae36574f40c9268ac8ca3eef3918da58a4d",
+  "harness_sha256": "d4eed76271c6ebaee6aeb58b7ec785b0d0cd53fceb8d8f15afbe57a4e89aeb24",
+  "input_sha256": "1dd8ad8c972be9114e80845b03b826644f18fb58fb5a35170f04641941b442af"
+}

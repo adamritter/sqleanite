@@ -1,0 +1,2757 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-singleton-cursor-regression-input-20261025.json",
+  "input_sha256": "8df196257eed7f174c648741d93159b44aff62408dcc3afecf9b48d40be24984",
+  "cases": [
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 3,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 7,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 10,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 16,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 16,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 18,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 18,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 21,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 21,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 22,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 23,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 23,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 25,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 25,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 26,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 26,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 27,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 27,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 28,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 47,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 47,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON abs(a.k)=b.id AND b.id=a.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 50,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 50,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 51,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 51,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 53,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 53,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 60,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 60,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 61,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 61,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 62,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 62,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 63,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 63,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 90,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 90,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 91,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 91,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 92,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 92,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 93,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 93,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 111,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 111,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 112,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 112,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 113,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 113,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 116,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 116,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 117,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 117,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 118,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 118,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 121,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 121,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 123,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 123,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 130,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 130,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 132,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 132,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 136,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 136,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 138,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 138,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=a.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 141,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 141,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 143,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 143,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id=2 AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 146,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 146,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 148,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id=2 AND b.id=a.id AND abs(a.k)=b.id WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 170,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 170,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 171,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 171,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 172,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 172,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IS 2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 173,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 173,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.id=b.id AND b.id=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 191,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 191,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 193,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 193,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k)=b.k WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 196,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 196,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id=2 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 198,
+      "mode": "--verified-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 198,
+      "mode": "--verified-wal-file",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,-9223372036854775808),(3,3);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k=abs(a.k) WHERE a.id IN (2) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37",
+  "executable_sha256": "84bbc501ae283b3e66a3c0e825c149668b2e8fcf78eb15f9bbccfef0c9d86949",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

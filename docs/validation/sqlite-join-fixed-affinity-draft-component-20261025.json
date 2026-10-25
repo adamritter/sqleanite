@@ -1,0 +1,1064 @@
+{
+  "evaluation": "Development-only in-memory draft component controls for restricted fixed-column affinity. Fixed controls, not a seeded production/file/WAL evaluation. Pinned C rerun compares exact error stdout.",
+  "inputs": [
+    {
+      "fixture": 0,
+      "affinity": "TEXT",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "input_sha256": "1e2f00a7de3ffaf266082f66b06d4c6b3ca1d73368bcc5d527593c8a5d5a67f2",
+      "output_sha256": "92442cf9d36ef6f49f0c004d5a7cc600c1589161baacc0589a2b0604f4c56273",
+      "exit_code": 0
+    },
+    {
+      "fixture": 1,
+      "affinity": "NUMERIC",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "input_sha256": "441bb3776ab27f44f0e7da523bae294b54dc3c9e25806df5f6bf1e842440119c",
+      "output_sha256": "d32b54085d805e15c638e267da28eaf4a12ad68d76fce80664d7e7f4372b7458",
+      "exit_code": 0
+    },
+    {
+      "fixture": 2,
+      "affinity": "BLOB",
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "input_sha256": "3d062a66a071cfcd63a4d3142e2fb8ad239befac88102378e3fae3e33cc07b6e",
+      "output_sha256": "9f102f9863b22105ac4909eed0fbcc60776dfd63bde2cf470c27e8a4d175c6ce",
+      "exit_code": 0
+    }
+  ],
+  "cases": [
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k='1' AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=+b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=coalesce(b.k,1);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 1,
+        "stderr": "integer overflow",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout_bytes": [],
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) IS b.k;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": []
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [],
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k)=length(b.k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ]
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout_bytes": [
+          49,
+          124,
+          10,
+          50,
+          124,
+          10
+        ],
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "base_implementation_sha256": "fd06ae52c1258ace0ccbb8480d5c3d19103228e47338f83cd75f5859703cac62",
+  "draft_sha256": "6757821cdc39d5b858c9e0e812b1c9a6bf8e0ec0fba32375f610cd40e2297dff",
+  "harness_sha256": "b77a3371c0adb07a2815faec9c9b1884798101cb2aa27003b91bc4edc452d3fc",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

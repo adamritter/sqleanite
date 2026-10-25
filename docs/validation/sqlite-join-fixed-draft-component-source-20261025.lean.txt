@@ -1,0 +1,315 @@
+import SQLeanite.CoreSQL
+import SQLeanite.SQLite.CLI
+import Lean
+
+namespace SQLeanite.CoreSQL
+
+structure DraftFixedColumn where
+  index : Nat
+  origin : Nat
+  expression : Expr
+  affinity : SQLite.Affinity
+
+/-- select.c:constInsert visits the rightmost equality first. A replacement
+has no expression affinity and uses BINARY comparison. Origin indices retain
+which column occurrence defines, rather than consumes, the fixed value. -/
+def draftFixedColumns (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (source : TableRef) (on : Option Expr) : List DraftFixedColumn := Id.run do
+  if source.leftJoin || source.rightJoin then return []
+  let terms := on.map SQLite.Scalar.conditionTerms |>.getD []
+  let mut result := []
+  for (term, origin) in terms.zipIdx.reverse do
+    if let some key := joinSearchKey? context prepared side term then
+      if key.operation == .eq && prepared.context.constantExpression key.value &&
+          (prepared.context.affinity key.value).isNone &&
+          SQLite.ExprCollation.binaryKind? key.column key.value == some .binary then
+        if let .column qualifier name := key.column then
+          if let some index := prepared.context.column? qualifier name then
+            unless result.any (fun item => item.index == index) do
+              result := result ++ [{
+                index := index
+                origin := origin
+                expression := key.value
+                affinity := (prepared.context.affinity key.column).getD .blob }]
+  return result
+
+/-- BLOB-affinity fixed columns are substituted only as immediate comparison
+operands; the right operand is protected when the left carries TEXT affinity. -/
+def draftFixedReady (context : JoinContext) (prepared : JoinScalarPrepared)
+    (outer : CoreJoin.Side) (fixed : List DraftFixedColumn) : Nat → Bool → Expr → Bool
+  | 0, _, _ => false
+  | fuel + 1, blobAllowed, expression =>
+      let ready := draftFixedReady context prepared outer fixed fuel false
+      match expression with
+      | .literal .. => true
+      | .column qualifier name =>
+          (joinScalarReference context prepared expression).any (fun ref => ref.side == outer) ||
+            (prepared.context.column? qualifier name).any (fun index => fixed.any
+              (fun item => item.index == index && (item.affinity != .blob || blobAllowed)))
+      | .unary _ argument | .collate argument _ | .isNull argument _ => ready argument
+      | .binary operation left right =>
+          if [.eq, .lt, .le, .gt, .ge, .is].contains operation then
+            draftFixedReady context prepared outer fixed fuel true left &&
+              draftFixedReady context prepared outer fixed fuel (prepared.context.affinity left != some .text) right
+          else ready left && ready right
+      | .call _ arguments false => arguments.all ready
+      | .inList argument values _ _ => ready argument && values.all ready
+      | .case_ base branches otherwise => base.all ready && otherwise.all ready &&
+          branches.all (fun (condition, value) => ready condition && ready value)
+      | _ => false
+
+def draftFixedEarly (context : JoinContext) (prepared : JoinScalarPrepared)
+    (outer : CoreJoin.Side) (fixed : List DraftFixedColumn) (on : Option Expr) : List Expr :=
+  (on.map SQLite.Scalar.conditionTerms |>.getD []).zipIdx.filterMap fun (term, index) =>
+    if fixed.any (fun item => item.origin == index) then none
+    else if draftFixedReady context prepared outer fixed term.height false term then some term
+    else none
+
+/-- EP_FixedCol keeps the column's affinity and applies that affinity when
+loading the constant value. Other source values keep the ordinary lookup. -/
+def draftFixedLookup (prepared : JoinScalarPrepared) (input : List Core.Value)
+    (fixed : List DraftFixedColumn) (qualifier : Option String) (name : String) : Except String Value := do
+  let index := prepared.context.column? qualifier name
+  if let some item := fixed.find? (fun item => index == some item.index) then
+    let value ← prepared.context.eval input item.expression
+    CoreExpr.value (SQLite.PhysicalAffinity.write item.affinity (← SQLSurface.value value))
+  else prepared.context.lookup input qualifier name
+
+def draftFixedMatches (prepared : JoinScalarPrepared) (input : List Core.Value)
+    (fixed : List DraftFixedColumn) (terms : List Expr) : Except String Bool :=
+  let context : CoreExpr.Context := { prepared.context with fixedColumns := fixed.map (fun item => item.index) }
+  SQLite.Scalar.testTermsWithConstants (draftFixedLookup prepared input fixed)
+    context.affinity context.constantExpression
+    (terms.map (fun term => SQLite.Scalar.prepare (context.bindNames term)))
+
+end SQLeanite.CoreSQL
+
+namespace SQLeanite.CoreSQL.FixedDraft
+
+structure Plan extends JoinSearchPlan where
+  fixed : List DraftFixedColumn := []
+  innerWhere : List Expr := []
+
+def makePlan (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (traversal : JoinScalarTraversal) (on : Option Expr) : Plan :=
+  let base := joinSearchPlan context prepared source traversal on
+  let side := if traversal.exchanged then CoreJoin.Side.left else .right
+  let outer := joinSearchOpposite side
+  let fixed := draftFixedColumns context prepared side source on
+  let early := if source.leftJoin || source.rightJoin then [] else
+    draftFixedEarly context prepared outer fixed on
+  let innerWhere := if source.leftJoin || source.rightJoin then [] else
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+      (fun term => joinScalarOnlySide context prepared side term && !prepared.context.constantExpression term)
+  { toJoinSearchPlan := { base with early }, fixed, innerWhere }
+
+def matchesRow (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (plan : Plan) (row : CoreJoin.JoinedRow) : Except String Bool := do
+  let input := CoreJoin.projectRow (joinScalarInputs context) row
+  unless ← plan.innerWhere.allM (fun term => prepared.context.matches input (some term)) do return false
+  joinScalarMatches context prepared (source.leftJoin || source.rightJoin) row
+
+def rowsGo (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (plan : Plan) (exchanged : Bool)
+    (inner : List (Core.Row × Nat)) : List Core.Row → List CoreJoin.JoinedRow → List Nat →
+      Except String (List CoreJoin.JoinedRow)
+  | [], reversed, matched =>
+      let suffix := if source.rightJoin then
+        (inner.filter (fun (_, index) => !matched.contains index)).map
+          (fun (row, _) => (CoreJoin.nullRow context.leftSchema.columns.length, row)) else []
+      .ok (reversed.reverse ++ suffix)
+  | outer :: rest, reversed, matched => do
+      let input := CoreJoin.projectRow (joinScalarInputs context) (joinSearchPair context exchanged outer)
+      unless ← draftFixedMatches prepared input plan.fixed plan.early do
+        return ← rowsGo context prepared source plan exchanged inner rest reversed matched
+      let found ← joinSearchCandidates context prepared source exchanged outer plan.access inner
+      if found.halt then return reversed.reverse
+      let selected ← found.rows.filterM (fun (row, _) => matchesRow context prepared source plan (joinSearchPair context exchanged outer row))
+      let rows := if selected.isEmpty && source.leftJoin then [joinSearchPair context false outer]
+        else selected.map (fun (row, _) => joinSearchPair context exchanged outer row)
+      rowsGo context prepared source plan exchanged inner rest
+        (rows.reverse ++ reversed) (selected.map Prod.snd ++ matched)
+
+def materialized (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+  let (leftSource, originalRight) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state originalRight.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select originalRight
+  let where_ := prepared.select.where_
+  let source := joinScalarReducedSource context prepared originalRight
+  let (on, _) := match originalRight.joinOn with
+    | none => (none, none)
+    | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+  let on ← on.mapM (joinScalarBind context)
+  let enabled ← if select.limit == some 0 || joinScalarKnownEmpty context prepared source then pure false
+    else prepared.context.constantMatches where_
+  let enabled ← if enabled && !source.leftJoin && !source.rightJoin then prepared.context.constantMatches on else pure enabled
+  let (rows, ordered) ← if enabled then do
+      let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+      let traversal := joinScalarTraversal context prepared source terms on
+      let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
+      let early := if source.rightJoin then [] else
+        (where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+          (fun term => joinScalarOnlySide context prepared outerSide term && !prepared.context.constantExpression term)
+      let plan := makePlan context prepared source traversal on
+      let plan := { plan with early := early ++ plan.early }
+      let left := if traversal.reverseLeft then left.rows.reverse else left.rows
+      let right := if traversal.reverseRight then right.rows.reverse else right.rows
+      let outer := if traversal.exchanged then right else left
+      let inner := if traversal.exchanged then left else right
+      let outer ← match traversal.root with
+        | none => pure outer
+        | some access => do
+            let empty := CoreJoin.nullRow (if traversal.exchanged then context.leftSchema.columns.length else context.rightSchema.columns.length)
+            pure ((← joinSearchCandidates context prepared source (!traversal.exchanged) empty access outer.zipIdx).rows.map Prod.fst)
+      let inner := inner.zipIdx
+      let rows ← rowsGo context prepared source plan traversal.exchanged inner outer [] []
+      pure (rows, traversal.ordered)
+    else pure ([], false)
+  joinScalarRun context prepared rows ordered
+
+def streamRight (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef) (plan : Plan)
+    (expressions : List Expr) (exchanged : Bool) (outer : Core.Row) :
+    List (Core.Row × Nat) → JoinStreamState → Bool → List Nat → JoinStreamState × Bool × List Nat
+  | [], state, found, matched => (state, found, matched)
+  | (inner, index) :: rest, state, found, matched =>
+      if state.stopped then (state, found, matched)
+      else
+        let row := if exchanged then (inner, outer) else (outer, inner)
+        match matchesRow context prepared source plan row with
+        | .error message => ({ state with error := some message }, found, matched)
+        | .ok false => streamRight context prepared source plan expressions exchanged outer rest state found matched
+        | .ok true => streamRight context prepared source plan expressions exchanged outer rest
+            (joinStreamStep context prepared expressions state row) true (index :: matched)
+
+def streamLeft (context : JoinContext) (prepared : JoinScalarPrepared) (source : TableRef)
+    (expressions early : List Expr) (exchanged : Bool) (inner : List (Core.Row × Nat))
+    (plan : Plan) :
+    List Core.Row → JoinStreamState → List Nat → JoinStreamState
+  | [], state, matched =>
+      if source.rightJoin then joinStreamSuffix context prepared expressions
+        ((inner.filter (fun (_, index) => !matched.contains index)).map Prod.fst) state else state
+  | outer :: rest, state, matched =>
+      if state.stopped then state
+      else
+        let input := CoreJoin.projectRow (joinScalarInputs context)
+          (if exchanged then (CoreJoin.nullRow context.leftSchema.columns.length, outer)
+            else (outer, CoreJoin.nullRow context.rightSchema.columns.length))
+        match draftFixedMatches prepared input plan.fixed early with
+        | .error message => { state with error := some message }
+        | .ok false => streamLeft context prepared source expressions early exchanged inner plan rest state matched
+        | .ok true =>
+            match joinSearchCandidates context prepared source exchanged outer plan.access inner with
+            | .error message => { state with error := some message }
+            | .ok candidates =>
+                if candidates.halt then state else
+                let (state, found, matched) := streamRight context prepared source plan expressions exchanged outer candidates.rows state false matched
+                let state := if !found && source.leftJoin then joinStreamStep context prepared expressions state
+                    (outer, CoreJoin.nullRow context.rightSchema.columns.length) else state
+                streamLeft context prepared source expressions early exchanged inner plan rest state matched
+
+def preparedReport (state : Core.State) (select : Select) : Except String JoinReadReport := do
+  let (leftSource, originalRight) ← match select.sources.toList with
+    | [left, right] => pure (left, right)
+    | _ => unsupported "joined expression source count"
+  unless leftSource.subquerySql.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+    unsupported "joined expression sources"
+  let leftName := resolveTableName state leftSource.name
+  let rightName := resolveTableName state originalRight.name
+  let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+  let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
+  let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
+  unless context.leftName != context.rightName do throw "ambiguous join source names"
+  let prepared ← joinScalarPrepare context select originalRight
+  let source := joinScalarReducedSource context prepared originalRight
+  let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
+  let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
+  let (on, _) := match originalRight.joinOn with
+    | none => (none, none)
+    | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+  let on ← on.mapM (joinScalarBind context)
+  let traversal := joinScalarTraversal context prepared source terms on
+  if aggregate || (!terms.isEmpty && !traversal.ordered) then
+    let (result, width) ← materialized state select
+    return { result, width }
+  let ctx := prepared.context
+  unless prepared.select.having.isNone do unsupported "HAVING requires an aggregate"
+  let expressions ← ctx.projection prepared.select.columns.toList
+  if prepared.select.distinct then CoreExpr.validateDistinct expressions
+  let _ ← prepared.select.where_.mapM ctx.validate
+  let _ ← terms.mapM (CoreOrder.validateTerm ctx)
+  let width := expressions.length
+  if select.limit == some 0 || joinScalarKnownEmpty context prepared source then return { width }
+  unless ← ctx.constantMatches prepared.select.where_ do return { width }
+  let right := if traversal.reverseRight then right.rows.reverse else right.rows
+  let left := if traversal.reverseLeft then left.rows.reverse else left.rows
+  let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
+  let early := if source.rightJoin then [] else
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+      (fun term => joinScalarOnlySide context prepared outerSide term && !ctx.constantExpression term)
+  let plan := makePlan context prepared source traversal on
+  let early := early ++ plan.early
+  unless source.leftJoin || source.rightJoin do
+    unless ← ctx.constantMatches on do return { width }
+  let outer := if traversal.exchanged then right else left
+  let inner := if traversal.exchanged then left else right
+  let outer ← match traversal.root with
+    | none => pure outer
+    | some access => do
+        let empty := CoreJoin.nullRow (if traversal.exchanged then context.leftSchema.columns.length else context.rightSchema.columns.length)
+        pure ((← joinSearchCandidates context prepared source (!traversal.exchanged) empty access outer.zipIdx).rows.map Prod.fst)
+  let inner := inner.zipIdx
+  let initial : JoinStreamState := { skip := select.offset, remaining := select.limit }
+  let result := streamLeft context prepared source expressions early traversal.exchanged inner plan outer initial []
+  return { result := { rows := result.reversed.reverse }, width, error := result.error }
+
+def report (state : Core.State) (select : Select) : JoinReadReport :=
+  match executeSelectBase state select with
+  | .ok execution => { result := execution.result, width := execution.width }
+  | .error _ => match preparedReport state select with
+    | .ok report => report
+    | .error message => { error := some message }
+
+end SQLeanite.CoreSQL.FixedDraft
+open SQLeanite
+open Lean
+
+private def draftValueBytes : PhysicalCodec.Value → ByteArray
+  | .null => ByteArray.empty
+  | .integer value => (toString value.value).toUTF8
+  | .realBits bits => (toString (SQLeanite.Value.real
+      (Float.ofBits (UInt64.ofNat bits.val)))).toUTF8
+  | .text text => ByteArray.mk (SQLite.CLI.listTextBytes text.bytes).toArray
+  | .blob blob => ByteArray.mk (SQLite.CLI.listTextBytes blob.bytes).toArray
+
+private def draftRender (result : Core.Result) : ByteArray :=
+  result.rows.foldl (fun output row =>
+    let fields := (row.map draftValueBytes).intersperse "|".toUTF8
+    (fields.foldl (· ++ ·) output) ++ "\n".toUTF8) ByteArray.empty
+
+def main (args : List String) : IO Unit := do
+  let some path := args.head? | throw (IO.userError "expected input file")
+  let lines := (← IO.FS.readFile path).splitOn "\n"
+  let setup :: queries := lines | throw (IO.userError "missing setup")
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => throw (IO.userError message)
+  for query in queries do
+    unless query.isEmpty do
+      let result := do
+        let statements ← CoreTokenGrammar.parseStatements query
+        let [.select select] := statements.toList | throw "expected one SELECT"
+        pure (CoreSQL.FixedDraft.report state select)
+      let (code, bytes, error) := match result with
+        | .ok report => (if report.error.isSome then 1 else 0, draftRender report.result, report.error.getD "")
+        | .error message => (1, ByteArray.empty, message)
+      IO.println (Json.mkObj [("code", toJson code),
+        ("stdout_bytes", toJson (bytes.data.toList.map UInt8.toNat)), ("stderr", toJson error)]).compress

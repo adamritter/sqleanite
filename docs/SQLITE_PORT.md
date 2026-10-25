@@ -5655,3 +5655,91 @@ Reports and intermediate patches: `sqlite-join-reduced-cursor-*20261025.*`.
 Public harness: `scripts/run-join-reduced-cursor-differential.py`, supplemented
 by the existing joined read/order/write and strict saved-failure harnesses.
 The exact earlier harness revisions are retained beside their results.
+
+## Fixed-column preparation, singleton seeks and declared nullability (2026-10-25)
+
+Two-source inner joins now prepare direct constant equalities with the pinned
+SQLite column-affinity rules. Rightmost equalities define fixed columns, their
+defining comparisons remain identifiable, and BLOB-affinity substitution is
+restricted to the eligible comparison operands. Source-local inner WHERE tests
+run after cursor initialization and before dynamic ON expressions. These rules
+are shared by materialized and observed execution; they preserve partial output
+and dynamic errors instead of only matching successful row sets.
+
+A singleton outer seek suppresses the repeated-lookup automatic index. Original
+search terms precede virtual commuted terms, whose analyzer order is reversed;
+a component permutation proof shows that this ordering retains every candidate.
+An unfixed singleton rowid bound can propagate across a direct rowid equality.
+Fixed-column preparation and CROSS JOIN fences affect which constraint supplies
+a point lookup. This remains a bounded two-source plan model, not SQLite's full
+cost/statistics solver. Constant propagation is currently limited to the admitted
+direct ON constraints and singleton rowid paths.
+
+Declared NOT NULL payload columns now participate in null-test preparation,
+alongside physical rowids. Original outer-source nullability is retained even
+when WHERE later reduces the join. An impossible IS NULL on a guaranteed-present,
+non-null column ends the scan before dynamic ON evaluation. A separate suspected
+singleton-IN issue passed all eight baseline public-file controls; no production
+IN change was made on that hypothesis, and positive controls are retained.
+
+Component experiments are labelled separately: a draft passes **3,664 / 0**
+constant-search comparisons and **48 / 0** affinity controls in memory. These
+are not production-file or fresh seeded results. Public baseline controls record
+**400 / 98** singleton/term-order differences and, at the later pre-nullability
+checkpoint, **840 / 80** declared-NOT-NULL differences.
+
+Intermediate negative results are retained:
+
+- The first integrated implementation passes the saved constant-search replay
+  **252 / 0**, but records **28 / 2** in the prior reduced-cursor replay and
+  **400 / 60** singleton controls; its executable suite fails.
+- Adding singleton propagation and virtual-term ordering passes those three
+  lists (**252 / 0**, **28 / 0**, **400 / 0**), but a prior LEFT JOIN control
+  exposes an unsound global preference for constant point keys. Its executable
+  suite fails. The corrected implementation restores original point-key order
+  and prepends only the eligible inherited singleton constraint.
+- The corrected point selection passes 292 executable tests, then the expanded
+  declared-NOT-NULL controls expose the **840 / 80** negative above. Extending
+  source nullability metadata closes this focused regression.
+
+Final-source saved-failure replays pass **252 / 0**, **28 / 0**, **98 / 0** and
+**80 / 0** with exact error stdout, immutable main/WAL bytes and C integrity.
+The focused public controls pass **400 / 0** and **840 / 0**. These are replay
+and development results, with overlapping cases; they are not fresh examples.
+
+Fresh evaluation on frozen production source
+`bfa4c78e33b7ff26075d4158679a45b27f2b58898ee8e912bc43030bf1b53b37`:
+
+- Fixed-column/singleton/null-metadata, seed **354660**: **44,736 / 168**, plus 16 immutable-fixture checks.
+- Reduced outer cursors, seed **354661**: **52,736 / 0**, plus 16 immutable-fixture checks.
+- General scalar reads, seed **354662**: **24,640 / 0**, plus 16 immutable-fixture checks.
+- Evaluation order, seed **354663**: **16,128 / 0**, plus 24 immutable-fixture checks.
+- Joined writers, seed **354664**: **5,184 / 0**.
+
+The fresh checkpoint still has differences. Fixed-column/singleton/null-metadata: 96 C errors accepted, 72 C successes rejected, 0 other output/state differences. Every mismatch is retained in its full report and a labelled saved-case input.
+
+A separate fixed-shape discovery corpus at the same checkpoint records **1,200 / 8**, plus 12 immutable-fixture checks. It varies equality orientation and the expression surrounding a fixed column, including INTEGER/TEXT/BLOB affinities and empty/nonempty inner tables. This is a focused discovery set, not a newly seeded evaluation. All results and any diagnostic C query plans are retained.
+
+Read corpora compare exact stdout, including rows before errors, error status,
+immutable main/WAL bytes and C integrity/typed observations. Writers compare
+catalog and typed contents, follow-up C writes and Lean reopening; they require
+unchanged bytes whenever C leaves its files unchanged. The writer's both-error
+branch does not compare partial stdout. Seeded corpora mix fixed templates and
+new values, overflowing-row positions and windows, in both file modes and three
+C-created page sizes. Counts are not a percentage of SQLite compatibility.
+
+Checks pass **354 build jobs, 293 executable tests, 1,294 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. The four new executable helpers contain **812 C-backed controls**.
+The four new component claims cover unfixed lookup preservation, empty inner
+filter erasure, candidate permutation and outer-source nullability; they do not
+prove the general planner equivalent to SQLite. Native bindings remain nine and
+native source SHA-256 remains
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+
+The previously recorded SQL, planner, file-header, encoding and concurrent-WAL
+gaps remain open. Reports, exact diagnostic harnesses and intermediate source
+patches are retained under `sqlite-join-fixed-*`, `sqlite-join-singleton-*`,
+`sqlite-join-declared-null-*` and `sqlite-join-null-range-search-*` in
+`docs/validation`. The expanded public harness is
+`scripts/run-join-fixed-column-differential.py`.

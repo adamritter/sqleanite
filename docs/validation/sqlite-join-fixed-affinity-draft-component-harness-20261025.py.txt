@@ -1,0 +1,20 @@
+import hashlib,json,subprocess
+from pathlib import Path
+root=Path.cwd();c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';draft=Path('/tmp/JoinFixedDraftMain.lean');records=[];inputs=[]
+for fixture,affinity in enumerate(['TEXT','NUMERIC','BLOB']):
+ setup=f'CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k {affinity});INSERT INTO l VALUES(1,-9223372036854775808),(2,1);'
+ queries=[]
+ for condition in ["b.k='1' AND abs(a.k)=b.k", "b.k=CAST('1' AS INTEGER) AND abs(a.k)=b.k",'b.k=1 AND abs(a.k)=+b.k','b.k=1 AND abs(a.k)=CAST(b.k AS INTEGER)', 'b.k=1 AND CAST(abs(a.k) AS TEXT)=b.k','b.k=1 AND abs(a.k)=coalesce(b.k,1)','b.k=1 AND abs(a.k) IS b.k','b.k=1 AND abs(a.k)=length(b.k)']:
+  for kind in ['CROSS JOIN','LEFT JOIN']:queries.append(f'SELECT a.id,b.id FROM l a {kind} r b ON {condition};')
+ p=Path(f'/tmp/join-fixed-affinity-draft-{fixture}.sql');p.write_text(setup+'\n'+'\n'.join(queries)+'\n')
+ result=subprocess.run(['lake','env','lean','--run',str(draft),str(p)],capture_output=True,timeout=120)
+ assert result.returncode==0,result.stderr.decode()
+ results=[json.loads(line) for line in result.stdout.splitlines()];assert len(results)==len(queries)
+ inputs.append(dict(fixture=fixture,affinity=affinity,setup=setup,input_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),output_sha256=hashlib.sha256(result.stdout).hexdigest(),exit_code=result.returncode))
+ for sql,l in zip(queries,results):
+  result=subprocess.run([c,'-batch','-bail',':memory:'],input=(setup+sql).encode(),capture_output=True,timeout=30)
+  r=dict(code=result.returncode,stdout_bytes=list(result.stdout),stderr=result.stderr.decode('latin1'));records.append(dict(fixture=fixture,sql=sql,lean=l,sqlite=r,matched=bool(l['code'])==bool(r['code']) and l['stdout_bytes']==r['stdout_bytes']))
+h=hashlib.sha256()
+for p in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+report=dict(evaluation='Development-only in-memory draft component controls for restricted fixed-column affinity. Fixed controls, not a seeded production/file/WAL evaluation. Pinned C rerun compares exact error stdout.',inputs=inputs,cases=records,failures=sum(not x['matched'] for x in records),base_implementation_sha256=h.hexdigest(),draft_sha256=hashlib.sha256(draft.read_bytes()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([c,'--version'],text=True).strip())
+(root/'docs/validation/sqlite-join-fixed-affinity-draft-component-20261025.json').write_text(json.dumps(report,indent=2)+'\n');(root/'docs/validation/sqlite-join-fixed-affinity-draft-component-harness-20261025.py.txt').write_bytes(Path(__file__).read_bytes());print(len(records),report['failures']);print('\n'.join(x['sql'] for x in records if not x['matched']));raise SystemExit(bool(report['failures']))
