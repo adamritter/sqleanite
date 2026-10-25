@@ -501,6 +501,33 @@ private def matchAscendingIndexExprs : List Expr → MatchM Unit
         matchExpr next
         discard <| acceptKeyword "asc"
 
+/-- Non-fallback keywords in SQLite 3.53.4's nmnum grammar (parse.y).
+ON, DELETE and DEFAULT are explicit exceptions; contextual WINDOW/FILTER/OVER
+and the fallback/join keyword classes can be names in this position. -/
+private def pragmaBareName (name : String) : Bool :=
+  !["add", "all", "alter", "and", "as", "autoincrement", "between", "case",
+    "check", "collate", "commit", "constraint", "create", "deferrable", "distinct",
+    "drop", "else", "escape", "except", "exists", "foreign", "from", "group",
+    "having", "in", "index", "insert", "intersect", "into", "is", "isnull", "limit",
+    "not", "notnull", "null", "or", "order", "primary", "references", "returning",
+    "select", "set", "table", "then", "to", "transaction", "union", "unique",
+    "update", "using", "values", "when", "where"].contains name.toLower
+
+/-- PRAGMA arguments are names or signed numeric tokens, not SQL expressions.
+This initial metadata surface admits the name forms only. In particular the
+general expression checker's transparent parentheses must not be used here. -/
+private def matchPragmaNameArgument (expression : Expr) : MatchM Unit := do
+  match ← peek with
+  | .ident name => unless pragmaBareName name do mismatch "a PRAGMA name argument"
+  | .quotedIdent .. | .string _ => pure ()
+  | _ => mismatch "a PRAGMA name argument"
+  match expression with
+  | .column none name | .literal (.text name) _ => expectName name
+  | .call "lean_dqs" #[.literal (.text name) _] false => expectName name
+  | .call "__sqlean_boolean_true" #[] false => expectName "true"
+  | .call "__sqlean_boolean_false" #[] false => expectName "false"
+  | _ => mismatch "a PRAGMA name argument"
+
 private def matchNameList : List String → MatchM Unit
   | [] => pure ()
   | name :: names => do
@@ -911,6 +938,17 @@ private def matchStatement : Statement → MatchM Unit
       unless returning.isEmpty do
         expectKeyword "returning"
         matchResultColumns returning.toList
+  | .pragma name argument => do
+      expectKeyword "pragma"
+      expectName name
+      match argument with
+      | none => pure ()
+      | some expression =>
+          if ← acceptSymbol "=" then matchPragmaNameArgument expression
+          else
+            expectSymbol "("
+            matchPragmaNameArgument expression
+            expectSymbol ")"
   | .select query => matchSelect query
   | .begin => do
       expectKeyword "begin"

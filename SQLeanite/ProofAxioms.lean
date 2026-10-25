@@ -1318,3 +1318,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.readIndexEntry_rowid
 #print axioms SQLeanite.CoreDecode.readIndexEntry_accepted
 #print axioms SQLeanite.CoreDecode.checkedIndex_contents
+
+#print axioms SQLeanite.CoreSchemaPragma.tableRows_length
+#print axioms SQLeanite.CoreSchemaPragma.indexRows_length
+#print axioms SQLeanite.CoreSchemaPragma.execute_preserves_state

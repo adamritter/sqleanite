@@ -4597,6 +4597,62 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaPragma : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY NOT NULL,v TEXT);CREATE INDEX Iv ON t(v);CREATE UNIQUE INDEX Ii ON t(id);CREATE TABLE Tags(Key TEXT PRIMARY KEY,Owner int);INSERT INTO t VALUES(1,'one');" with
+    | .ok result => pure result
+    | .error message => fail message
+  let check := fun (state : Core.State) (sql : String) (expected : List (List Value)) => do
+    let (next, results) ← match CoreSQL.execute state sql with
+      | .ok result => pure result
+      | .error message => fail s!"schema PRAGMA {sql}: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do
+      fail s!"schema PRAGMA {sql} returned different metadata"
+    unless next.database.Equiv state.database do fail "schema PRAGMA mutated table/index state"
+  check state "PRAGMA TaBLe_InFo(t);"
+    [[.integer 0,.text "id",.text "INTEGER",.integer 1,.null,.integer 1],
+      [.integer 1,.text "v",.text "TEXT",.integer 0,.null,.integer 0]]
+  check state "PRAGMA table_xinfo='TAGS';"
+    [[.integer 0,.text "Key",.text "TEXT",.integer 0,.null,.integer 1,.integer 0],
+      [.integer 1,.text "Owner",.text "INT",.integer 0,.null,.integer 0,.integer 0]]
+  check state "PRAGMA index_list(\"T\");"
+    [[.integer 0,.text "Ii",.integer 1,.text "c",.integer 0],
+      [.integer 1,.text "Iv",.integer 0,.text "c",.integer 0]]
+  check state "PRAGMA index_list(Tags);"
+    [[.integer 0,.text "sqlite_autoindex_Tags_1",.integer 1,.text "pk",.integer 0]]
+  check state "PRAGMA index_info(iV);" [[.integer 0,.integer 1,.text "v"]]
+  check state "PRAGMA index_xinfo='IV';"
+    [[.integer 0,.integer 1,.text "v",.integer 0,.text "BINARY",.integer 1],
+      [.integer 1,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]]
+  for name in ["table_info","table_xinfo","index_list","index_info","index_xinfo"] do
+    check state ("PRAGMA " ++ name ++ ";") []
+    check state ("PRAGMA " ++ name ++ "('missing');") []
+  let (changed, _) ← match CoreSQL.execute state
+      "DROP INDEX Iv;ALTER TABLE t ADD NewCol REAL;CREATE INDEX NewIndex ON t(NewCol);ALTER TABLE t RENAME COLUMN NewCol TO Final;" with
+    | .ok result => pure result
+    | .error message => fail message
+  check changed "PRAGMA index_info(NewIndex);" [[.integer 0,.integer 2,.text "Final"]]
+  check changed "PRAGMA index_info(Iv);" []
+  let some image := CoreFile.encode changed.database | fail "PRAGMA encode failed"
+  let some restored := CoreDecode.decode image.fileBytes | fail "PRAGMA reopen failed"
+  check { database := restored } "PRAGMA index_info(NewIndex);"
+    [[.integer 0,.integer 2,.text "Final"]]
+  let parsed ← match CoreTokenGrammar.parseCertified "PRAGMA table_info(t);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  if (CoreTokenGrammar.check parsed.tokens #[.pragma "index_list" (some (.column none "t"))]).isOk then
+    fail "PRAGMA token replay accepted a different operation"
+  if (CoreTokenGrammar.check parsed.tokens #[.pragma "table_info" (some (.column none "Tags"))]).isOk then
+    fail "PRAGMA token replay accepted a different target"
+  for sql in ["PRAGMA table_info='t');", "PRAGMA table_info('t';",
+      "PRAGMA table_info(t+1);", "PRAGMA table_info('t','Tags');",
+      "PRAGMA table_info(('t'));", "PRAGMA table_info=(t);",
+      "PRAGMA table_info(select);", "PRAGMA table_info(where);"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"PRAGMA admitted invalid syntax: {sql}"
+
 private def expectSQLiteIndexSchema : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL);CREATE INDEX Ix ON t(v ASC);INSERT INTO t VALUES(1,1),(2,1.5),(3,NULL);" with
@@ -6601,6 +6657,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
   ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),
   ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
   ("SQLite ADD COLUMN and omitted trailing record fields", expectSQLiteSchemaAdd),

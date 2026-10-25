@@ -23,6 +23,16 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# Schema PRAGMAs read live Core metadata without mutating the connection state.
+if grep -q 'CoreSchemaPragma.execute state name argument' SQLeanite/CoreSQL.lean &&
+   grep -q 'schema.catalogColumns.zipIdx.map' SQLeanite/CoreSchemaPragma.lean &&
+   grep -q 'table.indexes.reverse.zipIdx.map' SQLeanite/CoreSchemaPragma.lean &&
+   grep -q 'CoreSchemaPragma.execute_preserves_state' SQLeanite/ProofAxioms.lean; then
+  ok "schema PRAGMAs read live Core metadata and preserve state"
+else
+  fail "schema PRAGMA routing or state-preservation contract is missing"
+fi
+
 # Foreign schema loading never runs SQL and both index readers validate contents.
 if grep -q 'CoreSchemaSQL.tableSchema sql' SQLeanite/CoreDecode.lean &&
    grep -q 'CoreTokenGrammar.parseCertified first' SQLeanite/CoreSchemaSQL.lean &&

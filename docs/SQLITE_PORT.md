@@ -3309,3 +3309,56 @@ and syntax errors; the completed full build and final checks pass. Reports:
 `sqlite-index-schema-*20261025.json`; harness:
 `scripts/run-index-schema-differential.py`. Native bindings remain nine and
 unchanged. This checkpoint does not establish full SQL/database/WAL equivalence.
+
+
+## Live Core schema-inspection PRAGMAs (2026-10-25)
+
+`PRAGMA table_info`, `table_xinfo`, `index_list`, `index_info` and `index_xinfo`
+now read live Core metadata. No metadata cache is introduced. Table rows omit
+the internal rowid column, retain declared names/type spelling, canonicalize
+SQLite's six standard type names, and distinguish explicit INTEGER PRIMARY KEY
+NOT NULL from the internal non-null rowid invariant. Primary-key ordinals and
+implicit-index uniqueness/origin match the represented schema. Index lists use
+reverse creation order; extended index info includes the auxiliary rowid with
+cid -1, NULL name, BINARY collation and key=0. Built-in schema aliases expose
+SQLite's five catalog columns. Missing objects or omitted arguments return no
+rows for these five pragmas.
+
+The operations are admitted by the independent token checker and exposed in
+`CoreStatementForm`. A kernel-checked contract proves that successful execution
+preserves the entire Core state; further contracts count visible-column and
+index result rows. Tests inspect explicit/implicit keys, index order, declared
+nullability, ALTER/DROP/CREATE changes, persistence round trips and rejection
+of a forged operation/argument in token replay.
+
+The initial negative run has **216/216 differences**. The first implementation
+passed **1,098 development comparisons**, but an expanded grammar check found
+**12/342 differences**: transparent expression parentheses had incorrectly been
+accepted as PRAGMA arguments. That report is retained. The checker now consumes
+a single admitted name token and rejects non-fallback keywords according to
+SQLite 3.53.4 parse.y's nmnum rules, rather than replaying an arbitrary expression.
+The expanded fixture initially attempted the same empty table and index name
+in one SQL namespace; fixture setup failed, then these valid empty-name cases
+were split across fixtures. No comparison result was manufactured from that
+failed setup.
+
+Final-checkpoint fresh seed **354164** has **2,826 comparisons / 0 differences**,
+including **234 positive error cases**. It spans both public file modes,
+512/4096/65536-byte pages, shifted primary-key column positions, empty names,
+quoted periods/quotes, ASCII-only case binding, main/WAL read immutability and
+subsequent C schema mutation followed by Lean re-query. Successful output bytes
+and row order are compared verbatim; errors compare positive failure status,
+not exact diagnostic text. The full **318 build jobs, 237 executable tests,
+1,152 headline component proofs**, both audits and 61 accepted reverse-file
+cells pass; two reverse-file cells remain declared unsupported. The initial
+state-preservation proof required a helper-result refactoring; both completed
+full builds pass and the final report uses the build after the grammar fix.
+
+Implementation SHA-256: `a00cedbe35daf6a9754206fa652f84f19a8f316c0e688612a04bf7a0566c321d`.
+Reports: `sqlite-schema-pragma-*20261025.json`; harness:
+`scripts/run-schema-pragma-differential.py`. These are the five statement forms
+over admitted Core schemas and the currently admitted name arguments. Numeric
+PRAGMA arguments, explicit schema qualifiers, some bare keyword arguments,
+table-valued PRAGMA functions and other PRAGMAs remain separate gaps. Native
+code and its nine-binding boundary are unchanged. Full SQL/database/WAL
+compatibility is still not established.

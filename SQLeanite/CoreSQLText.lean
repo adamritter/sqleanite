@@ -14,6 +14,7 @@ correctness theorem.
 -/
 
 inductive CoreStatementForm : Statement → Prop where
+  | pragma (name argument) : CoreStatementForm (.pragma name argument)
   | alterDropColumn (table column) : CoreStatementForm (.alterDropColumn table column)
   | alterAddColumn (table column) : CoreStatementForm (.alterAddColumn table column)
   | alterRenameTable (table name) : CoreStatementForm (.alterRenameTable table name)
@@ -59,12 +60,13 @@ theorem statementForm_of_execute_success {state next : Core.State}
   | delete table alias where_ returning => exact .delete ..
   | update table alias assignments where_ conflict returning => exact .update ..
   | select query => exact .select query
+  | pragma name argument => exact .pragma name argument
   | begin => exact .begin
   | commit => exact .commit
   | rollback => exact .rollback
   | createTableAs | createView | dropView |
       createTrigger | dropTrigger |
-      withRecursive | withCte | values | reindex | pragma =>
+      withRecursive | withCte | values | reindex =>
       simp [executeStatement, unsupported] at success
 
 theorem statementListForm_of_run_success (state : Core.State) :
