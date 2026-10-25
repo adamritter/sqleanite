@@ -2182,7 +2182,7 @@ else
   status=1
 fi
 
-if rg -F -q 'let query ← joinQueryComplete select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
    rg -F -q '(CoreSQL.joinQueryWithZero select leftName rightName' SQLeanite/CoreLazyFileEngine.lean &&
    rg -F -q 'unless joinStaticAdmitted context prepared rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
    rg -q 'theorem joinZeroQuery_limit' SQLeanite/CoreSQL.lean &&
@@ -2249,6 +2249,19 @@ if rg -F -q 'coalesceShared := rightSource.rightJoin && rightSource.leftJoin' SQ
   printf 'ok - FULL shared names coalesce values and retain source affinity and ordering\n'
 else
   printf 'live-path check FAILED: FULL shared-column interpretation\n' >&2
+  status=1
+fi
+
+if rg -F -q 'let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let _ ← joinAliasQuery { select with orderBy := #[], offset := 0 }' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreOrder.resolveNamesFuelWith_source' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreOrder.resolveNamesFuelWith_alias' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinAliasQuery_existing' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreOrder.resolveJoinOnTerm_alias' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined ON/WHERE aliases preserve source priority and original result expressions\n'
+else
+  printf 'live-path check FAILED: joined predicate aliases\n' >&2
   status=1
 fi
 

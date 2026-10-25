@@ -7195,6 +7195,56 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinAliases : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT b.k AS chosen,a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE chosen='01' ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1,.integer 1]]),
+    ("SELECT likely(b.k) AS chosen,a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE chosen='01' ORDER BY a.id,b.id;", []),
+    ("SELECT a.k COLLATE nocase AS chosen,a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE chosen='a' ORDER BY a.id,b.id;",
+      [[.text "A",.integer 2,.integer 2]]),
+    ("SELECT a.k COLLATE nocase AS chosen,a.id,b.id FROM l a LEFT JOIN r b ON chosen=b.k ORDER BY a.id,b.id;",
+      [[.text "01",.integer 1,.integer 1],[.text "A",.integer 2,.integer 2],[.null,.integer 3,.null]]),
+    ("SELECT k AS chosen,a.id,b.id FROM l a FULL JOIN r b USING(k) WHERE chosen=2 ORDER BY a.id,b.id;",
+      [[.integer 2,.null,.integer 4]]),
+    ("SELECT a.k COLLATE nocase AS chosen FROM l a LEFT JOIN r b ON a.id=b.id WHERE chosen IS NOT NULL ORDER BY chosen DESC;",
+      [[.text "A"],[.text "01"]]),
+    ("SELECT b.k AS id,a.id,b.id FROM l a JOIN r b USING(id) WHERE id=2;",
+      [[.text "a",.integer 2,.integer 2]]),
+    ("SELECT 1 AS chosen,0 AS chosen FROM l a JOIN r b ON a.id=b.id WHERE chosen;",
+      [[.integer 1,.integer 0],[.integer 1,.integer 0]]),
+    ("SELECT 0 AS true FROM l a JOIN r b ON a.id=b.id WHERE true;", []),
+    ("SELECT 1 AS false FROM l a JOIN r b ON a.id=b.id WHERE false;", [[.integer 1],[.integer 1]]),
+    ("SELECT true AS true FROM l a JOIN r b ON a.id=b.id WHERE true;", [[.integer 1],[.integer 1]]),
+    ("SELECT 0 AS true FROM l a JOIN r b ON a.id=b.id WHERE 1 IS true;", [])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined alias: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined alias scope, affinity, collation or Boolean shadowing: {sql}"
+  for condition in ["chosen", "chosen COLLATE binary", "likely(chosen)", "chosen AND 1", "1 AND chosen"] do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++
+        s!"SELECT a.k AS chosen,a.id,b.id FROM l a LEFT JOIN r b ON {condition} ORDER BY a.id,b.id;") with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match ([[Value.text "01",.integer 1,.integer 1],
+        [.text "01",.integer 1,.integer 2],[.text "01",.integer 1,.integer 4]]).mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"alias-replaced ON term retained SQLite's discarded outer-join tag: {condition}"
+  for sql in [
+      "SELECT b.k AS id FROM l a JOIN r b ON a.id=b.id WHERE id=2;",
+      "SELECT a.k AS chosen FROM l a JOIN r b ON a.id=b.id WHERE a.chosen;",
+      "SELECT a.k AS first,first AS second FROM l a JOIN r b ON a.id=b.id WHERE second;",
+      "SELECT a.k COLLATE missing AS true FROM l a JOIN r b ON a.id=b.id WHERE true=1 LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined aliases hid source ambiguity, qualification, non-recursion or required collation: {sql}"
+
 private def expectSQLiteFullUsing : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,Key TEXT,lo);CREATE TABLE r(id INTEGER PRIMARY KEY,kEY NUMERIC,ro);INSERT INTO l VALUES(1,'01','left'),(2,'x','left2');INSERT INTO r VALUES(10,1,'right'),(11,2,'right2');"
   let cases : List (String × List (List Value)) := [
@@ -8317,6 +8367,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite RIGHT/FULL join null extension and match accounting", expectSQLiteRightFullJoins),
   ("SQLite RIGHT USING merged values, qualification and CTAS metadata", expectSQLiteRightUsing),
   ("SQLite FULL USING coalesced values, affinity, ordering and CTAS names", expectSQLiteFullUsing),
+  ("SQLite joined predicate aliases and source-name priority", expectSQLiteJoinAliases),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

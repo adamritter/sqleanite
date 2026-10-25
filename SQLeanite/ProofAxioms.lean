@@ -1471,3 +1471,9 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreJoin.Operand.mergedColumn_missing
 #print axioms SQLeanite.CoreJoin.Operand.mergedColumn_present
+
+#print axioms SQLeanite.CoreOrder.resolveNamesFuelWith_source
+#print axioms SQLeanite.CoreOrder.resolveNamesFuelWith_alias
+#print axioms SQLeanite.CoreSQL.joinAliasQuery_existing
+
+#print axioms SQLeanite.CoreOrder.resolveJoinOnTerm_alias

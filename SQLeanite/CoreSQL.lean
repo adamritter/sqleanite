@@ -1764,8 +1764,14 @@ def joinQueryBound (select : Select) (rightSource : TableRef) (context : JoinCon
         where_.any (joinHasRowidEquality context.leftSchema context.rightSchema))
       (orderBy.map (fun term => (term.reference, term.descending))) }
 
+def joinAliasesNeeded (select : Select) (left right : Core.Schema) : Bool :=
+  let hasColumn := fun name => (findColumn? left name).isSome || (findColumn? right name).isSome
+  let needed := CoreOrder.needsAliasesWith hasColumn select.columns.toList
+  select.sources.toList.any (fun source => source.joinOn.any needed) || select.where_.any needed
+
 def joinQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query := do
+  if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
@@ -1785,6 +1791,7 @@ operation that SQLite would generate, but emits no predicate value evaluation.
 Projection, ordering and source checks retain the ordinary join translator. -/
 def joinZeroLayout (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query := do
+  if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
   unless select.limit == some 0 do unsupported "zero-limit join requires LIMIT 0"
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
@@ -1837,6 +1844,7 @@ WHERE and every other query component retain ordinary translation. -/
 def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
     Except String CoreJoin.Query := do
+  if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
@@ -2041,6 +2049,7 @@ def joinFullOrderBy (context : JoinContext)
 def joinRightQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
     Except String CoreJoin.Query := do
+  if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
@@ -2060,13 +2069,50 @@ def joinRightQuery (select : Select) (leftTable rightTable : String)
     rightSource context leftRows rightRows
   return { query with orderBy, distinctCollations := if kinds.all (· == .binary) then [] else kinds }
 
+/-- Retry unresolved ON/WHERE aliases against the original result expressions.
+The established interpreter gets first refusal; aliases never shadow a source
+name, and an inserted result expression is not recursively treated as aliases. -/
+def joinAliasQuery (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+    Except String CoreJoin.Query :=
+  let translate := if select.sources[1]?.any (fun source => source.rightJoin) then joinRightQuery else joinQueryComplete
+  match translate select leftTable rightTable leftSchema rightSchema leftRows rightRows with
+  | .ok query => .ok query
+  | .error message => do
+      let (leftSource, rightSource) ← match select.sources.toList with
+        | [left, right] => .ok (left, right)
+        | _ => .error message
+      let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
+      let needs := CoreOrder.needsAliasesWith (joinHasColumn context) select.columns.toList
+      unless rightSource.joinOn.any needs || select.where_.any needs do throw message
+      let resolve := CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList
+      let (on, deferred) := match rightSource.joinOn with
+        | none => (none, none)
+        | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+      let source := { rightSource with joinOn := on }
+      let ordering := select.orderBy.map fun term =>
+        { term with expr := CoreOrder.resolveOrderAliasesWith (joinHasColumn context) select.columns.toList term.expr }
+      let resolved := { select with
+        sources := #[leftSource, source]
+        where_ := CoreOrder.combineAliasConditions (select.where_.map resolve) deferred
+        orderBy := ordering
+        columns := select.columns.map (fun column => { column with alias := none }) }
+      translate resolved leftTable rightTable leftSchema rightSchema leftRows rightRows
+
+theorem joinAliasQuery_existing (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) (query : CoreJoin.Query)
+    (ordinary : select.sources[1]?.any (fun source => source.rightJoin) = false)
+    (success : joinQueryComplete select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query) :
+    joinAliasQuery select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
+  simp [joinAliasQuery, ordinary, success]
+
 def rightJoinResult (state : Core.State) (select : Select)
     (leftSource rightSource : TableRef) : Except String (Core.Result × Nat) := do
   let leftTable := resolveTableName state leftSource.name
   let rightTable := resolveTableName state rightSource.name
   let some left := state.database.findTable? leftTable | throw s!"no such table: {leftSource.name}"
   let some right := state.database.findTable? rightTable | throw s!"no such table: {rightSource.name}"
-  let query ← joinRightQuery select leftTable rightTable left.schema right.schema left.rows right.rows
+  let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows
   let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
   let rows := CoreOuterJoin.eval rightSource.leftJoin left.schema.columns.length query left.rows right.rows
   return ({ rows }, query.columns.length)
@@ -2106,7 +2152,7 @@ def executeJoin (state : Core.State) (select : Select) :
   let right ← match state.database.findTable? rightTable with
     | some table => .ok table
     | none => .error s!"no such table: {rightSource.name}"
-  let query ← joinQueryComplete select leftTable rightTable left.schema right.schema left.rows right.rows
+  let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows
   let query := CoreOptimizerBridge.optimizeJoin leftTable rightTable query
   let (next, result) ← Core.execute state (.join leftTable rightTable query)
   return ⟨next, result, query.columns.length⟩
@@ -2554,8 +2600,7 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
       let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
       let leftName := resolveTableName state leftSource.name
       let rightName := resolveTableName state rightSource.name
-      let translate := if rightSource.rightJoin then joinRightQuery else joinQueryComplete
-      let _ ← translate { select with orderBy := #[], offset := 0 }
+      let _ ← joinAliasQuery { select with orderBy := #[], offset := 0 }
         leftName rightName left.schema right.schema left.rows right.rows
       let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
       return (← joinWrappedColumns context select.columns.toList).2

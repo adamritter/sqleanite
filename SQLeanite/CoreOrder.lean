@@ -36,21 +36,21 @@ def ordinal? : Expr → Option Int
   | .unary .neg expression => (ordinal? expression).map (- ·)
   | _ => none
 
-def resolveNamesFuel (ctx : CoreExpr.Context) (columns : List ResultColumn) : Nat → Expr → Expr
+def resolveNamesFuelWith (hasColumn : String → Bool) (columns : List ResultColumn) : Nat → Expr → Expr
   | 0, expression => expression
   | fuel + 1, expression =>
       let replacement := (bareName? expression).bind fun name =>
-        if (ctx.column? none name).isSome then none else aliasExpression? columns name
+        if hasColumn name then none else aliasExpression? columns name
       match replacement with
-      | some result => ctx.bindNames result
+      | some result => SQLite.Scalar.bindNames hasColumn result
       | none =>
-          let resolve := resolveNamesFuel ctx columns fuel
+          let resolve := resolveNamesFuelWith hasColumn columns fuel
           match expression with
           | .unary op arg => .unary op (resolve arg)
           | .binary op left right => .binary op (resolve left) (resolve right)
           | .call name args star =>
               if (SQLite.Scalar.quotedIdentifier? expression).isSome ||
-                  (SQLite.Scalar.booleanKeyword? expression).isSome then ctx.bindNames expression
+                  (SQLite.Scalar.booleanKeyword? expression).isSome then SQLite.Scalar.bindNames hasColumn expression
               else .call name (args.map resolve) star
           | .isNull arg negated => .isNull (resolve arg) negated
           | .inList arg values negated affinity => .inList (resolve arg) (values.map resolve) negated affinity
@@ -58,6 +58,78 @@ def resolveNamesFuel (ctx : CoreExpr.Context) (columns : List ResultColumn) : Na
               (branches.map fun (condition, result) => (resolve condition, resolve result)) (otherwise.map resolve)
           | .collate arg name => .collate (resolve arg) name
           | _ => expression
+
+def resolveNamesFuel (ctx : CoreExpr.Context) (columns : List ResultColumn) : Nat → Expr → Expr :=
+  resolveNamesFuelWith (fun name => (ctx.column? none name).isSome) columns
+
+theorem resolveNamesFuelWith_source (hasColumn : String → Bool) (columns : List ResultColumn)
+    (fuel : Nat) (name : String) (bound : hasColumn name = true) :
+    resolveNamesFuelWith hasColumn columns fuel (.column none name) = .column none name := by
+  cases fuel <;> simp [resolveNamesFuelWith, bareName?, bound]
+
+theorem resolveNamesFuelWith_alias (hasColumn : String → Bool) (columns : List ResultColumn)
+    (fuel : Nat) (name : String) (expression : Expr) (absent : hasColumn name = false)
+    (found : aliasExpression? columns name = some expression) :
+    resolveNamesFuelWith hasColumn columns (fuel + 1) (.column none name) =
+      SQLite.Scalar.bindNames hasColumn expression := by
+  simp [resolveNamesFuelWith, bareName?, absent, found]
+
+def resolveAliasesWith (hasColumn : String → Bool) (columns : List ResultColumn) (expression : Expr) : Expr :=
+  let expression := SQLite.Scalar.prepare (SQLite.Scalar.bindNames hasColumn expression)
+  resolveNamesFuelWith hasColumn columns expression.height expression
+
+/-- Resolve top-level ORDER aliases before source names; nested references use
+source-first resolution. Inserted result expressions are not recursively aliased. -/
+def resolveOrderAliasesWith (hasColumn : String → Bool) (columns : List ResultColumn) : Expr → Expr
+  | .collate expression name => .collate (resolveOrderAliasesWith hasColumn columns expression) name
+  | expression => match (bareName? expression).bind (aliasExpression? columns) with
+      | some result => SQLite.Scalar.bindNames hasColumn result
+      | none => resolveAliasesWith hasColumn columns expression
+
+def combineAliasConditions : Option Expr → Option Expr → Option Expr
+  | none, right => right
+  | left, none => left
+  | some left, some right => some (.binary .and left right)
+
+/-- WHERE splitting ignores COLLATE and valid probability-hint shells before
+separating AND terms. Unary plus remains an ordinary expression operator. -/
+def aliasOnTermsFuel : Nat → Expr → List Expr
+  | 0, expression => [expression]
+  | fuel + 1, expression => match expression with
+    | .binary .and left right => aliasOnTermsFuel fuel left ++ aliasOnTermsFuel fuel right
+    | .collate inner _ => aliasOnTermsFuel fuel inner
+    | .call name arguments false => match SQLite.Probability.input? name arguments with
+      | some inner => aliasOnTermsFuel fuel inner
+      | none => [expression]
+    | _ => [expression]
+
+/-- SQLite's resolveAlias copies the output expression without EP_OuterON.
+An alias replacing an entire WHERE-split ON term therefore becomes an ordinary
+WHERE condition. A containing operator keeps its original ON status. -/
+def resolveJoinOnTerm (hasColumn : String → Bool) (columns : List ResultColumn) (expression : Expr) :
+    Option Expr × Option Expr :=
+  match (bareName? expression).bind (fun name =>
+      if hasColumn name then none else aliasExpression? columns name) with
+  | some result => (none, some (SQLite.Scalar.bindNames hasColumn result))
+  | none => (some (resolveAliasesWith hasColumn columns expression), none)
+
+def resolveJoinOnAliases (hasColumn : String → Bool) (columns : List ResultColumn) (expression : Expr) :
+    Option Expr × Option Expr :=
+  let prepared := SQLite.Scalar.prepare (SQLite.Scalar.bindNames hasColumn expression)
+  (aliasOnTermsFuel prepared.height prepared).foldl (fun prior term =>
+    let resolved := resolveJoinOnTerm hasColumn columns term
+    (combineAliasConditions prior.1 resolved.1, combineAliasConditions prior.2 resolved.2)) (none, none)
+
+theorem resolveJoinOnTerm_alias (hasColumn : String → Bool) (columns : List ResultColumn)
+    (name : String) (expression : Expr) (absent : hasColumn name = false)
+    (found : aliasExpression? columns name = some expression) :
+    resolveJoinOnTerm hasColumn columns (.column none name) =
+      (none, some (SQLite.Scalar.bindNames hasColumn expression)) := by
+  simp [resolveJoinOnTerm, bareName?, absent, found]
+
+def needsAliasesWith (hasColumn : String → Bool) (columns : List ResultColumn) (expression : Expr) : Bool :=
+  (SQLite.Scalar.prepare (SQLite.Scalar.bindNames hasColumn expression)).any fun node =>
+    (bareName? node).any fun name => !hasColumn name && (aliasExpression? columns name).isSome
 
 /-- WHERE resolves result aliases after parser-level simplification. Source
 columns take precedence, and substituted result expressions are not recursively

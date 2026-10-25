@@ -5170,3 +5170,56 @@ joined expressions, predicate output aliases and previously recorded planner
 ordering/other feature gaps remain. Reports:
 `sqlite-join-full-using-*20261025.json`; combined harness:
 `scripts/run-join-full-using-differential.py`.
+
+
+## Joined predicate aliases and ON term binding (2026-10-25)
+
+Two-source INNER/LEFT/RIGHT/FULL joins now resolve result aliases in WHERE and
+ON using the original projection expressions. Source columns take priority,
+including ambiguous and TRUE/FALSE-named columns. Substitution is non-recursive;
+qualified names cannot refer to output aliases. Explicit collation, affinity,
+ORDER aliases, duplicate aliases and CTAS names survive projection lowering.
+Existing successful join translations remain the first execution path. Empty
+inputs and LIMIT 0 still validate names and required collations.
+
+Pinned SQLite's resolveAlias copies the result expression without EP_OuterON.
+Consequently an alias replacing an entire AND-split ON term becomes a WHERE
+condition; false/NULL rows can disappear instead of being null-extended. The
+split ignores COLLATE and valid probability-hint shells, while unary plus and
+containing comparisons retain ON status. The implementation models this observed
+behavior explicitly rather than treating all alias substitutions as ordinary ON
+expressions. Component proofs establish source-name priority, one-level alias
+substitution, whole-term alias relocation and preservation of existing successful
+join translations; they do not establish full SQLite equivalence.
+
+Baseline seed **354560** records **2,352 cases / 1,872 differences**, all rejected
+successful statements. Expanded baseline **354565** records **3,084 / 2,412**:
+2,352 rejected successes, 48 incorrect successful outputs and 12 accepted C
+errors. Initial development **354561** records **4,304 / 64**. All 64 differences
+were incorrect outputs caused by preserving ON status on a whole-term alias;
+the complete negative result and its component-check report remain available.
+Corrected development **354566** passes **5,264 / 0**. Separate strict regression
+replays pass **64 / 0** for those ON failures and **60 / 0** for every originally
+accepted baseline mismatch. Each labelled selection retains its source hash and
+the complete original report; both engines rerun on the saved fixtures, with
+complete stdout also compared for errors. These are regression replays, not
+fresh evaluations.
+
+Final-checkpoint fresh seed **354562** passes **11,168 / 0**. FULL shared-column
+regression seed **354563** passes **3,960 / 0**. The fresh corpus mixes fixed
+controls with seeded data/query combinations across eight fixtures, all six
+declared affinity classes, empty inputs, actual TRUE/FALSE source columns,
+three page sizes and both file modes. The combined harness compares successful
+stdout, error status, independent C catalog/typed-row/integrity observations,
+follow-up C writes, Lean reopening and main/WAL immutability whenever C leaves
+those bytes unchanged. It does not compare error text or partial stdout in its
+both-error branch; the two saved-failure replays separately compare stdout.
+
+Final checks pass **354 build jobs, 279 executable tests, 1,263 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. Implementation SHA-256:
+`f18562096b53d9f47ba22aa483e1fe6e0f1f778cb3bb9fa17b63cb05f1c9961f`.
+Native bindings remain unchanged. General joined expressions, compound joined
+star ordering and previously recorded planner/file/WAL gaps remain. Reports:
+`sqlite-join-alias-*20261025.json`; harness:
+`scripts/run-join-alias-differential.py`.

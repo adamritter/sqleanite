@@ -204,6 +204,9 @@ theorem joinQuery_noCollation (select : Select) (leftTable rightTable : String)
     (success : CoreSQL.joinQuery select leftTable rightTable left right = .ok query) :
     ∀ column ∈ select.columns.toList, NoExplicitCollation column.expr := by
   unfold CoreSQL.joinQuery CoreSQL.joinQueryBound at success
+  by_cases aliases : CoreSQL.joinAliasesNeeded select left right = true
+  · simp [aliases, CoreSQL.unsupported, bind, Except.bind] at success
+  simp [aliases, bind, Except.bind, pure, Except.pure] at success
   cases sources : select.sources.toList with
   | nil => simp [sources, bind, Except.bind, CoreSQL.unsupported] at success
   | cons first rest =>
