@@ -1929,4 +1929,14 @@ else
   exit 1
 fi
 
+if rg -q 'def transactionChanged' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q '.commit => transactionChanged state' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSavepoint.releasesTransaction state name && transactionChanged state' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreTokenGrammar.parseStatements line' Main.lean; then
+  echo 'ok - unchanged transactions skip publication and complete lines determine read-only access'
+else
+  echo 'FAIL - read-only transaction publication or line classification is incomplete'
+  exit 1
+fi
+
 exit $status

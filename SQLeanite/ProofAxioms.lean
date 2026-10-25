@@ -1364,3 +1364,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSavepoint.release_database
 #print axioms SQLeanite.CoreSavepoint.rollbackTo_snapshot
 #print axioms SQLeanite.CoreSavepoint.releasesTransaction_push
+
+#print axioms SQLeanite.CoreFileEngine.transactionChanged_equivalent
+#print axioms SQLeanite.CoreFileEngine.requiresPersistence_commit_unchanged
+#print axioms SQLeanite.CoreFileEngine.requiresPersistence_release_unchanged

@@ -66,13 +66,13 @@ private def standaloneSQLLine (line : String) : Bool :=
     | current, _ => current
   finalQuote == .none && line.trimAscii.toString.endsWith ";"
 
-/-- Conservative write classification for the read-only-file diagnostic.
-Ambiguous statements are treated as writes; actual statement classification
-inside the engine still comes from the parsed `Statement`. -/
+/-- Classify the complete line through the certified grammar. Transaction
+control and reads can run on read-only files; a later write on the same line
+must still request writable access before execution. -/
 private def lineMightWrite (line : String) : Bool :=
-  let normalized := line.trimAscii.toString.toUpper
-  !(normalized.startsWith "SELECT" || normalized.startsWith "PRAGMA" ||
-    normalized.startsWith "EXPLAIN")
+  match CoreTokenGrammar.parseStatements line with
+  | .ok statements => statements.toList.any CoreFileEngine.statementWrites
+  | .error _ => true
 
 /-- Recognize the line-oriented format emitted by the benchmark and import
 tools.  This is only an execution-space optimization: every nonempty line must

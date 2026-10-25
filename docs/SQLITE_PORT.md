@@ -3961,3 +3961,36 @@ unsupported. Reports: `sqlite-savepoint-*20261025.json`; harnesses:
 These are scoped SQL/file/component results. Read-only transaction publication,
 transaction lock modes, concurrent SQLite WAL coordination, exact diagnostics
 and the remaining SQL features are separate work. Native bindings are unchanged.
+
+## Read-only transaction publication and file access (2026-10-25)
+
+COMMIT and transaction-owning RELEASE now publish only when the logical database
+contents differ from the saved transaction snapshot. Read-only transactions and
+transactions restored to their starting contents leave main/WAL bytes unchanged.
+A component theorem connects logical equivalence to this decision, with separate
+COMMIT and RELEASE no-publication corollaries. Changed transactions retain the
+existing file/WAL publication path.
+
+The CLI's line preflight now classifies every statement through the certified
+parser. BEGIN/SAVEPOINT and other transaction controls no longer make a read-only
+line demand write access. A write later on the same physical line is still
+recognized and rejected on a read-only file before it can change storage.
+
+Baseline seed 354270 records **240 comparisons / 204 differences**, including
+unnecessary main/WAL changes and rejected reads on read-only files. Expanded
+development seed 354271 passes **528 / 0**. Final-checkpoint fresh seed **354272**
+passes **1,488 / 0** across 512/4096/65536-byte pages, both file modes, writable and
+read-only files, single-line and multiline scripts and randomly nested read
+transactions. All cases require unchanged main/WAL hashes and independent C
+integrity/typed-row observations. The corpus also includes 48 actual write
+attempts on read-only files; both engines reject them and preserve the bytes.
+SAVEPOINT regression seed **354273** passes **486 / 0** on the same source.
+
+Implementation SHA-256: `ff52894df149d16b673509813d7625a95f641e4b92072d631849ce6ce3551279`.
+Final checks pass **338 build jobs, 249 executable tests, 1,187 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Reports: `sqlite-read-transaction-*20261025.json`; harness:
+`scripts/run-read-transaction-differential.py`. This decision compares complete
+logical contents; no constant-time performance claim is made. It does not claim
+identical physical change counters for transactions that write and later restore
+the same values, concurrent SQLite WAL coordination, or complete SQL equivalence.

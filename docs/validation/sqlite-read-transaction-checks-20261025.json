@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "ff52894df149d16b673509813d7625a95f641e4b92072d631849ce6ce3551279",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "9a9ebd92c18da4b35e11cb8f356f3511cff855dc6dd88bdffda6451b939d7fe2",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [337/338] Built Tests:c.o (15s)",
+        "\u2714 [338/338] Built sqleanite_tests:exe (339ms)",
+        "Build completed successfully (338 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "7917720f1c8362e9c63a801f6b5c47e1e8f932b463902a08745bb6a6607c1058",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "249 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "feedbd7ea0eab9f3f52f8c59ef637dedbbf806b0c06376d0b7bd5721ad164ad6",
+      "tail": [
+        "ok - primary-key schema policies use checked Core traces and invertible SQL",
+        "ok - checked DEFAULT SQL reaches writes, conflict replacement and old-record decoding",
+        "ok - named constraints retain exact constraint checks and validated name grammar",
+        "ok - exact column type syntax and empty-type affinity reach invertible persistence",
+        "ok - indexed primary types retain SQL metadata and disjoint exact numeric lookup keys",
+        "ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication",
+        "ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE",
+        "ok - unchanged transactions skip publication and complete lines determine read-only access"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "23d3ae3f1b13925f66c7adecfa1e0f078d2ce2bd4c31ce4bae3db90add993529"
+}

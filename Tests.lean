@@ -4597,6 +4597,39 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteReadTransaction : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');" with
+    | .ok result => pure result
+    | .error message => fail message
+  let marked := CoreSavepoint.push state "s"
+  if CoreFileEngine.requiresPersistence marked .commit || CoreFileEngine.requiresPersistence marked (.release "s") then
+    fail "read-only transaction requested file publication"
+  let (changed, _) ← match CoreSQL.execute marked "INSERT INTO t VALUES(2,'new');" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless CoreFileEngine.requiresPersistence changed .commit && CoreFileEngine.requiresPersistence changed (.release "s") do
+    fail "changed transaction skipped file publication"
+  let (restored, _) ← match CoreSQL.execute changed "ROLLBACK TO s;" with
+    | .ok result => pure result
+    | .error message => fail message
+  if CoreFileEngine.requiresPersistence restored (.release "s") then fail "restored transaction requested unnecessary publication"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-read-transaction.db"
+    journal := ".lake/build/sqleanite-read-transaction.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  match ← CoreFileEngine.execute connection "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');" with
+  | .error message => fail message
+  | .ok _ => pure ()
+  let before ← IO.FS.readBinFile paths.main
+  for sql in ["BEGIN;SELECT * FROM t;COMMIT;", "SAVEPOINT s;SELECT * FROM t;RELEASE s;",
+      "SAVEPOINT s;INSERT INTO t VALUES(2,'rolled back');ROLLBACK TO s;RELEASE s;"] do
+    match ← CoreFileEngine.execute connection sql with
+    | .error message => fail s!"read transaction: {message}"
+    | .ok _ => pure ()
+    unless (← IO.FS.readBinFile paths.main) == before do fail "read/restored transaction changed file bytes"
+
 private def expectSQLiteSavepoint : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v);" ++
     "SAVEPOINT outer;INSERT INTO t(v) VALUES('kept');SAVEPOINT inner;" ++
@@ -7193,6 +7226,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite read-only transaction publication", expectSQLiteReadTransaction),
   ("SQLite SAVEPOINT nesting, release and rollback", expectSQLiteSavepoint),
   ("SQLite AUTOINCREMENT history, ignored rows, rollback and persistence", expectSQLiteAutoIncrement),
   ("SQLite indexed primary types, NULL namespaces and exact numeric equality", expectSQLiteIndexedPrimaryTypes),

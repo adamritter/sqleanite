@@ -106,11 +106,30 @@ def statementWrites : Statement → Bool
   | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 
+/-- A read-only transaction has no durable delta. Comparing logical contents
+also avoids publishing changes canceled by a named rollback. -/
+def transactionChanged (state : Core.State) : Bool :=
+  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents)
+
+theorem transactionChanged_equivalent (state : Core.State) (snapshot : Core.Database)
+    (active : state.transactionSnapshot = some snapshot)
+    (same : state.database.Equiv snapshot) : transactionChanged state = false := by
+  simp [transactionChanged, active, Core.Database.Equiv] at *
+  exact same
+
 def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   match statement with
-  | .commit => state.transactionSnapshot.isSome
-  | .release name => CoreSavepoint.releasesTransaction state name
+  | .commit => transactionChanged state
+  | .release name => CoreSavepoint.releasesTransaction state name && transactionChanged state
   | _ => statementWrites statement && state.transactionSnapshot.isNone
+
+theorem requiresPersistence_commit_unchanged (state : Core.State)
+    (unchanged : transactionChanged state = false) :
+    requiresPersistence state .commit = false := by simp [requiresPersistence, unchanged]
+
+theorem requiresPersistence_release_unchanged (state : Core.State) (name : String)
+    (unchanged : transactionChanged state = false) :
+    requiresPersistence state (.release name) = false := by simp [requiresPersistence, unchanged]
 
 theorem requiresPersistence_write_in_transaction (state : Core.State)
     (statement : Statement) (writes : statementWrites statement = true)
