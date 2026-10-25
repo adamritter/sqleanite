@@ -185,6 +185,15 @@ else
 fi
 
 # Unicode escape functions retain byte sequences, including source-NUL suffixes.
+if grep -q 'let some catalog ← catalogIOFrom source' SQLeanite/CoreDecode.lean &&
+   grep -q 'resolvedTablePayloadIOFrom source (source.pageCount + 1) cell' SQLeanite/CoreDecode.lean &&
+   grep -q 'CoreDecode.catalogWalk_exhausted' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreDecode.decodeFromIOPageSource source' SQLeanite/CoreWALFileAdapter.lean; then
+  ok "SQLite schema pages and overflow records use the bounded public catalog reader"
+else
+  fail "SQLite multi-page schema reader is disconnected"
+fi
+
 if grep -q 'Format.evaluate values' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'Format.field_count_ignored' SQLeanite/ProofAxioms.lean &&
    grep -q 'FloatCodec.decode17 value' SQLeanite/SQLite/Format.lean; then
@@ -714,7 +723,7 @@ if grep -q 'let pageBytes := usable.val' \
      SQLeanite/CoreFileAdapter.lean &&
    ! grep -q 'byteArrayPageSource whole count' \
      SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'decodeCatalogForPageSize source.usable.val firstPage' \
+   grep -q 'catalogPage? source.usable.val pageNumber page' \
      SQLeanite/CoreDecode.lean &&
    grep -q 'decodeTableLeafCell source.usable input' \
      SQLeanite/CoreDecode.lean &&

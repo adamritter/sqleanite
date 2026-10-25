@@ -4597,6 +4597,54 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaPages : IO Unit := do
+  let first : CoreFile.CatalogEntry := {
+    kind := "table", name := "a", table := "a", rootPage := 2, sql := "CREATE TABLE a(id INTEGER PRIMARY KEY,v)" }
+  let second : CoreFile.CatalogEntry := {
+    kind := "table", name := "b", table := "b", rootPage := 3, sql := "CREATE TABLE b(id INTEGER PRIMARY KEY,v)" }
+  let some leftCell := CoreFile.catalogCell? 1 first | fail "schema cell encoder failed"
+  let some rightCell := CoreFile.catalogCell? 2 second | fail "schema cell encoder failed"
+  let some leftPage := CoreFile.tableLeafPage? [leftCell] | fail "schema leaf encoder failed"
+  let some rightPage := CoreFile.tableLeafPage? [rightCell] | fail "schema leaf encoder failed"
+  let header := fun count => FileFormat.encodeDatabaseHeader
+    (CoreFile.databaseHeader ⟨count % 2^32, Nat.mod_lt _ (by decide)⟩)
+  let root := fun left right =>
+    let cell := FileFormat.encodeUnsignedFixed 4 left ++ [1]
+    let offset := 4096 - cell.length
+    let treeHeader := [5, 0, 0] ++ FileFormat.encodeUnsignedFixed 2 1 ++
+      FileFormat.encodeUnsignedFixed 2 offset ++ [0] ++ FileFormat.encodeUnsignedFixed 4 right ++
+      FileFormat.encodeUnsignedFixed 2 offset
+    header 3 ++ treeHeader ++ List.replicate (offset - 100 - treeHeader.length) 0 ++ cell
+  let readCatalog := fun pages => do
+    let source : CoreDecode.IOPageSource := {
+      pageCount := pages.length
+      readPage := fun page => pure (CoreDecode.page? pages page) }
+    CoreDecode.catalogIOFrom source
+  let result ← readCatalog [root 2 3, leftPage.bytes, rightPage.bytes]
+  unless result = some [CoreDecode.CatalogEntry.ofEncoded first, CoreDecode.CatalogEntry.ofEncoded second] do
+    fail "schema traversal lost branch order or entries"
+  for (left, right) in [(1,3), (2,1), (2,2), (0,3), (2,4)] do
+    unless (← readCatalog [root left right, leftPage.bytes, rightPage.bytes]).isNone do
+      fail "schema traversal accepted a cycle, duplicate or invalid page"
+  let large := { first with sql := first.sql ++ String.ofList (List.replicate 15000 ' ') }
+  let some raw := CoreFile.catalogCell? 1 large | fail "large schema cell encoder failed"
+  let some (_, afterSize) := FileFormat.decodeVarint raw | fail "schema payload size missing"
+  let some (_, payload) := FileFormat.decodeVarint afterSize | fail "schema rowid missing"
+  let plan : CoreOverflow.CellPlan := {
+    kind := .table, cellPrefix := raw.take (raw.length - payload.length), payload }
+  let some resolved := CoreOverflow.resolvePlans 2 [plan] | fail "schema overflow planning failed"
+  let some body := CoreFile.leafBody? 13 100 resolved.cells | fail "schema overflow leaf failed"
+  let page := header (1 + resolved.pages.length) ++ body.bytes
+  let remaining := resolved.pages.map CoreFile.Page.bytes
+  unless (← readCatalog (page :: remaining)) = some [CoreDecode.CatalogEntry.ofEncoded large] do
+    fail "schema overflow traversal changed the SQL text"
+  match remaining with
+  | firstOverflow :: rest =>
+      let cyclic := FileFormat.encodeUnsignedFixed 4 2 ++ firstOverflow.drop 4
+      unless (← readCatalog (page :: cyclic :: rest)).isNone do
+        fail "schema overflow traversal accepted a cycle"
+  | [] => fail "schema overflow fixture stayed inline"
+
 private def expectSQLiteFormat : IO Unit := do
   let setup := "CREATE TABLE e(id INTEGER PRIMARY KEY,v);"
   let cases : List (String × List (List Value)) := [
@@ -5623,6 +5671,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),
   ("SQLite byte-preserving format and printf", expectSQLiteFormat),
   ("SQLite math functions and exact floating remainder", expectSQLiteMath),
   ("SQLite Unicode escape functions", expectSQLiteUnicodeEscape),

@@ -1219,3 +1219,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Format.evaluate_no_arguments
 #print axioms SQLeanite.SQLite.Format.evaluate_null
 #print axioms SQLeanite.SQLite.Format.field_count_ignored
+
+#print axioms SQLeanite.CoreDecode.catalogFields_nil
+#print axioms SQLeanite.CoreDecode.catalogWalk_empty
+#print axioms SQLeanite.CoreDecode.catalogWalk_exhausted

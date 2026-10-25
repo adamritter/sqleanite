@@ -2210,3 +2210,43 @@ verification audit and live-path audit pass. Reverse-file validation passes
 zero arguments, NULL format input and %n's unchanged argument stream. The nine
 project-native bindings and their audit list are unchanged. Reports use
 `sqlite-format-*20261024.json` under `docs/validation/`.
+
+## Multi-page schema reads (2026-10-25)
+
+The general file/WAL reader now traverses sqlite_schema as an ordinary table
+B-tree rooted at page one. It accounts for the 100-byte database header on the
+root, follows interior child pointers in order, and resolves schema-record
+payload overflow through the existing bounded table-payload reader. A global
+page budget, visited-page tracking and pointer bounds reject cycles, duplicate
+children, out-of-file references and cells pointing into the B-tree header.
+The logical table/index loading and validation after catalog decoding are
+unchanged. This extends read compatibility; the proved bulk writer still
+requires its schema entries to fit its single schema leaf.
+
+At source 8dcc714019b29c141cdd9966e5c0ce2920390ab799b652260c67e5e767e4586b,
+baseline 353920 records 169 differences in 177 read outcomes. Development
+353921 passes 237 outcomes. Final source is
+`3df3663e354335944dcd79bbe27974d414175c6a4aa40358aa8abea9854d9fb1`.
+Fresh 353922 passes **307 outcomes**, comprising **297 successful exact-result
+comparisons and ten matching positive corruption-error statuses**. Twenty
+independently generated databases cover 512–65,536-byte page sizes, up to 451
+tables, a schema tree with multiple interior pages, 70,000-character names,
+schema overflow chains and committed WAL schema overlays. The pinned SQLite
+3.53.4 dbstat topology, WAL frame counts and integrity checks are recorded.
+The producer is closed before copies are opened; these are not concurrency
+tests. All main/WAL bytes remain unchanged. Corruption checks include child
+cycles, zero/out-of-file pointers, duplicate children and a header cell pointer;
+exact error codes/messages are not compared.
+
+All 213 executable tests, the 284-job build, 1,082 registered headline proofs,
+verification audit and final live-path audit pass. Reverse-file validation
+passes 61 accepted cells and two declared unsupported shapes. The first
+live-path audit failed because it still searched for the replaced single-page
+catalog call; the audit now checks the actual page-size-aware traversal and
+existing table/index cell decoders. The negative audit log and check report are
+preserved, and only that failed check was rerun. Unit regressions also exercise
+schema entry order, invalid tree references and an overflow-chain cycle.
+Component proofs cover an empty catalog record, completed traversal and an
+exhausted budget; they do not prove complete SQLite file equivalence. Native
+code and the nine-binding audit boundary are unchanged. Reports use
+`sqlite-schema-pages-*20261025.*` under `docs/validation/`.

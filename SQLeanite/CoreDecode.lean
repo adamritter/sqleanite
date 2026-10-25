@@ -9707,10 +9707,85 @@ def applyIndexesIOFrom (source : IOPageSource) :
               | none => return none
       else return some database
 
+/-- The schema table uses the ordinary table B-tree format, including the
+100-byte database header on root page one and payload overflow chains. -/
+inductive CatalogPage where
+  | branch (children : List Nat)
+  | leaf (cells : List (List UInt8))
+
+def catalogPage? (pageSize pageNumber : Nat) (page : List UInt8) : Option CatalogPage := do
+  if page.length != pageSize then none else do
+    let headerOffset := if pageNumber == 1 then 100 else 0
+    let (header, afterHeader) ← decodeBTreePageHeader (page.drop headerOffset)
+    match header with
+    | .interiorTable common rightmost =>
+        let (offsets, _) ← decodeOffsets common.cellCount.val afterHeader
+        let children ← offsets.mapM fun offset => do
+          if offset < headerOffset + 12 + 2 * common.cellCount.val || offset ≥ page.length then none
+          else do
+            let (cell, _) ← decodeInteriorTableCell (page.drop offset)
+            some cell.leftChildPage.value.val
+        some (.branch (children ++ [rightmost.val]))
+    | .leafTable common =>
+        let (offsets, _) ← decodeOffsets common.cellCount.val afterHeader
+        if offsets.all (fun offset => headerOffset + 8 + 2 * common.cellCount.val ≤ offset && offset < page.length)
+        then some (.leaf (offsets.map page.drop)) else none
+    | _ => none
+
+def catalogFields? : List RecordField → Option CatalogEntry
+  | [kindField, nameField, tableField, rootField, sqlField] => do
+      let kind ← fieldText? kindField
+      let name ← fieldText? nameField
+      let table ← fieldText? tableField
+      let rootPage ← fieldNat? rootField
+      let sql ← fieldOptionalText? sqlField
+      some { kind, name, table, rootPage, sql }
+  | _ => none
+
+def catalogCellIOFrom (source : IOPageSource) (input : List UInt8) :
+    IO (Option CatalogEntry) := do
+  let some (cell, _) := decodeTableLeafCell source.usable input | return none
+  let some payload ← resolvedTablePayloadIOFrom source (source.pageCount + 1) cell | return none
+  let some (record, suffix) := decodePhysicalRecord payload | return none
+  unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
+  return catalogFields? record.fields
+
+/-- A global visit budget and explicit visited-page set reject cycles, repeated
+child references and out-of-range pointers before reading them. Leaf entries
+retain schema rowid traversal order. Overflow resolution has its own bounded
+payload reader, shared with ordinary table records. -/
+def catalogWalkIOFrom (source : IOPageSource) : Nat → List Nat → List Nat →
+    List CatalogEntry → IO (Option (List CatalogEntry))
+  | _, [], _, entries => pure (some entries.reverse)
+  | 0, _ :: _, _, _ => pure none
+  | fuel + 1, pageNumber :: pending, visited, entries => do
+      if pageNumber == 0 || source.pageCount < pageNumber || visited.contains pageNumber then return none
+      let some page ← source.readPage pageNumber | return none
+      let some decoded := catalogPage? source.usable.val pageNumber page | return none
+      match decoded with
+      | .branch children =>
+          catalogWalkIOFrom source fuel (children ++ pending) (pageNumber :: visited) entries
+      | .leaf cells =>
+          let entriesOnPage ← cells.mapM (catalogCellIOFrom source)
+          let some entriesOnPage := sequenceOptions entriesOnPage | return none
+          catalogWalkIOFrom source fuel pending (pageNumber :: visited) (entriesOnPage.reverse ++ entries)
+
+def catalogIOFrom (source : IOPageSource) : IO (Option (List CatalogEntry)) :=
+  catalogWalkIOFrom source source.pageCount [1] [] []
+
+theorem catalogFields_nil : catalogFields? [] = none := rfl
+
+theorem catalogWalk_empty (source : IOPageSource) (fuel : Nat)
+    (visited : List Nat) (entries : List CatalogEntry) :
+    catalogWalkIOFrom source fuel [] visited entries = pure (some entries.reverse) := by
+  cases fuel <;> rfl
+
+theorem catalogWalk_exhausted (source : IOPageSource) (page : Nat)
+    (pending visited : List Nat) (entries : List CatalogEntry) :
+    catalogWalkIOFrom source 0 (page :: pending) visited entries = pure none := rfl
+
 def decodeFromIOPageSource (source : IOPageSource) : IO (Option Core.Database) := do
-  let some firstPage ← source.readPage 1 | return none
-  let some catalog := decodeCatalogForPageSize source.usable.val firstPage |
-    return none
+  let some catalog ← catalogIOFrom source | return none
   let tableEntries := catalog.filter (fun entry => entry.kind == "table")
   let indexEntries := catalog.filter (fun entry => entry.kind == "index")
   let tables ← tableEntries.mapM (decodeTableIOFrom source)
