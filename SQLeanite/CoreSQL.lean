@@ -407,6 +407,40 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
         | some index => columnLiteral target expressions[index]!
         | none => .ok .null
 
+/-- Evaluate every source field before duplicate target columns are selected.
+Multi-VALUES uses a source row in SQLite, so even discarded fields can fail. -/
+def evaluateInsertExpressions (expressions : Array Expr) : Except String (Array Expr) := do
+  let evaluated ← expressions.toList.mapM literal
+  let values ← evaluated.mapM CoreExpr.value
+  return (values.map (fun value => Expr.literal value)).toArray
+
+theorem evaluateInsertExpressions_evaluated (expressions result : Array Expr)
+    (success : evaluateInsertExpressions expressions = .ok result) :
+    ∃ values, expressions.toList.mapM literal = .ok values := by
+  cases evaluated : expressions.toList.mapM literal with
+  | error message => simp [evaluateInsertExpressions, evaluated, bind, Except.bind] at success
+  | ok values => exact ⟨values, rfl⟩
+
+/-- Keep single-VALUES lazy selection, but materialize a complete source row
+for multi-VALUES before the ordinary first-column/last-rowid mapping. Validate
+arity, target names and expression admission before evaluating any value. -/
+def inputRowValues (schema : Core.Schema) (columns : Option (Array String))
+    (evaluateAll : Bool) (expressions : Array Expr) : Except String (List Core.Value) := do
+  if !evaluateAll then return ← rowValues schema columns expressions
+  unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
+  match columns with
+  | none =>
+      unless expressions.size = schema.visibleColumns.length do throw "INSERT column/value count mismatch"
+  | some names =>
+      unless names.size = expressions.size do throw "INSERT column/value count mismatch"
+      discard <| names.toList.mapM (column schema)
+  rowValues schema columns (← evaluateInsertExpressions expressions)
+
+@[simp] theorem inputRowValues_single (schema : Core.Schema)
+    (columns : Option (Array String)) (expressions : Array Expr) :
+    inputRowValues schema columns false expressions = rowValues schema columns expressions := by
+  simp [inputRowValues]
+
 private def executeCommand (state : Core.State) (command : Core.Command) :
     Except String (Core.State × List Core.Result) := do
   let (next, result) ← Core.execute state command
@@ -419,15 +453,17 @@ theorem executeCommand_eq_core (state : Core.State) (command : Core.Command) :
   rfl
 
 private def insertRows (state : Core.State) (table : String)
-    (schema : Core.Schema) (columns : Option (Array String)) (replacing : Bool) :
-    List (Array Expr) → Except String (Core.State × List Core.Result)
+    (schema : Core.Schema) (columns : Option (Array String)) (replacing : Bool)
+    (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    Except String (Core.State × List Core.Result) :=
+  match inputs with
   | [] => .ok (state, [])
   | expressions :: rows => do
-      let values ← rowValues schema columns expressions
+      let values ← inputRowValues schema columns evaluateAll expressions
       let command : Core.Command :=
         if replacing then .replace table values else .insert table values
       let (next, result) ← Core.execute state command
-      let (finalState, results) ← insertRows next table schema columns replacing rows
+      let (finalState, results) ← insertRows next table schema columns replacing rows evaluateAll
       return (finalState, result :: results)
 
 def executeIgnoredInsert (state : Core.State) (table : String) (stored : Core.Table)
@@ -443,15 +479,17 @@ theorem executeIgnoredInsert_skips (state : Core.State) (table : String) (stored
 /-- Recheck conflicts after each successful row. A skipped row contributes no
 change and does not reserve a rowid; ordinary expression failures still abort. -/
 def ignoreInsertRows (state : Core.State) (table : String) (schema : Core.Schema)
-    (columns : Option (Array String)) : List (Array Expr) → Except String (Core.State × List Core.Result)
+    (columns : Option (Array String)) (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    Except String (Core.State × List Core.Result) :=
+  match inputs with
   | [] => .ok (state, [])
   | expressions :: rows => do
-      let values ← rowValues schema columns expressions
+      let values ← inputRowValues schema columns evaluateAll expressions
       let stored ← match state.database.findTable? table with
         | some stored => pure stored
         | none => throw s!"no such table: {table}"
       let (next, result) ← executeIgnoredInsert state table stored values
-      let (finalState, results) ← ignoreInsertRows next table schema columns rows
+      let (finalState, results) ← ignoreInsertRows next table schema columns rows evaluateAll
       return (finalState, result :: results)
 
 theorem insertRows_singleton (state : Core.State) (table : String)
@@ -463,10 +501,10 @@ theorem insertRows_singleton (state : Core.State) (table : String)
         (if replacing then .replace table values else .insert table values) := by
   cases replacing with
   | false =>
-      simp only [insertRows, translated, Bool.false_eq_true, if_false,
+      simp only [insertRows, inputRowValues_single, translated, Bool.false_eq_true, if_false,
         executeCommand, bind, Functor.map, Except.bind, pure]
   | true =>
-      simp only [insertRows, translated, if_pos rfl, executeCommand,
+      simp only [insertRows, inputRowValues_single, translated, if_pos rfl, executeCommand,
         bind, Functor.map, Except.bind, pure]
 
 /-- Execute a sequence of already translated Core commands, retaining the
@@ -523,10 +561,10 @@ theorem runCoreCommands_append (state : Core.State)
 once every VALUES row has translated. -/
 theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
     (schema : Core.Schema) (columns : Option (Array String))
-    (replacing : Bool) : ∀ (rows : List (Array Expr))
+    (replacing evaluateAll : Bool) : ∀ (rows : List (Array Expr))
       (values : List (List Core.Value)),
-      rows.mapM (rowValues schema columns) = .ok values →
-      insertRows state table schema columns replacing rows =
+      rows.mapM (inputRowValues schema columns evaluateAll) = .ok values →
+      insertRows state table schema columns replacing rows evaluateAll =
         runCoreCommands state (values.map fun row =>
           if replacing then .replace table row else .insert table row)
   | [], values, translated => by
@@ -534,12 +572,12 @@ theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
       subst values
       rfl
   | expressions :: rows, values, translated => by
-      cases head : rowValues schema columns expressions with
+      cases head : inputRowValues schema columns evaluateAll expressions with
       | error message =>
           simp [List.mapM_cons, head, bind, Functor.map, Except.bind,
             pure, Except.pure, pure] at translated
       | ok value =>
-          cases tail : rows.mapM (rowValues schema columns) with
+          cases tail : rows.mapM (inputRowValues schema columns evaluateAll) with
           | error message =>
               simp [List.mapM_cons, head, tail, bind, Functor.map, Except.bind,
                 pure, Except.pure, pure] at translated
@@ -558,7 +596,7 @@ theorem insertRows_eq_runCoreCommands (state : Core.State) (table : String)
               | ok outcome =>
                   rcases outcome with ⟨next, result⟩
                   have induction := insertRows_eq_runCoreCommands next table
-                    schema columns replacing rows remaining tail
+                    schema columns replacing evaluateAll rows remaining tail
                   simp [command, execution, induction, bind, Functor.map,
                     Except.bind, pure, Except.pure, pure]
 
@@ -1967,17 +2005,19 @@ def uniqueReplacePlan (stored : Core.Table) (values : List Core.Value) :
   return deletes ++ [.insert stored.schema.name row.values]
 
 def replaceUniqueRows (state : Core.State) (table : String)
-    (schema : Core.Schema) (columns : Option (Array String)) :
-    List (Array Expr) → Except String (Core.State × List Core.Result)
+    (schema : Core.Schema) (columns : Option (Array String))
+    (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    Except String (Core.State × List Core.Result) :=
+  match inputs with
   | [] => .ok (state, [])
   | expressions :: rows => do
-      let values ← rowValues schema columns expressions
+      let values ← inputRowValues schema columns evaluateAll expressions
       let stored ← match state.database.findTable? table with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       let commands ← uniqueReplacePlan stored values
       let (next, _) ← runCoreCommands state commands
-      let (finalState, results) ← replaceUniqueRows next table schema columns rows
+      let (finalState, results) ← replaceUniqueRows next table schema columns rows evaluateAll
       return (finalState, { changes := 1 } :: results)
 
 /-- Validate target arity even if the source SELECT yields no rows. -/
@@ -2038,9 +2078,10 @@ may later delete that row, but it must not erase its already collected output.
 Ignored rows produce no output and do not evaluate RETURNING expressions. -/
 def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
-    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr) :
+    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
+    (evaluateAll : Bool := false) :
     Except String (Core.State × Option (List Core.Value)) := do
-  let values ← rowValues schema columns input
+  let values ← inputRowValues schema columns evaluateAll input
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {tableName}"
@@ -2064,19 +2105,21 @@ theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
 
 def insertReturningRows (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
-    (ctx : CoreExpr.Context) (projection : List Expr) :
-    List (Array Expr) → Except String (Core.State × List (List Core.Value))
+    (ctx : CoreExpr.Context) (projection : List Expr)
+    (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    Except String (Core.State × List (List Core.Value)) :=
+  match inputs with
   | [] => .ok (state, [])
   | input :: inputs => do
-      let (next, output) ← insertReturningRow state tableName schema columns conflict ctx projection input
-      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict ctx projection inputs
+      let (next, output) ← insertReturningRow state tableName schema columns conflict ctx projection input evaluateAll
+      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict ctx projection inputs evaluateAll
       return (finalState, output.toList ++ outputs)
 
 theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
     (schema : Core.Schema) (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (inputs : List (Array Expr))
-    (next : Core.State) (outputs : List (List Core.Value))
-    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs = .ok (next, outputs)) :
+    (next : Core.State) (outputs : List (List Core.Value)) (evaluateAll : Bool)
+    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs evaluateAll = .ok (next, outputs)) :
     outputs.length ≤ inputs.length := by
   induction inputs generalizing state next outputs with
   | nil =>
@@ -2084,11 +2127,11 @@ theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
       rcases success with ⟨_, rfl⟩
       simp
   | cons input inputs ih =>
-      cases head : insertReturningRow state tableName schema columns conflict ctx projection input with
+      cases head : insertReturningRow state tableName schema columns conflict ctx projection input evaluateAll with
       | error message => simp [insertReturningRows, head, bind, Except.bind] at success
       | ok pair =>
           rcases pair with ⟨middle, output⟩
-          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs with
+          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs evaluateAll with
           | error message => simp [insertReturningRows, head, tail, bind, Except.bind] at success
           | ok pair =>
               rcases pair with ⟨finalState, more⟩
@@ -2114,7 +2157,10 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
         let selection ← executeSelect state query
         checkInsertSelectColumns stored.schema columns selection.width
         selection.result.rows.mapM selectedRowExpressions
-  let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs
+  let evaluateAll := match source with
+    | .inl rows => 1 < rows.size
+    | .inr _ => false
+  let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs evaluateAll
   return (next, [{ rows := outputs, changes := outputs.length }])
 
 def indexNameExists (state : Core.State) (name : String) : Bool :=
@@ -2220,11 +2266,11 @@ def executeStatement (state : Core.State) :
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       if conflict == .ignore then
-        ignoreInsertRows state tableName stored.schema columns rows.toList
+        ignoreInsertRows state tableName stored.schema columns rows.toList (1 < rows.size)
       else if conflict == .replace && hasReplaceKeys stored then
-        replaceUniqueRows state tableName stored.schema columns rows.toList
+        replaceUniqueRows state tableName stored.schema columns rows.toList (1 < rows.size)
       else
-        insertRows state tableName stored.schema columns (conflict == .replace) rows.toList
+        insertRows state tableName stored.schema columns (conflict == .replace) rows.toList (1 < rows.size)
   | .delete table alias where_ returning => do
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with

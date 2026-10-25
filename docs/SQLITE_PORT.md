@@ -2949,3 +2949,46 @@ cells with two declared unsupported cells. Reports use
 defaults beyond ABORT, other key types and full compatibility remain unfinished.
 A separate retained counterexample set for multiple-VALUES unused-expression
 evaluation is the next task; this checkpoint does not claim that property.
+
+
+## Complete multi-VALUES input evaluation (2026-10-25)
+
+SQLite's multiple-VALUES source evaluates each complete input row before
+selecting duplicate INSERT targets. A discarded ordinary-column or rowid-alias
+expression can therefore raise an error, even if its row would later be ignored.
+Single VALUES keeps its existing selective evaluation. `inputRowValues` now
+carries this distinction through ordinary INSERT, IGNORE, REPLACE and RETURNING.
+The mode is fixed from the original VALUES count and retained on every recursive
+step, including the last row. INSERT SELECT already materializes source results
+and keeps its existing path. Values cross the typed Core/Expr bridge without SQL
+text rendering, preserving malformed TEXT, embedded NULs and BLOBs.
+
+`evaluateInsertExpressions_evaluated` proves that successful materialization
+has evaluated every source expression. `inputRowValues_single` proves the old
+single-VALUES identity. The exact insert-command-trace theorem and RETURNING
+count bound now quantify over the evaluation mode. Both `TranslatedInsertRows`
+translation premises use `inputRowValues` with the original row count; the older
+selectively evaluated premise would be insufficient and is not claimed unchanged.
+Single-row refinements keep their contracts. A proof simplification was updated
+to use the new identity lemma before evaluation.
+
+Retained baseline seed 354080: **114 differences / 324 executions**.
+Development seed 354081: **768 executions, zero differences**. Final seed 354082
+regenerates initial payloads and 180 SQL statements: **1,248 executions, zero
+differences**, including 954 positive-error outcomes. Both public file modes and
+512/4096/65536-byte pages are exercised, with duplicate ordinary/rowid targets,
+implicit and shadowed rowids, discarded first/last source errors, all admitted
+conflict policies, RETURNING, SELECT sources, raw/embedded-NUL TEXT and overflowing
+BLOB values. Successful output bytes and independently C-observed persisted
+types/hex values plus integrity are compared. Rejected individual statements
+retain main/WAL bytes. This measures success/error outcomes, not exact diagnostic
+codes/messages or precedence among multiple independently invalid expressions.
+
+Implementation SHA-256: `28ffe3ff15c53566d50e18a88ddfbc351a7d2157bf45416818b29ea03b0b6951`.
+The matching report records the successful **306-job build, 229 executable tests,
+1,127 headline component proofs**, both audits, and 61 accepted reverse-file
+cells with two declared unsupported cells. Native code and its nine-binding
+boundary are unchanged. Reports use `sqlite-insert-input-*20261025.json`;
+harness: `scripts/run-insert-input-differential.py`. Schema defaults, stateful
+functions, FAIL/ROLLBACK conflicts and full SQL/database/WAL compatibility remain
+unfinished.

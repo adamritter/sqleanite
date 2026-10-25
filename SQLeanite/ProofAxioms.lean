@@ -1286,3 +1286,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.insertValueIndex_rowid
 #print axioms SQLeanite.CoreSQL.insertValueIndex_ordinary
+
+#print axioms SQLeanite.CoreSQL.evaluateInsertExpressions_evaluated
+#print axioms SQLeanite.CoreSQL.inputRowValues_single

@@ -4597,6 +4597,38 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteInsertInputEvaluation : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL);INSERT INTO t VALUES(1,'one'),(2,'two');"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  for sql in ["INSERT INTO t(v,v) VALUES('kept',abs(-9223372036854775808));",
+      "INSERT INTO t(id,id,v) VALUES(abs(-9223372036854775808),10,'kept');",
+      "INSERT INTO t(v,v) VALUES('first',0 AND abs(-9223372036854775808)),('second',0);",
+      "INSERT INTO t(v,v) SELECT 'kept',abs(-9223372036854775808) WHERE 0;"] do
+    unless (CoreSQL.execute initial sql).isOk do fail s!"INSERT discarded-input rule rejected: {sql}"
+  for policy in ["", " OR ABORT", " OR IGNORE", " OR REPLACE"] do
+    for tail in ["", " RETURNING id,v"] do
+      for values in ["('kept',abs(-9223372036854775808)),('second',1)",
+          "('first',1),('kept',abs(-9223372036854775808))"] do
+        let sql := s!"INSERT{policy} INTO t(v,v) VALUES{values}{tail};"
+        if (CoreSQL.execute initial sql).isOk then fail s!"multi-VALUES discarded a source error: {sql}"
+      let sql := s!"INSERT{policy} INTO t(id,id,v) VALUES(abs(-9223372036854775808),1,'one'),(10,11,'two'){tail};"
+      if (CoreSQL.execute initial sql).isOk then fail "multi-VALUES skipped a discarded rowid source error"
+  for sql in ["INSERT INTO t(v,v) VALUES('kept',no_function());",
+      "INSERT INTO t(v,v) VALUES('first',0),('kept',no_function());",
+      "INSERT INTO t(v,v) SELECT 'kept',abs(-9223372036854775808);"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"INSERT input error swallowed: {sql}"
+  let (_, results) ← match CoreSQL.execute initial
+      "INSERT INTO t(v,v) VALUES(CAST(X'80FF' AS TEXT),X'00'),(CAST(X'610062' AS TEXT),NULL) RETURNING id,hex(v);" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected : List (List Value) := [[.integer 3,.text "80FF"],[.integer 4,.text "610062"]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some rows do fail "materialized INSERT changed raw TEXT bytes"
+
 private def expectSQLiteTablePrimary : IO Unit := do
   for typ in ["INTEGER","TEXT"] do
     let keys := ["PRIMARY KEY(k)", "CONSTRAINT pk PRIMARY KEY(k ASC)",
@@ -6229,6 +6261,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite multi-VALUES evaluates discarded inputs before constraints", expectSQLiteInsertInputEvaluation),
   ("SQLite checked single-column table PRIMARY KEY", expectSQLiteTablePrimary),
   ("SQLite nullable TEXT primary keys and persisted NOT NULL", expectSQLiteNullableTextPrimary),
   ("SQLite row-value UPDATE assignments preserve width and simultaneous RHS", expectSQLiteUpdateTuples),

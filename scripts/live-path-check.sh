@@ -463,6 +463,17 @@ else
   fail "table-key metadata or checked lowering detached from the live path"
 fi
 
+if grep -q 'inputRowValues schema columns evaluateAll' SQLeanite/CoreSQL.lean &&
+   grep -q 'rows.toList (1 < rows.size)' SQLeanite/CoreSQL.lean &&
+   grep -q 'ctx projection inputs evaluateAll' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.inputRowValues stored.schema columns (1 < rows.size)' SQLeanite/CoreSQLWriteText.lean &&
+   grep -q 'CoreSQL.evaluateInsertExpressions_evaluated' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.inputRowValues_single' SQLeanite/ProofAxioms.lean; then
+  ok "multi-VALUES source evaluation reaches all insert policies and RETURNING with matching trace premises"
+else
+  fail "multi-VALUES evaluation mode detached from insertion or its proof boundary"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

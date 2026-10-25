@@ -143,7 +143,7 @@ inductive TranslatedInsertRows (state : Core.State) :
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
       (translated : rows.toList.mapM
-        (CoreSQL.rowValues stored.schema columns) = .ok values) :
+        (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows conflict)
         (values.map fun row =>
           .insert (CoreSQL.canonical table) row)
@@ -154,7 +154,7 @@ inductive TranslatedInsertRows (state : Core.State) :
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
       (translated : rows.toList.mapM
-        (CoreSQL.rowValues stored.schema columns) = .ok values) :
+        (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows .replace)
         (values.map fun row =>
           .replace (CoreSQL.canonical table) row)
