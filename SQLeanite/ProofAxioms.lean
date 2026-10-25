@@ -996,7 +996,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.columnRead_eq_self
 #print axioms SQLeanite.Core.columnComparison_eq_self
 #print axioms SQLeanite.Core.readColumnValues_eq_self
-#print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_typed_append
+#print axioms SQLeanite.CanonicalSchemaSQL.parseBaseColumn_typed_append
 #print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_any_append
 #print axioms SQLeanite.CoreTokenGrammar.parseStatements_certified
 
@@ -1290,7 +1290,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.evaluateInsertExpressions_evaluated
 #print axioms SQLeanite.CoreSQL.inputRowValues_single
 
-#print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_integerNotNull_append
+#print axioms SQLeanite.CanonicalSchemaSQL.parseBaseColumn_integerNotNull_append
 
 #print axioms SQLeanite.CoreNames.table?_folded
 #print axioms SQLeanite.CoreNames.tableName_resolves
@@ -1328,3 +1328,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreCreateTableAs.uniqueName_unoccupied
 #print axioms SQLeanite.CoreSQL.executeCreateTableAs_trace
+
+#print axioms SQLeanite.Core.Column.restoreNotNullConflict
+#print axioms SQLeanite.CoreNullConflict.insert_skips
+#print axioms SQLeanite.CoreNullConflict.update_skips

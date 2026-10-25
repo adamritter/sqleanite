@@ -122,6 +122,17 @@ private def expectConflict : ConflictAction → MatchM Unit
   | .ignore => expectKeyword "ignore"
   | .default => mismatch "an explicit conflict action"
 
+private def matchConflictAction : MatchM ConflictAction := do
+  let token ← peek
+  let result ← if isKeyword token "abort" then pure ConflictAction.abort
+    else if isKeyword token "ignore" then pure .ignore
+    else if isKeyword token "replace" then pure .replace
+    else if isKeyword token "fail" then pure .fail
+    else if isKeyword token "rollback" then pure .rollback
+    else mismatch "an explicit conflict action"
+  discard advance
+  return result
+
 private def expectInteger (expected : Int) : MatchM Unit := do
   match ← peek with
   | .integer found _ =>
@@ -552,6 +563,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       !column.autoIncrement do
     mismatch "a verified-Core column definition"
   let mut sawNotNull := false
+  let mut notNullConflict := ConflictAction.abort
   let mut sawPrimary := false
   let mut sawCollation := false
   let mut scanning := true
@@ -560,9 +572,10 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       expectKeyword "not"
       expectKeyword "null"
       sawNotNull := true
+      notNullConflict := .abort
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
-        expectConflict column.notNullConflict
+        notNullConflict := ← matchConflictAction
     else if isKeyword (← peek) "null" then
       expectKeyword "null"
     else if isKeyword (← peek) "primary" then
@@ -579,7 +592,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       sawCollation := true
     else
       scanning := false
-  unless sawNotNull == column.notNull && sawPrimary == column.primaryKey &&
+  unless sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 

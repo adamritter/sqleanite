@@ -632,6 +632,7 @@ private def parseColumnDef : ParserM ColumnDef := do
     else if ← acceptKeyword "not" then
       expectKeyword "null"
       notNull := true
+      notNullConflict := .abort
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         notNullConflict := ← parseConflictAction

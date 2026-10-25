@@ -13,6 +13,12 @@ attribute [local instance] lexOrd
 abbrev Value := PhysicalCodec.Value
 abbrev Integer := FileFormat.SignedInteger .eight
 
+/-- Schema-level NOT NULL policies supported by the atomic Core SQL boundary.
+FAIL/ROLLBACK require a distinct statement outcome and are not represented yet. -/
+inductive NotNullConflict where
+  | abort | ignore | replace
+  deriving DecidableEq, Repr
+
 structure Column where
   name : String
   notNull : Bool := false
@@ -31,7 +37,34 @@ structure Column where
   declaredType : String := ""
   primaryType : (integerPrimaryKey || textPrimaryKey) = true → declaredType = "" := by
     simp_all
+  notNullConflict : NotNullConflict := .abort
+  notNullConflictOnly : notNullConflict ≠ .abort →
+      notNull = true ∧ (integerPrimaryKey = true → integerPrimaryNotNull = true) := by
+    simp_all
   deriving DecidableEq, Repr
+
+def Column.withNotNullConflict (column : Column) (policy : NotNullConflict) : Option Column :=
+  if valid : column.notNull = true ∧
+      (column.integerPrimaryKey = true → column.integerPrimaryNotNull = true) then
+    some { column with notNullConflict := policy, notNullConflictOnly := fun _ => valid }
+  else if policy = .abort then some column else none
+
+def Column.withoutNotNullConflict (column : Column) : Column :=
+  { column with notNullConflict := .abort, notNullConflictOnly := by simp }
+
+theorem Column.restoreNotNullConflict (column : Column) :
+    column.withoutNotNullConflict.withNotNullConflict column.notNullConflict = some column := by
+  unfold Column.withNotNullConflict Column.withoutNotNullConflict
+  split
+  · rfl
+  · next invalid =>
+      have plain : column.notNullConflict = .abort := by
+        by_cases same : column.notNullConflict = .abort
+        · exact same
+        · exact False.elim (invalid (column.notNullConflictOnly same))
+      simp [plain]
+      cases column
+      simp_all
 
 def Column.affinity (column : Column) : SQLite.Affinity :=
   if column.integerPrimaryKey then .integer

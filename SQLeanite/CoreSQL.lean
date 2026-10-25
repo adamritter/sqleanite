@@ -19,6 +19,7 @@ import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
 import SQLeanite.CoreGrouped
 import SQLeanite.CoreReturning
+import SQLeanite.CoreNullConflict
 import SQLeanite.CoreInsertIgnore
 import SQLeanite.CoreUpdateIgnore
 import SQLeanite.CoreUpdateReplace
@@ -48,7 +49,19 @@ def declaredTypeName (source : String) : String :=
 def columnAllowed (column : ColumnDef) : Bool :=
   column.defaultValue.isNone && column.generated.isNone && !column.unique &&
   column.references.isNone && column.check.isNone && !column.autoIncrement &&
-  column.collation.toLower == "binary"
+  column.collation.toLower == "binary" && column.conflict == .abort &&
+  (column.notNullConflict == .abort || column.notNullConflict == .ignore || column.notNullConflict == .replace) &&
+  (column.notNull || column.notNullConflict == .abort)
+
+def withNullConflict (definition : ColumnDef) (column : Core.Column) : Except String Core.Column := do
+  let policy ← match definition.notNullConflict with
+    | .abort => pure Core.NotNullConflict.abort
+    | .ignore => pure Core.NotNullConflict.ignore
+    | .replace => pure Core.NotNullConflict.replace
+    | _ => unsupported "schema NOT NULL conflict policy"
+  match column.withNotNullConflict policy with
+  | some column => pure column
+  | none => unsupported "NOT NULL policy without an explicit constraint"
 
 /-- Mark a table-level key without changing column order, names or other
 column constraints. The caller validates that its target exists uniquely. -/
@@ -108,7 +121,7 @@ def schema (name : String) (definitions : Array ColumnDef)
     throw "duplicate column name"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
   if primaryKeys.isEmpty then
-    let visibleColumns : List Core.Column := definitions.toList.map fun column => {
+    let visibleColumns ← definitions.toList.mapM fun column => withNullConflict column {
       name := column.name
       notNull := column.notNull
       declaredType := declaredTypeName column.declaredType }
@@ -131,7 +144,7 @@ def schema (name : String) (definitions : Array ColumnDef)
   let integerAlias := (declaredTypeName primaryDefinition.declaredType).toLower == "integer"
   unless integerAlias || (declaredTypeName primaryDefinition.declaredType).toLower == "text" do
     throw "verified MVP primary key must have declared type INTEGER or TEXT"
-  let visibleColumns : List Core.Column := definitions.toList.map fun column =>
+  let visibleColumns ← definitions.toList.mapM fun column => withNullConflict column <|
     if column.primaryKey then {
       name := column.name
       notNull := integerAlias || column.notNull
@@ -477,6 +490,18 @@ private def insertRows (state : Core.State) (table : String)
         if replacing then .replace table values else .insert table values
       let (next, result) ← Core.execute state command
       let (finalState, results) ← insertRows next table schema columns replacing rows evaluateAll
+      return (finalState, result :: results)
+
+/-- Apply the schema's default NOT NULL policy to each current candidate. -/
+def schemaInsertRows (state : Core.State) (table : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    Except String (Core.State × List Core.Result) :=
+  match inputs with
+  | [] => .ok (state, [])
+  | expressions :: rows => do
+      let values ← inputRowValues schema columns evaluateAll expressions
+      let (next, result) ← CoreNullConflict.insert state table schema values
+      let (finalState, results) ← schemaInsertRows next table schema columns rows evaluateAll
       return (finalState, result :: results)
 
 def executeIgnoredInsert (state : Core.State) (table : String) (stored : Core.Table)
@@ -858,6 +883,33 @@ def executeIgnoredUpdate (state : Core.State) (tableName : String) (alias : Opti
   let (next, results) ← ignoredUpdateRows state tableName ctx bound condition rows
   return (next, [{ changes := (results.map (·.changes)).sum }])
 
+def schemaNullUpdateRows (state : Core.State) (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) :
+    List Core.Row → Except String (Core.State × List Core.Result)
+  | [] => .ok (state, [])
+  | row :: rows => do
+      unless ← ctx.matches row.values condition do
+        return ← schemaNullUpdateRows state tableName ctx assignments condition rows
+      let updates ← evaluateAssignments ctx row assignments
+      let values := Core.applyAssignments row.values updates
+      let (next, result) ← CoreNullConflict.update state tableName ctx.schema row.rowid values
+      let (finalState, results) ← schemaNullUpdateRows next tableName ctx assignments condition rows
+      return (finalState, result :: results)
+
+def executeSchemaNullUpdate (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let bound ← expressionAssignmentsWith true ctx assignments
+  let _ ← condition.mapM ctx.validate
+  unless ← ctx.constantMatches condition do return (state, [{}])
+  let search ← expressionSearch ctx stored condition
+  let ctx := expressionSearchContext ctx search
+  unless ← expressionSearchReady ctx search condition do return (state, [{}])
+  let rows ← CoreUpdateScan.order ctx stored bound condition (stored.rows.filter (Core.selects search))
+  let (next, results) ← schemaNullUpdateRows state tableName ctx bound condition rows
+  return (next, [{ changes := (results.map (·.changes)).sum }])
+
 def executeRekeyUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (Core.State × List Core.Result) := do
@@ -1000,6 +1052,8 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
   let some row := stored.findRowid? rowid | return (state, none)
   let updates ← evaluateAssignments ctx row assignments
   let values := Core.applyAssignments row.values updates
+  if conflict == .default then
+    unless ← CoreNullConflict.shouldWrite ctx.schema values true do return (state, none)
   let outcome ← if conflict == .ignore then
       CoreUpdateIgnore.row state tableName ctx.schema rowid values
     else if conflict == .replace then do
@@ -2078,7 +2132,9 @@ def executeInsertSelect (state : Core.State) (table : String)
   let selection ← executeSelect state query
   checkInsertSelectColumns stored.schema columns selection.width
   let rows ← selection.result.rows.mapM selectedRowExpressions
-  if conflict == .ignore then ignoreInsertRows state tableName stored.schema columns rows
+  if conflict == .default && CoreNullConflict.active stored.schema then
+    schemaInsertRows state tableName stored.schema columns rows
+  else if conflict == .ignore then ignoreInsertRows state tableName stored.schema columns rows
   else insertSelection state tableName stored columns (conflict == .replace) rows
 
 theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
@@ -2098,6 +2154,8 @@ def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {tableName}"
+  if conflict == .default then
+    unless ← CoreNullConflict.shouldWrite schema values false do return (state, none)
   if conflict == .ignore then
     unless ← CoreInsertIgnore.shouldInsert stored values do return (state, none)
   let row ← stored.createRow values
@@ -2283,11 +2341,11 @@ def executeStatement (state : Core.State) :
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
         throw "too many columns"
       unless columnAllowed definition && !definition.primaryKey &&
-          definition.notNullConflict == .abort && definition.conflict == .abort do
+          definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
         unsupported "reserved internal rowid column name"
-      let column : Core.Column := { name := definition.name, notNull := definition.notNull, declaredType := declaredTypeName definition.declaredType }
+      let column ← withNullConflict definition { name := definition.name, notNull := definition.notNull, declaredType := declaredTypeName definition.declaredType }
       let updated ← CoreSchemaAdd.table stored column
       let database ← state.database.updateTable updated
       return ({ state with database }, [{}])
@@ -2355,7 +2413,9 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      if conflict == .ignore then
+      if conflict == .default && CoreNullConflict.active stored.schema then
+        schemaInsertRows state tableName stored.schema columns rows.toList (1 < rows.size)
+      else if conflict == .ignore then
         ignoreInsertRows state tableName stored.schema columns rows.toList (1 < rows.size)
       else if conflict == .replace && hasReplaceKeys stored then
         replaceUniqueRows state tableName stored.schema columns rows.toList (1 < rows.size)
@@ -2381,6 +2441,8 @@ def executeStatement (state : Core.State) :
       unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
       if !returning.isEmpty then
         return ← executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning
+      if conflict == .default && CoreNullConflict.active stored.schema then
+        return ← executeSchemaNullUpdate state tableName alias stored assignments.toList where_
       if conflict == .ignore then
         return ← executeIgnoredUpdate state tableName alias stored assignments.toList where_
       if conflict == .replace then

@@ -519,7 +519,7 @@ fi
 if grep -q 'integerPrimaryNotNull := integerAlias && column.notNull' SQLeanite/CoreSQL.lean &&
    grep -q 'if column.integerPrimaryNotNull then " INTEGER PRIMARY KEY NOT NULL"' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'integerPrimaryKey := true, integerPrimaryNotNull := true' SQLeanite/CanonicalSchemaSQL.lean &&
-   grep -q 'CanonicalSchemaSQL.parseColumn_integerNotNull_append' SQLeanite/ProofAxioms.lean; then
+   grep -q 'CanonicalSchemaSQL.parseBaseColumn_integerNotNull_append' SQLeanite/ProofAxioms.lean; then
   ok "declared INTEGER key NOT NULL metadata survives canonical print and parse"
 else
   fail "declared INTEGER key nullability detached from the schema codec"
@@ -1833,3 +1833,16 @@ else
 fi
 
 exit $status
+
+if grep -q 'import SQLeanite.CoreNullConflict' SQLeanite/CoreSQL.lean &&
+   grep -q 'schemaInsertRows state tableName stored.schema' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeSchemaNullUpdate state tableName' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreNullConflict.shouldWrite ctx.schema values true' SQLeanite/CoreSQL.lean &&
+   grep -q 'notNullConflict == column.notNullConflict' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'notNullConflictChars column.notNullConflict' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'Core.Column.restoreNotNullConflict' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - schema NOT NULL policies reach checked writes and invertible persistence'
+else
+  echo 'FAIL - schema NOT NULL policy wiring is incomplete'
+  exit 1
+fi

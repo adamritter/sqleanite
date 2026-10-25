@@ -3473,3 +3473,58 @@ remain declared unsupported. Reports: `sqlite-create-table-as-*20261025.json`;
 harness: `scripts/run-create-table-as-differential.py`. Native code and the
 nine-binding trust boundary are unchanged. Full SQL/database/WAL compatibility
 is not established.
+
+## Persisted NOT NULL conflict policies (2026-10-25)
+
+Core columns now retain the schema's NOT NULL ABORT/IGNORE/REPLACE policy.
+The representation requires a nondefault policy to belong to an explicit
+NOT NULL declaration, including the separate explicit flag for INTEGER rowid
+aliases. The canonical SQL printer/recognizer preserves the policy, with a
+kernel-checked full schema inverse. The prior column inverse is retained as a
+base recognizer lemma; the complete inverse composes it with policy recognition
+and the new restoreNotNullConflict theorem. This also prevents an INTEGER
+PRIMARY KEY ON CONFLICT clause from being mistaken for a NOT NULL policy.
+
+Default INSERT/UPDATE checks NOT NULL columns in declaration order: an early
+IGNORE skips the entire candidate before a later ABORT can fire. A skipped row
+emits no RETURNING output. Rowid datatype errors and expression errors remain
+errors. Without a DEFAULT value, NOT NULL REPLACE performs ABORT, as SQLite
+specifies; DEFAULT values remain unsupported. Explicit statement OR actions
+continue to override the schema policy. VALUES, INSERT SELECT, UPDATE,
+RETURNING, schema rename and supported ADD COLUMN share the persisted metadata.
+Repeated NOT NULL declarations now reset to ABORT when the last declaration
+omits ON CONFLICT. Independent token replay reads each action and checks the
+final policy, including rejecting an invented policy when SQL specifies none.
+
+The existing single-command write/insert-trace relations now explicitly require
+that a default-policy statement does not dispatch through active schema NULL
+policies. This condition is unnecessary for explicit OR ABORT. The new skip
+contracts establish unchanged state and zero changes for skipped candidates;
+these component theorems do not establish complete SQLite SQL equivalence.
+Schema FAIL/ROLLBACK and non-ABORT primary-key policies are explicitly rejected
+instead of being silently discarded. Primary-key policy support is separate
+follow-up work.
+
+Baseline seed 354190: **432 comparisons / 232 differences**, retained. Development
+seed 354191: **732 / 0**. After expanding the harness, final-checkpoint fresh seed
+**354192** has **3,456 comparisons / 0 differences** across twelve C-created
+fixtures and both public file modes. The expanded suite covers three page sizes,
+INTEGER and nullable/NOT NULL TEXT keys, rowid allocation, mixed ordered NULL
+policies, duplicate declarations, statement overrides, key/unique-index errors,
+RETURNING evaluation, rollback, ADD/rename, overflow-sized and malformed TEXT.
+C performs an additional NULL insertion into every resulting file before Lean
+reopens it; failure status and independent C metadata/typed-row/integrity
+observations verify that policies survive writes. Full successful outputs are
+compared; error messages and original catalog SQL text are not compared. Failed
+single statements preserve the Lean main/WAL byte hashes. The expanded harness
+records actual fixture SQL, replacing unused case-flag annotations inherited
+by the initial baseline/development harness.
+
+Implementation SHA-256: `f38b419f1af57e28a1e033458ecf02873537530ce82037ac01559e79dee7a99b`.
+Final checks pass **324 build jobs, 240 executable tests, 1,159 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. The full build followed the resolved intermediate
+component proof failures. Reports: `sqlite-schema-null-conflict-*20261025.json`;
+harness: `scripts/run-schema-null-conflict-differential.py`. Native code and its
+nine-binding boundary are unchanged. Full SQL/database/WAL compatibility remains
+unfinished.

@@ -4597,6 +4597,63 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaNullConflict : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT NOT NULL ON CONFLICT IGNORE,b INT NOT NULL);INSERT INTO t VALUES(1,'one',1),(2,NULL,2),(3,'three',3);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"schema NULL policy setup: {message}"
+  let some table := state.database.findTable? "t" | fail "NULL-policy table missing"
+  unless table.rows.map (fun row => row.rowid.value) == [1,3] do fail "schema IGNORE inserted a NULL row"
+  let (same, results) ← match CoreSQL.execute state
+      "INSERT INTO t VALUES(4,NULL,NULL) RETURNING *;UPDATE t SET a=NULL,b=NULL RETURNING *;" with
+    | .ok result => pure result
+    | .error message => fail s!"early IGNORE must precede later ABORT: {message}"
+  unless same.database.Equiv state.database && results.all (fun result => result.rows.isEmpty && result.changes == 0) do
+    fail "schema IGNORE changed rows or emitted RETURNING output"
+  for sql in ["INSERT OR ABORT INTO t VALUES(4,NULL,4);", "INSERT OR REPLACE INTO t VALUES(1,NULL,4);",
+      "UPDATE OR ABORT t SET a=NULL;", "UPDATE OR REPLACE t SET a=NULL;",
+      "UPDATE t SET rowid=NULL,a=NULL;", "INSERT INTO t(rowid,a,b) VALUES('bad',NULL,1);"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"NULL policy suppressed a required error: {sql}"
+  let (updated, _) ← match CoreSQL.execute state
+      "UPDATE t SET a=CASE WHEN id=1 THEN NULL ELSE 'changed' END,b=b+10;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let (_, selected) ← match CoreSQL.execute updated "SELECT id,a,b FROM t ORDER BY id;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected : List (List Value) := [[.integer 1,.text "one",.integer 1],[.integer 3,.text "changed",.integer 13]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (selected.getLast?).map (·.rows) == some rows do fail "schema IGNORE update changed a skipped row"
+  let (more, _) ← match CoreSQL.execute updated
+      "CREATE TABLE r(id INTEGER PRIMARY KEY NOT NULL ON CONFLICT IGNORE,a NOT NULL ON CONFLICT REPLACE);INSERT INTO r VALUES(NULL,1);CREATE TABLE added(id INTEGER PRIMARY KEY);ALTER TABLE added ADD a NOT NULL ON CONFLICT IGNORE;INSERT INTO added VALUES(1,NULL),(2,'ok');" with
+    | .ok result => pure result
+    | .error message => fail s!"NULL policy metadata: {message}"
+  let some image := CoreFile.encode more.database | fail "NULL policy encode failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "NULL policy reopen failed"
+  unless reopened.Equiv more.database do fail "NULL policies changed during codec roundtrip"
+  let (again, _) ← match CoreSQL.execute { more with database := reopened }
+      "INSERT INTO t VALUES(99,NULL,1);" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless again.database.Equiv reopened do fail "reopened schema lost IGNORE behavior"
+  for sql in ["CREATE TABLE x(a NOT NULL,b NOT NULL ON CONFLICT IGNORE);INSERT INTO x VALUES(NULL,NULL);",
+      "CREATE TABLE x(a NOT NULL ON CONFLICT REPLACE);INSERT INTO x VALUES(NULL);",
+      "CREATE TABLE x(a NOT NULL ON CONFLICT IGNORE NOT NULL);INSERT INTO x VALUES(NULL);",
+      "CREATE TABLE x(a INTEGER PRIMARY KEY ON CONFLICT IGNORE);",
+      "CREATE TABLE x(a NOT NULL ON CONFLICT FAIL);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"accepted unsupported or aborting constraint: {sql}"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE x(a NOT NULL);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  match parsed.statements.toList with
+  | [.createTable name columns constraints flag] =>
+      let forged := columns.map fun column => { column with notNullConflict := .ignore }
+      if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints flag]).isOk then
+        fail "token replay accepted an invented NOT NULL conflict policy"
+  | _ => fail "unexpected NULL-policy test AST"
+
 private def expectSQLiteCreateTableAs : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE source(Id INTEGER PRIMARY KEY,Label TEXT NOT NULL,Val REAL);CREATE INDEX LabelIndex ON source(Label);INSERT INTO source VALUES(3,'three',3.5),(17,'seventeen',17.5);CREATE TABLE Copy AS SELECT * FROM source ORDER BY Id DESC;" with
@@ -6772,6 +6829,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite schema NOT NULL conflict policies and persisted overrides", expectSQLiteSchemaNullConflict),
   ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),
   ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),
   ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
