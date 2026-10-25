@@ -4597,6 +4597,48 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteInsertReturning : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "INSERT INTO t VALUES(1,'a',1),(2,'b',2);CREATE TABLE implicit(v,w);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × Nat × List (List Value)) := [
+    ("INSERT OR IGNORE INTO t VALUES(1,'skip',9),(NULL,'keep',9),(NULL,'skip',9),(NULL,'last',10) RETURNING *;", 2,
+      [[.integer 3,.text "keep",.integer 9],[.integer 4,.text "last",.integer 10]]),
+    ("INSERT OR REPLACE INTO t VALUES(9,'first',9),(9,'second',10) RETURNING *;", 2,
+      [[.integer 9,.text "first",.integer 9],[.integer 9,.text "second",.integer 10]]),
+    ("INSERT INTO implicit DEFAULT VALUES RETURNING *,rowid;", 1, [[.null,.null,.integer 1]]),
+    ("INSERT INTO t AS x(v,u) VALUES('x',9) RETURNING t.id,t.v;", 1, [[.integer 3,.text "x"]]),
+    ("INSERT INTO implicit SELECT v,u FROM t ORDER BY id DESC RETURNING *,rowid;", 2,
+      [[.text "b",.integer 2,.integer 1],[.text "a",.integer 1,.integer 2]]),
+    ("INSERT OR IGNORE INTO t VALUES(1,'skip',9) RETURNING abs(-9223372036854775808);", 0, []),
+    ("INSERT INTO t(v,u) SELECT v,u FROM t WHERE 0 RETURNING abs(-9223372036854775808);", 0, [])]
+  for (sql, changes, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"INSERT RETURNING: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows && (results.map (·.changes)).sum == changes do
+      fail s!"INSERT RETURNING mismatch: {sql}"
+  for sql in ["INSERT INTO t AS x(v,u) VALUES('x',9) RETURNING x.id;",
+      "INSERT OR IGNORE INTO t VALUES(1,'skip',9) RETURNING missing;",
+      "INSERT INTO t(v,u) SELECT v,u FROM t WHERE 0 RETURNING no_function();",
+      "INSERT INTO t VALUES(9,'x',9) RETURNING t.*;",
+      "INSERT INTO t VALUES(9,'x',9) RETURNING sum(id);",
+      "INSERT INTO t VALUES(9,'x',9) RETURNING 0 AND no_function();",
+      "INSERT INTO t VALUES(9,'x',9),(10,'y',10) RETURNING CASE WHEN id=10 THEN abs(-9223372036854775808) ELSE id END;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"INSERT RETURNING swallowed error: {sql}"
+  let sql := "INSERT INTO t VALUES(9,'x',9) RETURNING id;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.insert table columns rows conflict _) := parsed.statements[0]? | fail "missing INSERT AST"
+  let forged : Array Statement := #[.insert table columns rows conflict #[{ expr := .literal (.integer 99) }]]
+  if (CoreTokenGrammar.check parsed.tokens forged).isOk then fail "INSERT RETURNING accepted forged output expression"
+
 private def expectSQLiteUpdateReplace : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
     "INSERT INTO t VALUES(1,'a',1),(2,'b',2),(3,'c',3);" ++
@@ -5983,6 +6025,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite INSERT RETURNING collects accepted rows before later replacements", expectSQLiteInsertReturning),
   ("SQLite UPDATE OR REPLACE re-seeks surviving pending rows", expectSQLiteUpdateReplace),
   ("SQLite UPDATE OR IGNORE and sequential key changes", expectSQLiteUpdateIgnore),
   ("SQLite INSERT OR IGNORE constraints and row allocation", expectSQLiteInsertIgnore),

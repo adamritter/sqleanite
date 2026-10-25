@@ -2,7 +2,7 @@ import SQLeanite.CoreAggregate
 
 /-! RETURNING expressions use the modified table's original name, not its
 DELETE alias. Output is materialized before a successful statement is exposed.
-The current caller supports scalar DELETE RETURNING on admitted Core tables. -/
+Callers support scalar INSERT and DELETE RETURNING on admitted Core tables. -/
 namespace SQLeanite.CoreReturning
 
 /-- Function binding in trigger.c's RETURNING expansion precedes zero-AND

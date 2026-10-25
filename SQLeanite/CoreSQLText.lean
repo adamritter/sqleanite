@@ -14,7 +14,7 @@ correctness theorem.
 -/
 
 inductive CoreStatementForm : Statement → Prop where
-  | insertSelect (table columns query conflict) : CoreStatementForm (.insertSelect table columns query conflict)
+  | insertSelect (table columns query conflict returning) : CoreStatementForm (.insertSelect table columns query conflict returning)
   | dropTable (name ifExists) : CoreStatementForm (.dropTable name ifExists)
   | dropIndex (name ifExists) : CoreStatementForm (.dropIndex name ifExists)
   | createTable (name columns constraints ifNotExists) :
@@ -22,8 +22,8 @@ inductive CoreStatementForm : Statement → Prop where
   | createIndex (name table expressions unique where_ ifNotExists) :
       CoreStatementForm
         (.createIndex name table expressions unique where_ ifNotExists)
-  | insert (table columns rows conflict) :
-      CoreStatementForm (.insert table columns rows conflict)
+  | insert (table columns rows conflict returning) :
+      CoreStatementForm (.insert table columns rows conflict returning)
   | delete (table alias where_ returning) :
       CoreStatementForm (.delete table alias where_ returning)
   | update (table alias assignments where_ conflict) :
@@ -41,13 +41,13 @@ theorem statementForm_of_execute_success {state next : Core.State}
     (success : executeStatement state statement = .ok (next, results)) :
     CoreStatementForm statement := by
   cases statement with
-  | insertSelect table columns query conflict => exact .insertSelect ..
+  | insertSelect table columns query conflict returning => exact .insertSelect ..
   | dropTable name ifExists => exact .dropTable ..
   | dropIndex name ifExists => exact .dropIndex ..
   | createTable name columns constraints ifNotExists => exact .createTable ..
   | createIndex name table expressions unique where_ ifNotExists =>
       exact .createIndex ..
-  | insert table columns rows conflict => exact .insert ..
+  | insert table columns rows conflict returning => exact .insert ..
   | delete table alias where_ returning => exact .delete ..
   | update table alias assignments where_ conflict => exact .update ..
   | select query => exact .select query

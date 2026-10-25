@@ -744,6 +744,19 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# INSERT RETURNING preserves accepted-row output before a later REPLACE.
+if grep -q 'executeInsertReturning state table columns (.inr query) conflict returning' SQLeanite/CoreSQL.lean &&
+   grep -q 'executeInsertReturning state table columns (.inl rows) conflict returning' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.prepare ctx returning.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreSQL.insertReturningRow_ignored' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.insertReturningRows_length_le' SQLeanite/ProofAxioms.lean &&
+   grep -q 'insertSelect table columns query conflict returning' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'insert table columns rows conflict returning' SQLeanite/CoreTokenGrammar.lean; then
+  ok "INSERT RETURNING checks its tokens and emits only accepted row outputs"
+else
+  fail "INSERT RETURNING is disconnected from checked binding or output collection"
+fi
+
 # REPLACE freezes the selection but re-seeks current values before each row.
 if grep -q 'executeReplacedUpdate state tableName alias stored assignments.toList where_' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreUpdateReplace.pending tableName stored.schema.primaryKey trace' SQLeanite/CoreSQL.lean &&

@@ -664,7 +664,7 @@ private def parseTableAlias : ParserM (Option String) := do
     match ← peek with
     | .ident s =>
       if ["where", "order", "limit", "offset", "group", "having", "join", "left", "right", "full",
-          "inner", "cross", "outer", "on", "using", "natural", "union", "intersect", "except"].contains s.toLower
+          "inner", "cross", "outer", "on", "using", "natural", "union", "intersect", "except", "returning"].contains s.toLower
       then pure none else some <$> expectIdent
     | _ => pure none
 
@@ -806,7 +806,7 @@ private def parseResultColumn : ParserM ResultColumn := do
       | .quotedIdent s _ | .string s => discard advance; pure (some s)
       | .ident s =>
         if ["from", "where", "order", "limit", "offset", "group", "having",
-            "union", "intersect", "except", "asc", "desc"].contains s.toLower then pure none
+            "union", "intersect", "except", "asc", "desc", "returning"].contains s.toLower then pure none
         else discard advance; pure (some s)
       | _ => pure none
   pure { expr, alias, sourceSql }
@@ -1043,18 +1043,31 @@ private def parseInsert (initial : ConflictAction := .default)
     conflict := ← parseConflictAction
   expectKeyword "into"
   let table ← parseDmlTableName insideTrigger
+  -- An INSERT target alias is not a binding source for VALUES or RETURNING.
+  -- UPSERT, the form which can use it, is not admitted by this Core grammar.
+  if ← acceptKeyword "as" then discard <| expectAlias
   let columns ← parseOptionalNameList
-  if ← acceptKeyword "default" then
-    expectKeyword "values"
-    pure (.insert table columns #[#[]] conflict)
-  else if ← acceptKeyword "values" then
-    let rows ← parseValuesRows
-    if ["union", "except", "intersect"].any (isKeyword (← peek)) then
-      pure (.insertSelect table columns (← parseValuesAfterValues rows) conflict)
-    else pure (.insert table columns rows conflict)
-  else if ← acceptKeyword "select" then
-    pure (.insertSelect table columns (← parseSelectAfterSelect) conflict)
-  else throw "expected VALUES, DEFAULT VALUES, or SELECT after INSERT"
+  let statement : Statement ← do
+    if ← acceptKeyword "default" then
+      expectKeyword "values"
+      pure (.insert table columns #[#[]] conflict)
+    else if ← acceptKeyword "values" then
+      let rows ← parseValuesRows
+      if ["union", "except", "intersect"].any (isKeyword (← peek)) then
+        pure (.insertSelect table columns (← parseValuesAfterValues rows) conflict)
+      else pure (.insert table columns rows conflict)
+    else if ← acceptKeyword "select" then
+      pure (.insertSelect table columns (← parseSelectAfterSelect) conflict)
+    else throw "expected VALUES, DEFAULT VALUES, or SELECT after INSERT"
+  let mut returning := #[]
+  if ← acceptKeyword "returning" then
+    if insideTrigger then throw "cannot use RETURNING in a trigger"
+    returning := returning.push (← parseResultColumn)
+    while ← acceptSymbol "," do returning := returning.push (← parseResultColumn)
+  match statement with
+  | .insert target names rows policy _ => pure (.insert target names rows policy returning)
+  | .insertSelect target names query policy _ => pure (.insertSelect target names query policy returning)
+  | _ => throw "invalid INSERT source"
 
 private def parseDelete (insideTrigger : Bool := false) : ParserM Statement := do
   expectKeyword "from"

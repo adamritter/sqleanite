@@ -718,11 +718,16 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   expectKeyword "into"
 
 private def matchStatement : Statement → MatchM Unit
-  | .insertSelect table columns query conflict => do
+  | .insertSelect table columns query conflict returning => do
       matchInsertPrefix conflict
       expectQualifiedName table
+      if ← acceptKeyword "as" then
+        unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
       matchSelect query
+      unless returning.isEmpty do
+        expectKeyword "returning"
+        matchResultColumns returning.toList
   | .dropTable name ifExists => do
       expectKeyword "drop"
       expectKeyword "table"
@@ -758,9 +763,11 @@ private def matchStatement : Statement → MatchM Unit
       match where_ with
       | some predicate => expectKeyword "where" *> matchExpr predicate
       | none => pure ()
-  | .insert table columns rows conflict => do
+  | .insert table columns rows conflict returning => do
       matchInsertPrefix conflict
       expectQualifiedName table
+      if ← acceptKeyword "as" then
+        unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
       if ← acceptKeyword "default" then
         expectKeyword "values"
@@ -769,6 +776,9 @@ private def matchStatement : Statement → MatchM Unit
         expectKeyword "values"
         unless rows.all (fun row => !row.isEmpty) do mismatch "a nonempty VALUES row"
         matchRows rows.toList
+      unless returning.isEmpty do
+        expectKeyword "returning"
+        matchResultColumns returning.toList
   | .delete table alias where_ returning => do
       expectKeyword "delete"
       expectKeyword "from"

@@ -2692,3 +2692,60 @@ unchanged. Reports: `sqlite-replace-update-negative-20261025.json`,
 `scripts/run-replace-update-differential.py`. Schema defaults, triggers,
 foreign keys, nullable non-integer primary keys and FAIL/ROLLBACK policies
 remain separate work. These results are not a whole-SQLite percentage.
+
+
+## INSERT RETURNING and INSERT-source grammar (2026-10-25)
+
+INSERT VALUES, DEFAULT VALUES and admitted SELECT sources now support scalar
+RETURNING expressions through the production Core path. `Statement.insert` and
+`insertSelect` retain an optional RETURNING array, replayed against the input
+SQL by `CoreTokenGrammar`. `CoreStatementForm` includes that new syntactic
+field; the earlier no-RETURNING write-refinement statements retain their
+premises and conclusions. The conformance-only Engine explicitly rejects the
+new form; it is never used as a production fallback.
+
+RETURNING binding uses the destination table's original name and visible
+columns. Each accepted input row receives its generated rowid and write
+affinity before ordinary checked Core commands run. Its RETURNING output is
+then collected immediately, including when a later REPLACE deletes that row.
+Ignored candidates retain the exact preceding state, allocate no rowid and do
+not evaluate RETURNING expressions. A later expression or constraint error
+aborts the complete pure statement and exposes no partial RETURNING output.
+SELECT input is materialized from the pre-statement database, including
+self-insertion. Component proofs establish unchanged-state/no-output IGNORE
+and that output count cannot exceed input count. Result changes count accepted
+rows. These are component guarantees, not full SQL equivalence proofs.
+
+The parser now keeps RETURNING as a clause boundary after SELECT expressions
+and sources. It accepts INSERT target aliases; in the admitted forms they are
+not VALUES/RETURNING binding sources. UPSERT, where a target alias can have a
+separate role, remains unsupported. A development refactor initially consumed
+DEFAULT VALUES tokens too early; explicit monadic scoping corrected it before
+final evaluation. Overlapping empty-array patterns were replaced by ordinary
+branches to preserve Lean's generated equality theorems. Other development
+compile failures were corrected without weakening the previous write proofs.
+
+Retained baseline seed 354030: **76 differences / 166 executions**. Expanded
+development seed 354031: **48 differences / 568 executions**, exposing the
+DEFAULT VALUES, clause-boundary and alias gaps. The corrected development run
+(seed 354032) has **568 executions, zero differences**. Final-checkpoint seed
+354033 uses 160 new generated statements and three new C-created fixtures:
+**1,332 executions, zero differences**, including 888 positive-error outcomes.
+Both public file modes and 512/4096/65536-byte pages are exercised. Cases cover
+IGNORE/REPLACE, simultaneous row conflicts, implicit/text/shadowed rowids,
+malformed and embedded-NUL TEXT, overflowing BLOBs, 300-row insertion, the
+2,000/2,001 RETURNING-column boundary, compounds, self-insertion and
+transactions. Full successful output bytes and independently observed stored
+type/hex values plus integrity are compared. Failed individual statements
+retain main/WAL bytes. Error comparison checks rejection, not exact error
+codes/messages or partial output from preceding statements.
+
+Implementation SHA-256: `06970de9dfead129ebc6167606d28528d86772338866cc6e10c589b8235751de`.
+The matching check report records a successful **304-job build, 224 executable
+tests, 1,110 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. Native code and its
+nine-binding boundary are unchanged. Reports use
+`sqlite-insert-returning-*20261025.json`; harness:
+`scripts/run-insert-returning-differential.py`. UPDATE RETURNING, RETURNING
+subqueries, UPSERT, triggers, virtual tables, schema defaults and full SQLite
+compatibility remain separate work.

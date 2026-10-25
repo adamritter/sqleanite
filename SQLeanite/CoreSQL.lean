@@ -1885,6 +1885,90 @@ theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
     checkInsertSelectColumns schema none width = .ok () := by
   simp [checkInsertSelectColumns, same, pure, Except.pure]
 
+/-- Materialize RETURNING immediately for each accepted insertion. REPLACE
+may later delete that row, but it must not erase its already collected output.
+Ignored rows produce no output and do not evaluate RETURNING expressions. -/
+def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr) :
+    Except String (Core.State × Option (List Core.Value)) := do
+  let values ← rowValues schema columns input
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {tableName}"
+  if conflict == .ignore then
+    unless ← CoreInsertIgnore.shouldInsert stored values do return (state, none)
+  let row ← stored.createRow values
+  let trace ← if conflict == .replace then uniqueReplacePlan stored row.values
+    else pure [Core.Command.insert tableName row.values]
+  let (next, _) ← runCoreCommands state trace
+  let output ← ctx.projectRow row.values projection
+  return (next, some output)
+
+theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
+    (schema : Core.Schema) (columns : Option (Array String)) (ctx : CoreExpr.Context)
+    (projection : List Expr) (input : Array Expr) (values : List Core.Value) (stored : Core.Table)
+    (converted : rowValues schema columns input = .ok values)
+    (found : state.database.findTable? tableName = some stored)
+    (skip : CoreInsertIgnore.shouldInsert stored values = .ok false) :
+    insertReturningRow state tableName schema columns .ignore ctx projection input = .ok (state, none) := by
+  simp [insertReturningRow, converted, found, skip, bind, Except.bind, pure, Except.pure]
+
+def insertReturningRows (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) :
+    List (Array Expr) → Except String (Core.State × List (List Core.Value))
+  | [] => .ok (state, [])
+  | input :: inputs => do
+      let (next, output) ← insertReturningRow state tableName schema columns conflict ctx projection input
+      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict ctx projection inputs
+      return (finalState, output.toList ++ outputs)
+
+theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
+    (schema : Core.Schema) (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (inputs : List (Array Expr))
+    (next : Core.State) (outputs : List (List Core.Value))
+    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs = .ok (next, outputs)) :
+    outputs.length ≤ inputs.length := by
+  induction inputs generalizing state next outputs with
+  | nil =>
+      simp [insertReturningRows] at success
+      rcases success with ⟨_, rfl⟩
+      simp
+  | cons input inputs ih =>
+      cases head : insertReturningRow state tableName schema columns conflict ctx projection input with
+      | error message => simp [insertReturningRows, head, bind, Except.bind] at success
+      | ok pair =>
+          rcases pair with ⟨middle, output⟩
+          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs with
+          | error message => simp [insertReturningRows, head, tail, bind, Except.bind] at success
+          | ok pair =>
+              rcases pair with ⟨finalState, more⟩
+              simp [insertReturningRows, head, tail, bind, Except.bind, pure, Except.pure] at success
+              rcases success with ⟨_, rfl⟩
+              have bound := ih middle finalState more tail
+              cases output <;> simp_all <;> omega
+
+def executeInsertReturning (state : Core.State) (table : String) (columns : Option (Array String))
+    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn) :
+    Except String (Core.State × List Core.Result) := do
+  unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
+    throw "unsupported general verified-MVP SQL: INSERT conflict policy"
+  let tableName := canonical table
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {table}"
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let projection ← CoreReturning.prepare ctx returning.toList
+  let inputs ← match source with
+    | .inl rows => pure rows.toList
+    | .inr query => do
+        let selection ← executeSelect state query
+        checkInsertSelectColumns stored.schema columns selection.width
+        selection.result.rows.mapM selectedRowExpressions
+  let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs
+  return (next, [{ rows := outputs, changes := outputs.length }])
+
 def indexNameExists (state : Core.State) (name : String) : Bool :=
   state.database.tables.any fun table => table.indexes.any fun index => index.name == canonical name
 
@@ -1944,7 +2028,9 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
-  | .insertSelect table columns query conflict => executeInsertSelect state table columns query conflict
+  | .insertSelect table columns query conflict returning =>
+      if returning.isEmpty then executeInsertSelect state table columns query conflict
+      else executeInsertReturning state table columns (.inr query) conflict returning
   | .dropTable name ifExists => do
       unless ← prepareDropTable state name ifExists do return (state, [{}])
       let database ← CoreSchemaDrop.table state.database (canonical name)
@@ -1976,7 +2062,9 @@ def executeStatement (state : Core.State) :
         let columnIndex ← indexColumn stored.schema columnName
         executeCommand state (.createIndex tableName {
           name := canonical name, column := columnIndex, unique })
-  | .insert table columns rows conflict => do
+  | .insert table columns rows conflict returning => do
+      if !returning.isEmpty then
+        return ← executeInsertReturning state table columns (.inl rows) conflict returning
       unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
         throw "unsupported general verified-MVP SQL: INSERT conflict policy"
       let tableName := canonical table

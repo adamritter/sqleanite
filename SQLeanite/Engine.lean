@@ -4077,7 +4077,8 @@ private def executeCore (db : Database) : Statement → Except String (Database 
             |>.replace ("old." ++ oldName) ("old." ++ newName) }
       else trigger
     pure ({ (replaceTable db renamedTable) with triggers := renamedTriggers }, {})
-  | .insert table names exprRows conflict => do
+  | .insert table names exprRows conflict returning => do
+    unless returning.isEmpty do throw "INSERT RETURNING is implemented by the production Core engine"
     let rows ← exprRows.mapM fun row => row.mapM (evalWithDb db #[])
     if let some first := rows[0]? then
       unless rows.all (fun row => row.size == first.size) do
@@ -4090,7 +4091,8 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       let after ← optionOr (findTable? state table) s!"no such table: {table}"
       let inserted := after.rows.filter fun row => !before.rows.any (fun old => old.rowid == row.rowid)
       pure (← fireInsertTriggers state after inserted, result)
-  | .insertSelect table names query conflict => do
+  | .insertSelect table names query conflict returning => do
+    unless returning.isEmpty do throw "INSERT RETURNING is implemented by the production Core engine"
     let selected ← executeSelect db query
     if (findView? db table).isSome || nameEq table "sqlite_master" || nameEq table "sqlite_schema" then
       insertValueRows db table names selected.rows conflict

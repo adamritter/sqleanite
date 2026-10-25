@@ -1262,3 +1262,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreUpdateReplace.plan_validated
 #print axioms SQLeanite.CoreUpdateReplace.pending_length
 #print axioms SQLeanite.CoreSQL.replacedUpdateRows_missing
+
+#print axioms SQLeanite.CoreSQL.insertReturningRow_ignored
+#print axioms SQLeanite.CoreSQL.insertReturningRows_length_le
