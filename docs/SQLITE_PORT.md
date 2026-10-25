@@ -4255,3 +4255,41 @@ exact diagnostics, same-line CLI error continuation and concurrent WAL remain
 outside this result. Native bindings are unchanged. Reports:
 `sqlite-limit-expression-*20261025.json`; harness:
 `scripts/run-limit-expression-differential.py`.
+
+
+## Two-table join spellings and optional ON (2026-10-25)
+
+Two-table INNER, CROSS, comma and LEFT joins now accept an omitted ON clause.
+An unconstrained inner join produces the Cartesian product; an unconstrained
+left join preserves a left row with NULL right values when the right table is
+empty. Comma and CROSS joins also admit an explicit ON predicate. These use the
+existing Core join evaluator and its optimizer refinement.
+
+A shared pure join-type classifier follows sqlite3JoinType: at most three join
+keywords, repeated/reordered keywords allowed, INNER/CROSS excluded from outer
+join combinations, and OUTER requiring a direction. The parser and independent
+token replay both check the resulting flags. CROSS is retained explicitly in
+TableRef; replay rejects changes to it and to the predicate. The first source
+cannot carry fabricated join attributes. See SQLite's
+[join syntax deviations](https://www.sqlite.org/lang_select.html#strange_join_names).
+NATURAL and RIGHT/FULL classifications remain parseable but their execution is
+still outside this admitted two-table subset, as are USING and larger joins.
+
+Baseline seed **354350** records **1,376 comparisons / 400 differences**.
+Development seed **354351** passes **1,760 / 0**. Final-checkpoint fresh seed
+**354352** passes **3,776 / 0**, plus 16 immutable-image/integrity checks, across
+eight newly created fixtures, empty and nonempty tables, 512/4096/65536-byte
+pages and both production file modes. It covers every zero-to-three-word
+combination of INNER/CROSS/LEFT/OUTER, including invalid forms, and randomized
+predicates/projections/LIMITs. Complete successful output, error status, typed
+C observations and unchanged main/WAL bytes are compared. Compound-collation
+regression seed **354353** passes **1,256 / 0** on the same checkpoint.
+
+Implementation SHA-256: `d70474c59b7442618298481394d5bab245401a841c381552770be4ffe7d655d6`.
+Final checks pass **348 build jobs, 257 executable tests, 1,210 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. New component propositions cover the join-keyword length bound,
+unconstrained row selection and an empty right side of an unconstrained LEFT
+join. They are not a complete SQLite join equivalence proof. Native bindings
+are unchanged. Reports: `sqlite-join-syntax-*20261025.json`; harness:
+`scripts/run-join-syntax-differential.py`.

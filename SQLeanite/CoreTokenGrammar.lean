@@ -756,22 +756,32 @@ private def matchTableFactor (source : TableRef) : MatchM Unit := do
 
 private def matchJoinSource (source : TableRef) : MatchM Unit := do
   unless !source.rightJoin && !source.naturalJoin && source.usingColumns.isEmpty do
-    mismatch "an INNER or LEFT JOIN ... ON source"
-  if source.leftJoin then
-    expectKeyword "left"
-    discard <| acceptKeyword "outer"
-    expectKeyword "join"
-  else
-    discard <| acceptKeyword "inner"
-    expectKeyword "join"
+    mismatch "an INNER, CROSS, comma or LEFT JOIN source"
+  let kind ← if ← acceptSymbol "," then pure ({} : SQLite.JoinType.Flags)
+    else do
+      let mut words := []
+      while !isKeyword (← peek) "join" do
+        let some word := SQLite.JoinType.keyword (← advance)
+          | mismatch "a join keyword"
+        words := words ++ [word]
+        if words.length > 3 then mismatch "at most three join keywords"
+      expectKeyword "join"
+      let some kind := SQLite.JoinType.classify words | mismatch "a valid join type"
+      pure kind
+  unless source.leftJoin == kind.left && source.rightJoin == kind.right &&
+      source.naturalJoin == kind.natural && source.crossJoin == kind.cross do
+    mismatch "the declared join type"
   matchTableFactor source
-  match source.joinOn with
-  | none => mismatch "JOIN ... ON"
-  | some condition => expectKeyword "on" *> matchExpr condition
+  if let some condition := source.joinOn then
+    expectKeyword "on"
+    matchExpr condition
 
 private def matchSources : List TableRef → MatchM Unit
   | [] => pure ()
   | source :: sources => do
+      unless !source.leftJoin && !source.rightJoin && !source.naturalJoin &&
+          !source.crossJoin && source.joinOn.isNone && source.usingColumns.isEmpty do
+        mismatch "a first table source without join attributes"
       matchTableFactor source
       for next in sources do matchJoinSource next
 

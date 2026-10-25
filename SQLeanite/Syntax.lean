@@ -370,6 +370,7 @@ structure TableRef where
   naturalJoin : Bool := false
   leftJoin : Bool := false
   rightJoin : Bool := false
+  crossJoin : Bool := false
   deriving Repr
 
 structure ResultColumn where

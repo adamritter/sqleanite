@@ -7041,6 +7041,44 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinSyntax : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,v);CREATE TABLE r(id INTEGER PRIMARY KEY,v);CREATE TABLE e(id INTEGER PRIMARY KEY,v);INSERT INTO l VALUES(1,'a'),(2,'b');INSERT INTO r VALUES(2,'x');"
+  let cases : List (String × List (List Value)) := [
+    ("JOIN r AS b", [[.integer 1,.integer 2],[.integer 2,.integer 2]]),
+    ("INNER JOIN r AS b", [[.integer 1,.integer 2],[.integer 2,.integer 2]]),
+    ("CROSS JOIN r AS b", [[.integer 1,.integer 2],[.integer 2,.integer 2]]),
+    (", r AS b", [[.integer 1,.integer 2],[.integer 2,.integer 2]]),
+    (", r AS b ON a.id=b.id", [[.integer 2,.integer 2]]),
+    ("CROSS INNER CROSS JOIN r AS b ON a.id=b.id", [[.integer 2,.integer 2]]),
+    ("LEFT OUTER LEFT JOIN r AS b ON a.id=b.id", [[.integer 1,.null],[.integer 2,.integer 2]]),
+    ("OUTER LEFT JOIN e AS b", [[.integer 1,.null],[.integer 2,.null]]),
+    ("LEFT LEFT LEFT JOIN r AS b", [[.integer 1,.integer 2],[.integer 2,.integer 2]]),
+    ("INNER CROSS JOIN e AS b", [])]
+  for (source, values) in cases do
+    let sql := s!"SELECT a.id,b.id FROM l AS a {source} ORDER BY a.id,b.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join syntax: {source}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"join syntax rows: {source}"
+  for source in ["OUTER", "LEFT INNER", "CROSS LEFT", "INNER OUTER", "LEFT LEFT LEFT LEFT"] do
+    if (CoreSQL.execute Core.State.empty
+        (setup ++ s!"SELECT a.id,b.id FROM l AS a {source} JOIN r AS b;")).isOk then
+      fail s!"invalid join type accepted: {source}"
+  let sql := "SELECT a.id,b.id FROM l AS a CROSS JOIN r AS b;"
+  let parsed : CoreTokenGrammar.CertifiedParse sql ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "JOIN AST missing"
+  let some right := query.sources[1]? | fail "JOIN right source missing"
+  for forged in [{ right with crossJoin := false }, { right with leftJoin := true },
+      { right with joinOn := some (.literal (.integer 1)) }] do
+    if (CoreTokenGrammar.check parsed.tokens
+        #[.select { query with sources := query.sources.set! 1 forged }]).isOk then
+      fail "JOIN token replay changed type or fabricated ON"
+
 private def expectSQLiteEmptyWritePublication : IO Unit := do
   let sqlite := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
   let input : System.FilePath := ".lake/build/sqleanite-empty-write.sql"
@@ -7526,6 +7564,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite join keywords and optional ON", expectSQLiteJoinSyntax),
   ("SQLite zero-row writes preserve files and publish sequence initialization", expectSQLiteEmptyWritePublication),
   ("SQLite constant LIMIT/OFFSET expressions and independent replay", expectSQLiteLimitExpressions),
   ("SQLite LIMIT/OFFSET scans and syntax", expectSQLiteLimitOffset),

@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.JoinType
 import SQLeanite.SQLite.Limit
 import SQLeanite.SQLite.ColumnType
 import SQLeanite.SQLite.CastType
@@ -770,9 +771,6 @@ mutual
               right := right.set! last { final with joinOn := some combined }
           sources := sources ++ right
         else
-          let mut leftJoin := false
-          let mut rightJoin := false
-          let mut naturalJoin := false
           let joinStarter := match ← peek with
             | .ident word => ["natural", "left", "right", "full", "inner", "cross", "outer", "join"].contains word.toLower
             | _ => false
@@ -783,19 +781,11 @@ mutual
               | .ident word => words := words.push word.toUpper
               | token => throw (syntaxError token)
             expectKeyword "join"
-            let kind := String.intercalate " " words.toList
-            if ["", "INNER", "CROSS"].contains kind then pure ()
-            else if ["NATURAL", "NATURAL INNER", "NATURAL CROSS"].contains kind then
-              naturalJoin := true
-            else if ["LEFT", "LEFT OUTER"].contains kind then leftJoin := true
-            else if ["RIGHT", "RIGHT OUTER"].contains kind then rightJoin := true
-            else if ["FULL", "FULL OUTER"].contains kind then
-              leftJoin := true
-              rightJoin := true
-            else if ["NATURAL LEFT", "NATURAL LEFT OUTER", "OUTER LEFT NATURAL"].contains kind then
-              naturalJoin := true
-              leftJoin := true
-            else throw s!"unknown join type: {kind}"
+            let some kind := SQLite.JoinType.classify words.toList
+              | throw s!"unknown join type: {String.intercalate " " words.toList}"
+            let leftJoin := kind.left
+            let rightJoin := kind.right
+            let naturalJoin := kind.natural
             let mut right ← parseTableFactorFuel fuel
             let joinOn ← if ← acceptKeyword "on" then some <$> parseExpr else pure none
             let mut usingColumns := #[]
@@ -816,7 +806,8 @@ mutual
                 usingColumns := mergedUsing
                 naturalJoin := mergedNatural
                 leftJoin := mergedLeft
-                rightJoin := mergedRight }
+                rightJoin := mergedRight
+                crossJoin := first.crossJoin || kind.cross }
               right := right.set! 0 updated
             if let some condition := joinOn then
               let last := right.size - 1

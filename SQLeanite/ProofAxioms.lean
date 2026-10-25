@@ -1395,3 +1395,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileEngine.dataWriteNoop_insertSelect
 #print axioms SQLeanite.CoreFileEngine.dataWriteNoop_commit
 #print axioms SQLeanite.CoreFileEngine.dataWriteNoop_release
+
+#print axioms SQLeanite.SQLite.JoinType.classify_length
+#print axioms SQLeanite.CoreJoin.matchingRows_unconstrained
+#print axioms SQLeanite.CoreJoin.leftOuterFor_unconstrained_empty

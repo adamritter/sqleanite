@@ -1443,7 +1443,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin &&
       !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
-    throw "unsupported general verified-MVP SQL: only INNER/LEFT JOIN ... ON"
+    throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do
     throw "unsupported general verified-MVP SQL: join SELECT shape"
@@ -1458,12 +1458,9 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     rightSchema }
   if context.leftName == context.rightName then
     throw "join sources require distinct names or aliases"
-  let onExpression ← match rightSource.joinOn with
-    | some expression => .ok expression
-    | none => .error "inner join requires ON"
   return {
     columns := ← joinProjection context select.columns.toList
-    on := some (← joinPredicate context onExpression)
+    on := ← rightSource.joinOn.mapM (joinPredicate context)
     kind := if rightSource.leftJoin then .left else .inner
     rightWidth := rightSchema.columns.length
     where_ := ← select.where_.mapM (joinPredicate context)
@@ -1478,7 +1475,7 @@ def executeJoin (state : Core.State) (select : Select) :
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin &&
       !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
-    throw "unsupported general verified-MVP SQL: only INNER/LEFT JOIN ... ON"
+    throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do
     throw "unsupported general verified-MVP SQL: join SELECT shape"

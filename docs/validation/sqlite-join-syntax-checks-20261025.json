@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "d70474c59b7442618298481394d5bab245401a841c381552770be4ffe7d655d6",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "e97ddaaaf1b3007c3042354eb41a99ed5925508a95bb29053315fb0b0d7928bc",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [347/348] Built Tests:c.o (16s)",
+        "\u2714 [348/348] Built sqleanite_tests:exe (335ms)",
+        "Build completed successfully (348 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "b375b027419ced943565c861f86b8f69c35833ae53902d9fd4c538f4d35daafd",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "257 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "a018333e18cde01710bcfeec4d27b8a4273f1891c7aa56d4bd3c3738c5832838",
+      "tail": [
+        "ok - script chunks preserve source and admit each statement before execution",
+        "ok - SQLite name and implicit-alias grammars are shared and independently replayed",
+        "ok - CAST type spans are independently validated and use explicit expression affinity",
+        "ok - completed statements emit in order and actual write dispatch checks OS access",
+        "ok - DEFERRED and ignored TRANSACTION names are independently replayed",
+        "ok - LIMIT expression tokens and normalized windows are independently checked",
+        "ok - zero-row DML publication checks complete contents including sequence rows",
+        "ok - join keywords and optional ON reach the existing Core join semantics"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "999be60358e3415a35b2bb726a060bd1dbf5a9496a7fb49795b0bb97cc3dbe20"
+}

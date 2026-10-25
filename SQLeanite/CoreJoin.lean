@@ -319,6 +319,10 @@ def matchingRows (on where_ : Option Predicate) (rows : List JoinedRow) :
     List JoinedRow :=
   rows.filter fun row => selects on row && selects where_ row
 
+theorem matchingRows_unconstrained (rows : List JoinedRow) :
+    matchingRows none none rows = rows := by
+  simp [matchingRows, selects]
+
 inductive JoinKind where
   | inner
   | left
@@ -404,6 +408,9 @@ def leftOuterFor (on : Option Predicate) (rightWidth : Nat)
 def leftOuterRows (on : Option Predicate) (rightWidth : Nat)
     (left right : List Core.Row) : List JoinedRow :=
   left.flatMap fun row => leftOuterFor on rightWidth row right
+
+theorem leftOuterFor_unconstrained_empty (rightWidth : Nat) (left : Core.Row) :
+    leftOuterFor none rightWidth left [] = [(left, nullRow rightWidth)] := rfl
 
 theorem leftOuterFor_nonempty (on : Option Predicate) (rightWidth : Nat)
     (left : Core.Row) (right : List Core.Row) :

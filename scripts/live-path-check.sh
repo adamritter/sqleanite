@@ -2026,4 +2026,14 @@ else
   exit 1
 fi
 
+if rg -F -q 'SQLite.JoinType.classify words.toList' SQLeanite/Parser.lean &&
+   rg -F -q 'SQLite.JoinType.classify words' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'source.crossJoin == kind.cross' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'rightSource.joinOn.mapM (joinPredicate context)' SQLeanite/CoreSQL.lean; then
+  echo 'ok - join keywords and optional ON reach the existing Core join semantics'
+else
+  echo 'FAIL - join-type replay or optional predicate lowering is disconnected'
+  exit 1
+fi
+
 exit $status
