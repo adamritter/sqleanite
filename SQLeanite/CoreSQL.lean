@@ -159,15 +159,22 @@ def schema (name : String) (definitions : Array ColumnDef)
     | some column => .ok column
     | none => .error "verified MVP primary-key index is out of bounds"
   let integerAlias := SQLite.ColumnType.standard primaryDefinition.declaredType == some "INTEGER"
-  unless integerAlias || declaredTypeName primaryDefinition.declaredType == "TEXT" do
-    throw "verified MVP primary key must have declared type INTEGER or TEXT"
+  let ordinary := ordinaryColumn primaryDefinition
+  let indexedType : Core.IndexedType := {
+    declaredType := ordinary.declaredType, explicitEmptyType := ordinary.explicitEmptyType,
+    explicitEmptyTypeOnly := fun present => (ordinary.explicitEmptyTypeOnly present).1 }
   let visibleColumns ← definitions.toList.mapM fun column => columnWithConflicts column <|
     if column.primaryKey then {
       name := column.name
       notNull := integerAlias || column.notNull
       integerPrimaryKey := integerAlias
       integerPrimaryNotNull := integerAlias && column.notNull
-      textPrimaryKey := !integerAlias }
+      textPrimaryKey := !integerAlias
+      indexedType := if integerAlias || indexedType.declaredType == "TEXT" then none else some indexedType
+      indexedTypeOnly := by
+        split
+        · simp
+        · next custom => simp_all }
     else ordinaryColumn column
   if integerAlias then return {
     name := name

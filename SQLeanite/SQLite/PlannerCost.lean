@@ -19,12 +19,13 @@ def add (left right : Int) : Int :=
 /-- Column.szEst is measured in units of roughly four bytes. Empty declared
 names retain the no-type size, unlike an explicit BLOB declaration. -/
 def columnWeight (column : Core.Column) : Nat :=
+  let declaredType := if column.textPrimaryKey then
+    (column.indexedType.map (·.declaredType)).getD "TEXT" else column.declaredType
   if column.integerPrimaryKey then 1
-  else if column.textPrimaryKey then 5
-  else if column.declaredType.isEmpty then 1
+  else if declaredType.isEmpty then 1
   else if [.integer, .real, .numeric].contains column.affinity then 1
   else
-    let name := column.declaredType.toLower
+    let name := declaredType.toLower
     let tail := if (name.splitOn "char").length > 1 then (name.splitOn "char").getLast?
       else if (name.splitOn "blob(").length > 1 then (name.splitOn "blob(").getLast? else none
     match tail with

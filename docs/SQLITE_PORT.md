@@ -3798,3 +3798,67 @@ terminal exit. Reports: `sqlite-column-type-*20261025.json`; harness:
 `scripts/run-column-type-differential.py`. Native code and the nine-binding audit
 boundary are unchanged. These are scoped SQL/file/component results, not complete
 SQLite compatibility.
+
+## Indexed primary keys with arbitrary declared types (2026-10-25)
+
+Single-column ascending BINARY primary keys now admit every supported declared
+type, including INT, REAL, NUMERIC, BLOB, no type, an explicitly empty type and
+custom quoted INTEGER/TEXT names. Exact standard INTEGER remains the rowid alias.
+Other keys keep a separate rowid, their actual field value, a primary automatic
+index, their declared metadata, and their own affinity. Column and table key
+syntax, NULL/NOT NULL, admitted conflict policies and defaults share this path.
+Composite, descending and non-BINARY key indexes remain separate work.
+
+The old nullable-TEXT lookup cache represented NULL rows by INTEGER rowids. That
+representation relied on TEXT-affinity values occupying other storage classes.
+The new DeclaredKey type separates row identities from actual SQL keys, and a
+registered theorem proves that every NULL key is distinct from every non-NULL
+key, independently of numeric values. Existing balanced-map representation,
+lookup, insert and update proofs are updated to the tagged key space.
+
+The lookup key also canonicalizes exactly integral binary64 values to bounded
+INTEGERs, including signed zero and INT64_MIN. Candidate integers are derived
+from the binary significand/exponent and checked using the exact integer/binary64
+comparator. Stored values retain their original storage class. A component
+proof establishes that canonicalization preserves numeric comparison equality;
+regressions cover the integer/real boundary around 2^53, INT64 bounds and
+infinities. This does not assert a full formal equivalence proof for SQLite's
+complete constraint engine.
+
+Indexed type metadata has a separate, invariant-carrying Core representation.
+Canonical SQL prints the actual type, NULL/NOT NULL policy and PRIMARY KEY policy.
+A `(0)` suffix on quoted type names prevents an INTEGER display name from silently
+becoming a rowid alias. A fixed comment identifies this syntax for the recognizer;
+it carries no values, types or constraint policies. The recognizer validates the
+entire ordinary SQL body, including the required suffix. The general key-column,
+default-column and complete schema inverses cover the expanded representation.
+C therefore sees the same constraints that the recognizer reconstructs.
+
+Baseline seed 354240 records **468 comparisons / 420 differences**. Development
+seed 354241 passes **612 / 0**; the expanded search/delete/default/NOT NULL corpus,
+seed 354242, passes **900 / 0**. Reports keep each corpus and its actual source and
+harness hashes. The first final-check audit run found one stale static rule that
+still required the old INTEGER-valued NULL surrogate. Its failure is retained in
+`sqlite-indexed-primary-checks-before-key-audit-20261025.json`. The rule now checks
+the rowid constructor and additionally requires the NULL/non-NULL disjointness
+proof. Other successful checks were retained; only the affected audit was rerun.
+
+Final-checkpoint fresh seed **354243** passes **5,520 / 0**, including
+**1992** positive error cases. Twelve C-created fixtures cover
+512/4096/65536-byte pages, both file modes, C-created indexed-key tables, column
+and table declarations, conflict policies, defaults, searches, updates, deletes,
+RETURNING, overflow and malformed TEXT. Complete successful output, error status,
+C catalog/pragma/typed-row/integrity observations, subsequent C writes and Lean
+reopens are compared. The previous unsupported-key corpus passes **54 / 0** on
+fresh seed 354246. Column-type regression seed **354244** passes **2,040 / 0**;
+DEFAULT regression seed **354245** passes **1,524 / 0**. All final reports identify
+the same production source.
+
+Implementation SHA-256: `d77c9767b8ed0ddb216ba70455054d5edcce3a66e814a0bec802ecd3417d0f39`.
+Final checks pass **334 build jobs, 246 executable tests, 1,173 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. Reports: `sqlite-indexed-primary-*20261025.json`; harness:
+`scripts/run-indexed-primary-differential.py`. The nine native bindings are
+unchanged. Exact diagnostics, original complete catalog SQL, concurrent WAL
+coordination and the remaining unimplemented SQL features are outside these
+scoped SQL/file/component metrics.

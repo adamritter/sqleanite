@@ -3,6 +3,7 @@ import SQLeanite.PhysicalCodec
 import SQLeanite.PhysicalQuery
 import SQLeanite.PersistentPageTree
 import SQLeanite.SQLite.PhysicalAffinity
+import SQLeanite.SQLite.PrimaryKey
 import Std.Data.TreeMap.Lemmas
 
 namespace SQLeanite
@@ -20,6 +21,14 @@ inductive NotNullConflict where
   | abort | ignore | replace
   deriving DecidableEq, Repr
 
+/-- The declared type of an indexed primary key, including absent versus
+explicitly empty types. The legacy TEXT-key shape remains a compact case. -/
+structure IndexedType where
+  declaredType : String
+  explicitEmptyType : Bool := false
+  explicitEmptyTypeOnly : explicitEmptyType = true → declaredType = "" := by simp_all
+  deriving DecidableEq, Repr
+
 structure Column where
   name : String
   notNull : Bool := false
@@ -32,9 +41,9 @@ structure Column where
   /-- A non-aliasing SQLite primary key. Unlike `INTEGER PRIMARY KEY`, this
   column remains in the record payload and is backed by an automatic index. -/
   textPrimaryKey : Bool := false
-  /-- Non-primary declared type. Primary columns use the fixed INTEGER/TEXT
-  declarations carried by their flags. Keeping this invariant in the value
-  makes canonical schema printing invertible for every admitted Column. -/
+  /-- Non-primary declared type. Primary columns use INTEGER, the compact
+  TEXT case, or their indexedType metadata. Keeping these cases disjoint makes
+  canonical schema printing invertible for every admitted Column. -/
   declaredType : String := ""
   primaryType : (integerPrimaryKey || textPrimaryKey) = true → declaredType = "" := by
     simp_all
@@ -51,6 +60,8 @@ The displayed type is empty in both cases. -/
   explicitEmptyType : Bool := false
   explicitEmptyTypeOnly : explicitEmptyType = true →
       declaredType = "" ∧ integerPrimaryKey = false ∧ textPrimaryKey = false := by simp_all
+  indexedType : Option IndexedType := none
+  indexedTypeOnly : indexedType.isSome = true → textPrimaryKey = true := by simp_all
   deriving DecidableEq, Repr
 
 def Column.typed (name typeName : String) (notNull : Bool) : Column :=
@@ -87,7 +98,10 @@ theorem Column.restoreNotNullConflict (column : Column) :
 
 def Column.affinity (column : Column) : SQLite.Affinity :=
   if column.integerPrimaryKey then .integer
-  else if column.textPrimaryKey then .text
+  else if column.textPrimaryKey then
+    match column.indexedType with
+    | none => .text
+    | some typ => if typ.explicitEmptyType then .numeric else SQLite.typeAffinity typ.declaredType
   else if column.explicitEmptyType then .numeric
   else SQLite.typeAffinity column.declaredType
 
@@ -326,18 +340,49 @@ def Row.declaredPrimaryValue? (schema : Schema) (row : Row) : Option Value := do
   let column ← schema.declaredPrimaryKey?
   row.values[column]?
 
-/-- Absent and NULL declared keys use the physical rowid only in the lookup
-cache. SQLite admits multiple NULLs in an ordinary TEXT PRIMARY KEY. Admitted
-non-NULL TEXT-affinity keys are TEXT or BLOB, so this INTEGER cache namespace
-does not collide with them. Record and index payloads retain the actual NULL. -/
-def Row.declaredKey (schema : Schema) (row : Row) : Value :=
+/-- Row identities occupy a different namespace from stored SQL values.
+This keeps nullable numeric primary keys disjoint from every NULL row. -/
+inductive DeclaredKey where
+  | rowid (identifier : Integer)
+  | value (payload : Value)
+  deriving DecidableEq
+
+def DeclaredKey.orderKey : DeclaredKey → Bool × (Nat × (Option Int × (Option Nat ×
+    (Option (List UInt8) × Option (List UInt8)))))
+  | .rowid integer => (false, Value.orderKey (.integer integer))
+  | .value payload => (true, payload.orderKey)
+
+theorem DeclaredKey.orderKey_injective {left right : DeclaredKey}
+    (equal : left.orderKey = right.orderKey) : left = right := by
+  cases left with
+  | rowid left =>
+      cases right with
+      | rowid right =>
+          simp only [DeclaredKey.orderKey, Prod.mk.injEq, true_and] at equal
+          have values := Value.orderKey_injective equal
+          cases values
+          rfl
+      | value right => simp [DeclaredKey.orderKey] at equal
+  | value left =>
+      cases right with
+      | rowid right => simp [DeclaredKey.orderKey] at equal
+      | value right =>
+          simp only [DeclaredKey.orderKey, Prod.mk.injEq, true_and] at equal
+          exact congrArg DeclaredKey.value (Value.orderKey_injective equal)
+
+theorem DeclaredKey.compareOn_orderKey_eq {left right : DeclaredKey} :
+    compareOn DeclaredKey.orderKey left right = .eq ↔ left = right := by
+  simp only [compareOn, Std.compare_eq_iff_eq]
+  exact ⟨DeclaredKey.orderKey_injective, congrArg DeclaredKey.orderKey⟩
+
+def Row.declaredKey (schema : Schema) (row : Row) : DeclaredKey :=
   match row.declaredPrimaryValue? schema with
-  | none | some .null => .integer row.rowid
-  | some key => key
+  | none | some .null => .rowid row.rowid
+  | some key => .value (SQLite.PrimaryKey.canonical key)
 
 theorem Row.declaredKey_null (schema : Schema) (row : Row)
     (nullKey : row.declaredPrimaryValue? schema = some .null) :
-    row.declaredKey schema = .integer row.rowid := by
+    row.declaredKey schema = .rowid row.rowid := by
   simp [Row.declaredKey, nullKey]
 
 theorem Row.declaredKey_null_injective (schema : Schema) (left right : Row)
@@ -349,16 +394,23 @@ theorem Row.declaredKey_null_injective (schema : Schema) (left right : Row)
 
 theorem Row.declaredKey_nonnull (schema : Schema) (row : Row) (key : Value)
     (present : row.declaredPrimaryValue? schema = some key) (nonnull : key ≠ .null) :
-    row.declaredKey schema = key := by
+    row.declaredKey schema = .value (SQLite.PrimaryKey.canonical key) := by
   cases key <;> simp_all [Row.declaredKey]
+
+theorem Row.declaredKey_null_ne_nonnull (schema : Schema) (left right : Row) (key : Value)
+    (leftNull : left.declaredPrimaryValue? schema = some .null)
+    (rightValue : right.declaredPrimaryValue? schema = some key) (nonnull : key ≠ .null) :
+    left.declaredKey schema ≠ right.declaredKey schema := by
+  rw [Row.declaredKey_null schema left leftNull, Row.declaredKey_nonnull schema right key rightValue nonnull]
+  simp
 
 theorem Row.declaredKey_no_declared (schema : Schema) (row : Row)
     (absent : schema.declaredPrimaryKey? = none) :
-    row.declaredKey schema = .integer row.rowid := by
+    row.declaredKey schema = .rowid row.rowid := by
   simp [Row.declaredKey, Row.declaredPrimaryValue?, absent]
 
 abbrev DeclaredKeyMap :=
-  Std.TreeMap Value Row (compareOn Value.orderKey)
+  Std.TreeMap DeclaredKey Row (compareOn DeclaredKey.orderKey)
 
 def buildDeclaredKeyMap (schema : Schema) (rows : List Row) :
     DeclaredKeyMap :=
@@ -368,7 +420,7 @@ def buildDeclaredKeyMap (schema : Schema) (rows : List Row) :
   else ∅
 
 theorem buildDeclaredKeyMap_get_of_hidden (schema : Schema) (rows : List Row)
-    (key : Value) (hidden : schema.hasHiddenRowid = true) :
+    (key : DeclaredKey) (hidden : schema.hasHiddenRowid = true) :
     (buildDeclaredKeyMap schema rows).get? key =
       rows.find? (fun row => row.declaredKey schema == key) := by
   unfold buildDeclaredKeyMap
@@ -382,7 +434,7 @@ theorem buildDeclaredKeyMap_get_of_hidden (schema : Schema) (rows : List Row)
           map.insert (row.declaredKey schema) row) ∅).insert
           (row.declaredKey schema) row)[key]? = _
       rw [Std.TreeMap.getElem?_insert]
-      simp only [Value.compareOn_orderKey_eq, beq_iff_eq]
+      simp only [DeclaredKey.compareOn_orderKey_eq, beq_iff_eq]
       change (rows.foldr
         (fun row (map : DeclaredKeyMap) =>
           map.insert (row.declaredKey schema) row) ∅)[key]? = _
@@ -1290,7 +1342,7 @@ theorem Table.declaredKeyMap_insert_represents_append (table : Table)
   change (table.declaredKeyMap.insert
     (row.declaredKey table.schema) row)[target]? = _
   rw [Std.TreeMap.getElem?_insert]
-  simp only [Value.compareOn_orderKey_eq]
+  simp only [DeclaredKey.compareOn_orderKey_eq]
   rw [List.find?_append]
   have represented := table.declaredKeyMapRepresents hidden target
   have keyAbsent := table.declaredKeyMapRepresents hidden
@@ -1463,7 +1515,7 @@ theorem Table.declaredKeyMap_replace_represents_orderedUpsert
   change (table.declaredKeyMap.insert
     (row.declaredKey table.schema) row)[target]? = _
   rw [Std.TreeMap.getElem?_insert]
-  simp only [Value.compareOn_orderKey_eq]
+  simp only [DeclaredKey.compareOn_orderKey_eq]
   have represented := table.declaredKeyMapRepresents hidden target
   change table.declaredKeyMap[target]? =
     table.rows.find? (fun existing =>
@@ -1497,7 +1549,7 @@ theorem Table.declaredKeyMap_insert_represents_orderedUpsert (table : Table)
   change (table.declaredKeyMap.insert
     (row.declaredKey table.schema) row)[target]? = _
   rw [Std.TreeMap.getElem?_insert]
-  simp only [Value.compareOn_orderKey_eq]
+  simp only [DeclaredKey.compareOn_orderKey_eq]
   have represented := table.declaredKeyMapRepresents hidden target
   have keyAbsent := table.declaredKeyMapRepresents hidden
     (row.declaredKey table.schema)

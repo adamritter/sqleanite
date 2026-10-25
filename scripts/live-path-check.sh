@@ -474,7 +474,8 @@ else
 fi
 
 if grep -q 'notNull := integerAlias || column.notNull' SQLeanite/CoreSQL.lean &&
-   grep -q '| none | some .null => .integer row.rowid' SQLeanite/Core.lean &&
+   grep -q '| none | some .null => .rowid row.rowid' SQLeanite/Core.lean &&
+   grep -q 'Core.Row.declaredKey_null_ne_nonnull' SQLeanite/ProofAxioms.lean &&
    grep -q 'TEXT PRIMARY KEY NOT NULL' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'conflict == .replace && hasReplaceKeys stored' SQLeanite/CoreSQL.lean &&
    grep -q 'replacing && hasReplaceKeys stored' SQLeanite/CoreSQL.lean &&
@@ -1888,6 +1889,17 @@ if grep -q 'SQLite.ColumnType.valid typ' SQLeanite/Parser.lean &&
   echo 'ok - exact column type syntax and empty-type affinity reach invertible persistence'
 else
   echo 'FAIL - column type grammar or affinity wiring is incomplete'
+  exit 1
+fi
+if grep -q 'indexedType : Core.IndexedType' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.PrimaryKey.canonical key' SQLeanite/Core.lean &&
+   grep -q 'some .null => .rowid row.rowid' SQLeanite/Core.lean &&
+   grep -q 'parseIndexedBody rest' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'PrimaryKey.canonical_compare' SQLeanite/ProofAxioms.lean &&
+   grep -q 'Core.Row.declaredKey_null_ne_nonnull' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - indexed primary types retain SQL metadata and disjoint exact numeric lookup keys'
+else
+  echo 'FAIL - indexed primary type or lookup wiring is incomplete'
   exit 1
 fi
 exit $status

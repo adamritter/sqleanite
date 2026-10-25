@@ -1346,3 +1346,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.ColumnDefault.emitted_boolean
 
 #print axioms SQLeanite.Core.Column.typed_empty_affinity
+
+#print axioms SQLeanite.SQLite.PrimaryKey.canonical_compare
+#print axioms SQLeanite.Core.Row.declaredKey_null_ne_nonnull
+#print axioms SQLeanite.CanonicalSchemaSQL.fromIndexed_inverse
+#print axioms SQLeanite.CanonicalSchemaSQL.parseIndexedBody_append

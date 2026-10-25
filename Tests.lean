@@ -4597,6 +4597,34 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteIndexedPrimaryTypes : IO Unit := do
+  for typ in ["INT", "REAL", "NUMERIC", "BLOB", "", "\"\"", "\"INTEGER\" extra"] do
+    let sql := s!"CREATE TABLE t(a {typ} PRIMARY KEY,b);" ++
+      "INSERT INTO t(rowid,a,b) VALUES(2,1,'value'),(1,NULL,'null-one'),(3,NULL,'null-two');" ++
+      "INSERT OR IGNORE INTO t(rowid,a,b) VALUES(4,1.0,'duplicate');SELECT rowid FROM t ORDER BY rowid;"
+    let (state, output) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"indexed primary type {typ}: {message}"
+    let expected ← match [[Value.integer 1],[.integer 2],[.integer 3]].mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"NULL namespace or INTEGER/REAL equality changed: {typ}"
+    let some image := CoreFile.encode state.database | fail "indexed primary encode failed"
+    let some decoded := CoreDecode.decode image.fileBytes | fail "indexed primary decode failed"
+    unless decoded.Equiv state.database do fail s!"indexed primary persistence changed: {typ}"
+  let sql := "CREATE TABLE t(a BLOB PRIMARY KEY,b);" ++
+    "INSERT INTO t VALUES(-9223372036854775808,'minimum'),(0,'zero'),(9007199254740993,'large');" ++
+    "INSERT OR IGNORE INTO t VALUES(-9223372036854775808.0,'duplicate minimum'),(-0.0,'duplicate zero'),(9007199254740992.0,'distinct');" ++
+    "SELECT b FROM t ORDER BY rowid;"
+  let (_, output) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok result => pure result
+    | .error message => fail s!"numeric primary boundaries: {message}"
+  let expected ← match [[Value.text "minimum"],[.text "zero"],[.text "large"],[.text "distinct"]].mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some expected do fail "numeric primary precision boundary changed"
+
 private def expectSQLiteColumnTypes : IO Unit := do
   for typ in ["TEXT 123", "BLOB notnull", "(12)", "TEXT(1+2)", "TEXT(1,2,3)",
       "TEXT(2) EXTRA", "RIGHT", "INDEXED", "TEXT(1_000)", "x'AB'"] do
@@ -7057,6 +7085,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite indexed primary types, NULL namespaces and exact numeric equality", expectSQLiteIndexedPrimaryTypes),
   ("SQLite column types, exact spans, empty affinity and canonical persistence", expectSQLiteColumnTypes),
   ("SQLite named column and table constraints, grammar and persistence", expectSQLiteNamedConstraints),
   ("SQLite blob prefix adjacency, aliases and independent token replay", expectSQLiteBlobAdjacency),

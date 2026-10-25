@@ -23,7 +23,7 @@ def argumentName : Expr → Option String
 /-- build.c stores these six standard type names in canonical spelling. -/
 def columnType (column : Core.Column) : String :=
   if column.integerPrimaryKey then "INTEGER"
-  else if column.textPrimaryKey then "TEXT"
+  else if column.textPrimaryKey then (column.indexedType.map (·.declaredType)).getD "TEXT"
   else column.declaredType
 
 def flag (value : Bool) : Value := .integer (if value then 1 else 0)

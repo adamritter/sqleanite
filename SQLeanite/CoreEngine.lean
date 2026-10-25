@@ -635,7 +635,7 @@ list established by `declaredKeyMapRepresents`. -/
 def Table.findDeclaredTextRowid? (table : Table) (text : PhysicalCodec.Text) :
     Option Integer :=
   if table.schema.hasHiddenRowid then
-    (table.declaredKeyMap.get? (.text text)).map (·.rowid)
+    (table.declaredKeyMap.get? (.value (.text text))).map (·.rowid)
   else none
 
 /-- A successful declared-key route names a real logical row with precisely
@@ -645,15 +645,15 @@ theorem Table.findDeclaredTextRowid?_some_mem {table : Table}
     {text : PhysicalCodec.Text} {rowid : Integer}
     (found : table.findDeclaredTextRowid? text = some rowid) :
     ∃ row, row ∈ table.rows ∧ row.rowid = rowid ∧
-      row.declaredKey table.schema = .text text := by
+      row.declaredKey table.schema = .value (.text text) := by
   unfold Table.findDeclaredTextRowid? at found
   split at found
   next hidden =>
     rcases Option.map_eq_some_iff.mp found with ⟨row, owner, rowidEqual⟩
-    have represented := table.declaredKeyMapRepresents hidden (.text text)
+    have represented := table.declaredKeyMapRepresents hidden (.value (.text text))
     rw [owner] at represented
     have logical : table.rows.find? (fun candidate =>
-        candidate.declaredKey table.schema == .text text) = some row :=
+        candidate.declaredKey table.schema == .value (.text text)) = some row :=
       represented.symm
     refine ⟨row, List.mem_of_find?_eq_some logical, ?_, ?_⟩
     · exact rowidEqual
