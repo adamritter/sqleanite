@@ -1,3 +1,4 @@
+import SQLeanite.CoreJoinUsing
 import SQLeanite.CoreSavepoint
 import SQLeanite.CoreAutoIncrement
 import SQLeanite.CoreEngine
@@ -1266,6 +1267,7 @@ structure JoinContext where
   rightName : String
   leftSchema : Core.Schema
   rightSchema : Core.Schema
+  shared : List CoreJoinUsing.Column := []
 
 def joinColumn (context : JoinContext) (qualifier : Option String) (name : String) :
     Except String CoreJoin.ColumnRef := do
@@ -1283,7 +1285,9 @@ def joinColumn (context : JoinContext) (qualifier : Option String) (name : Strin
       match left, right with
       | some index, none => .ok ⟨.left, index⟩
       | none, some index => .ok ⟨.right, index⟩
-      | some _, some _ => .error s!"ambiguous column name: {name}"
+      | some li, some ri =>
+          if CoreJoinUsing.merges context.shared name li ri then .ok ⟨.left, li⟩
+          else .error s!"ambiguous column name: {name}"
       | none, none => .error s!"no such column: {name}"
 
 def joinOperand (context : JoinContext) : Expr → Except String CoreJoin.Operand
@@ -1323,6 +1327,19 @@ def joinComparison (context : JoinContext)
     (← joinOperandAffinity context left a) (← joinOperandAffinity context right b)
   return operation (← joinOperandCoerce context aff a) (← joinOperandCoerce context aff b)
 
+/-- USING applies ordinary left-to-right equality affinity to each declared
+shared column. The result is an ON predicate, before LEFT null-extension. -/
+def joinUsingPredicate (context : JoinContext) : Except String (Option CoreJoin.Predicate) :=
+  context.shared.foldlM (fun prior column => do
+    let left : CoreJoin.Operand := .column ⟨.left, column.left⟩
+    let right : CoreJoin.Operand := .column ⟨.right, column.right⟩
+    let a ← joinColumnDefinition context ⟨.left, column.left⟩
+    let b ← joinColumnDefinition context ⟨.right, column.right⟩
+    let aff := SQLite.Scalar.comparisonAffinity (some a.affinity) (some b.affinity)
+    let comparison : CoreJoin.Predicate := .equal
+      (← joinOperandCoerce context aff left) (← joinOperandCoerce context aff right)
+    return some ((prior.map (fun predicate => .and predicate comparison)).getD comparison)) none
+
 def joinPredicate (context : JoinContext) : Expr →
     Except String CoreJoin.Predicate
   | .binary .eq left right =>
@@ -1360,7 +1377,8 @@ def joinResultColumn (context : JoinContext) : ResultColumn →
       return [← joinColumn context qualifier name]
   | { expr := .star none, .. } =>
       .ok (joinVisibleColumns .left context.leftSchema ++
-        joinVisibleColumns .right context.rightSchema)
+        (joinVisibleColumns .right context.rightSchema).filter
+          (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column))
   | { expr := .star (some qualifier), .. } =>
       let owner := canonical qualifier
       if owner == context.leftName then
@@ -1442,8 +1460,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
-      leftSource.joinOn.isNone && !rightSource.rightJoin &&
-      !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
+      leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do
@@ -1456,12 +1473,18 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     leftName := canonical (leftSource.alias.getD leftSource.name)
     rightName := canonical (rightSource.alias.getD rightSource.name)
     leftSchema
-    rightSchema }
+    rightSchema
+    shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource }
   if context.leftName == context.rightName then
     throw "join sources require distinct names or aliases"
+  let explicitOn ← rightSource.joinOn.mapM (joinPredicate context)
+  let sharedOn ← joinUsingPredicate context
+  let on := match explicitOn, sharedOn with
+    | none, predicate | predicate, none => predicate
+    | some left, some right => some (CoreJoin.Predicate.and left right)
   return {
     columns := ← joinProjection context select.columns.toList
-    on := ← rightSource.joinOn.mapM (joinPredicate context)
+    on
     kind := if rightSource.leftJoin then .left else .inner
     rightWidth := rightSchema.columns.length
     where_ := ← select.where_.mapM (joinPredicate context)
@@ -1474,8 +1497,7 @@ def executeJoin (state : Core.State) (select : Select) :
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
   unless leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
-      leftSource.joinOn.isNone && !rightSource.rightJoin &&
-      !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
+      leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do

@@ -2046,4 +2046,14 @@ else
   exit 1
 fi
 
+if rg -F -q 'CoreJoinUsing.columns leftSchema rightSchema rightSource' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let sharedOn ← joinUsingPredicate context' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreJoinUsing.suppressesRight context.shared index' SQLeanite/CoreCreateTableAs.lean &&
+   rg -F -q 'source.usingColumns.toList' SQLeanite/CoreTokenGrammar.lean; then
+  echo 'ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata'
+else
+  echo 'FAIL - shared join-column semantics are disconnected'
+  exit 1
+fi
+
 exit $status

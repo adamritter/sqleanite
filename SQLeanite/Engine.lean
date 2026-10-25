@@ -2083,6 +2083,8 @@ mutual
         if let some duplicate := table.columns.find? (fun column => template.any (fun binding =>
             !binding.hidden && nameEq binding.alias alias && nameEq binding.column column.name)) then
           throw s!"ambiguous column name: {alias}.{duplicate.name}"
+      if ref.naturalJoin && (ref.joinOn.isSome || !ref.usingColumns.isEmpty) then
+        throw "a NATURAL join may not have an ON or USING clause"
       let leftTemplate := template
       for column in ref.usingColumns do
         unless leftTemplate.any (fun binding => !binding.hidden && nameEq binding.column column) &&
@@ -2861,6 +2863,8 @@ private def sourceEnvs (db : Database) (refs : Array TableRef) : Except String (
       if let some duplicate := table.columns.find? (fun column => template.any (fun binding =>
           !binding.hidden && nameEq binding.alias alias && nameEq binding.column column.name)) then
         throw s!"ambiguous column name: {alias}.{duplicate.name}"
+    if ref.naturalJoin && (ref.joinOn.isSome || !ref.usingColumns.isEmpty) then
+      throw "a NATURAL join may not have an ON or USING clause"
     let leftTemplate := template
     for column in ref.usingColumns do
       unless leftTemplate.any (fun binding => !binding.hidden && nameEq binding.column column) &&

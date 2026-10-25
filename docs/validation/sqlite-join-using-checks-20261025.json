@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "9e7a0282595b6099bfd1e476aede42958f0ed4af06ef1f56eb08029a6de6ae80",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "605a6a8687b4ffad2779647ce105f38e40fc97dd38b57bfd70c4c23ce71e054f",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [349/350] Built Tests:c.o (16s)",
+        "\u2714 [350/350] Built sqleanite_tests:exe (339ms)",
+        "Build completed successfully (350 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "ef29d18370979c4d993035a3450de980bcff0615eab98c2b86925f8479401b8e",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "259 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "c30460acb54ba216136ca07d7449c709a95de8b04f9f56946c5aeaa966cfaf46",
+      "tail": [
+        "ok - CAST type spans are independently validated and use explicit expression affinity",
+        "ok - completed statements emit in order and actual write dispatch checks OS access",
+        "ok - DEFERRED and ignored TRANSACTION names are independently replayed",
+        "ok - LIMIT expression tokens and normalized windows are independently checked",
+        "ok - zero-row DML publication checks complete contents including sequence rows",
+        "ok - join keywords and optional ON reach the existing Core join semantics",
+        "ok - stored join-column affinity is preserved through optimizer translation and execution",
+        "ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "cdb627e182d7ee0363cd69b1a7ddb8b6d04b5ec5cfd73048fbc90f8c275013dc"
+}

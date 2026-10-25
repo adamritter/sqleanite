@@ -1901,3 +1901,16 @@ on the publication path; it is not an O(1) claim. COMMIT/RELEASE keep their sepa
 snapshot decision, and write-access checks still precede execution. Public-CLI
 regressions check unchanged main/WAL bytes and subsequent C-visible sequence
 initialization. No native binding or OS assumption changed.
+
+
+### Shared join columns (2026-10-25)
+
+`CoreJoinUsing` resolves NATURAL/USING names from visible schema columns, with a
+component proof of that visibility property. Its name-and-position metadata is
+shared by join predicates, ambiguous-name resolution, star projection and CTAS
+column derivation. Implicit rowid aliases remain outside this lookup. Independent
+token replay checks the original USING names and join flags before execution.
+The existing join optimizer and `TranslatedRead.join` refinement cover the
+expanded accepted join shape. Cross-language SQL/CTAS behavior is differentially
+tested, including C file observations and later writes, rather than kernel-proved
+against the upstream parser or evaluator. Native bindings are unchanged.

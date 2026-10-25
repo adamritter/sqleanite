@@ -141,8 +141,7 @@ inductive TranslatedRead (state : Core.State) :
       (twoSources : select.sources = #[leftSource, rightSource])
       (plainSources : leftSource.subquerySql = none ∧
         rightSource.subquerySql = none ∧ leftSource.joinOn = none ∧
-        rightSource.rightJoin = false ∧ rightSource.naturalJoin = false ∧
-        rightSource.usingColumns = #[])
+        rightSource.rightJoin = false)
       (noGroups : select.groupBy = #[]) (noHaving : select.having = none)
       (notDistinct : select.distinct = false) (noOffset : select.offset = 0)
       (leftFound : state.database.findTable?

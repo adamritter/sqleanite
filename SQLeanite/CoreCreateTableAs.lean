@@ -1,3 +1,4 @@
+import SQLeanite.CoreJoinUsing
 import SQLeanite.CoreExpr
 import SQLeanite.CoreNames
 
@@ -12,21 +13,30 @@ structure ColumnInfo where
   dataTypes : Nat
   cast : Bool := false
 
-abbrev Context := List CoreExpr.Context
+structure Context where
+  sources : List CoreExpr.Context
+  shared : List CoreJoinUsing.Column := []
 
-def contexts (database : Core.Database) (query : Select) : Except String Context :=
-  query.sources.toList.mapM fun source => do
+def contexts (database : Core.Database) (query : Select) : Except String Context := do
+  let sources ← query.sources.toList.mapM fun source => do
     let some table := CoreNames.table? database source.name | throw s!"no such table: {source.name}"
-    pure { schema := table.schema, sourceName := source.alias.getD source.name }
+    pure ({ schema := table.schema, sourceName := source.alias.getD source.name } : CoreExpr.Context)
+  let shared ← match sources, query.sources.toList with
+    | [left, right], [_, source] => CoreJoinUsing.columns left.schema right.schema source
+    | _, _ => pure []
+  return { sources, shared }
 
 def column? (context : Context) (qualifier : Option String) (name : String) :
     Option (String × SQLite.Affinity) :=
-  match context.filterMap (fun source => do
+  match context.sources.zipIdx.filterMap (fun (source, sourceIndex) => do
     let position ← source.column? qualifier name
-    let column ← source.schema.columns[position]?
-    let name := if source.schema.hasHiddenRowid && position == source.schema.primaryKey then
-      "rowid" else column.name
-    some (name, column.affinity)) with
+    if qualifier.isNone && sourceIndex == 1 &&
+        CoreJoinUsing.suppressesName context.shared name position then none
+    else do
+      let column ← source.schema.columns[position]?
+      let name := if source.schema.hasHiddenRowid && position == source.schema.primaryKey then
+        "rowid" else column.name
+      some (name, column.affinity)) with
   | [column] => some column
   | _ => none
 
@@ -96,10 +106,14 @@ def baseColumns (database : Core.Database) (query : Select) : Except String (Lis
   for column in query.columns do
     match column.expr with
     | .star qualifier =>
-        let sources := context.filter fun source => qualifier.all (fun name => name.toLower == source.sourceName.toLower)
+        let sources := context.sources.zipIdx.filter fun (source, _) =>
+          qualifier.all (fun name => name.toLower == source.sourceName.toLower)
         if sources.isEmpty then throw "no such table in CTAS star"
-        for source in sources do
-          for stored in source.schema.catalogColumns do
+        for (source, sourceIndex) in sources do
+          for index in source.schema.visibleColumnIndices do
+            if qualifier.isNone && sourceIndex == 1 &&
+                CoreJoinUsing.suppressesRight context.shared index then continue
+            let some stored := source.schema.columns[index]? | throw "invalid CTAS source column"
             let derived := resultColumn context output.length
               { expr := .column (some source.sourceName) stored.name }
             output := output ++ [derived]

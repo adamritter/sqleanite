@@ -728,6 +728,18 @@ private def parseTableAlias : ParserM (Option String) := do
   else parseImplicitAlias
 
 
+private def parseJoinConstraint : ParserM (Option Expr × Array String) := do
+  let on ← if ← acceptKeyword "on" then some <$> parseExpr else pure none
+  let mut usingColumns := #[]
+  if ← acceptKeyword "using" then
+    if on.isSome then throw "near USING: syntax error"
+    expectSymbol "("
+    usingColumns := usingColumns.push (← expectIdent)
+    while ← acceptSymbol "," do usingColumns := usingColumns.push (← expectIdent)
+    expectSymbol ")"
+  return (on, usingColumns)
+
+
 mutual
   private def parseTableFactorFuel : Nat → ParserM (Array TableRef)
     | 0 => throw "parser stack overflow"
@@ -763,8 +775,10 @@ mutual
       while scanning do
         if ← acceptSymbol "," then
           let mut right ← parseTableFactorFuel fuel
-          if ← acceptKeyword "on" then
-            let condition ← parseExpr
+          let (joinOn, usingColumns) ← parseJoinConstraint
+          if let some first := right[0]? then
+            right := right.set! 0 { first with usingColumns := first.usingColumns ++ usingColumns }
+          if let some condition := joinOn then
             let last := right.size - 1
             if let some final := right[last]? then
               let combined := final.joinOn.map (fun prior => Expr.binary .and prior condition) |>.getD condition
@@ -787,16 +801,7 @@ mutual
             let rightJoin := kind.right
             let naturalJoin := kind.natural
             let mut right ← parseTableFactorFuel fuel
-            let joinOn ← if ← acceptKeyword "on" then some <$> parseExpr else pure none
-            let mut usingColumns := #[]
-            if ← acceptKeyword "using" then
-              if joinOn.isSome then throw "near \"USING\": syntax error"
-              expectSymbol "("
-              usingColumns := usingColumns.push (← expectIdent)
-              while ← acceptSymbol "," do usingColumns := usingColumns.push (← expectIdent)
-              expectSymbol ")"
-            if naturalJoin && (joinOn.isSome || !usingColumns.isEmpty) then
-              throw "a NATURAL join may not have an ON or USING clause"
+            let (joinOn, usingColumns) ← parseJoinConstraint
             if let some first := right[0]? then
               let mergedUsing := first.usingColumns ++ usingColumns
               let mergedNatural := first.naturalJoin || naturalJoin

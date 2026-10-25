@@ -7041,6 +7041,63 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinUsing : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,lv TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,rv TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO l VALUES(1,1,'l1'),(2,2,'l2'),(3,NULL,'l3');INSERT INTO r VALUES(1,'01','r1'),(4,'2','r4'),(3,NULL,'r3');INSERT INTO n VALUES(9,'z');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,k,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 4]]),
+    ("SELECT a.id,k,b.id FROM l a, r b USING('K') ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1,.integer 1],[.integer 2,.integer 2,.integer 4]]),
+    ("SELECT * FROM l a NATURAL JOIN r b ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1,.text "l1",.text "r1"]]),
+    ("SELECT * FROM l a LEFT NATURAL JOIN r b ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1,.text "l1",.text "r1"],
+       [.integer 2,.integer 2,.text "l2",.null],[.integer 3,.null,.text "l3",.null]]),
+    ("SELECT id,k FROM l a JOIN r b USING(k,id) ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1]]),
+    ("SELECT id FROM l a JOIN r b USING(id,id) ORDER BY a.id,b.id;",
+      [[.integer 1],[.integer 3]]),
+    ("SELECT a.id,b.other_id FROM l a NATURAL LEFT JOIN n b ORDER BY a.id,b.other_id;",
+      [[.integer 1,.integer 9],[.integer 2,.integer 9],[.integer 3,.integer 9]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"USING/NATURAL join: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"USING/NATURAL rows: {sql}"
+  for sql in ["SELECT * FROM l JOIN r USING(rowid);", "SELECT * FROM l JOIN r USING(lv);",
+      "SELECT rowid FROM l JOIN r USING(id);", "SELECT id FROM l JOIN r USING(k);",
+      "SELECT * FROM l NATURAL JOIN r ON l.id=r.id;", "SELECT * FROM l NATURAL JOIN r USING(k);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"invalid shared-column resolution accepted: {sql}"
+  for suffix in ["NATURAL JOIN r ON l.id=r.id", "NATURAL JOIN r USING(k)", "JOIN r USING(missing)"] do
+    unless (CoreSQL.execute Core.State.empty
+        (setup ++ s!"CREATE TABLE IF NOT EXISTS l AS SELECT * FROM l {suffix};")).isOk do
+      fail "CTAS schema no-op did not defer join semantic errors"
+  if (CoreSQL.execute Core.State.empty
+      (setup ++ "CREATE TABLE IF NOT EXISTS l AS SELECT * FROM l JOIN r ON l.id=r.id USING(id);")).isOk then
+    fail "CTAS schema no-op hid invalid ON/USING syntax"
+  let (created, _) ← match CoreSQL.execute Core.State.empty
+      (setup ++ "CREATE TABLE made AS SELECT * FROM l NATURAL LEFT JOIN r ORDER BY l.id,r.id;") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := created.database.findTable? "made" | fail "USING CTAS table missing"
+  unless table.schema.visibleColumns.map (·.name) == ["id","k","lv","rv"] && table.rows.length == 3 do
+    fail "USING CTAS did not preserve the merged projection"
+  let sql := "SELECT a.id FROM l a JOIN r b USING(k);"
+  let parsed : CoreTokenGrammar.CertifiedParse sql ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "USING AST missing"
+  let some right := query.sources[1]? | fail "USING right source missing"
+  for forged in [{ right with usingColumns := #["id"] }, { right with usingColumns := #[] },
+      { right with naturalJoin := true }] do
+    if (CoreTokenGrammar.check parsed.tokens
+        #[.select { query with sources := query.sources.set! 1 forged }]).isOk then
+      fail "USING token replay accepted changed shared columns or join type"
+
 private def expectSQLiteJoinAffinity : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,NULL),(4,'bad');INSERT INTO r VALUES(1,'01'),(2,'2'),(3,NULL),(4,'bad'),(5,'2x');"
   let cases : List (String × List (List Value)) := [
@@ -7584,6 +7641,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite USING/NATURAL merged columns and CTAS", expectSQLiteJoinUsing),
   ("SQLite stored-column join comparison affinity", expectSQLiteJoinAffinity),
   ("SQLite join keywords and optional ON", expectSQLiteJoinSyntax),
   ("SQLite zero-row writes preserve files and publish sequence initialization", expectSQLiteEmptyWritePublication),

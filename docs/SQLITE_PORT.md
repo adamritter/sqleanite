@@ -4333,3 +4333,44 @@ whole-SQLite equivalence. Arbitrary scalar join expressions, explicit join
 collations, USING/NATURAL and RIGHT/FULL execution remain separate work. Native
 bindings are unchanged. Reports: `sqlite-join-affinity-*20261025.json`; harness:
 `scripts/run-join-affinity-differential.py`.
+
+
+## USING/NATURAL joins and merged result columns (2026-10-25)
+
+Two-source INNER, CROSS, comma and LEFT joins now execute USING and NATURAL.
+`CoreJoinUsing` resolves only declared visible columns, keeps each original name
+and both physical positions, and drives equality predicates, unqualified name
+binding, star expansion and CREATE TABLE AS SELECT metadata. Qualified stars
+retain both tables' columns; an unqualified star suppresses the right shared
+column. Implicit rowid aliases neither create natural matches nor become legal
+USING columns. A merged declared key does not accidentally merge the rowid name.
+Ordinary stored-column comparison affinity applies before LEFT null-extension.
+
+The parser and independent token replay retain USING names and NATURAL flags.
+NATURAL plus ON/USING is a semantic error, deferred past an existing-table CTAS
+no-op just as in the pinned C engine; ON followed by USING is invalid syntax and
+is still rejected before that no-op. The legacy test-only evaluator retains its
+semantic validation. Public execution continues through the Core.
+
+Baseline seed **354370** records **572 comparisons / 368 differences**, all
+valid C statements rejected by the earlier join admission. Development seed
+**354371** passes **1,424 / 0** after adding CTAS no-op cases. Final-checkpoint
+fresh seed **354372** passes **4,368 / 0**, across six new fixtures and both
+production file modes. It covers duplicate/case-varied/quoted USING names,
+missing/ambiguous names, numeric comparison affinity, INTEGER and TEXT primary
+keys, empty sides, natural joins with no common columns, and 512/4096/65536-byte
+input pages. Complete successful output and error status are compared, followed
+by independent C catalog/column/index/typed-row/integrity observations, C writes,
+and Lean reopening. Main/WAL bytes must remain unchanged whenever C leaves its
+image unchanged. CTAS regression seed **354373** passes **252 / 0**.
+
+Implementation SHA-256: `9e7a0282595b6099bfd1e476aede42958f0ed4af06ef1f56eb08029a6de6ae80`.
+Final checks pass **350 build jobs, 259 executable tests, 1,214 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The new proposition proves that shared-column lookup selects a
+visible schema position. Existing join optimization and SQL read refinements
+continue to compile with the expanded admitted domain; this does not prove full
+SQLite join equivalence. RIGHT/FULL, larger joins, general scalar join expressions,
+DISTINCT/OFFSET and join ORDER BY aliases remain separate work. No native binding
+changed. Reports: `sqlite-join-using-*20261025.json`; harness:
+`scripts/run-join-using-differential.py`.

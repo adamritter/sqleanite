@@ -1403,3 +1403,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Operand.coercedColumn_null
 #print axioms SQLeanite.CoreOptimizerBridge.joinOperand_value
 #print axioms SQLeanite.CoreOptimizerBridge.fromJoinOperand_joinOperand
+
+#print axioms SQLeanite.CoreJoinUsing.declaredColumn_visible

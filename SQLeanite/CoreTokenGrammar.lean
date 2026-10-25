@@ -755,8 +755,11 @@ private def matchTableFactor (source : TableRef) : MatchM Unit := do
   matchAlias source.alias
 
 private def matchJoinSource (source : TableRef) : MatchM Unit := do
-  unless !source.rightJoin && !source.naturalJoin && source.usingColumns.isEmpty do
-    mismatch "an INNER, CROSS, comma or LEFT JOIN source"
+  unless !source.rightJoin do mismatch "an INNER, CROSS, comma or LEFT JOIN source"
+  -- NATURAL/constraint conflicts are semantic errors, checked after a
+  -- possible CTAS schema no-op. ON followed by USING is invalid syntax.
+  unless !(source.joinOn.isSome && !source.usingColumns.isEmpty) do
+    mismatch "a single legal join constraint"
   let kind ← if ← acceptSymbol "," then pure ({} : SQLite.JoinType.Flags)
     else do
       let mut words := []
@@ -775,6 +778,11 @@ private def matchJoinSource (source : TableRef) : MatchM Unit := do
   if let some condition := source.joinOn then
     expectKeyword "on"
     matchExpr condition
+  unless source.usingColumns.isEmpty do
+    expectKeyword "using"
+    expectSymbol "("
+    matchNameList source.usingColumns.toList
+    expectSymbol ")"
 
 private def matchSources : List TableRef → MatchM Unit
   | [] => pure ()
