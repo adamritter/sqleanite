@@ -744,6 +744,18 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# INSERT SELECT evaluates a source snapshot, validates even empty projections,
+# and routes evaluated values through the existing checked INSERT machinery.
+if grep -q 'let selection ← executeSelect state query' SQLeanite/CoreSQL.lean &&
+   grep -q 'checkInsertSelectColumns stored.schema columns selection.width' SQLeanite/CoreSQL.lean &&
+   grep -q 'selection.result.rows.mapM selectedRowExpressions' SQLeanite/CoreSQL.lean &&
+   grep -q '.insertSelect ..' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'CoreSQL.insertSelection_empty' SQLeanite/ProofAxioms.lean; then
+  ok "INSERT SELECT validates source width and persists through ordinary INSERT execution"
+else
+  fail "INSERT SELECT is disconnected from checked insertion or persistence"
+fi
+
 # DROP shares the transaction/persistence machinery with other schema writes.
 if grep -q 'CoreSchemaDrop.table state.database' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSchemaDrop.index stored' SQLeanite/CoreSQL.lean &&

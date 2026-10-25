@@ -4597,6 +4597,33 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteInsertSelect : IO Unit := do
+  let setup := "CREATE TABLE src(id INTEGER PRIMARY KEY,v);INSERT INTO src VALUES(1,'3'),(2,'4');" ++
+    "CREATE TABLE dst(id INTEGER PRIMARY KEY,v INTEGER);CREATE TABLE empty(id INTEGER PRIMARY KEY,v);"
+  let cases : List (String × List (List Value)) := [
+    ("INSERT INTO dst(v) SELECT v FROM src ORDER BY id DESC;SELECT id,v,typeof(v) FROM dst ORDER BY id;",
+      [[.integer 1, .integer 4, .text "integer"], [.integer 2, .integer 3, .text "integer"]]),
+    ("INSERT INTO src(v) SELECT v FROM src ORDER BY id DESC;SELECT id,v FROM src ORDER BY id;",
+      [[.integer 1, .text "3"], [.integer 2, .text "4"], [.integer 3, .text "4"], [.integer 4, .text "3"]]),
+    ("BEGIN;INSERT INTO dst(v) SELECT v FROM src;ROLLBACK;SELECT count(*) FROM dst;", [[.integer 0]]),
+    ("INSERT INTO dst(v) SELECT v FROM empty;SELECT count(*) FROM dst;", [[.integer 0]]),
+    ("INSERT INTO dst(v) SELECT 1 UNION ALL SELECT 2;SELECT sum(v) FROM dst;", [[.integer 3]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"INSERT SELECT: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"INSERT SELECT mismatch: {sql}"
+  for sql in ["INSERT INTO dst SELECT v FROM empty;", "INSERT INTO dst(missing) SELECT v FROM empty;",
+      "INSERT INTO dst(v) SELECT no_function(v) FROM empty;", "INSERT INTO dst(v) SELECT 1,2 WHERE 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"INSERT SELECT error omitted: {sql}"
+  let parsed ← match CoreTokenGrammar.parseStatements "INSERT INTO dst SELECT id,v FROM src;" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  unless parsed.toList.any CoreFileEngine.statementWrites do fail "INSERT SELECT did not request persistence"
+
 private def expectSQLiteDrop : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE INDEX tv ON t(v);" ++
     "CREATE TABLE k(id TEXT PRIMARY KEY,v);INSERT INTO t VALUES(1,7),(2,8);" ++
@@ -5771,6 +5798,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite INSERT SELECT snapshots, affinity and empty sources", expectSQLiteInsertSelect),
   ("SQLite DROP tables and indexes with transaction rollback", expectSQLiteDrop),
   ("SQLite file read/write versions and schema-format admission", expectSQLiteHeaderVersions),
   ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),

@@ -1,0 +1,20 @@
+{
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "observations": [
+    {
+      "sql": "BEGIN;INSERT INTO t VALUES(7);SELECT abs(-9223372036854775808);COMMIT;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n",
+      "persisted_rows": "7\n"
+    },
+    {
+      "sql": "BEGIN;\nINSERT INTO t VALUES(7);\nSELECT abs(-9223372036854775808);\nCOMMIT;\n",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 3: integer overflow\n",
+      "persisted_rows": ""
+    }
+  ],
+  "meaning": "Pinned shell error-control diagnostic only. One statement per input line is required for the stop-on-first-error SQL comparison; no statement is filtered from either engine."
+}

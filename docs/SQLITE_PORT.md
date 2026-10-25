@@ -2402,3 +2402,47 @@ its nine-binding audit list are unchanged. Reports use `sqlite-drop-*20261025.js
 The retained broad SQL gap inventory was also rerun with --require-compatible;
 it still exits nonzero. Its report, `sqlite-compatibility-gaps-after-drop-20261025.json`,
 is a diagnostic inventory, not a coverage percentage or a claim of completion.
+
+## INSERT SELECT (2026-10-25)
+
+The public grammar and Core execution now support INSERT ... SELECT, including
+INSERT OR ABORT, INSERT OR REPLACE and REPLACE ... SELECT over admitted SELECT
+forms. The source is evaluated against the pre-statement database, then its
+complete rows pass through the existing target-column mapping, affinity,
+rowid and conflict-policy machinery. No SQL text is generated from result
+values; the existing physical/scalar bridge retains storage classes and raw
+TEXT bytes. Destination width and column names are validated even for empty
+sources. The file engine recognizes INSERT SELECT as a write, including inside
+transactions. OR IGNORE/FAIL/ROLLBACK and unsupported source-query forms remain
+separate work.
+
+Baseline 353970 at source 9f8f4f169565a7e05419296c2045ad84d04447d5368fa4fb0984427e7d762b3b
+records 208 differences in 280 outcomes. Development 353971 initially records
+eight differences in 368 outcomes: the pinned 3.53.4 shell continued to COMMIT
+after a stepping error when all statements shared one input line. A separate
+oracle protocol report reproduces this behavior and its absence with one
+statement per line. The comparison now feeds both CLIs every statement on a
+separate line, preserving quoted semicolons, and explicitly tests stopping at
+the first error. The original negative report is retained; these eight cases
+were not fixed by changing engine semantics or removed from the corpus.
+
+Final source is `bdeaa889a933571d38664fd877a787e27e4963ad42bf45016144ebf48c5bb484`.
+Fresh seed 353972 passes **1,184 script outcomes**, including 192 matching
+positive error statuses. Newly generated source values and query combinations
+cover exact stored bytes/types, TEXT/NUMERIC/REAL/BLOB destination behavior,
+malformed UTF-8, NULs, duplicate target columns, source/destination overlap,
+compound/grouped sources, ordering/offset/limit, empty results, unique-index
+replacement and transaction rollback. All fixture tables are independently
+read after every script, including failures, and pinned SQLite integrity_check
+must return ok. Cases use 512-, 4,096- and 65,536-byte original files through
+both public modes. Exact error diagnostics, shell one-line continuation and
+unimplemented SELECT shapes are not claimed compatible by this suite.
+
+All 218 executable tests, the 290-job build, 1,096 registered headline proofs,
+verification audit and live-path audit pass. Reverse validation passes 61
+accepted cells and two declared unsupported shapes. The new component proofs
+cover an empty insertion sequence and the target-width admission branch; they
+do not establish complete INSERT or SELECT equivalence. A development compile
+failure in the new width theorem was corrected before evaluation. Native code
+and the nine-binding audit boundary are unchanged. Reports use
+`sqlite-insert-select-*20261025.json` under `docs/validation/`.

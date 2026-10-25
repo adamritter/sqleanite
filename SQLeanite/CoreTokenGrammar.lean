@@ -688,6 +688,11 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   expectKeyword "into"
 
 private def matchStatement : Statement → MatchM Unit
+  | .insertSelect table columns query conflict => do
+      matchInsertPrefix conflict
+      expectQualifiedName table
+      matchOptionalNameList columns
+      matchSelect query
   | .dropTable name ifExists => do
       expectKeyword "drop"
       expectKeyword "table"

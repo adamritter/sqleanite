@@ -1239,3 +1239,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaDrop.index_exact
 #print axioms SQLeanite.CoreSQL.executeStatement_dropTable_noop
 #print axioms SQLeanite.CoreSQL.executeStatement_dropIndex_noop
+
+#print axioms SQLeanite.CoreSQL.insertSelection_empty
+#print axioms SQLeanite.CoreSQL.checkInsertSelectColumns_all

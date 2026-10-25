@@ -1652,6 +1652,58 @@ def replaceUniqueRows (state : Core.State) (table : String)
       let (finalState, results) ← replaceUniqueRows next table schema columns rows
       return (finalState, { changes := 1 } :: results)
 
+/-- Validate target arity even if the source SELECT yields no rows. -/
+def checkInsertSelectColumns (schema : Core.Schema) (columns : Option (Array String))
+    (width : Nat) : Except String Unit := do
+  match columns with
+  | none =>
+      unless width == schema.visibleColumns.length do
+        throw s!"table {schema.name} has {schema.visibleColumns.length} columns but {width} values were supplied"
+  | some names =>
+      let _ ← names.toList.mapM (column schema)
+      unless width == names.size do throw "INSERT column/value count mismatch"
+
+/-- Convert an already evaluated source row without rendering SQL text. This
+retains storage classes and malformed TEXT bytes through the existing bridge. -/
+def selectedRowExpressions (values : List Core.Value) : Except String (Array Expr) := do
+  let values ← values.mapM CoreExpr.value
+  return (values.map (fun value => Expr.literal value)).toArray
+
+def insertSelection (state : Core.State) (table : String) (stored : Core.Table)
+    (columns : Option (Array String)) (replacing : Bool)
+    (rows : List (Array Expr)) : Except String (Core.State × List Core.Result) :=
+  if replacing && stored.indexes.any (·.unique) then
+    replaceUniqueRows state table stored.schema columns rows
+  else insertRows state table stored.schema columns replacing rows
+
+theorem insertSelection_empty (state : Core.State) (table : String) (stored : Core.Table)
+    (columns : Option (Array String)) (replacing : Bool) :
+    insertSelection state table stored columns replacing [] = .ok (state, []) := by
+  unfold insertSelection
+  split <;> rfl
+
+/-- Evaluate the SELECT against the pre-statement database before inserting
+its rows, including when the source is the destination table. All writes then
+use the ordinary INSERT affinity, rowid and conflict-policy machinery. -/
+def executeInsertSelect (state : Core.State) (table : String)
+    (columns : Option (Array String)) (query : Select) (conflict : ConflictAction) :
+    Except String (Core.State × List Core.Result) := do
+  unless conflict == .default || conflict == .abort || conflict == .replace do
+    throw "unsupported general verified-MVP SQL: INSERT conflict policy"
+  let tableName := canonical table
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {table}"
+  let selection ← executeSelect state query
+  checkInsertSelectColumns stored.schema columns selection.width
+  let rows ← selection.result.rows.mapM selectedRowExpressions
+  insertSelection state tableName stored columns (conflict == .replace) rows
+
+theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
+    (same : width = schema.visibleColumns.length) :
+    checkInsertSelectColumns schema none width = .ok () := by
+  simp [checkInsertSelectColumns, same, pure, Except.pure]
+
 def indexNameExists (state : Core.State) (name : String) : Bool :=
   state.database.tables.any fun table => table.indexes.any fun index => index.name == canonical name
 
@@ -1711,6 +1763,7 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .insertSelect table columns query conflict => executeInsertSelect state table columns query conflict
   | .dropTable name ifExists => do
       unless ← prepareDropTable state name ifExists do return (state, [{}])
       let database ← CoreSchemaDrop.table state.database (canonical name)
