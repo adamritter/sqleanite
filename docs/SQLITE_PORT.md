@@ -2796,3 +2796,46 @@ nine-binding boundary are unchanged. Reports use
 `scripts/run-update-returning-differential.py`. RETURNING subqueries, triggers,
 virtual tables, schema defaults, FAIL/ROLLBACK conflict behavior and full SQL/
 database/WAL compatibility remain separate work.
+
+
+## Scalar row-value UPDATE assignments (2026-10-25)
+
+The parser now accepts grouped UPDATE targets such as `(v,u)=(u,v)`, mixed
+scalar/grouped assignments, single-element target lists and extra parentheses
+around scalar-expression rows. `SQLite.RowAssignment.bind` checks equal widths
+before lowering to the existing ordered list of name/expression pairs. Its
+component proofs establish the exact zip and retained target count. The
+independent token matcher consumes each source target group against the same
+consecutive AST pairs and replays their corresponding RHS expressions; it
+cannot exchange or silently truncate them. A forged-RHS regression checks this
+boundary. Subquery row assignments remain unsupported.
+
+The existing assignment evaluator supplies simultaneous original-row reads,
+affinity after expression evaluation, complete binding of discarded duplicate
+assignments and last-target-wins behavior. All existing mutation/RETURNING paths
+therefore handle the lowered form. Parser and token replay both enforce the
+2,000-target SET-list limit, including the previously unbounded scalar form.
+Two development parser type/scope failures were corrected before evaluation;
+existing execution/refinement statements retain their premises and conclusions.
+
+Retained baseline seed 354050: **80 differences / 124 executions**.
+Development seed 354051: **448 executions, zero differences**.
+Final-checkpoint seed 354052 uses 160 new generated statements and three new
+C-created fixtures: **1,152 executions, zero differences**, including 378
+positive-error outcomes. Both file modes and 512/4096/65536-byte pages are
+covered, along with all admitted conflict policies, RETURNING, aliases, key
+changes, duplicate targets, discarded runtime errors versus binding errors,
+wrong widths even under WHERE 0, large BLOBs and the 2,000/2,001 assignment
+boundary. Pinned SQLite independently checks persisted types/hex values and
+integrity after each script. Successful output bytes are compared completely;
+rejected individual statements retain main/WAL bytes. Exact diagnostic codes/
+messages and partial output from earlier statements are not compared.
+
+Implementation SHA-256: `256eb7e903869d5ad2511420fcc64d7694d1d56a07edd1ad7b1bda586515e4c8`.
+The matching report records a successful **306-job build, 226 executable tests,
+1,115 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. The nine native
+bindings are unchanged. Reports use `sqlite-update-tuples-*20261025.json`;
+harness: `scripts/run-update-tuples-differential.py`. This is not a claim about
+row-value comparisons, subqueries, all schema constraints or full SQLite
+compatibility.

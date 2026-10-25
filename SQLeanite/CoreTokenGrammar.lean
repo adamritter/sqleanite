@@ -695,17 +695,52 @@ private def matchSelect (query : Select) : MatchM Unit := do
   matchLimit query
 
 
-private def matchAssignments : List (String × Expr) → MatchM Unit
-  | [] => mismatch "at least one assignment"
-  | assignment :: assignments => do
-      expectName assignment.1
+/-- Replay a tuple's target names against consecutive flattened AST pairs,
+returning exactly their associated expressions and the untouched remainder. -/
+private def matchAssignmentNames : List (String × Expr) → MatchM (List Expr × List (String × Expr))
+  | [] => mismatch "an assignment target"
+  | (name, expression) :: rest => do
+      expectName name
+      if ← acceptSymbol ")" then return ([expression], rest)
+      expectSymbol ","
+      let (expressions, remaining) ← matchAssignmentNames rest
+      return (expression :: expressions, remaining)
+
+private def matchAssignmentValues : Nat → List Expr → MatchM Unit
+  | 0, _ => mismatch "bounded assignment parentheses"
+  | fuel + 1, expressions => fun state =>
+      let direct : MatchM Unit := match expressions with
+        | [] => mismatch "an assignment value"
+        | [expression] => matchExpr expression
+        | _ => do
+            expectSymbol "("
+            matchExprList expressions
+            expectSymbol ")"
+      let grouped : MatchM Unit := do
+        expectSymbol "("
+        matchAssignmentValues fuel expressions
+        expectSymbol ")"
+      match direct state with
+      | .ok result => .ok result
+      | .error _ => grouped state
+
+private def matchAssignmentGroups : Nat → List (String × Expr) → MatchM Unit
+  | 0, _ => mismatch "bounded assignment groups"
+  | _ + 1, [] => pure ()
+  | fuel + 1, (name, expression) :: rest => do
+      let (expressions, remaining) ← do
+        if ← acceptSymbol "(" then matchAssignmentNames ((name, expression) :: rest)
+        else do expectName name; pure ([expression], rest)
       expectSymbol "="
-      matchExpr assignment.2
-      for next in assignments do
+      matchAssignmentValues ((← get).remaining.length + 1) expressions
+      unless remaining.isEmpty do
         expectSymbol ","
-        expectName next.1
-        expectSymbol "="
-        matchExpr next.2
+        matchAssignmentGroups fuel remaining
+
+private def matchAssignments (assignments : List (String × Expr)) : MatchM Unit := do
+  unless !assignments.isEmpty && assignments.length ≤ SQLite.Limits.maxColumns do
+    mismatch "between 1 and 2000 UPDATE targets"
+  matchAssignmentGroups (assignments.length + 1) assignments
 
 private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   if conflict == .replace && isKeyword (← peek) "replace" then

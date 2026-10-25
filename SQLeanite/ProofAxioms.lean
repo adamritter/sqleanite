@@ -1269,3 +1269,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreReturning.updatedOutput_zero
 #print axioms SQLeanite.CoreSQL.updateReturningRow_missing
 #print axioms SQLeanite.CoreSQL.updateReturningRows_length_le
+
+#print axioms SQLeanite.SQLite.RowAssignment.bind_exact
+#print axioms SQLeanite.SQLite.RowAssignment.bind_length

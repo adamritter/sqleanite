@@ -4597,6 +4597,46 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteUpdateTuples : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "INSERT INTO t VALUES(1,'a',1),(2,'b',2),(3,'c',3);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × List (List Value)) := [
+    ("UPDATE t SET (v,u)=(u,v) RETURNING *;",
+      [[.integer 1,.text "1",.text "a"],[.integer 2,.text "2",.text "b"],[.integer 3,.text "3",.text "c"]]),
+    ("UPDATE t SET (v,u)=((('x',9))) WHERE id=1 RETURNING *;", [[.integer 1,.text "x",.integer 9]]),
+    ("UPDATE t SET (u,u)=(abs(-9223372036854775808),9) WHERE id=1 RETURNING *;", [[.integer 1,.text "a",.integer 9]]),
+    ("UPDATE t SET u=abs(-9223372036854775808),(u,v)=(9,'x') WHERE id=1 RETURNING *;", [[.integer 1,.text "x",.integer 9]]),
+    ("UPDATE OR REPLACE t SET (id,v)=(id+1,v||'x') RETURNING id,v;",
+      [[.integer 2,.text "ax"],[.integer 3,.text "axx"],[.integer 4,.text "axxx"]]),
+    ("UPDATE t SET (u)=9 WHERE id=1 RETURNING u;", [[.integer 9]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"UPDATE tuple: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"UPDATE tuple mismatch: {sql}"
+  for sql in ["UPDATE t SET (v,u)=(1) WHERE 0;", "UPDATE t SET (u)=(1,2) WHERE 0;",
+      "UPDATE t SET (v,u)=(1,2,3) WHERE 0;", "UPDATE t SET ()=() WHERE 0;",
+      "UPDATE t SET (u,u)=(no_function(),9) WHERE 0;",
+      "UPDATE t SET (missing,u)=(1,2) WHERE 0;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"UPDATE tuple swallowed error: {sql}"
+  for count in [2000,2001] do
+    let sql := "UPDATE t SET " ++ String.intercalate "," (List.replicate count "u=1") ++ " WHERE 0;"
+    unless (CoreSQL.execute initial sql).isOk == (count == 2000) do fail "UPDATE assignment limit mismatch"
+  let sql := "UPDATE t SET (v,u)=(u,v) RETURNING *;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.update table alias _ condition conflict returning) := parsed.statements[0]? | fail "missing tuple UPDATE AST"
+  let forged : Array Statement := #[.update table alias
+    #[("v", .literal (.integer 99)), ("u", .column none "v")] condition conflict returning]
+  if (CoreTokenGrammar.check parsed.tokens forged).isOk then fail "tuple grammar accepted changed RHS"
+
 private def expectSQLiteUpdateReturning : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
     "CREATE INDEX tv ON t(v);INSERT INTO t VALUES(1,'b',1),(2,'a',2),(3,'c',3);"
@@ -6066,6 +6106,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite row-value UPDATE assignments preserve width and simultaneous RHS", expectSQLiteUpdateTuples),
   ("SQLite UPDATE RETURNING uses pending rows and accepted new values", expectSQLiteUpdateReturning),
   ("SQLite INSERT RETURNING collects accepted rows before later replacements", expectSQLiteInsertReturning),
   ("SQLite UPDATE OR REPLACE re-seeks surviving pending rows", expectSQLiteUpdateReplace),

@@ -1,5 +1,6 @@
 import SQLeanite.Lexer
 import SQLeanite.SQLite.Limits
+import SQLeanite.SQLite.RowAssignment
 
 namespace SQLeanite
 
@@ -1089,6 +1090,39 @@ private def parseDelete (insideTrigger : Bool := false) : ParserM Statement := d
     while ← acceptSymbol "," do returning := returning.push (← parseResultColumn)
   pure (.delete table alias where_ returning)
 
+/-- Try a scalar, a row of scalars, then an extra grouping layer. Each
+alternative starts at the same token state, and nesting is fuel bounded. -/
+private def parseAssignmentValuesFuel : Nat → ParserM (Array Expr)
+  | 0 => throw "parser stack overflow"
+  | fuel + 1 => fun state =>
+      let scalar : ParserM (Array Expr) := do return #[(← parseExpr)]
+      let vector : ParserM (Array Expr) := do
+        expectSymbol "("
+        let mut expressions := #[(← parseExpr)]
+        while ← acceptSymbol "," do expressions := expressions.push (← parseExpr)
+        expectSymbol ")"
+        return expressions
+      let grouped : ParserM (Array Expr) := do
+        expectSymbol "("
+        let expressions ← parseAssignmentValuesFuel fuel
+        expectSymbol ")"
+        return expressions
+      match scalar state with
+      | .ok result => .ok result
+      | .error _ => match vector state with
+          | .ok result => .ok result
+          | .error _ => grouped state
+
+private def parseUpdateAssignment : ParserM (Array (String × Expr)) := do
+  let names : Array String ← match ← parseOptionalNameList with
+    | some names => pure names
+    | none => do pure #[(← expectIdent)]
+  expectSymbol "="
+  let values ← parseAssignmentValuesFuel (parserExpressionDepth + 1)
+  match SQLite.RowAssignment.bind names.toList values.toList with
+  | .ok assignments => return assignments.toArray
+  | .error message => throw message
+
 private def parseUpdate (insideTrigger : Bool := false) : ParserM Statement := do
   let mut conflict := ConflictAction.default
   if ← acceptKeyword "or" then
@@ -1105,14 +1139,10 @@ private def parseUpdate (insideTrigger : Bool := false) : ParserM Statement := d
       throw "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers"
   let alias ← if ← acceptKeyword "as" then some <$> expectAlias else pure none
   expectKeyword "set"
-  let mut assignments := #[]
-  let name ← expectIdent
-  expectSymbol "="
-  assignments := assignments.push (name, ← parseExpr)
+  let mut assignments ← parseUpdateAssignment
   while ← acceptSymbol "," do
-    let name ← expectIdent
-    expectSymbol "="
-    assignments := assignments.push (name, ← parseExpr)
+    assignments := assignments ++ (← parseUpdateAssignment)
+  unless assignments.size ≤ SQLite.Limits.maxColumns do throw "too many columns in set list"
   let where_ ← if ← acceptKeyword "where" then some <$> parseExpr else pure none
   let mut returning := #[]
   if ← acceptKeyword "returning" then

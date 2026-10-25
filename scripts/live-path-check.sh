@@ -744,6 +744,18 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# Tuple targets and RHS values are replayed together and never truncated.
+if grep -q 'SQLite.RowAssignment.bind names.toList values.toList' SQLeanite/Parser.lean &&
+   grep -q 'assignments.size ≤ SQLite.Limits.maxColumns' SQLeanite/Parser.lean &&
+   grep -q 'matchAssignmentNames ((name, expression) :: rest)' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'matchAssignmentValues ((← get).remaining.length + 1) expressions' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'SQLite.RowAssignment.bind_exact' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.RowAssignment.bind_length' SQLeanite/ProofAxioms.lean; then
+  ok "row-value UPDATE checks widths and replays each grouped name/value pair"
+else
+  fail "row-value UPDATE is disconnected from its checked lowering"
+fi
+
 # RETURNING disables one-pass UPDATE and preserves outputs of accepted rows.
 if grep -q 'executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreReturning.updatedOutput outputCtx values projection outcome' SQLeanite/CoreSQL.lean &&
