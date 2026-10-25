@@ -91,7 +91,6 @@ instance (schema : Schema) : Decidable schema.CatalogShape := by
   infer_instance
 
 def Schema.WellFormed (schema : Schema) : Prop :=
-  schema.name ≠ "" ∧
   schema.primaryKey < schema.columns.length ∧
   (schema.columns[schema.primaryKey]?).any (·.integerPrimaryKey) ∧
   (schema.columns.filter (·.integerPrimaryKey)).length = 1 ∧
@@ -130,7 +129,7 @@ theorem Schema.findIdx?_column_name (schema : Schema)
         earlier < (schema.columns.map (·.name)).length := by simpa
     have indexNamesBound :
         index < (schema.columns.map (·.name)).length := by simpa
-    have unique := List.pairwise_iff_getElem.mp wellFormed.2.2.2.2.1
+    have unique := List.pairwise_iff_getElem.mp wellFormed.2.2.2.1
       earlier index earlierNamesBound indexNamesBound earlierLt
     simpa using unique
 

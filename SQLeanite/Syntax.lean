@@ -494,6 +494,7 @@ inductive Statement where
       (temporary : Bool := false) (displayName : String := "") (sourceSql : String := "")
   | dropTrigger (name : String) (ifExists : Bool := false)
   | alterAddColumn (table : String) (column : ColumnDef)
+  | alterRenameTable (table newName : String)
   | alterRenameColumn (table oldName newName : String)
   | insert (table : String) (columns : Option (Array String)) (rows : Array (Array Expr))
       (conflict : ConflictAction := .default) (returning : Array ResultColumn := #[])

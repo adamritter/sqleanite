@@ -86,14 +86,18 @@ private def expectName (expected : String) : MatchM Unit := do
       unless found.toLower == expected.toLower do mismatch s!"name {expected}"
   | none => mismatch s!"name {expected}"
 
-private def expectQualifiedName (expected : String) : MatchM Unit := do
-  match expected.splitOn "." with
-  | [] => mismatch s!"name {expected}"
-  | first :: rest =>
-      expectName first
-      for component in rest do
-        expectSymbol "."
-        expectName component
+/-- A newly declared name is stored verbatim, so case is semantic metadata
+here even though references to an existing name compare case-insensitively. -/
+private def expectDeclaredName (expected : String) : MatchM Unit := do
+  match tokenName? (← advance) with
+  | some found => unless found == expected do mismatch s!"declared name {expected}"
+  | none => mismatch s!"declared name {expected}"
+
+/-- The current AST does not distinguish a schema qualifier from a period in
+one quoted identifier. Admit one object-name token until that metadata is
+represented explicitly; never reinterpret a quoted period as a qualifier. -/
+private def expectObjectName (expected : String) : MatchM Unit :=
+  expectName expected
 
 private def expectSemanticToken (expected : Token) : MatchM Unit := do
   let found ← advance
@@ -328,10 +332,10 @@ mutual
     | _, .literal value spelling => expectLiteralSpelling value spelling
     | _, .column none name => expectName name
     | _, .column (some qualifier) name =>
-        expectQualifiedName qualifier *> expectSymbol "." *> expectName name
+        expectObjectName qualifier *> expectSymbol "." *> expectName name
     | _, .star none => expectSymbol "*"
     | _, .star (some qualifier) =>
-        expectQualifiedName qualifier *> expectSymbol "." *> expectSymbol "*"
+        expectObjectName qualifier *> expectSymbol "." *> expectSymbol "*"
     | fuel, .unary operation argument => do
         match operation with
         | .plus => expectSymbol "+"
@@ -541,7 +545,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
     mismatch s!"the parsed constraints for column {column.name}"
 
 private def matchColumn (column : ColumnDef) : MatchM Unit := do
-  expectName column.name
+  expectDeclaredName column.name
   unless column.declaredType.isEmpty do expectSource column.declaredType
   matchColumnConstraints column
 
@@ -606,7 +610,7 @@ private def matchOrderTerms : List OrderTerm → MatchM Unit
 private def matchTableFactor (source : TableRef) : MatchM Unit := do
   unless source.subquerySql.isNone && source.columnAliases.isEmpty do
     mismatch "a named Core table source"
-  expectQualifiedName source.name
+  expectObjectName source.name
   matchAlias source.alias
 
 private def matchJoinSource (source : TableRef) : MatchM Unit := do
@@ -775,9 +779,25 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
   expectKeyword "into"
 
 private def matchStatement : Statement → MatchM Unit
+  | .alterRenameTable table name => do
+      expectKeyword "alter"
+      expectKeyword "table"
+      expectObjectName table
+      expectKeyword "rename"
+      expectKeyword "to"
+      expectDeclaredName name
+  | .alterRenameColumn table oldName newName => do
+      expectKeyword "alter"
+      expectKeyword "table"
+      expectObjectName table
+      expectKeyword "rename"
+      discard <| acceptKeyword "column"
+      expectName oldName
+      expectKeyword "to"
+      expectDeclaredName newName
   | .insertSelect table columns query conflict returning => do
       matchInsertPrefix conflict
-      expectQualifiedName table
+      expectObjectName table
       if ← acceptKeyword "as" then
         unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
@@ -800,7 +820,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "table"
       if ifNotExists then
         expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectQualifiedName name
+      expectDeclaredName name
       expectSymbol "("
       matchColumns columns.toList
       for constraint in constraints do
@@ -813,9 +833,9 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "index"
       if ifNotExists then
         expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectQualifiedName name
+      expectDeclaredName name
       expectKeyword "on"
-      expectQualifiedName table
+      expectObjectName table
       expectSymbol "("
       matchExprList expressions.toList
       expectSymbol ")"
@@ -824,7 +844,7 @@ private def matchStatement : Statement → MatchM Unit
       | none => pure ()
   | .insert table columns rows conflict returning => do
       matchInsertPrefix conflict
-      expectQualifiedName table
+      expectObjectName table
       if ← acceptKeyword "as" then
         unless (tokenName? (← advance)).isSome do mismatch "an INSERT target alias"
       matchOptionalNameList columns
@@ -841,7 +861,7 @@ private def matchStatement : Statement → MatchM Unit
   | .delete table alias where_ returning => do
       expectKeyword "delete"
       expectKeyword "from"
-      expectQualifiedName table
+      expectObjectName table
       matchAlias alias
       match where_ with
       | some predicate => expectKeyword "where" *> matchExpr predicate
@@ -854,7 +874,7 @@ private def matchStatement : Statement → MatchM Unit
       unless conflict == .default do
         expectKeyword "or"
         expectConflict conflict
-      expectQualifiedName table
+      expectObjectName table
       matchAlias alias
       expectKeyword "set"
       matchAssignments assignments.toList

@@ -1,6 +1,7 @@
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
 import SQLeanite.CoreSchemaDrop
+import SQLeanite.CoreSchemaRename
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
@@ -2229,6 +2230,27 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .alterRenameTable table name => do
+      let tableName := resolveTableName state table
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {table}"
+      let _ ← prepareCreateTable state name false
+      let renamed ← CoreSchemaRename.table stored name
+      let database ← CoreSchemaRename.replace state.database tableName renamed
+      return ({ state with database }, [{}])
+  | .alterRenameColumn table oldName newName => do
+      let tableName := resolveTableName state table
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {table}"
+      let target ← indexColumn stored.schema oldName
+      if stored.schema.catalogColumns.zipIdx.any (fun (column, index) =>
+          index != target && canonical column.name == canonical newName) then
+        throw s!"duplicate column name: {newName}"
+      let renamed ← CoreSchemaRename.column stored target newName
+      let database ← state.database.updateTable renamed
+      return ({ state with database }, [{}])
   | .insertSelect table columns query conflict returning =>
       if returning.isEmpty then executeInsertSelect state table columns query conflict
       else executeInsertReturning state table columns (.inr query) conflict returning

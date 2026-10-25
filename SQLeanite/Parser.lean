@@ -1309,10 +1309,13 @@ private def parseStatement : ParserM Statement := do
       discard <| acceptKeyword "column"
       pure (.alterAddColumn table (← parseColumnDef))
     else if ← acceptKeyword "rename" then
-      discard <| acceptKeyword "column"
-      let oldName ← expectIdent
-      expectKeyword "to"
-      pure (.alterRenameColumn table oldName (← expectIdent))
+      if ← acceptKeyword "to" then
+        pure (.alterRenameTable table (← expectIdent))
+      else
+        discard <| acceptKeyword "column"
+        let oldName ← expectIdent
+        expectKeyword "to"
+        pure (.alterRenameColumn table oldName (← expectIdent))
     else throw (syntaxError (← peek))
   else if ← acceptKeyword "begin" then discard <| acceptKeyword "transaction"; pure .begin
   else if ← acceptKeyword "commit" then discard <| acceptKeyword "transaction"; pure .commit

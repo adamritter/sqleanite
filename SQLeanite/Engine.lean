@@ -4061,6 +4061,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       pure { row with values := values }
     let expanded ← expanded.withRowsChecked rows
     pure (replaceTable db expanded, {})
+  | .alterRenameTable .. => throw "ALTER TABLE RENAME is implemented by the production Core engine"
   | .alterRenameColumn tableName oldName newName => do
     let table ← optionOr (findTable? db tableName) s!"no such table: {tableName}"
     unless table.columns.any (fun column => nameEq column.name oldName) do
@@ -4430,7 +4431,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
 private def Statement.writes : Statement → Bool
   | .createTable .. | .createTableAs .. | .createView ..
   | .dropTable .. | .dropView .. | .createIndex .. | .dropIndex ..
-  | .createTrigger .. | .dropTrigger .. | .alterAddColumn .. | .alterRenameColumn ..
+  | .createTrigger .. | .dropTrigger .. | .alterAddColumn .. | .alterRenameTable .. | .alterRenameColumn ..
   | .insert .. | .insertSelect .. | .delete .. | .update .. | .reindex => true
   | .withRecursive .. | .withCte .. => true
   | _ => false

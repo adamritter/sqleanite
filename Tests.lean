@@ -4597,6 +4597,67 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaRename : IO Unit := do
+  let quote (name : String) := String.ofList (CanonicalSchemaSQL.quoteChars name)
+  let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT,Val INTEGER);" ++
+    "CREATE INDEX LabelIndex ON Users(Label);CREATE TABLE Tags(KeY TEXT PRIMARY KEY,Owner INTEGER);" ++
+    "INSERT INTO USERS VALUES(1,'one',10),(2,'two',20);INSERT INTO TAGS VALUES('a',1),(NULL,2);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  for table in ["Users","Tags"] do
+    let some original := state.database.findTable? table | fail "rename source missing"
+    for name in ["People","","Dotted.Name","Quo\"Ted","Ä"] do
+      let sql := s!"ALTER TABLE {table.toLower} RENAME TO {quote name};SELECT * FROM {quote name} ORDER BY oid;"
+      let (next, _) ← match CoreSQL.execute state sql with
+        | .ok result => pure result
+        | .error message => fail s!"table rename: {sql}: {message}"
+      let some renamed := next.database.findTable? name | fail "renamed table missing"
+      unless decide (renamed.rows = original.rows) do fail "table rename changed rows or rowids"
+      unless (next.database.findTable? table).isNone do fail "old table name survived"
+      unless renamed.indexes.map (·.name) == (if table == "Users" then ["LabelIndex"] else ["sqlite_autoindex_" ++ name ++ "_1"]) do
+        fail "table rename changed wrong index names"
+      let some image := CoreFile.encode next.database | fail "renamed table encode failed"
+      let some reopened := CoreDecode.decode image.fileBytes | fail "renamed table reopen failed"
+      let some restored := reopened.findTable? name | fail "renamed table missing on reopen"
+      unless decide (restored.schema = renamed.schema) && decide (restored.rows = renamed.rows) do
+        fail "renamed table metadata/data changed after reopen"
+    for old in original.schema.catalogColumns.map (·.name) do
+      for name in [old.toLower,"Caption","","Dotted.Name","rowid"] do
+        let sql := s!"ALTER TABLE {table.toLower} RENAME COLUMN {quote old} TO {quote name};SELECT * FROM {quote table};"
+        let (next, _) ← match CoreSQL.execute state sql with
+          | .ok result => pure result
+          | .error message => fail s!"column rename: {sql}: {message}"
+        let some renamed := next.database.findTable? table | fail "renamed column table missing"
+        unless decide (renamed.rows = original.rows) && decide (renamed.indexes = original.indexes) do
+          fail "column rename changed rows, rowids or index identities"
+  for sql in ["ALTER TABLE USERS RENAME TO users;", "ALTER TABLE users RENAME TO Tags;",
+      "ALTER TABLE users RENAME TO LabelIndex;", "ALTER TABLE users RENAME TO SQLiTE_new;",
+      "ALTER TABLE users RENAME COLUMN Label TO ID;", "ALTER TABLE users RENAME rowid TO rid;"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"rename conflict omitted: {sql}"
+  let (rolled, _) ← match CoreSQL.execute state "BEGIN;ALTER TABLE users RENAME TO TempName;ROLLBACK;" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (rolled.database.findTable? "Users").isSome && (rolled.database.findTable? "TempName").isNone do
+    fail "ROLLBACK retained a table rename"
+  for (sql, forged) in [
+      ("ALTER TABLE users RENAME TO NewName;", #[Statement.alterRenameTable "users" "newname"]),
+      ("ALTER TABLE users RENAME Label TO NewName;", #[Statement.alterRenameColumn "users" "Label" "newname"]),
+      ("CREATE TABLE Mixed(ID INTEGER PRIMARY KEY);", #[Statement.createTable "mixed" #[{ name := "ID", declaredType := "INTEGER", primaryKey := true }]]),
+      ("CREATE INDEX Mixed ON users(Label);", #[Statement.createIndex "mixed" "users" #[.column none "Label"]])] do
+    let tokens ← match lex sql with
+      | .ok tokens => pure tokens
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens forged).isOk then fail "grammar changed declared-name spelling"
+  -- A quoted period is one name; a real qualifier remains outside this AST's
+  -- certified surface and must not accidentally address that literal name.
+  let (dotted, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE \"main.t\"(v);INSERT INTO \"main.t\" VALUES(7);" with
+    | .ok result => pure result
+    | .error message => fail message
+  if (CoreSQL.execute dotted "SELECT * FROM main.t;").isOk then
+    fail "schema qualifier was confused with a quoted period"
+
 private def expectSQLiteSchemaCase : IO Unit := do
   let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT,Val INTEGER);" ++
     "CREATE INDEX LabelIndex ON uSeRs(lAbEl);" ++
@@ -6339,6 +6400,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite table and column renames preserve rows and index metadata", expectSQLiteSchemaRename),
   ("SQLite case-insensitive binding preserves schema spelling", expectSQLiteSchemaCase),
   ("SQLite explicit INTEGER PRIMARY KEY NOT NULL metadata survives reopen", expectSQLiteIntegerNotNullMetadata),
   ("SQLite multi-VALUES evaluates discarded inputs before constraints", expectSQLiteInsertInputEvaluation),

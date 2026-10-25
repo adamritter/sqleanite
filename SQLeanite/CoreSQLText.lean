@@ -14,6 +14,8 @@ correctness theorem.
 -/
 
 inductive CoreStatementForm : Statement → Prop where
+  | alterRenameTable (table name) : CoreStatementForm (.alterRenameTable table name)
+  | alterRenameColumn (table oldName newName) : CoreStatementForm (.alterRenameColumn table oldName newName)
   | insertSelect (table columns query conflict returning) : CoreStatementForm (.insertSelect table columns query conflict returning)
   | dropTable (name ifExists) : CoreStatementForm (.dropTable name ifExists)
   | dropIndex (name ifExists) : CoreStatementForm (.dropIndex name ifExists)
@@ -41,6 +43,8 @@ theorem statementForm_of_execute_success {state next : Core.State}
     (success : executeStatement state statement = .ok (next, results)) :
     CoreStatementForm statement := by
   cases statement with
+  | alterRenameTable table name => exact .alterRenameTable ..
+  | alterRenameColumn table oldName newName => exact .alterRenameColumn ..
   | insertSelect table columns query conflict returning => exact .insertSelect ..
   | dropTable name ifExists => exact .dropTable ..
   | dropIndex name ifExists => exact .dropIndex ..
@@ -55,7 +59,7 @@ theorem statementForm_of_execute_success {state next : Core.State}
   | commit => exact .commit
   | rollback => exact .rollback
   | createTableAs | createView | dropView |
-      createTrigger | dropTrigger | alterAddColumn | alterRenameColumn |
+      createTrigger | dropTrigger | alterAddColumn |
       withRecursive | withCte | values | reindex | pragma =>
       simp [executeStatement, unsupported] at success
 

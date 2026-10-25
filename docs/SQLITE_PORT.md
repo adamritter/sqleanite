@@ -3080,3 +3080,59 @@ Native code and its nine-binding boundary are unchanged. Reports:
 `sqlite-schema-case-*20261025.json`; harness:
 `scripts/run-schema-case-differential.py`. ALTER TABLE, broader schema constraints
 and full SQL/database/WAL compatibility remain unfinished.
+
+## Table and column renames (2026-10-25)
+
+The production Core now executes `ALTER TABLE ... RENAME TO` and `RENAME
+[COLUMN] ... TO` for its admitted schemas. Name lookup and collision checks use
+ASCII case folding; new spellings are stored exactly. Renaming a table updates
+its automatic TEXT-primary-key index name while retaining user index names.
+Renaming a column retains index positions. Both operations retain row values
+and physical rowids, including hidden rowids, NULL TEXT keys and rowid-shadowing
+columns. Checked rebuilds retain all Core invariants. Four registered component
+theorems describe column-count preservation and the exact schema/index/row or
+database-table transformations. The public file engines mark both statements
+as writes and retain transaction commit/rollback behavior. The text statement
+form includes both operations; the unused legacy engine explicitly directs the
+new table-rename form to the production Core instead of adding a fallback.
+
+SQLite accepts empty table names. The extra nonempty-name clause was removed
+from `Schema.WellFormed`; key, row-shape and unique-name conditions remain.
+Dependent projections in the schema lookup and printer proofs were adjusted.
+The printer/inverse already supports arbitrary identifier strings, including
+empty strings and doubled quotes. Quoted names containing periods are now one
+object-name token. Real schema qualifiers remain explicitly unsupported until
+the AST separates them from literal periods; the checker no longer conflates
+these two forms. CREATE/RENAME destination names and column declarations are
+checked case-sensitively against tokens because their spelling is persistent
+metadata. Executable tests reject forged casing in those declarations.
+
+Retained baseline seed 354110: **180 differences / 228 scenarios**. The first
+expanded run (seed 354111, **1,044 scenarios**) retained **36 output-order
+differences** for two SELECTs without ORDER BY. All persisted metadata/data,
+C follow-up writes and Lean reopens matched. SQLite used a covering index while
+the Core used rowid order. These results remain in the unordered-negative report;
+we do not claim identical optimizer choices or incidental scan order. The two
+probes now request ORDER BY explicitly, consistent with SQLite's documented
+undefined order when it is absent: https://sqlite.org/lang_select.html#orderby.
+No result rows were sorted or filtered by the harness after execution.
+
+Final seed 354112 regenerates 100 statements and fixture values:
+**2,304 scenarios, zero differences**, including 144 positive-error outcomes.
+Both public modes and 512/4096/65536-byte pages are covered, with quoted, empty,
+escaped, dotted and non-ASCII names, collisions, case-only column renames,
+rowid aliases/shadowing, transactions, malformed/NUL TEXT and overflowing table
+and index payloads. Complete successful output bytes and C-observed catalog,
+column/index metadata, typed persisted values and integrity are compared.
+Every case includes a C schema write and Lean reopen. Failed single statements
+retain main/WAL bytes. Large passing output captures are hashed only after the
+full byte comparison; failing captures remain complete.
+
+Implementation SHA-256: `b3a4b9b372bb2ac1637b9caa55b5efbc5c65e3a382a545f94b42457426613d29`.
+The final checks record **310 build jobs, 232 executable tests, 1,135 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+declared unsupported cells. Native code and its nine-binding boundary are
+unchanged. Reports: `sqlite-schema-rename-*20261025.json`; harness:
+`scripts/run-schema-rename-differential.py`. Dependent views/triggers/foreign
+keys, original DDL text, qualified schemas and full SQL/database/WAL
+compatibility remain outside this checkpoint.

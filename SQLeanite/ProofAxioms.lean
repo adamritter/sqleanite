@@ -1295,3 +1295,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreNames.table?_folded
 #print axioms SQLeanite.CoreNames.tableName_resolves
 #print axioms SQLeanite.CoreNames.indexName_found
+
+#print axioms SQLeanite.CoreSchemaRename.columns_length
+#print axioms SQLeanite.CoreSchemaRename.column_exact
+#print axioms SQLeanite.CoreSchemaRename.table_exact
+#print axioms SQLeanite.CoreSchemaRename.replace_exact

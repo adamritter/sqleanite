@@ -33,7 +33,7 @@ structure Printable (schema : Core.Schema) : Prop where
 
 theorem Printable.ofWellFormed (schema : Core.Schema)
     (wellFormed : schema.WellFormed) : Printable schema := by
-  have shape := wellFormed.2.2.2.2.2.2.2
+  have shape := wellFormed.2.2.2.2.2.2
   refine {
     nonempty := ?_
     primaryKeyNotNull := ?_
@@ -43,11 +43,11 @@ theorem Printable.ofWellFormed (schema : Core.Schema)
     split at shape
     · exact shape.2.2.2.1 empty
     · have columns : schema.catalogColumns = schema.columns := shape.1
-      have bound := wellFormed.2.1
+      have bound := wellFormed.1
       rw [← columns, empty] at bound
       simp at bound
   · intro column member primary
-    exact wellFormed.2.2.2.2.2.2.1 column
+    exact wellFormed.2.2.2.2.2.1 column
       (by
         unfold Core.Schema.catalogColumns at member
         split at member
