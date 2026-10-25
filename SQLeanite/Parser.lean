@@ -1341,6 +1341,12 @@ private def parseTrigger (temporary : Bool := false) (statementStart : Option Na
     | none => pure ""
   pure (.createTrigger name table event timing when_ body ifNotExists temporary displayName sourceSql)
 
+/-- SQLite's optional TRANSACTION name is syntactic compatibility metadata;
+it does not name the transaction or participate in matching COMMIT/ROLLBACK. -/
+private def parseTransactionSuffix : ParserM Unit := do
+  if ← acceptKeyword "transaction" then
+    if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
+
 private def parseStatement : ParserM Statement := do
   let statementStart ← currentTokenPos
   if ← acceptKeyword "with" then parseWith
@@ -1402,15 +1408,18 @@ private def parseStatement : ParserM Statement := do
         expectKeyword "to"
         pure (.alterRenameColumn table oldName (← expectIdent))
     else throw (syntaxError (← peek))
-  else if ← acceptKeyword "begin" then discard <| acceptKeyword "transaction"; pure .begin
-  else if ← acceptKeyword "commit" then discard <| acceptKeyword "transaction"; pure .commit
-  else if ← acceptKeyword "end" then discard <| acceptKeyword "transaction"; pure .commit
+  else if ← acceptKeyword "begin" then
+    discard <| acceptKeyword "deferred"
+    parseTransactionSuffix
+    pure .begin
+  else if ← acceptKeyword "commit" then parseTransactionSuffix; pure .commit
+  else if ← acceptKeyword "end" then parseTransactionSuffix; pure .commit
   else if ← acceptKeyword "savepoint" then pure (.savepoint (← expectPragmaName))
   else if ← acceptKeyword "release" then
     discard <| acceptKeyword "savepoint"
     pure (.release (← expectPragmaName))
   else if ← acceptKeyword "rollback" then
-    discard <| acceptKeyword "transaction"
+    parseTransactionSuffix
     if ← acceptKeyword "to" then
       discard <| acceptKeyword "savepoint"
       pure (.rollbackTo (← expectPragmaName))

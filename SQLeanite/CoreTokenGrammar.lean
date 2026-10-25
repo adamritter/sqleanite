@@ -939,6 +939,12 @@ private def matchInsertPrefix (conflict : ConflictAction) : MatchM Unit := do
       expectConflict conflict
   expectKeyword "into"
 
+/-- Replay trans_opt independently; names in this production are ignored by
+SQLite, but they must still be legal nm tokens. -/
+private def matchTransactionSuffix : MatchM Unit := do
+  if ← acceptKeyword "transaction" then
+    if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
+
 private def matchStatement : Statement → MatchM Unit
   | .alterDropColumn table name => do
       expectKeyword "alter"
@@ -1081,11 +1087,12 @@ private def matchStatement : Statement → MatchM Unit
   | .select query => matchSelect query
   | .begin => do
       expectKeyword "begin"
-      discard <| acceptKeyword "transaction"
+      discard <| acceptKeyword "deferred"
+      matchTransactionSuffix
   | .commit => do
       if isKeyword (← peek) "end" then expectKeyword "end"
       else expectKeyword "commit"
-      discard <| acceptKeyword "transaction"
+      matchTransactionSuffix
   | .savepoint name => do
       expectKeyword "savepoint"
       matchPragmaName name
@@ -1095,13 +1102,13 @@ private def matchStatement : Statement → MatchM Unit
       matchPragmaName name
   | .rollbackTo name => do
       expectKeyword "rollback"
-      discard <| acceptKeyword "transaction"
+      matchTransactionSuffix
       expectKeyword "to"
       discard <| acceptKeyword "savepoint"
       matchPragmaName name
   | .rollback => do
       expectKeyword "rollback"
-      discard <| acceptKeyword "transaction"
+      matchTransactionSuffix
   | _ => mismatch "a statement in the verified Core grammar"
 
 private def skipSemicolons : MatchM Unit := do

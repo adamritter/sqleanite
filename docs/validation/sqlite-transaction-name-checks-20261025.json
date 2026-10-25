@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "a16920c9237be2658fb4af188cb28f841cb1f7cfcecb720ba5eb023d42b33d58",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "98a7dcbdac7702e18561ba007804094c8306352a0258ab3f13cd812c99376afc",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [343/344] Built Tests:c.o (15s)",
+        "\u2714 [344/344] Built sqleanite_tests:exe (351ms)",
+        "Build completed successfully (344 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "8a291b0eec99d38b48a0b1474b3deeb59ad5125c77408b3990ffd972fee1cbe7",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "254 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "5c30fc96699e2f184e7e7ff98cba08d5c06c2838b8b64354a180de6d19dd31e5",
+      "tail": [
+        "ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication",
+        "ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE",
+        "ok - unchanged transactions skip publication and write dispatch checks access",
+        "ok - script chunks preserve source and admit each statement before execution",
+        "ok - SQLite name and implicit-alias grammars are shared and independently replayed",
+        "ok - CAST type spans are independently validated and use explicit expression affinity",
+        "ok - completed statements emit in order and actual write dispatch checks OS access",
+        "ok - DEFERRED and ignored TRANSACTION names are independently replayed"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "ec6c0f50e7bb5e019a9fa820bafe91ce7aa3a863221fc4cc1d6a3f3b59026aad"
+}

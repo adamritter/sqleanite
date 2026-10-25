@@ -1995,4 +1995,14 @@ else
   exit 1
 fi
 
+if rg -F -q 'private def parseTransactionSuffix' SQLeanite/Parser.lean &&
+   rg -F -q 'private def matchTransactionSuffix' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'discard <| acceptKeyword "deferred"' SQLeanite/Parser.lean &&
+   rg -F -q 'discard <| acceptKeyword "deferred"' SQLeanite/CoreTokenGrammar.lean; then
+  echo 'ok - DEFERRED and ignored TRANSACTION names are independently replayed'
+else
+  echo 'FAIL - transaction suffix grammar is incomplete'
+  exit 1
+fi
+
 exit $status

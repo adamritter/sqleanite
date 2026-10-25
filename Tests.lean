@@ -4597,6 +4597,37 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteTransactionNames : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');"
+  let cases : List (String × List (List Value)) := [
+    ("BEGIN DEFERRED TRANSACTION first;INSERT INTO t VALUES(2,'new');END TRANSACTION different;SELECT id,v FROM t ORDER BY id;",
+      [[.integer 1,.text "old"],[.integer 2,.text "new"]]),
+    ("BEGIN TRANSACTION 'first';UPDATE t SET v='pending';ROLLBACK TRANSACTION 'different';SELECT id,v FROM t;",
+      [[.integer 1,.text "old"]]),
+    ("BEGIN DEFERRED;SAVEPOINT s;UPDATE t SET v='pending';ROLLBACK TRANSACTION 'ignored' TO SAVEPOINT s;RELEASE s;COMMIT TRANSACTION extra;SELECT id,v FROM t;",
+      [[.integer 1,.text "old"]])]
+  for (sql, expected) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"transaction name: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some rows do fail "transaction name changed effects"
+  for name in ["offset","window","left","indexed","''","\"to\"","\"select\""] do
+    if !(CoreSQL.execute Core.State.empty s!"BEGIN DEFERRED TRANSACTION {name};COMMIT TRANSACTION 'other';").isOk then
+      fail s!"legal transaction name rejected: {name}"
+  let parsed ← match CoreTokenGrammar.parseCertified "BEGIN DEFERRED TRANSACTION named;COMMIT TRANSACTION other;" with
+    | .ok result => pure result
+    | .error message => fail message
+  for sql in ["BEGIN IMMEDIATE TRANSACTION named;COMMIT TRANSACTION other;",
+      "BEGIN EXCLUSIVE TRANSACTION named;COMMIT TRANSACTION other;",
+      "BEGIN DEFERRED TRANSACTION select;COMMIT TRANSACTION other;"] do
+    let tokens ← match lex sql with
+      | .ok result => pure result
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay changed transaction mode or name grammar"
+
 private def expectSQLiteScriptOutput : IO Unit := do
   let sqlite := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
   let sqlPath : System.FilePath := ".lake/build/sqleanite-script-output.sql"
@@ -7364,6 +7395,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite DEFERRED transactions and ignored TRANSACTION names", expectSQLiteTransactionNames),
   ("SQLite completed-statement output before errors", expectSQLiteScriptOutput),
   ("SQLite CAST type grammar, affinity and independent replay", expectSQLiteCastTypeGrammar),
   ("SQLite identifier keywords and explicit/implicit aliases", expectSQLiteIdentifierGrammar),

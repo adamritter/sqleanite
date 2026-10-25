@@ -4162,3 +4162,39 @@ harness: `scripts/run-script-output-differential.py`.
 This covers results of completed statements. Rows emitted by C before an error
 inside the same still-running SELECT remain a separate limitation, as do exact
 diagnostics, complete SQL coverage and concurrent SQLite WAL coordination.
+
+
+## DEFERRED transactions and ignored transaction names (2026-10-25)
+
+BEGIN accepts the explicit DEFERRED spelling. BEGIN, COMMIT/END and ROLLBACK
+accept an optional TRANSACTION followed by an optional SQLite nm token; that
+name is ignored, as in the pinned parse.y grammar. ROLLBACK TRANSACTION name TO
+SAVEPOINT mark retains the actual savepoint target. The independent token replay
+checks this grammar separately. IMMEDIATE and EXCLUSIVE are still rejected;
+this change does not implement their locking semantics.
+
+Baseline seed **354320** records **1,040 comparisons / 712 differences**.
+Development seed **354321** records **1,136 / 330**. Those 330 negatives expose a
+separate CLI behavior: after a write-access error, the C shell can execute later
+statements in the same physical input line, whereas this CLI stops. Their full
+reports are retained and they remain unresolved. For the transaction-name
+comparison, the harness now sends each complete SQL statement on its own input
+line to both engines, so C -bail stops at that statement boundary. This is an
+explicit input-protocol change, not a claim to fix the old 330 counterexamples.
+The line-batched development seed **354322** passes **1,184 / 0**.
+
+Final-checkpoint fresh seed **354323** passes **3,984 / 0**, across three newly
+created fixtures, 512/4096/65536-byte input pages, both production file modes,
+and writable/read-only variants. Complete stdout, including error prefixes,
+error status, independent C catalog/pragma/typed-row/integrity observations,
+C follow-up writes and Lean reopens are compared. SAVEPOINT regression seed
+**354324** passes **294 / 0** on the same checkpoint. All **344 build jobs,
+254 executable tests, 1,202 headline component proofs**, both audits and
+61 accepted reverse-file cells pass, with two reverse cells declared unsupported.
+No new general equivalence theorem is claimed by this grammar extension.
+
+Implementation SHA-256: `a16920c9237be2658fb4af188cb28f841cb1f7cfcecb720ba5eb023d42b33d58`.
+Reports: `sqlite-transaction-name-*20261025.json`; harness:
+`scripts/run-transaction-name-differential.py`. Native bindings are unchanged.
+Full SQL coverage, same-line CLI continuation, partial output within a failing
+SELECT and concurrent SQLite WAL coordination remain outstanding.
