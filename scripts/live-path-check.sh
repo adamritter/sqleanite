@@ -23,6 +23,16 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# PRAGMA atoms retain lexical spelling and explicit schema qualification.
+if grep -q 'pure (.pragma name arg schema)' SQLeanite/Parser.lean &&
+   grep -q 'matchPragmaArgument expression' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreSchemaPragma.execute state name argument schema' SQLeanite/CoreSQL.lean &&
+   grep -q 'PragmaSyntax.numeric_integer_spelling' SQLeanite/ProofAxioms.lean; then
+  ok "PRAGMA atoms and schema qualifiers remain explicit through certification"
+else
+  fail "PRAGMA spelling, schema binding or its contract is missing"
+fi
+
 # Schema PRAGMAs read live Core metadata without mutating the connection state.
 if grep -q 'CoreSchemaPragma.execute state name argument' SQLeanite/CoreSQL.lean &&
    grep -q 'schema.catalogColumns.zipIdx.map' SQLeanite/CoreSchemaPragma.lean &&

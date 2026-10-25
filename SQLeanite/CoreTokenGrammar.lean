@@ -501,32 +501,31 @@ private def matchAscendingIndexExprs : List Expr → MatchM Unit
         matchExpr next
         discard <| acceptKeyword "asc"
 
-/-- Non-fallback keywords in SQLite 3.53.4's nmnum grammar (parse.y).
-ON, DELETE and DEFAULT are explicit exceptions; contextual WINDOW/FILTER/OVER
-and the fallback/join keyword classes can be names in this position. -/
-private def pragmaBareName (name : String) : Bool :=
-  !["add", "all", "alter", "and", "as", "autoincrement", "between", "case",
-    "check", "collate", "commit", "constraint", "create", "deferrable", "distinct",
-    "drop", "else", "escape", "except", "exists", "foreign", "from", "group",
-    "having", "in", "index", "insert", "intersect", "into", "is", "isnull", "limit",
-    "not", "notnull", "null", "or", "order", "primary", "references", "returning",
-    "select", "set", "table", "then", "to", "transaction", "union", "unique",
-    "update", "using", "values", "when", "where"].contains name.toLower
+private def matchPragmaName (expected : String) : MatchM Unit := do
+  let some found := SQLite.PragmaSyntax.nameToken false (← advance) |
+    mismatch "a PRAGMA or schema name"
+  unless found.toLower == expected.toLower do mismatch "the parsed PRAGMA or schema name"
 
-/-- PRAGMA arguments are names or signed numeric tokens, not SQL expressions.
-This initial metadata surface admits the name forms only. In particular the
-general expression checker's transparent parentheses must not be used here. -/
-private def matchPragmaNameArgument (expression : Expr) : MatchM Unit := do
-  match ← peek with
-  | .ident name => unless pragmaBareName name do mismatch "a PRAGMA name argument"
-  | .quotedIdent .. | .string _ => pure ()
-  | _ => mismatch "a PRAGMA name argument"
-  match expression with
-  | .column none name | .literal (.text name) _ => expectName name
-  | .call "lean_dqs" #[.literal (.text name) _] false => expectName name
-  | .call "__sqlean_boolean_true" #[] false => expectName "true"
-  | .call "__sqlean_boolean_false" #[] false => expectName "false"
-  | _ => mismatch "a PRAGMA name argument"
+/-- Replay one atom and its optional sign, independently of parsePragmaArgument.
+In this context source spelling is retained even for compact integer literals. -/
+private def matchPragmaArgument (expression : Expr) : MatchM Unit := do
+  let negative ← acceptSymbol "-"
+  let positive ← if negative then pure false else acceptSymbol "+"
+  let token ← advance
+  match SQLite.PragmaSyntax.numeric negative token with
+  | some (value, source) =>
+      match expression with
+      | .literal expected spelling =>
+          unless expected == value && spelling == some source do
+            mismatch "the PRAGMA numeric value and original spelling"
+      | _ => mismatch "a numeric PRAGMA argument"
+  | none =>
+      if negative || positive then mismatch "a signed numeric PRAGMA argument"
+      let some name := SQLite.PragmaSyntax.nameToken true token | mismatch "a PRAGMA name argument"
+      match expression with
+      | .column none expected | .literal (.text expected) none =>
+          unless name == expected do mismatch "the original PRAGMA argument name"
+      | _ => mismatch "a PRAGMA name argument"
 
 private def matchNameList : List String → MatchM Unit
   | [] => pure ()
@@ -938,16 +937,19 @@ private def matchStatement : Statement → MatchM Unit
       unless returning.isEmpty do
         expectKeyword "returning"
         matchResultColumns returning.toList
-  | .pragma name argument => do
+  | .pragma name argument schema => do
       expectKeyword "pragma"
-      expectName name
+      if let some schema := schema then
+        matchPragmaName schema
+        expectSymbol "."
+      matchPragmaName name
       match argument with
       | none => pure ()
       | some expression =>
-          if ← acceptSymbol "=" then matchPragmaNameArgument expression
+          if ← acceptSymbol "=" then matchPragmaArgument expression
           else
             expectSymbol "("
-            matchPragmaNameArgument expression
+            matchPragmaArgument expression
             expectSymbol ")"
   | .select query => matchSelect query
   | .begin => do

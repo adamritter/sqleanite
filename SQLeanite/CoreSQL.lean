@@ -2364,7 +2364,7 @@ def executeStatement (state : Core.State) :
               findColumn? stored.schema assignment.1 == some stored.schema.declaredPrimaryKey) then
             executeRekeyUpdate state tableName alias stored assignments.toList where_
           else executeExpressionUpdate state tableName alias stored assignments.toList where_
-  | .pragma name argument => CoreSchemaPragma.execute state name argument
+  | .pragma name argument schema => CoreSchemaPragma.execute state name argument schema
   | .select select => do
       let execution ← executeSelect state select
       return (execution.state, [execution.result])

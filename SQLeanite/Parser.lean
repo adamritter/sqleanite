@@ -1,4 +1,5 @@
 import SQLeanite.Lexer
+import SQLeanite.SQLite.PragmaSyntax
 import SQLeanite.SQLite.Limits
 import SQLeanite.SQLite.RowAssignment
 
@@ -74,6 +75,24 @@ private def expectIdent : ParserM String := do
   match ← advance with
   | .ident s | .quotedIdent s _ | .string s => pure s
   | tok => throw (syntaxError tok)
+
+private def expectPragmaName : ParserM String := do
+  let token ← advance
+  let some name := SQLite.PragmaSyntax.nameToken false token | throw (syntaxError token)
+  pure name
+
+private def parsePragmaArgument : ParserM Expr := do
+  let negative ← acceptSymbol "-"
+  let positive ← if negative then pure false else acceptSymbol "+"
+  let token ← advance
+  match SQLite.PragmaSyntax.numeric negative token with
+  | some (value, source) => pure (.literal value (some source))
+  | none =>
+      if negative || positive then throw (syntaxError token)
+      let some name := SQLite.PragmaSyntax.nameToken true token | throw (syntaxError token)
+      match token with
+      | .ident _ => pure (.column none name)
+      | _ => pure (.literal (.text name))
 
 private def expectAlias : ParserM String := do
   match ← advance with
@@ -1333,19 +1352,19 @@ private def parseStatement : ParserM Statement := do
     if (← peek) != .eof && !isSymbol (← peek) ";" then discard <| advance
     pure (.pragma "lean_vacuum" none)
   else if ← acceptKeyword "pragma" then
-    let first ← expectIdent
-    let name ← if ← acceptSymbol "." then
-      let second ← expectIdent
-      pure (first ++ "." ++ second)
-      else pure first
+    let first ← expectPragmaName
+    let (name, schema) ← if ← acceptSymbol "." then
+      let second ← expectPragmaName
+      pure (second, some first)
+      else pure (first, none)
     let equals ← acceptSymbol "="
     let paren ← if equals then pure false else acceptSymbol "("
     let arg ← if equals || paren then
-      let e ← parseExpr
-      discard <| acceptSymbol ")"
-      pure (some e)
+      let expression ← parsePragmaArgument
+      if paren then expectSymbol ")"
+      pure (some expression)
       else pure none
-    pure (.pragma name arg)
+    pure (.pragma name arg schema)
   else throw s!"unsupported statement beginning at {(← peek).render}"
 
 private def parseStatementsM : ParserM (Array Statement) := do

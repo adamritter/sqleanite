@@ -3362,3 +3362,64 @@ PRAGMA arguments, explicit schema qualifiers, some bare keyword arguments,
 table-valued PRAGMA functions and other PRAGMAs remain separate gaps. Native
 code and its nine-binding boundary are unchanged. Full SQL/database/WAL
 compatibility is still not established.
+
+
+## PRAGMA atoms, preserved numeric names and explicit schemas (2026-10-25)
+
+PRAGMA arguments now follow the dedicated nmnum grammar from SQLite 3.53.4
+parse.y. They are a name or one numeric token with an optional sign, not a
+SQL expression. Original numeric spelling is retained even for compact integer
+values: 01, 1, 1.0 and 0x1 can identify different objects. Leading plus is
+removed and minus is retained as pragma.c specifies. Digit separators remain
+invalid in this grammar even though general SQLite numeric expressions allow
+them. Bare fallback/contextual keywords are names here, so CAST, current_date,
+ON and boolean words are not interpreted as expressions or executed functions.
+The independent token replay checks both the numeric value and exact retained
+spelling. Its control flow is separate from the parser; both use the explicit
+pure token-classification and numeric-atom definitions in PragmaSyntax.
+
+`Statement.pragma` now carries an optional schema name separately from the
+operation name. This distinguishes main.table_info from the single quoted
+unknown operation "main.table_info". main reads the persistent Core schema;
+temp reads the currently empty temporary schema. Explicit main does not resolve
+the temp-only catalog aliases. Unknown database names fail even for an unknown
+pragma. Names absent from the pinned build's 66-name PRAGMA lookup table return
+an empty result, as SQLite does. That recognition table is recorded from
+pragma.h and the pinned build's pragma_list, not generated from comparison
+outcomes. Known but unimplemented pragmas still fail explicitly; the table is
+not a claim that all 66 operations are implemented. Temporary table creation
+and attached databases remain unsupported.
+
+The standalone state-preservation theorem now includes the explicit schema
+argument. New component contracts preserve numeric spelling and show that a
+qualifier whose lowercase resolution equals temp selects the empty schema.
+The latter states the lowercase premise explicitly; an attempted concrete
+String.toLower reduction did not kernel-reduce and is not claimed as a proved
+normalization theorem. Unit regressions cover distinct numeric names, keyword
+names, comments between sign and number, namespace separation, unknown-name
+no-ops, invalid numeric expressions and forged spelling/schema certificates.
+Legacy test-engine pattern matches were updated for the retained spelling and
+new AST field; public execution remains on Core throughout.
+
+The baseline is **1,548 comparisons / 432 differences**. The first development
+run is retained as **1,698 comparisons / 12 differences**: JOIN and NOTHING
+were missing from the forbidden bare-keyword set. Both were corrected. A
+402-case metadata/reopen regression passed before this final keyword correction.
+Final-checkpoint fresh seed **354172** has **4,236 comparisons / 0 differences**,
+including **1164 positive error cases**, across six independent databases,
+three page sizes and both public file modes. The suite includes every word in
+the pinned keyword source, fixed numeric/quoted forms and fresh generated
+numeric names; the first ten generated names also exist as tables, while the
+remaining generated targets exercise misses and schema qualification. Every
+read preserves main/WAL hashes. Full successful output bytes are compared;
+error comparisons establish failure status, not exact error messages. The
+fresh report records the reference PRAGMA list and compilation options.
+
+Implementation SHA-256: `ae1f167e35184c0663cd3266cbfe52b73dddf8b3f21a6aca2c8fa3584f72cc7f`.
+The final checks pass **320 build jobs, 238 executable tests, 1,154 headline
+component proofs**, both audits and 61 accepted reverse-file cells; two reverse
+cells remain declared unsupported. Reports: `sqlite-pragma-arguments-*20261025.json`;
+harness: `scripts/run-pragma-arguments-differential.py`. Intermediate proof
+failures and the negative keyword result led to the completed final build;
+no failing result was relabelled as passing. Native code/bindings are unchanged.
+Full SQL/database/WAL compatibility remains unfinished.

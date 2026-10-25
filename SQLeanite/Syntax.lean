@@ -512,7 +512,7 @@ inductive Statement where
   | values (rows : Array (Array Expr))
   | begin | commit | rollback
   | reindex
-  | pragma (name : String) (argument : Option Expr)
+  | pragma (name : String) (argument : Option Expr) (schema : Option String := none)
   deriving Repr
 
 mutual

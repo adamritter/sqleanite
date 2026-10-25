@@ -13,6 +13,8 @@ def supported (name : String) : Bool :=
 def argumentName : Expr → Option String
   | .column none name => some name
   | .literal (.text name) _ => some name
+  | .literal (.integer value) source => some (source.getD (toString value))
+  | .literal (.real _) source => source
   | .call "lean_dqs" #[.literal (.text name) _] false => some name
   | .call "__sqlean_boolean_true" #[] false => some "true"
   | .call "__sqlean_boolean_false" #[] false => some "false"
@@ -91,27 +93,45 @@ def rows (database : Core.Database) (pragmaName name : String) : List (List Valu
   | "index_xinfo" => indexInfo database name true
   | _ => []
 
-def result (database : Core.Database) (name : String) (argument : Option Expr) :
-    Except String Core.Result := do
+/-- The current Core has one persistent schema and an empty temporary schema.
+Retain an explicit qualifier instead of confusing it with a quoted period. -/
+def scopedRows (database : Core.Database) (schema : Option String)
+    (pragmaName target : String) : List (List Value) :=
+  let temporary := schema.any (fun name => name.toLower == "temp")
+  if schema.any (fun name => name.toLower == "main") &&
+      ["sqlite_temp_schema", "sqlite_temp_master"].contains target.toLower then []
+  else rows (if temporary then Core.Database.empty else database) pragmaName target
+
+theorem scopedRows_temp (database : Core.Database) (schema pragmaName target : String)
+    (folded : schema.toLower = "temp") :
+    scopedRows database (some schema) pragmaName target =
+      rows Core.Database.empty pragmaName target := by
+  simp [scopedRows, folded]
+
+def result (database : Core.Database) (name : String) (argument : Option Expr)
+    (schema : Option String) : Except String Core.Result := do
+  if schema.any (fun name => !["main", "temp"].contains name.toLower) then
+    throw "unknown database"
+  if !SQLite.PragmaSyntax.knownNames.contains name.toLower then return {}
   unless supported name do throw "unsupported verified-Core PRAGMA"
   let values ← match argument with
     | none => pure []
     | some argument => do
         let some target := argumentName argument | throw "unsupported PRAGMA argument"
-        pure (rows database name target)
+        pure (scopedRows database schema name target)
   let values ← values.mapM (List.mapM SQLSurface.value)
   return { rows := values }
 
-def execute (state : Core.State) (name : String) (argument : Option Expr) :
-    Except String (Core.State × List Core.Result) := do
-  let output ← result state.database name argument
+def execute (state : Core.State) (name : String) (argument : Option Expr)
+    (schema : Option String := none) : Except String (Core.State × List Core.Result) := do
+  let output ← result state.database name argument schema
   return (state, [output])
 
 theorem execute_preserves_state {state next : Core.State} {name : String}
-    {argument : Option Expr} {results : List Core.Result}
-    (success : execute state name argument = .ok (next, results)) : next = state := by
+    {argument : Option Expr} {schema : Option String} {results : List Core.Result}
+    (success : execute state name argument schema = .ok (next, results)) : next = state := by
   unfold execute at success
-  cases evaluated : result state.database name argument with
+  cases evaluated : result state.database name argument schema with
   | error message => simp [evaluated, bind, Except.bind] at success
   | ok output =>
       simp only [evaluated, bind, Except.bind, pure, Except.pure] at success

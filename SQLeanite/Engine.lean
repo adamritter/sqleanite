@@ -4351,10 +4351,10 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     | none => throw "cannot rollback - no transaction is active"
     | some snapshot => pure (db.restoreSnapshot snapshot, {})
   | .reindex => pure (db, {})
-  | .pragma name argument =>
+  | .pragma name argument _schema =>
     let enabled := match argument with
-      | some (.literal (.integer i)) => i != 0
-      | some (.literal (.text s)) | some (.column none s) =>
+      | some (.literal (.integer i) _) => i != 0
+      | some (.literal (.text s) _) | some (.column none s) =>
         ["on", "true", "yes", "1"].contains s.toLower
       | _ => false
     let shortName := name.splitOn "." |>.getLast?.getD name
@@ -4373,17 +4373,17 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     else if nameEq shortName "lean_dqs_dml" then pure ({ db with doubleQuotedStrings := enabled }, {})
     else if nameEq shortName "lean_view_depth_limit" then
       let limit := match argument with
-        | some (.literal (.integer value)) => (max 1 value).toNat
+        | some (.literal (.integer value) _) => (max 1 value).toNat
         | _ => 1000
       pure ({ db with viewDepthLimit := limit }, {})
     else if nameEq shortName "lean_current_time" then
       let timestamp := match argument with
-        | some (.literal (.integer value)) => value
+        | some (.literal (.integer value) _) => value
         | _ => 0
       pure ({ db with currentTime := timestamp }, {})
     else if nameEq shortName "lean_record_sizes" then
       let rootpage : Int := match argument with
-        | some (.literal (.integer value)) => value
+        | some (.literal (.integer value) _) => value
         | _ => 0
       let rows := if rootpage < 2 then #[] else
         match db.tables[(rootpage - 2).toNat]? with
@@ -4400,7 +4400,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       pure (db, { columns := #[name], rows := #[#[.text "UTF-8"]] })
     else if nameEq shortName "table_info" then do
       let objectName? := match argument with
-        | some (.column none objectName) | some (.literal (.text objectName)) => some objectName
+        | some (.column none objectName) | some (.literal (.text objectName) _) => some objectName
         | _ => none
       let columns ← match objectName? with
         | none => pure #[]
@@ -4458,9 +4458,9 @@ def executeAll (db : Database) (statements : Array Statement) : Except String (D
     if !result.rows.isEmpty then
       last := { result with rows := last.rows ++ result.rows }
       if (stmt matches .select _) || (stmt matches .values _) then retainQueryRows := true
-      else if stmt matches .pragma _ _ then retainQueryRows := false
+      else if stmt matches .pragma .. then retainQueryRows := false
     else if result.reportsChanges && !retainQueryRows then last := result
-    else if (stmt matches .select _) || (stmt matches .values _) || (stmt matches .pragma _ _) then
+    else if (stmt matches .select _) || (stmt matches .values _) || (stmt matches .pragma ..) then
       if last.rows.isEmpty then last := result
   pure (state, last)
 
@@ -4484,9 +4484,9 @@ def executeAllProgress (db : Database) (statements : Array Statement) : Database
       if !result.rows.isEmpty then
         last := { result with rows := last.rows ++ result.rows }
         if (stmt matches .select _) || (stmt matches .values _) then retainQueryRows := true
-        else if stmt matches .pragma _ _ then retainQueryRows := false
+        else if stmt matches .pragma .. then retainQueryRows := false
       else if result.reportsChanges && !retainQueryRows then last := result
-      else if (stmt matches .select _) || (stmt matches .values _) || (stmt matches .pragma _ _) then
+      else if (stmt matches .select _) || (stmt matches .values _) || (stmt matches .pragma ..) then
         if last.rows.isEmpty then last := result
   return (state, .ok last)
 

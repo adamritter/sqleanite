@@ -4597,6 +4597,56 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLitePragmaArguments : IO Unit := do
+  let definitions := [("01","zeroone"),("1","one"),("0x1","hex"),("1.0","floating"),
+    ("-1","negative"),("CAST","casted"),("current_date","clock"),("true","truth")]
+  let setup := String.join (definitions.map fun (name,column) =>
+    "CREATE TABLE " ++ CoreFile.quoteIdentifier name ++ "(" ++ CoreFile.quoteIdentifier column ++ ");")
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"PRAGMA argument setup: {message}"
+  let cases := [("01","zeroone"),("1","one"),("+1","one"),("0x1","hex"),
+    ("1.0","floating"),("-1","negative"),("CAST","casted"),
+    ("current_date","clock"),("true","truth"),("+/*sign*/01","zeroone")]
+  for (argument,column) in cases do
+    for schema in ["", "main.", "\"MAIN\"."] do
+      let sql := "PRAGMA " ++ schema ++ "table_info(" ++ argument ++ ");"
+      let (next, results) ← match CoreSQL.execute state sql with
+        | .ok result => pure result
+        | .error message => fail s!"PRAGMA atom {sql}: {message}"
+      let expected : List (List Value) := [[.integer 0,.text column,.text "",.integer 0,.null,.integer 0]]
+      let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+        | .ok rows => pure rows
+        | .error message => fail message
+      unless (results.getLast?).map (·.rows) == some rows && next.database.Equiv state.database do
+        fail s!"PRAGMA atom lost spelling or changed state: {sql}"
+  for sql in ["PRAGMA temp.table_info('1');", "PRAGMA main.table_info(sqlite_temp_schema);",
+      "PRAGMA \"main.table_info\"('1');", "PRAGMA unknown_custom(1);",
+      "PRAGMA main.unknown_custom=1;"] do
+    let (_, results) ← match CoreSQL.execute state sql with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some [] do fail s!"PRAGMA scope or no-op mismatch: {sql}"
+  for sql in ["PRAGMA temp.table_info(sqlite_schema);", "PRAGMA table_info(sqlite_temp_master);"] do
+    let (_, results) ← match CoreSQL.execute state sql with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows.length) == some 5 do fail "temp catalog metadata missing"
+  for sql in ["PRAGMA missing.table_info('1');", "PRAGMA missing.unknown_custom;",
+      "PRAGMA table_info(1_0);", "PRAGMA table_info(1.0_0);", "PRAGMA table_info(- -1);",
+      "PRAGMA table_info(+true);", "PRAGMA table_info((1));", "PRAGMA table_info(NULL);",
+      "PRAGMA table_info(JOIN);", "PRAGMA table_info(NOTHING);"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"invalid PRAGMA atom accepted: {sql}"
+  let parsed ← match CoreTokenGrammar.parseCertified "PRAGMA main.table_info(01);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let atom : Expr := .literal (.integer 1) (some "01")
+  if (CoreTokenGrammar.check parsed.tokens #[.pragma "table_info" (some atom) (some "temp")]).isOk then
+    fail "PRAGMA certificate accepted a different schema"
+  if (CoreTokenGrammar.check parsed.tokens
+      #[.pragma "table_info" (some (.literal (.integer 1) (some "1"))) (some "main")]).isOk then
+    fail "PRAGMA certificate discarded numeric name spelling"
+
 private def expectSQLiteSchemaPragma : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY NOT NULL,v TEXT);CREATE INDEX Iv ON t(v);CREATE UNIQUE INDEX Ii ON t(id);CREATE TABLE Tags(Key TEXT PRIMARY KEY,Owner int);INSERT INTO t VALUES(1,'one');" with
@@ -6657,6 +6707,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),
   ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
   ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),
   ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
