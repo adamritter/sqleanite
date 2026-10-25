@@ -145,7 +145,12 @@ def Index.isImplicitPrimary (schema : Schema) (index : Index) : Bool :=
     index.column == schema.declaredPrimaryKey && !index.unique
 
 def Index.WellFormed (schema : Schema) (index : Index) : Prop :=
-  index.name ≠ "" ∧ index.column < schema.columns.length
+  index.column < schema.columns.length
+
+/-- SQLite identifiers may be empty. An index's local invariant is its column
+bound; distinct names are checked separately for the complete index list. -/
+theorem Index.wellFormed_rename (schema : Schema) (index : Index) (name : String) :
+    ({ index with name } : Index).WellFormed schema ↔ index.WellFormed schema := Iff.rfl
 
 instance (schema : Schema) (index : Index) : Decidable (index.WellFormed schema) :=
   by unfold Index.WellFormed; infer_instance

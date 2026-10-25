@@ -4597,6 +4597,39 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteEmptyIndex : IO Unit := do
+  let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT);INSERT INTO users VALUES(1,'one'),(2,'two');" ++
+    "CREATE UNIQUE INDEX \"\" ON users(Label);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"empty index name: {message}"
+  let some stored := state.database.findTable? "Users" | fail "empty index table missing"
+  unless stored.indexes.map (·.name) == [""] do fail "empty index name changed"
+  let some image := CoreFile.encode state.database | fail "empty index encode failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "empty index reopen failed"
+  let some restored := reopened.findTable? "Users" | fail "empty index table lost on reopen"
+  unless decide (restored.indexes = stored.indexes) do fail "empty index metadata changed"
+  let (renamed, _) ← match CoreSQL.execute { database := reopened }
+      "ALTER TABLE users RENAME TO People;ALTER TABLE people RENAME Label TO Caption;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some people := renamed.database.findTable? "People" | fail "empty-index table rename failed"
+  unless people.indexes.map (·.name) == [""] do fail "table/column rename renamed explicit empty index"
+  for sql in ["CREATE INDEX \"\" ON users(Id);", "CREATE TABLE \"\"(v);",
+      "ALTER TABLE users RENAME TO \"\";", "INSERT INTO users VALUES(3,'one');"] do
+    if (CoreSQL.execute state sql).isOk then fail s!"empty index conflict omitted: {sql}"
+  let (skipped, _) ← match CoreSQL.execute state "CREATE INDEX IF NOT EXISTS \"\" ON users(missing);" with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (CoreNames.index? ((skipped.database.findTable? "Users").getD stored) "").isSome do
+    fail "empty index IF NOT EXISTS lost existing index"
+  let (dropped, _) ← match CoreSQL.execute state "DROP INDEX \"\";CREATE TABLE \"\"(v);" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some users := dropped.database.findTable? "Users" | fail "DROP empty index dropped its table"
+  unless users.indexes.isEmpty && (dropped.database.findTable? "").isSome do
+    fail "empty index name was not released"
+
 private def expectSQLiteSchemaRename : IO Unit := do
   let quote (name : String) := String.ofList (CanonicalSchemaSQL.quoteChars name)
   let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT,Val INTEGER);" ++
@@ -6400,6 +6433,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite empty index identifiers survive reopen and schema changes", expectSQLiteEmptyIndex),
   ("SQLite table and column renames preserve rows and index metadata", expectSQLiteSchemaRename),
   ("SQLite case-insensitive binding preserves schema spelling", expectSQLiteSchemaCase),
   ("SQLite explicit INTEGER PRIMARY KEY NOT NULL metadata survives reopen", expectSQLiteIntegerNotNullMetadata),

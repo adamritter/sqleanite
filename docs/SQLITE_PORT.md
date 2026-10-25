@@ -3136,3 +3136,32 @@ unchanged. Reports: `sqlite-schema-rename-*20261025.json`; harness:
 `scripts/run-schema-rename-differential.py`. Dependent views/triggers/foreign
 keys, original DDL text, qualified schemas and full SQL/database/WAL
 compatibility remain outside this checkpoint.
+
+## Empty index identifiers (2026-10-25)
+
+A quoted empty index name is valid SQLite metadata. `Index.WellFormed` now
+requires the column bound without the extra nonempty-name restriction. Index
+list uniqueness and SQL's shared table/index namespace checks remain in force.
+The generated-index decoding proof uses the retained bound directly; the new
+registered `Index.wellFormed_rename` theorem makes name independence explicit.
+The existing quoted printer, parser, lookup and DROP paths then handle the empty
+name without a special execution path or schema-name substitution.
+
+Retained baseline seed 354120: **132 differences / 132 scenarios**, including
+files the Core previously could not open. Development seed 354121: **222
+scenarios, zero differences**. Fresh seed 354122: **1,206 scenarios, zero
+differences**, including 54 positive-error outcomes. Both public modes,
+512/4096/65536-byte pages, long records/index payloads, schema collisions,
+IF NOT EXISTS, UNIQUE enforcement, renames, DROP and transactions are checked.
+C-observed names, column/index metadata, persisted type/hex values and integrity
+are compared alongside successful output bytes; each case includes a C schema
+write and Lean reopen. Failed individual statements retain main/WAL bytes.
+Large passing captures are hashed only after complete byte comparison.
+
+Implementation SHA-256: `9bda2570f586a4c46e311c5190c24fc7c8c2d2a4d3f59455a56df3d98607c880`.
+The matching checks record **310 build jobs, 233 executable tests, 1,136 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+declared unsupported cells. Native code and its nine-binding boundary are
+unchanged. Reports: `sqlite-empty-index-*20261025.json`; harness:
+`scripts/run-empty-index-differential.py`. This removes one identifier-domain
+restriction; it is not a claim of full SQL/database/WAL compatibility.

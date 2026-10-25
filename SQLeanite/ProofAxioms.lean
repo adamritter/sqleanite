@@ -1300,3 +1300,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaRename.column_exact
 #print axioms SQLeanite.CoreSchemaRename.table_exact
 #print axioms SQLeanite.CoreSchemaRename.replace_exact
+
+#print axioms SQLeanite.Core.Index.wellFormed_rename

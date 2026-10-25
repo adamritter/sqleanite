@@ -1300,10 +1300,10 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
     rw [dif_pos (by simp)]
     have indexValid := table.indexesWellFormed.1 index member
     have columnNameEq : columnName =
-        (table.schema.columns[index.column]'indexValid.2).name := by
-      simp [columnName, List.getElem?_eq_getElem indexValid.2]
+        (table.schema.columns[index.column]'indexValid).name := by
+      simp [columnName, List.getElem?_eq_getElem indexValid]
     have found := table.schema.findIdx?_column_name table.schemaWellFormed
-      index.column indexValid.2
+      index.column indexValid
     change (table.schema.columns.findIdx?
       (fun candidate => candidate.name = columnName)).bind
         (fun column => some (⟨index.name, column, index.unique⟩ : Core.Index)) = some index
