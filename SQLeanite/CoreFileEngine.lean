@@ -72,6 +72,7 @@ def databaseContents (database : Core.Database) :=
 def reopen (syncOps : CoreFileAdapter.SyncOps)
     (paths : CoreFileAdapter.Paths) : IO Connection := do
   CoreFileAdapter.recoverInPlace syncOps paths
+  CoreFileAdapter.requireReadable paths.main
   -- Supported physical trees are decoded once into both the logical database
   -- and their persistent page identities.  Wider external SQLite trees retain
   -- the general compatibility decoder and independent validating loader.
@@ -357,6 +358,8 @@ private def runStatementsGo (connection : Connection) : LiveState →
       IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
   | live, statement :: statements, reversed => do
+      if statementWrites statement && !CoreSQL.schemaNoop live.state statement then
+        CoreFileAdapter.requireWritableFormat connection.paths.main
       let (cached, execution) ← executeStatement connection live statement
       match execution with
       | .error message => pure (cached, .error message)

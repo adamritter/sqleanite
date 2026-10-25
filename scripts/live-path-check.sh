@@ -744,6 +744,20 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# Header-format restrictions must cover cold reads and in-transaction writes.
+if grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreLazyFileEngine.lean &&
+   grep -q 'CoreFileAdapter.requireWritableFormat connection.paths.main' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'CoreFileAdapter.requireWritableFormat paths.main' SQLeanite/CoreLazyWrite.lean &&
+   grep -q 'CoreWALFileAdapter.requireWritableFormat paths' SQLeanite/CoreWALFileEngine.lean &&
+   grep -q 'SQLite.HeaderVersion.writeError? (← committedHeader paths)' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'SQLite.HeaderVersion.readError? header' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'HeaderVersion.unknown_write' SQLeanite/ProofAxioms.lean; then
+  ok "file and WAL header versions gate optimized reads and transaction writes"
+else
+  fail "file-format version admission is disconnected from execution"
+fi
+
 # Physical strides include reserved tails; record decoders receive usable bytes.
 if grep -q 'pageBytes whole pageBytes pageNumber).map (List.take usable.val)' SQLeanite/CoreFileAdapter.lean &&
    grep -q '(read pageNumber).map (List.take usable.val)' SQLeanite/CoreWALFileAdapter.lean &&
@@ -1585,7 +1599,7 @@ if [ -x .lake/build/bin/sqleanite ] && [ -x "$sqlite_bin" ]; then
   if .lake/build/bin/sqleanite --verified-file "$tmp/bad" </dev/null \
       >"$tmp/bad.out" 2>"$tmp/bad.err"; then
     fail "sqleanite accepted a corrupt database"
-  elif grep -q '^Error: invalid general MVP SQLite image:' "$tmp/bad.err" &&
+  elif grep -q '^Error: file is not a database$' "$tmp/bad.err" &&
       ! grep -q 'uncaught exception' "$tmp/bad.err"; then
     ok "corrupt input rejection is a normal diagnostic, not a crash"
   else

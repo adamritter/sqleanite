@@ -47,7 +47,9 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) : Core.State → List Statement →
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
-  | state, statement :: statements, reversed =>
+  | state, statement :: statements, reversed => do
+      if CoreFileEngine.statementWrites statement && !CoreSQL.schemaNoop state statement then
+        CoreWALFileAdapter.requireWritableFormat paths
       match executeStatement state statement with
       | .error message => pure (state, .error message)
       | .ok (next, results) => do

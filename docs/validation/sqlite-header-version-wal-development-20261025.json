@@ -1,0 +1,3103 @@
+{
+  "seed": 353951,
+  "fixtures": [
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "control",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "base-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "base-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "overlay-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "overlay-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "base-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "wrapped-overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "base-write-overlay-zero",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 512,
+      "variant": "base-read-overlay-zero",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "control",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "base-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "base-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "overlay-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "overlay-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "base-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "wrapped-overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "base-write-overlay-zero",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 4096,
+      "variant": "base-read-overlay-zero",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "control",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "base-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "base-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "overlay-read",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "overlay-write",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "base-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "wrapped-overlay-schema",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "base-write-overlay-zero",
+      "wal_frames": 3
+    },
+    {
+      "sample": 0,
+      "page_size": 65536,
+      "variant": "base-read-overlay-zero",
+      "wal_frames": 3
+    }
+  ],
+  "cases": [
+    {
+      "fixture": 0,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 1,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 1,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 1,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 1,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 2,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 2,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 2,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 2,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 2,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 3,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 3,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 3,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 3,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 3,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 4,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 4,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 4,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 4,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 4,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 5,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 5,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 5,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 5,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 5,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 6,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 6,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 6,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 6,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 6,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 7,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 7,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 7,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353732\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 7,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 7,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 8,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 8,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 8,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 8,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 8,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33353639\n2|integer|32343336\n3|integer|2D39313830\n4|integer|2D313232\n5|integer|31323733\n6|integer|2D37333638\n7|integer|2D39303638\n8|integer|35343130\n9|integer|2D33343335\n10|integer|38303134\n11|integer|2D37333132\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 9,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3569\n2|2436\n3|-9180\n4|-122\n5|1273\n6|-7368\n7|-9068\n8|5410\n9|-3435\n10|8014\n11|-7312\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 9,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3569\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 9,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 9,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 9,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 10,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 10,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 10,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 10,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 10,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 11,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 11,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 11,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 11,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 11,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 12,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 12,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 12,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 12,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 12,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 13,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 13,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 13,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 13,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 13,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 14,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 14,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 14,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 14,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 14,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 15,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 15,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 15,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 15,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 15,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 16,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 16,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 16,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 16,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 16,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 17,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 17,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 17,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313330\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 17,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 17,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 18,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 18,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 18,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 18,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 18,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D33313333\n2|integer|38363235\n3|integer|2D36393932\n4|integer|2D36393937\n5|integer|2D38343939\n6|integer|37393033\n7|integer|37383031\n8|integer|2D31343137\n9|integer|34353535\n10|integer|33393535\n11|integer|38393236\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 19,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-3133\n2|8625\n3|-6992\n4|-6997\n5|-8499\n6|7903\n7|7801\n8|-1417\n9|4555\n10|3955\n11|8926\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 19,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-3133\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 19,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 19,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 19,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 20,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 20,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 20,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 20,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 20,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 21,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 21,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 21,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 21,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 21,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 22,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 22,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 22,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 22,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 22,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 23,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 23,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 23,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 23,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 23,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: file is not a database (26)\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 24,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 24,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 24,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 24,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: attempt to write a readonly database\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 24,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 25,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 25,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 25,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 25,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 25,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 26,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 26,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 26,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 26,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 26,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported file format\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unsupported file format\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 27,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 27,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 27,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363430\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 27,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 27,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 28,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 28,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 28,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 28,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 28,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "bytes_unchanged": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D36363433\n2|integer|2D32393138\n3|integer|2D39373530\n4|integer|2D38313635\n5|integer|2D39303439\n6|integer|2D35313239\n7|integer|2D31353630\n8|integer|2D33343635\n9|integer|2D31303535\n10|integer|2D36303234\n11|integer|2D39303536\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 29,
+      "operation": "read",
+      "sql": "SELECT * FROM t ORDER BY id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|-6643\n2|-2918\n3|-9750\n4|-8165\n5|-9049\n6|-5129\n7|-1560\n8|-3465\n9|-1055\n10|-6024\n11|-9056\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 29,
+      "operation": "read",
+      "sql": "SELECT v FROM t WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-6643\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 29,
+      "operation": "write",
+      "sql": "UPDATE t SET v=v+3 WHERE id=1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 29,
+      "operation": "write",
+      "sql": "BEGIN;INSERT INTO t VALUES(1000,7);ROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "fixture": 29,
+      "operation": "write",
+      "sql": "CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY,v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: file is not a database\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    }
+  ],
+  "failures": 42,
+  "implementation_sha256": "1f14f6a8eb9adca89e9d5aec05f6e1dc1b9bc5d3b5d669593f8686a76215cb0e",
+  "executable_sha256": "fa0f700021376509da5d4eff48b4ba381fa1ee9e3b0be3c8e760d89847ff3a3c",
+  "harness_sha256": "c2bb7b68324ae4d41c70aa4e345024e3a05975ac0cad6b3e55ffe5634c8e55b5",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Frozen WAL header-version cases, including base/page-one disagreement.\n\nThe producer closes before testing; WAL checksums are recomputed after deliberate\nheader changes. These comparisons do not test simultaneous process locking."
+}

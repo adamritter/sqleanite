@@ -237,6 +237,7 @@ def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
     (paths : CoreFileAdapter.Paths) (tableName : String)
     (columns : Option (Array String)) (expressions : Array Expr) :
     IO (Option Core.Result) := do
+  CoreFileAdapter.requireWritableFormat paths.main
   let some geometry ← CoreFileAdapter.readFileGeometry paths | return none
   let input ← IO.FS.readBinFile paths.main
   let source := CoreFileAdapter.byteArrayPageSource input geometry.pageCount

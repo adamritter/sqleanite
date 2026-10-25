@@ -40,7 +40,7 @@ private def encodeImage (database : Core.Database)
 
 /-- Application metadata comes from the committed WAL snapshot when page one
 has an overlay, and otherwise from the main database header. -/
-private def writeMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
+private def committedHeader (paths : Paths) : IO FileFormat.DatabaseHeader := do
   let main ← IO.FS.readBinFile paths.main
   let first ← if ← paths.wal.pathExists then do
       let bytes ← IO.FS.readBinFile paths.wal
@@ -58,6 +58,20 @@ private def writeMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata 
     else pure (main.extract 0 100).toList
   let some (header, _) := FileFormat.decodeDatabaseHeader first |
     throw (IO.userError "invalid database application metadata")
+  if let some message := SQLite.HeaderVersion.readError? header then
+    throw (IO.userError message)
+  return header
+
+/-- Admission uses the committed snapshot header. The pager may already have
+opened an existing WAL before B-tree header validation, so a superseded main
+header cannot overrule the latest committed page one. -/
+def requireWritableFormat (paths : Paths) : IO Unit := do
+  if let some message := SQLite.HeaderVersion.writeError? (← committedHeader paths) then
+    throw (IO.userError message)
+
+private def writeMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
+  requireWritableFormat paths
+  let header ← committedHeader paths
   unless header.headerPrefix.reservedSpace = 0 do
     throw (IO.userError "unsupported reserved-byte database writes")
   return CoreMultiFreelist.HeaderMetadata.fromHeader header
@@ -87,6 +101,8 @@ private def readWAL (paths : Paths) : IO Core.Database := do
     throw (IO.userError "SQLite WAL snapshot has no database header")
   let some (header, _) := FileFormat.decodeDatabaseHeader firstPage |
     throw (IO.userError "invalid database header in SQLite WAL snapshot")
+  if let some message := SQLite.HeaderVersion.readError? header then
+    throw (IO.userError message)
   let some usable := CoreFileAdapter.headerUsablePageSize? header |
     throw (IO.userError "unsupported page geometry in SQLite WAL snapshot")
   unless header.headerPrefix.pageSize = snapshot.pageSize && header.textEncoding.val = 1 do

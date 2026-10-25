@@ -1,5 +1,6 @@
 import SQLeanite.CoreDecode
 import SQLeanite.SQLite.DatabaseSize
+import SQLeanite.SQLite.HeaderVersion
 import SQLeanite.CoreFreelist
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CoreOverflow
@@ -20,6 +21,21 @@ namespace CoreFileAdapter
 abbrev Paths := PhysicalFileAdapter.Paths
 abbrev SyncOps := PhysicalFileAdapter.SyncOps
 abbrev Request := GrowableStorage.VFSRequest PhysicalCodec.pageSize
+
+/-- Read the actual file header before entering an optimized path. -/
+def readHeader (path : System.FilePath) : IO FileFormat.DatabaseHeader := do
+  let bytes ← SyscallVFS.preadBytes path.toString 0 100
+  let some (header, _) := FileFormat.decodeDatabaseHeader bytes.toList |
+    throw (IO.userError "file is not a database")
+  return header
+
+def requireReadable (path : System.FilePath) : IO Unit := do
+  if let some message := SQLite.HeaderVersion.readError? (← readHeader path) then
+    throw (IO.userError message)
+
+def requireWritableFormat (path : System.FilePath) : IO Unit := do
+  if let some message := SQLite.HeaderVersion.writeError? (← readHeader path) then
+    throw (IO.userError message)
 
 def storageImage (image : CoreFile.Image) :
     GrowableStorage.Image PhysicalCodec.pageSize :=
@@ -1039,6 +1055,8 @@ def reopen (paths : Paths) : IO Core.Database := do
     let (header, _) ← match FileFormat.decodeDatabaseHeader headerBytes.toList with
       | some decoded => pure decoded
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
+    if let some message := SQLite.HeaderVersion.readError? header then
+      throw (IO.userError message)
     let usable ← match headerUsablePageSize? header with
       | some usable => pure usable
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
@@ -4156,6 +4174,7 @@ private def initializePersistentJournal (syncOps : SyncOps) (paths : Paths) :
 bytes. Reject before journal activation or image publication until a writer
 that preserves this geometry is implemented. -/
 private def requireUnreservedWrite (path : System.FilePath) : IO Unit := do
+  requireWritableFormat path
   let bytes ← SyscallVFS.preadBytes path.toString 0 100
   let some (header, _) := FileFormat.decodeDatabaseHeader bytes.toList |
     throw (IO.userError "invalid database header before write")
@@ -4217,6 +4236,8 @@ def needsPageSizeConversion (paths : Paths) : IO Bool :=
     let headerBytes ← handle.read 100
     let some (header, _) := FileFormat.decodeDatabaseHeader headerBytes.data.toList |
       throw (IO.userError "invalid database header before write")
+    if let some message := SQLite.HeaderVersion.writeError? header then
+      throw (IO.userError message)
     unless header.headerPrefix.reservedSpace = 0 do
       throw (IO.userError "unsupported reserved-byte database writes")
     return header.headerPrefix.pageSizeField.val != PhysicalCodec.pageSize

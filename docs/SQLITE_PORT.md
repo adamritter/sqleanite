@@ -2319,3 +2319,47 @@ verification audit and live-path audit pass. The reverse-file suite passes
 physical/usable geometry, the 480-byte minimum and invalid sizes; the new
 component theorem proves the exact usable-plus-reserved partition. Reports
 use `sqlite-reserved-pages-*20261025.json` in `docs/validation/`.
+
+## Database-header version admission (2026-10-25)
+
+The public full-file and cold read paths now enforce the pinned SQLite read
+version and schema-format checks. Read-version bytes greater than two reject
+an image; future write-version bytes allow reads but reject write statements,
+including statements inside transactions that would later roll back. Existing
+IF NOT EXISTS schema no-ops remain successful. The version checks also guard
+page-local writes, ordinary journal publication, page-size conversion and WAL
+publication/checkpoint. As in sqlite3InitOne, schema-format admission uses the
+low eight bits, with zero interpreted as the legacy format. The binary header
+codec remains an exact codec rather than incorporating this execution policy.
+
+WAL admission uses the latest committed page-one header, falling back to the
+main header only when it has no overlay. An initial attempt to reject unknown
+base-header versions before reading the WAL was incorrect: pagerOpenWalIfPresent
+opens the WAL before B-tree header validation. The retained development report
+records 42 failures in 150 cases from that attempt. The final implementation
+removes that premature check and keeps the snapshot-specific validation.
+
+Baseline 353950 at source a803f1eb0d84ec584304df85dbfc3c90f91d1cb371670ff7bf8eead86d3e78db
+records 248 differences in 558 main-file cases. Main-file development 353951
+passes 666 cases. Final source is `29f9ec7dcd2ee44485f8fc31f2fd109064d503c8b79eef90887b18310961f3a2`.
+Fresh main-file seed 353952 passes **1,134 outcomes**, including 700
+matching positive error statuses. Fresh WAL seed 353953 passes **450 outcomes**,
+including 108 matching positive error statuses. Both corpus generators
+vary row contents; main-file cases include SQLite-created and Lean-created
+images, 512–65,536-byte pages, both file modes, zero/future format versions,
+wrapped schema metadata, transactions, no-op writes and cold primary lookups.
+WAL cases explicitly disagree between base and overlaid read/write/schema
+versions, after producer shutdown, with recomputed frame checksums. Successful
+writes compare persisted rows and require pinned SQLite integrity_check=ok;
+reads and rejected operations retain original main/WAL bytes. Exact error
+codes/messages and live concurrency remain separate work.
+
+All 216 executable tests, the 288-job build, 1,089 registered headline proofs,
+verification audit and final live-path audit pass. The first live-path audit
+expected the old corrupt-header diagnostic; it now requires the new ordinary
+'file is not a database' error and still rejects uncaught exceptions. Its
+failure report/log are preserved; only that failed check was rerun. Reverse
+validation passes 61 accepted cells and two declared unsupported shapes. The
+three new component proofs cover unknown read versions, read-only write
+versions and schema low-byte dependence. No native binding or audit-allowlist
+change was made. Reports use `sqlite-header-version-*20261025.*`.

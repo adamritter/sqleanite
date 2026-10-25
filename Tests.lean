@@ -4597,6 +4597,28 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteHeaderVersions : IO Unit := do
+  let header := CoreFile.databaseHeader ⟨3, by decide⟩
+  for read in ([0, 1, 2] : List UInt8) do
+    for write in ([0, 1, 2, 3, 255] : List UInt8) do
+      let candidate := { header with headerPrefix := { header.headerPrefix with
+        readVersion := read
+        writeVersion := write } }
+      unless (SQLite.HeaderVersion.readError? candidate).isNone do
+        fail "readable file version was rejected"
+      unless (SQLite.HeaderVersion.writeError? candidate).isSome == (write.toNat > 2) do
+        fail "unknown write version was not read-only"
+  for read in ([3, 127, 255] : List UInt8) do
+    let candidate := { header with headerPrefix := { header.headerPrefix with readVersion := read } }
+    unless SQLite.HeaderVersion.readError? candidate == some "file is not a database" do
+      fail "unknown read version was admitted"
+    unless (SQLite.HeaderVersion.writeError? candidate).isSome do
+      fail "unreadable file version remained writable"
+  for value in [0, 1, 2, 3, 4, 5, 255, 256, 257, 260, 261, 4294967295] do
+    let candidate := { header with schemaFormat := ⟨value % 2^32, Nat.mod_lt _ (by decide)⟩ }
+    unless (SQLite.HeaderVersion.readError? candidate).isSome == (value % 256 > 4) do
+      fail "schema format did not follow the pinned low-byte admission"
+
 private def expectSQLiteReservedPages : IO Unit := do
   let header := CoreFile.databaseHeader ⟨3, by decide⟩
   let cases : List (Nat × UInt8 × Nat) :=
@@ -5719,6 +5741,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite file read/write versions and schema-format admission", expectSQLiteHeaderVersions),
   ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),
   ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),
   ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),

@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "29f9ec7dcd2ee44485f8fc31f2fd109064d503c8b79eef90887b18310961f3a2",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "822b8b9e11708521e280c3aeaab50a6428c6a2edc00e4a299028b9b58dec9aa2",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [287/288] Built Tests:c.o (14s)",
+        "\u2714 [288/288] Built sqleanite_tests:exe (357ms)",
+        "Build completed successfully (288 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "5cf49a838609802b428e49f66f457a20d1a1c5159ad0ef20aa0dc42be2bec92c",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "216 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 1,
+      "sha256": "c4d989ab245bff7ff358870542c20de43288621ca065cce58850335cd2cb0177",
+      "tail": [
+        "ok - indexed bulk DELETE carries an exact decoded post-state certificate",
+        "ok - validated write-open reads pages directly from the file buffer",
+        "ok - single-row indexed INSERT carries an exact decoded post-state certificate",
+        "ok - C sqlite3 accepts a Lean-written file",
+        "ok - page-directed indexed DELETE is integrity-check clean",
+        "ok - page-directed indexed INSERT is integrity-check clean",
+        "ok - read-only writes produce an ordinary SQLite-style diagnostic",
+        "live-path check FAILED: corrupt input rejection still looks like an uncaught crash"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "cf00d57833039b97361a2e76827022345fc8c87ca3394d064ed2e68589c045f3"
+}

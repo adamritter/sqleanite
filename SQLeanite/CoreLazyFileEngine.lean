@@ -133,6 +133,7 @@ private def executeReadStatementsGo? (paths : CoreFileAdapter.Paths)
 private def executeReadStatements? (paths : CoreFileAdapter.Paths)
     (statements : List Statement) : IO (Option (List Core.Result)) :=
   do
+    CoreFileAdapter.requireReadable paths.main
     let geometry ← CoreFileAdapter.readGeneratedFileGeometry paths
     let cache ← CoreFileAdapter.PageReadCache.create
     executeReadStatementsGo? paths geometry cache statements []
