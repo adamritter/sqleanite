@@ -75,7 +75,7 @@ def schema (name : String) (definitions : Array ColumnDef)
   let visibleColumns : List Core.Column := definitions.toList.map fun column =>
     if column.primaryKey then {
       name := canonical column.name
-      notNull := true
+      notNull := integerAlias || column.notNull
       integerPrimaryKey := integerAlias
       textPrimaryKey := !integerAlias }
     else {
@@ -1883,6 +1883,12 @@ def executeSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   executeSelectFuel select.compoundHeight state select
 
+/-- A declared non-rowid key also needs the allocate-before-delete REPLACE
+trace, even when its automatic index is the only unique index. -/
+def hasReplaceKeys (stored : Core.Table) : Bool :=
+  (stored.schema.hasHiddenRowid && stored.schema.declaredPrimaryKey?.isSome) ||
+    stored.indexes.any (·.unique)
+
 /-- Allocate the replacement rowid against the original table, then remove
 all rows conflicting with the primary key or any explicit UNIQUE index. -/
 def uniqueReplacePlan (stored : Core.Table) (values : List Core.Value) :
@@ -1930,7 +1936,7 @@ def selectedRowExpressions (values : List Core.Value) : Except String (Array Exp
 def insertSelection (state : Core.State) (table : String) (stored : Core.Table)
     (columns : Option (Array String)) (replacing : Bool)
     (rows : List (Array Expr)) : Except String (Core.State × List Core.Result) :=
-  if replacing && stored.indexes.any (·.unique) then
+  if replacing && hasReplaceKeys stored then
     replaceUniqueRows state table stored.schema columns rows
   else insertRows state table stored.schema columns replacing rows
 
@@ -2151,7 +2157,7 @@ def executeStatement (state : Core.State) :
         | none => .error s!"no such table: {table}"
       if conflict == .ignore then
         ignoreInsertRows state tableName stored.schema columns rows.toList
-      else if conflict == .replace && stored.indexes.any (·.unique) then
+      else if conflict == .replace && hasReplaceKeys stored then
         replaceUniqueRows state tableName stored.schema columns rows.toList
       else
         insertRows state tableName stored.schema columns (conflict == .replace) rows.toList

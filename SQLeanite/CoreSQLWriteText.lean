@@ -55,7 +55,7 @@ inductive TranslatedWrite (state : Core.State) :
   | replace (table : String) (columns : Option (Array String))
       (expressions : Array Expr) (stored : Core.Table)
       (values : List Core.Value)
-      (ordinary : stored.indexes.any (·.unique) = false)
+      (ordinary : CoreSQL.hasReplaceKeys stored = false)
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
@@ -150,7 +150,7 @@ inductive TranslatedInsertRows (state : Core.State) :
   | replace (table : String) (columns : Option (Array String))
       (rows : Array (Array Expr)) (stored : Core.Table)
       (values : List (List Core.Value))
-      (ordinary : stored.indexes.any (·.unique) = false)
+      (ordinary : CoreSQL.hasReplaceKeys stored = false)
       (found : state.database.findTable? (CoreSQL.canonical table) =
         some stored)
       (translated : rows.toList.mapM

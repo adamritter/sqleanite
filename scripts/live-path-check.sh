@@ -431,6 +431,25 @@ else
   fail "schema no-op guards detached from execution or persistence"
 fi
 
+if grep -q 'notNull := integerAlias || column.notNull' SQLeanite/CoreSQL.lean &&
+   grep -q '| none | some .null => .integer row.rowid' SQLeanite/Core.lean &&
+   grep -q 'TEXT PRIMARY KEY NOT NULL' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'conflict == .replace && hasReplaceKeys stored' SQLeanite/CoreSQL.lean &&
+   grep -q 'replacing && hasReplaceKeys stored' SQLeanite/CoreSQL.lean &&
+   grep -q 'Core.Row.declaredKey_null_injective' SQLeanite/ProofAxioms.lean; then
+  ok "nullable TEXT keys preserve distinct NULLs, declared NOT NULL and REPLACE allocation"
+else
+  fail "nullable TEXT key constraints or REPLACE allocation detached from the live path"
+fi
+
+if [ "$(grep -c 'ascendingCellPointers (cellCount - 1) contentStart remaining' SQLeanite/CoreDecode.lean)" -eq 4 ] &&
+   grep -q 'CoreDecode.ascendingCellPointers_leafPointers' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreDecode.ascendingCellPointers_next' SQLeanite/ProofAxioms.lean; then
+  ok "packed schema, row and index decoders check the whole pointer ordering"
+else
+  fail "packed-page recognition lost its whole-pointer ordering guard"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

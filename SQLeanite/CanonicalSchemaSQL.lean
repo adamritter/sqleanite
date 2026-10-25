@@ -28,7 +28,7 @@ printed. Identifier text itself is unrestricted: `quoteChars` escapes quotes. -/
 structure Printable (schema : Core.Schema) : Prop where
   nonempty : schema.catalogColumns ≠ []
   primaryKeyNotNull : ∀ column ∈ schema.catalogColumns,
-    (column.integerPrimaryKey || column.textPrimaryKey) → column.notNull
+    column.integerPrimaryKey → column.notNull
   catalogShape : schema.CatalogShape
 
 theorem Printable.ofWellFormed (schema : Core.Schema)
@@ -66,7 +66,9 @@ def quoteChars (name : String) : List Char := '"' :: escapeIdent name.toList ++ 
 
 def columnSuffix (column : Core.Column) : List Char :=
   if column.integerPrimaryKey then " INTEGER PRIMARY KEY".toList
-  else if column.textPrimaryKey then " TEXT PRIMARY KEY".toList
+  else if column.textPrimaryKey then
+    if column.notNull then " TEXT PRIMARY KEY NOT NULL".toList
+    else " TEXT PRIMARY KEY".toList
   else if column.notNull then " NOT NULL".toList
   else []
 
@@ -136,8 +138,13 @@ def parseColumn : List Char → Option (Core.Column × List Char)
         | none =>
           match stripPrefix " TEXT PRIMARY KEY".toList afterName with
           | some tail =>
-              some ({ name := String.ofList name, notNull := true,
-                      textPrimaryKey := true }, tail)
+              match stripPrefix " NOT NULL".toList tail with
+              | some remaining =>
+                  some ({ name := String.ofList name, notNull := true,
+                          textPrimaryKey := true }, remaining)
+              | none =>
+                  some ({ name := String.ofList name, notNull := false,
+                          textPrimaryKey := true }, tail)
           | none =>
             match stripPrefix " NOT NULL".toList afterName with
             | some tail =>
@@ -239,7 +246,7 @@ theorem stripPrefix_ipk_cons (rest : List Char) :
 theorem parseColumn_append (columnName : String)
     (columnNotNull columnPrimary columnTextPrimary : Bool)
     (rest : List Char)
-    (consistent : (columnPrimary || columnTextPrimary) = true →
+    (consistent : columnPrimary = true →
       columnNotNull = true)
     (exclusive : columnPrimary = true → columnTextPrimary = false)
     (separator : endsColumn rest = true) :
@@ -267,11 +274,27 @@ theorem parseColumn_append (columnName : String)
       simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
-  · exact absurd (consistent rfl) (by simp)
+  · have noNotNull : stripPrefix " NOT NULL".toList rest = none := by
+      cases rest with
+      | nil => rfl
+      | cons c tail =>
+          have notSpace : c ≠ ' ' := by
+            intro equal
+            subst c
+            simp [endsColumn] at separator
+          simp [stripPrefix, Ne.symm notSpace]
+    have shape : columnChars
+        ({ name := columnName, notNull := false, integerPrimaryKey := false, textPrimaryKey := true } : Core.Column) ++ rest
+        = '"' :: (escapeIdent columnName.toList ++ '"' ::
+          (" TEXT PRIMARY KEY".toList ++ rest)) := by
+      simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
+    rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
+    simp [endsColumn, stripPrefix] at noNotNull ⊢
+    exact noNotNull ▸ rfl
   · have shape : columnChars
         ({ name := columnName, notNull := true, integerPrimaryKey := false, textPrimaryKey := true } : Core.Column) ++ rest
         = '"' :: (escapeIdent columnName.toList ++ '"' ::
-          (" TEXT PRIMARY KEY".toList ++ rest)) := by
+          (" TEXT PRIMARY KEY NOT NULL".toList ++ rest)) := by
       simp [columnChars, quoteChars, columnSuffix, columnTypeChars]
     rw [shape]; simp only [parseColumn]; rw [takeIdent_escape _ _ (by simp)]
     simp [endsColumn, stripPrefix]
@@ -326,7 +349,7 @@ theorem parseColumn_typed_append (name typeName : String) (notNull : Bool)
     simp [endsColumn, stripPrefix, bind, Option.bind]
 
 theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
-    (consistent : (column.integerPrimaryKey || column.textPrimaryKey) = true → column.notNull = true)
+    (consistent : column.integerPrimaryKey = true → column.notNull = true)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (separator : endsColumn rest = true) :
     parseColumn (columnChars column ++ rest) = some (column, rest) := by
@@ -344,7 +367,7 @@ theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
 theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
     (suffix : List Char) →
     columns ≠ [] → columns.length ≤ fuel →
-    (∀ c ∈ columns, (c.integerPrimaryKey || c.textPrimaryKey) = true →
+    (∀ c ∈ columns, c.integerPrimaryKey = true →
       c.notNull = true) →
     (∀ c ∈ columns, c.integerPrimaryKey = true → c.textPrimaryKey = false) →
     parseColumns fuel (columnsChars columns ++ ')' :: suffix) =

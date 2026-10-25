@@ -1,0 +1,3247 @@
+{
+  "seed": 354065,
+  "fixtures": 3,
+  "random_cases": 0,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435027,
+        "stdout_sha256": "78815ab88e26eafec92aba39d4611630da193b9cd8681a157230288bb0d2e360",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|3\n2|text|62|text|66697874757265302D636238643462616464666235|18\n3|null|",
+        "stdout_suffix": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|114\n95|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435027,
+        "stdout_sha256": "78815ab88e26eafec92aba39d4611630da193b9cd8681a157230288bb0d2e360",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|3\n2|text|62|text|66697874757265302D636238643462616464666235|18\n3|null|",
+        "stdout_suffix": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|114\n95|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n95|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n95|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7373,
+        "stdout_sha256": "308464b2bf26e12f1f372407e25ef9076e753cab123532cbe06f04b3bd7bad4a",
+        "stdout_prefix": "83|6D30303030302D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "1616161616161616161616161616161616161616161\n38|6D30303031312D787878787878787878787878\n54|6D30303032312D787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7373,
+        "stdout_sha256": "308464b2bf26e12f1f372407e25ef9076e753cab123532cbe06f04b3bd7bad4a",
+        "stdout_prefix": "83|6D30303030302D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "1616161616161616161616161616161616161616161\n38|6D30303031312D787878787878787878787878\n54|6D30303032312D787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 13503,
+        "stdout_sha256": "698509f93a1c419b28befabac393b04cc3beb2f4c6783acd9afcc64ebd100dbb",
+        "stdout_prefix": "95|\n4|\n3|\n1|61\n2|62\n33|6330303030312D7878787878787878787878786368616E676564\n61|6330303030382D61616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 13503,
+        "stdout_sha256": "698509f93a1c419b28befabac393b04cc3beb2f4c6783acd9afcc64ebd100dbb",
+        "stdout_prefix": "95|\n4|\n3|\n1|61\n2|62\n33|6330303030312D7878787878787878787878786368616E676564\n61|6330303030382D61616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8652,
+        "stdout_sha256": "678d83974a8bce6ed0e810b296fd624d12461d81eb648b32ef1ecc3f10823c32",
+        "stdout_prefix": "13|6330303035332D616161616161616161616161\n26|6D30303038392D616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8652,
+        "stdout_sha256": "678d83974a8bce6ed0e810b296fd624d12461d81eb648b32ef1ecc3f10823c32",
+        "stdout_prefix": "13|6330303035332D616161616161616161616161\n26|6D30303038392D616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496406,
+        "stdout_sha256": "8566dc0feb43129fe145bad10886607f7400e2d4d65b678d1295ac3c7c3ff744",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496406,
+        "stdout_sha256": "8566dc0feb43129fe145bad10886607f7400e2d4d65b678d1295ac3c7c3ff744",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496350,
+        "stdout_sha256": "6d5aa5c6dadd1fce64fb8f9595f8620866fe58cf338a26aad886e2f572983304",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496350,
+        "stdout_sha256": "6d5aa5c6dadd1fce64fb8f9595f8620866fe58cf338a26aad886e2f572983304",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7993,
+        "stdout_sha256": "f8631294260d5844b9d4343fb48cad1a3697b3447881e6766890447e8d188fb1",
+        "stdout_prefix": "9|6D30303030342D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n90|6330303036372D787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7993,
+        "stdout_sha256": "f8631294260d5844b9d4343fb48cad1a3697b3447881e6766890447e8d188fb1",
+        "stdout_prefix": "9|6D30303030342D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n90|6330303036372D787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409539,
+        "stdout_sha256": "68ab3040e1f4c18da30a058ad31728f9f6b9ca9c1247d161f6642b6c3ce9cf5d",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409539,
+        "stdout_sha256": "68ab3040e1f4c18da30a058ad31728f9f6b9ca9c1247d161f6642b6c3ce9cf5d",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409483,
+        "stdout_sha256": "ebe557fe77335b200033bb044867160514a16d3fffd33c024359fa5de093af90",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409483,
+        "stdout_sha256": "ebe557fe77335b200033bb044867160514a16d3fffd33c024359fa5de093af90",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "96|61|CAFE\n97||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "96|61|CAFE\n97||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435987,
+        "stdout_sha256": "ef7ab62bda01125dcd5c449b46c2f5a52f6d039e8c1a4aba61599ffc3d871e8e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265302D636238",
+        "stdout_suffix": "00000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435987,
+        "stdout_sha256": "ef7ab62bda01125dcd5c449b46c2f5a52f6d039e8c1a4aba61599ffc3d871e8e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265302D636238",
+        "stdout_suffix": "00000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435931,
+        "stdout_sha256": "940e7331a4f8a99f6fb69d9490f094d0bebc5138b96c586dad52b6cc2693f318",
+        "stdout_prefix": "2|text|62|text|66697874757265302D636238643462616464666235|integer|3138\n3|null||text|66697874757265302D613663363935323461613063|i",
+        "stdout_suffix": "13134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n98|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435931,
+        "stdout_sha256": "940e7331a4f8a99f6fb69d9490f094d0bebc5138b96c586dad52b6cc2693f318",
+        "stdout_prefix": "2|text|62|text|66697874757265302D636238643462616464666235|integer|3138\n3|null||text|66697874757265302D613663363935323461613063|i",
+        "stdout_suffix": "13134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n98|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435027,
+        "stdout_sha256": "78815ab88e26eafec92aba39d4611630da193b9cd8681a157230288bb0d2e360",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|3\n2|text|62|text|66697874757265302D636238643462616464666235|18\n3|null|",
+        "stdout_suffix": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|114\n95|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435027,
+        "stdout_sha256": "78815ab88e26eafec92aba39d4611630da193b9cd8681a157230288bb0d2e360",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|3\n2|text|62|text|66697874757265302D636238643462616464666235|18\n3|null|",
+        "stdout_suffix": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|114\n95|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n95|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n95|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7373,
+        "stdout_sha256": "308464b2bf26e12f1f372407e25ef9076e753cab123532cbe06f04b3bd7bad4a",
+        "stdout_prefix": "83|6D30303030302D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "1616161616161616161616161616161616161616161\n38|6D30303031312D787878787878787878787878\n54|6D30303032312D787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7373,
+        "stdout_sha256": "308464b2bf26e12f1f372407e25ef9076e753cab123532cbe06f04b3bd7bad4a",
+        "stdout_prefix": "83|6D30303030302D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "1616161616161616161616161616161616161616161\n38|6D30303031312D787878787878787878787878\n54|6D30303032312D787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 13503,
+        "stdout_sha256": "698509f93a1c419b28befabac393b04cc3beb2f4c6783acd9afcc64ebd100dbb",
+        "stdout_prefix": "95|\n4|\n3|\n1|61\n2|62\n33|6330303030312D7878787878787878787878786368616E676564\n61|6330303030382D61616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 13503,
+        "stdout_sha256": "698509f93a1c419b28befabac393b04cc3beb2f4c6783acd9afcc64ebd100dbb",
+        "stdout_prefix": "95|\n4|\n3|\n1|61\n2|62\n33|6330303030312D7878787878787878787878786368616E676564\n61|6330303030382D61616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 436006,
+        "stdout_sha256": "cf90c937b901bff801c603355c065afbae2c8c45407146874d4ebe285a7e5696",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435950,
+        "stdout_sha256": "fe5d3e0a443e8722d1ed572b2557d038ffe1590844f259489c74df09dcdc2aab",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8652,
+        "stdout_sha256": "678d83974a8bce6ed0e810b296fd624d12461d81eb648b32ef1ecc3f10823c32",
+        "stdout_prefix": "13|6330303035332D616161616161616161616161\n26|6D30303038392D616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8652,
+        "stdout_sha256": "678d83974a8bce6ed0e810b296fd624d12461d81eb648b32ef1ecc3f10823c32",
+        "stdout_prefix": "13|6330303035332D616161616161616161616161\n26|6D30303038392D616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496406,
+        "stdout_sha256": "8566dc0feb43129fe145bad10886607f7400e2d4d65b678d1295ac3c7c3ff744",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496406,
+        "stdout_sha256": "8566dc0feb43129fe145bad10886607f7400e2d4d65b678d1295ac3c7c3ff744",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496350,
+        "stdout_sha256": "6d5aa5c6dadd1fce64fb8f9595f8620866fe58cf338a26aad886e2f572983304",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 496350,
+        "stdout_sha256": "6d5aa5c6dadd1fce64fb8f9595f8620866fe58cf338a26aad886e2f572983304",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7993,
+        "stdout_sha256": "f8631294260d5844b9d4343fb48cad1a3697b3447881e6766890447e8d188fb1",
+        "stdout_prefix": "9|6D30303030342D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n90|6330303036372D787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 7993,
+        "stdout_sha256": "f8631294260d5844b9d4343fb48cad1a3697b3447881e6766890447e8d188fb1",
+        "stdout_prefix": "9|6D30303030342D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n90|6330303036372D787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409539,
+        "stdout_sha256": "68ab3040e1f4c18da30a058ad31728f9f6b9ca9c1247d161f6642b6c3ce9cf5d",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409539,
+        "stdout_sha256": "68ab3040e1f4c18da30a058ad31728f9f6b9ca9c1247d161f6642b6c3ce9cf5d",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265302D383436",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409483,
+        "stdout_sha256": "ebe557fe77335b200033bb044867160514a16d3fffd33c024359fa5de093af90",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 409483,
+        "stdout_sha256": "ebe557fe77335b200033bb044867160514a16d3fffd33c024359fa5de093af90",
+        "stdout_prefix": "1|text|61|text|66697874757265302D383436306532613637393064|integer|33\n2|text|62|text|66697874757265302D636238643462616464666235|i",
+        "stdout_suffix": "0000000000000000000000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        3,
+        18,
+        4,
+        17
+      ],
+      "initial_payloads": [
+        "fixture0-8460e2a6790d",
+        "fixture0-cb8d4baddfb5",
+        "fixture0-a6c69524aa0c",
+        "fixture0-a04be6b8f3c9"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "96|61|CAFE\n97||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "96|61|CAFE\n97||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435987,
+        "stdout_sha256": "ef7ab62bda01125dcd5c449b46c2f5a52f6d039e8c1a4aba61599ffc3d871e8e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265302D636238",
+        "stdout_suffix": "00000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435987,
+        "stdout_sha256": "ef7ab62bda01125dcd5c449b46c2f5a52f6d039e8c1a4aba61599ffc3d871e8e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265302D636238",
+        "stdout_suffix": "00000000000000000000000|integer|313134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435931,
+        "stdout_sha256": "940e7331a4f8a99f6fb69d9490f094d0bebc5138b96c586dad52b6cc2693f318",
+        "stdout_prefix": "2|text|62|text|66697874757265302D636238643462616464666235|integer|3138\n3|null||text|66697874757265302D613663363935323461613063|i",
+        "stdout_suffix": "13134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n98|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 435931,
+        "stdout_sha256": "940e7331a4f8a99f6fb69d9490f094d0bebc5138b96c586dad52b6cc2693f318",
+        "stdout_prefix": "2|text|62|text|66697874757265302D636238643462616464666235|integer|3138\n3|null||text|66697874757265302D613663363935323461613063|i",
+        "stdout_suffix": "13134\n95|null||text|6C6173742D6E756C6C|null|\n96|text|61|blob|CAFE|null|\n97|null||blob|FF|null|\n98|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 468399,
+        "stdout_sha256": "188f314f871204126f86d0a8e782f3eeb8bc46bfe75eeb0a522d5459813d6cab",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|12\n2|text|62|text|66697874757265312D623162313836383264663063|16\n3|null",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|187\n100|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 468399,
+        "stdout_sha256": "188f314f871204126f86d0a8e782f3eeb8bc46bfe75eeb0a522d5459813d6cab",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|12\n2|text|62|text|66697874757265312D623162313836383264663063|16\n3|null",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|187\n100|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n100|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n100|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "41|6D30303030322D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n85|6D30303030332D787878787878787878787878\n73|6D30303030382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n67|6D30303031332D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n62|6D30303031382D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n18|6D30303031392D787878787878787878787878\n64|6D30303032312D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "41|6D30303030322D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n85|6D30303030332D787878787878787878787878\n73|6D30303030382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n67|6D30303031332D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n62|6D30303031382D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n18|6D30303031392D787878787878787878787878\n64|6D30303032312D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 11113,
+        "stdout_sha256": "d0b41ccf7a6a34e96804504b0d2f64d8fa758aaea4632695bad486b1342ce101",
+        "stdout_prefix": "100|\n4|\n3|\n1|61\n2|62\n34|6330303030342D787878787878787878787878\n61|6330303030352D787878787878787878787878\n97|6330303030392D787878",
+        "stdout_suffix": "034352D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 11113,
+        "stdout_sha256": "d0b41ccf7a6a34e96804504b0d2f64d8fa758aaea4632695bad486b1342ce101",
+        "stdout_prefix": "100|\n4|\n3|\n1|61\n2|62\n34|6330303030342D787878787878787878787878\n61|6330303030352D787878787878787878787878\n97|6330303030392D787878",
+        "stdout_suffix": "034352D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 4788,
+        "stdout_sha256": "4e303f721adc8a8e5ef1e7c77bf5ccc33939f26ae86ae07555ff3fdbac224ba0",
+        "stdout_prefix": "13|6330303035392D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 4788,
+        "stdout_sha256": "4e303f721adc8a8e5ef1e7c77bf5ccc33939f26ae86ae07555ff3fdbac224ba0",
+        "stdout_prefix": "13|6330303035392D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543343,
+        "stdout_sha256": "b3e4abb35e687497dc1cb4044574fe6b586e2ae0aa293dc90921006ebe6a5483",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543343,
+        "stdout_sha256": "b3e4abb35e687497dc1cb4044574fe6b586e2ae0aa293dc90921006ebe6a5483",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543288,
+        "stdout_sha256": "fc785d3c4e5113b0c8013e9478ad255371ae57496ff4c1da0fd209a5987f528f",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543288,
+        "stdout_sha256": "fc785d3c4e5113b0c8013e9478ad255371ae57496ff4c1da0fd209a5987f528f",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 5849,
+        "stdout_sha256": "a777d7bbf8f6ceff4ce7187b41629cbcb6716a7503db10f3bbcdf5afc982f511",
+        "stdout_prefix": "9|7A30303033352D7474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616368616E676564\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 5849,
+        "stdout_sha256": "a777d7bbf8f6ceff4ce7187b41629cbcb6716a7503db10f3bbcdf5afc982f511",
+        "stdout_prefix": "9|7A30303033352D7474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616368616E676564\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387594,
+        "stdout_sha256": "691e5fcf1c734b59237f4d7e9b435cfb283eb6095c6a6682c10bbe5902a49940",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387594,
+        "stdout_sha256": "691e5fcf1c734b59237f4d7e9b435cfb283eb6095c6a6682c10bbe5902a49940",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387539,
+        "stdout_sha256": "e42c066b6a71b78c938905230af2a6632f1a69f7b17910c5a910206c7a121f4e",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387539,
+        "stdout_sha256": "e42c066b6a71b78c938905230af2a6632f1a69f7b17910c5a910206c7a121f4e",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "101|61|CAFE\n102||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "101|61|CAFE\n102||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469404,
+        "stdout_sha256": "6b6c3d589982ae5765ed2c9995cb0cd3c1f37d2cee35be7b98949d01e20e970c",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265312D623162",
+        "stdout_suffix": "00000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469404,
+        "stdout_sha256": "6b6c3d589982ae5765ed2c9995cb0cd3c1f37d2cee35be7b98949d01e20e970c",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265312D623162",
+        "stdout_suffix": "00000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469349,
+        "stdout_sha256": "a889dc2e9c99ae291ff7efbf0fa97480cee1742f0bff544922142faaad234cbb",
+        "stdout_prefix": "2|text|62|text|66697874757265312D623162313836383264663063|integer|3136\n3|null||text|66697874757265312D326565353961653530323361|i",
+        "stdout_suffix": "7\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n103|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469349,
+        "stdout_sha256": "a889dc2e9c99ae291ff7efbf0fa97480cee1742f0bff544922142faaad234cbb",
+        "stdout_prefix": "2|text|62|text|66697874757265312D623162313836383264663063|integer|3136\n3|null||text|66697874757265312D326565353961653530323361|i",
+        "stdout_suffix": "7\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n103|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 468399,
+        "stdout_sha256": "188f314f871204126f86d0a8e782f3eeb8bc46bfe75eeb0a522d5459813d6cab",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|12\n2|text|62|text|66697874757265312D623162313836383264663063|16\n3|null",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|187\n100|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 468399,
+        "stdout_sha256": "188f314f871204126f86d0a8e782f3eeb8bc46bfe75eeb0a522d5459813d6cab",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|12\n2|text|62|text|66697874757265312D623162313836383264663063|16\n3|null",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|187\n100|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n100|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n100|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "41|6D30303030322D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n85|6D30303030332D787878787878787878787878\n73|6D30303030382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n67|6D30303031332D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n62|6D30303031382D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n18|6D30303031392D787878787878787878787878\n64|6D30303032312D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "41|6D30303030322D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n85|6D30303030332D787878787878787878787878\n73|6D30303030382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n67|6D30303031332D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n62|6D30303031382D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n18|6D30303031392D787878787878787878787878\n64|6D30303032312D6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 11113,
+        "stdout_sha256": "d0b41ccf7a6a34e96804504b0d2f64d8fa758aaea4632695bad486b1342ce101",
+        "stdout_prefix": "100|\n4|\n3|\n1|61\n2|62\n34|6330303030342D787878787878787878787878\n61|6330303030352D787878787878787878787878\n97|6330303030392D787878",
+        "stdout_suffix": "034352D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 11113,
+        "stdout_sha256": "d0b41ccf7a6a34e96804504b0d2f64d8fa758aaea4632695bad486b1342ce101",
+        "stdout_prefix": "100|\n4|\n3|\n1|61\n2|62\n34|6330303030342D787878787878787878787878\n61|6330303030352D787878787878787878787878\n97|6330303030392D787878",
+        "stdout_suffix": "034352D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469423,
+        "stdout_sha256": "621c5fc2cd03098b7e9e8e33d35115a3f8d0913eee71f48ee8f2cbeeab189188",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469368,
+        "stdout_sha256": "0214677c2b41b8f32179e1913fb2391ca1631e2cc959d1763f62d9490406f45c",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 4788,
+        "stdout_sha256": "4e303f721adc8a8e5ef1e7c77bf5ccc33939f26ae86ae07555ff3fdbac224ba0",
+        "stdout_prefix": "13|6330303035392D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 4788,
+        "stdout_sha256": "4e303f721adc8a8e5ef1e7c77bf5ccc33939f26ae86ae07555ff3fdbac224ba0",
+        "stdout_prefix": "13|6330303035392D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "4747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543343,
+        "stdout_sha256": "b3e4abb35e687497dc1cb4044574fe6b586e2ae0aa293dc90921006ebe6a5483",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543343,
+        "stdout_sha256": "b3e4abb35e687497dc1cb4044574fe6b586e2ae0aa293dc90921006ebe6a5483",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543288,
+        "stdout_sha256": "fc785d3c4e5113b0c8013e9478ad255371ae57496ff4c1da0fd209a5987f528f",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 543288,
+        "stdout_sha256": "fc785d3c4e5113b0c8013e9478ad255371ae57496ff4c1da0fd209a5987f528f",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 5849,
+        "stdout_sha256": "a777d7bbf8f6ceff4ce7187b41629cbcb6716a7503db10f3bbcdf5afc982f511",
+        "stdout_prefix": "9|7A30303033352D7474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616368616E676564\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 5849,
+        "stdout_sha256": "a777d7bbf8f6ceff4ce7187b41629cbcb6716a7503db10f3bbcdf5afc982f511",
+        "stdout_prefix": "9|7A30303033352D7474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616368616E676564\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387594,
+        "stdout_sha256": "691e5fcf1c734b59237f4d7e9b435cfb283eb6095c6a6682c10bbe5902a49940",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387594,
+        "stdout_sha256": "691e5fcf1c734b59237f4d7e9b435cfb283eb6095c6a6682c10bbe5902a49940",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265312D373364",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387539,
+        "stdout_sha256": "e42c066b6a71b78c938905230af2a6632f1a69f7b17910c5a910206c7a121f4e",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 387539,
+        "stdout_sha256": "e42c066b6a71b78c938905230af2a6632f1a69f7b17910c5a910206c7a121f4e",
+        "stdout_prefix": "1|text|61|text|66697874757265312D373364636533646361363965|integer|3132\n2|text|62|text|66697874757265312D623162313836383264663063",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313039\n100|null||text|6C6173742D6E756C6C|null|\n101|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        12,
+        16,
+        10,
+        7
+      ],
+      "initial_payloads": [
+        "fixture1-73dce3dca69e",
+        "fixture1-b1b18682df0c",
+        "fixture1-2ee59ae5023a",
+        "fixture1-cd952f0c612f"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "101|61|CAFE\n102||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "101|61|CAFE\n102||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469404,
+        "stdout_sha256": "6b6c3d589982ae5765ed2c9995cb0cd3c1f37d2cee35be7b98949d01e20e970c",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265312D623162",
+        "stdout_suffix": "00000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469404,
+        "stdout_sha256": "6b6c3d589982ae5765ed2c9995cb0cd3c1f37d2cee35be7b98949d01e20e970c",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265312D623162",
+        "stdout_suffix": "00000000000000000000|integer|313837\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469349,
+        "stdout_sha256": "a889dc2e9c99ae291ff7efbf0fa97480cee1742f0bff544922142faaad234cbb",
+        "stdout_prefix": "2|text|62|text|66697874757265312D623162313836383264663063|integer|3136\n3|null||text|66697874757265312D326565353961653530323361|i",
+        "stdout_suffix": "7\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n103|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 469349,
+        "stdout_sha256": "a889dc2e9c99ae291ff7efbf0fa97480cee1742f0bff544922142faaad234cbb",
+        "stdout_prefix": "2|text|62|text|66697874757265312D623162313836383264663063|integer|3136\n3|null||text|66697874757265312D326565353961653530323361|i",
+        "stdout_suffix": "7\n100|null||text|6C6173742D6E756C6C|null|\n101|text|61|blob|CAFE|null|\n102|null||blob|FF|null|\n103|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 538032,
+        "stdout_sha256": "f047b881da995cfe109b701de933fbd91e86b6fa8b54e642c90e1c635b37bf00",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|9\n2|text|62|text|66697874757265322D653266663165373838346132|12\n3|null|",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|198\n105|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 538032,
+        "stdout_sha256": "f047b881da995cfe109b701de933fbd91e86b6fa8b54e642c90e1c635b37bf00",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|9\n2|text|62|text|66697874757265322D653266663165373838346132|12\n3|null|",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|198\n105|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n105|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n105|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8694,
+        "stdout_sha256": "b2e9d4cfc4808c8c3fcb5b9cb8e12020c60c9d8413685304c56265e4a9de8719",
+        "stdout_prefix": "19|6D30303030312D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8694,
+        "stdout_sha256": "b2e9d4cfc4808c8c3fcb5b9cb8e12020c60c9d8413685304c56265e4a9de8719",
+        "stdout_prefix": "19|6D30303030312D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 12817,
+        "stdout_sha256": "9b5f02e78db79018822bbaadb6d19a4049a212d47732c74856de79521569e646",
+        "stdout_prefix": "105|\n4|\n3|\n1|61\n2|62\n83|6330303030302D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 12817,
+        "stdout_sha256": "9b5f02e78db79018822bbaadb6d19a4049a212d47732c74856de79521569e646",
+        "stdout_prefix": "105|\n4|\n3|\n1|61\n2|62\n83|6330303030302D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 6495,
+        "stdout_sha256": "ab659de1eacb19ae6dae2c7a3f44155bbc0fa2d87e911708b9265bbb35c8fbff",
+        "stdout_prefix": "13|6330303039352D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "039382D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 6495,
+        "stdout_sha256": "ab659de1eacb19ae6dae2c7a3f44155bbc0fa2d87e911708b9265bbb35c8fbff",
+        "stdout_prefix": "13|6330303039352D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "039382D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584350,
+        "stdout_sha256": "db52a4f04fec9404dee4d0a7c644692df95d4f30654f5a12441218e461ccfa0e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584350,
+        "stdout_sha256": "db52a4f04fec9404dee4d0a7c644692df95d4f30654f5a12441218e461ccfa0e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584295,
+        "stdout_sha256": "9c648f5b20a5a171eb671aa28d65dffeca1518a706ecd4242eebe8c3f2adcd83",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584295,
+        "stdout_sha256": "9c648f5b20a5a171eb671aa28d65dffeca1518a706ecd4242eebe8c3f2adcd83",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 15377,
+        "stdout_sha256": "3701b681d5de38ca8fc14a79b0f8b18c479d52541bcf0304ee5a48a551eac8f7",
+        "stdout_prefix": "9|6330303035382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+        "stdout_suffix": "878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878786368616E676564\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 15377,
+        "stdout_sha256": "3701b681d5de38ca8fc14a79b0f8b18c479d52541bcf0304ee5a48a551eac8f7",
+        "stdout_prefix": "9|6330303035382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+        "stdout_suffix": "878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878786368616E676564\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448073,
+        "stdout_sha256": "1d79a6d290fab84c580f2d84e27ce380c4aa9a0509c22a7bbbd3a4b75984c6f6",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448073,
+        "stdout_sha256": "1d79a6d290fab84c580f2d84e27ce380c4aa9a0509c22a7bbbd3a4b75984c6f6",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448018,
+        "stdout_sha256": "1f4da23cc91928cce85630b3e5c4476dc65a8d2341c3cc81c6249ae6008c3840",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448018,
+        "stdout_sha256": "1f4da23cc91928cce85630b3e5c4476dc65a8d2341c3cc81c6249ae6008c3840",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "106|61|CAFE\n107||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "106|61|CAFE\n107||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539093,
+        "stdout_sha256": "416671c1e54593d8a63087404e3c435b3ed3f9affab5c00c26356f5e979f1868",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265322D653266",
+        "stdout_suffix": "00000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539093,
+        "stdout_sha256": "416671c1e54593d8a63087404e3c435b3ed3f9affab5c00c26356f5e979f1868",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265322D653266",
+        "stdout_suffix": "00000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539038,
+        "stdout_sha256": "6b1057ba4b754673d1b777be36203d78863fe17bf0fd356cb5bf980c60fb8827",
+        "stdout_prefix": "2|text|62|text|66697874757265322D653266663165373838346132|integer|3132\n3|null||text|66697874757265322D313037303331663235663436|i",
+        "stdout_suffix": "8\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n108|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539038,
+        "stdout_sha256": "6b1057ba4b754673d1b777be36203d78863fe17bf0fd356cb5bf980c60fb8827",
+        "stdout_prefix": "2|text|62|text|66697874757265322D653266663165373838346132|integer|3132\n3|null||text|66697874757265322D313037303331663235663436|i",
+        "stdout_suffix": "8\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n108|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,typeof(k),hex(k),typeof(v),hex(v),u FROM keyed ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 538032,
+        "stdout_sha256": "f047b881da995cfe109b701de933fbd91e86b6fa8b54e642c90e1c635b37bf00",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|9\n2|text|62|text|66697874757265322D653266663165373838346132|12\n3|null|",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|198\n105|null||text|6C6173742D6E756C6C|\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 538032,
+        "stdout_sha256": "f047b881da995cfe109b701de933fbd91e86b6fa8b54e642c90e1c635b37bf00",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|9\n2|text|62|text|66697874757265322D653266663165373838346132|12\n3|null|",
+        "stdout_suffix": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|198\n105|null||text|6C6173742D6E756C6C|\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k IS NULL ORDER BY rowid;",
+      "lean": {
+        "code": 0,
+        "stdout": "3|\n4|\n105|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|\n4|\n105|\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed WHERE k>='m' ORDER BY k,rowid LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8694,
+        "stdout_sha256": "b2e9d4cfc4808c8c3fcb5b9cb8e12020c60c9d8413685304c56265e4a9de8719",
+        "stdout_prefix": "19|6D30303030312D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 8694,
+        "stdout_sha256": "b2e9d4cfc4808c8c3fcb5b9cb8e12020c60c9d8413685304c56265e4a9de8719",
+        "stdout_prefix": "19|6D30303030312D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "SELECT rowid,hex(k) FROM keyed ORDER BY k,rowid DESC LIMIT 20;",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 12817,
+        "stdout_sha256": "9b5f02e78db79018822bbaadb6d19a4049a212d47732c74856de79521569e646",
+        "stdout_prefix": "105|\n4|\n3|\n1|61\n2|62\n83|6330303030302D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 12817,
+        "stdout_sha256": "9b5f02e78db79018822bbaadb6d19a4049a212d47732c74856de79521569e646",
+        "stdout_prefix": "105|\n4|\n3|\n1|61\n2|62\n83|6330303030302D747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474",
+        "stdout_suffix": "8787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539110,
+        "stdout_sha256": "b1d3725837b6cf59e0d87d865eddc5d18e60dba30e1ceebea42954aada62215a",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539055,
+        "stdout_sha256": "fb038022add58eeee79c1d1a2414152dc10b88ee3826a2e515174c7adb8c8e51",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE keyed SET v=zeroblob(6500) WHERE rowid%13=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 6495,
+        "stdout_sha256": "ab659de1eacb19ae6dae2c7a3f44155bbc0fa2d87e911708b9265bbb35c8fbff",
+        "stdout_prefix": "13|6330303039352D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "039382D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 6495,
+        "stdout_sha256": "ab659de1eacb19ae6dae2c7a3f44155bbc0fa2d87e911708b9265bbb35c8fbff",
+        "stdout_prefix": "13|6330303039352D616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616",
+        "stdout_suffix": "039382D787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584350,
+        "stdout_sha256": "db52a4f04fec9404dee4d0a7c644692df95d4f30654f5a12441218e461ccfa0e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584350,
+        "stdout_sha256": "db52a4f04fec9404dee4d0a7c644692df95d4f30654f5a12441218e461ccfa0e",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584295,
+        "stdout_sha256": "9c648f5b20a5a171eb671aa28d65dffeca1518a706ecd4242eebe8c3f2adcd83",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 584295,
+        "stdout_sha256": "9c648f5b20a5a171eb671aa28d65dffeca1518a706ecd4242eebe8c3f2adcd83",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM keyed WHERE rowid%9=0 RETURNING rowid,hex(k);",
+      "lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 15377,
+        "stdout_sha256": "3701b681d5de38ca8fc14a79b0f8b18c479d52541bcf0304ee5a48a551eac8f7",
+        "stdout_prefix": "9|6330303035382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+        "stdout_suffix": "878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878786368616E676564\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 15377,
+        "stdout_sha256": "3701b681d5de38ca8fc14a79b0f8b18c479d52541bcf0304ee5a48a551eac8f7",
+        "stdout_prefix": "9|6330303035382D7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+        "stdout_suffix": "878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878786368616E676564\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448073,
+        "stdout_sha256": "1d79a6d290fab84c580f2d84e27ce380c4aa9a0509c22a7bbbd3a4b75984c6f6",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448073,
+        "stdout_sha256": "1d79a6d290fab84c580f2d84e27ce380c4aa9a0509c22a7bbbd3a4b75984c6f6",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n1|text|61|text|66697874757265322D336236",
+        "stdout_suffix": "000000000000000000000000000000000000000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448018,
+        "stdout_sha256": "1f4da23cc91928cce85630b3e5c4476dc65a8d2341c3cc81c6249ae6008c3840",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 448018,
+        "stdout_sha256": "1f4da23cc91928cce85630b3e5c4476dc65a8d2341c3cc81c6249ae6008c3840",
+        "stdout_prefix": "1|text|61|text|66697874757265322D336236653866366266636233|integer|39\n2|text|62|text|66697874757265322D653266663165373838346132|i",
+        "stdout_suffix": "00000000000000000000000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|null||text|706F73742D63|null|\n"
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "not_null": false,
+      "initial_nulls": true,
+      "initial_unique_values": [
+        9,
+        12,
+        16,
+        4
+      ],
+      "initial_payloads": [
+        "fixture2-3b6e8f6bfcb3",
+        "fixture2-e2ff1e7884a2",
+        "fixture2-107031f25f46",
+        "fixture2-156a74396eff"
+      ],
+      "mode": "--verified-wal-file",
+      "sql": "INSERT OR REPLACE INTO keyed VALUES('a',X'CAFE',NULL),(NULL,X'FF',NULL) RETURNING rowid,hex(k),hex(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "106|61|CAFE\n107||FF\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "106|61|CAFE\n107||FF\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539093,
+        "stdout_sha256": "416671c1e54593d8a63087404e3c435b3ed3f9affab5c00c26356f5e979f1868",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265322D653266",
+        "stdout_suffix": "00000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539093,
+        "stdout_sha256": "416671c1e54593d8a63087404e3c435b3ed3f9affab5c00c26356f5e979f1868",
+        "stdout_prefix": "ok\n0|k|TEXT|0||1\n1|v||0||0\n2|u|INTEGER|0||0\n0|ku|1|c|0\n1|sqlite_autoindex_keyed_1|1|pk|0\n2|text|62|text|66697874757265322D653266",
+        "stdout_suffix": "00000000000000000000|integer|313938\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n"
+      },
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539038,
+        "stdout_sha256": "6b1057ba4b754673d1b777be36203d78863fe17bf0fd356cb5bf980c60fb8827",
+        "stdout_prefix": "2|text|62|text|66697874757265322D653266663165373838346132|integer|3132\n3|null||text|66697874757265322D313037303331663235663436|i",
+        "stdout_suffix": "8\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n108|null||text|706F73742D63|null|\n"
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_bytes": 539038,
+        "stdout_sha256": "6b1057ba4b754673d1b777be36203d78863fe17bf0fd356cb5bf980c60fb8827",
+        "stdout_prefix": "2|text|62|text|66697874757265322D653266663165373838346132|integer|3132\n3|null||text|66697874757265322D313037303331663235663436|i",
+        "stdout_suffix": "8\n105|null||text|6C6173742D6E756C6C|null|\n106|text|61|blob|CAFE|null|\n107|null||blob|FF|null|\n108|null||text|706F73742D63|null|\n"
+      }
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "0555378cab0bf120bb02b34aa8d2e6ef1ee2b3713059bd94834203e58cc3ddf4",
+  "executable_sha256": "74389c517fd6c81dee9e96d170157ec72195a494e36b9715b5bb8bf5e1124505",
+  "harness_sha256": "289d2f6aa8e0274b5b76213ce30789f4f9b76f29151a98502d88206c36a21aef",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Mutated foreign B-tree pointer-order and overflow public-file differential against pinned SQLite.\n\nCompare successful output bytes, positive errors, and independently observed\nstored rows, storage classes, and integrity after every script. Failed single\nstatements must retain main/WAL bytes. Large successful captures are stored\nas byte counts, SHA-256 and previews after full-byte comparison. Failures keep\nfull captures. This is not full SQLite equivalence."
+}

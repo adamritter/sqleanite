@@ -93,7 +93,7 @@ def Schema.WellFormed (schema : Schema) : Prop :=
   namesUnique (schema.columns.map (·.name)) ∧
   schema.columns.findIdx? (·.integerPrimaryKey) = some schema.primaryKey ∧
   (∀ column ∈ schema.columns,
-    (column.integerPrimaryKey || column.textPrimaryKey) → column.notNull) ∧
+    column.integerPrimaryKey → column.notNull) ∧
   schema.CatalogShape
 
 instance (schema : Schema) : Decidable schema.WellFormed := by
@@ -244,10 +244,31 @@ def Row.declaredPrimaryValue? (schema : Schema) (row : Row) : Option Value := do
   let column ← schema.declaredPrimaryKey?
   row.values[column]?
 
-/-- Tables without a declared key use their unique internal rowid in the
-lookup cache. This prevents unrelated rows from colliding on a synthetic NULL. -/
+/-- Absent and NULL declared keys use the physical rowid only in the lookup
+cache. SQLite admits multiple NULLs in an ordinary TEXT PRIMARY KEY. Admitted
+non-NULL TEXT-affinity keys are TEXT or BLOB, so this INTEGER cache namespace
+does not collide with them. Record and index payloads retain the actual NULL. -/
 def Row.declaredKey (schema : Schema) (row : Row) : Value :=
-  (row.declaredPrimaryValue? schema).getD (.integer row.rowid)
+  match row.declaredPrimaryValue? schema with
+  | none | some .null => .integer row.rowid
+  | some key => key
+
+theorem Row.declaredKey_null (schema : Schema) (row : Row)
+    (nullKey : row.declaredPrimaryValue? schema = some .null) :
+    row.declaredKey schema = .integer row.rowid := by
+  simp [Row.declaredKey, nullKey]
+
+theorem Row.declaredKey_null_injective (schema : Schema) (left right : Row)
+    (leftNull : left.declaredPrimaryValue? schema = some .null)
+    (rightNull : right.declaredPrimaryValue? schema = some .null) :
+    left.declaredKey schema = right.declaredKey schema ↔ left.rowid = right.rowid := by
+  rw [Row.declaredKey_null schema left leftNull, Row.declaredKey_null schema right rightNull]
+  simp
+
+theorem Row.declaredKey_nonnull (schema : Schema) (row : Row) (key : Value)
+    (present : row.declaredPrimaryValue? schema = some key) (nonnull : key ≠ .null) :
+    row.declaredKey schema = key := by
+  cases key <;> simp_all [Row.declaredKey]
 
 theorem Row.declaredKey_no_declared (schema : Schema) (row : Row)
     (absent : schema.declaredPrimaryKey? = none) :

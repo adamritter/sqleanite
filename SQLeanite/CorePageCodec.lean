@@ -210,25 +210,7 @@ theorem canonicalPointersBeginAtContent_encodeChunkLeaf (schema : Core.Schema)
             ⟨bodyBytes, fits⟩
           change CoreDecode.canonicalPointersBeginAtContent body.bytes = true
           rw [bodyBytes]
-          let contentStart := PhysicalCodec.pageSize -
-            (PhysicalCodec.cellBytes cells).length
-          have countBound : cells.length < 256 ^ 2 := by
-            simpa using fits.cellCount_lt
-          have contentBound : contentStart < 256 ^ 2 := by
-            simpa [contentStart] using PhysicalCodec.contentStart_lt cells
-          cases cells with
-          | nil =>
-              simp [CoreDecode.canonicalPointersBeginAtContent,
-                PhysicalCodec.leafPageBody, PhysicalCodec.leafHeader,
-                PhysicalCodec.leafPointers, PhysicalCodec.cellOffsetsFrom,
-                PhysicalCodec.encodeU16Nat, FileFormat.encodeUnsignedFixed,
-                FileFormat.decodeU16]
-          | cons cell cells =>
-              simp [CoreDecode.canonicalPointersBeginAtContent,
-                PhysicalCodec.leafPageBody, PhysicalCodec.leafHeader,
-                PhysicalCodec.leafPointers, PhysicalCodec.cellOffsetsFrom,
-                PhysicalCodec.encodeU16Nat, FileFormat.encodeUnsignedFixed,
-                FileFormat.decodeU16, contentStart]
+          exact CoreDecode.canonicalPointersBeginAtContent_leafPageBody cells fits
 
 /- Retained as historical proof text for the superseded inline-only encoder.
 The live decoder now prefers the overflow-aware packed-cell path, and the

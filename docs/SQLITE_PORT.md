@@ -2839,3 +2839,64 @@ bindings are unchanged. Reports use `sqlite-update-tuples-*20261025.json`;
 harness: `scripts/run-update-tuples-differential.py`. This is not a claim about
 row-value comparisons, subqueries, all schema constraints or full SQLite
 compatibility.
+
+
+## Nullable TEXT keys and foreign pointer ordering (2026-10-25)
+
+Ordinary TEXT PRIMARY KEY columns now retain their declared nullability.
+SQLite's documented [PRIMARY KEY semantics](https://www.sqlite.org/lang_createtable.html#the_primary_key)
+permit multiple NULL keys unless NOT NULL is explicit. The lookup cache uses
+an INTEGER physical-rowid key for absent/NULL declared keys; admitted non-NULL
+TEXT-affinity values are TEXT or BLOB, so the namespaces are disjoint. Record
+and automatic-index payloads still contain the actual NULL. Component proofs
+cover the NULL mapping, distinct-rowid injectivity and non-NULL preservation.
+
+This deliberately extends `Schema.WellFormed` and canonical `Printable`:
+only the physical INTEGER rowid alias must now be internally non-NULL.
+The canonical printer/recognizer preserves explicit TEXT PRIMARY KEY NOT NULL,
+and its inverse proof includes nullable TEXT keys. Previously generated bare
+TEXT PRIMARY KEY declarations decode with their actual SQLite semantics; an
+explicit NOT NULL declaration already lost in an older file cannot be inferred.
+
+INSERT REPLACE and INSERT SELECT REPLACE now take the allocate-before-delete
+trace for any declared non-rowid key, including when no explicit UNIQUE index
+remains. The two ordinary `CoreSQLWriteText` REPLACE translation premises change
+from `indexes.any unique = false` to `hasReplaceKeys = false`, matching this
+route. Other Core replacement laws are not silently restated as SQL semantics.
+
+The first expanded page-size evaluation exposed a separate decoder bug:
+**94 differences / 2,808 executions**, all on a 4096-byte foreign fixture after
+an independent C insertion of NULL. The first index pointer equalled the
+content start but later pointers ran backwards. First-pointer coincidence was
+insufficient to treat the payload as physically key-ordered. All four packed
+page recognizers (catalog, table leaf, index leaf and index interior) now check
+the whole pointer ordering. Foreign layouts failing the guard use the existing
+pointer-directed decoder. The strengthened guard accepts generated pages by
+proof; every existing generated-page inverse remains proved. The chunk-page
+codec now reuses that common theorem. This guard is not claimed as a complete
+corruption validator. Intermediate proof elaboration failures and the dependent
+chunk-page proof were corrected before the final evaluation.
+
+Retained SQL baselines: seed 354060 **166 / 318 differences**; expanded seed
+354061 **170 / 294**. Initial development seed 354062 passed **576 executions**
+but did not establish the missing cross-page property above. Both that result
+and the later negative report are retained. Final seed 354064 regenerates the
+initial payloads/unique values and 160 SQL statements: **3,528 executions,
+zero differences**, including 1,098 positive-error outcomes. It crosses three
+key-nullability states with 512/4096/65536-byte pages and both public file modes.
+Each case compares successful output bytes, persisted types/hex values,
+`table_info`, `index_list` and integrity, then checks an independent C write and
+Lean reopen. Rejected individual statements retain main/WAL bytes. Seed 354065
+adds **42 executions, zero differences** on C-mutated trees with 90–100 extra
+rows, large keys, interior/overflow pages, updates, deletions and NULL insertion.
+Exact diagnostics and partial output preceding a script error are not compared.
+
+Implementation SHA-256: `0555378cab0bf120bb02b34aa8d2e6ef1ee2b3713059bd94834203e58cc3ddf4`.
+The matching report records the successful **306-job build, 227 executable
+tests, 1,120 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. The nine native bindings
+are unchanged. Reports use `sqlite-text-primary-*20261025.json`; harnesses are
+`scripts/run-text-primary-differential.py` and
+`scripts/run-pointer-layout-differential.py`. Composite keys, other declared
+primary-key types, broader schema constraints and full SQL/database/WAL
+compatibility remain unfinished.

@@ -1272,3 +1272,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.RowAssignment.bind_exact
 #print axioms SQLeanite.SQLite.RowAssignment.bind_length
+
+#print axioms SQLeanite.Core.Row.declaredKey_null
+#print axioms SQLeanite.Core.Row.declaredKey_null_injective
+#print axioms SQLeanite.Core.Row.declaredKey_nonnull
+
+#print axioms SQLeanite.CoreDecode.ascendingCellPointers_leafPointers
+#print axioms SQLeanite.CoreDecode.ascendingCellPointers_next

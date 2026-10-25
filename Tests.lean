@@ -4597,6 +4597,68 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteNullableTextPrimary : IO Unit := do
+  let setup := "CREATE TABLE k(k TEXT PRIMARY KEY,v);" ++
+    "INSERT INTO k VALUES('a','one'),('b','two'),(NULL,'null1'),(NULL,'null2');" ++
+    "CREATE TABLE required(k TEXT PRIMARY KEY NOT NULL,v);INSERT INTO required VALUES('a',1);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × List (List Value)) := [
+    ("INSERT INTO k VALUES(NULL,'n3'),(NULL,'n4') RETURNING rowid,k;",
+      [[.integer 5,.null],[.integer 6,.null]]),
+    ("INSERT OR REPLACE INTO k VALUES('a','new');SELECT rowid,k FROM k ORDER BY rowid;",
+      [[.integer 2,.text "b"],[.integer 3,.null],[.integer 4,.null],[.integer 5,.text "a"]]),
+    ("INSERT OR REPLACE INTO k SELECT 'a','new';SELECT rowid,k FROM k ORDER BY rowid;",
+      [[.integer 2,.text "b"],[.integer 3,.null],[.integer 4,.null],[.integer 5,.text "a"]]),
+    ("UPDATE k SET k=NULL RETURNING rowid,k;",
+      [[.integer 1,.null],[.integer 2,.null],[.integer 3,.null],[.integer 4,.null]]),
+    ("UPDATE k SET rowid=rowid-10 WHERE k IS NULL RETURNING rowid,k;",
+      [[.integer (-7),.null],[.integer (-6),.null]]),
+    ("SELECT rowid FROM k WHERE k=NULL;", []),
+    ("SELECT rowid FROM k WHERE k IS NULL ORDER BY rowid;", [[.integer 3],[.integer 4]]),
+    ("INSERT INTO k VALUES(123,'number'),(X'313233','blob') RETURNING typeof(k),hex(k);",
+      [[.text "text",.text "313233"],[.text "blob",.text "313233"]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"nullable TEXT key: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do
+      fail s!"nullable TEXT key mismatch: {sql}"
+  let image ← match CoreFile.encode initial.database with
+    | some image => pure image
+    | none => fail "nullable TEXT key could not be encoded"
+  let reopened ← match CoreDecode.decode image.fileBytes with
+    | some database => pure database
+    | none => fail "nullable TEXT key could not be reopened"
+  for (name, notNull) in [("k",false),("required",true)] do
+    let some table := reopened.findTable? name | fail "TEXT key round-trip lost table"
+    unless table.schema.catalogColumns.head?.map (·.notNull) == some notNull do
+      fail "TEXT key round-trip changed explicit nullability"
+  for sql in ["INSERT INTO required VALUES(NULL,2);", "UPDATE required SET k=NULL;",
+      "INSERT INTO k VALUES('a','duplicate');"] do
+    if (CoreSQL.execute { database := reopened } sql).isOk then
+      fail s!"TEXT key round-trip lost constraint: {sql}"
+
+  let path : System.FilePath := ".lake/build/sqleanite-null-key-foreign.db"
+  if ← path.pathExists then IO.FS.removeFile path
+  let created ← IO.Process.output {
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+    args := #[path.toString, "-batch", "-bail",
+      "PRAGMA page_size=4096;CREATE TABLE k(k TEXT PRIMARY KEY,v);" ++
+      "INSERT INTO k VALUES('a',1),('b',2),(NULL,3);"] }
+  unless created.exitCode == 0 do fail s!"foreign NULL-key fixture: {created.stderr}"
+  let bytes ← IO.FS.readBinFile path
+  unless (CoreDecode.decode bytes.data.toList).isSome do
+    fail "first pointer at content start hid a backwards foreign index pointer"
+  let reopened ← CoreFileAdapter.reopen {
+    main := path, journal := ".lake/build/sqleanite-null-key-foreign.db-journal" }
+  unless (reopened.findTable? "k").map (fun table => table.rows.length) == some 3 do
+    fail "IO decoder lost a NULL-key row in a foreign index layout"
+
 private def expectSQLiteUpdateTuples : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
     "INSERT INTO t VALUES(1,'a',1),(2,'b',2),(3,'c',3);"
@@ -6106,6 +6168,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite nullable TEXT primary keys and persisted NOT NULL", expectSQLiteNullableTextPrimary),
   ("SQLite row-value UPDATE assignments preserve width and simultaneous RHS", expectSQLiteUpdateTuples),
   ("SQLite UPDATE RETURNING uses pending rows and accepted new values", expectSQLiteUpdateReturning),
   ("SQLite INSERT RETURNING collects accepted rows before later replacements", expectSQLiteInsertReturning),

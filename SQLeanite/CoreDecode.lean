@@ -973,6 +973,51 @@ def decodeCatalogForPageSize (pageSize : Nat) (firstPage : List UInt8) :
   let cells ← cellInputsFor? pageSize 100 firstPage
   cells.mapM decodeCatalogCell
 
+/-- Check the whole pointer run before treating its payload as physically
+key-ordered. A foreign page may have its first pointer at contentStart while
+later pointers run backwards. -/
+def ascendingCellPointers : Nat → Nat → List UInt8 → Bool
+  | 0, _, _ => true
+  | count + 1, lower, input =>
+      match decodeUnsignedFixed 2 input with
+      | some (offset, rest) => decide (lower ≤ offset) && ascendingCellPointers count offset rest
+      | none => false
+
+theorem ascendingCellPointers_leafPointers (cells : List (List UInt8))
+    (start lower : Nat) (suffix : List UInt8) (ordered : lower ≤ start)
+    (bounded : start + (PhysicalCodec.cellBytes cells).length < 65536) :
+    ascendingCellPointers cells.length lower
+      (PhysicalCodec.leafPointers start cells ++ suffix) = true := by
+  induction cells generalizing start lower with
+  | nil => rfl
+  | cons cell cells ih =>
+      have layout : PhysicalCodec.leafPointers start (cell :: cells) =
+          PhysicalCodec.encodeU16Nat start ++
+            PhysicalCodec.leafPointers (start + cell.length) cells := rfl
+      rw [layout, List.append_assoc]
+      simp only [List.length_cons, ascendingCellPointers, PhysicalCodec.encodeU16Nat]
+      rw [decodeUnsignedFixed_encode _ (by
+        simp [PhysicalCodec.cellBytes] at bounded
+        omega)]
+      simp only [ordered, decide_true, Bool.true_and]
+      exact ih (start + cell.length) start (by omega) (by
+        simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append] at bounded ⊢
+        omega)
+
+theorem ascendingCellPointers_next {count lower offset : Nat}
+    {input rest : List UInt8}
+    (decoded : decodeUnsignedFixed 2 input = some (offset, rest))
+    (accepted : ascendingCellPointers (count + 1) lower input = true) :
+    lower ≤ offset := by
+  simp only [ascendingCellPointers, decoded, Bool.and_eq_true, decide_eq_true_eq] at accepted
+  exact accepted.1
+
+private theorem decodedU16Nat (value : Nat) (bounded : value < 65536) :
+    value / 256 % 256 * 256 + value % 256 = value := by
+  have high : value / 256 < 256 := by omega
+  rw [Nat.mod_eq_of_lt high]
+  omega
+
 def canonicalCatalogPointersBeginAtContent (page : List UInt8) : Bool :=
   match page.drop 100 with
   | 13 :: _ :: _ :: countHigh :: countLow :: contentHigh :: contentLow :: _ ::
@@ -981,8 +1026,9 @@ def canonicalCatalogPointersBeginAtContent (page : List UInt8) : Bool :=
       let contentStart := decodeU16 contentHigh contentLow
       if cellCount = 0 then true
       else match afterHeader with
-        | firstHigh :: firstLow :: _ =>
-            decide (decodeU16 firstHigh firstLow = contentStart)
+        | firstHigh :: firstLow :: remaining =>
+            decide (decodeU16 firstHigh firstLow = contentStart) &&
+              ascendingCellPointers (cellCount - 1) contentStart remaining
         | _ => false
   | _ => false
 
@@ -1010,11 +1056,37 @@ theorem canonicalCatalogPointers_leafPageBody (headerBytes : List UInt8)
         FileFormat.encodeUnsignedFixed, FileFormat.decodeU16]
   | cons cell cells =>
       simp only [List.length_cons] at countBound
+      have restOrdered : ∀ suffix,
+          ascendingCellPointers cells.length
+            (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length)
+            (PhysicalCodec.leafPointers
+              (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length + cell.length)
+              cells ++ suffix) = true := by
+        intro suffix
+        apply ascendingCellPointers_leafPointers
+        · omega
+        · have sizeBound : (PhysicalCodec.cellBytes (cell :: cells)).length ≤ PhysicalCodec.pageSize := by
+            simp only [PhysicalCodec.PageFit, PhysicalTableBTree.InteriorPageFit] at fits
+            omega
+          simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append] at sizeBound ⊢
+          have pageSize : PhysicalCodec.pageSize = 4096 := rfl
+          omega
+      simp only [PhysicalCodec.leafPointers, PhysicalCodec.cellBytes, List.flatten_cons,
+        List.length_append, List.length_flatten] at restOrdered
+      have decodedCount : (cells.length + 1) / 256 % 256 * 256 +
+          (cells.length + 1) % 256 = cells.length + 1 := by omega
+      simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append,
+        List.length_flatten] at contentBound
+      have decodedContent :
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) / 256 % 256 * 256 +
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) % 256 =
+          PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum) :=
+        decodedU16Nat _ contentBound
       simp [PhysicalCodec.leafPageBody, PhysicalCodec.leafHeader,
         PhysicalCodec.leafPointers, PhysicalCodec.cellOffsetsFrom,
         PhysicalCodec.cellBytes, PhysicalCodec.encodeU16Nat,
         FileFormat.encodeUnsignedFixed, FileFormat.decodeU16,
-        Nat.mod_eq_of_lt countBound, Nat.mod_eq_of_lt contentBound]
+        Nat.mod_eq_of_lt countBound, Nat.mod_eq_of_lt contentBound, restOrdered, decodedCount, decodedContent]
 
 /-- Generated pages use a proof-oriented sequential catalog decoder. Other
 SQLite pointer layouts retain the tolerant offset-based decoder. -/
@@ -3438,10 +3510,9 @@ theorem decodePackedRowCellsFrom_resolvePlans (schema : Core.Schema)
                       rw [tailDecoded]
                     next payloadUnbounded => contradiction
 
-/-- The bulk encoder lays cell content in key order, so its first cell pointer
-is exactly the start of the contiguous content area. SQLite is free to reuse
-cell bodies in a different physical order after mutation; those pages must use
-the pointer-driven decoder rather than the canonical contiguous decoder. -/
+/-- The bulk encoder starts at contentStart and lays all cell bodies in key
+order. Check the first pointer and the ordering of every following pointer;
+SQLite may otherwise reuse bodies in a different physical order. -/
 def canonicalPointersBeginAtContent (page : List UInt8) : Bool :=
   match page with
   | 13 :: _ :: _ :: countHigh :: countLow :: contentHigh :: contentLow :: _ ::
@@ -3450,8 +3521,9 @@ def canonicalPointersBeginAtContent (page : List UInt8) : Bool :=
       let contentStart := decodeU16 contentHigh contentLow
       if cellCount = 0 then true
       else match afterHeader with
-        | firstHigh :: firstLow :: _ =>
-            decide (decodeU16 firstHigh firstLow = contentStart)
+        | firstHigh :: firstLow :: remaining =>
+            decide (decodeU16 firstHigh firstLow = contentStart) &&
+              ascendingCellPointers (cellCount - 1) contentStart remaining
         | _ => false
   | _ => false
 
@@ -3472,12 +3544,38 @@ theorem canonicalPointersBeginAtContent_leafPageBody
         FileFormat.decodeU16]
   | cons cell cells =>
       simp only [List.length_cons] at countBound
+      have restOrdered : ∀ suffix,
+          ascendingCellPointers cells.length
+            (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length)
+            (PhysicalCodec.leafPointers
+              (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length + cell.length)
+              cells ++ suffix) = true := by
+        intro suffix
+        apply ascendingCellPointers_leafPointers
+        · omega
+        · have sizeBound : (PhysicalCodec.cellBytes (cell :: cells)).length ≤ PhysicalCodec.pageSize := by
+            simp only [PhysicalCodec.PageFit, PhysicalTableBTree.InteriorPageFit] at fits
+            omega
+          simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append] at sizeBound ⊢
+          have pageSize : PhysicalCodec.pageSize = 4096 := rfl
+          omega
+      simp only [PhysicalCodec.leafPointers, PhysicalCodec.cellBytes, List.flatten_cons,
+        List.length_append, List.length_flatten] at restOrdered
+      have decodedCount : (cells.length + 1) / 256 % 256 * 256 +
+          (cells.length + 1) % 256 = cells.length + 1 := by omega
+      simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append,
+        List.length_flatten] at contentBound
+      have decodedContent :
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) / 256 % 256 * 256 +
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) % 256 =
+          PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum) :=
+        decodedU16Nat _ contentBound
       simp [canonicalPointersBeginAtContent, PhysicalCodec.leafPageBody,
         PhysicalCodec.leafHeader, PhysicalCodec.leafPointers,
         PhysicalCodec.cellOffsetsFrom, PhysicalCodec.cellBytes,
         PhysicalCodec.encodeU16Nat, FileFormat.encodeUnsignedFixed,
         FileFormat.decodeU16, Nat.mod_eq_of_lt countBound,
-        Nat.mod_eq_of_lt contentBound]
+        Nat.mod_eq_of_lt contentBound, restOrdered, decodedCount, decodedContent]
 
 def decodeRowsByPointersFrom (schema : Core.Schema) (source : PageSource)
     (page : List UInt8) : Option (List Core.Row) := do
@@ -4353,8 +4451,9 @@ def canonicalIndexLeafPointersBeginAtContent (page : List UInt8) : Bool :=
       let contentStart := decodeU16 contentHigh contentLow
       if cellCount = 0 then true
       else match afterHeader with
-        | firstHigh :: firstLow :: _ =>
-            decide (decodeU16 firstHigh firstLow = contentStart)
+        | firstHigh :: firstLow :: remaining =>
+            decide (decodeU16 firstHigh firstLow = contentStart) &&
+              ascendingCellPointers (cellCount - 1) contentStart remaining
         | _ => false
   | _ => false
 
@@ -4382,8 +4481,9 @@ def canonicalIndexInteriorPointersBeginAtContent (page : List UInt8) : Bool :=
       let contentStart := decodeU16 contentHigh contentLow
       if cellCount = 0 then true
       else match afterHeader with
-        | firstHigh :: firstLow :: _ =>
-            decide (decodeU16 firstHigh firstLow = contentStart)
+        | firstHigh :: firstLow :: remaining =>
+            decide (decodeU16 firstHigh firstLow = contentStart) &&
+              ascendingCellPointers (cellCount - 1) contentStart remaining
         | _ => false
   | _ => false
 
@@ -4476,13 +4576,39 @@ theorem canonicalIndexLeafPointers_leafPageBody
         FileFormat.decodeU16]
   | cons cell cells =>
       simp only [List.length_cons] at countBound
+      have restOrdered : ∀ suffix,
+          ascendingCellPointers cells.length
+            (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length)
+            (PhysicalCodec.leafPointers
+              (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length + cell.length)
+              cells ++ suffix) = true := by
+        intro suffix
+        apply ascendingCellPointers_leafPointers
+        · omega
+        · have sizeBound : (PhysicalCodec.cellBytes (cell :: cells)).length ≤ PhysicalCodec.pageSize := by
+            simp only [PhysicalCodec.PageFit, PhysicalTableBTree.InteriorPageFit] at fits
+            omega
+          simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append] at sizeBound ⊢
+          have pageSize : PhysicalCodec.pageSize = 4096 := rfl
+          omega
+      simp only [PhysicalCodec.leafPointers, PhysicalCodec.cellBytes, List.flatten_cons,
+        List.length_append, List.length_flatten] at restOrdered
+      have decodedCount : (cells.length + 1) / 256 % 256 * 256 +
+          (cells.length + 1) % 256 = cells.length + 1 := by omega
+      simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append,
+        List.length_flatten] at contentBound
+      have decodedContent :
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) / 256 % 256 * 256 +
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) % 256 =
+          PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum) :=
+        decodedU16Nat _ contentBound
       simp [canonicalIndexLeafPointersBeginAtContent,
         PhysicalCodec.leafPageBody, PhysicalCodec.leafHeader,
         PhysicalCodec.leafPointers, PhysicalCodec.cellOffsetsFrom,
         PhysicalCodec.cellBytes, CoreFile.replaceFirst,
         PhysicalCodec.encodeU16Nat, FileFormat.encodeUnsignedFixed,
         FileFormat.decodeU16, Nat.mod_eq_of_lt countBound,
-        Nat.mod_eq_of_lt contentBound]
+        Nat.mod_eq_of_lt contentBound, restOrdered, decodedCount, decodedContent]
 
 set_option maxRecDepth 2048 in
 theorem canonicalIndexInteriorContent_interiorPageBody
@@ -4594,6 +4720,32 @@ theorem canonicalIndexInteriorPointers_interiorPageBody
         FileFormat.decodeU16]
   | cons cell cells =>
       simp only [List.length_cons] at countBound
+      have restOrdered : ∀ suffix,
+          ascendingCellPointers cells.length
+            (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length)
+            (PhysicalCodec.leafPointers
+              (PhysicalCodec.pageSize - (PhysicalCodec.cellBytes (cell :: cells)).length + cell.length)
+              cells ++ suffix) = true := by
+        intro suffix
+        apply ascendingCellPointers_leafPointers
+        · omega
+        · have sizeBound : (PhysicalCodec.cellBytes (cell :: cells)).length ≤ PhysicalCodec.pageSize := by
+            simp only [PhysicalCodec.PageFit, PhysicalTableBTree.InteriorPageFit] at fits
+            omega
+          simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append] at sizeBound ⊢
+          have pageSize : PhysicalCodec.pageSize = 4096 := rfl
+          omega
+      simp only [PhysicalCodec.leafPointers, PhysicalCodec.cellBytes, List.flatten_cons,
+        List.length_append, List.length_flatten] at restOrdered
+      have decodedCount : (cells.length + 1) / 256 % 256 * 256 +
+          (cells.length + 1) % 256 = cells.length + 1 := by omega
+      simp only [PhysicalCodec.cellBytes, List.flatten_cons, List.length_append,
+        List.length_flatten] at contentBound
+      have decodedContent :
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) / 256 % 256 * 256 +
+          (PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum)) % 256 =
+          PhysicalCodec.pageSize - (cell.length + (cells.map List.length).sum) :=
+        decodedU16Nat _ contentBound
       simp [canonicalIndexInteriorPointersBeginAtContent,
         PhysicalTableBTree.interiorPageBody,
         PhysicalTableBTree.interiorHeader, PhysicalCodec.leafPointers,
@@ -4601,7 +4753,7 @@ theorem canonicalIndexInteriorPointers_interiorPageBody
         CoreFile.replaceFirst, PhysicalCodec.encodeU16Nat,
         FileFormat.encodeUnsignedFixed, FileFormat.encodeU32Bytes,
         FileFormat.decodeU16, Nat.mod_eq_of_lt countBound,
-        Nat.mod_eq_of_lt contentBound]
+        Nat.mod_eq_of_lt contentBound, restOrdered, decodedCount, decodedContent]
 
 def decodePackedIndexInteriorCellsFrom (source : PageSource) (fuel : Nat) :
     Nat → List UInt8 → Option (List (Nat × IndexEntry) × List UInt8)
