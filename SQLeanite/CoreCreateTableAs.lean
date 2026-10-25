@@ -16,6 +16,7 @@ structure ColumnInfo where
 structure Context where
   sources : List CoreExpr.Context
   shared : List CoreJoinUsing.Column := []
+  preferRightShared : Bool := false
 
 def contexts (database : Core.Database) (query : Select) : Except String Context := do
   let sources ← query.sources.toList.mapM fun source => do
@@ -24,14 +25,18 @@ def contexts (database : Core.Database) (query : Select) : Except String Context
   let shared ← match sources, query.sources.toList with
     | [left, right], [_, source] => CoreJoinUsing.columns left.schema right.schema source
     | _, _ => pure []
-  return { sources, shared }
+  return {
+    sources, shared
+    preferRightShared := query.sources[1]?.any (fun source => source.rightJoin && !source.leftJoin) }
 
 def column? (context : Context) (qualifier : Option String) (name : String) :
     Option (String × SQLite.Affinity) :=
   match (CoreJoinUsing.nameCandidates context.sources qualifier name).filterMap (fun (sourceIndex, position) => do
     let source ← context.sources[sourceIndex]?
-    if qualifier.isNone && sourceIndex == 1 &&
-        CoreJoinUsing.suppressesName context.shared name position then none
+    let suppressed := if context.preferRightShared then
+        sourceIndex == 0 && CoreJoinUsing.suppressesLeftName context.shared name position
+      else sourceIndex == 1 && CoreJoinUsing.suppressesName context.shared name position
+    if qualifier.isNone && suppressed then none
     else do
       let column ← source.schema.columns[position]?
       let name := if source.schema.hasHiddenRowid && position == source.schema.primaryKey then
@@ -100,6 +105,27 @@ def resultColumn (context : Context) (position : Nat) (column : ResultColumn) : 
       | .call name _ false => name.toLower.startsWith "cast_"
       | _ => false }
 
+/-- RIGHT USING keeps an expanded left star's original spelling while
+inheriting the replacement right value's affinity and data-type information. -/
+def starMetadata (context : Context) (qualifier : Option String) (sourceIndex index : Nat)
+    (derived : ColumnInfo) : ColumnInfo :=
+  if context.preferRightShared && sourceIndex == 0 then
+    match (context.shared.find? (fun shared => shared.left == index)).bind (fun shared => do
+      let source ← context.sources[1]?
+      source.schema.columns[shared.right]?) with
+    | some column => { derived with
+        affinity := some column.affinity
+        dataTypes := affinityMask (some column.affinity) }
+    | none => derived
+  else derived
+
+theorem starMetadata_name (context : Context) (qualifier : Option String) (sourceIndex index : Nat)
+    (derived : ColumnInfo) : (starMetadata context qualifier sourceIndex index derived).name = derived.name := by
+  unfold starMetadata
+  split
+  · split <;> rfl
+  · rfl
+
 def baseColumns (database : Core.Database) (query : Select) : Except String (List ColumnInfo) := do
   let context ← contexts database query
   let mut output := []
@@ -116,7 +142,7 @@ def baseColumns (database : Core.Database) (query : Select) : Except String (Lis
             let some stored := source.schema.columns[index]? | throw "invalid CTAS source column"
             let derived := resultColumn context output.length
               { expr := .column (some source.sourceName) stored.name }
-            output := output ++ [derived]
+            output := output ++ [starMetadata context qualifier sourceIndex index derived]
     | _ => output := output ++ [resultColumn context output.length column]
   return output
 

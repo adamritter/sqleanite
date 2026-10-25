@@ -66,6 +66,9 @@ def merges (shared : List Column) (name : String) (left right : Nat) : Bool :=
 def suppressesRight (shared : List Column) (index : Nat) : Bool :=
   shared.any fun column => column.right == index
 
+def suppressesLeftName (shared : List Column) (name : String) (index : Nat) : Bool :=
+  shared.any fun column => column.name == name.toLower && column.left == index
+
 def suppressesName (shared : List Column) (name : String) (index : Nat) : Bool :=
   shared.any fun column => column.name == name.toLower && column.right == index
 

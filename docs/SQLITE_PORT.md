@@ -5078,3 +5078,49 @@ remain open. Native bindings are unchanged. Reports:
 `sqlite-join-outer-*20261025.json`; harnesses:
 `scripts/run-join-outer-differential.py` and
 `scripts/run-join-outer-write-differential.py`.
+
+
+## RIGHT USING/NATURAL merged columns and star metadata (2026-10-25)
+
+Two-source RIGHT joins now resolve unqualified shared names to the right
+column's value, affinity and spelling. Expanded left stars, including `left.*`,
+keep their original position/name while reading the shared value from the
+right. Explicit qualified references such as `left.key` retain the left value.
+CTAS inherits right affinity for replaced star slots without renaming them;
+qualified right stars retain their own columns. The shared bound-query
+interpreter preserves outer-ON preparation, empty-side and zero-LIMIT handling,
+projection wrappers, result collations, DISTINCT, ordering and windows. FULL
+NATURAL with no common columns is admitted; shared FULL columns remain rejected.
+
+Baseline seed **354540** records **2,400 cases / 1,512 differences**. Initial
+development seed **354541** records **3,392 / 500**: 408 rejected successful FULL
+cases and 92 incorrect qualified-left-star outputs. That negative result changed
+the implementation: left-star expansion must merge even when table-qualified,
+unlike an explicit qualified column. Both the initial report and the complete
+baseline remain available. Corrected development seed **354546** records
+**3,424 / 432**, all remaining differences being unsupported FULL shared names.
+The 92 original star failures have a separate strict regression replay with
+**92 / 0**; the labelled selection retains its source hash and the complete
+unfiltered development report. Both C and Lean are rerun on the saved fixtures.
+
+Final-checkpoint fresh seed **354542** records **5,616 / 660**.
+All **4,416 non-FULL comparisons pass**; every retained difference rejects
+a successful FULL shared-name statement. The combined corpus tests successful
+stdout, error status, independent C catalog/typed-row/integrity observations,
+subsequent C writes, Lean reopening and main/WAL immutability whenever C leaves
+those bytes unchanged. It covers RIGHT spellings, USING duplicates and quoted
+names, NATURAL, missing/implicit-rowid names, empty inputs, left/right declared
+affinities, wrappers, ordering/windows, CTAS/INSERT SELECT and CTAS no-op error
+deferral across three page sizes and both file modes. Fixed controls and seeded
+fixtures/query combinations are mixed; this is not an entirely unseen corpus.
+
+INNER/LEFT USING regression seed **354543** passes **3,008 / 0**. Outer-ON
+regression seed **354544** records **5,952 / 48**, with only the still unsupported
+FULL shared-name controls failing. Final checks pass **354 build jobs, 277
+executable tests, 1,257 headline component proofs**, both audits and 61 accepted
+reverse-file cells, with two declared unsupported. The new component theorems
+establish right-slot selection and star-name preservation, not full SQLite
+equivalence. Native bindings remain unchanged. Implementation SHA-256:
+`30ba9c0ab63a87da883f0622f091b81899d2d9d0b27a1b1eecc28bf9df584771`. Reports:
+`sqlite-join-right-using-*20261025.json`; combined harness:
+`scripts/run-join-right-using-differential.py`.

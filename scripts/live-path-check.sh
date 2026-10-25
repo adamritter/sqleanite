@@ -2029,7 +2029,7 @@ fi
 if rg -F -q 'SQLite.JoinType.classify words.toList' SQLeanite/Parser.lean &&
    rg -F -q 'SQLite.JoinType.classify words' SQLeanite/CoreTokenGrammar.lean &&
    rg -F -q 'source.crossJoin == kind.cross' SQLeanite/CoreTokenGrammar.lean &&
-   rg -F -q 'rightSource.joinOn.mapM (fun expression => joinPredicate context expression rightSource.leftJoin)' SQLeanite/CoreSQL.lean; then
+   rg -F -q 'rightSource.joinOn.mapM (fun expression => joinPredicate context expression (rightSource.leftJoin || rightSource.rightJoin))' SQLeanite/CoreSQL.lean; then
   echo 'ok - join keywords and optional ON reach the existing Core join semantics'
 else
   echo 'FAIL - join-type replay or optional predicate lowering is disconnected'
@@ -2224,6 +2224,17 @@ if rg -F -q 'if rightSource.rightJoin then return ← executeRightJoin state sel
   echo 'ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering'
 else
   echo 'FAIL - RIGHT/FULL join live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'preferRightShared := rightSource.rightJoin && !rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreJoin.Operand.column (joinMergedStar context reference)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'starMetadata context qualifier sourceIndex index derived' SQLeanite/CoreCreateTableAs.lean &&
+   rg -q 'theorem joinMergedStar_right' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem starMetadata_name' SQLeanite/CoreCreateTableAs.lean; then
+  echo 'ok - RIGHT shared-name binding selects right values and preserves star names'
+else
+  echo 'FAIL - RIGHT shared-name live-path audit failed' >&2
   status=1
 fi
 

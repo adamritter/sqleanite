@@ -7195,6 +7195,46 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteRightUsing : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,Key TEXT,lo);CREATE TABLE r(id INTEGER PRIMARY KEY,kEY NUMERIC,ro);INSERT INTO l VALUES(1,'01','left'),(2,'x','left2');INSERT INTO r VALUES(10,1,'right'),(11,2,'right2');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT key,l.key,r.key FROM l RIGHT JOIN r USING(key) ORDER BY r.id;",
+      [[.integer 1,.text "01",.integer 1],[.integer 2,.null,.integer 2]]),
+    ("SELECT * FROM l RIGHT JOIN r USING(key) ORDER BY r.id;",
+      [[.integer 1,.integer 1,.text "left",.integer 10,.text "right"],
+       [.null,.integer 2,.null,.integer 11,.text "right2"]]),
+    ("SELECT l.*,r.* FROM l RIGHT JOIN r USING(key) ORDER BY r.id;",
+      [[.integer 1,.integer 1,.text "left",.integer 10,.integer 1,.text "right"],
+       [.null,.integer 2,.null,.integer 11,.integer 2,.text "right2"]]),
+    ("SELECT key,r.id FROM l RIGHT JOIN r USING(key) WHERE key='01' ORDER BY key;",
+      [[.integer 1,.integer 10]]),
+    ("SELECT key,r.id FROM l RIGHT JOIN r USING(key) WHERE +key='01';", []),
+    ("SELECT key,r.id FROM l RIGHT JOIN r USING(key) ORDER BY key DESC LIMIT 1;",
+      [[.integer 2,.integer 11]]),
+    ("SELECT id,key,l.id FROM l NATURAL RIGHT JOIN r ORDER BY id;",
+      [[.integer 10,.integer 1,.null],[.integer 11,.integer 2,.null]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"RIGHT USING: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"RIGHT USING merged values, affinity or qualification: {sql}"
+  let (created, _) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE starred AS SELECT * FROM l RIGHT JOIN r USING(key);" ++
+      "CREATE TABLE named AS SELECT key,l.key,r.key FROM l RIGHT JOIN r USING(key);") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some starred := created.database.findTable? "starred" | fail "RIGHT USING star CTAS missing"
+  let some named := created.database.findTable? "named" | fail "RIGHT USING named CTAS missing"
+  unless starred.schema.visibleColumns.map (·.name) == ["id","Key","lo","id:1","ro"] &&
+      (starred.schema.visibleColumns[1]?).map (·.affinity) == some .numeric &&
+      named.schema.visibleColumns.map (·.name) == ["kEY","Key:1","kEY:2"] &&
+      named.schema.visibleColumns.map (·.affinity) == [.numeric,.text,.numeric] do
+    fail "RIGHT USING CTAS lost original star spelling or replacement-column affinity"
+
 private def expectSQLiteRightFullJoins : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'A'),(2,'B'),(4,'D');INSERT INTO r VALUES(2,'b'),(3,'C'),(5,'E');"
   let cases : List (String × List (List Value)) := [
@@ -8230,6 +8270,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
   ("SQLite joined projection wrappers and result collations", expectSQLiteJoinProjectionWrappers),
   ("SQLite RIGHT/FULL join null extension and match accounting", expectSQLiteRightFullJoins),
+  ("SQLite RIGHT USING merged values, qualification and CTAS metadata", expectSQLiteRightUsing),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

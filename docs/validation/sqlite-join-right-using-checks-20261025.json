@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "30ba9c0ab63a87da883f0622f091b81899d2d9d0b27a1b1eecc28bf9df584771",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "f69c4070e098160105176636dfc99928ce2b25b635f077828b52098ec8ecf16a",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [353/354] Built Tests:c.o (18s)",
+        "\u2714 [354/354] Built sqleanite_tests:exe (339ms)",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "593e7b8ecfc2bb87f69a6ff275d20efabd77f612d36e4f6cc9c62bcf5a1657c6",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "277 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "6120421f771bca51d77d493216b0d30e01c82345e7a71d1c78d65a810ddcc36b",
+      "tail": [
+        "ok - joined IN lists preserve left affinity, nullable equality and positive grammar",
+        "ok - literal NULL tests use parser token classification before scalar admission",
+        "ok - static joined conditions retain resolution and code-generation checks",
+        "ok - zero-LIMIT joins validate predicates without evaluating their values",
+        "ok - empty-side outer ON keeps validation and preserves the existing join path",
+        "ok - joined projection wrappers retain DISTINCT and ORDER BY collations",
+        "ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering",
+        "ok - RIGHT shared-name binding selects right values and preserves star names"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "39b4d689b1a4769e2adef776b7b2946624f9929245fb00ed5720a33c50c05bcc"
+}

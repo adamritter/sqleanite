@@ -1465,3 +1465,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreOuterJoin.joinedRows_full_empty_right
 #print axioms SQLeanite.CoreOuterJoin.eval_width
 #print axioms SQLeanite.CoreSQL.executeRightJoin_preserves_state
+
+#print axioms SQLeanite.CoreSQL.joinMergedStar_right
+#print axioms SQLeanite.CoreCreateTableAs.starMetadata_name

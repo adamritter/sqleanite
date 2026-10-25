@@ -1,0 +1,2589 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "compare_error_output": true,
+  "input_file": "docs/validation/sqlite-join-right-using-star-regression-input-20261025.json",
+  "input_sha256": "56789bd13682313f5d703cdfbbb6d9e8d111bab3b1b233f6945cd90670c9a709",
+  "cases": [
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a NATURAL RIGHT JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) WHERE a.id IS NULL ORDER BY a.id,b.id LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n1|1|l-1|1|0.0|r-1\n2|2|l-2|2|a|r-2\n3|1|l-3|3|2|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|0.0||1|0.0|r-1\n|a||2|a|r-2\n2|2|l-2|3|2|r-3\n2|2|l-2|4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a NATURAL RIGHT JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|0.0||1|0.0|r-1\n2|a||2|a|r-2\n3|2||3|2|r-3\n4|2||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,left_only TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,'2','l-2');INSERT INTO l VALUES(3,'01','l-3');INSERT INTO r VALUES(1,0.0,'r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,2,'r-3');INSERT INTO r VALUES(4,2,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) WHERE a.id IS NULL ORDER BY a.id,b.id LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|2|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a NATURAL RIGHT JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) WHERE a.id<3 ORDER BY a.id,b.id LIMIT 3;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) WHERE a.id IS NULL ORDER BY a.id,b.id LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) WHERE k='01' ORDER BY a.id,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n1|1|l-1|1|a|r-1\n2|0.0|l-2|2|a|r-2\n3|a |l-3|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(id,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(\"K\") ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING('k') ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|a||1|a|r-1\n|a||2|a|r-2\n|1||4|1|r-4\n2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a NATURAL RIGHT JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT NATURAL JOIN r AS b ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a||1|a|r-1\n2|a||2|a|r-2\n3|0||3|0|r-3\n4|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a OUTER RIGHT JOIN r AS b USING(k,k) WHERE a.id<3 ORDER BY a.id,b.id LIMIT 3;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|0|l-2|3|0|r-3\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT OUTER JOIN r AS b USING(id) WHERE a.id IS NULL ORDER BY a.id,b.id LIMIT 7;",
+      "lean": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4|||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id TEXT PRIMARY KEY,K TEXT,left_only TEXT);CREATE TABLE r(ID INTEGER PRIMARY KEY,k NUMERIC,right_only TEXT);CREATE TABLE n(other_id INTEGER PRIMARY KEY,z);INSERT INTO n VALUES(1,'z');INSERT INTO l VALUES(1,X'31','l-1');INSERT INTO l VALUES(2,0.0,'l-2');INSERT INTO l VALUES(3,'a ','l-3');INSERT INTO r VALUES(1,'a','r-1');INSERT INTO r VALUES(2,'a','r-2');INSERT INTO r VALUES(3,0.0,'r-3');INSERT INTO r VALUES(4,1,'r-4');",
+      "sql": "SELECT a.*,b.* FROM l AS a RIGHT JOIN r AS b USING(k) WHERE k='01' ORDER BY a.id,b.id LIMIT 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|1||4|1|r-4\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "30ba9c0ab63a87da883f0622f091b81899d2d9d0b27a1b1eecc28bf9df584771",
+  "executable_sha256": "20f512b210cd42e75ebb1169c4744ced375a3c28cc04f98816b125e19e7e2a95",
+  "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

@@ -1267,6 +1267,7 @@ structure JoinContext where
   leftSchema : Core.Schema
   rightSchema : Core.Schema
   shared : List CoreJoinUsing.Column := []
+  preferRightShared : Bool := false
 
 def joinColumn (context : JoinContext) (qualifier : Option String) (name : String) :
     Except String CoreJoin.ColumnRef := do
@@ -1286,7 +1287,8 @@ def joinColumn (context : JoinContext) (qualifier : Option String) (name : Strin
       | [(0, index)] => .ok ⟨.left, index⟩
       | [(1, index)] => .ok ⟨.right, index⟩
       | [(0, li), (1, ri)] =>
-          if CoreJoinUsing.merges context.shared name li ri then .ok ⟨.left, li⟩
+          if CoreJoinUsing.merges context.shared name li ri then
+            .ok (if context.preferRightShared then ⟨.right, ri⟩ else ⟨.left, li⟩)
           else .error s!"ambiguous column name: {name}"
       | [] => .error s!"no such column: {name}"
       | _ => .error s!"ambiguous column name: {name}"
@@ -1463,17 +1465,33 @@ def joinLiteralExpression : Expr → Bool
   | .unary _ expression => joinLiteralExpression expression
   | expression => (SQLite.Scalar.booleanKeyword? expression).isSome
 
+/-- Expanded left stars keep their original positions/names but RIGHT USING
+reads the merged value from the right input, including qualified left stars. -/
+def joinMergedStar (context : JoinContext) (reference : CoreJoin.ColumnRef) : CoreJoin.ColumnRef :=
+  if context.preferRightShared && reference.side == .left then
+    match context.shared.find? (fun column => column.left == reference.column) with
+    | some column => ⟨.right, column.right⟩
+    | none => reference
+  else reference
+
+theorem joinMergedStar_right (context : JoinContext) (index : Nat) (shared : CoreJoinUsing.Column)
+    (prefer : context.preferRightShared = true)
+    (found : context.shared.find? (fun column => column.left == index) = some shared) :
+    joinMergedStar context ⟨.left, index⟩ = ⟨.right, shared.right⟩ := by
+  simp [joinMergedStar, prefer, found]
+
 def joinResultExpr (context : JoinContext) : Expr → Except String (List CoreJoin.Operand)
   | .column qualifier name => return [.column (← joinColumn context qualifier name)]
   | .star none =>
       .ok ((joinVisibleColumns .left context.leftSchema ++
         (joinVisibleColumns .right context.rightSchema).filter
           (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column)).map
-            CoreJoin.Operand.column)
+            (fun reference => CoreJoin.Operand.column (joinMergedStar context reference)))
   | .star (some qualifier) =>
       let owner := canonical qualifier
       if owner == context.leftName then
-        .ok ((joinVisibleColumns .left context.leftSchema).map CoreJoin.Operand.column)
+        .ok ((joinVisibleColumns .left context.leftSchema).map
+          (fun reference => CoreJoin.Operand.column (joinMergedStar context reference)))
       else if owner == context.rightName then
         .ok ((joinVisibleColumns .right context.rightSchema).map CoreJoin.Operand.column)
       else .error s!"no such table or alias: {qualifier}"
@@ -1684,12 +1702,44 @@ def joinContext (leftSource rightSource : TableRef) (leftTable rightTable : Stri
     leftName := canonical (leftSource.alias.getD leftSource.name)
     rightName := canonical (rightSource.alias.getD rightSource.name)
     leftSchema, rightSchema
-    shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource }
+    shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource
+    preferRightShared := rightSource.rightJoin && !rightSource.leftJoin }
 
 /-- Translate the supported two-source SQL shape independently of a materialized
 database.  Both the ordinary engine and cold page-directed execution use this
 single interpretation, preventing the fast path from acquiring subtly
 different alias, projection, or predicate semantics. -/
+def joinQueryBound (select : Select) (rightSource : TableRef) (context : JoinContext) :
+    Except String CoreJoin.Query := do
+  if context.leftName == context.rightName then
+    throw "join sources require distinct names or aliases"
+  let explicitOn ← rightSource.joinOn.mapM (fun expression => joinPredicate context expression (rightSource.leftJoin || rightSource.rightJoin))
+  let sharedOn ← joinUsingPredicate context
+  let on := match explicitOn, sharedOn with
+    | none, predicate | predicate, none => predicate
+    | some left, some right => some (CoreJoin.Predicate.and left right)
+  let where_ ← select.where_.mapM (joinPredicate context)
+  let orderColumns ← joinOrderColumns context select.columns.toList
+  let orderBy ← joinOrderBy context orderColumns select.orderBy.toList
+  let mayExchange := !rightSource.leftJoin && !rightSource.rightJoin && !rightSource.crossJoin
+  let lookupScanOrder := joinLookupScanOrder context.leftSchema context.rightSchema mayExchange on where_ orderBy
+  return {
+    columns := ← joinProjection context select.columns.toList
+    on
+    kind := if rightSource.leftJoin || rightSource.rightJoin then .left else .inner
+    rightWidth := context.rightSchema.columns.length
+    where_
+    orderBy
+    limit := select.limit
+    offset := select.offset
+    distinct := select.distinct
+    lookupScanOrder
+    distinctScanOrder := joinDistinctScanOrder context.leftSchema context.rightSchema
+      mayExchange
+      (on.any (joinHasRowidEquality context.leftSchema context.rightSchema) ||
+        where_.any (joinHasRowidEquality context.leftSchema context.rightSchema))
+      (orderBy.map (fun term => (term.reference, term.descending))) }
+
 def joinQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) : Except String CoreJoin.Query := do
   let (leftSource, rightSource) ← match select.sources.toList with
@@ -1704,34 +1754,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
       canonical rightSource.name = canonical rightTable do
     throw "join source/schema mismatch"
   let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
-  if context.leftName == context.rightName then
-    throw "join sources require distinct names or aliases"
-  let explicitOn ← rightSource.joinOn.mapM (fun expression => joinPredicate context expression rightSource.leftJoin)
-  let sharedOn ← joinUsingPredicate context
-  let on := match explicitOn, sharedOn with
-    | none, predicate | predicate, none => predicate
-    | some left, some right => some (CoreJoin.Predicate.and left right)
-  let where_ ← select.where_.mapM (joinPredicate context)
-  let orderColumns ← joinOrderColumns context select.columns.toList
-  let orderBy ← joinOrderBy context orderColumns select.orderBy.toList
-  let mayExchange := !rightSource.leftJoin && !rightSource.crossJoin
-  let lookupScanOrder := joinLookupScanOrder leftSchema rightSchema mayExchange on where_ orderBy
-  return {
-    columns := ← joinProjection context select.columns.toList
-    on
-    kind := if rightSource.leftJoin then .left else .inner
-    rightWidth := rightSchema.columns.length
-    where_
-    orderBy
-    limit := select.limit
-    offset := select.offset
-    distinct := select.distinct
-    lookupScanOrder
-    distinctScanOrder := joinDistinctScanOrder leftSchema rightSchema
-      mayExchange
-      (on.any (joinHasRowidEquality leftSchema rightSchema) ||
-        where_.any (joinHasRowidEquality leftSchema rightSchema))
-      (orderBy.map (fun term => (term.reference, term.descending))) }
+  joinQueryBound select rightSource context
 
 /-- LIMIT zero still resolves the original predicates and validates every
 operation that SQLite would generate, but emits no predicate value evaluation.
@@ -1925,20 +1948,49 @@ theorem joinQueryComplete_existing (select : Select) (leftTable rightTable : Str
     joinQueryComplete select leftTable rightTable leftSchema rightSchema leftRows rightRows = .ok query := by
   simp [joinQueryComplete, joinQueryForRows, joinQueryWithZero, success]
 
-/-- RIGHT/FULL ON predicates use outer-join resolution and code generation.
-Shared-name output merging is a separate binding operation and is not silently
-approximated by this explicit-ON translation. -/
+/-- The bound interpreter is also used by RIGHT shared-name queries, where
+unqualified merged columns resolve to the right schema. Empty/zero-LIMIT
+predicates retain the same preparation checks as the ordinary join path. -/
+def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinContext)
+    (leftRows rightRows : List Core.Row) : Except String CoreJoin.Query :=
+  match joinQueryBound select source context with
+  | .ok query => .ok query
+  | .error message => do
+      let zero := select.limit == some 0
+      unless zero || leftRows.isEmpty || rightRows.isEmpty do throw message
+      for expression in source.joinOn.toList do
+        let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+        unless joinStaticAdmitted context prepared true do throw message
+      if zero then
+        for expression in select.where_.toList do
+          let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+          unless joinStaticAdmitted context prepared do throw message
+      match joinQueryBound { select with where_ := if zero then none else select.where_ }
+          { source with joinOn := none } context with
+      | .ok query => .ok query
+      | .error _ => .error message
+
 def joinRightQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
     Except String CoreJoin.Query := do
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
-  unless rightSource.rightJoin && !rightSource.naturalJoin && rightSource.usingColumns.isEmpty do
-    unsupported "RIGHT/FULL shared-name binding"
-  let source := { rightSource with rightJoin := false, leftJoin := true }
-  joinQueryComplete { select with sources := #[leftSource, source] }
-    leftTable rightTable leftSchema rightSchema leftRows rightRows
+  unless rightSource.rightJoin && leftSource.subquerySql.isNone && rightSource.subquerySql.isNone &&
+      leftSource.joinOn.isNone && select.groupBy.isEmpty && select.having.isNone do
+    unsupported "RIGHT/FULL join source shape"
+  unless canonical leftSource.name = canonical leftTable && canonical rightSource.name = canonical rightTable do
+    throw "join source/schema mismatch"
+  let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
+  if rightSource.leftJoin && !context.shared.isEmpty then unsupported "FULL shared-name binding"
+  let (columns, names) ← joinWrappedColumns context select.columns.toList
+  let orderColumns ← joinOrderColumns context columns
+  let orderBy ← joinWrappedOrderBy context orderColumns names select.orderBy.toList
+  let kinds ← if select.distinct then names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
+    else pure []
+  let query ← joinRightBoundForRows { select with columns := columns.toArray, orderBy := #[] }
+    rightSource context leftRows rightRows
+  return { query with orderBy, distinctCollations := if kinds.all (· == .binary) then [] else kinds }
 
 def rightJoinResult (state : Core.State) (select : Select)
     (leftSource rightSource : TableRef) : Except String (Core.Result × Nat) := do
