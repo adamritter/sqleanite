@@ -1936,8 +1936,8 @@ fi
 if rg -q 'def transactionChanged' SQLeanite/CoreFileEngine.lean &&
    rg -F -q '.commit => transactionChanged state' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreSavepoint.releasesTransaction state name && transactionChanged state' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'CoreTokenGrammar.parseStatements sql' Main.lean; then
-  echo 'ok - unchanged transactions skip publication and complete lines determine read-only access'
+   rg -F -q 'CoreFileAdapter.requireWritableAccess connection.paths.main' SQLeanite/CoreFileEngine.lean; then
+  echo 'ok - unchanged transactions skip publication and write dispatch checks access'
 else
   echo 'FAIL - read-only transaction publication or line classification is incomplete'
   exit 1
@@ -1978,6 +1978,20 @@ if rg -q 'let typeName ← parseCastType' SQLeanite/Parser.lean &&
   echo 'ok - CAST type spans are independently validated and use explicit expression affinity'
 else
   echo 'FAIL - CAST grammar or affinity wiring is incomplete'
+  exit 1
+fi
+
+if rg -F -q 'if requiresWriteAccess live.state statement then' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'if CoreFileEngine.requiresWriteAccess state statement then' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreFileAdapter.requireWritableAccess connection.paths.main' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreLazyWrite.lean &&
+   rg -F -q '| .ok results => printCoreResults results' Main.lean &&
+   rg -F -q 'CoreWALFileEngine.executeObserved .system paths sql printCoreResults' Main.lean &&
+   rg -F -q 'onResults results' SQLeanite/CoreWALFileEngine.lean; then
+  echo 'ok - completed statements emit in order and actual write dispatch checks OS access'
+else
+  echo 'FAIL - statement output or runtime write-access wiring is incomplete'
   exit 1
 fi
 

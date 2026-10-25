@@ -40,50 +40,18 @@ private def printCoreResults (results : List Core.Result) : IO Unit := do
     let bytes := renderCoreResult result
     unless bytes.isEmpty do stream.write bytes
 
-/-- Retain original statement text and its write classification without keeping
-the complete parser AST alive while a large script executes. -/
-private structure PreparedStatement where
-  sql : String
-  writes : Bool
+private def prepareScript (sql : String) : Array String :=
+  (SQLite.Script.split sql).toArray
 
-/-- Every complete source statement uses the certified grammar. A malformed
-statement is conservatively classified as a potential write for preflight. -/
-private def statementMightWrite (sql : String) : Bool :=
-  match CoreTokenGrammar.parseStatements sql with
-  | .ok statements => statements.toList.any CoreFileEngine.statementWrites
-  | .error _ => true
-
-private def prepareScript (sql : String) : Array PreparedStatement :=
-  (SQLite.Script.split sql).toArray.map fun source => {
-    sql := source, writes := statementMightWrite source }
-
-/-- Fail before logical execution when a mutating batch targets a file the OS
-will not open read/write.  Besides producing the SQLite-style diagnostic, this
-prevents an earlier semantic error in a multi-statement batch from masking the
-more fundamental read-only condition.  Opening in `readWrite` does not truncate
-or otherwise modify the file. -/
-private def requireWritableFor (path : System.FilePath) (sql : String)
-    (prepared : Option (Array PreparedStatement) := none) : IO Unit := do
-  let writes := match prepared with
-    | some lines => lines.any (fun line => line.writes)
-    | none => (prepareScript sql).any (·.writes)
-  if writes && (← path.pathExists) then
-    try
-      IO.FS.withFile path .readWrite fun _ => pure ()
-    catch _ =>
-      throw (IO.userError "attempt to write a readonly database")
-
-/-- Execute preflighted source statements, discarding each parsed AST before
-the next statement. Results are accumulated in execution order. -/
+/-- Admit and print each completed source statement in order.
+A later error retains output from all earlier successful statements. -/
 private def executePreparedStatements (connection : CoreFileEngine.Connection)
-    (lines : Array PreparedStatement) : IO (Except String (List Core.Result)) := do
-  let mut reversed : List Core.Result := []
+    (lines : Array String) : IO (Except String Unit) := do
   for line in lines do
-    match ← CoreFileEngine.execute connection line.sql with
+    match ← CoreFileEngine.execute connection line with
     | .error message => return .error message
-    | .ok results =>
-        reversed := results.foldl (fun acc result => result :: acc) reversed
-  return .ok reversed.reverse
+    | .ok results => printCoreResults results
+  return .ok ()
 
 private def coreBatch (databasePath : String) (args : List String) : IO UInt32 := do
   let sql ←
@@ -99,7 +67,6 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
   ProcessLock.withLock lock do
     let fileExists ← mainPath.pathExists
     let prepared := prepareScript sql
-    if fileExists then requireWritableFor mainPath sql (some prepared)
     -- The page-local insert. `CoreLazyWrite.insertPlan_refines` proves it denotes
     -- the ordered insert, but only under `WellFormedTree`, and nothing checks
     -- those premises at open time yet. So it stays behind an explicit opt-in
@@ -112,7 +79,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
             match parsed.toList with
             | [.insert table columns rows] =>
                 match rows.toList with
-                | [expressions] =>
+                | [expressions] => do
                     CoreLazyWrite.executeInsert? .system paths
                       (CoreSQL.canonical table) columns expressions
                 | _ => pure none
@@ -124,7 +91,10 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
       return 0
     let outcome ← if fileExists then do
       match ← CoreLazyFileEngine.execute? paths sql with
-      | some result => pure result
+      | some result =>
+          match result with
+          | .error message => pure (.error message)
+          | .ok results => printCoreResults results; pure (.ok ())
       | none => do
           let connection ← CoreFileEngine.reopen .system paths
           executePreparedStatements connection prepared
@@ -135,9 +105,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
     | .error message =>
         IO.eprintln s!"Error: {message}"
         pure 1
-    | .ok results =>
-        printCoreResults results
-        pure 0
+    | .ok () => pure 0
 
 private def coreWALBatch (databasePath : String) (args : List String) : IO UInt32 := do
   let sql ←
@@ -152,10 +120,9 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
   let statements := (SQLite.Script.split sql).flatMap fun source =>
     ((CoreTokenGrammar.parseStatements source).toOption.getD #[]).toList
   let run : IO (Except String (List Core.Result)) := do
-    requireWritableFor databasePath sql
     unless ← (databasePath : System.FilePath).pathExists do
       CoreWALFileAdapter.create .system paths Core.Database.empty
-    CoreWALFileEngine.execute .system paths sql
+    CoreWALFileEngine.executeObserved .system paths sql printCoreResults
   -- Readers never publish, so only writers take the cross-process lock.
   let outcome ← if CoreWALFileEngine.needsWriter statements then
       ProcessLock.withLock lock run
@@ -164,9 +131,7 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
   | .error message =>
       IO.eprintln s!"Error: {message}"
       pure 1
-  | .ok results =>
-      printCoreResults results
-      pure 0
+  | .ok _ => pure 0
 
 private def coreWALCheckpoint (databasePath : String) : IO UInt32 := do
   let paths : CoreWALFileAdapter.Paths := {
@@ -204,7 +169,6 @@ private def coreBatchTimed (databasePath : String) (args : List String) :
     directory := databasePath ++ ".sqleanite-lock", process }
   ProcessLock.withLock lock do
     let fileExists ← mainPath.pathExists
-    requireWritableFor mainPath sql
     let connection ← if fileExists then CoreFileEngine.reopen .system paths
       else CoreFileEngine.create .system paths
     let statements := (sql.splitOn "\n").filter fun line => !line.trimAscii.toString.isEmpty

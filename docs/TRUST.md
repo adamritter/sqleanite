@@ -1865,3 +1865,20 @@ and aggregate finalization around LIMIT/OFFSET. Final comparison matches
 six explicit-column GROUP BY mismatches are closed; NOCASE UNION remains a
 separate incorrect-result boundary. The prior BINARY read and compound
 refinement theorems continue to compile without additional assumptions.
+
+
+### Statement output and file-access dispatch (2026-10-25)
+
+`CoreWALFileEngine.executeObserved` uses the existing Core statement and WAL
+publication path, then invokes an IO result observer for each completed source
+chunk. `Main.lean` prints those completed results. The observer sequencing and
+stdout effects are executable-boundary behavior tested against the pinned C CLI;
+they are not covered by the abstract WAL log theorem. The original collecting
+entry point delegates with a no-op observer.
+
+`CoreFileEngine.requiresWriteAccess` has separate audited read-only and schema
+no-op propositions. Both file engines check existing-file read/write access at
+that guarded dispatch point, and the optional page-local INSERT path performs
+the same check. `CoreFileAdapter.requireWritableAccess` moves the pre-existing
+Lean IO file-open check out of the CLI batch preflight; it adds no project-native
+binding. Actual OS permission enforcement remains part of the IO boundary.

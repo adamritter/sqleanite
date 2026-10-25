@@ -118,6 +118,19 @@ theorem transactionChanged_equivalent (state : Core.State) (snapshot : Core.Data
   simp [transactionChanged, active, Core.Database.Equiv] at *
   exact same
 
+/-- Shared dispatch guard for both file engines. Schema no-ops do not require
+write access, even when their statement form normally writes. -/
+def requiresWriteAccess (state : Core.State) (statement : Statement) : Bool :=
+  statementWrites statement && !CoreSQL.schemaNoop state statement
+
+theorem requiresWriteAccess_readOnly (state : Core.State) (statement : Statement)
+    (readOnly : statementWrites statement = false) : requiresWriteAccess state statement = false := by
+  simp [requiresWriteAccess, readOnly]
+
+theorem requiresWriteAccess_schemaNoop (state : Core.State) (statement : Statement)
+    (noop : CoreSQL.schemaNoop state statement = true) : requiresWriteAccess state statement = false := by
+  simp [requiresWriteAccess, noop]
+
 def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   match statement with
   | .commit => transactionChanged state
@@ -380,7 +393,8 @@ private def runStatementsGo (connection : Connection) : LiveState →
       IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
   | live, statement :: statements, reversed => do
-      if statementWrites statement && !CoreSQL.schemaNoop live.state statement then
+      if requiresWriteAccess live.state statement then
+        CoreFileAdapter.requireWritableAccess connection.paths.main
         CoreFileAdapter.requireWritableFormat connection.paths.main
       let (cached, execution) ← executeStatement connection live statement
       match execution with

@@ -41,6 +41,7 @@ CoreFileEngine.create|seam|CoreFileAdapter.commit_crash_atomic|Image creation co
 CoreFileEngine.snapshot|seam|CorePageLoad.open?_decode|Returns the validated open state; no theorem about the IO handle lifetime.
 CoreFileEngine.statementWrites|covered|CoreFileEngine.requiresPersistence_write_in_transaction|Pure classification of statements, with its persistence theorem.
 CoreWALFileEngine.execute|seam|CoreWAL.recover_forCoreImage|WAL publication and recovery are proved over the abstract log; the IO wrapper is not.
+CoreWALFileEngine.executeObserved|seam|CoreWAL.recover_forCoreImage|Uses the same Core statement and WAL publication path; output callbacks and OS access checks are IO, not covered by the abstract-log theorem.
 CoreWALFileEngine.checkpoint|seam|CoreWAL.decode_encode_forCoreImage|Checkpoint byte codec is proved; the file-level checkpoint sequence is IO.
 CoreWALFileEngine.needsWriter|covered|CoreWALFileEngine.needsWriter_false_member|Pure predicate deciding whether a statement list needs the writer lock.
 CoreWALFileAdapter.create|seam|CoreWAL.decode_encode_forCoreImage|Initial WAL-mode image creation; codec proved, IO not.

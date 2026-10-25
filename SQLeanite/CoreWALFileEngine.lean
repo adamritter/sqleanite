@@ -48,7 +48,8 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, statement :: statements, reversed => do
-      if CoreFileEngine.statementWrites statement && !CoreSQL.schemaNoop state statement then
+      if CoreFileEngine.requiresWriteAccess state statement then
+        CoreFileAdapter.requireWritableAccess paths.main
         CoreWALFileAdapter.requireWritableFormat paths
       match executeStatement state statement with
       | .error message => pure (state, .error message)
@@ -75,7 +76,7 @@ private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
 /-- Preserve the executed prefix when a later source statement fails admission.
 The transaction state is carried between chunks until commit, rollback or error. -/
 private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
-    (paths : CoreWALFileAdapter.Paths) : Core.State → List String → List Core.Result →
+    (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) : Core.State → List String → List Core.Result →
       IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, chunk :: chunks, reversed => do
@@ -85,15 +86,27 @@ private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
           let (next, result) ← runStatements syncOps paths state statements.toList
           match result with
           | .error message => pure (next, .error message)
-          | .ok results => runChunks syncOps paths next chunks (results.foldl (fun acc result => result :: acc) reversed)
+          | .ok results => do
+              onResults results
+              runChunks syncOps paths onResults next chunks
+                (results.foldl (fun acc result => result :: acc) reversed)
+
+/-- Run each source chunk against one WAL snapshot, retaining live transaction
+state. Callers may observe completed results before a later failure. A result is observed only after its required publication. -/
+def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
+    (paths : CoreWALFileAdapter.Paths) (sql : String)
+    (onResults : List Core.Result → IO Unit) :
+    IO (Except String (List Core.Result)) := do
+  let database ← CoreWALFileAdapter.reopen paths
+  let (_, result) ← runChunks syncOps paths onResults
+    { database := database } (SQLite.Script.split sql) []
+  return result
 
 /-- Execute SQL against one immutable WAL snapshot. -/
 def execute (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) (sql : String) :
-    IO (Except String (List Core.Result)) := do
-  let database ← CoreWALFileAdapter.reopen paths
-  let (_, result) ← runChunks syncOps paths { database := database } (SQLite.Script.split sql) []
-  return result
+    IO (Except String (List Core.Result)) :=
+  executeObserved syncOps paths sql (fun _ => pure ())
 
 def checkpoint (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) : IO Unit := do

@@ -33,6 +33,15 @@ def requireReadable (path : System.FilePath) : IO Unit := do
   if let some message := SQLite.HeaderVersion.readError? (← readHeader path) then
     throw (IO.userError message)
 
+/-- Opening an existing database read/write preserves its bytes. Check actual
+OS access before a mutating statement: atomic replacement alone could otherwise
+replace a read-only file in a writable directory. -/
+def requireWritableAccess (path : System.FilePath) : IO Unit := do
+  if ← path.pathExists then
+    try
+      IO.FS.withFile path .readWrite fun _ => pure ()
+    catch _ => throw (IO.userError "attempt to write a readonly database")
+
 def requireWritableFormat (path : System.FilePath) : IO Unit := do
   if let some message := SQLite.HeaderVersion.writeError? (← readHeader path) then
     throw (IO.userError message)

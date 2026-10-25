@@ -1385,3 +1385,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.CastType.check_name
 #print axioms SQLeanite.SQLite.CastType.affinity_empty
 #print axioms SQLeanite.SQLite.CastType.affinity_nonempty
+
+#print axioms SQLeanite.CoreFileEngine.requiresWriteAccess_readOnly
+#print axioms SQLeanite.CoreFileEngine.requiresWriteAccess_schemaNoop

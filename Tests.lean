@@ -4597,6 +4597,26 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteScriptOutput : IO Unit := do
+  let sqlite := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+  let sqlPath : System.FilePath := ".lake/build/sqleanite-script-output.sql"
+  IO.FS.writeFile sqlPath "SELECT 'before';BEGIN;INSERT INTO t VALUES(2,'pending');SELECT id,v FROM t ORDER BY id;SELECT 1 +;"
+  for (mode, label) in [("--verified-file", "file"), ("--verified-wal-file", "wal")] do
+    let path := s!".lake/build/sqleanite-script-output-{label}.db"
+    for suffix in ["-journal", "-wal", ""] do
+      let target : System.FilePath := path ++ suffix
+      if ← target.pathExists then IO.FS.removeFile target
+    let created ← IO.Process.output { cmd := sqlite, args := #["-batch", "-bail", path,
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'old');"] }
+    unless created.exitCode == 0 do fail s!"script output setup: {created.stderr}"
+    let result ← IO.Process.output { cmd := ".lake/build/bin/sqleanite", args := #[mode, path, sqlPath.toString] }
+    unless result.exitCode != 0 && result.stdout == "before\n1|old\n2|pending\n" do
+      fail s!"completed statement output lost before error ({label}): {result.stdout}; {result.stderr}"
+    let observed ← IO.Process.output { cmd := sqlite, args := #["-batch", "-bail", path,
+      "PRAGMA integrity_check;SELECT id,v FROM t ORDER BY id;"] }
+    unless observed.exitCode == 0 && observed.stdout == "ok\n1|old\n" do
+      fail "streaming a transaction result published uncommitted rows"
+
 private def expectSQLiteCastTypeGrammar : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("SELECT CAST('007.5' AS UNSIGNED BIG INT),CAST('007.5' AS FLOATING POINT),CAST('007.5' AS DECIMAL(-10,+2));",
@@ -7344,6 +7364,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite completed-statement output before errors", expectSQLiteScriptOutput),
   ("SQLite CAST type grammar, affinity and independent replay", expectSQLiteCastTypeGrammar),
   ("SQLite identifier keywords and explicit/implicit aliases", expectSQLiteIdentifierGrammar),
   ("SQLite script source preservation and committed prefixes", expectSQLiteScriptPrefix),

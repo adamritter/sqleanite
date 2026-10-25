@@ -4119,3 +4119,46 @@ also reject forged CAST semantics during independent token replay. Reports:
 `sqlite-cast-type-*20261025.json`; harness: `scripts/run-cast-type-differential.py`.
 These are scoped SQL/file/component results; they do not establish complete SQL
 or concurrent WAL equivalence. Native bindings are unchanged.
+
+## Completed-statement output and runtime read-only access (2026-10-25)
+
+The CLI now emits each completed statement's results before executing the next.
+Later syntax, lexical, constraint or evaluation errors preserve that output.
+The WAL engine's observed entry point retains one transaction state between
+source chunks and delivers results after any required publication; its original
+collecting API remains available. Printed uncommitted transaction results do not
+publish pending rows. The optional cold read path still prints only after it has
+handled the entire read batch, so falling back cannot duplicate output.
+
+Write-access checks now run at actual Core statement dispatch in both file
+engines, with the optional page-local INSERT path covered as well. An existing
+file is opened read/write without changing bytes before a mutating statement.
+Pure read statements and schema no-ops skip this check. Consequently a read-only
+file accepts existing-object CREATE IF NOT EXISTS and absent-object DROP IF
+EXISTS, while actual writes still fail even when their parent directory permits
+atomic replacement. Two component propositions establish the shared predicate's
+read-only and schema-no-op cases; they do not prove OS permission enforcement.
+
+The original baseline records **372 comparisons / 356 differences**. Expanded
+development seed **354311** passes **1,296 / 0**. Final-checkpoint fresh seed
+**354312** passes **3,192 / 0** on six new C-created fixtures, 512/4096/65536-byte
+input pages, both file modes, and writable/read-only variants. The harness
+compares complete stdout even on errors, as well as error status, independent
+C catalog/pragma/typed-row/integrity observations, later C writes and Lean reopens.
+Read-transaction regression seed **354313** passes **576 / 0**, including exact
+main/WAL image immutability. A public-CLI executable test checks both modes for
+output from pending transaction rows followed by an error, then verifies with C
+that those rows were never published.
+
+Implementation SHA-256: `f3e332215349eedfa6fef171503ddebcc90cbd071dd3a8d2f9e29559ee3a4b24`.
+Final checks pass **344 build jobs, 253 executable tests, 1,202 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The first live-path audit rejected the new unclassified observer
+entry; its failing report and log are retained. The executable-boundary registry
+now explicitly classifies that IO wrapper, and the affected audit passes on
+rerun. Native bindings are unchanged. Reports: `sqlite-script-output-*20261025.*`;
+harness: `scripts/run-script-output-differential.py`.
+
+This covers results of completed statements. Rows emitted by C before an error
+inside the same still-running SELECT remain a separate limitation, as do exact
+diagnostics, complete SQL coverage and concurrent SQLite WAL coordination.
