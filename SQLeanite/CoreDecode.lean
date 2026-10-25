@@ -9750,11 +9750,12 @@ def applyIndexFrom (source : PageSource) (database : Core.Database)
     | some sql =>
       match CanonicalIndexSQL.parse sql with
       | some spec => do
-          let table ← database.findTable? spec.table
-          if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-            let column ← table.schema.columns.findIdx? (fun candidate =>
-              candidate.name = spec.column)
-            let index : Core.Index := ⟨spec.name, column, spec.unique⟩
+          let table ← CoreNames.table? database spec.table
+          if _nameMatches : spec.name.toLower = entry.name.toLower ∧ spec.table.toLower = entry.table.toLower then
+            let column ← (table.schema.columns.findIdx? (fun candidate =>
+              candidate.name = spec.column)).orElse fun _ =>
+                table.schema.columns.findIdx? (fun candidate => candidate.name.toLower == spec.column.toLower)
+            let index : Core.Index := ⟨entry.name, column, spec.unique⟩
             let physical ← decodeIndexSubtreeFrom source
               (source.pageCount + 1) entry.rootPage
             if _contentsMatch : physical = expectedIndexEntries table index then
@@ -9843,11 +9844,12 @@ def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
     | some sql =>
       match CanonicalIndexSQL.parse sql with
       | some spec =>
-          let some table := database.findTable? spec.table | return none
-          if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-            let some column := table.schema.columns.findIdx?
-              (fun candidate => candidate.name = spec.column) | return none
-            let index : Core.Index := ⟨spec.name, column, spec.unique⟩
+          let some table := CoreNames.table? database spec.table | return none
+          if _nameMatches : spec.name.toLower = entry.name.toLower ∧ spec.table.toLower = entry.table.toLower then
+            let some column := (table.schema.columns.findIdx?
+              (fun candidate => candidate.name = spec.column)).orElse (fun _ =>
+                table.schema.columns.findIdx? (fun candidate => candidate.name.toLower == spec.column.toLower)) | return none
+            let index : Core.Index := ⟨entry.name, column, spec.unique⟩
             let some physical ← decodeIndexSubtreeIOFrom source
               (source.pageCount + 1) entry.rootPage | return none
             if _contentsMatch : physical = expectedIndexEntries table index then

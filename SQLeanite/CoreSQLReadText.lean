@@ -24,7 +24,7 @@ inductive TranslatedRead (state : Core.State) :
       (noHaving : select.having = none) (noOffset : select.offset = 0)
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
-        (CoreSQL.canonical source.name) = some stored)
+        (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
@@ -39,7 +39,7 @@ inductive TranslatedRead (state : Core.State) :
       (orderingTranslated : CoreSQL.directOrdering stored.schema source select = .ok ordering)
       (directQuery : CoreSQL.queryNeedsRepresentatives select.distinct columns ordering = false) :
       TranslatedRead state (.select select)
-        (.query (CoreSQL.canonical source.name) {
+        (.query (CoreSQL.resolveTableName state source.name) {
           columns
           predicate
           orderBy := ordering
@@ -53,7 +53,7 @@ inductive TranslatedRead (state : Core.State) :
       (noHaving : select.having = none) (noOffset : select.offset = 0)
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
-        (CoreSQL.canonical source.name) = some stored)
+        (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
@@ -66,7 +66,7 @@ inductive TranslatedRead (state : Core.State) :
       (notDistinct : select.distinct = false)
       (noOrdering : select.orderBy = #[]) (noLimit : select.limit = none) :
       TranslatedRead state (.select select)
-        (.count (CoreSQL.canonical source.name) target predicate)
+        (.count (CoreSQL.resolveTableName state source.name) target predicate)
   | sum (select : Select) (source : TableRef) (stored : Core.Table)
       (predicate : Option Core.Predicate) (column : Nat)
       (noCompounds : select.compounds = #[])
@@ -75,7 +75,7 @@ inductive TranslatedRead (state : Core.State) :
       (noHaving : select.having = none) (noOffset : select.offset = 0)
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
-        (CoreSQL.canonical source.name) = some stored)
+        (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
@@ -88,7 +88,7 @@ inductive TranslatedRead (state : Core.State) :
       (notDistinct : select.distinct = false)
       (noOrdering : select.orderBy = #[]) (noLimit : select.limit = none) :
       TranslatedRead state (.select select)
-        (.sum (CoreSQL.canonical source.name) column predicate)
+        (.sum (CoreSQL.resolveTableName state source.name) column predicate)
   | extreme (select : Select) (source : TableRef) (stored : Core.Table)
       (predicate : Option Core.Predicate) (minimum : Bool) (column : Nat)
       (noCompounds : select.compounds = #[])
@@ -97,7 +97,7 @@ inductive TranslatedRead (state : Core.State) :
       (noHaving : select.having = none) (noOffset : select.offset = 0)
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
-        (CoreSQL.canonical source.name) = some stored)
+        (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
@@ -110,7 +110,7 @@ inductive TranslatedRead (state : Core.State) :
       (notDistinct : select.distinct = false)
       (noOrdering : select.orderBy = #[]) (noLimit : select.limit = none) :
       TranslatedRead state (.select select)
-        (.extreme (CoreSQL.canonical source.name) minimum column predicate)
+        (.extreme (CoreSQL.resolveTableName state source.name) minimum column predicate)
   | group (select : Select) (source : TableRef) (stored : Core.Table)
       (predicate : Option Core.Predicate) (groups : List Nat)
       (outputs : List Core.GroupOutput)
@@ -120,7 +120,7 @@ inductive TranslatedRead (state : Core.State) :
       (noHaving : select.having = none) (noOffset : select.offset = 0)
       (plainSource : source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
-        (CoreSQL.canonical source.name) = some stored)
+        (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
       (predicateTranslated : select.where_.mapM
         (CoreSQL.predicate stored.schema) = .ok predicate)
@@ -131,7 +131,7 @@ inductive TranslatedRead (state : Core.State) :
       (outputsTranslated : CoreSQL.groupOutputs stored.schema groups
         select.columns.toList = .ok outputs) :
       TranslatedRead state (.select select)
-        (.group (CoreSQL.canonical source.name) {
+        (.group (CoreSQL.resolveTableName state source.name) {
           groupBy := groups
           outputs
           predicate })
@@ -146,19 +146,19 @@ inductive TranslatedRead (state : Core.State) :
       (noGroups : select.groupBy = #[]) (noHaving : select.having = none)
       (notDistinct : select.distinct = false) (noOffset : select.offset = 0)
       (leftFound : state.database.findTable?
-        (CoreSQL.canonical leftSource.name) = some left)
+        (CoreSQL.resolveTableName state leftSource.name) = some left)
       (rightFound : state.database.findTable?
-        (CoreSQL.canonical rightSource.name) = some right)
+        (CoreSQL.resolveTableName state rightSource.name) = some right)
       (queryTranslated : CoreSQL.joinQuery select
-        (CoreSQL.canonical leftSource.name)
-        (CoreSQL.canonical rightSource.name) left.schema right.schema =
+        (CoreSQL.resolveTableName state leftSource.name)
+        (CoreSQL.resolveTableName state rightSource.name) left.schema right.schema =
           .ok query) :
       TranslatedRead state (.select select)
-        (.join (CoreSQL.canonical leftSource.name)
-          (CoreSQL.canonical rightSource.name)
+        (.join (CoreSQL.resolveTableName state leftSource.name)
+          (CoreSQL.resolveTableName state rightSource.name)
           (CoreOptimizerBridge.optimizeJoin
-            (CoreSQL.canonical leftSource.name)
-            (CoreSQL.canonical rightSource.name) query))
+            (CoreSQL.resolveTableName state leftSource.name)
+            (CoreSQL.resolveTableName state rightSource.name) query))
 
 theorem translatedRead_noCollation {state : Core.State} {select : Select} {command : Core.Command}
     (translated : TranslatedRead state (.select select) command) :
@@ -248,7 +248,7 @@ theorem executeSelectBase_eq_core
         projectionTranslated, orderingTranslated, directQuery, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.query (CoreSQL.canonical source.name) {
+          (.query (CoreSQL.resolveTableName state source.name) {
             columns
             predicate
             orderBy := ordering
@@ -264,7 +264,7 @@ theorem executeSelectBase_eq_core
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.count (CoreSQL.canonical source.name) target predicate) <;>
+          (.count (CoreSQL.resolveTableName state source.name) target predicate) <;>
         simp [execution] <;> rfl
   | sum select source stored predicate column noCompounds oneSource noGroups
       noHaving noOffset plainSource found namesBound predicateTranslated notCount
@@ -274,7 +274,7 @@ theorem executeSelectBase_eq_core
         notExtreme, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.sum (CoreSQL.canonical source.name) column predicate) <;>
+          (.sum (CoreSQL.resolveTableName state source.name) column predicate) <;>
         simp [execution] <;> rfl
   | extreme select source stored predicate minimum column noCompounds oneSource
       noGroups noHaving noOffset plainSource found namesBound predicateTranslated notCount
@@ -284,7 +284,7 @@ theorem executeSelectBase_eq_core
         extremeTranslated, notDistinct, noOrdering, noLimit, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.extreme (CoreSQL.canonical source.name) minimum column predicate) <;>
+          (.extreme (CoreSQL.resolveTableName state source.name) minimum column predicate) <;>
         simp [execution] <;> rfl
   | group select source stored predicate groups outputs noCompounds oneSource
       hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
@@ -294,7 +294,7 @@ theorem executeSelectBase_eq_core
         noLimit, groupsTranslated, outputsTranslated, readWidth,
         selectExecution, bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.group (CoreSQL.canonical source.name) {
+          (.group (CoreSQL.resolveTableName state source.name) {
             groupBy := groups
             outputs
             predicate }) <;>
@@ -310,11 +310,11 @@ theorem executeSelectBase_eq_core
         leftFound, rightFound, queryTranslated, readWidth, selectExecution,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.join (CoreSQL.canonical leftSource.name)
-            (CoreSQL.canonical rightSource.name)
+          (.join (CoreSQL.resolveTableName state leftSource.name)
+            (CoreSQL.resolveTableName state rightSource.name)
             (CoreOptimizerBridge.optimizeJoin
-              (CoreSQL.canonical leftSource.name)
-              (CoreSQL.canonical rightSource.name) query)) <;>
+              (CoreSQL.resolveTableName state leftSource.name)
+              (CoreSQL.resolveTableName state rightSource.name) query)) <;>
         simp [execution] <;> rfl
 
 /-- Every command admitted by `TranslatedRead` is observationally read-only.
@@ -757,7 +757,7 @@ theorem executeStatement_eq_core
         projectionTranslated, orderingTranslated, directQuery, oneResult,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.query (CoreSQL.canonical source.name) {
+          (.query (CoreSQL.resolveTableName state source.name) {
             columns
             predicate
             orderBy := ordering
@@ -779,7 +779,7 @@ theorem executeStatement_eq_core
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.count (CoreSQL.canonical source.name) target predicate) with
+          (.count (CoreSQL.resolveTableName state source.name) target predicate) with
       | error message => simp only [Except.map]
       | ok outcome =>
           rcases outcome with ⟨actualNext, actualResult⟩
@@ -795,7 +795,7 @@ theorem executeStatement_eq_core
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.sum (CoreSQL.canonical source.name) column predicate) with
+          (.sum (CoreSQL.resolveTableName state source.name) column predicate) with
       | error message => simp only [Except.map]
       | ok outcome =>
           rcases outcome with ⟨actualNext, actualResult⟩
@@ -811,7 +811,7 @@ theorem executeStatement_eq_core
         notDistinct, noOrdering, noLimit, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.extreme (CoreSQL.canonical source.name) minimum column predicate) with
+          (.extreme (CoreSQL.resolveTableName state source.name) minimum column predicate) with
       | error message => simp only [Except.map]
       | ok outcome =>
           rcases outcome with ⟨actualNext, actualResult⟩
@@ -827,7 +827,7 @@ theorem executeStatement_eq_core
         groupsTranslated, outputsTranslated, oneResult, bind, Functor.map,
         Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.group (CoreSQL.canonical source.name) {
+          (.group (CoreSQL.resolveTableName state source.name) {
             groupBy := groups
             outputs
             predicate }) with
@@ -848,37 +848,37 @@ theorem executeStatement_eq_core
       have joinExecution : CoreSQL.executeJoin state
           { select with compounds := #[] } =
           match Core.execute state
-            (.join (CoreSQL.canonical leftSource.name)
-              (CoreSQL.canonical rightSource.name)
+            (.join (CoreSQL.resolveTableName state leftSource.name)
+              (CoreSQL.resolveTableName state rightSource.name)
               (CoreOptimizerBridge.optimizeJoin
-                (CoreSQL.canonical leftSource.name)
-                (CoreSQL.canonical rightSource.name) query)) with
+                (CoreSQL.resolveTableName state leftSource.name)
+                (CoreSQL.resolveTableName state rightSource.name) query)) with
           | .error message => .error message
           | .ok outcome => .ok (CoreSQL.SelectExecution.mk outcome.1 outcome.2
               (CoreOptimizerBridge.optimizeJoin
-                (CoreSQL.canonical leftSource.name)
-                (CoreSQL.canonical rightSource.name) query).columns.length) := by
+                (CoreSQL.resolveTableName state leftSource.name)
+                (CoreSQL.resolveTableName state rightSource.name) query).columns.length) := by
         rw [baseSelect]
         simp [CoreSQL.executeJoin, twoSources, plainSources, noGroups,
           noHaving, notDistinct, noOffset, leftFound, rightFound,
           queryTranslated, bind, Functor.map, Except.bind, pure, Except.pure, pure]
         cases execution : Core.execute state
-            (.join (CoreSQL.canonical leftSource.name)
-              (CoreSQL.canonical rightSource.name)
+            (.join (CoreSQL.resolveTableName state leftSource.name)
+              (CoreSQL.resolveTableName state rightSource.name)
               (CoreOptimizerBridge.optimizeJoin
-                (CoreSQL.canonical leftSource.name)
-                (CoreSQL.canonical rightSource.name) query)) <;>
+                (CoreSQL.resolveTableName state leftSource.name)
+                (CoreSQL.resolveTableName state rightSource.name) query)) <;>
           simp [execution]
       simp [CoreSQL.executeStatement, CoreSQL.executeSelect,
         CoreSQL.executeSelectFuel, CoreSQL.requiresCompoundCollation, CoreSQL.executeSelectBase,
         height, noCompounds, sourceSize, joinExecution, oneResult,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
       cases execution : Core.execute state
-          (.join (CoreSQL.canonical leftSource.name)
-            (CoreSQL.canonical rightSource.name)
+          (.join (CoreSQL.resolveTableName state leftSource.name)
+            (CoreSQL.resolveTableName state rightSource.name)
             (CoreOptimizerBridge.optimizeJoin
-              (CoreSQL.canonical leftSource.name)
-              (CoreSQL.canonical rightSource.name) query)) with
+              (CoreSQL.resolveTableName state leftSource.name)
+              (CoreSQL.resolveTableName state rightSource.name) query)) with
       | error message => simp only [Except.map]
       | ok outcome =>
           rcases outcome with ⟨actualNext, actualResult⟩

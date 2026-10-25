@@ -1291,3 +1291,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.inputRowValues_single
 
 #print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_integerNotNull_append
+
+#print axioms SQLeanite.CoreNames.table?_folded
+#print axioms SQLeanite.CoreNames.tableName_resolves
+#print axioms SQLeanite.CoreNames.indexName_found

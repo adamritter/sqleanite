@@ -3033,3 +3033,50 @@ nine-binding boundary are unchanged. Reports use
 `scripts/run-integer-not-null-differential.py`. Other schema constraints,
 case-preserving identifiers and full SQL/database/WAL compatibility remain
 unfinished.
+
+## Case-preserving SQL names (2026-10-25)
+
+SQL binding now compares identifiers with ASCII case folding while retaining
+original table, column and index names in the schema. `CoreNames` resolves the
+SQL identifier to the exact stored object before Core commands execute; its
+registered bridge proves that the resolved name retrieves that same table.
+Core's exact-name database operations and frame invariants are unchanged.
+SQL schema admission rejects case-insensitive duplicate columns and object-name
+collisions, and DROP protects implicit primary indexes and reserved tables.
+Actual columns still shadow rowid aliases. Non-ASCII letters remain distinct.
+
+SELECT, joins, aggregates, compounds, all admitted writes, RETURNING and schema
+no-ops use the resolved table name. Column/expression binding folds both sides.
+The read/write text translation relations explicitly use `resolveTableName state`
+in their lookup premises and target commands, rather than the old lowercased
+name; CREATE INDEX's target retains the original index name. These translation
+contracts have changed and are not claimed unchanged. The generated-file cold
+read cache and wide insert path resolve names against their stored metadata.
+Foreign canonical-shaped index SQL may spell its table/column differently;
+the compatibility decoder resolves those references while retaining catalog
+names and still checking physical index contents. The stricter generated-image
+recognizer and its inverse proofs keep their existing exact-name contracts.
+
+Retained baseline seed 354100: **168 differences / 192 paired scenarios**.
+Development seed 354101: **366 scenarios, zero differences**. Final seed 354102
+uses 120 new statements and newly populated fixtures: **2,718 scenarios, zero
+differences**, including 126 positive-error outcomes. Both public file modes,
+512/4096/65536-byte pages, quoted/escaped/spaced names, non-ASCII distinctions,
+case variants, collisions, rowid shadowing, schema no-ops and transactions are
+covered. Successful output bytes and independent C observations of catalog
+names, column/index metadata, stored types/hex values and integrity are compared
+without folding the observed names. Each case includes a subsequent C insert
+and Lean reopen. Rejected individual statements retain main/WAL bytes. Original
+DDL whitespace/SQL text, exact diagnostics and other SQL features are not covered
+by this claim; names lost by earlier writers cannot be recovered.
+
+Implementation SHA-256: `790df7e0b1bed85fc2709074b8e41c8077e1b9dba1c3c36fbe84c3ca400b8520`.
+The matching checks record **308 build jobs, 231 executable tests, 1,131 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+declared unsupported cells. The first full build hit a missing object at link
+time when an incremental build was inadvertently started before it had fully
+exited; the subsequent completed build and all evaluations use the final source.
+Native code and its nine-binding boundary are unchanged. Reports:
+`sqlite-schema-case-*20261025.json`; harness:
+`scripts/run-schema-case-differential.py`. ALTER TABLE, broader schema constraints
+and full SQL/database/WAL compatibility remain unfinished.

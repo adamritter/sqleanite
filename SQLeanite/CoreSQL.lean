@@ -1,4 +1,5 @@
 import SQLeanite.CoreEngine
+import SQLeanite.CoreNames
 import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
@@ -26,6 +27,9 @@ def unsupported (feature : String) : Except String α :=
   .error s!"unsupported general verified-MVP SQL: {feature}"
 
 def canonical (name : String) : String := name.toLower
+
+def resolveTableName (state : Core.State) (name : String) : String :=
+  CoreNames.tableName state.database name
 
 /-- build.c dequotes a quoted declared type before computing affinity. Keep
 the original spelling of ordinary multiword/parameterized type names. -/
@@ -94,17 +98,20 @@ def schema (name : String) (definitions : Array ColumnDef)
   let definitions ← tablePrimaryColumns definitions constraints
   unless definitions.toList.all columnAllowed do
     throw "unsupported general verified-MVP SQL: column constraint"
+  let foldedNames := definitions.toList.map (fun column => canonical column.name)
+  unless foldedNames.eraseDups.length == foldedNames.length do
+    throw "duplicate column name"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
   if primaryKeys.isEmpty then
     let visibleColumns : List Core.Column := definitions.toList.map fun column => {
-      name := canonical column.name
+      name := column.name
       notNull := column.notNull
       declaredType := declaredTypeName column.declaredType }
     unless !visibleColumns.isEmpty do throw "table must have at least one column"
-    if visibleColumns.any (fun column => column.name == "__sqleanite_rowid") then
+    if visibleColumns.any (fun column => canonical column.name == "__sqleanite_rowid") then
       throw "reserved verified column name: __sqleanite_rowid"
     return {
-      name := canonical name
+      name := name
       columns := visibleColumns ++ [Core.hiddenRowidColumn]
       primaryKey := visibleColumns.length
       declaredPrimaryKey := visibleColumns.length + 1 }
@@ -121,26 +128,26 @@ def schema (name : String) (definitions : Array ColumnDef)
     throw "verified MVP primary key must have declared type INTEGER or TEXT"
   let visibleColumns : List Core.Column := definitions.toList.map fun column =>
     if column.primaryKey then {
-      name := canonical column.name
+      name := column.name
       notNull := integerAlias || column.notNull
       integerPrimaryKey := integerAlias
       integerPrimaryNotNull := integerAlias && column.notNull
       textPrimaryKey := !integerAlias }
     else {
-      name := canonical column.name
+      name := column.name
       notNull := column.notNull
       declaredType := declaredTypeName column.declaredType }
   if integerAlias then return {
-    name := canonical name
+    name := name
     columns := visibleColumns
     primaryKey
     declaredPrimaryKey := primaryKey }
   else
     let hiddenName := "__sqleanite_rowid"
-    if visibleColumns.any (fun column => column.name == hiddenName) then
+    if visibleColumns.any (fun column => canonical column.name == hiddenName) then
       throw s!"reserved verified column name: {hiddenName}"
     return {
-      name := canonical name
+      name := name
       columns := visibleColumns ++ [Core.hiddenRowidColumn]
       primaryKey := visibleColumns.length
       declaredPrimaryKey := primaryKey }
@@ -172,7 +179,7 @@ def comparisonLiteral (schema : Core.Schema) (index : Nat) (expression : Expr) :
   return SQLite.PhysicalAffinity.comparison aff value
 
 def findColumn? (schema : Core.Schema) (name : String) : Option Nat :=
-  match schema.columns.findIdx? (fun column => column.name == canonical name) with
+  match schema.columns.findIdx? (fun column => canonical column.name == canonical name) with
   | some index => some index
   | none => if ["rowid", "oid", "_rowid_"].contains (canonical name) then
       some schema.primaryKey else none
@@ -185,7 +192,7 @@ def column (schema : Core.Schema) (name : String) : Except String Nat :=
 /-- CREATE INDEX cannot name an implicit rowid alias. A real column with
 that spelling is still permitted. -/
 def indexColumn (schema : Core.Schema) (name : String) : Except String Nat :=
-  match schema.catalogColumns.findIdx? (fun column => column.name == canonical name) with
+  match schema.catalogColumns.findIdx? (fun column => canonical column.name == canonical name) with
   | some index => .ok index
   | none => .error s!"no such column: {name}"
 
@@ -1293,8 +1300,8 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do
     throw "unsupported general verified-MVP SQL: join SELECT shape"
-  unless canonical leftSource.name = leftTable &&
-      canonical rightSource.name = rightTable do
+  unless canonical leftSource.name = canonical leftTable &&
+      canonical rightSource.name = canonical rightTable do
     throw "join source/schema mismatch"
   let context : JoinContext := {
     leftTable, rightTable
@@ -1328,8 +1335,8 @@ def executeJoin (state : Core.State) (select : Select) :
   unless select.groupBy.isEmpty && select.having.isNone && !select.distinct &&
       select.offset = 0 do
     throw "unsupported general verified-MVP SQL: join SELECT shape"
-  let leftTable := canonical leftSource.name
-  let rightTable := canonical rightSource.name
+  let leftTable := resolveTableName state leftSource.name
+  let rightTable := resolveTableName state rightSource.name
   let left ← match state.database.findTable? leftTable with
     | some table => .ok table
     | none => .error s!"no such table: {leftSource.name}"
@@ -1459,7 +1466,7 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
     columns := List.range stored.schema.columns.length
     predicate := search
     orderBy := if orderedScan then ordering else [] }
-  let (_, result) ← Core.execute state (.query (canonical source.name) query)
+  let (_, result) ← Core.execute state (.query (resolveTableName state source.name) query)
   let projected ← if orderedScan then
       ctx.scanWindow select.where_ expressions select.distinct result.rows select.offset select.limit []
     else CoreOrder.scan ctx select.where_ expressions terms select.distinct result.rows select.offset select.limit
@@ -1506,7 +1513,7 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
   let ctx := expressionSearchContext ctx search
   let enabled ← if enabled then expressionSearchReady ctx search select.where_ else pure false
   let inputs ← if !enabled then pure [] else do
-    let (_, result) ← Core.execute state (.query (canonical source.name)
+    let (_, result) ← Core.execute state (.query (resolveTableName state source.name)
       { columns := List.range stored.schema.columns.length, predicate := search })
     CoreAggregate.selectRows ctx select.where_ result.rows
   let values ← prepared.results.accumulate ctx inputs
@@ -1644,7 +1651,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
       | none => .error "SELECT has no source table"
     unless source.subquerySql.isNone && source.joinOn.isNone do
       throw "unsupported general verified-MVP SQL: SELECT source"
-    let tableName := canonical source.name
+    let tableName := resolveTableName state source.name
     let stored ← match state.database.findTable? tableName with
       | some stored => .ok stored
       | none => .error s!"no such table: {source.name}"
@@ -1730,7 +1737,7 @@ def simpleQuery? (state : Core.State) (select : Select) :
       select.groupBy.isEmpty && select.having.isNone && select.offset = 0 then
     let source ← select.sources[0]?
     if source.subquerySql.isNone && source.joinOn.isNone then
-      let tableName := canonical source.name
+      let tableName := resolveTableName state source.name
       let stored ← state.database.findTable? tableName
       unless selectNamesBound stored.schema source select do none
       let wherePredicate ← (select.where_.mapM (predicate stored.schema)).toOption
@@ -1775,15 +1782,15 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   match select.sources.toList with
   | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
   | [source] =>
-      let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+      let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
       let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
       let expanded ← CoreOrder.expandResults ctx select.columns.toList
       return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
   | [leftSource, rightSource] =>
-      let some left := state.database.findTable? (canonical leftSource.name) | throw s!"no such table: {leftSource.name}"
-      let some right := state.database.findTable? (canonical rightSource.name) | throw s!"no such table: {rightSource.name}"
+      let some left := state.database.findTable? (resolveTableName state leftSource.name) | throw s!"no such table: {leftSource.name}"
+      let some right := state.database.findTable? (resolveTableName state rightSource.name) | throw s!"no such table: {rightSource.name}"
       let query ← joinQuery { select with orderBy := #[], limit := none, offset := 0 }
-        (canonical leftSource.name) (canonical rightSource.name) left.schema right.schema
+        (resolveTableName state leftSource.name) (resolveTableName state rightSource.name) left.schema right.schema
       return List.replicate query.columns.length (some "binary")
   | _ => unsupported "compound source shape"
 
@@ -1807,7 +1814,7 @@ def compoundTailArm (state : Core.State) (select : Select) : Except String CoreC
       return { columns := select.columns.toList, context := some {
         schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" } }
   | [source] =>
-      let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+      let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
       let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
       return { columns := ← CoreOrder.expandResults ctx select.columns.toList, context := some ctx }
   | sources =>
@@ -1817,7 +1824,7 @@ def compoundTailArm (state : Core.State) (select : Select) : Except String CoreC
         | .star qualifier =>
             for source in sources do
               if qualifier.all (fun q => q.toLower == (source.alias.getD source.name).toLower) then
-                let some stored := state.database.findTable? (canonical source.name) | throw s!"no such table: {source.name}"
+                let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
                 columns := columns ++ stored.schema.catalogColumns.map (fun c =>
                   { expr := .column (some (source.alias.getD source.name)) c.name })
         | _ => columns := columns ++ [column]
@@ -2059,7 +2066,7 @@ def executeInsertSelect (state : Core.State) (table : String)
     Except String (Core.State × List Core.Result) := do
   unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
     throw "unsupported general verified-MVP SQL: INSERT conflict policy"
-  let tableName := canonical table
+  let tableName := resolveTableName state table
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
@@ -2146,7 +2153,7 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
     Except String (Core.State × List Core.Result) := do
   unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
     throw "unsupported general verified-MVP SQL: INSERT conflict policy"
-  let tableName := canonical table
+  let tableName := resolveTableName state table
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
@@ -2165,12 +2172,12 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
   return (next, [{ rows := outputs, changes := outputs.length }])
 
 def indexNameExists (state : Core.State) (name : String) : Bool :=
-  state.database.tables.any fun table => table.indexes.any fun index => index.name == canonical name
+  state.database.tables.any fun table => table.indexes.any fun index => canonical index.name == canonical name
 
 def prepareCreateTable (state : Core.State) (name : String) (ifNotExists : Bool) :
     Except String Bool := do
   if (canonical name).startsWith "sqlite_" then throw s!"object name reserved for internal use: {name}"
-  if (state.database.findTable? (canonical name)).isSome then
+  if (CoreNames.table? state.database name).isSome then
     if ifNotExists then return false else throw s!"table already exists: {name}"
   if indexNameExists state name then throw s!"there is already an index named {name}"
   return true
@@ -2180,7 +2187,7 @@ index name. Existing indexes skip expression binding under IF NOT EXISTS. -/
 def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool) :
     Except String Bool := do
   if (canonical name).startsWith "sqlite_" then throw s!"object name reserved for internal use: {name}"
-  if (state.database.findTable? (canonical name)).isSome then
+  if (CoreNames.table? state.database name).isSome then
     throw s!"there is already a table named {name}"
   if indexNameExists state name then
     if ifNotExists then return false else throw s!"index already exists: {name}"
@@ -2188,16 +2195,15 @@ def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool)
 
 def prepareDropTable (state : Core.State) (name : String) (ifExists : Bool) :
     Except String Bool := do
-  let name := canonical name
-  if ["sqlite_schema", "sqlite_master", "sqlite_temp_schema", "sqlite_temp_master"].contains name then
+  if ["sqlite_schema", "sqlite_master", "sqlite_temp_schema", "sqlite_temp_master"].contains (canonical name) then
     throw s!"table {name} may not be dropped"
-  if (state.database.findTable? name).isSome then return true
+  if (CoreNames.table? state.database name).isSome then return true
   if ifExists then return false
   throw s!"no such table: {name}"
 
 def indexOwner? (state : Core.State) (name : String) : Option Core.Table :=
   state.database.tables.find? fun stored =>
-    stored.indexes.any fun index => index.name == canonical name
+    stored.indexes.any fun index => canonical index.name == canonical name
 
 def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
     Except String Bool := do
@@ -2207,7 +2213,7 @@ def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
       throw s!"no such index: {name}"
   | some stored =>
       if stored.indexes.any (fun index =>
-          index.name == canonical name && index.isImplicitPrimary stored.schema) then
+          canonical index.name == canonical name && index.isImplicitPrimary stored.schema) then
         throw "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped"
       return true
 
@@ -2217,7 +2223,7 @@ def schemaNoop (state : Core.State) : Statement → Bool
   | .dropIndex name ifExists => (prepareDropIndex state name ifExists).toOption == some false
   | .createTable name _ _ ifNotExists => (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
-      (state.database.findTable? (canonical table)).isSome &&
+      (state.database.findTable? (resolveTableName state table)).isSome &&
         (prepareCreateIndex state name ifNotExists).toOption == some false
   | _ => false
 
@@ -2228,21 +2234,21 @@ def executeStatement (state : Core.State) :
       else executeInsertReturning state table columns (.inr query) conflict returning
   | .dropTable name ifExists => do
       unless ← prepareDropTable state name ifExists do return (state, [{}])
-      let database ← CoreSchemaDrop.table state.database (canonical name)
+      let database ← CoreSchemaDrop.table state.database (resolveTableName state name)
       return ({ state with database }, [{}])
   | .dropIndex name ifExists => do
       unless ← prepareDropIndex state name ifExists do return (state, [{}])
       let stored ← match indexOwner? state name with
         | some stored => pure stored
         | none => throw s!"no such index: {name}"
-      let updated ← CoreSchemaDrop.index stored (canonical name)
+      let updated ← CoreSchemaDrop.index stored (CoreNames.indexName stored name)
       let database ← state.database.updateTable updated
       return ({ state with database }, [{}])
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       executeCommand state (.createTable (← schema name columns constraints))
   | .createIndex name table expressions unique where_ ifNotExists => do
-      let tableName := canonical table
+      let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
@@ -2256,13 +2262,13 @@ def executeStatement (state : Core.State) :
           | _ => unsupported "index expression"
         let columnIndex ← indexColumn stored.schema columnName
         executeCommand state (.createIndex tableName {
-          name := canonical name, column := columnIndex, unique })
+          name := name, column := columnIndex, unique })
   | .insert table columns rows conflict returning => do
       if !returning.isEmpty then
         return ← executeInsertReturning state table columns (.inl rows) conflict returning
       unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
         throw "unsupported general verified-MVP SQL: INSERT conflict policy"
-      let tableName := canonical table
+      let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
@@ -2273,7 +2279,7 @@ def executeStatement (state : Core.State) :
       else
         insertRows state tableName stored.schema columns (conflict == .replace) rows.toList (1 < rows.size)
   | .delete table alias where_ returning => do
-      let tableName := canonical table
+      let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
@@ -2285,7 +2291,7 @@ def executeStatement (state : Core.State) :
   | .update table alias assignments where_ conflict returning => do
       unless conflict == .default || conflict == .abort || conflict == .ignore || conflict == .replace do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
-      let tableName := canonical table
+      let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
@@ -2332,7 +2338,7 @@ theorem executeStatement_createTable_noop (state : Core.State) (name : String)
 
 theorem executeStatement_createIndex_noop (state : Core.State) (name table : String)
     (expressions : Array Expr) (unique : Bool) (where_ : Option Expr) (ifNotExists : Bool)
-    (stored : Core.Table) (found : state.database.findTable? (canonical table) = some stored)
+    (stored : Core.Table) (found : state.database.findTable? (resolveTableName state table) = some stored)
     (skipped : prepareCreateIndex state name ifNotExists = .ok false) :
     executeStatement state (.createIndex name table expressions unique where_ ifNotExists) = .ok (state, [{}]) := by
   simp [executeStatement, found, skipped, bind, Except.bind, pure, Except.pure]

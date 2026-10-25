@@ -20,7 +20,7 @@ private def selectSource? (select : Select) : Option String := do
       select.groupBy.isEmpty && select.having.isNone && select.offset = 0 then
     let source ← select.sources[0]?
     if source.subquerySql.isNone && source.joinOn.isNone then
-      some (CoreSQL.canonical source.name)
+      some source.name
     else none
   else none
 
@@ -28,8 +28,17 @@ private def joinSourceNames? (select : Select) : Option (String × String) := do
   if select.compounds.isEmpty && select.sources.size = 2 then
     let left ← select.sources[0]?
     let right ← select.sources[1]?
-    some (CoreSQL.canonical left.name, CoreSQL.canonical right.name)
+    some (left.name, right.name)
   else none
+
+/-- Cached catalog names retain their spelling. A foreign-image miss falls
+back to the full decoder rather than treating the table as absent. -/
+private def storedName (geometry : Option CoreFileAdapter.GeneratedFileGeometry)
+    (name : String) : String :=
+  match geometry with
+  | none => name
+  | some geometry =>
+      ((geometry.schemas.find? (fun entry => entry.1.toLower == name.toLower)).map (·.1)).getD name
 
 private def coldQuery? (schema : Core.Schema) (select : Select) :
     Option Core.Query := do
@@ -57,6 +66,8 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
     (cache : CoreFileAdapter.PageReadCache) (select : Select) :
     IO (Option Core.Result) := do
   if let some (leftName, rightName) := joinSourceNames? select then
+    let leftName := storedName geometry leftName
+    let rightName := storedName geometry rightName
     let some lookup ← CoreFileAdapter.lookupGeneratedPrimaryJoin paths
         leftName rightName | return none
     let some query := (CoreSQL.joinQuery select leftName rightName
@@ -67,7 +78,8 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
         optimized.where_.isNone && optimized.kind = .inner do return none
     return some ({ rows := (optimized.evalPrimaryKeyCandidates
       lookup.leftCandidates lookup.rightRows) } : Core.Result)
-  let some tableName := selectSource? select | return none
+  let some sourceName := selectSource? select | return none
+  let tableName := storedName geometry sourceName
   let schema? ← match geometry with
     | some generated => pure (generated.tableSchema? tableName)
     | none => CoreFileAdapter.readTableSchema paths tableName

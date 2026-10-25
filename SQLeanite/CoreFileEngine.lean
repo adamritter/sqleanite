@@ -161,7 +161,7 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
   | .insert table columns rows conflict =>
       unless conflict == .default || conflict == .abort do return none
       let [expressions] := rows.toList | return none
-      let tableName := CoreSQL.canonical table
+      let tableName := CoreNames.tableName wide.state.database table
       let some stored := wide.state.database.findTable? tableName | return none
       let .ok values := CoreSQL.rowValues stored.schema columns expressions |
         return none

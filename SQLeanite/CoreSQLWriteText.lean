@@ -34,51 +34,51 @@ inductive TranslatedWrite (state : Core.State) :
       (ifNotExists : Bool) (stored : Core.Table) (columnName : String)
       (columnIndex : Nat)
       (ready : CoreSQL.prepareCreateIndex state name ifNotExists = .ok true)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (expressionName : CoreSQL.indexColumnName? expression = some columnName)
       (columnFound : CoreSQL.indexColumn stored.schema columnName = .ok columnIndex) :
       TranslatedWrite state
         (.createIndex name table #[expression] false none ifNotExists)
-        (.createIndex (CoreSQL.canonical table)
-          { name := CoreSQL.canonical name, column := columnIndex })
+        (.createIndex (CoreSQL.resolveTableName state table)
+          { name := name, column := columnIndex })
   | insert (table : String) (columns : Option (Array String))
       (expressions : Array Expr) (conflict : ConflictAction)
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (values : List Core.Value)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
         .ok values) :
       TranslatedWrite state (.insert table columns #[expressions] conflict)
-        (.insert (CoreSQL.canonical table) values)
+        (.insert (CoreSQL.resolveTableName state table) values)
   | replace (table : String) (columns : Option (Array String))
       (expressions : Array Expr) (stored : Core.Table)
       (values : List Core.Value)
       (ordinary : CoreSQL.hasReplaceKeys stored = false)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
         .ok values) :
       TranslatedWrite state
         (.insert table columns #[expressions] .replace)
-        (.replace (CoreSQL.canonical table) values)
+        (.replace (CoreSQL.resolveTableName state table) values)
   | delete (table : String) (alias : Option String) (where_ : Option Expr)
       (stored : Core.Table) (predicate : Option Core.Predicate)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (namesBound : CoreSQL.writeNamesBound stored.schema table alias #[] where_ = true)
       (translated : where_.mapM (CoreSQL.predicate stored.schema) =
         .ok predicate) :
       TranslatedWrite state (.delete table alias where_ #[])
-        (.deleteWhere (CoreSQL.canonical table) predicate)
+        (.deleteWhere (CoreSQL.resolveTableName state table) predicate)
   | update (table : String) (alias : Option String)
       (assignments : Array (String × Expr)) (where_ : Option Expr)
       (conflict : ConflictAction)
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (updates : List (Nat × Core.Value))
       (predicate : Option Core.Predicate)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (namesBound : CoreSQL.writeNamesBound stored.schema table alias assignments where_ = true)
       (assignmentsTranslated :
@@ -88,7 +88,7 @@ inductive TranslatedWrite (state : Core.State) :
         (CoreSQL.predicate stored.schema) = .ok predicate) :
       TranslatedWrite state
         (.update table alias assignments where_ conflict)
-        (.updateWhere (CoreSQL.canonical table) updates predicate)
+        (.updateWhere (CoreSQL.resolveTableName state table) updates predicate)
   | commit : TranslatedWrite state .commit .commit
 
 theorem executeStatement_eq_core
@@ -140,24 +140,24 @@ inductive TranslatedInsertRows (state : Core.State) :
       (rows : Array (Array Expr)) (conflict : ConflictAction)
       (allowed : conflict = .default ∨ conflict = .abort)
       (stored : Core.Table) (values : List (List Core.Value))
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : rows.toList.mapM
         (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows conflict)
         (values.map fun row =>
-          .insert (CoreSQL.canonical table) row)
+          .insert (CoreSQL.resolveTableName state table) row)
   | replace (table : String) (columns : Option (Array String))
       (rows : Array (Array Expr)) (stored : Core.Table)
       (values : List (List Core.Value))
       (ordinary : CoreSQL.hasReplaceKeys stored = false)
-      (found : state.database.findTable? (CoreSQL.canonical table) =
+      (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (translated : rows.toList.mapM
         (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows .replace)
         (values.map fun row =>
-          .replace (CoreSQL.canonical table) row)
+          .replace (CoreSQL.resolveTableName state table) row)
 
 def executeWriteCommands (state : Core.State)
     (commands : List CoreEndToEnd.WriteCommand) :

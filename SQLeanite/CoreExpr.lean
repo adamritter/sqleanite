@@ -16,7 +16,7 @@ structure Context where
 def Context.column? (ctx : Context) (qualifier : Option String) (name : String) : Option Nat := do
   if qualifier.any (fun q => q.toLower != ctx.sourceName.toLower) then none
   else
-    match ctx.schema.columns.findIdx? (fun c => c.name == name.toLower) with
+    match ctx.schema.columns.findIdx? (fun c => c.name.toLower == name.toLower) with
     | some i => some i
     | none => if ["rowid", "oid", "_rowid_"].contains name.toLower then
         some ctx.schema.primaryKey else none

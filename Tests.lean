@@ -4597,6 +4597,52 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaCase : IO Unit := do
+  let setup := "CREATE TABLE Users(Id INTEGER PRIMARY KEY,Label TEXT,Val INTEGER);" ++
+    "CREATE INDEX LabelIndex ON uSeRs(lAbEl);" ++
+    "CREATE TABLE Tags(KeY TEXT PRIMARY KEY,Owner INTEGER);" ++
+    "INSERT INTO USERS VALUES(1,'one',10),(2,'two',20);" ++
+    "INSERT INTO tAgS VALUES('a',1),('b',2);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"case-preserving schema: {message}"
+  let some users := state.database.findTable? "Users" | fail "table spelling changed"
+  unless users.schema.catalogColumns.map (·.name) == ["Id","Label","Val"] &&
+      users.indexes.map (·.name) == ["LabelIndex"] do fail "column/index spelling changed"
+  unless (CoreNames.table? state.database "uSeRs").map (·.schema.name) == some "Users" do
+    fail "SQL table binding did not retain original name"
+  let some image := CoreFile.encode state.database | fail "mixed-case schema encode failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "mixed-case schema reopen failed"
+  let some restored := reopened.findTable? "Users" | fail "mixed-case table lost after reopen"
+  unless decide (restored.schema = users.schema) && restored.indexes.map (·.name) == ["LabelIndex"] do
+    fail "mixed-case metadata changed after reopen"
+  for sql in ["SELECT U.iD,U.LaBeL FROM UsErS U WHERE u.ID>0 ORDER BY U.iD;",
+      "SELECT USERS.* FROM users;", "SELECT LABEL,count(*) FROM USERS GROUP BY label;",
+      "SELECT u.ID,t.KEY FROM USERS u JOIN TAGS t ON u.ID=t.OWNER ORDER BY u.ID;",
+      "UPDATE users SET label=upper(LABEL) WHERE id=1 RETURNING USERS.Id,Label;",
+      "INSERT INTO users(ID,LaBeL,VAL) VALUES(3,'three',30) RETURNING users.ID,LABEL;",
+      "INSERT OR REPLACE INTO tags(KEY,OWNER) VALUES('a',2) RETURNING ROWID,Key;",
+      "DELETE FROM uSeRs WHERE id=1 RETURNING ID,Label;",
+      "DROP INDEX labelINDEX;", "DROP TABLE tAgS;",
+      "CREATE TABLE IF NOT EXISTS USERS(ignored);",
+      "CREATE INDEX IF NOT EXISTS labelINDEX ON USERS(missing);"] do
+    unless (CoreSQL.execute { database := reopened } sql).isOk do
+      fail s!"case-insensitive binding rejected: {sql}"
+  for sql in ["CREATE TABLE USERS(other);", "CREATE TABLE labelindex(other);",
+      "CREATE INDEX USERS ON users(Id);", "CREATE INDEX LABELINDEX ON users(Id);",
+      "CREATE TABLE Bad(ID,id);", "DROP INDEX SQLITE_AUTOINDEX_TAGS_1;"] do
+    if (CoreSQL.execute { database := reopened } sql).isOk then
+      fail s!"case-insensitive schema conflict omitted: {sql}"
+  let (_, results) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE Ä(Ä,ä);CREATE TABLE ä(v);INSERT INTO Ä VALUES(1,2);INSERT INTO ä VALUES(3);SELECT Ä,ä FROM Ä;SELECT v FROM ä;" with
+    | .ok result => pure result
+    | .error message => fail s!"non-ASCII names were folded: {message}"
+  let expected : List (List Value) := [[.integer 3]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some rows do fail "non-ASCII tables were merged"
+
 private def expectSQLiteIntegerNotNullMetadata : IO Unit := do
   for declared in [false,true] do
     for tableKey in [false,true] do
@@ -6293,6 +6339,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite case-insensitive binding preserves schema spelling", expectSQLiteSchemaCase),
   ("SQLite explicit INTEGER PRIMARY KEY NOT NULL metadata survives reopen", expectSQLiteIntegerNotNullMetadata),
   ("SQLite multi-VALUES evaluates discarded inputs before constraints", expectSQLiteInsertInputEvaluation),
   ("SQLite checked single-column table PRIMARY KEY", expectSQLiteTablePrimary),
