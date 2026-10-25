@@ -7041,6 +7041,79 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinComparisonWrappers : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,'A'),(2,'a '),(3,NULL);INSERT INTO r VALUES(1,'a'),(2,'A '),(3,NULL);"
+  for (condition, values) in [
+      ("a.k COLLATE nocase=b.k", [[1,1],[2,2]]),
+      ("a.k COLLATE rtrim=b.k", [[1,2],[2,1]]),
+      ("a.k COLLATE nocase IS b.k", [[1,1],[2,2],[3,3]]),
+      ("a.k COLLATE nocase<b.k", [[1,2]]),
+      ("a.k COLLATE rtrim>=b.k", [[1,2],[2,1],[2,2]])] do
+    let sql := s!"SELECT a.id,b.id FROM l a JOIN r b ON {condition} ORDER BY a.id,b.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match values.mapM (List.mapM (fun number : Int => SQLSurface.value (.integer number))) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined comparison collation: {sql}"
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT,true INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY);INSERT INTO l VALUES(1,'2',2),(2,'01',1),(3,'1tail',1);INSERT INTO r VALUES(1);"
+  for (condition, values) in [("k IS true",[1,2]),("k IS +true",[1]),("k IS likely(true)",[1])] do
+    let sql := s!"SELECT a.id FROM l a,r b WHERE {condition} ORDER BY a.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match values.mapM (fun number : Int => do return [← SQLSurface.value (.integer number)]) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined expression affinity: {sql}"
+  let (_, output) ← match CoreSQL.execute Core.State.empty
+      "SELECT 2 IS true COLLATE missing,NULL IS true COLLATE missing,'1tail' IS true COLLATE nocase;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected ← match ([1,0,1] : List Int).mapM (fun number => SQLSurface.value (.integer number)) with
+    | .ok values => pure values
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [expected] do fail "collated IS truth shortcut differs"
+  for sql in ["SELECT a.id FROM l a,r b WHERE a.k COLLATE missing=b.id LIMIT 0;",
+      "SELECT a.id FROM l a,r b WHERE a.k IS true COLLATE missing;",
+      "SELECT a.id FROM l a,r b WHERE a.k IS likelihood(true,2.0);"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"joined comparison wrapper ignored required validation: {sql}"
+
+private def expectSQLiteJoinIs : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,NULL),(2,0),(3,1),(4,2),(5,'1tail'),(6,'x');INSERT INTO r VALUES(1,NULL),(2,1),(3,0),(4,2);"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,b.id FROM l a JOIN r b ON a.k IS b.k ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 3],[.integer 3,.integer 2],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k IS TRUE ORDER BY a.id;",
+      [[.integer 3,.integer 3],[.integer 4,.integer 4],[.integer 5,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k IS FALSE ORDER BY a.id;",
+      [[.integer 2,.integer 2],[.integer 6,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k IS NOT TRUE ORDER BY a.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2],[.integer 6,.null]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k IS NOT DISTINCT FROM b.k ORDER BY a.id;",
+      [[.integer 1,.integer 1],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE a.k IS +true ORDER BY a.id;",
+      [[.integer 3,.integer 3]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined IS comparison: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined IS rows: {sql}"
+  let (_, output) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE l(id INTEGER PRIMARY KEY,k,true);CREATE TABLE r(id INTEGER PRIMARY KEY);INSERT INTO l VALUES(1,2,1),(2,NULL,NULL);INSERT INTO r VALUES(1);SELECT a.id FROM l a,r b WHERE a.k IS true ORDER BY a.id;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let two ← match SQLSurface.value (.integer 2) with
+    | .ok result => pure result
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [[two]] do
+    fail "IS truth keyword ignored declared source-column shadowing"
+
 private def expectSQLiteJoinTruth : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,NULL),(2,0),(3,2),(4,0.5),(5,'1tail'),(6,X'302E35FF'),(7,'x');INSERT INTO r VALUES(1,NULL),(2,1);"
   let cases : List (String × List (List Value)) := [
@@ -7936,6 +8009,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
+  ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),
   ("SQLite declared rowid names across joined sources", expectSQLiteJoinRowidNames),

@@ -47,6 +47,8 @@ theorem Operand.coercedColumn_null (affinity : SQLite.Affinity) (reference : Col
 
 inductive Predicate where
   | truthy (operand : Operand)
+  | equalCollated (kind : SQLite.Collation.Kind) (left right : Operand)
+  | compareCollated (kind : SQLite.Collation.Kind) (operation : PhysicalQuery.Comparison) (left right : Operand)
   | equal (left right : Operand)
   | notEqual (left right : Operand)
   | compare (operation : PhysicalQuery.Comparison) (left right : Operand)
@@ -57,6 +59,9 @@ inductive Predicate where
   deriving DecidableEq
 
 def Predicate.eval : Predicate → JoinedRow → Truth
+  | .equalCollated kind left right, row => SQLite.Collation.sqlEquals kind (left.value row) (right.value row)
+  | .compareCollated kind operation left right, row =>
+      SQLite.Collation.sqlCompare kind operation (left.value row) (right.value row)
   | .truthy operand, row => SQLite.PhysicalAffinity.truth (operand.value row)
   | .equal left right, row => PhysicalQuery.sqlEquals (left.value row) (right.value row)
   | .notEqual left right, row => Truth.not (PhysicalQuery.sqlEquals (left.value row) (right.value row))
@@ -67,8 +72,54 @@ def Predicate.eval : Predicate → JoinedRow → Truth
   | .and left right, row => Truth.and (left.eval row) (right.eval row)
   | .or left right, row => Truth.or (left.eval row) (right.eval row)
 
+def Predicate.setCollation (kind : SQLite.Collation.Kind) : Predicate → Predicate
+  | .equal left right | .equalCollated _ left right => .equalCollated kind left right
+  | .notEqual left right => .not (.equalCollated kind left right)
+  | .compare operation left right | .compareCollated _ operation left right =>
+      .compareCollated kind operation left right
+  | .not predicate => .not (Predicate.setCollation kind predicate)
+  | .and left right => .and (Predicate.setCollation kind left) (Predicate.setCollation kind right)
+  | .or left right => .or (Predicate.setCollation kind left) (Predicate.setCollation kind right)
+  | predicate => predicate
+
+/-- Retain the original BINARY constructors used by the rowid planner. -/
+def Predicate.withCollation (kind : SQLite.Collation.Kind) (predicate : Predicate) : Predicate :=
+  if kind == .binary then predicate else Predicate.setCollation kind predicate
+
+theorem Predicate.withCollation_binary (predicate : Predicate) :
+    Predicate.withCollation .binary predicate = predicate := rfl
+
+/-- NULL-safe equality expressed in the existing three-valued predicate
+language. Both non-NULL guards suppress UNKNOWN from ordinary equality. -/
+def Predicate.isEqual (left right : Operand) : Predicate :=
+  .or (.and (.isNull left) (.isNull right))
+    (.and (.not (.isNull left)) (.and (.not (.isNull right)) (.equal left right)))
+
+/-- IS TRUE/FALSE is a two-valued truth test, including when its input is NULL. -/
+def Predicate.isTruth (operand : Operand) (expected : Bool) : Predicate :=
+  .and (.not (.isNull operand)) (if expected then .truthy operand else .not (.truthy operand))
+
+theorem Predicate.isEqual_null_left (left right : Operand) (row : JoinedRow)
+    (missing : left.value row = .null) :
+    (Predicate.isEqual left right).eval row = (Predicate.isNull right).eval row := by
+  cases found : right.value row <;>
+    simp [Predicate.isEqual, Predicate.eval, missing, found, Truth.and, Truth.or, Truth.not]
+
+theorem Predicate.isEqual_present (left right : Operand) (row : JoinedRow)
+    (leftPresent : left.value row ≠ .null) (rightPresent : right.value row ≠ .null) :
+    (Predicate.isEqual left right).eval row = (Predicate.equal left right).eval row := by
+  simp only [Predicate.isEqual, Predicate.eval, leftPresent, rightPresent, ↓reduceIte, Truth.not]
+  cases PhysicalQuery.sqlEquals (left.value row) (right.value row) <;> rfl
+
+theorem Predicate.isTruth_null (operand : Operand) (expected : Bool) (row : JoinedRow)
+    (missing : operand.value row = .null) :
+    (Predicate.isTruth operand expected).eval row = .false := by
+  cases expected <;>
+    simp [Predicate.isTruth, Predicate.eval, missing, Truth.and, Truth.not]
+
 def Predicate.leftOnly : Predicate → Bool
-  | .equal left right | .notEqual left right | .compare _ left right =>
+  | .equal left right | .notEqual left right | .compare _ left right |
+      .equalCollated _ left right | .compareCollated _ _ left right =>
       left.leftOnly && right.leftOnly
   | .truthy operand | .isNull operand => operand.leftOnly
   | .not predicate => predicate.leftOnly
@@ -96,7 +147,7 @@ theorem Predicate.eval_leftOnly {predicate : Predicate}
     (firstRight secondRight : Core.Row) :
     predicate.eval (left, firstRight) = predicate.eval (left, secondRight) := by
   induction predicate with
-  | equal first second | notEqual first second | compare _ first second =>
+  | equal first second | notEqual first second | compare _ first second | equalCollated _ first second | compareCollated _ _ first second =>
       simp only [Predicate.leftOnly, Bool.and_eq_true] at only
       simp [Predicate.eval,
         Operand.value_leftOnly only.1 left firstRight secondRight,

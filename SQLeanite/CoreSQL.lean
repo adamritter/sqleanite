@@ -1295,10 +1295,25 @@ def joinHasColumn (context : JoinContext) (name : String) : Bool :=
 def joinBindNames (context : JoinContext) (expression : Expr) : Expr :=
   SQLite.Scalar.bindNames (joinHasColumn context) expression
 
+/-- Unary plus and COLLATE preserve a column's value. Their affinity and
+comparison-collation effects are handled separately from source binding. -/
+def joinColumnAtomFuel? : Nat → Expr → Option (Option String × String)
+  | 0, _ => none
+  | fuel + 1, expression => match expression with
+    | .column qualifier name => some (qualifier, name)
+    | .unary .plus expression | .collate expression _ => joinColumnAtomFuel? fuel expression
+    | .call name arguments false =>
+        (SQLite.Probability.input? name arguments).bind (joinColumnAtomFuel? fuel)
+    | _ => none
+
+def joinColumnAtom? (expression : Expr) : Option (Option String × String) :=
+  joinColumnAtomFuel? expression.height expression
+
 def joinOperand (context : JoinContext) (expression : Expr) : Except String CoreJoin.Operand :=
-  match joinBindNames context expression with
-  | .column qualifier name => .column <$> joinColumn context qualifier name
-  | expression => .literal <$> literal expression
+  let bound := joinBindNames context expression
+  match joinColumnAtom? bound with
+  | some (qualifier, name) => .column <$> joinColumn context qualifier name
+  | none => .literal <$> literal bound
 
 def joinColumnDefinition (context : JoinContext) (reference : CoreJoin.ColumnRef) :
     Except String Core.Column :=
@@ -1309,11 +1324,20 @@ def joinColumnDefinition (context : JoinContext) (reference : CoreJoin.ColumnRef
   | some column => .ok column
   | none => .error "join column is out of range"
 
-def joinOperandAffinity (context : JoinContext) (expression : Expr) :
-    CoreJoin.Operand → Except String (Option SQLite.Affinity)
-  | .column reference | .coercedColumn _ reference =>
-      do return some (← joinColumnDefinition context reference).affinity
-  | .literal _ => .ok (SQLite.Scalar.expressionAffinity expression)
+def joinOperandAffinity (context : JoinContext) (expression : Expr)
+    (operand : CoreJoin.Operand) : Except String (Option SQLite.Affinity) :=
+  let unaffined := match SQLite.ExprCollation.strip expression with
+    | .unary .plus _ => true
+    | .call name _ _ => SQLite.Probability.recognizesName name
+    | _ => false
+  if unaffined then .ok none
+  else match operand with
+    | .column reference | .coercedColumn _ reference =>
+        do return some (← joinColumnDefinition context reference).affinity
+    | .literal _ => .ok (SQLite.Scalar.expressionAffinity expression)
+
+theorem joinOperandAffinity_plus (context : JoinContext) (expression : Expr)
+    (operand : CoreJoin.Operand) : joinOperandAffinity context (.unary .plus expression) operand = .ok none := rfl
 
 def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
     CoreJoin.Operand → Except String CoreJoin.Operand
@@ -1327,11 +1351,13 @@ def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
 def joinComparison (context : JoinContext)
     (operation : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)
     (left right : Expr) : Except String CoreJoin.Predicate := do
+  let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.binaryKind? left right)
   let a ← joinOperand context left
   let b ← joinOperand context right
   let aff := SQLite.Scalar.comparisonAffinity
     (← joinOperandAffinity context left a) (← joinOperandAffinity context right b)
-  return operation (← joinOperandCoerce context aff a) (← joinOperandCoerce context aff b)
+  return CoreJoin.Predicate.withCollation kind
+    (operation (← joinOperandCoerce context aff a) (← joinOperandCoerce context aff b))
 
 /-- USING applies ordinary left-to-right equality affinity to each declared
 shared column. The result is an ON predicate, before LEFT null-extension. -/
@@ -1346,8 +1372,21 @@ def joinUsingPredicate (context : JoinContext) : Except String (Option CoreJoin.
       (← joinOperandCoerce context aff left) (← joinOperandCoerce context aff right)
     return some ((prior.map (fun predicate => .and predicate comparison)).getD comparison)) none
 
+/-- The unshadowed TRUE/FALSE keyword on the right of IS selects truth
+conversion. Other operands use ordinary comparison affinity with NULL safety. -/
+def joinIsComparison (context : JoinContext) (negated : Bool) (left right : Expr) :
+    Except String CoreJoin.Predicate := do
+  let predicate ← match SQLite.Scalar.isTruthKeyword? right with
+    | some expected => do
+        let operand ← joinOperand context left
+        pure (CoreJoin.Predicate.isTruth operand expected)
+    | none => joinComparison context CoreJoin.Predicate.isEqual left right
+  return if negated then .not predicate else predicate
+
 def joinPredicateRaw (context : JoinContext) : Expr →
     Except String CoreJoin.Predicate
+  | .binary .is left right => joinIsComparison context false left right
+  | .binary .isNot left right => joinIsComparison context true left right
   | .binary .eq left right =>
       joinComparison context .equal left right
   | .binary .ne left right =>

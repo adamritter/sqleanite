@@ -165,6 +165,9 @@ theorem joinOperand_value (operand : CoreJoin.Operand)
             CoreJoin.ColumnRef.value]
 
 def joinPredicate : CoreJoin.Predicate → QuerySemantics.Predicate
+  | .equalCollated kind left right => .operandsEqualCollated kind (joinOperand left) (joinOperand right)
+  | .compareCollated kind operation left right =>
+      .operandsCompareCollated kind operation (joinOperand left) (joinOperand right)
   | .truthy operand => .operandTruthy (joinOperand operand)
   | .equal left right => .operandsEqual (joinOperand left) (joinOperand right)
   | .notEqual left right =>
@@ -189,6 +192,10 @@ def fromJoinOperand? : QuerySemantics.Operand → Option CoreJoin.Operand
   | _ => none
 
 def fromJoinPredicate? : QuerySemantics.Predicate → Option CoreJoin.Predicate
+  | .operandsEqualCollated kind left right =>
+      return .equalCollated kind (← fromJoinOperand? left) (← fromJoinOperand? right)
+  | .operandsCompareCollated kind operation left right =>
+      return .compareCollated kind operation (← fromJoinOperand? left) (← fromJoinOperand? right)
   | .operandTruthy operand => return .truthy (← fromJoinOperand? operand)
   | .operandsEqual left right =>
       return .equal (← fromJoinOperand? left) (← fromJoinOperand? right)

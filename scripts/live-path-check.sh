@@ -2092,7 +2092,7 @@ else
 fi
 
 if rg -F -q 'joinResultExpr context (joinBindNames context column.expr)' SQLeanite/CoreSQL.lean &&
-   rg -q 'match joinBindNames context expression with' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'match joinColumnAtom? bound with' SQLeanite/CoreSQL.lean &&
    rg -q 'columns : List Operand' SQLeanite/CoreJoin.lean &&
    rg -q 'theorem projectRow_columns' SQLeanite/CoreJoin.lean &&
    rg -q 'bindNamesFuel_preserves_collation' SQLeanite/CoreCollationRead.lean &&
@@ -2133,6 +2133,20 @@ if rg -F -q 'joinPredicateRaw context (SQLite.Scalar.prepare (joinBindNames cont
   echo 'ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding'
 else
   echo 'FAIL - joined truth atom live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'joinIsComparison context false left right' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinIsComparison context true left right' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem Predicate.isEqual_present' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem Predicate.isTruth_null' SQLeanite/CoreJoin.lean &&
+   rg -q 'joinIsComparisonSyntax_of_success' SQLeanite/CoreSQLGrammar.lean &&
+   rg -F -q 'CoreJoin.Predicate.withCollation kind' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'isTruthKeyword? right' SQLeanite/CoreSQL.lean &&
+   rg -q 'joinOperandAffinity_plus' SQLeanite/CoreSQL.lean; then
+  echo 'ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests'
+else
+  echo 'FAIL - joined IS comparison live-path audit failed' >&2
   status=1
 fi
 

@@ -42,6 +42,17 @@ def compareValue (kind : Kind) (left right : PhysicalCodec.Value) : Ordering :=
   | .text a, .text b => compareText kind a.bytes b.bytes
   | _, _ => PhysicalQuery.compareValue left right
 
+/-- Collation changes TEXT comparison, while SQL NULL propagation remains
+independent of the comparison kind. -/
+def sqlEquals (kind : Kind) : PhysicalCodec.Value → PhysicalCodec.Value → Truth
+  | .null, _ | _, .null => .unknown
+  | left, right => if compareValue kind left right == .eq then .true else .false
+
+def sqlCompare (kind : Kind) (operation : PhysicalQuery.Comparison) :
+    PhysicalCodec.Value → PhysicalCodec.Value → Truth
+  | .null, _ | _, .null => .unknown
+  | left, right => if operation.holds (compareValue kind left right) then .true else .false
+
 theorem noCasePrefix_self (bytes : List UInt8) : noCasePrefix bytes bytes = .eq := by
   induction bytes with
   | nil => rfl

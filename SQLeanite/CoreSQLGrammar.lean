@@ -359,6 +359,11 @@ theorem groupOutputSyntax_of_success {schema : Core.Schema} {groups : List Nat}
     (boundGroupOutputSyntax_of_success success)
 
 inductive JoinOperandSyntax : Expr → Prop where
+  | probability (name : String) {arguments : Array Expr} {inner : Expr} :
+      SQLite.Probability.input? name arguments = some inner → JoinOperandSyntax inner →
+      JoinOperandSyntax (.call name arguments false)
+  | plus {expression : Expr} : JoinOperandSyntax expression → JoinOperandSyntax (.unary .plus expression)
+  | collate {expression : Expr} (name : String) : JoinOperandSyntax expression → JoinOperandSyntax (.collate expression name)
   | column (qualifier name) :
       JoinOperandSyntax (.column qualifier name)
   | literal {expression : Expr} : LiteralSyntax expression →
@@ -366,31 +371,52 @@ inductive JoinOperandSyntax : Expr → Prop where
   | bound (context : JoinContext) (expression : Expr) :
       JoinOperandSyntax (joinBindNames context expression) → JoinOperandSyntax expression
 
+private theorem joinColumnAtomFuelSyntax_of_success {fuel : Nat} {expression : Expr}
+    {reference : Option String × String}
+    (success : joinColumnAtomFuel? fuel expression = some reference) : JoinOperandSyntax expression := by
+  induction fuel generalizing expression with
+  | zero => simp [joinColumnAtomFuel?] at success
+  | succ fuel ih =>
+      cases expression with
+      | column qualifier name => exact .column qualifier name
+      | unary operation argument =>
+          cases operation with
+          | plus => exact .plus (ih success)
+          | neg | not | bitNot => simp [joinColumnAtomFuel?] at success
+      | collate expression name => exact .collate name (ih success)
+      | call name arguments star =>
+          cases star with
+          | true => simp [joinColumnAtomFuel?] at success
+          | false =>
+              cases input : SQLite.Probability.input? name arguments with
+              | none => simp [joinColumnAtomFuel?, input] at success
+              | some inner =>
+                  exact .probability name input (ih (by simpa [joinColumnAtomFuel?, input] using success))
+      | literal | star | binary | isNull | inList | case_ | scalarSubquery | inSubquery | existsSubquery =>
+          simp [joinColumnAtomFuel?] at success
+
 theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
     {operand : CoreJoin.Operand}
-    (success : joinOperand context expression = .ok operand) :
-    JoinOperandSyntax expression := by
-  have constant (e : Expr)
-      (h : CoreJoin.Operand.literal <$> literal e = .ok operand) : JoinOperandSyntax e := by
-    cases decoded : literal e with
-    | error message => simp [decoded, Functor.map, Except.map] at h
-    | ok value => exact .literal (literalSyntax_of_success decoded)
+    (success : joinOperand context expression = .ok operand) : JoinOperandSyntax expression := by
   apply JoinOperandSyntax.bound context expression
-  cases bound : joinBindNames context expression with
-  | column qualifier name => exact .column qualifier name
-  | literal value spelling => exact .literal (.literal value spelling)
-  | unary | star | binary | call | isNull | inList | collate | case_ | scalarSubquery |
-      inSubquery | existsSubquery =>
-      exact constant _ (by simpa [joinOperand, bound] using success)
+  cases found : joinColumnAtom? (joinBindNames context expression) with
+  | some reference => exact joinColumnAtomFuelSyntax_of_success found
+  | none =>
+      cases decoded : literal (joinBindNames context expression) with
+      | error message => simp [joinOperand, found, decoded, Functor.map, Except.map] at success
+      | ok value => exact .literal (literalSyntax_of_success decoded)
 
 inductive JoinPredicateSyntax : Expr → Prop where
+  | isTruth (negated expected : Bool) {left right : Expr} :
+      JoinOperandSyntax left → SQLite.Scalar.isTruthKeyword? right = some expected →
+      JoinPredicateSyntax (.binary (if negated then .isNot else .is) left right)
   | truthy {expression : Expr} : JoinOperandSyntax expression → JoinPredicateSyntax expression
   | prepared (context : JoinContext) (expression : Expr) :
       JoinPredicateSyntax (SQLite.Scalar.prepare (joinBindNames context expression)) →
         JoinPredicateSyntax expression
   | comparison (operation : BinaryOp)
       (allowed : operation = .eq ∨ operation = .ne ∨ operation = .lt ∨
-        operation = .le ∨ operation = .gt ∨ operation = .ge)
+        operation = .le ∨ operation = .gt ∨ operation = .ge ∨ operation = .is ∨ operation = .isNot)
       {left right : Expr} : JoinOperandSyntax left → JoinOperandSyntax right →
       JoinPredicateSyntax (.binary operation left right)
   | isNull {operand : Expr} (negated : Bool) : JoinOperandSyntax operand →
@@ -405,24 +431,43 @@ inductive JoinPredicateSyntax : Expr → Prop where
 private theorem joinComparisonOperands_of_success {context : JoinContext}
     {operation : BinaryOp}
     (allowed : operation = .eq ∨ operation = .ne ∨ operation = .lt ∨
-      operation = .le ∨ operation = .gt ∨ operation = .ge)
+      operation = .le ∨ operation = .gt ∨ operation = .ge ∨ operation = .is ∨ operation = .isNot)
     (constructor : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)
     {left right : Expr} {predicate : CoreJoin.Predicate}
     (success : joinComparison context constructor left right = .ok predicate) :
     JoinPredicateSyntax (.binary operation left right) := by
   unfold joinComparison at success
-  cases leftResult : joinOperand context left with
-  | error message =>
-      simp [leftResult, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
-  | ok leftOperand =>
-      cases rightResult : joinOperand context right with
+  cases kind : SQLite.ExprCollation.require (SQLite.ExprCollation.binaryKind? left right) with
+  | error message => simp [kind, bind, Except.bind] at success
+  | ok collation =>
+      cases leftResult : joinOperand context left with
       | error message =>
-          simp [leftResult, rightResult, Seq.seq, bind, Functor.map, Except.bind,
-            Except.map] at success
-      | ok rightOperand =>
-          exact .comparison operation allowed
-            (joinOperandSyntax_of_success leftResult)
-            (joinOperandSyntax_of_success rightResult)
+          simp [kind, leftResult, Seq.seq, bind, Functor.map, Except.bind, Except.map] at success
+      | ok leftOperand =>
+          cases rightResult : joinOperand context right with
+          | error message =>
+              simp [kind, leftResult, rightResult, Seq.seq, bind, Functor.map, Except.bind,
+                Except.map] at success
+          | ok rightOperand =>
+              exact .comparison operation allowed
+                (joinOperandSyntax_of_success leftResult)
+                (joinOperandSyntax_of_success rightResult)
+
+
+private theorem joinIsComparisonSyntax_of_success {context : JoinContext}
+    {negated : Bool} {left right : Expr} {predicate : CoreJoin.Predicate}
+    (success : joinIsComparison context negated left right = .ok predicate) :
+    JoinPredicateSyntax (.binary (if negated then .isNot else .is) left right) := by
+  cases keyword : SQLite.Scalar.isTruthKeyword? right with
+  | some expected =>
+      cases translated : joinOperand context left with
+      | error message => simp [joinIsComparison, keyword, translated, bind, Except.bind] at success
+      | ok operand => exact .isTruth negated expected (joinOperandSyntax_of_success translated) keyword
+  | none =>
+      cases translated : joinComparison context CoreJoin.Predicate.isEqual left right with
+      | error message => simp [joinIsComparison, keyword, translated, bind, Except.bind] at success
+      | ok operand =>
+          exact joinComparisonOperands_of_success (by cases negated <;> simp) _ translated
 
 private theorem joinTruthSyntax_of_success {context : JoinContext} {expression : Expr}
     {predicate : CoreJoin.Predicate}
@@ -439,6 +484,8 @@ theorem joinPredicateRawSyntax_of_success {context : JoinContext} {expression : 
   cases expression with
   | binary operation left right =>
       cases operation with
+      | is => exact joinIsComparisonSyntax_of_success success
+      | isNot => exact joinIsComparisonSyntax_of_success success
       | eq => exact joinComparisonOperands_of_success (by simp) _ success
       | ne => exact joinComparisonOperands_of_success (by simp) _ success
       | lt => exact joinComparisonOperands_of_success (by simp) _ success
@@ -479,7 +526,7 @@ theorem joinPredicateRawSyntax_of_success {context : JoinContext} {expression : 
               | ok rightPredicate =>
                   exact .or (joinPredicateRawSyntax_of_success leftResult)
                     (joinPredicateRawSyntax_of_success rightResult)
-      | add | sub | mul | div | mod | is | isNot | like | glob | «match» |
+      | add | sub | mul | div | mod | like | glob | «match» |
           concat | bitAnd | bitOr | shiftLeft | shiftRight | arrow | arrowText =>
           exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
   | isNull operand negated =>

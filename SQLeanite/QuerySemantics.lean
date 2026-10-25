@@ -1,5 +1,6 @@
 import SQLeanite.CoreEngine
 import SQLeanite.PhysicalQuery
+import SQLeanite.SQLite.Collation
 
 namespace SQLeanite
 namespace QuerySemantics
@@ -57,6 +58,8 @@ inductive Predicate where
   | operandsNotEqual (left right : Operand)
   | operandsCompare (operation : PhysicalQuery.Comparison) (left right : Operand)
   | operandTruthy (operand : Operand)
+  | operandsEqualCollated (kind : SQLite.Collation.Kind) (left right : Operand)
+  | operandsCompareCollated (kind : SQLite.Collation.Kind) (operation : PhysicalQuery.Comparison) (left right : Operand)
   | operandIsNull (operand : Operand)
   | isNull (column : ColumnPath)
   | not (predicate : Predicate)
@@ -66,6 +69,10 @@ inductive Predicate where
   | onRight (predicate : Predicate)
 
 def Predicate.eval : Predicate → Row → Truth
+  | .operandsEqualCollated kind left right, row =>
+      SQLite.Collation.sqlEquals kind (left.value row) (right.value row)
+  | .operandsCompareCollated kind operation left right, row =>
+      SQLite.Collation.sqlCompare kind operation (left.value row) (right.value row)
   | .constant truth, _ => truth
   | .truthy column, row => valueTruth (row.lookup column)
   | .equals column value, row => sqlEquals (row.lookup column) value

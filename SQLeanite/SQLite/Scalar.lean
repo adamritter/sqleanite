@@ -94,6 +94,14 @@ def booleanKeyword? : Expr → Option Bool
       else none
   | _ => none
 
+/-- IS resolves its right Boolean keyword through COLLATE wrappers. Unary
+plus and function calls remain ordinary comparison operands. -/
+def isTruthKeyword? (expression : Expr) : Option Bool :=
+  booleanKeyword? (ExprCollation.strip expression)
+
+theorem isTruthKeyword_collate (expression : Expr) (name : String) :
+    isTruthKeyword? (.collate expression name) = isTruthKeyword? expression := rfl
+
 def booleanName (truth : Bool) : String := if truth then "true" else "false"
 
 /-- Quoted tokens are identifiers in the pinned DQS-disabled configuration.
@@ -449,7 +457,7 @@ def forbidden : Expr → Bool
   | .binary op left right =>
       [.match, .arrow, .arrowText].contains op ||
         ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
-          !(([.is, .isNot].contains op) && (booleanKeyword? right).isSome) &&
+          !(([.is, .isNot].contains op) && (isTruthKeyword? right).isSome) &&
           (ExprCollation.binaryKind? left right).isNone)
   | .call name args star =>
       let n := scalarFunctionName name
@@ -607,7 +615,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
           if let some truth := staticTruth e then return boolValue truth
         let left ← eval a
         if op == .is || op == .isNot then
-          if let some truth := booleanKeyword? b then return isTruth left truth (op == .isNot)
+          if let some truth := isTruthKeyword? b then return isTruth left truth (op == .isNot)
         let right ← eval b
         if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
           return expressionComparisonWith operandAffinity op a b left right

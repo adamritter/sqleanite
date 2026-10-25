@@ -16,6 +16,8 @@ def foldOr : Predicate → Predicate → Predicate
   | left, right => .or left right
 
 def foldConstants : Predicate → Predicate
+  | .operandsEqualCollated kind left right => .operandsEqualCollated kind left right
+  | .operandsCompareCollated kind operation left right => .operandsCompareCollated kind operation left right
   | .constant truth => .constant truth
   | .truthy column => .truthy column
   | .equals column value => .equals column value
@@ -49,7 +51,7 @@ theorem foldConstants_eval (predicate : Predicate) (row : Row) :
     (foldConstants predicate).eval row = predicate.eval row := by
   induction predicate generalizing row with
   | constant | truthy | equals | notEquals | compare | operandsEqual |
-      operandsNotEqual | operandsCompare | operandTruthy | operandIsNull | isNull => rfl
+      operandsNotEqual | operandsCompare | operandsEqualCollated | operandsCompareCollated | operandTruthy | operandIsNull | isNull => rfl
   | not predicate induction =>
       simp only [foldConstants, foldNot_eval, Predicate.eval, induction]
   | and left right leftInduction rightInduction =>

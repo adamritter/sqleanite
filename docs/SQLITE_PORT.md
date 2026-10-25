@@ -4683,3 +4683,54 @@ previously recorded automatic-index tie-order differences remain separate work.
 Native bindings are unchanged. Reports: `sqlite-join-truth-*20261025.json`;
 harnesses: `scripts/run-join-truth-differential.py` and
 `scripts/run-join-truth-write-differential.py`.
+
+
+## Joined IS comparisons, operand wrappers and comparison collations (2026-10-25)
+
+Joined IS/IS NOT and their DISTINCT FROM spellings now use NULL-safe equality.
+An unshadowed TRUE/FALSE keyword on the right instead selects a two-valued truth
+conversion. COLLATE wrappers preserve that keyword role, including an otherwise
+unknown collation; unary plus and probability hints retain ordinary equality.
+Schema binding still precedes this decision, so declared TRUE/FALSE columns win.
+The shared scalar evaluator also recognizes the collated Boolean keyword.
+
+Join column operands now admit unary plus, COLLATE and valid likely/unlikely/
+likelihood wrappers. These preserve stored values while unary plus and the hints
+remove expression affinity. Comparison predicates carry BINARY/NOCASE/RTRIM
+through the existing byte/numeric collation implementation; unknown required
+collations fail. BINARY retains the existing predicate constructors used by the
+limited scan-order recognizer. Collated predicates have optimizer denotations,
+costs and bidirectional join embeddings. The positive grammar records the new
+wrappers and IS forms, and existing join/read/optimizer refinements compile.
+
+Baseline seed **354450** records **6,048 comparisons / 2,992 differences**.
+Initial development seed **354451** records **10,944 / 2,242**, including 236
+successful queries with wrong rows and 2,006 rejected valid statements. These
+negatives exposed Boolean COLLATE handling, removed affinity and comparison
+collations, and remain in the reports. Expanded development seed **354454**
+passes **11,520 / 0**. Exact replay of all 2,242 saved failures passes **2,242 / 0**
+on the final implementation; that is regression replay, not fresh evaluation.
+
+Final-checkpoint fresh seed **354452** passes **31,360 / 0**, plus 16 immutable-
+image/integrity checks. Persisted CTAS/INSERT SELECT seed **354453** passes
+**1,824 / 0**, including independent C catalog/column/index metadata, typed rows,
+integrity, follow-up writes and Lean reopening. Truth regression seed **354455**
+passes **5,880 / 0**, plus eight immutable-image checks. These corpora combine
+fixed controls with newly seeded data and logical combinations; the entire case
+count is not a count of previously unseen inputs. They cover three page sizes,
+both file modes, empty/nonempty sides, mixed storage classes, Boolean-column
+shadowing, outer padding, wrappers, collation precedence and windows. Successful
+CLI bytes and error status are compared without dropping any mismatches.
+
+Implementation SHA-256: `10116d2cf02d3e178445862873755d20441baeac9cd0529517eb02182ea19da6`.
+Final checks pass **350 build jobs, 269 executable tests, 1,233 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Six new component propositions cover NULL-safe equality, NULL
+truth tests, collated Boolean keywords, unary-plus affinity and the BINARY
+wrapper identity. They do not prove complete SQLite expression or planner
+equivalence. IN lists, general joined row arithmetic/functions, projection and
+declared-column collations, and the recorded automatic-index tie-order failures
+remain separate work. Native bindings are unchanged. Reports:
+`sqlite-join-is-*20261025.json`; harnesses:
+`scripts/run-join-is-differential.py` and
+`scripts/run-join-is-write-differential.py`.

@@ -1427,3 +1427,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Query.lookupInputRows_perm
 
 #print axioms SQLeanite.CoreJoin.Predicate.truthy_null
+
+#print axioms SQLeanite.CoreJoin.Predicate.isEqual_null_left
+#print axioms SQLeanite.CoreJoin.Predicate.isEqual_present
+#print axioms SQLeanite.CoreJoin.Predicate.isTruth_null
+
+#print axioms SQLeanite.SQLite.Scalar.isTruthKeyword_collate
+#print axioms SQLeanite.CoreSQL.joinOperandAffinity_plus
+#print axioms SQLeanite.CoreJoin.Predicate.withCollation_binary
