@@ -1337,3 +1337,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDefaultConflict.commands_last
 #print axioms SQLeanite.CoreDefaultConflict.plan_skips_null
 #print axioms SQLeanite.CoreSQL.executeSchemaRow_skips
+
+#print axioms SQLeanite.ColumnDefault.fromSource_spec
+#print axioms SQLeanite.Core.Column.defaultForInsert_rowid
+#print axioms SQLeanite.CanonicalSchemaSQL.takeQuotedNat_quote
+#print axioms SQLeanite.CanonicalSchemaSQL.parseKeyColumn_any_append
+
+#print axioms SQLeanite.ColumnDefault.emitted_boolean

@@ -1,3 +1,4 @@
+import SQLeanite.ColumnDefault
 import SQLeanite.PhysicalCodec
 import SQLeanite.PhysicalQuery
 import SQLeanite.PersistentPageTree
@@ -44,6 +45,7 @@ structure Column where
   primaryConflict : NotNullConflict := .abort
   primaryConflictOnly : primaryConflict ≠ .abort → (integerPrimaryKey || textPrimaryKey) = true := by
     simp_all
+  defaultValue : Option ColumnDefault.Spec := none
   deriving DecidableEq, Repr
 
 def Column.withPrimaryConflict (column : Column) (policy : NotNullConflict) : Option Column :=
@@ -78,6 +80,20 @@ def Column.affinity (column : Column) : SQLite.Affinity :=
   if column.integerPrimaryKey then .integer
   else if column.textPrimaryKey then .text
   else SQLite.typeAffinity column.declaredType
+
+def Column.defaultForInsert (column : Column) : Except String Value := do
+  if column.integerPrimaryKey then return .null
+  match column.defaultValue with
+  | none => return .null
+  | some spec => return SQLite.PhysicalAffinity.write column.affinity (← ColumnDefault.evaluate spec)
+
+def Column.defaultForRecord (column : Column) : Except String Value := do
+  match column.defaultValue with
+  | none => return .null
+  | some spec => return SQLite.PhysicalAffinity.write column.affinity (← ColumnDefault.storedValue spec)
+
+theorem Column.defaultForInsert_rowid (column : Column) (key : column.integerPrimaryKey = true) :
+    column.defaultForInsert = .ok .null := by simp [Column.defaultForInsert, key, pure, Except.pure]
 
 structure Schema where
   name : String

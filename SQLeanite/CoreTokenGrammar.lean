@@ -251,7 +251,15 @@ private def expectLiteral : Value → MatchM Unit
       | .string found => unless found == value do mismatch "the parsed text literal"
       | _ => mismatch "a text literal"
   | .textBytes _ => mismatch "a source literal (raw TEXT requires CAST)"
-  | .blob value => expectSource (toString (Value.blob value))
+  | .blob value => do
+      let initial ← get
+      let lead ← advance
+      unless (match lead with | .ident name => name.toLower == "x" | _ => false) do
+        mismatch "the unquoted X blob prefix"
+      unless (match (← get).remaining.head? with | some (.string _) => true | _ => false) do
+        mismatch "an adjacent blob quote"
+      set initial
+      expectSource (toString (Value.blob value))
 
 /-- Numeric spelling is checked independently against the original token,
 including SQLite's removal of digit separators and its compact integer form.
@@ -557,11 +565,36 @@ private def matchAlias : Option String → MatchM Unit
       discard <| acceptKeyword "as"
       expectName alias
 
+private def matchDefault (expression : Expr) (source : String) : MatchM Unit := do
+  let before := (← get).remaining.dropWhile fun token => match token with | .space _ => true | _ => false
+  let token ← peek
+  match token, expression with
+  | .ident name, .literal (.text text) none =>
+      unless SQLite.DefaultSyntax.identifier name && name == text &&
+          !["true", "false", "current_time", "current_date", "current_timestamp"].contains name.toLower do
+        mismatch "an identifier DEFAULT string"
+      discard <| advance
+  | .quotedIdent name _, .literal (.text text) none =>
+      unless name == text do mismatch "a quoted DEFAULT string"
+      discard <| advance
+  | _, _ => matchExpr expression
+  let after := (← get).remaining
+  let consumed := before.take (before.length - after.length)
+  unless SQLite.DefaultSyntax.shape (significant consumed) &&
+      (String.join (consumed.map Token.render)).trimAscii.toString == source do
+    mismatch "the complete original DEFAULT source"
+
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
-  unless column.defaultValue.isNone && column.generated.isNone &&
+  unless column.generated.isNone &&
       !column.unique && column.references.isNone && column.check.isNone &&
       !column.autoIncrement do
     mismatch "a verified-Core column definition"
+  let finalDefault ← match column.defaultValue, column.defaultSql with
+    | none, none => pure []
+    | some expression, some source => pure [(expression, source)]
+    | _, _ => mismatch "consistent DEFAULT metadata"
+  let defaults := column.earlierDefaults.toList ++ finalDefault
+  let mut defaultIndex := 0
   let mut sawNotNull := false
   let mut notNullConflict := ConflictAction.abort
   let mut sawPrimary := false
@@ -569,7 +602,11 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawCollation := false
   let mut scanning := true
   while scanning do
-    if isKeyword (← peek) "not" then
+    if ← acceptKeyword "default" then
+      let some (expression, source) := defaults[defaultIndex]? | mismatch "a declared DEFAULT clause"
+      matchDefault expression source
+      defaultIndex := defaultIndex + 1
+    else if isKeyword (← peek) "not" then
       expectKeyword "not"
       expectKeyword "null"
       sawNotNull := true
@@ -594,7 +631,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       sawCollation := true
     else
       scanning := false
-  unless sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && primaryConflict == column.conflict &&
+  unless defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 

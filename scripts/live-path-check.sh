@@ -1836,7 +1836,7 @@ fi
 if grep -q 'import SQLeanite.CoreNullConflict' SQLeanite/CoreSQL.lean &&
    grep -q 'schemaInsertRows state tableName stored.schema' SQLeanite/CoreSQL.lean &&
    grep -q 'executeSchemaUpdate state tableName' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreNullConflict.shouldWrite stored.schema values old.isSome' SQLeanite/CoreDefaultConflict.lean &&
+   grep -q 'CoreNullConflict.prepare stored.schema values old.isSome' SQLeanite/CoreDefaultConflict.lean &&
    grep -q 'notNullConflict == column.notNullConflict' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'notNullConflictChars column.notNullConflict' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'Core.Column.restoreNotNullConflict' SQLeanite/ProofAxioms.lean; then
@@ -1855,6 +1855,18 @@ if grep -q 'CoreDefaultConflict.plan stored values' SQLeanite/CoreSQL.lean &&
   echo 'ok - primary-key schema policies use checked Core traces and invertible SQL'
 else
   echo 'FAIL - primary-key schema policy wiring is incomplete'
+  exit 1
+fi
+if grep -q 'ColumnDefault.fromSource source' SQLeanite/CoreSQL.lean &&
+   grep -q 'Core.Column.defaultForInsert' SQLeanite/CoreSQL.lean &&
+   grep -q 'column.defaultForRecord.toOption' SQLeanite/CoreRecord.lean &&
+   grep -q 'ColumnDefault.evaluate spec' SQLeanite/CoreNullConflict.lean &&
+   grep -q 'ColumnDefault.fromSource' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'matchDefault expression source' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'ColumnDefault.fromSource_spec' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - checked DEFAULT SQL reaches writes, conflict replacement and old-record decoding'
+else
+  echo 'FAIL - column DEFAULT wiring is incomplete'
   exit 1
 fi
 exit $status

@@ -34,7 +34,7 @@ def tableRows (schema : Core.Schema) (extended : Bool) : List (List Value) :=
   schema.catalogColumns.zipIdx.map fun (column, position) =>
     [.integer position, .text column.name, .text (columnType column),
       flag (if column.integerPrimaryKey then column.integerPrimaryNotNull else column.notNull),
-      .null, flag (position == schema.declaredPrimaryKey)] ++
+      (column.defaultValue.map (fun spec => Value.text (ColumnDefault.metadata spec))).getD .null, flag (position == schema.declaredPrimaryKey)] ++
         (if extended then [.integer 0] else [])
 
 theorem tableRows_length (schema : Core.Schema) (extended : Bool) :

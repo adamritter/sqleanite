@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.DefaultSyntax
 import SQLeanite.Lexer
 import SQLeanite.SQLite.PragmaSyntax
 import SQLeanite.SQLite.Limits
@@ -368,7 +369,9 @@ mutual
           expectSymbol ")"
           pure e
       | .ident s =>
-        if keywordEq s "x" && (match ← peek with | .string _ => true | _ => false) then
+        let st ← get
+        let adjacentString := match st.tokens[st.pos]? with | some (.string _) => true | _ => false
+        if keywordEq s "x" && adjacentString then
           match ← advance with
           | .string source =>
             match decodeBlob? source with
@@ -577,6 +580,26 @@ private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
     skipTableConstraint
     pure none
 
+private def parseDefault : ParserM (Expr × String) := do
+  let start ← currentTokenPos
+  let expression ← match ← peek with
+    | .quotedIdent name _ => advance *> pure (.literal (.text name))
+    | .ident name => do
+        let lower := name.toLower
+        let st ← get
+        let following := st.tokens[(nextTokenAt st.tokens st.pos).1 + 1]?
+        let blob := lower == "x" && (match following with | some (.string _) => true | _ => false)
+        if blob || ["null", "true", "false", "current_time", "current_date", "current_timestamp"].contains lower then
+          parseUnary
+        else if SQLite.DefaultSyntax.identifier name then advance *> pure (.literal (.text name))
+        else throw (syntaxError (← peek))
+    | _ => parseUnary
+  let stop := (← get).pos
+  let tokens := ((← get).tokens.extract start stop).toList.filter fun token =>
+    match token with | .space _ => false | _ => true
+  unless SQLite.DefaultSyntax.shape tokens do throw "invalid DEFAULT syntax"
+  return (expression, ← tokenSource start stop)
+
 private def parseColumnDef : ParserM ColumnDef := do
   let name ← expectIdent
   let typeStart ← currentTokenPos
@@ -599,6 +622,7 @@ private def parseColumnDef : ParserM ColumnDef := do
   let typ ← tokenSource typeStart (← currentTokenPos)
   let mut defaultValue := none
   let mut defaultSql := none
+  let mut earlierDefaults := #[]
   let mut generated := none
   let mut notNull := false
   let mut notNullConflict := ConflictAction.abort
@@ -614,9 +638,11 @@ private def parseColumnDef : ParserM ColumnDef := do
   while scanning do
     if ← acceptKeyword "constraint" then pendingConstraintName := some (← expectIdent)
     else if ← acceptKeyword "default" then
-      let sourceStart ← currentTokenPos
-      defaultValue := some (← parseUnary)
-      defaultSql := some (← tokenSource sourceStart (← currentTokenPos))
+      if let some previous := defaultValue then
+        earlierDefaults := earlierDefaults.push (previous, defaultSql.getD "")
+      let (expression, source) ← parseDefault
+      defaultValue := some expression
+      defaultSql := some source
     else if ← acceptKeyword "generated" then
       discard <| acceptKeyword "always"
       expectKeyword "as"
@@ -681,7 +707,7 @@ private def parseColumnDef : ParserM ColumnDef := do
       check := some { expression, name := pendingConstraintName, sourceSql }
     else scanning := false
   pure (ColumnDef.mk name typ defaultValue generated notNull notNullConflict primaryKey unique conflict
-    collation references check defaultSql autoIncrement)
+    collation references check defaultSql autoIncrement earlierDefaults)
 
 private def parseTableAlias : ParserM (Option String) := do
   if ← acceptKeyword "as" then some <$> expectAlias

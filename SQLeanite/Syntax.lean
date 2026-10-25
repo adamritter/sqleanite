@@ -348,6 +348,8 @@ structure ColumnDef where
   check : Option CheckDef := none
   defaultSql : Option String := none
   autoIncrement : Bool := false
+  /-- Earlier DEFAULT clauses are checked even when a later clause overrides them. -/
+  earlierDefaults : Array (Expr × String) := #[]
   deriving Repr
 
 inductive TriggerEvent where

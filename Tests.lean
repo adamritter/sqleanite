@@ -4597,6 +4597,107 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteBlobAdjacency : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty "CREATE TABLE t(x INTEGER);INSERT INTO t VALUES(7);" with
+    | .ok result => pure result
+    | .error message => fail message
+  for gap in [" ", "/*gap*/", "\n", "--gap\n"] do
+    let (_, output) ← match CoreSQL.execute state s!"SELECT x{gap}'80ff' FROM t;" with
+      | .ok result => pure result
+      | .error message => fail s!"blob prefix was confused with a column alias: {message}"
+    let expected ← match SQLSurface.value (.integer 7) with
+      | .ok value => pure value
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some [[expected]] do fail "separated X token became a blob"
+    if (CoreSQL.execute state s!"CREATE TABLE bad(a DEFAULT x{gap}'80ff');").isOk then
+      fail "separated blob prefix entered persisted SQL"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE good(a DEFAULT X'80ff');" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  for leading in ["X ", "X/*gap*/", "'X'", "\"X\""] do
+    let tokens ← match lex ("CREATE TABLE good(a DEFAULT " ++ leading ++ "'80ff');") with
+      | .ok tokens => pure tokens
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens parsed.statements).isOk then
+      fail "token replay accepted a forged blob prefix or boundary"
+
+private def expectSQLiteColumnDefaults : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY DEFAULT 99,a TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (upper('default')),b INTEGER DEFAULT '0042');INSERT INTO t DEFAULT VALUES;INSERT OR REPLACE INTO t(id,a) VALUES(7,NULL);UPDATE t SET a=NULL WHERE id=1 RETURNING id,a,b;"
+  let (state, output) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail s!"column defaults: {message}"
+  let expected : List (List Value) := [[.integer 1,.text "DEFAULT",.integer 42]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some rows do fail "DEFAULT allocation, affinity or UPDATE RETURNING mismatch"
+  let some image := CoreFile.encode state.database | fail "DEFAULT encode failed"
+  let some decoded := CoreDecode.decode image.fileBytes | fail "DEFAULT decode failed"
+  unless decoded.Equiv state.database do fail "DEFAULT source changed during codec roundtrip"
+  let (late, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE late(a DEFAULT (abs(-9223372036854775808)));INSERT INTO late(a) VALUES(7);" with
+    | .ok result => pure result
+    | .error message => fail s!"DEFAULT evaluated before use: {message}"
+  if (CoreSQL.execute late "INSERT INTO late DEFAULT VALUES;").isOk then fail "DEFAULT runtime overflow omitted"
+  for default in ["(not_a_function(1))", "(abs())", "(sum(1))", "(count(*))", "(-0x8000000000000000)"] do
+    let (declared, _) ← match CoreSQL.execute Core.State.empty s!"CREATE TABLE delayed(a DEFAULT {default});" with
+      | .ok result => pure result
+      | .error message => fail s!"DEFAULT prepare error was raised during CREATE: {message}"
+    if (CoreSQL.execute declared "INSERT INTO delayed DEFAULT VALUES;").isOk then
+      fail "DEFAULT prepare error omitted during INSERT"
+  for default in ["(0 AND other)", "(other IN ())", "(1 OR not_a_function(1))", "(FALSE AND not_a_function(1))"] do
+    if !(CoreSQL.execute Core.State.empty s!"CREATE TABLE folded(a DEFAULT {default});INSERT INTO folded DEFAULT VALUES;").isOk then
+      fail "DEFAULT constant folding did not follow SQLite's preparation stage"
+
+  for default in ["(not_a_function(1))", "(abs(-9223372036854775808))"] do
+    let (declared, _) ← match CoreSQL.execute Core.State.empty s!"CREATE TABLE emptySource(a NOT NULL ON CONFLICT REPLACE DEFAULT {default},b);" with
+      | .ok result => pure result
+      | .error message => fail message
+    if (CoreSQL.execute declared "INSERT INTO emptySource(b) SELECT 1 WHERE 0;").isOk then
+      fail "empty SELECT skipped omitted DEFAULT initialization"
+    let updated := CoreSQL.execute declared "UPDATE OR REPLACE emptySource SET a=7;"
+    unless updated.isOk == (default != "(not_a_function(1))") do
+      fail "REPLACE DEFAULT preparation executed or skipped the wrong error stage"
+    if !(CoreSQL.execute declared "UPDATE OR REPLACE emptySource SET b=7;").isOk then
+      fail "UPDATE prepared the DEFAULT of an unchanged column"
+  for sql in ["CREATE TABLE x(a DEFAULT (other));", "CREATE TABLE x(a DEFAULT abs(1));",
+      "CREATE TABLE x(a DEFAULT +TRUE);", "CREATE TABLE x(a DEFAULT ?);"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"invalid DEFAULT accepted: {sql}"
+  let (skipped, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE s(a NOT NULL ON CONFLICT REPLACE DEFAULT NULL,b NOT NULL ON CONFLICT IGNORE);INSERT INTO s VALUES(NULL,NULL);" with
+    | .ok result => pure result
+    | .error message => fail s!"REPLACE second pass ran before IGNORE: {message}"
+  let some table := skipped.database.findTable? "s" | fail "DEFAULT skip table missing"
+  unless table.rows.isEmpty do fail "DEFAULT NULL row was not ignored"
+  let (old, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE old(a);INSERT INTO old VALUES(7);ALTER TABLE old ADD b TEXT DEFAULT 'old';" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := old.database.findTable? "old" | fail "old-record table missing"
+  let some row := table.rows.head? | fail "old-record row missing"
+  let fields := (CoreRecord.rowRecordFields table.schema row).take 1
+  unless CoreRecord.decodeRowFields table.schema row.rowid fields == some row do
+    fail "pre-ALTER record failed to supply its literal default"
+  for default in ["( 'quote''*/--' /* trailing */ )", "+ /*middle*/ 1", "X'80FF00'", "foo", "x"] do
+    let sql := s!"CREATE TABLE q(k TEXT PRIMARY KEY ON CONFLICT REPLACE NOT NULL ON CONFLICT IGNORE DEFAULT {default},n DEFAULT 1 DEFAULT 'last');"
+    let (value, _) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"DEFAULT source spelling: {message}"
+    let some encoded := CoreFile.encode value.database | fail "DEFAULT spelling encode failed"
+    let some reopened := CoreDecode.decode encoded.fileBytes | fail "DEFAULT spelling decode failed"
+    unless reopened.Equiv value.database do fail "DEFAULT framing changed source or constraint policies"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE x(a DEFAULT 7);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  match parsed.statements.toList with
+  | [.createTable name columns constraints flag] =>
+      for forged in [columns.map (fun column => { column with defaultSql := some "8" }),
+          columns.map (fun column => { column with defaultValue := some (.literal (.integer 8)) })] do
+        if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints flag]).isOk then
+          fail "token replay accepted a forged DEFAULT"
+  | _ => fail "unexpected DEFAULT AST"
+  if (ColumnDefault.fromSource "7);DROP TABLE t;--").isSome then fail "DEFAULT certificate accepted injected SQL"
+
 private def expectSQLiteSchemaPrimaryConflict : IO Unit := do
   let (ignored, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY ON CONFLICT IGNORE,a TEXT NOT NULL ON CONFLICT IGNORE);CREATE UNIQUE INDEX u ON t(a);INSERT INTO t VALUES(1,'a'),(2,'b');INSERT INTO t VALUES(1,'b'),(3,NULL);" with
@@ -6881,6 +6982,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite blob prefix adjacency, aliases and independent token replay", expectSQLiteBlobAdjacency),
+  ("SQLite DEFAULT values, delayed errors, old records and conflict replacement", expectSQLiteColumnDefaults),
   ("SQLite primary-key schema policies, precedence and pending rowids", expectSQLiteSchemaPrimaryConflict),
   ("SQLite schema NOT NULL conflict policies and persisted overrides", expectSQLiteSchemaNullConflict),
   ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),

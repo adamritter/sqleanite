@@ -48,7 +48,8 @@ def declaredTypeName (source : String) : String :=
   | .error _ => source.trimAscii.toString
 
 def columnAllowed (column : ColumnDef) : Bool :=
-  column.defaultValue.isNone && column.generated.isNone && !column.unique &&
+  (column.defaultValue.isSome == column.defaultSql.isSome) &&
+  column.generated.isNone && !column.unique &&
   column.references.isNone && column.check.isNone && !column.autoIncrement &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
@@ -70,9 +71,16 @@ def columnWithConflicts (definition : ColumnDef) (column : Core.Column) : Except
     | .ignore => pure Core.NotNullConflict.ignore
     | .replace => pure Core.NotNullConflict.replace
     | _ => unsupported "schema PRIMARY KEY conflict policy"
-  match column.withPrimaryConflict primary with
-  | some column => pure column
-  | none => unsupported "primary policy without a PRIMARY KEY constraint"
+  let column ← match column.withPrimaryConflict primary with
+    | some column => pure column
+    | none => unsupported "primary policy without a PRIMARY KEY constraint"
+  for (_, source) in definition.earlierDefaults do
+    unless (ColumnDefault.fromSource source).isSome do unsupported "earlier DEFAULT expression"
+  match definition.defaultSql with
+  | none => return column
+  | some source =>
+      let some spec := ColumnDefault.fromSource source | unsupported "DEFAULT expression"
+      return { column with defaultValue := some spec }
 
 /-- Mark a table-level key without changing column order, names or other
 column constraints. The caller validates that its target exists uniquely. -/
@@ -425,7 +433,7 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
   if expressions.isEmpty then
     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
-    return List.replicate schema.columns.length .null
+    return ← schema.columns.mapM Core.Column.defaultForInsert
   match insertColumns with
   | none =>
       unless expressions.size = schema.visibleColumns.length do
@@ -435,7 +443,7 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
       schema.columns.mapIdxM fun index target =>
         match pairs.find? (fun pair => pair.1 == index) with
         | some pair => .ok (SQLite.PhysicalAffinity.write target.affinity pair.2)
-        | none => .ok .null
+        | none => target.defaultForInsert
   | some names =>
       unless names.size = expressions.size do
         throw "INSERT column/value count mismatch"
@@ -443,7 +451,7 @@ def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
       schema.columns.mapIdxM fun targetIndex target =>
         match insertValueIndex schema.primaryKey targetIndex indices with
         | some index => columnLiteral target expressions[index]!
-        | none => .ok .null
+        | none => target.defaultForInsert
 
 /-- Evaluate every source field before duplicate target columns are selected.
 Multi-VALUES uses a source row in SQLite, so even discarded fields can fail. -/
@@ -934,6 +942,7 @@ def executeSchemaScanUpdate (state : Core.State) (tableName : String) (alias : O
     Except String (Core.State × List Core.Result) := do
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
+  CoreNullConflict.validate stored.schema (bound.map Prod.fst) none
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return (state, [{}])
   let search ← expressionSearch ctx stored condition
@@ -1068,6 +1077,7 @@ def executeReplacedUpdate (state : Core.State) (tableName : String) (alias : Opt
     Except String (Core.State × List Core.Result) := do
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
+  CoreNullConflict.validate stored.schema (bound.map Prod.fst) (some .replace)
   let trace ← expressionDeletePlan tableName alias stored condition
   let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
   let (next, results) ← replacedUpdateRows state tableName ctx bound rowids
@@ -1096,6 +1106,7 @@ def executeSchemaUpdate (state : Core.State) (tableName : String) (alias : Optio
     return ← executeSchemaScanUpdate state tableName alias stored assignments condition
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
+  CoreNullConflict.validate stored.schema (bound.map Prod.fst) none
   let trace ← expressionDeletePlan tableName alias stored condition
   let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
   let (next, results) ← schemaReplacementRows state tableName ctx bound rowids
@@ -1113,6 +1124,10 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
   let some row := stored.findRowid? rowid | return (state, none)
   let updates ← evaluateAssignments ctx row assignments
   let values := Core.applyAssignments row.values updates
+  let prepared ← if conflict == .default || conflict == .replace then
+      CoreNullConflict.prepare ctx.schema values true (if conflict == .replace then some .replace else none)
+    else pure (some values)
+  let some values := prepared | return (state, none)
   let outcome ← if conflict == .default then
       executeSchemaRow state tableName values (some rowid)
     else if conflict == .ignore then
@@ -1175,6 +1190,8 @@ def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Op
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
+  if conflict == .default || conflict == .replace then
+    CoreNullConflict.validate stored.schema (bound.map Prod.fst) (if conflict == .replace then some .replace else none)
   let projection ← CoreReturning.prepare outputCtx returning.toList
   let trace ← expressionDeletePlan tableName alias stored condition
   let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
@@ -2117,12 +2134,15 @@ def executeSelect (state : Core.State) (select : Select) :
 trace, even when its automatic index is the only unique index. -/
 def hasReplaceKeys (stored : Core.Table) : Bool :=
   (stored.schema.hasHiddenRowid && stored.schema.declaredPrimaryKey?.isSome) ||
-    stored.indexes.any (·.unique)
+    stored.indexes.any (·.unique) || stored.schema.columns.any (fun column => column.notNull && column.defaultValue.isSome)
 
 /-- Allocate the replacement rowid against the original table, then remove
 all rows conflicting with the primary key or any explicit UNIQUE index. -/
 def uniqueReplacePlan (stored : Core.Table) (values : List Core.Value) :
     Except String (List Core.Command) := do
+  CoreNullConflict.validate stored.schema (List.range stored.schema.columns.length) (some .replace)
+  let some values ← CoreNullConflict.prepare stored.schema values false (some .replace)
+    | throw "unexpected ignored REPLACE row"
   let row ← stored.createRow values
   let declared := stored.findDeclaredPrimary? row
   let conflicts := stored.rows.filter fun existing =>
@@ -2178,6 +2198,17 @@ theorem insertSelection_empty (state : Core.State) (table : String) (stored : Co
   unfold insertSelection
   split <;> rfl
 
+/-- Constant omitted defaults are initialized even for an empty SELECT source.
+Replacement defaults are prepared without executing their runtime expressions. -/
+def prepareInsertSelectionDefaults (schema : Core.Schema) (columns : Option (Array String))
+    (conflict : ConflictAction) : Except String Unit := do
+  if let some names := columns then
+    let positions ← names.toList.mapM (column schema)
+    for (target, position) in schema.columns.zipIdx do
+      unless positions.contains position do discard <| target.defaultForInsert
+  if conflict == .default || conflict == .replace then
+    CoreNullConflict.validate schema (List.range schema.columns.length) (if conflict == .replace then some .replace else none)
+
 /-- Evaluate the SELECT against the pre-statement database before inserting
 its rows, including when the source is the destination table. All writes then
 use the ordinary INSERT affinity, rowid and conflict-policy machinery. -/
@@ -2192,6 +2223,7 @@ def executeInsertSelect (state : Core.State) (table : String)
     | none => throw s!"no such table: {table}"
   let selection ← executeSelect state query
   checkInsertSelectColumns stored.schema columns selection.width
+  prepareInsertSelectionDefaults stored.schema columns conflict
   let rows ← selection.result.rows.mapM selectedRowExpressions
   if conflict == .default && CoreDefaultConflict.active stored.schema then
     schemaInsertRows state tableName stored.schema columns rows
@@ -2225,6 +2257,11 @@ def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.
         return (next, some output)
   if conflict == .ignore then
     unless ← CoreInsertIgnore.shouldInsert stored values do return (state, none)
+  let values ← if conflict == .replace then do
+      let some prepared ← CoreNullConflict.prepare stored.schema values false (some .replace)
+        | throw "unexpected ignored REPLACE row"
+      pure prepared
+    else pure values
   let row ← stored.createRow values
   let trace ← if conflict == .replace then uniqueReplacePlan stored row.values
     else pure [Core.Command.insert tableName row.values]
@@ -2294,6 +2331,7 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
     | .inr query => do
         let selection ← executeSelect state query
         checkInsertSelectColumns stored.schema columns selection.width
+        prepareInsertSelectionDefaults stored.schema columns conflict
         selection.result.rows.mapM selectedRowExpressions
   let evaluateAll := match source with
     | .inl rows => 1 < rows.size

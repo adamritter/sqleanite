@@ -1,3 +1,4 @@
+import SQLeanite.CoreNullConflict
 import SQLeanite.CoreEngine
 
 /-! UPDATE REPLACE compiles the validated candidate to ordinary Core commands.
@@ -16,21 +17,31 @@ def commands (stored : Core.Table) (old : Core.Integer) (row : Core.Row) : List 
     (some (.equal stored.schema.primaryKey (.integer existing.rowid)))) ++
       [.insert stored.schema.name row.values]
 
-/-- Row.create deliberately rejects a NULL rowid instead of allocating one;
-NOT NULL violations without a default remain ordinary statement errors. -/
+/-- Resolve explicit REPLACE defaults before constructing the checked row.
+The physical rowid still requires an integer on UPDATE. -/
 def plan (stored : Core.Table) (old : Core.Integer) (values : List Core.Value) :
-    Except String (List Core.Command) :=
-  commands stored old <$> Core.Row.create stored.schema values
+    Except String (List Core.Command) := do
+  let some prepared ← CoreNullConflict.prepare stored.schema values true (some .replace)
+    | throw "unexpected ignored REPLACE row"
+  commands stored old <$> Core.Row.create stored.schema prepared
 
 theorem plan_validated {stored : Core.Table} {old : Core.Integer}
     {values : List Core.Value} {trace : List Core.Command}
     (success : plan stored old values = .ok trace) :
-    ∃ row, Core.Row.create stored.schema values = .ok row ∧ trace = commands stored old row := by
-  cases created : Core.Row.create stored.schema values with
-  | error message => simp [plan, created, Functor.map, Except.map] at success
-  | ok row =>
-      refine ⟨row, rfl, ?_⟩
-      simpa [plan, created, Functor.map, Except.map] using success.symm
+    ∃ prepared row,
+      CoreNullConflict.prepare stored.schema values true (some .replace) = .ok (some prepared) ∧
+      Core.Row.create stored.schema prepared = .ok row ∧ trace = commands stored old row := by
+  cases resolved : CoreNullConflict.prepare stored.schema values true (some .replace) with
+  | error message => simp [plan, resolved, bind, Except.bind] at success
+  | ok prepared =>
+      cases prepared with
+      | none => simp [plan, resolved, bind, Except.bind] at success
+      | some prepared =>
+          cases created : Core.Row.create stored.schema prepared with
+          | error message => simp [plan, resolved, created, bind, Except.bind, Functor.map, Except.map] at success
+          | ok row =>
+              refine ⟨prepared, row, rfl, created, ?_⟩
+              simpa [plan, resolved, created, bind, Except.bind, Functor.map, Except.map] using success.symm
 
 /-- Accept only the exact point-delete selection trace produced by the SQL
 predicate planner; malformed command shapes cannot silently omit a target. -/

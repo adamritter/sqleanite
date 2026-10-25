@@ -26,9 +26,14 @@ theorem commands_last (stored : Core.Table) (old : Option Core.Integer) (row : C
     (commands stored old row).getLast? = some (.insert stored.schema.name row.values) := by
   simp [commands]
 
+def validate (stored : Core.Table) (old : Option Core.Integer) : Except String Unit :=
+  if old.isSome then .ok ()
+  else CoreNullConflict.validate stored.schema (List.range stored.schema.columns.length)
+
 def plan (stored : Core.Table) (values : List Core.Value) (old : Option Core.Integer) :
     Except String (Option (Core.Row × List Core.Command)) := do
-  unless ← CoreNullConflict.shouldWrite stored.schema values old.isSome do return none
+  validate stored old
+  let some values ← CoreNullConflict.prepare stored.schema values old.isSome | return none
   let row ← if old.isSome then Core.Row.create stored.schema values else stored.createRow values
   let others := stored.rows.filter fun other => !old.any (· == other.rowid)
   let rowidConflict := others.any fun other => other.rowid == row.rowid
@@ -49,8 +54,9 @@ def plan (stored : Core.Table) (values : List Core.Value) (old : Option Core.Int
   return some (row, commands stored old row)
 
 theorem plan_skips_null (stored : Core.Table) (values : List Core.Value) (old : Option Core.Integer)
-    (skip : CoreNullConflict.shouldWrite stored.schema values old.isSome = .ok false) :
+    (compiled : validate stored old = .ok ())
+    (skip : CoreNullConflict.prepare stored.schema values old.isSome = .ok none) :
     plan stored values old = .ok none := by
-  simp [plan, skip, bind, Except.bind, pure, Except.pure]
+  simp [plan, compiled, skip, bind, Except.bind, pure, Except.pure]
 
 end SQLeanite.CoreDefaultConflict

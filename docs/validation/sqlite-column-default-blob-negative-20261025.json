@@ -1,0 +1,6012 @@
+{
+  "seed": 354216,
+  "random_cases": 0,
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|x'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|x'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|x'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|x'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"x'gg'\"\n  SELECT x'gg' FROM t ORDER BY x;\n         ^--- error here\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"x'gg'\"\n  SELECT x'gg' FROM t ORDER BY x;\n         ^--- error here\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"x'gg'\"\n  CREATE TABLE Extra(a DEFAULT x'gg');\n                 error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"x'gg'\"\n  CREATE TABLE Extra(a DEFAULT x'gg');\n                 error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x/*gap*/'80fF00');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x/*gap*/'80fF00');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x/*gap*/'gg');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x/*gap*/'gg');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x--gap '80fF00');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x--gap '80fF00');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT x--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT x--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x--gap 'gg');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT x--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT x--gap 'gg');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|X'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|X'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|X'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|X'80fF00'|0\nblob|80FF00\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"X'gg'\"\n  SELECT X'gg' FROM t ORDER BY x;\n         ^--- error here\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"X'gg'\"\n  SELECT X'gg' FROM t ORDER BY x;\n         ^--- error here\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"X'gg'\"\n  CREATE TABLE Extra(a DEFAULT X'gg');\n                 error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unrecognized token: \"X'gg'\"\n  CREATE TABLE Extra(a DEFAULT X'gg');\n                 error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X/*gap*/'80fF00');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X/*gap*/'80fF00');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X/*gap*/'gg');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X/*gap*/'gg');\n                         error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X '80fF00');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X 'gg');\n                   error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "\u0080\u00ff\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X--gap '80fF00');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X--gap '80fF00');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: malformed database schema (Extra) - near \"'80fF00'\": syntax error (11)\n"
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT X--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT X--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X--gap 'gg');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT X--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unrecognized token: invalid blob literal\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT X--gap 'gg');\n                        error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\" '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\" '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\" 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\" 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\" 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT \"x\"--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT \"x\"--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT \"x\"--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT \"x\"--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x''80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x'80fF00\nx'80fF00\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x'80fF00\nx'80fF00\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x''80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x'80fF00\nx'80fF00\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x'80fF00\nx'80fF00\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x''80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''80fF00'|0\ntext|7827383066463030\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''80fF00'|0\ntext|7827383066463030\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x''80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''80fF00'|0\ntext|7827383066463030\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''80fF00'|0\ntext|7827383066463030\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x''gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x'gg\nx'gg\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x'gg\nx'gg\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x''gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x'gg\nx'gg\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x'gg\nx'gg\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x''gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''gg'|0\ntext|78276767\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''gg'|0\ntext|78276767\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x''gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''gg'|0\ntext|78276767\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table\nt|table\n7\n19\n0|a||0|'x''gg'|0\ntext|78276767\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x' '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x' '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x' 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x' 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x' 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x' 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x' 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT 'x'--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT 'x'--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "x\nx\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT 'x'--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT 'x'--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x` '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x` '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x` '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x` '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x` 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x` 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x` 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x` 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x` 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT `x`--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT `x`--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT `x`--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT `x`--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]'80fF00');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]'gg');\n                    error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x] '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x] '80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x] '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x] '80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x] 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x] 'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x] 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x] 'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]/*gap*/'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]/*gap*/'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]/*gap*/'80fF00');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]/*gap*/'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]/*gap*/'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]/*gap*/'gg');\n                           error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] '80fF00');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x] 'gg');\n                     error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]--gap\n'80fF00' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]--gap\n'80fF00');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'80fF00'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'80fF00'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]--gap '80fF00');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT [x]--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT [x]--gap\n'gg' FROM t ORDER BY x;",
+      "lean": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "7\n19\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a DEFAULT [x]--gap\n'gg');\nINSERT INTO Extra DEFAULT VALUES;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"'gg'\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"'gg'\": syntax error\n  CREATE TABLE Extra(a DEFAULT [x]--gap 'gg');\n                          error here ---^\n"
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nt|table\n7\n19\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 48,
+  "implementation_sha256": "485cdde8576eda2bae21cfcdfae018a857ef6993b596d256fe19f260705af2d4",
+  "executable_sha256": "b81bbb35efc98252201020cb85f8086dae359f3a177f5f6ed79ea20437110bba",
+  "harness_sha256": "04b119b52d8dcb3766cd77c558e2cee3f5ddd6504728b4cfe2f1f21dcb81afd1",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "SQLite blob-token adjacency, quoted prefixes, aliases and persisted DEFAULTs.\nCompares successful output, error status and SQLite's persisted observations.\nThis is a lexical/SQL/file component regression, not full SQLite equivalence."
+}

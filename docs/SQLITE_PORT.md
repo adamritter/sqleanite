@@ -3602,3 +3602,92 @@ declared unsupported. Reports: `sqlite-schema-primary-*20261025.json`; harness:
 `scripts/run-schema-primary-conflict-differential.py`. Native code and its
 nine-binding boundary are unchanged. These results do not establish complete
 SQLite SQL/database/WAL equivalence.
+
+## Persisted column DEFAULTs and staged preparation (2026-10-25)
+
+The Core now retains checked DEFAULT SQL in column definitions. Omitted fields
+and DEFAULT VALUES use the declared expression and column affinity; INTEGER
+PRIMARY KEY omission still allocates a rowid without using its declared default.
+Signed literals, identifier strings, booleans, blobs and the admitted closed
+scalar expressions retain their spelling for PRAGMA table_info/table_xinfo.
+One outer parenthesis pair is removed from the pragma span, as in SQLite.
+Repeated DEFAULT clauses are independently checked and the last one is retained.
+
+`ColumnDefault.Spec` contains SQL source and a proof that its independently
+certified declaration is constant after the existing parser simplifications.
+Function availability and runtime evaluation are separate stages: CREATE can
+retain an unknown/wrong-arity function or a negated minimum hexadecimal value;
+using the default later reports its preparation error. DEFAULT boolean code
+elimination follows SQLite's code generation before function checks. Other
+nonselected CASE branches still undergo preparation. Omitted constant defaults
+are initialized even for an empty INSERT SELECT; replacement defaults undergo
+preparation without running their runtime expressions. UPDATE prepares only
+assigned columns. Stateful/date functions and subquery syntax remain incomplete.
+
+NOT NULL REPLACE now substitutes the default with affinity. The first pass
+continues through later constraints, so a later IGNORE can skip a row before a
+second pass rejects a replacement that is still NULL. Explicit OR actions
+override the schema policies. INSERT/UPDATE RETURNING projects the substituted
+values. Checked Core row creation and command traces still enforce the actual
+stored constraints; SQL change counts exclude replacement deletions.
+
+ALTER ADD supplies literal/unary/CAST/boolean defaults to existing rows, using
+the forms accepted by sqlite3ValueFromExpr. A nonconstant addition to a populated
+table is rejected; an empty table can retain an expression without evaluating
+it. Both physical record readers now complete short pre-ALTER records from the
+column defaults. The hidden rowid is reconstructed independently. Missing-field
+failures propagate rather than becoming NULL; full-width records retain their
+existing proved decode/encode inverse.
+
+Canonical schema SQL includes the ordinary DEFAULT expression and a comment
+containing only the character lengths of the base column and default source.
+The recognizer checks both pieces, their delimiters and the source certificate.
+The comment contains no evaluated values or target semantics. The complete
+schema inversion proof is extended to every admitted default-bearing column,
+including arbitrary source text accepted by the certificate. The existing
+NOT NULL and PRIMARY KEY policies round-trip independently. Original complete
+sqlite_schema.sql text is still rewritten canonically, not preserved verbatim.
+
+A further lexical counterexample showed that the old parser/checker treated
+`X '80ff'` and `X/*gap*/'80ff'` as blobs. In SELECT these can instead be a column
+and its string alias; as a DEFAULT they are invalid SQL. The parser and independent
+literal checker now require an unquoted X token immediately adjacent to its
+quote. This also prevents a malformed DEFAULT from entering a persisted schema.
+Forged source, AST values, quoted prefixes and injected SQL are executable
+negative regressions.
+
+Preserved evidence:
+
+- Baseline seed 354210: **400 comparisons / 346 differences**, on the preceding
+  production source `246eaeac...`.
+- Initial development seed 354211: **520 / 0**. Expanded preparation tests,
+  seed 354212: **130 / 40**; empty-source/preparation tests, seed 354213:
+  **214 / 18**. Both negative reports are retained with their actual source hashes.
+- Before the blob fix, seed 354214 passed **4,968 / 0**, a key-policy regression
+  passed **948 / 0**, and all checks passed. These reports are explicitly named
+  `before-blob`; the separate blob corpus, seed 354216, found **240 / 48**.
+- Final-source fresh seed **354217**: **4,968 / 0**, including **984**
+  positive error cases. Twelve C-created fixtures cover 512/4096/65536-byte pages,
+  both file modes, rotated columns, key/NULL policies, old short records,
+  overflow TEXT, malformed TEXT, DEFAULT timing, affinities, RETURNING and ALTER.
+- Final-source blob seed **354218**: **480 / 0**, including 224 positive error
+  cases; key/NULL-policy regression seed **354219**: **948 / 0**, including 206
+  positive error cases. Every final report records the same production hash.
+
+Comparisons include complete successful output, error status and independent
+C catalog/pragma/typed-row/integrity observations. C then inserts omitted fields
+and Lean reopens the result. Single failing statements preserve main/WAL hashes.
+The blob corpus separately checks persisted catalog and row observations. Exact
+error messages/codes, live WAL concurrency, original catalog SQL and unsupported
+SQL features are outside these metrics. The larger corpus was rerun with a fresh
+seed after the final lexical fix; earlier green results were not relabeled.
+
+Implementation SHA-256: `d4f19143c342f63ca097a4b91f5d0d0e6831e53debc41f8a1bb5fff0eb1e4508`.
+Final checks pass **330 build jobs, 243 executable tests, 1,168 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. The live-path audit's new DEFAULT checks run before its
+terminal exit. Reports: `sqlite-column-default-*20261025.json`; harnesses:
+`scripts/run-column-default-differential.py` and
+`scripts/run-blob-token-differential.py`. Native code and its nine-binding
+boundary are unchanged. These are scoped component/SQL/file results, not complete
+SQLite SQL/database/WAL equivalence.

@@ -1,3 +1,4 @@
+import Std.Data.String.ToNat
 import SQLeanite.Core
 
 /-!
@@ -105,9 +106,22 @@ def primaryConflictChars : Core.NotNullConflict → List Char
   | .ignore => " PRIMARY KEY ON CONFLICT IGNORE".toList
   | .replace => " PRIMARY KEY ON CONFLICT REPLACE".toList
 
-def columnChars (column : Core.Column) : List Char :=
+def keyColumnChars (column : Core.Column) : List Char :=
   if column.primaryConflict = .abort then plainColumnChars column
   else plainColumnChars (primaryBase column) ++ primaryConflictChars column.primaryConflict
+
+/-- Lengths only frame ordinary SQL; the actual DEFAULT follows its column.
+Both pieces are independently checked when the certificate is read. -/
+def defaultHeader (base source : List Char) : List Char :=
+  "/*sqleanite-default ".toList ++ quoteChars (toString base.length) ++ [' '] ++
+    quoteChars (toString source.length) ++ "*/".toList
+
+def columnChars (column : Core.Column) : List Char :=
+  match column.defaultValue with
+  | none => keyColumnChars column
+  | some spec =>
+      let base := keyColumnChars { column with defaultValue := none }
+      defaultHeader base spec.source.toList ++ base ++ " DEFAULT ".toList ++ spec.source.toList ++ ['\n']
 
 def columnsChars : List Core.Column → List Char
   | [] => []
@@ -216,13 +230,33 @@ def primaryFromBase (column : Core.Column) (policy : Core.NotNullConflict) : Opt
     primaryConflict := policy, primaryConflictOnly := by simp }
   else none
 
-def parseColumn (input : List Char) : Option (Core.Column × List Char) := do
+def parseKeyColumn (input : List Char) : Option (Core.Column × List Char) := do
   let (column, tail) ← parsePlainColumn input
   match stripPrefix " PRIMARY KEY ON CONFLICT IGNORE".toList tail with
   | some rest => return (← primaryFromBase column .ignore, rest)
   | none => match stripPrefix " PRIMARY KEY ON CONFLICT REPLACE".toList tail with
       | some rest => return (← primaryFromBase column .replace, rest)
       | none => return (column, tail)
+
+def takeQuotedNat (input : List Char) : Option (Nat × List Char) := do
+  let '"' :: input := input | none
+  let (digits, rest) ← takeIdent input
+  let number ← (String.ofList digits).toNat?
+  return (number, rest)
+
+def parseColumn (input : List Char) : Option (Core.Column × List Char) :=
+  match stripPrefix "/*sqleanite-default ".toList input with
+  | none => parseKeyColumn input
+  | some afterTag => do
+      let (baseLength, rest) ← takeQuotedNat afterTag
+      let rest ← stripPrefix [' '] rest
+      let (sourceLength, rest) ← takeQuotedNat rest
+      let rest ← stripPrefix "*/".toList rest
+      let (column, []) ← parseKeyColumn (rest.take baseLength) | none
+      let sourceStart ← stripPrefix " DEFAULT ".toList (rest.drop baseLength)
+      let spec ← ColumnDefault.fromSource (String.ofList (sourceStart.take sourceLength))
+      let tail ← stripPrefix ['\n'] (sourceStart.drop sourceLength)
+      return ({ column with defaultValue := some spec }, tail)
 
 def parseColumns : Nat → List Char → Option (List Core.Column × List Char)
   | 0, _ => none
@@ -461,6 +495,7 @@ theorem parseBaseColumn_any_append (column : Core.Column) (rest : List Char)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (policy : column.notNullConflict = .abort)
     (primaryPolicy : column.primaryConflict = .abort)
+    (noDefault : column.defaultValue = none)
     (separator : endsBaseColumn rest = true ∨ (column.notNull = true ∧
       (column.integerPrimaryKey = false ∨ column.integerPrimaryNotNull = true))) :
     parseBaseColumn (baseColumnChars column ++ rest) = some (column, rest) := by
@@ -488,6 +523,7 @@ theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (primaryPolicy : column.primaryConflict = .abort)
+    (noDefault : column.defaultValue = none)
     (separator : endsBaseColumn rest = true) :
     parsePlainColumn (plainColumnChars column ++ rest) = some (column, rest) := by
   let base := column.withoutNotNullConflict
@@ -502,7 +538,7 @@ theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
       | false => exact Or.inl key
       | true => exact Or.inr (required.2 key)
   have parsed := parseBaseColumn_any_append base
-    (notNullConflictChars column.notNullConflict ++ rest) consistent exclusive rfl primaryPolicy allowed
+    (notNullConflictChars column.notNullConflict ++ rest) consistent exclusive rfl primaryPolicy noDefault allowed
   have restored := Core.Column.restoreNotNullConflict column
   change parsePlainColumn (baseColumnChars base ++ notNullConflictChars column.notNullConflict ++ rest) = _
   rw [List.append_assoc]
@@ -535,22 +571,24 @@ theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
 theorem primaryFromBase_inverse (column : Core.Column)
     (primary : (column.integerPrimaryKey || column.textPrimaryKey) = true)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
-    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false) :
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (noDefault : column.defaultValue = none) :
     primaryFromBase (primaryBase column) column.primaryConflict = some column := by
   have explicitOnly := column.integerPrimaryNotNullOnly
   have empty := column.primaryType primary
   cases hi : column.integerPrimaryKey <;> cases ht : column.textPrimaryKey <;>
     cases hn : column.integerPrimaryNotNull <;> cases column <;> simp_all [primaryBase, primaryFromBase]
 
-theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
+theorem parseKeyColumn_any_append (column : Core.Column) (rest : List Char)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (noDefault : column.defaultValue = none)
     (separator : endsColumn rest = true) :
-    parseColumn (columnChars column ++ rest) = some (column, rest) := by
+    parseKeyColumn (keyColumnChars column ++ rest) = some (column, rest) := by
   by_cases plain : column.primaryConflict = .abort
-  · have parsed := parsePlainColumn_any_append column rest consistent exclusive plain
+  · have parsed := parsePlainColumn_any_append column rest consistent exclusive plain noDefault
       (by simp [endsBaseColumn, separator])
-    simp only [columnChars, plain, if_pos, parseColumn, parsed, Option.bind_eq_bind, Option.bind]
+    simp only [keyColumnChars, plain, if_pos, parseKeyColumn, parsed, Option.bind_eq_bind, Option.bind]
     cases rest with
     | nil => rfl
     | cons character tail =>
@@ -560,7 +598,7 @@ theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
           simp [endsColumn] at separator
         simp [stripPrefix, Ne.symm notSpace]
   · have primary := column.primaryConflictOnly plain
-    have restored := primaryFromBase_inverse column primary consistent exclusive
+    have restored := primaryFromBase_inverse column primary consistent exclusive noDefault
     have baseConsistent : (primaryBase column).integerPrimaryKey = true → (primaryBase column).notNull = true := by
       simp [primaryBase]; split <;> simp
     have baseExclusive : (primaryBase column).integerPrimaryKey = true → (primaryBase column).textPrimaryKey = false := by
@@ -570,9 +608,9 @@ theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
     have tail : endsBaseColumn (primaryConflictChars column.primaryConflict ++ rest) = true := by
       cases policy : column.primaryConflict <;> simp_all [primaryConflictChars, endsBaseColumn]
     have parsed := parsePlainColumn_any_append (primaryBase column)
-      (primaryConflictChars column.primaryConflict ++ rest) baseConsistent baseExclusive basePolicy tail
-    simp only [columnChars, if_neg plain, List.append_assoc]
-    unfold parseColumn
+      (primaryConflictChars column.primaryConflict ++ rest) baseConsistent baseExclusive basePolicy (by simp [primaryBase]; split <;> rfl) tail
+    simp only [keyColumnChars, if_neg plain, List.append_assoc]
+    unfold parseKeyColumn
     rw [parsed]
     simp only [Option.bind_eq_bind, Option.bind]
     cases policy : column.primaryConflict with
@@ -583,6 +621,61 @@ theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
     | replace =>
         rw [policy] at restored
         simp [primaryConflictChars, stripPrefix, bind, Option.bind, restored]
+
+theorem takeQuotedNat_quote (number : Nat) (rest : List Char)
+    (boundary : rest.head? ≠ some '"') :
+    takeQuotedNat (quoteChars (toString number) ++ rest) = some (number, rest) := by
+  unfold takeQuotedNat quoteChars
+  simp only [List.cons_append, List.append_assoc, List.nil_append]
+  rw [takeIdent_escape _ _ boundary]
+  simp only [Option.bind_eq_bind, Option.bind, String.ofList_toList]
+  change ((Nat.repr number).toNat?.bind (fun value => some (value, rest))) = _
+  rw [Nat.toNat?_repr]
+  rfl
+
+theorem parseColumn_any_append (column : Core.Column) (rest : List Char)
+    (consistent : column.integerPrimaryKey = true → column.notNull = true)
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (separator : endsColumn rest = true) :
+    parseColumn (columnChars column ++ rest) = some (column, rest) := by
+  cases hd : column.defaultValue with
+  | none =>
+      have parsed := parseKeyColumn_any_append column rest consistent exclusive hd separator
+      have starts : (keyColumnChars column).head? = some '"' := by
+        simp [keyColumnChars, plainColumnChars, baseColumnChars, quoteChars, List.head?_append]
+        split <;> rfl
+      have nonempty : keyColumnChars column ≠ [] := by intro empty; simp [empty] at starts
+      have shape : ∃ tail, keyColumnChars column = '"' :: tail := by
+        cases h : keyColumnChars column with
+        | nil => contradiction
+        | cons c tail => simp [h] at starts; exact ⟨tail, by simp_all⟩
+      obtain ⟨tail, shape⟩ := shape
+      simp only [columnChars, hd, parseColumn]
+      rw [shape]
+      change parseKeyColumn (('"' :: tail) ++ rest) = _
+      simpa [shape] using parsed
+  | some spec =>
+      let base : Core.Column := { column with defaultValue := none }
+      have parsed := parseKeyColumn_any_append base [] consistent exclusive rfl (by rfl)
+      have restored : { base with defaultValue := some spec } = column := by cases column; simp_all [base]
+      simp only [columnChars, hd, List.append_assoc, parseColumn, defaultHeader]
+      rw [stripPrefix_append]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [takeQuotedNat_quote _ _ (by simp)]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [stripPrefix_append]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [takeQuotedNat_quote _ _ (by simp)]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [stripPrefix_append]
+      simp only [Option.bind_eq_bind, Option.bind, List.take_left, List.drop_left]
+      have p : parseKeyColumn (keyColumnChars base) = some (base, []) := by simpa using parsed
+      rw [p]
+      simp only [Option.bind_eq_bind, Option.bind]
+      rw [stripPrefix_append]
+      simp only [Option.bind_eq_bind, Option.bind, List.take_left, List.drop_left, String.ofList_toList]
+      rw [ColumnDefault.fromSource_spec]
+      simp [stripPrefix, restored]
 
 theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
     (suffix : List Char) →
@@ -619,15 +712,23 @@ theorem parseColumns_append : (columns : List Core.Column) → (fuel : Nat) →
         (fun x m => exclusive x (by simp [m]))
       simp [tail]
 
-theorem columnChars_length_ge (column : Core.Column) : 1 ≤ (columnChars column).length := by
+theorem keyColumnChars_length_ge (column : Core.Column) : 1 ≤ (keyColumnChars column).length := by
   have plain (column : Core.Column) : 1 ≤ (plainColumnChars column).length := by
     simp [plainColumnChars, baseColumnChars, quoteChars]
-  unfold columnChars
+  unfold keyColumnChars
   split
   · exact plain column
   · have enough := plain (primaryBase column)
     simp only [List.length_append]
     omega
+
+theorem columnChars_length_ge (column : Core.Column) : 1 ≤ (columnChars column).length := by
+  cases hd : column.defaultValue with
+  | none => simpa [columnChars, hd] using keyColumnChars_length_ge column
+  | some spec =>
+      have enough := keyColumnChars_length_ge { column with defaultValue := none }
+      simp only [columnChars, hd, List.length_append, List.length_singleton]
+      omega
 
 theorem columnsChars_length_ge : (columns : List Core.Column) →
     columns.length ≤ (columnsChars columns).length

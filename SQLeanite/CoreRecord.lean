@@ -88,20 +88,21 @@ theorem rowRecord_fields {schema : Core.Schema} {row : Core.Row}
   next bound => exact congrArg PhysicalRecord.fields (Option.some.inj encoded.symm)
   next unbounded => contradiction
 
-/-- SQLite may leave pre-ADD-COLUMN records shorter than the current schema.
-The admitted schema has no declared DEFAULT, so omitted visible fields are NULL.
-A hidden rowid is reconstructed separately and must never be padded as data. -/
-def completeFields (schema : Core.Schema) (fields : List RecordField) : List RecordField :=
-  fields ++ List.replicate (schema.catalogColumns.length - fields.length) .null
+/-- Old records omit trailing columns added with ALTER TABLE. Only literal
+record defaults are usable here; a hidden rowid is reconstructed separately. -/
+def completeFields (schema : Core.Schema) (fields : List RecordField) : Option (List RecordField) := do
+  let omitted ← (schema.catalogColumns.drop fields.length).mapM fun column =>
+    (column.defaultForRecord.toOption).map PhysicalCodec.Value.recordField
+  return fields ++ omitted
 
 theorem completeFields_full (schema : Core.Schema) (fields : List RecordField)
     (full : schema.catalogColumns.length ≤ fields.length) :
-    completeFields schema fields = fields := by
-  simp [completeFields, Nat.sub_eq_zero_of_le full]
+    completeFields schema fields = some fields := by
+  simp [completeFields, List.drop_eq_nil_iff.mpr full]
 
 theorem completeFields_record {schema : Core.Schema} {row : Core.Row}
     (valid : row.WellFormed schema) :
-    completeFields schema (rowRecordFields schema row) = rowRecordFields schema row := by
+    completeFields schema (rowRecordFields schema row) = some (rowRecordFields schema row) := by
   apply completeFields_full
   unfold rowRecordFields
   split
@@ -165,8 +166,8 @@ theorem decodeRowFieldsExact_record {schema : Core.Schema} {row : Core.Row}
     rw [Core.readColumnValues_eq_self _ _ valid.2.2, Core.Row.create_self schema row valid]
 
 def decodeRowFields (schema : Core.Schema) (rowid : Core.Integer)
-    (fields : List RecordField) : Option Core.Row :=
-  decodeRowFieldsExact schema rowid (completeFields schema fields)
+    (fields : List RecordField) : Option Core.Row := do
+  decodeRowFieldsExact schema rowid (← completeFields schema fields)
 
 theorem decodeRowFields_record {schema : Core.Schema} {row : Core.Row}
     (valid : row.WellFormed schema) :
