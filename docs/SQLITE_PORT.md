@@ -3691,3 +3691,47 @@ terminal exit. Reports: `sqlite-column-default-*20261025.json`; harnesses:
 `scripts/run-blob-token-differential.py`. Native code and its nine-binding
 boundary are unchanged. These are scoped component/SQL/file results, not complete
 SQLite SQL/database/WAL equivalence.
+
+## Named column and table constraints (2026-10-25)
+
+The certified grammar now accepts CONSTRAINT names on the admitted column
+constraints: PRIMARY KEY, NOT NULL, NULL, DEFAULT and BINARY COLLATE. Names may
+be quoted, empty, Unicode or permitted fallback keywords; reserved words and
+numeric tokens require valid quoting. The parser and independent checker both
+validate the name token instead of accepting every identifier-shaped keyword.
+Constraint names do not alter these constraints' enforcement or conflict policy.
+
+SQLite's table CONSTRAINT-name production can appear repeatedly, stand alone,
+precede or follow a real constraint, and use optional intervening commas. The
+parser now consumes repeated leading names; the independent table-constraint
+loop handles standalone names and still matches each actual PRIMARY KEY against
+exactly one retained AST constraint. Trailing/doubled commas and columns after
+the table-constraint section remain rejected. A name-only production cannot
+forge a primary key or hide an unimplemented constraint. Regressions exercise
+that failure and reserved-name forgery directly against the token checker.
+
+Foreign named schemas now load through the same Core schema translation, and
+ADD/rename/write/reopen preserve the constraints' behavior. Canonical persistence
+continues to omit these semantically unused names; complete original catalog SQL
+is not preserved. Named CHECK, foreign-key and UNIQUE enforcement remain outside
+the admitted surface because those constraints themselves are still incomplete.
+
+Baseline seed 354220: **336 comparisons / 312 differences**. The expanded table
+name and invalid-name corpus, seed 354221, records **166 / 136** on the same prior
+production source. Development seed 354222 passes **618 / 0**. Final-checkpoint
+fresh seed **354223** passes **4,392 / 0**, including **296** positive error
+cases. Twelve C-created fixtures cover 512/4096/65536-byte pages, both file modes,
+column/table keys, key/NULL conflict policies, rotated columns, quoted/repeated
+names, ALTER, RETURNING, long and malformed TEXT. C checks catalog, typed rows,
+pragmas and integrity, then writes again before Lean reopens. The final-source
+DEFAULT regression, seed **354224**, passes **1,524 / 0**.
+
+Implementation SHA-256: `951b6fe3f84823feefa8ffd4b2feee37b2349f2ec3e1a5cdd74375d2feb172e8`.
+Final checks pass **330 build jobs, 244 executable tests, 1,168 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. The existing certified-parse contracts cover the updated
+checker; no new proof count is claimed. The live-path name-grammar check runs
+before the terminal exit. Reports: `sqlite-named-column-constraint-*20261025.json`;
+harness: `scripts/run-named-column-constraint-differential.py`. Native bindings
+are unchanged. This is scoped grammar/SQL/file evidence, not complete SQLite
+compatibility.

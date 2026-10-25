@@ -522,11 +522,17 @@ private def parseConflictAction : ParserM ConflictAction := do
   else if ← acceptKeyword "replace" then pure .replace
   else throw "expected conflict action"
 
+private def expectConstraintName : ParserM String := do
+  let token ← advance
+  let some name := SQLite.PragmaSyntax.nameToken false token | throw (syntaxError token)
+  pure name
+
 private def consumeIgnoredConstraintNames : ParserM Unit := do
-  while ← acceptKeyword "constraint" do discard <| expectIdent
+  while ← acceptKeyword "constraint" do discard <| expectConstraintName
 
 private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
-  let constraintName ← if ← acceptKeyword "constraint" then some <$> expectIdent else pure none
+  let mut constraintName := none
+  while ← acceptKeyword "constraint" do constraintName := some (← expectConstraintName)
   let primary ← if ← acceptKeyword "primary" then expectKeyword "key" *> pure true
     else pure false
   if primary || (← acceptKeyword "unique") then
@@ -636,7 +642,7 @@ private def parseColumnDef : ParserM ColumnDef := do
   let mut pendingConstraintName : Option String := none
   let mut scanning := true
   while scanning do
-    if ← acceptKeyword "constraint" then pendingConstraintName := some (← expectIdent)
+    if ← acceptKeyword "constraint" then pendingConstraintName := some (← expectConstraintName)
     else if ← acceptKeyword "default" then
       if let some previous := defaultValue then
         earlierDefaults := earlierDefaults.push (previous, defaultSql.getD "")

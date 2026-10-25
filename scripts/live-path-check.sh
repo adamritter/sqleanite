@@ -1869,4 +1869,13 @@ else
   echo 'FAIL - column DEFAULT wiring is incomplete'
   exit 1
 fi
+if grep -q 'expectConstraintName' SQLeanite/Parser.lean &&
+   grep -q 'matchConstraintName' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'matchTableConstraints constraints' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'position == constraints.size' SQLeanite/CoreTokenGrammar.lean; then
+  echo 'ok - named constraints retain exact constraint checks and validated name grammar'
+else
+  echo 'FAIL - named constraint grammar wiring is incomplete'
+  exit 1
+fi
 exit $status

@@ -584,6 +584,10 @@ private def matchDefault (expression : Expr) (source : String) : MatchM Unit := 
       (String.join (consumed.map Token.render)).trimAscii.toString == source do
     mismatch "the complete original DEFAULT source"
 
+private def matchConstraintName : MatchM Unit := do
+  unless (SQLite.PragmaSyntax.nameToken false (← advance)).isSome do
+    mismatch "a legal constraint name"
+
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
       !column.unique && column.references.isNone && column.check.isNone &&
@@ -602,7 +606,8 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawCollation := false
   let mut scanning := true
   while scanning do
-    if ← acceptKeyword "default" then
+    if ← acceptKeyword "constraint" then matchConstraintName
+    else if ← acceptKeyword "default" then
       let some (expression, source) := defaults[defaultIndex]? | mismatch "a declared DEFAULT clause"
       matchDefault expression source
       defaultIndex := defaultIndex + 1
@@ -653,8 +658,6 @@ private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit :=
       constraint.collations.size == 1 && constraint.descending.size == 1 &&
       constraint.check.isNone && !constraint.autoIncrement do
     mismatch "a single-column table PRIMARY KEY"
-  if ← acceptKeyword "constraint" then
-    unless (tokenName? (← advance)).isSome do mismatch "a constraint name"
   expectKeyword "primary"
   expectKeyword "key"
   expectSymbol "("
@@ -669,6 +672,22 @@ private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit :=
     expectKeyword "conflict"
     expectConflict constraint.conflict
   else unless constraint.conflict == .abort do mismatch "the default table-key conflict action"
+
+/-- Table CONSTRAINT names are standalone grammar productions, optionally
+separated by commas. They can precede, follow or stand without an actual key.
+Every actual key must still match exactly one retained AST constraint. -/
+private def matchTableConstraints (constraints : Array TableConstraintDef) : MatchM Unit := do
+  let mut position := 0
+  let mut more ← acceptSymbol ","
+  while more do
+    if ← acceptKeyword "constraint" then matchConstraintName
+    else
+      let some constraint := constraints[position]? | mismatch "a retained table constraint"
+      matchTablePrimary constraint
+      position := position + 1
+    if ← acceptSymbol "," then more := true
+    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary"
+  unless position == constraints.size do mismatch "all retained table constraints"
 
 private def skipSpaceTokens (tokens : List Token) : List Token :=
   tokens.dropWhile fun token => match token with | .space _ => true | _ => false
@@ -942,9 +961,7 @@ private def matchStatement : Statement → MatchM Unit
       expectDeclaredName name
       expectSymbol "("
       matchColumns columns.toList
-      for constraint in constraints do
-        expectSymbol ","
-        matchTablePrimary constraint
+      matchTableConstraints constraints
       expectSymbol ")"
   | .createIndex name table expressions unique where_ ifNotExists => do
       expectKeyword "create"

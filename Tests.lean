@@ -4597,6 +4597,39 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteNamedConstraints : IO Unit := do
+  let sql := "CREATE TABLE t(id INTEGER CONSTRAINT key PRIMARY KEY ON CONFLICT IGNORE,a TEXT CONSTRAINT \"Null name\" NOT NULL ON CONFLICT IGNORE CONSTRAINT d DEFAULT 'value');INSERT INTO t DEFAULT VALUES;INSERT INTO t VALUES(1,'duplicate'),(2,NULL);SELECT * FROM t;"
+  let (state, output) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok result => pure result
+    | .error message => fail s!"named column constraints: {message}"
+  let expected ← match [Value.integer 1, .text "value"].mapM SQLSurface.value with
+    | .ok row => pure row
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [expected] do fail "constraint names changed key, NULL or default behavior"
+  let (state, _) ← match CoreSQL.execute state
+      "CREATE TABLE r(id INTEGER,v,CONSTRAINT first,CONSTRAINT second PRIMARY KEY(id) ON CONFLICT REPLACE CONSTRAINT tail);INSERT INTO r VALUES(1,'first'),(1,'second');CREATE TABLE n(a,CONSTRAINT first CONSTRAINT second,CONSTRAINT final);INSERT INTO n DEFAULT VALUES;" with
+    | .ok result => pure result
+    | .error message => fail s!"standalone/repeated table constraint names: {message}"
+  let some image := CoreFile.encode state.database | fail "named constraint encode failed"
+  let some decoded := CoreDecode.decode image.fileBytes | fail "named constraint decode failed"
+  unless decoded.Equiv state.database do fail "named constraints changed during persistence"
+  for tail in ["CONSTRAINT NOT DEFAULT 7", "CONSTRAINT NULL NOT NULL", "CONSTRAINT NOTHING", "CONSTRAINT 0"] do
+    if (CoreSQL.execute Core.State.empty s!"CREATE TABLE bad(a {tail});").isOk then fail "invalid constraint name accepted"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE good(a CONSTRAINT name NOT NULL);" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let tokens ← match lex "CREATE TABLE good(a CONSTRAINT SELECT NOT NULL);" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay accepted a reserved constraint name"
+  let key ← match CoreTokenGrammar.parseCertified "CREATE TABLE good(a INTEGER,PRIMARY KEY(a));" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let namesOnly ← match lex "CREATE TABLE good(a INTEGER,CONSTRAINT ignored);" with
+    | .ok tokens => pure tokens
+    | .error message => fail message
+  if (CoreTokenGrammar.check namesOnly key.statements).isOk then fail "a standalone name forged an actual key"
+
 private def expectSQLiteBlobAdjacency : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty "CREATE TABLE t(x INTEGER);INSERT INTO t VALUES(7);" with
     | .ok result => pure result
@@ -6982,6 +7015,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite named column and table constraints, grammar and persistence", expectSQLiteNamedConstraints),
   ("SQLite blob prefix adjacency, aliases and independent token replay", expectSQLiteBlobAdjacency),
   ("SQLite DEFAULT values, delayed errors, old records and conflict replacement", expectSQLiteColumnDefaults),
   ("SQLite primary-key schema policies, precedence and pending rowids", expectSQLiteSchemaPrimaryConflict),
