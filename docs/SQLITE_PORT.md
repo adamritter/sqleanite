@@ -4293,3 +4293,43 @@ unconstrained row selection and an empty right side of an unconstrained LEFT
 join. They are not a complete SQLite join equivalence proof. Native bindings
 are unchanged. Reports: `sqlite-join-syntax-*20261025.json`; harness:
 `scripts/run-join-syntax-differential.py`.
+
+
+## Stored-column comparison affinity in joins (2026-10-25)
+
+Join comparisons can now convert a stored column when SQLite comparison affinity
+requires it. A typed column operand applies the existing pure physical comparison
+conversion at evaluation time. The original stored/projected value is retained.
+Numeric-looking text, malformed text, BLOBs and NULL therefore keep their distinct
+roles. Columns whose canonical affinity already agrees still use their existing
+operand and access paths. The selection follows the pinned
+[SQLite comparison-affinity rules](https://www.sqlite.org/datatype3.html#type_conversions_prior_to_comparison).
+
+The optimizer denotation and bidirectional join bridge now represent this typed
+operand explicitly. Their value and round-trip proofs cover the new constructor,
+and the existing left-only predicate proof still holds. A separate component
+proposition shows that conversion preserves a NULL operand, including outer-join
+padding. The cold path continues to decline plans it cannot execute.
+
+Baseline seed **354360** records **2,592 comparisons / 1,296 differences**, all
+valid C queries rejected by the old stored-column conversion guard. Development
+seed **354361** passes **3,888 / 0**, including empty right-side tables. Final-
+checkpoint fresh seed **354362** passes **5,184 / 0**, plus 72 immutable-image/
+integrity checks. It covers all ordered pairs of INTEGER/NUMERIC/REAL/TEXT/BLOB/
+undeclared types, both operand orders, six comparisons, INNER/LEFT and WHERE
+contexts, signed integer boundaries, numeric text with embedded NUL, BLOBs and
+new randomized numeric values. Input pages are 512/4096/65536 bytes, with both
+production file modes. Complete successful CLI bytes are compared before large
+passing captures are stored as length/SHA-256; all failing captures remain whole.
+Typed independent C observations and main/WAL immutability are checked.
+Join-syntax regression seed **354363** passes **1,504 / 0**, plus eight image checks.
+
+Implementation SHA-256: `e65e4754733fba057ce88b9914ee85256ef074a4cfc08bb019d11bd7a2251519`.
+Final checks pass **348 build jobs, 258 executable tests, 1,213 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The three newly registered headline propositions are the NULL
+property and the two extended optimizer bridge properties; they do not establish
+whole-SQLite equivalence. Arbitrary scalar join expressions, explicit join
+collations, USING/NATURAL and RIGHT/FULL execution remain separate work. Native
+bindings are unchanged. Reports: `sqlite-join-affinity-*20261025.json`; harness:
+`scripts/run-join-affinity-differential.py`.

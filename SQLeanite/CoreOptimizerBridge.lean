@@ -141,6 +141,7 @@ def joinColumnPath (reference : CoreJoin.ColumnRef) : ColumnPath :=
 
 def joinOperand : CoreJoin.Operand → QuerySemantics.Operand
   | .column reference => .column (joinColumnPath reference)
+  | .coercedColumn affinity reference => .coercedColumn affinity (joinColumnPath reference)
   | .literal value => .literal value
 
 theorem joinOperand_value (operand : CoreJoin.Operand)
@@ -149,6 +150,13 @@ theorem joinOperand_value (operand : CoreJoin.Operand)
   cases operand with
   | literal => rfl
   | column reference =>
+      cases reference with
+      | mk side column =>
+          cases side <;> simp [joinOperand, joinColumnPath,
+            QuerySemantics.Operand.value, joinedRow, joinRow,
+            QuerySemantics.Row.lookup, CoreJoin.Operand.value,
+            CoreJoin.ColumnRef.value]
+  | coercedColumn affinity reference =>
       cases reference with
       | mk side column =>
           cases side <;> simp [joinOperand, joinColumnPath,
@@ -172,6 +180,10 @@ def fromJoinOperand? : QuerySemantics.Operand → Option CoreJoin.Operand
       some (.column ⟨.left, column⟩)
   | .column (.right (.cell column)) =>
       some (.column ⟨.right, column⟩)
+  | .coercedColumn affinity (.left (.cell column)) =>
+      some (.coercedColumn affinity ⟨.left, column⟩)
+  | .coercedColumn affinity (.right (.cell column)) =>
+      some (.coercedColumn affinity ⟨.right, column⟩)
   | .literal value => some (.literal value)
   | _ => none
 
@@ -195,6 +207,9 @@ theorem fromJoinOperand_joinOperand (operand : CoreJoin.Operand) :
   cases operand with
   | literal => rfl
   | column reference =>
+      cases reference with
+      | mk side column => cases side <;> rfl
+  | coercedColumn affinity reference =>
       cases reference with
       | mk side column => cases side <;> rfl
 

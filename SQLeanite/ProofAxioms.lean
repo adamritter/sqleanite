@@ -1399,3 +1399,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JoinType.classify_length
 #print axioms SQLeanite.CoreJoin.matchingRows_unconstrained
 #print axioms SQLeanite.CoreJoin.leftOuterFor_unconstrained_empty
+
+#print axioms SQLeanite.CoreJoin.Operand.coercedColumn_null
+#print axioms SQLeanite.CoreOptimizerBridge.joinOperand_value
+#print axioms SQLeanite.CoreOptimizerBridge.fromJoinOperand_joinOperand

@@ -42,10 +42,13 @@ Keeping literals here as well gives the live join bridge one exact target for
 all of `CoreJoin.Operand`. -/
 inductive Operand where
   | column (path : ColumnPath)
+  | coercedColumn (affinity : SQLite.Affinity) (path : ColumnPath)
   | literal (value : Core.Value)
 
 def Operand.value : Operand → Row → Core.Value
   | .column path, row => row.lookup path
+  | .coercedColumn affinity path, row =>
+      SQLite.PhysicalAffinity.comparison affinity (row.lookup path)
   | .literal value, _ => value
 
 inductive Predicate where

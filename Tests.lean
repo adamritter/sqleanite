@@ -7041,6 +7041,26 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinAffinity : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,NULL),(4,'bad');INSERT INTO r VALUES(1,'01'),(2,'2'),(3,NULL),(4,'bad'),(5,'2x');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT a.id,b.id FROM l a JOIN r b ON a.k=b.k ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b ON b.k=a.k ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2],[.integer 4,.integer 4]]),
+    ("SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k=b.k ORDER BY a.id,b.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2],[.integer 3,.null],[.integer 4,.integer 4]]),
+    ("SELECT a.k,b.k FROM l a JOIN r b ON a.id=b.id WHERE a.k=b.k ORDER BY a.id,b.id;",
+      [[.integer 1,.text "01"],[.integer 2,.text "2"],[.text "bad",.text "bad"]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join affinity: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"join affinity rows: {sql}"
+
 private def expectSQLiteJoinSyntax : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,v);CREATE TABLE r(id INTEGER PRIMARY KEY,v);CREATE TABLE e(id INTEGER PRIMARY KEY,v);INSERT INTO l VALUES(1,'a'),(2,'b');INSERT INTO r VALUES(2,'x');"
   let cases : List (String × List (List Value)) := [
@@ -7564,6 +7584,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite stored-column join comparison affinity", expectSQLiteJoinAffinity),
   ("SQLite join keywords and optional ON", expectSQLiteJoinSyntax),
   ("SQLite zero-row writes preserve files and publish sequence initialization", expectSQLiteEmptyWritePublication),
   ("SQLite constant LIMIT/OFFSET expressions and independent replay", expectSQLiteLimitExpressions),

@@ -1301,7 +1301,8 @@ def joinColumnDefinition (context : JoinContext) (reference : CoreJoin.ColumnRef
 
 def joinOperandAffinity (context : JoinContext) (expression : Expr) :
     CoreJoin.Operand → Except String (Option SQLite.Affinity)
-  | .column reference => do return some (← joinColumnDefinition context reference).affinity
+  | .column reference | .coercedColumn _ reference =>
+      do return some (← joinColumnDefinition context reference).affinity
   | .literal _ => .ok (SQLite.Scalar.expressionAffinity expression)
 
 def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
@@ -1309,9 +1310,9 @@ def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
   | .literal value => .ok (.literal (SQLite.PhysicalAffinity.comparison aff value))
   | operand@(.column reference) => do
       let target ← joinColumnDefinition context reference
-      unless aff == .blob || aff.comparison == target.affinity.comparison do
-        unsupported "join requiring conversion of a stored column"
-      return operand
+      if aff == .blob || aff.comparison == target.affinity.comparison then return operand
+      return .coercedColumn aff reference
+  | .coercedColumn _ _ => unsupported "repeated join operand coercion"
 
 def joinComparison (context : JoinContext)
     (operation : CoreJoin.Operand → CoreJoin.Operand → CoreJoin.Predicate)

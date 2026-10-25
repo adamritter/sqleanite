@@ -2036,4 +2036,14 @@ else
   exit 1
 fi
 
+if rg -F -q 'return .coercedColumn aff reference' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'SQLite.PhysicalAffinity.comparison affinity (reference.value row)' SQLeanite/CoreJoin.lean &&
+   rg -F -q '.coercedColumn affinity (joinColumnPath reference)' SQLeanite/CoreOptimizerBridge.lean &&
+   rg -F -q 'SQLite.PhysicalAffinity.comparison affinity (row.lookup path)' SQLeanite/QuerySemantics.lean; then
+  echo 'ok - stored join-column affinity is preserved through optimizer translation and execution'
+else
+  echo 'FAIL - join-column comparison conversion is disconnected'
+  exit 1
+fi
+
 exit $status

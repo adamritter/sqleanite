@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "e65e4754733fba057ce88b9914ee85256ef074a4cfc08bb019d11bd7a2251519",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "dbf18263512372976b0047ee90e08389d450944d6bc51e961ba5e9cf4f835ab7",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [347/348] Built Tests:c.o (16s)",
+        "\u2714 [348/348] Built sqleanite_tests:exe (338ms)",
+        "Build completed successfully (348 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "2a0c070c6733411defc0b1a92b98b224d01d3427841d0b5e287ef32efff0c19f",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "258 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "7d437d2849ba79b001fc3cdc354895218f2d07129572892c5e545eeabc585951",
+      "tail": [
+        "ok - SQLite name and implicit-alias grammars are shared and independently replayed",
+        "ok - CAST type spans are independently validated and use explicit expression affinity",
+        "ok - completed statements emit in order and actual write dispatch checks OS access",
+        "ok - DEFERRED and ignored TRANSACTION names are independently replayed",
+        "ok - LIMIT expression tokens and normalized windows are independently checked",
+        "ok - zero-row DML publication checks complete contents including sequence rows",
+        "ok - join keywords and optional ON reach the existing Core join semantics",
+        "ok - stored join-column affinity is preserved through optimizer translation and execution"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "9cddec63eb3ab8749a193994a525a1a83f52fbad5fbc7e295714d7c74990700e"
+}

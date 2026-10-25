@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.PhysicalAffinity
 import SQLeanite.Core
 import SQLeanite.PhysicalQuery
 
@@ -23,16 +24,24 @@ def ColumnRef.value (reference : ColumnRef) (row : JoinedRow) : Core.Value :=
 
 inductive Operand where
   | column (reference : ColumnRef)
+  | coercedColumn (affinity : SQLite.Affinity) (reference : ColumnRef)
   | literal (value : Core.Value)
   deriving DecidableEq
 
 def Operand.value : Operand → JoinedRow → Core.Value
   | .column reference, row => reference.value row
+  | .coercedColumn affinity reference, row =>
+      SQLite.PhysicalAffinity.comparison affinity (reference.value row)
   | .literal value, _ => value
 
 def Operand.leftOnly : Operand → Bool
-  | .column reference => reference.side == .left
+  | .column reference | .coercedColumn _ reference => reference.side == .left
   | .literal _ => true
+
+theorem Operand.coercedColumn_null (affinity : SQLite.Affinity) (reference : ColumnRef)
+    (row : JoinedRow) (missing : reference.value row = .null) :
+    (Operand.coercedColumn affinity reference).value row = .null := by
+  simp [Operand.value, missing, SQLite.PhysicalAffinity.comparison_null]
 
 inductive Predicate where
   | equal (left right : Operand)
@@ -68,6 +77,11 @@ private theorem Operand.value_leftOnly {operand : Operand}
   cases operand with
   | literal => rfl
   | column reference =>
+      cases reference with
+      | mk side column =>
+          cases side <;> simp [Operand.leftOnly, Operand.value,
+            ColumnRef.value] at only ⊢
+  | coercedColumn affinity reference =>
       cases reference with
       | mk side column =>
           cases side <;> simp [Operand.leftOnly, Operand.value,
