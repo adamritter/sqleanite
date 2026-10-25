@@ -53,7 +53,7 @@ def WriteEffect (command : WriteCommand) (state next : Core.State)
       ∃ table replacement,
         state.database.findTable? tableName = some table ∧
         replacement.schema = table.schema ∧
-        replacement.indexes = index :: table.indexes ∧
+        replacement.indexes = table.indexes ++ [index] ∧
         replacement.rows = table.rows ∧
         next.database.findTable? tableName = some replacement ∧
         next.transactionSnapshot = state.transactionSnapshot ∧

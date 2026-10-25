@@ -14,6 +14,8 @@ import SQLeanite.CoreCollatedGroup
 import SQLeanite.CoreGrouped
 import SQLeanite.CoreReturning
 import SQLeanite.CoreInsertIgnore
+import SQLeanite.CoreUpdateIgnore
+import SQLeanite.CoreUpdateScan
 import SQLeanite.SQLite.Values
 
 namespace SQLeanite
@@ -515,18 +517,17 @@ def updateAssignments (schema : Core.Schema) :
 
 /-- Resolve every UPDATE name even when the row set is empty. SQLite uses
 only the last assignment to a repeated target; earlier expressions are still
-bound, but are not evaluated. Rowid changes use a separate delete/insert trace;
-a declared non-rowid key still needs its own constraint implementation. -/
-def expressionAssignmentsWith (allowRowid : Bool) (ctx : CoreExpr.Context) : List (String × Expr) →
+bound, but are not evaluated. Key changes use a separate delete/insert trace
+that rechecks the rowid, declared key and explicit indexes after each row. -/
+def expressionAssignmentsWith (allowKeys : Bool) (ctx : CoreExpr.Context) : List (String × Expr) →
     Except String (List (Nat × Expr))
   | [] => .ok []
   | (name, expression) :: rest => do
       let index ← column ctx.schema name
       ctx.validate expression
-      let remaining ← expressionAssignmentsWith allowRowid ctx rest
+      let remaining ← expressionAssignmentsWith allowKeys ctx rest
       if remaining.any (fun next => next.1 == index) then return remaining
-      if (index = ctx.schema.primaryKey || index = ctx.schema.declaredPrimaryKey) &&
-          !(allowRowid && index = ctx.schema.primaryKey) then
+      if (index = ctx.schema.primaryKey || index = ctx.schema.declaredPrimaryKey) && !allowKeys then
         throw "updating the declared PRIMARY KEY is outside this path"
       return (index, expression) :: remaining
 
@@ -710,6 +711,36 @@ def rekeyUpdatePlan (tableName : String) (alias : Option String) (stored : Core.
   let ctx := expressionSearchContext ctx search
   unless ← expressionSearchReady ctx search condition do return .empty
   rowRekeyBatch tableName ctx bound condition (stored.rows.filter (Core.selects search))
+
+/-- Evaluate RHS values against each original input row and check its
+constraints against the state left by earlier accepted candidates. The pure
+Except boundary still discards the entire statement on ordinary errors. -/
+def ignoredUpdateRows (state : Core.State) (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) (condition : Option Expr) :
+    List Core.Row → Except String (Core.State × List Core.Result)
+  | [] => .ok (state, [])
+  | row :: rows => do
+      unless ← ctx.matches row.values condition do
+        return ← ignoredUpdateRows state tableName ctx assignments condition rows
+      let updates ← evaluateAssignments ctx row assignments
+      let values := Core.applyAssignments row.values updates
+      let (next, result) ← CoreUpdateIgnore.row state tableName ctx.schema row.rowid values
+      let (finalState, results) ← ignoredUpdateRows next tableName ctx assignments condition rows
+      return (finalState, result :: results)
+
+def executeIgnoredUpdate (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let bound ← expressionAssignmentsWith true ctx assignments
+  let _ ← condition.mapM ctx.validate
+  unless ← ctx.constantMatches condition do return (state, [{}])
+  let search ← expressionSearch ctx stored condition
+  let ctx := expressionSearchContext ctx search
+  unless ← expressionSearchReady ctx search condition do return (state, [{}])
+  let rows ← CoreUpdateScan.order ctx stored bound condition (stored.rows.filter (Core.selects search))
+  let (next, results) ← ignoredUpdateRows state tableName ctx bound condition rows
+  return (next, [{ changes := (results.map (·.changes)).sum }])
 
 def executeRekeyUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
@@ -1929,20 +1960,23 @@ def executeStatement (state : Core.State) :
       | .ok condition => executeCommand state (.deleteWhere tableName condition)
       | .error _ => executeExpressionDelete state tableName alias stored where_
   | .update table alias assignments where_ conflict => do
-      unless conflict == .default || conflict == .abort do
+      unless conflict == .default || conflict == .abort || conflict == .ignore do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
+      if conflict == .ignore then
+        return ← executeIgnoredUpdate state tableName alias stored assignments.toList where_
       match updateAssignments stored.schema assignments.toList,
           where_.mapM (predicate stored.schema) with
       | .ok updates, .ok condition =>
           executeCommand state (.updateWhere tableName updates condition)
       | _, _ =>
           if assignments.any (fun assignment =>
-              findColumn? stored.schema assignment.1 == some stored.schema.primaryKey) then
+              findColumn? stored.schema assignment.1 == some stored.schema.primaryKey ||
+              findColumn? stored.schema assignment.1 == some stored.schema.declaredPrimaryKey) then
             executeRekeyUpdate state tableName alias stored assignments.toList where_
           else executeExpressionUpdate state tableName alias stored assignments.toList where_
   | .select select => do

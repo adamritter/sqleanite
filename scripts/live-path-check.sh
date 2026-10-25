@@ -744,6 +744,22 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# A conflicting UPDATE retains the original row, including when a key changes.
+if grep -q 'executeIgnoredUpdate state tableName alias stored assignments.toList where_' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateIgnore.row state tableName ctx.schema row.rowid values' SQLeanite/CoreSQL.lean &&
+   grep -q 'expressionAssignmentsWith true ctx assignments' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateScan.order ctx stored bound condition' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateScan.byColumn_perm' SQLeanite/ProofAxioms.lean &&
+   grep -q 'SQLite.PlannerCost.scan' SQLeanite/CoreUpdateScan.lean &&
+   grep -Fq 'table.withIndexes (table.indexes ++ [index])' SQLeanite/Core.lean &&
+   grep -q 'let some database ← applyIndexIOFrom source database entry' SQLeanite/CoreDecode.lean &&
+   grep -q 'CoreUpdateIgnore.finish_skips' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreUpdateIgnore.finish_inserts' SQLeanite/ProofAxioms.lean; then
+  ok "UPDATE OR IGNORE retains old rows on conflict and checks accepted key changes"
+else
+  fail "UPDATE OR IGNORE is disconnected from its state-preservation checks"
+fi
+
 # IGNORE classifies typed constraint conflicts, leaving ordinary errors intact.
 if grep -q 'CoreInsertIgnore.shouldInsert stored values' SQLeanite/CoreSQL.lean &&
    grep -q 'if conflict == .ignore then ignoreInsertRows' SQLeanite/CoreSQL.lean &&

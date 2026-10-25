@@ -45,7 +45,7 @@ theorem execute_createIndex_to_bytes (utf8 : CoreDecode.UTF8Roundtrips)
     (∃ table replacement,
       state.database.findTable? tableName = some table ∧
       replacement.schema = table.schema ∧
-      replacement.indexes = index :: table.indexes ∧
+      replacement.indexes = table.indexes ++ [index] ∧
       replacement.rows = table.rows ∧
       next.database.findTable? tableName = some replacement ∧
       next.transactionSnapshot = state.transactionSnapshot ∧

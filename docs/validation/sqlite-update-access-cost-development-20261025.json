@@ -1,0 +1,2443 @@
+{
+  "seed": 354015,
+  "fixtures": 3,
+  "random_cases": 0,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|integer|313030\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|313030|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|36|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|35|real|352E35\n2|text|6136|integer|33|real|332E35\n3|text|6135|integer|37|null|\n4|text|6134|integer|313030|real|362E35\n5|text|6233|integer|31|real|312E35\n6|text|6232|integer|34|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|32\n2|text|62|integer|30\n3|null||integer|32\n4|text|62|null|\n5|real|312E35|integer|30\n6|null||integer|30\n7|real|312E35|integer|32\n8|real|312E35|integer|30\n9|null||integer|39\n10|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|integer|313030\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|32|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|36|real|362E35\n2|text|6136|integer|37|real|372E35\n3|text|6135|integer|33|null|\n4|text|6134|integer|313030|real|322E35\n5|text|6233|integer|35|real|352E35\n6|text|6232|integer|31|null|\n7|text|6231|integer|34|real|342E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|null||null|\n2|text|62|null|\n3|null||integer|39\n4|text|62|integer|39\n5|real|312E35|null|\n6|real|312E35|null|\n7|text|62|integer|31\n8|text|62|integer|31\n9|null||integer|31\n10|null||integer|32\n11|real|312E35|integer|31\n12|text|62|integer|39\n13|null||integer|39\n14|null||integer|31\n15|text|61|null|\n16|text|62|null|\n17|text|62|integer|39\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND w>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE v>='a' AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v BETWEEN 'a' AND 'z' AND u=2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|313030|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE (v='a4' OR v='a7') AND u>0;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v>='a' AND (u>2 OR w>0);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v GLOB 'a*';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET w=100 WHERE u IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|integer|313030\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE w IS NOT NULL;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE likely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE unlikely(v>'a');",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE +v>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v COLLATE nocase>='a';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|313030|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|31|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "UPDATE OR IGNORE t SET u=100 WHERE v='a4' OR v='a7';",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|6137|integer|34|real|342E35\n2|text|6136|integer|35|real|352E35\n3|text|6135|integer|36|null|\n4|text|6134|integer|313030|real|312E35\n5|text|6233|integer|33|real|332E35\n6|text|6232|integer|37|null|\n7|text|6231|integer|32|real|322E35\n1|text|61|integer|31\n2|text|62|integer|32\n1|text|61|integer|39\n2|text|62|integer|31\n3|real|312E35|integer|31\n4|real|312E35|integer|31\n5|text|61|integer|39\n6|text|62|integer|39\n7|text|62|integer|30\n8|real|312E35|integer|39\n9|null||integer|31\n10|null||null|\n11|null||integer|32\n12|text|61|null|\n13|text|62|null|\n14|text|62|integer|32\n15|text|61|integer|30\n16|text|61|integer|32\n17|real|312E35|integer|31\n18|real|312E35|integer|30\n19|text|62|null|\n20|null||integer|39\n21|null||integer|31\n22|null||null|\n23|text|61|integer|32\n24|text|61|null|\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "241c20b4f8fa44c4c58b0bde70f02d22124d07030c8de78a362767f06e7ca58b",
+  "executable_sha256": "b1999edb3a3dcc500021b7c639dfec6f725c71a1b92810fe50d36bb94f22a52e",
+  "harness_sha256": "9e3eeae6309536905671f9647b46d9d956ccc91519b589c52e8fdf39fe969ee4",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Diagnostic inventory of UPDATE access-plan differences against pinned SQLite.\n\nCompare successful output bytes, positive errors, and independently observed\nstored rows, storage classes, and integrity after every script. Failed single\nstatements must retain main/WAL bytes. Large successful captures are stored\nas byte counts, SHA-256 and previews after full-byte comparison. Failures keep\nfull captures. This is not full SQLite equivalence."
+}

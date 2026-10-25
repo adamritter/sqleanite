@@ -1,0 +1,37 @@
+{
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "DROP TABLE IF EXISTS t;\nCREATE TABLE t(id INTEGER PRIMARY KEY,v,u INTEGER,w INTEGER);\nCREATE UNIQUE INDEX tu ON t(u);\nCREATE INDEX tw ON t(w);\nINSERT INTO t VALUES(1,'a',1,3),(2,'b',2,2),(3,'c',3,1);\nUPDATE OR IGNORE t SET u=100 WHERE u>0 AND w>0;\nSELECT id FROM t WHERE u=100;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "DROP TABLE IF EXISTS t;\nCREATE TABLE t(id INTEGER PRIMARY KEY,v,u INTEGER,w INTEGER);\nCREATE UNIQUE INDEX tu ON t(u);\nCREATE INDEX tw ON t(w);\nINSERT INTO t VALUES(1,'a',1,3),(2,'b',2,2),(3,'c',3,1);\nUPDATE OR IGNORE t SET u=100 WHERE u>0 AND w>0;\nSELECT id FROM t WHERE u=100;",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "matched": false
+    }
+  ],
+  "failures": 2,
+  "implementation_sha256": "241c20b4f8fa44c4c58b0bde70f02d22124d07030c8de78a362767f06e7ca58b",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

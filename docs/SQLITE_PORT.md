@@ -2581,3 +2581,68 @@ Reports: `docs/validation/sqlite-ignore-insert-20261025.json` and
 UPDATE IGNORE, FAIL/ROLLBACK conflict policies, schema CHECK/foreign-key/default
 constraints, nullable non-integer primary keys or the INT64_MAX random-rowid
 fallback. It is not a claim of full SQLite compatibility.
+
+## UPDATE OR IGNORE, key changes and index scan order (2026-10-25)
+
+UPDATE OR IGNORE now evaluates assignments against each original input row
+and checks the candidate against the state left by earlier accepted updates.
+`CoreUpdateIgnore` privately removes the old row for the checked constraint
+probe; a skipped candidate restores the exact preceding state and reports zero
+changes. Accepted candidates use ordinary checked Core delete/insert commands.
+INTEGER rowid NULL/type errors and expression failures still abort the entire
+pure statement. The ordinary UPDATE fallback also permits changes to an
+admitted declared text primary key. Repeated assignment binding, aliases,
+transactions and simultaneous RHS evaluation retain their existing rules.
+
+An ignored unique conflict makes traversal order observable. `CoreUpdateScan`
+models the admitted single-column BINARY access terms and the default,
+statistics-free SQLite costs, including covering access, IN multiplicity,
+GLOB prefix bounds, NULL bounds and probability hints. `SQLite.PlannerCost`
+ports the integer LogEst arithmetic and column/table/index size estimates.
+Changing rowids or the selected scan column uses the rowid-collection order;
+otherwise the selected index orders candidates. The sorting theorem proves a
+permutation, not a complete optimizer equivalence theorem. STAT1/STAT4,
+expression/partial/DESC/non-BINARY indexes and the full multi-index OR cost
+search remain outside this implementation.
+
+A fresh live-CREATE regression exposed inconsistent index order across opens.
+`Table.addIndex` now appends to catalog creation order and both general index
+decoders process catalog entries head first; the planner visits that list in
+reverse. Canonical encoding/decoding retains the same list order. Four internal
+CREATE INDEX contracts (`Table.addIndex_exact`, `execute_createIndex_exact`,
+`CoreEndToEnd.WriteEffect`, `execute_createIndex_to_bytes`) explicitly change
+the index-list conclusion from prepend to append. Their row/schema and frame
+conditions are retained and the updated contracts are kernel checked. This is
+an intentional representation-contract change, not an unchanged proof claim.
+
+All counterexamples remain under `docs/validation/`: the initial UPDATE
+baseline has 98 differences / 128 executions; the first development run has
+16 / 388; the initial access-cost diagnostic has 48 / 90; the live-CREATE
+index-order probe has 2 / 2. Intermediate passing single-index and cost
+reports are retained with development-specific names. They are not substituted
+for final-source evaluation. Development compile failures were corrected
+before the final evaluation.
+
+Final source SHA-256: `28953427b34b9c2139beeda0a4325f28636c839297bb26c26f7340185f1c0f11`.
+Fresh seed 354016, 160 generated statements and three new C-created fixtures:
+**1,194 executions, zero differences**, including 180 positive-error outcomes.
+Fresh access diagnostic seed 354017: **90 executions, zero differences**.
+Fresh creation-order seed 354018: **256 executions, zero differences**,
+covering both file modes, live creation versus reopening, permutations of two
+and three indexes, and dropping/recreating an index. The UPDATE fixtures use
+512/4096/65536-byte pages. Each script is independently observed with pinned
+SQLite for stored types/hex values and integrity. Failed individual statements
+retain main/WAL bytes. Successful output is compared byte for byte; error
+comparison checks rejection, not exact codes/messages or partial prior output.
+
+The final check report records a successful **302-job build, 222 executable
+tests, 1,105 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. Native code and the
+nine-binding audit boundary are unchanged. Reports:
+`sqlite-ignore-update-20261025.json`, `sqlite-update-access-20261025.json`,
+`sqlite-update-index-order-20261025.json`, and
+`sqlite-ignore-update-checks-20261025.json`. Reproducible harnesses are
+`scripts/run-ignore-update-differential.py`,
+`scripts/probe-update-access-differential.py`, and
+`scripts/probe-update-index-order-differential.py`. This evidence does not
+establish full SQL, planner, database-format or WAL compatibility.

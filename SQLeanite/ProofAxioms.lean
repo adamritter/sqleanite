@@ -1251,3 +1251,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreInsertIgnore.shouldInsert_no_conflict
 #print axioms SQLeanite.CoreSQL.executeIgnoredInsert_skips
+
+#print axioms SQLeanite.CoreUpdateIgnore.finish_skips
+#print axioms SQLeanite.CoreUpdateIgnore.finish_inserts
+
+#print axioms SQLeanite.CoreUpdateScan.byColumn_perm
+
+#print axioms SQLeanite.SQLite.PlannerCost.add_comm

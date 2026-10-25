@@ -1737,14 +1737,16 @@ theorem Table.withIndexes_exact {table next : Table} {indexes : List Index}
     exact ⟨rfl, rfl, rfl⟩
   next => contradiction
 
+/-- Retain catalog creation order so default SQLite planner ties and file
+reopening agree. New indexes are last in the catalog, first in planner order. -/
 def Table.addIndex (table : Table) (index : Index) : Except String Table :=
   if table.indexes.any (fun existing => existing.name == index.name) then
     .error s!"index already exists: {index.name}"
-  else table.withIndexes (index :: table.indexes)
+  else table.withIndexes (table.indexes ++ [index])
 
 theorem Table.addIndex_exact {table next : Table} {index : Index}
     (success : table.addIndex index = .ok next) :
-    next.schema = table.schema ∧ next.indexes = index :: table.indexes ∧
+    next.schema = table.schema ∧ next.indexes = table.indexes ++ [index] ∧
       next.rows = table.rows := by
   unfold Table.addIndex at success
   split at success

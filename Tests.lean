@@ -4597,6 +4597,63 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteUpdateIgnore : IO Unit := do
+  for (input, expected) in [(1,0),(2,10),(3,16),(8,30),(10,33),(100,66),(200,76),(125829120,269)] do
+    unless SQLite.PlannerCost.logEst input == expected do fail "SQLite planner LogEst mismatch"
+  unless SQLite.PlannerCost.add 33 33 == 43 && SQLite.PlannerCost.add 100 0 == 100 do
+    fail "SQLite planner LogEst addition mismatch"
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "INSERT INTO t VALUES(1,'a',1),(2,'b',2),(3,'c',3);" ++
+    "CREATE TABLE k(k TEXT PRIMARY KEY NOT NULL,v);INSERT INTO k VALUES('a',1),('b',2);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × Nat × List (List Value)) := [
+    ("UPDATE OR IGNORE t SET u=u+1;SELECT id,u FROM t ORDER BY id;", 1,
+      [[.integer 1, .integer 1], [.integer 2, .integer 2], [.integer 3, .integer 4]]),
+    ("UPDATE OR IGNORE t SET id=id-1;SELECT id,u FROM t ORDER BY id;", 3,
+      [[.integer 0, .integer 1], [.integer 1, .integer 2], [.integer 2, .integer 3]]),
+    ("UPDATE OR IGNORE t SET v=NULL;SELECT id,u FROM t ORDER BY id;", 0,
+      [[.integer 1, .integer 1], [.integer 2, .integer 2], [.integer 3, .integer 3]]),
+    ("UPDATE OR IGNORE k SET k='a';SELECT k,v FROM k ORDER BY k;", 1,
+      [[.text "a", .integer 1], [.text "b", .integer 2]]),
+    ("UPDATE k SET k=k||'x';SELECT k,v FROM k ORDER BY k;", 2,
+      [[.text "ax", .integer 1], [.text "bx", .integer 2]])]
+  for (sql, changes, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"UPDATE OR IGNORE: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows && (results.map (·.changes)).sum == changes do
+      fail s!"UPDATE OR IGNORE mismatch: {sql}"
+  let orderedSql := "CREATE TABLE q(id INTEGER PRIMARY KEY,v,u);CREATE INDEX qv ON q(v);" ++
+    "CREATE UNIQUE INDEX qu ON q(u);INSERT INTO q VALUES(1,'b',1),(2,'a',2),(3,'c',3);" ++
+    "UPDATE OR IGNORE q SET u=100 WHERE v>='a' AND v<='c';SELECT id FROM q WHERE u=100;"
+  let (_, ordered) ← match CoreSQL.execute Core.State.empty orderedSql with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected ← match SQLSurface.value (.integer 2) with
+    | .ok value => pure value
+    | .error message => fail message
+  unless (ordered.getLast?).map (·.rows) == some [[expected]] do fail "UPDATE IGNORE lost index scan order"
+  let createdOrderSql := "CREATE TABLE q(id INTEGER PRIMARY KEY,v,u INTEGER,w INTEGER);" ++
+    "CREATE UNIQUE INDEX qu ON q(u);CREATE INDEX qw ON q(w);" ++
+    "INSERT INTO q VALUES(1,'a',1,3),(2,'b',2,2),(3,'c',3,1);" ++
+    "UPDATE OR IGNORE q SET u=100 WHERE u>0 AND w>0;SELECT id FROM q WHERE u=100;"
+  let (_, createdOrder) ← match CoreSQL.execute Core.State.empty createdOrderSql with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected ← match SQLSurface.value (.integer 3) with
+    | .ok value => pure value
+    | .error message => fail message
+  unless (createdOrder.getLast?).map (·.rows) == some [[expected]] do fail "CREATE INDEX lost planner creation order"
+  for sql in ["UPDATE OR IGNORE t SET id=NULL;", "UPDATE OR IGNORE t SET id='bad',v=NULL;",
+      "UPDATE OR IGNORE t SET v=NULL,u=abs(-9223372036854775808);",
+      "UPDATE OR IGNORE t SET u=no_function(),u=1;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"UPDATE OR IGNORE swallowed error: {sql}"
+
 private def expectSQLiteInsertIgnore : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
     "INSERT INTO t VALUES(1,'a',1),(3,'c',3);"
@@ -5894,6 +5951,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite UPDATE OR IGNORE and sequential key changes", expectSQLiteUpdateIgnore),
   ("SQLite INSERT OR IGNORE constraints and row allocation", expectSQLiteInsertIgnore),
   ("SQLite DELETE RETURNING old values and atomic errors", expectSQLiteDeleteReturning),
   ("SQLite VALUES queries, compound windows and metadata checking", expectSQLiteValuesQuery),

@@ -9582,43 +9582,49 @@ theorem validateCanonicalIndexesFrom_overflowEncoded
   simp only [Option.bind_eq_bind, Option.bind]
   rw [dif_pos True.intro]
 
-def applyIndexesFrom (source : PageSource) :
-    Core.Database → List CatalogEntry →
-    Option Core.Database
-  | database, [] => some database
-  | database, entry :: entries => do
-      let database ← applyIndexesFrom source database entries
-      if _isIndex : entry.kind = "index" then
-        match entry.sql with
-        | none => do
-            let table ← database.findTable? entry.table
-            let index ← decodeCanonicalIndex table.schema table.schema.name entry
+def applyIndexFrom (source : PageSource) (database : Core.Database)
+    (entry : CatalogEntry) : Option Core.Database := do
+  if _isIndex : entry.kind = "index" then
+    match entry.sql with
+    | none => do
+        let table ← database.findTable? entry.table
+        let index ← decodeCanonicalIndex table.schema table.schema.name entry
+        let physical ← decodeIndexSubtreeFrom source
+          (source.pageCount + 1) entry.rootPage
+        if _contentsMatch : physical = expectedIndexEntries table index then
+          let updated ← table.addIndex index |>.toOption
+          database.updateTable updated |>.toOption
+        else none
+    | some sql =>
+      match CanonicalIndexSQL.parse sql with
+      | some spec => do
+          let table ← database.findTable? spec.table
+          if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
+            let column ← table.schema.columns.findIdx? (fun candidate =>
+              candidate.name = spec.column)
+            let index : Core.Index := ⟨spec.name, column, spec.unique⟩
             let physical ← decodeIndexSubtreeFrom source
               (source.pageCount + 1) entry.rootPage
             if _contentsMatch : physical = expectedIndexEntries table index then
               let updated ← table.addIndex index |>.toOption
               database.updateTable updated |>.toOption
             else none
-        | some sql =>
-          match CanonicalIndexSQL.parse sql with
-          | some spec => do
-              let table ← database.findTable? spec.table
-              if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-                let column ← table.schema.columns.findIdx? (fun candidate =>
-                  candidate.name = spec.column)
-                let index : Core.Index := ⟨spec.name, column, spec.unique⟩
-                let physical ← decodeIndexSubtreeFrom source
-                  (source.pageCount + 1) entry.rootPage
-                if _contentsMatch : physical = expectedIndexEntries table index then
-                  let updated ← table.addIndex index |>.toOption
-                  database.updateTable updated |>.toOption
-                else none
-              else none
-          | none => do
-              let (state, _) ← (CoreSQL.execute { database := database } sql).toOption
-              some state.database
-      else
-        some database
+          else none
+      | none => do
+          let (state, _) ← (CoreSQL.execute { database := database } sql).toOption
+          some state.database
+  else
+    some database
+
+
+/-- Process catalog entries in creation order, matching Table.addIndex and
+SQLite's reverse creation-order planner list across opens and live CREATEs. -/
+def applyIndexesFrom (source : PageSource) :
+    Core.Database → List CatalogEntry → Option Core.Database
+  | database, [] => some database
+  | database, entry :: entries => do
+      let database ← applyIndexFrom source database entry
+      applyIndexesFrom source database entries
 
 /-- Generated images take the proof-oriented path: validate every physical
 index once, then reconstruct all metadata in one structurally recursive pass.
@@ -9668,44 +9674,48 @@ theorem applyIndexes_ofList (physicalPages : List (List UInt8))
     applyIndexesFrom (.ofList physicalPages) database entries =
       applyIndexes physicalPages database entries := rfl
 
-def applyIndexesIOFrom (source : IOPageSource) :
-    Core.Database → List CatalogEntry → IO (Option Core.Database)
-  | database, [] => pure (some database)
-  | database, entry :: entries => do
-      let some database ← applyIndexesIOFrom source database entries |
-        return none
-      if _isIndex : entry.kind = "index" then
-        match entry.sql with
-        | none =>
-            let some table := database.findTable? entry.table | return none
-            let some index := decodeCanonicalIndex table.schema table.schema.name entry |
-              return none
+def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
+    (entry : CatalogEntry) : IO (Option Core.Database) := do
+  if _isIndex : entry.kind = "index" then
+    match entry.sql with
+    | none =>
+        let some table := database.findTable? entry.table | return none
+        let some index := decodeCanonicalIndex table.schema table.schema.name entry |
+          return none
+        let some physical ← decodeIndexSubtreeIOFrom source
+          (source.pageCount + 1) entry.rootPage | return none
+        if _contentsMatch : physical = expectedIndexEntries table index then
+          let some updated := (table.addIndex index).toOption | return none
+          return (database.updateTable updated).toOption
+        else return none
+    | some sql =>
+      match CanonicalIndexSQL.parse sql with
+      | some spec =>
+          let some table := database.findTable? spec.table | return none
+          if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
+            let some column := table.schema.columns.findIdx?
+              (fun candidate => candidate.name = spec.column) | return none
+            let index : Core.Index := ⟨spec.name, column, spec.unique⟩
             let some physical ← decodeIndexSubtreeIOFrom source
               (source.pageCount + 1) entry.rootPage | return none
             if _contentsMatch : physical = expectedIndexEntries table index then
               let some updated := (table.addIndex index).toOption | return none
               return (database.updateTable updated).toOption
             else return none
-        | some sql =>
-          match CanonicalIndexSQL.parse sql with
-          | some spec =>
-              let some table := database.findTable? spec.table | return none
-              if _nameMatches : spec.name = entry.name ∧ spec.table = entry.table then
-                let some column := table.schema.columns.findIdx?
-                  (fun candidate => candidate.name = spec.column) | return none
-                let index : Core.Index := ⟨spec.name, column, spec.unique⟩
-                let some physical ← decodeIndexSubtreeIOFrom source
-                  (source.pageCount + 1) entry.rootPage | return none
-                if _contentsMatch : physical = expectedIndexEntries table index then
-                  let some updated := (table.addIndex index).toOption | return none
-                  return (database.updateTable updated).toOption
-                else return none
-              else return none
-          | none =>
-              match (CoreSQL.execute { database := database } sql).toOption with
-              | some (state, _) => return some state.database
-              | none => return none
-      else return some database
+          else return none
+      | none =>
+          match (CoreSQL.execute { database := database } sql).toOption with
+          | some (state, _) => return some state.database
+          | none => return none
+  else return some database
+
+
+def applyIndexesIOFrom (source : IOPageSource) :
+    Core.Database → List CatalogEntry → IO (Option Core.Database)
+  | database, [] => pure (some database)
+  | database, entry :: entries => do
+      let some database ← applyIndexIOFrom source database entry | return none
+      applyIndexesIOFrom source database entries
 
 /-- The schema table uses the ordinary table B-tree format, including the
 100-byte database header on root page one and payload overflow chains. -/
