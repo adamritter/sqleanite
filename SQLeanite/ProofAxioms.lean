@@ -1344,3 +1344,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CanonicalSchemaSQL.parseKeyColumn_any_append
 
 #print axioms SQLeanite.ColumnDefault.emitted_boolean
+
+#print axioms SQLeanite.Core.Column.typed_empty_affinity

@@ -3735,3 +3735,66 @@ before the terminal exit. Reports: `sqlite-named-column-constraint-*20261025.jso
 harness: `scripts/run-named-column-constraint-differential.py`. Native bindings
 are unchanged. This is scoped grammar/SQL/file evidence, not complete SQLite
 compatibility.
+
+## Column type grammar, source spans and metadata (2026-10-25)
+
+The parser and independent token checker now validate SQLite 3.53.4's
+`typetoken`/`typename`/`signed` productions. Type dimensions contain one or two
+signed numeric tokens; expression syntax, extra dimensions, misplaced numbers,
+non-fallback words and numeric separators are rejected. An adjacent `X'...'`
+blob token cannot serve as a type word. Spaced or comment-separated X and string
+tokens remain ordinary type words. The type span ends at its final token, before
+trailing comments. The checker requires the exact source spelling and internal
+trivia, so a semantically similar token stream cannot forge the retained type.
+
+Public metadata follows the pinned build.c implementation: the six standard
+names normalize only when the complete adjusted span is one standard name;
+custom quoted types dequote their first token, and ordinary multiword types keep
+their original spelling. The historical trailing ALWAYS/GENERATED adjustment is
+applied once, including its byte-length threshold and suffix-inside-word cases.
+Internal comments left by this adjustment prevent standard-name recognition.
+Lean's existing case conversions already fold ASCII only; no new Unicode folding
+behavior is introduced.
+
+An explicit empty type (`""`, `''` or `[]`) now retains NUMERIC affinity separately
+from an absent type's BLOB affinity, although both display an empty pragma type.
+Canonical SQL prints an explicit empty quoted type when required. It uses a
+precision suffix for a custom lowercase standard-looking name, such as
+`"text"(0)`, to keep C from changing its metadata to TEXT. These are ordinary SQL
+type declarations. The general typed-column inverse now covers empty names and
+case-preserving suffixes, and the complete schema/record codec proofs remain in
+place. The explicit-empty affinity theorem is registered in the component audit.
+
+INTEGER rowid-alias detection now uses the standard type classification instead
+of comparing only the dequoted display name. A trailing comment no longer breaks
+an actual alias. A custom type such as `"INTEGER" extra PRIMARY KEY` is correctly
+recognized as a non-alias key, but its execution remains unsupported at this
+checkpoint. The separately labelled key diagnostic preserves that gap, including
+INT/REAL/NUMERIC/BLOB/untyped and custom lowercase TEXT keys. No passing type
+metric includes those failures. Canonical rewriting of complete catalog SQL,
+generated columns and live concurrent WAL coordination remain separate gaps.
+
+Preserved baseline seed 354230: **552 comparisons / 300 differences**. Expanded
+source-span baseline seed 354231: **212 / 124**. Development seed 354232:
+**1,020 / 0**. The explicit non-alias key diagnostic, seed 354233, records
+**18 / 18**, all with successful C execution and unsupported Lean execution.
+
+Final-checkpoint fresh seed **354234** passes **6,000 / 0**, including
+**1824** positive error cases. Twelve C-created fixtures cover
+512/4096/65536-byte pages, both file modes, rotated key columns, key/NULL policies,
+old records, overflow and malformed TEXT, empty/custom types and large numeric
+parameters. Comparisons include complete successful output, error status,
+independent C catalog/pragma/typed-row/integrity observations, a subsequent C write
+and Lean reopen. Failing single statements preserve main/WAL hashes. Exact error
+messages/codes, original catalog SQL and concurrent WAL locking are outside this
+metric. DEFAULT regression seed **354235** passes **1,524 / 0**; named-constraint
+regression seed **354236** passes **618 / 0**, on the same final production source.
+
+Implementation SHA-256: `ef00424ddcd8be114d32175771d3dbc2fce31db540d710c660fcda932269437d`.
+Final checks pass **332 build jobs, 245 executable tests, 1,169 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. The new type/affinity live-path checks run before the
+terminal exit. Reports: `sqlite-column-type-*20261025.json`; harness:
+`scripts/run-column-type-differential.py`. Native code and the nine-binding audit
+boundary are unchanged. These are scoped SQL/file/component results, not complete
+SQLite compatibility.

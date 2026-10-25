@@ -4597,6 +4597,48 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteColumnTypes : IO Unit := do
+  for typ in ["TEXT 123", "BLOB notnull", "(12)", "TEXT(1+2)", "TEXT(1,2,3)",
+      "TEXT(2) EXTRA", "RIGHT", "INDEXED", "TEXT(1_000)", "x'AB'"] do
+    if (CoreSQL.execute Core.State.empty s!"CREATE TABLE bad(a {typ});").isOk then
+      fail s!"illegal column type accepted: {typ}"
+  for (source, expected) in [
+      ("INTEGER /*c*/ GENERATED ALWAYS", "INTEGER /*c*/"),
+      ("GENERATED ALWAYS", ""), ("INTgeneratedalways", "INT"),
+      ("text always always", "text always"), ("\"text\" extra", "text"),
+      ("\"integer\"(3)", "integer"), ("\"TEXT\"", "TEXT"),
+      ("ıNTEGER", "ıNTEGER")] do
+    unless SQLite.ColumnType.name source == expected do fail s!"type metadata mismatch: {source}"
+  for typeName in ["", "text", "integer", "any", "INT", "custom \"type\""] do
+    for notNull in [false, true] do
+      let column := Core.Column.typed "column" typeName notNull
+      unless CanonicalSchemaSQL.parseBaseColumn (CanonicalSchemaSQL.baseColumnChars column ++ [')']) ==
+          some (column, [')']) do fail s!"typed-column persistence failed: {typeName}"
+  let sql := "CREATE TABLE t(a,b \"\",c \"text\" extra,id INTEGER /*alias*/ PRIMARY KEY);" ++
+    "INSERT INTO t(a,b,c) VALUES('007','007','007');" ++
+    "SELECT typeof(a),typeof(b),typeof(c),id FROM t;"
+  let (state, output) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok result => pure result
+    | .error message => fail s!"column types: {message}"
+  let expected ← match [Value.text "text", .text "integer", .text "text", .integer 1].mapM SQLSurface.value with
+    | .ok row => pure row
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [expected] do
+    fail "absent/empty/custom type affinity or commented rowid alias changed"
+  let some image := CoreFile.encode state.database | fail "column type encode failed"
+  let some decoded := CoreDecode.decode image.fileBytes | fail "column type decode failed"
+  unless decoded.Equiv state.database do fail "column types changed during persistence"
+  let certified ← match CoreTokenGrammar.parseCertified "CREATE TABLE good(a text);" with
+    | .ok result => pure result
+    | .error message => fail message
+  for source in ["CREATE TABLE good(a TEXT);", "CREATE TABLE good(a text extra);",
+      "CREATE TABLE good(a text(1+2));"] do
+    let tokens ← match lex source with
+      | .ok tokens => pure tokens
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens certified.statements).isOk then
+      fail "token replay accepted a forged type spelling or span"
+
 private def expectSQLiteNamedConstraints : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER CONSTRAINT key PRIMARY KEY ON CONFLICT IGNORE,a TEXT CONSTRAINT \"Null name\" NOT NULL ON CONFLICT IGNORE CONSTRAINT d DEFAULT 'value');INSERT INTO t DEFAULT VALUES;INSERT INTO t VALUES(1,'duplicate'),(2,NULL);SELECT * FROM t;"
   let (state, output) ← match CoreSQL.execute Core.State.empty sql with
@@ -7015,6 +7057,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite column types, exact spans, empty affinity and canonical persistence", expectSQLiteColumnTypes),
   ("SQLite named column and table constraints, grammar and persistence", expectSQLiteNamedConstraints),
   ("SQLite blob prefix adjacency, aliases and independent token replay", expectSQLiteBlobAdjacency),
   ("SQLite DEFAULT values, delayed errors, old records and conflict replacement", expectSQLiteColumnDefaults),

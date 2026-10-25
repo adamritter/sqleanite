@@ -640,9 +640,18 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 
+private def matchDeclaredType (source : String) : MatchM Unit := do
+  unless SQLite.ColumnType.valid source do mismatch "a legal column type"
+  unless source.isEmpty do
+    let before := (← get).remaining.dropWhile fun token => match token with | .space _ => true | _ => false
+    expectSource source
+    let after := (← get).remaining
+    let actual := (String.join ((before.take (before.length - after.length)).map Token.render)).trimAscii.toString
+    unless actual == source do mismatch "the exact column type source"
+
 private def matchColumn (column : ColumnDef) : MatchM Unit := do
   expectDeclaredName column.name
-  unless column.declaredType.isEmpty do expectSource column.declaredType
+  matchDeclaredType column.declaredType
   matchColumnConstraints column
 
 private def matchColumns : List ColumnDef → MatchM Unit

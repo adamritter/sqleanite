@@ -1878,4 +1878,16 @@ else
   echo 'FAIL - named constraint grammar wiring is incomplete'
   exit 1
 fi
+if grep -q 'SQLite.ColumnType.valid typ' SQLeanite/Parser.lean &&
+   grep -q 'matchDeclaredType column.declaredType' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'actual == source' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'Core.Column.typed definition.name' SQLeanite/CoreSQL.lean &&
+   grep -q 'column.explicitEmptyType then .numeric' SQLeanite/Core.lean &&
+   grep -q 'typeCaseChars column.declaredType' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'Core.Column.typed_empty_affinity' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - exact column type syntax and empty-type affinity reach invertible persistence'
+else
+  echo 'FAIL - column type grammar or affinity wiring is incomplete'
+  exit 1
+fi
 exit $status

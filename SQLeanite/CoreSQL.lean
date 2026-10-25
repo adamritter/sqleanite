@@ -38,16 +38,16 @@ def canonical (name : String) : String := name.toLower
 def resolveTableName (state : Core.State) (name : String) : String :=
   CoreNames.tableName state.database name
 
-/-- build.c dequotes a quoted declared type before computing affinity. Keep
-the original spelling of ordinary multiword/parameterized type names. -/
-def declaredTypeName (source : String) : String :=
-  match lex source with
-  | .ok tokens => match (CoreTokenGrammar.significant tokens.toList).head? with
-      | some (.quotedIdent name _) | some (.string name) => name
-      | _ => source.trimAscii.toString
-  | .error _ => source.trimAscii.toString
+/-- Exact public type spelling after SQLite's standard-type normalization. -/
+def declaredTypeName := SQLite.ColumnType.name
+
+def ordinaryColumn (definition : ColumnDef) : Core.Column :=
+  if (SQLite.ColumnType.adjusted definition.declaredType).isEmpty then
+    { name := definition.name, notNull := definition.notNull }
+  else Core.Column.typed definition.name (declaredTypeName definition.declaredType) definition.notNull
 
 def columnAllowed (column : ColumnDef) : Bool :=
+  SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
   column.generated.isNone && !column.unique &&
   column.references.isNone && column.check.isNone && !column.autoIncrement &&
@@ -121,7 +121,7 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
       let column ← match definitions.toList.find? (fun column => canonical column.name == canonical name) with
         | some column => .ok column
         | none => .error s!"no such column: {name}"
-      let integerAlias := (declaredTypeName column.declaredType).toLower == "integer"
+      let integerAlias := SQLite.ColumnType.standard column.declaredType == some "INTEGER"
       unless integerAlias || (!constraint.descending[0]! &&
           constraint.collations[0]!.all (fun name => canonical name == "binary")) do
         unsupported "table key index collation or direction"
@@ -141,10 +141,7 @@ def schema (name : String) (definitions : Array ColumnDef)
     throw "duplicate column name"
   let primaryKeys := definitions.toList.filter (·.primaryKey)
   if primaryKeys.isEmpty then
-    let visibleColumns ← definitions.toList.mapM fun column => columnWithConflicts column {
-      name := column.name
-      notNull := column.notNull
-      declaredType := declaredTypeName column.declaredType }
+    let visibleColumns ← definitions.toList.mapM fun column => columnWithConflicts column (ordinaryColumn column)
     unless !visibleColumns.isEmpty do throw "table must have at least one column"
     if visibleColumns.any (fun column => canonical column.name == "__sqleanite_rowid") then
       throw "reserved verified column name: __sqleanite_rowid"
@@ -161,8 +158,8 @@ def schema (name : String) (definitions : Array ColumnDef)
   let primaryDefinition ← match definitions[primaryKey]? with
     | some column => .ok column
     | none => .error "verified MVP primary-key index is out of bounds"
-  let integerAlias := (declaredTypeName primaryDefinition.declaredType).toLower == "integer"
-  unless integerAlias || (declaredTypeName primaryDefinition.declaredType).toLower == "text" do
+  let integerAlias := SQLite.ColumnType.standard primaryDefinition.declaredType == some "INTEGER"
+  unless integerAlias || declaredTypeName primaryDefinition.declaredType == "TEXT" do
     throw "verified MVP primary key must have declared type INTEGER or TEXT"
   let visibleColumns ← definitions.toList.mapM fun column => columnWithConflicts column <|
     if column.primaryKey then {
@@ -171,10 +168,7 @@ def schema (name : String) (definitions : Array ColumnDef)
       integerPrimaryKey := integerAlias
       integerPrimaryNotNull := integerAlias && column.notNull
       textPrimaryKey := !integerAlias }
-    else {
-      name := column.name
-      notNull := column.notNull
-      declaredType := declaredTypeName column.declaredType }
+    else ordinaryColumn column
   if integerAlias then return {
     name := name
     columns := visibleColumns
@@ -2450,7 +2444,7 @@ def executeStatement (state : Core.State) :
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
         unsupported "reserved internal rowid column name"
-      let column ← columnWithConflicts definition { name := definition.name, notNull := definition.notNull, declaredType := declaredTypeName definition.declaredType }
+      let column ← columnWithConflicts definition (ordinaryColumn definition)
       let updated ← CoreSchemaAdd.table stored column
       let database ← state.database.updateTable updated
       return ({ state with database }, [{}])

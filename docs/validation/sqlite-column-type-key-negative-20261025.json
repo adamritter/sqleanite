@@ -1,0 +1,1076 @@
+{
+  "seed": 354233,
+  "fixtures": 1,
+  "random_cases": 0,
+  "nonalias_key_diagnostic": true,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a INT PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a REAL PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7.0|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a NUMERIC PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a BLOB PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a  PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a \"INTEGER\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a \"integer\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a \"text\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-file",
+      "sql": "CREATE TABLE Extra(a INTEGER /*c*/ GENERATED ALWAYS PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a INT PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INT|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a REAL PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7.0|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|REAL|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|real|372E30|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a NUMERIC PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|NUMERIC|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a BLOB PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|BLOB|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a  PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a||0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a \"INTEGER\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a \"integer\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|integer|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a \"text\" extra PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|007|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|text|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|text|303037|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "schema_sql": "PRAGMA page_size=512;CREATE TABLE Users(Id INTEGER PRIMARY KEY ON CONFLICT IGNORE,Label TEXT NOT NULL ON CONFLICT IGNORE,Val INTEGER);CREATE INDEX LabelIndex ON Users(Label);INSERT INTO Users(Id,Label,Val) VALUES(1,'a',83),(2,'b',69);",
+      "mode": "--verified-wal-file",
+      "sql": "CREATE TABLE Extra(a INTEGER /*c*/ GENERATED ALWAYS PRIMARY KEY,b);\nINSERT INTO Extra VALUES('007','first'),(NULL,'null');\nPRAGMA table_info(Extra);\nPRAGMA index_list(Extra);\nSELECT rowid,typeof(a),hex(a),b FROM Extra ORDER BY rowid;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified MVP primary key must have declared type INTEGER or TEXT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|first\n2|null||null\n",
+        "stderr": ""
+      },
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "c_followup_lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "c_followup_sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "reopen_sql": "SELECT rowid,* FROM \"Extra\" ORDER BY rowid;\nSELECT rowid,* FROM \"Users\" ORDER BY rowid;",
+      "reopened_lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such table: Extra\n"
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|7|first\n2||null\n1|1|a|83\n2|2|b|69\n",
+        "stderr": ""
+      },
+      "after_followup_lean": {
+        "code": 0,
+        "stdout": "ok\nLabelIndex|index|Users\nUsers|table|Users\nUsers\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      },
+      "after_followup_sqlite": {
+        "code": 0,
+        "stdout": "ok\nExtra|table|Extra\nLabelIndex|index|Users\nUsers|table|Users\nsqlite_autoindex_Extra_1|index|Extra\nExtra\nUsers\na\nb\n0|a|INTEGER /*c*/|0||1\n1|b||0||0\n0|sqlite_autoindex_Extra_1|1|pk|0\n1|integer|37|text|6669727374\n2|null||text|6E756C6C\nId\nLabel\nVal\n0|Id|INTEGER|0||1\n1|Label|TEXT|1||0\n2|Val|INTEGER|0||0\n0|LabelIndex|0|c|0\n1|integer|31|text|61|integer|3833\n2|integer|32|text|62|integer|3639\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "failures": 18,
+  "implementation_sha256": "ef00424ddcd8be114d32175771d3dbc2fce31db540d710c660fcda932269437d",
+  "executable_sha256": "59dfed4e42cd1837426bac84c36eac267300174be9f77054ccfa0b7d95420eee",
+  "harness_sha256": "8872657d257cf581919fd12e7027a9f0e8a00e705681efb952d5be45913b6733",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Column type grammar, exact spans, affinities and rowid aliases.\n\nCompare complete successful output, error status, typed persisted rows and C\nintegrity. C then performs duplicate-key writes to test preserved constraint semantics.\nThis is a scoped SQL/file regression, not full SQLite equivalence."
+}

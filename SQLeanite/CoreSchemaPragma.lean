@@ -24,8 +24,6 @@ def argumentName : Expr → Option String
 def columnType (column : Core.Column) : String :=
   if column.integerPrimaryKey then "INTEGER"
   else if column.textPrimaryKey then "TEXT"
-  else if ["ANY", "BLOB", "INT", "INTEGER", "REAL", "TEXT"].contains column.declaredType.toUpper then
-    column.declaredType.toUpper
   else column.declaredType
 
 def flag (value : Bool) : Value := .integer (if value then 1 else 0)

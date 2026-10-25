@@ -46,7 +46,16 @@ structure Column where
   primaryConflictOnly : primaryConflict ≠ .abort → (integerPrimaryKey || textPrimaryKey) = true := by
     simp_all
   defaultValue : Option ColumnDefault.Spec := none
+  /-- An explicitly empty type has NUMERIC affinity; an absent type has BLOB.
+The displayed type is empty in both cases. -/
+  explicitEmptyType : Bool := false
+  explicitEmptyTypeOnly : explicitEmptyType = true →
+      declaredType = "" ∧ integerPrimaryKey = false ∧ textPrimaryKey = false := by simp_all
   deriving DecidableEq, Repr
+
+def Column.typed (name typeName : String) (notNull : Bool) : Column :=
+  if typeName = "" then { name, notNull, explicitEmptyType := true }
+  else { name, notNull, declaredType := typeName }
 
 def Column.withPrimaryConflict (column : Column) (policy : NotNullConflict) : Option Column :=
   if valid : (column.integerPrimaryKey || column.textPrimaryKey) = true then
@@ -79,7 +88,14 @@ theorem Column.restoreNotNullConflict (column : Column) :
 def Column.affinity (column : Column) : SQLite.Affinity :=
   if column.integerPrimaryKey then .integer
   else if column.textPrimaryKey then .text
+  else if column.explicitEmptyType then .numeric
   else SQLite.typeAffinity column.declaredType
+
+/-- Explicitly empty declared types retain their numeric affinity independently
+of column names and nullability; an omitted type has blob affinity instead. -/
+theorem Column.typed_empty_affinity (name : String) (notNull : Bool) :
+    (Column.typed name "" notNull).affinity = .numeric := by
+  simp [Column.typed, Column.affinity]
 
 def Column.defaultForInsert (column : Column) : Except String Value := do
   if column.integerPrimaryKey then return .null

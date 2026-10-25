@@ -75,8 +75,14 @@ def columnSuffix (column : Core.Column) : List Char :=
   else if column.notNull then " NOT NULL".toList
   else []
 
+def typeCaseChars (name : String) : List Char :=
+  if name.isEmpty then []
+  else if SQLite.ColumnType.preserveCase name then "(0)".toList else []
+
 def columnTypeChars (column : Core.Column) : List Char :=
-  if column.declaredType.isEmpty then [] else ' ' :: quoteChars column.declaredType
+  if column.explicitEmptyType || !column.declaredType.isEmpty then
+    ' ' :: (quoteChars column.declaredType ++ typeCaseChars column.declaredType)
+  else []
 
 def baseColumnChars (column : Core.Column) : List Char :=
   quoteChars column.name ++ columnTypeChars column ++ columnSuffix column
@@ -167,11 +173,12 @@ def endsBaseColumn (input : List Char) : Bool :=
 def parseTypedColumn (name : List Char) (input : List Char) :
     Option (Core.Column × List Char) := do
   let (typeName, afterType) ← takeIdent input
+  let afterType ← stripPrefix (typeCaseChars (String.ofList typeName)) afterType
   if endsBaseColumn afterType then
-    some ({ name := String.ofList name, declaredType := String.ofList typeName }, afterType)
+    some (Core.Column.typed (String.ofList name) (String.ofList typeName) false, afterType)
   else
     let rest ← stripPrefix " NOT NULL".toList afterType
-    some ({ name := String.ofList name, notNull := true, declaredType := String.ofList typeName }, rest)
+    some (Core.Column.typed (String.ofList name) (String.ofList typeName) true, rest)
 
 def parseBaseColumn : List Char → Option (Core.Column × List Char)
   | '"' :: rest => do
@@ -446,35 +453,52 @@ private theorem separator_not_quote {rest : List Char} (separator : endsBaseColu
       subst c
       simp [endsBaseColumn, endsColumn] at separator
 
+private theorem typeCase_not_quote (name : String) (rest : List Char)
+    (boundary : rest.head? ≠ some '"') :
+    (typeCaseChars name ++ rest).head? ≠ some '"' := by
+  unfold typeCaseChars
+  split
+  · simpa using boundary
+  · split <;> simp_all
+
 theorem parseBaseColumn_typed_append (name typeName : String) (notNull : Bool)
-    (nonempty : typeName.isEmpty = false) (rest : List Char)
-    (separator : endsBaseColumn rest = true ∨ notNull = true) :
-    parseBaseColumn (baseColumnChars { name, notNull, declaredType := typeName } ++ rest) =
-      some ({ name, notNull, declaredType := typeName }, rest) := by
+    (rest : List Char) (separator : endsBaseColumn rest = true ∨ notNull = true) :
+    parseBaseColumn (baseColumnChars (Core.Column.typed name typeName notNull) ++ rest) =
+      some (Core.Column.typed name typeName notNull, rest) := by
   cases notNull
   · have separator := separator.resolve_right (by decide)
-    have shape : baseColumnChars { name, notNull := false, declaredType := typeName } ++ rest =
+    have shape : baseColumnChars (Core.Column.typed name typeName false) ++ rest =
         '"' :: (escapeIdent name.toList ++ '"' :: ' ' :: '"' ::
-          (escapeIdent typeName.toList ++ '"' :: rest)) := by
-      simp [baseColumnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
+          (escapeIdent typeName.toList ++ '"' :: (typeCaseChars typeName ++ rest))) := by
+      by_cases empty : typeName = ""
+      · simp [Core.Column.typed, empty, baseColumnChars, columnTypeChars, columnSuffix, quoteChars, typeCaseChars]
+      · have nonempty : typeName.isEmpty = false := by simpa using empty
+        simp [Core.Column.typed, empty, baseColumnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
     rw [shape]
     simp only [parseBaseColumn]
     rw [takeIdent_escape _ _ (by simp)]
-    change parseTypedColumn name.toList (escapeIdent typeName.toList ++ '"' :: rest) = _
+    change parseTypedColumn name.toList (escapeIdent typeName.toList ++ '"' :: (typeCaseChars typeName ++ rest)) = _
     unfold parseTypedColumn
-    rw [takeIdent_escape _ _ (separator_not_quote separator)]
+    rw [takeIdent_escape _ _ (typeCase_not_quote _ _ (separator_not_quote separator))]
+    simp only [Option.bind_eq_bind, Option.bind, String.ofList_toList]
+    rw [stripPrefix_append]
     simp [separator, bind, Option.bind]
-  · have shape : baseColumnChars { name, notNull := true, declaredType := typeName } ++ rest =
+  · have shape : baseColumnChars (Core.Column.typed name typeName true) ++ rest =
         '"' :: (escapeIdent name.toList ++ '"' :: ' ' :: '"' ::
-          (escapeIdent typeName.toList ++ '"' :: (" NOT NULL".toList ++ rest))) := by
-      simp [baseColumnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
+          (escapeIdent typeName.toList ++ '"' :: (typeCaseChars typeName ++ (" NOT NULL".toList ++ rest)))) := by
+      by_cases empty : typeName = ""
+      · simp [Core.Column.typed, empty, baseColumnChars, columnTypeChars, columnSuffix, quoteChars, typeCaseChars, List.append_assoc]
+      · have nonempty : typeName.isEmpty = false := by simpa using empty
+        simp [Core.Column.typed, empty, baseColumnChars, columnTypeChars, nonempty, columnSuffix, quoteChars, List.append_assoc]
     rw [shape]
     simp only [parseBaseColumn]
     rw [takeIdent_escape _ _ (by simp)]
     change parseTypedColumn name.toList
-      (escapeIdent typeName.toList ++ '"' :: (" NOT NULL".toList ++ rest)) = _
+      (escapeIdent typeName.toList ++ '"' :: (typeCaseChars typeName ++ (" NOT NULL".toList ++ rest))) = _
     unfold parseTypedColumn
-    rw [takeIdent_escape _ _ (by simp)]
+    rw [takeIdent_escape _ _ (typeCase_not_quote _ _ (by simp))]
+    simp only [Option.bind_eq_bind, Option.bind, String.ofList_toList]
+    rw [stripPrefix_append]
     simp [endsBaseColumn, endsColumn, stripPrefix, bind, Option.bind]
 
 theorem parseBaseColumn_integerNotNull_append (name : String) (rest : List Char) :
@@ -499,6 +523,23 @@ theorem parseBaseColumn_any_append (column : Core.Column) (rest : List Char)
     (separator : endsBaseColumn rest = true ∨ (column.notNull = true ∧
       (column.integerPrimaryKey = false ∨ column.integerPrimaryNotNull = true))) :
     parseBaseColumn (baseColumnChars column ++ rest) = some (column, rest) := by
+  by_cases explicitType : column.explicitEmptyType = true
+  · have flags := column.explicitEmptyTypeOnly explicitType
+    have noExplicitKey : column.integerPrimaryNotNull = false := by
+      cases h : column.integerPrimaryNotNull
+      · rfl
+      · have key := column.integerPrimaryNotNullOnly h
+        simp_all
+    have equal : column = Core.Column.typed column.name "" column.notNull := by
+      cases column
+      simp_all [Core.Column.typed]
+    have ending : endsBaseColumn rest = true ∨ column.notNull = true := by
+      rcases separator with h | h
+      · exact Or.inl h
+      · exact Or.inr h.1
+    rw [equal]
+    exact parseBaseColumn_typed_append _ _ _ rest ending
+  have notExplicitType : column.explicitEmptyType = false := Bool.eq_false_iff.mpr explicitType
   by_cases declared : column.integerPrimaryNotNull = true
   · have primary := column.integerPrimaryNotNullOnly declared
     have required := consistent primary
@@ -517,7 +558,9 @@ theorem parseBaseColumn_any_append (column : Core.Column) (rest : List Char)
         cases hi : column.integerPrimaryKey <;> cases ht : column.textPrimaryKey <;> simp_all
       have equal : column = { name := column.name, notNull := column.notNull, declaredType := column.declaredType } := by cases column; simp_all
       rw [equal]
-      exact parseBaseColumn_typed_append _ _ _ (by simpa using empty) rest (by rcases separator with h | h; exact Or.inl h; exact Or.inr h.1)
+      simpa [Core.Column.typed, empty] using
+        parseBaseColumn_typed_append column.name column.declaredType column.notNull rest
+          (by rcases separator with h | h; exact Or.inl h; exact Or.inr h.1)
 
 theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
@@ -574,6 +617,11 @@ theorem primaryFromBase_inverse (column : Core.Column)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (noDefault : column.defaultValue = none) :
     primaryFromBase (primaryBase column) column.primaryConflict = some column := by
+  have notExplicitType : column.explicitEmptyType = false := by
+    cases declared : column.explicitEmptyType
+    · rfl
+    · have flags := column.explicitEmptyTypeOnly declared
+      simp_all
   have explicitOnly := column.integerPrimaryNotNullOnly
   have empty := column.primaryType primary
   cases hi : column.integerPrimaryKey <;> cases ht : column.textPrimaryKey <;>

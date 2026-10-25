@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.ColumnType
 import SQLeanite.SQLite.DefaultSyntax
 import SQLeanite.Lexer
 import SQLeanite.SQLite.PragmaSyntax
@@ -497,7 +498,7 @@ private def parseOptionalNameList : ParserM (Option (Array String)) := do
 
 private def isColumnConstraint : Token → Bool
   | .ident s => ["primary", "not", "null", "unique", "check", "default", "collate",
-      "references", "constraint", "as", "generated"].contains s.toLower
+      "references", "constraint", "as"].contains s.toLower
   | _ => false
 
 private def skipTableConstraint : ParserM Unit := do
@@ -625,7 +626,8 @@ private def parseColumnDef : ParserM ColumnDef := do
     | .symbol ";" => scanningType := false
     | .eof => scanningType := false
     | _ => discard <| advance
-  let typ ← tokenSource typeStart (← currentTokenPos)
+  let typ ← tokenSource typeStart (← get).pos
+  unless SQLite.ColumnType.valid typ do throw "invalid column type syntax"
   let mut defaultValue := none
   let mut defaultSql := none
   let mut earlierDefaults := #[]
