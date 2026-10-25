@@ -1380,3 +1380,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Identifier.primaryToken_quoted
 #print axioms SQLeanite.SQLite.Identifier.primaryToken_string
+
+#print axioms SQLeanite.SQLite.CastType.check_valid
+#print axioms SQLeanite.SQLite.CastType.check_name
+#print axioms SQLeanite.SQLite.CastType.affinity_empty
+#print axioms SQLeanite.SQLite.CastType.affinity_nonempty

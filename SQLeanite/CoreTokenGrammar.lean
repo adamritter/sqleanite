@@ -111,6 +111,25 @@ private def expectSemanticToken (expected : Token) : MatchM Unit := do
   unless namesMatch || found == expected do
     mismatch expected.render
 
+private def matchCastType (expected : String) : MatchM Unit := do
+  let before := (← get).remaining.dropWhile fun token => match token with | .space _ => true | _ => false
+  let mut after := before
+  let mut depth := 0
+  let mut scanning := true
+  while scanning do
+    match ← peek with
+    | .symbol ")" =>
+        if depth == 0 then scanning := false
+        else depth := depth - 1; discard advance; after := (← get).remaining
+    | .symbol "(" => depth := depth + 1; discard advance; after := (← get).remaining
+    | .eof => mismatch "a closed CAST expression"
+    | _ => discard advance; after := (← get).remaining
+  let source := String.join ((before.take (before.length - after.length)).map Token.render)
+  let actual ← match SQLite.CastType.check source with
+    | .ok name => pure name
+    | .error _ => mismatch "a legal CAST type"
+  unless actual.toLower == expected do mismatch "the CAST type semantics"
+
 private def sourceTokens (source : String) : Except String (List Token) := do
   let tokens ← lex source
   return (significant tokens.toList).filter (· != .eof)
@@ -442,7 +461,7 @@ mutual
               expectSymbol "("
               matchExprFuel fuel argument
               expectKeyword "as"
-              expectName (name.drop 5).toString
+              matchCastType (name.drop 5).toString
               expectSymbol ")"
           | _, _ => mismatch "CAST(expression AS type)"
         else

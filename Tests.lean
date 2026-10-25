@@ -4597,6 +4597,42 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteCastTypeGrammar : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("SELECT CAST('007.5' AS UNSIGNED BIG INT),CAST('007.5' AS FLOATING POINT),CAST('007.5' AS DECIMAL(-10,+2));",
+      [[.integer 7,.integer 7,.real 7.5]]),
+    ("SELECT typeof(CAST('007.5' AS )),CAST('007.5' AS \"\"),CAST('junk' AS '');",
+      [[.text "real",.real 7.5,.integer 0]]),
+    ("SELECT CAST('007.5' AS TEXT /* INT */ extra),CAST('007.5' AS TEXT /* INT */),typeof(CAST('007.5' AS \"blob\" INT));",
+      [[.integer 7,.text "007.5",.text "blob"]]),
+    ("SELECT CAST('007.5' AS 'text' extra),CAST('007.5' AS [integer](5)),CAST('007.5' AS `text`(12));",
+      [[.text "007.5",.integer 7,.text "007.5"]]),
+    ("CREATE TABLE t(v DEFAULT (CAST('007.5' AS DOUBLE PRECISION)));INSERT INTO t DEFAULT VALUES;SELECT v,typeof(v) FROM t;",
+      [[.real 7.5,.text "real"]]),
+    ("CREATE TABLE t AS SELECT CAST('007.5' AS DECIMAL(10,2)) AS v;PRAGMA table_info(t);",
+      [[.integer 0,.text "v",.text "NUM",.integer 0,.null,.integer 0]])]
+  for (sql, expected) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"CAST type grammar: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some rows do fail s!"CAST type result: {sql}"
+  for typ in ["TEXT(1+2)","TEXT(1,2,3)","TEXT(1_000)","TEXT()","TEXT(2) EXTRA","RIGHT","INDEXED","x'AB'"] do
+    if (CoreSQL.execute Core.State.empty s!"SELECT CAST(1 AS {typ});").isOk then fail s!"invalid CAST type admitted: {typ}"
+  for (admitted, forged) in [
+      ("INSERT INTO t VALUES(CAST(1 AS TEXT(8)));", "INSERT INTO t VALUES(CAST(1 AS BLOB(8)));"),
+      ("INSERT INTO t VALUES(CAST(1 AS TEXT /* INT */ extra));", "INSERT INTO t VALUES(CAST(1 AS TEXT /* BLOB */ extra));"),
+      ("INSERT INTO t VALUES(CAST(1 AS TEXT(8)));", "INSERT INTO t VALUES(CAST(1 AS TEXT(1+2)));")] do
+    let parsed ← match CoreTokenGrammar.parseCertified admitted with
+      | .ok result => pure result
+      | .error message => fail message
+    let tokens ← match lex forged with
+      | .ok result => pure result
+      | .error message => fail message
+    if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay changed CAST type semantics"
+
 private def expectSQLiteIdentifierGrammar : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE \"select\"(\"from\" INTEGER PRIMARY KEY,v);INSERT INTO \"select\" VALUES(7,'kept');" with
@@ -7308,6 +7344,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite CAST type grammar, affinity and independent replay", expectSQLiteCastTypeGrammar),
   ("SQLite identifier keywords and explicit/implicit aliases", expectSQLiteIdentifierGrammar),
   ("SQLite script source preservation and committed prefixes", expectSQLiteScriptPrefix),
   ("SQLite read-only transaction publication", expectSQLiteReadTransaction),

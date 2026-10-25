@@ -4082,3 +4082,40 @@ all 148 keyword spellings in the pinned source (including optional WITHIN),
 non-keyword/Unicode/empty names and multiple quoting forms. Exact diagnostics,
 concurrent WAL coordination, clock/window/regexp evaluation and the rest of SQL
 remain outside this scoped result. Native bindings are unchanged.
+
+## CAST type grammar and expression affinity (2026-10-25)
+
+CAST now accepts the complete admitted typetoken shape used by SQLite 3.53.4:
+empty, multiword and quoted type names, with an optional one/two-number precision
+suffix. The parser captures the exact span through the last significant token;
+the independent token checker scans the span separately, validates its grammar
+and checks the effective type retained in the AST. Invalid dimensions, misplaced
+keywords and adjacent blob tokens remain errors.
+
+Expression type interpretation follows parse.y/expr.c/sqlite3Dequote rather than
+column metadata normalization. An initially quoted name ends at its first closing
+quote, even when more type words follow. Internal comments remain in unquoted
+type spans and can therefore affect affinity; trailing comments are outside the
+span. Empty CAST types have NUMERIC affinity, unlike an undeclared table column.
+Both conversion and comparison/CTAS expression affinity use this distinction.
+The CAST shape and values agree with the [SQLite CAST specification](https://www.sqlite.org/lang_expr.html#castexpr)
+and the pinned source; scalar conversion remains pure Lean.
+
+Baseline seed **354300** records **840 comparisons / 450 differences**. Development
+seed **354301** passes **940 / 0**. Final-checkpoint fresh seed **354302** passes
+**3,420 / 0**, including **930** expected errors, across new C-created fixtures,
+512/4096/65536-byte pages and both production file modes. Cases cover scalar
+storage classes and bytes, comparisons, CTAS metadata, UPDATE/INSERT RETURNING,
+DEFAULT evaluation, persisted typed rows, C integrity, later C writes and Lean
+reopening. Column-type regression seed **354303** passes **972 / 0** on the same
+source. The original negative baseline is retained.
+
+Implementation SHA-256: `9b87c4c85276b2f258c234c7b8cb26b981c6caf9e51a1935d5641830808afa8a`.
+Final checks pass **344 build jobs, 252 executable tests, 1,200 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. Four new component propositions establish successful type validation,
+effective-name retention and empty/nonempty expression affinity. Executable tests
+also reject forged CAST semantics during independent token replay. Reports:
+`sqlite-cast-type-*20261025.json`; harness: `scripts/run-cast-type-differential.py`.
+These are scoped SQL/file/component results; they do not establish complete SQL
+or concurrent WAL equivalence. Native bindings are unchanged.

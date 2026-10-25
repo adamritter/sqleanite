@@ -1,4 +1,5 @@
 import SQLeanite.SQLite.ColumnType
+import SQLeanite.SQLite.CastType
 import SQLeanite.SQLite.DefaultSyntax
 import SQLeanite.Lexer
 import SQLeanite.SQLite.PragmaSyntax
@@ -138,6 +139,24 @@ private def captureSubquery : ParserM String := do
   let source ← tokenSource start stop
   expectSymbol ")"
   pure source
+
+private def parseCastType : ParserM String := do
+  let start ← currentTokenPos
+  let mut stop := start
+  let mut depth := 0
+  let mut scanning := true
+  while scanning do
+    match ← peek with
+    | .symbol ")" =>
+        if depth == 0 then scanning := false
+        else depth := depth - 1; discard advance; stop := (← get).pos
+    | .symbol "(" => depth := depth + 1; discard advance; stop := (← get).pos
+    | .eof => throw "incomplete input"
+    | _ => discard advance; stop := (← get).pos
+  let source ← tokenSource start stop
+  match SQLite.CastType.check source with
+  | .ok name => pure name
+  | .error message => throw message
 
 private def parseNullOrder : ParserM (Option Bool) := do
   if ← acceptKeyword "nulls" then
@@ -407,7 +426,7 @@ mutual
           expectSymbol "("
           let argument ← parseExprFuel fuel
           expectKeyword "as"
-          let typeName ← expectIdent
+          let typeName ← parseCastType
           expectSymbol ")"
           pure (.call ("cast_" ++ typeName.toLower) #[argument] false)
         else if keywordEq s "case" then

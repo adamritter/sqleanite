@@ -3,6 +3,7 @@ import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Math
 import SQLeanite.SQLite.Format
 import SQLeanite.SQLite.Type
+import SQLeanite.SQLite.CastType
 import SQLeanite.SQLite.Text
 import SQLeanite.SQLite.UnicodeEscape
 import SQLeanite.SQLite.Pattern
@@ -193,7 +194,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
 abbrev Affinity := SQLite.Affinity
 
 /-- sqlite3AffinityType's precedence, including FLOATING POINT => INTEGER. -/
-def affinity := SQLite.typeAffinity
+def affinity := SQLite.CastType.affinity
 
 def cast (typeName : String) (v : Value) : Except String Value := do
   if isNull v then return .null

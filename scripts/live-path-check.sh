@@ -1970,4 +1970,15 @@ else
   exit 1
 fi
 
+if rg -q 'let typeName ← parseCastType' SQLeanite/Parser.lean &&
+   rg -F -q 'matchCastType (name.drop 5).toString' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'SQLite.CastType.check source' SQLeanite/Parser.lean &&
+   rg -q 'SQLite.CastType.check source' SQLeanite/CoreTokenGrammar.lean &&
+   rg -q 'def affinity := SQLite.CastType.affinity' SQLeanite/SQLite/Scalar.lean; then
+  echo 'ok - CAST type spans are independently validated and use explicit expression affinity'
+else
+  echo 'FAIL - CAST grammar or affinity wiring is incomplete'
+  exit 1
+fi
+
 exit $status
