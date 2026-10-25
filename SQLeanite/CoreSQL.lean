@@ -1268,6 +1268,7 @@ structure JoinContext where
   rightSchema : Core.Schema
   shared : List CoreJoinUsing.Column := []
   preferRightShared : Bool := false
+  coalesceShared : Bool := false
 
 def joinColumn (context : JoinContext) (qualifier : Option String) (name : String) :
     Except String CoreJoin.ColumnRef := do
@@ -1293,6 +1294,16 @@ def joinColumn (context : JoinContext) (qualifier : Option String) (name : Strin
       | [] => .error s!"no such column: {name}"
       | _ => .error s!"ambiguous column name: {name}"
 
+/-- FULL USING resolves an unqualified shared name to a nullable coalesce.
+Qualified references still address their original source cells. -/
+def joinNamedOperand (context : JoinContext) (qualifier : Option String) (name : String) :
+    Except String CoreJoin.Operand := do
+  let reference ← joinColumn context qualifier name
+  if context.coalesceShared && qualifier.isNone then
+    if let some shared := context.shared.find? (fun shared => shared.name == name.toLower) then
+      return .mergedColumn none shared.left shared.right
+  return .column reference
+
 def joinHasColumn (context : JoinContext) (name : String) : Bool :=
   (findColumn? context.leftSchema name).isSome || (findColumn? context.rightSchema name).isSome
 
@@ -1316,7 +1327,7 @@ def joinColumnAtom? (expression : Expr) : Option (Option String × String) :=
 def joinOperand (context : JoinContext) (expression : Expr) : Except String CoreJoin.Operand :=
   let bound := joinBindNames context expression
   match joinColumnAtom? bound with
-  | some (qualifier, name) => .column <$> joinColumn context qualifier name
+  | some (qualifier, name) => joinNamedOperand context qualifier name
   | none => .literal <$> literal bound
 
 def joinColumnDefinition (context : JoinContext) (reference : CoreJoin.ColumnRef) :
@@ -1339,6 +1350,8 @@ def joinOperandAffinity (context : JoinContext) (expression : Expr)
     | .column reference | .coercedColumn _ reference =>
         do return some (← joinColumnDefinition context reference).affinity
     | .literal _ => .ok (SQLite.Scalar.expressionAffinity expression)
+    | .mergedColumn _ left _ =>
+        do return some (← joinColumnDefinition context ⟨.left, left⟩).affinity
 
 theorem joinOperandAffinity_plus (context : JoinContext) (expression : Expr)
     (operand : CoreJoin.Operand) : joinOperandAffinity context (.unary .plus expression) operand = .ok none := rfl
@@ -1350,6 +1363,8 @@ def joinOperandCoerce (context : JoinContext) (aff : SQLite.Affinity) :
       let target ← joinColumnDefinition context reference
       if aff == .blob || aff.comparison == target.affinity.comparison then return operand
       return .coercedColumn aff reference
+  | .mergedColumn prior left right =>
+      .ok (.mergedColumn (if aff == .blob then prior else some aff) left right)
   | .coercedColumn _ _ => unsupported "repeated join operand coercion"
 
 def joinComparison (context : JoinContext)
@@ -1480,18 +1495,25 @@ theorem joinMergedStar_right (context : JoinContext) (index : Nat) (shared : Cor
     joinMergedStar context ⟨.left, index⟩ = ⟨.right, shared.right⟩ := by
   simp [joinMergedStar, prefer, found]
 
+def joinStarOperand (context : JoinContext) (reference : CoreJoin.ColumnRef) : CoreJoin.Operand :=
+  if context.coalesceShared && reference.side == .left then
+    match context.shared.find? (fun shared => shared.left == reference.column) with
+    | some shared => .mergedColumn none shared.left shared.right
+    | none => .column reference
+  else .column (joinMergedStar context reference)
+
 def joinResultExpr (context : JoinContext) : Expr → Except String (List CoreJoin.Operand)
-  | .column qualifier name => return [.column (← joinColumn context qualifier name)]
+  | .column qualifier name => return [← joinNamedOperand context qualifier name]
   | .star none =>
       .ok ((joinVisibleColumns .left context.leftSchema ++
         (joinVisibleColumns .right context.rightSchema).filter
           (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column)).map
-            (fun reference => CoreJoin.Operand.column (joinMergedStar context reference)))
+            (joinStarOperand context))
   | .star (some qualifier) =>
       let owner := canonical qualifier
       if owner == context.leftName then
         .ok ((joinVisibleColumns .left context.leftSchema).map
-          (fun reference => CoreJoin.Operand.column (joinMergedStar context reference)))
+          (joinStarOperand context))
       else if owner == context.rightName then
         .ok ((joinVisibleColumns .right context.rightSchema).map CoreJoin.Operand.column)
       else .error s!"no such table or alias: {qualifier}"
@@ -1517,6 +1539,7 @@ def joinOrderName (context : JoinContext) (column : ResultColumn)
   | .star _, .column reference =>
       let schema := if reference.side == .left then context.leftSchema else context.rightSchema
       (schema.columns[reference.column]?).map (·.name)
+  | .star _, .mergedColumn _ left _ => (context.leftSchema.columns[left]?).map (·.name)
   | .star _, _ => none
   | _, _ => column.alias
 
@@ -1555,7 +1578,7 @@ def joinOrderConstant : Expr → Bool
 def joinOrderOutputReference : CoreJoin.Operand → Except String (Option CoreJoin.ColumnRef)
   | .column reference => .ok (some reference)
   | .literal _ => .ok none
-  | .coercedColumn .. => unsupported "coerced join output ordering"
+  | .coercedColumn .. | .mergedColumn .. => unsupported "computed join output ordering"
 
 def joinOrderReference (context : JoinContext)
     (columns : List (CoreJoin.Operand × Option String)) (expression : Expr) :
@@ -1703,7 +1726,8 @@ def joinContext (leftSource rightSource : TableRef) (leftTable rightTable : Stri
     rightName := canonical (rightSource.alias.getD rightSource.name)
     leftSchema, rightSchema
     shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource
-    preferRightShared := rightSource.rightJoin && !rightSource.leftJoin }
+    preferRightShared := rightSource.rightJoin && !rightSource.leftJoin
+    coalesceShared := rightSource.rightJoin && rightSource.leftJoin }
 
 /-- Translate the supported two-source SQL shape independently of a materialized
 database.  Both the ordinary engine and cold page-directed execution use this
@@ -1970,6 +1994,50 @@ def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinC
       | .ok query => .ok query
       | .error _ => .error message
 
+/-- FULL merged output operands need their actual coalesced value for sorting.
+The original source reference remains available for ordinary column terms. -/
+def joinFullOrderValue (context : JoinContext)
+    (columns : List (CoreJoin.Operand × Option String)) (expression : Expr) :
+    Except String (Option CoreJoin.Operand) := do
+  let key := SQLite.Scalar.prepare (CoreOrder.keyExpression expression)
+  if let some name := CoreOrder.bareName? key then
+    if let some output := columns.find? (fun output => output.2.any (fun alias => canonical alias == canonical name)) then
+      return some output.1
+  if let some position := CoreOrder.ordinal? key then
+    unless 1 ≤ position && position.toNat ≤ columns.length do
+      throw "ORDER BY position is outside the result columns"
+    let some output := columns[position.toNat - 1]? | throw "ORDER BY position is out of range"
+    return some output.1
+  if joinOrderConstant key then return none
+  let bound := joinBindNames context key
+  let base := joinValueBaseFuel bound.height bound
+  if base.any SQLite.StaticCondition.resolutionForbidden then unsupported "FULL JOIN order resolution"
+  let operand ← joinOperand context base
+  return some operand
+
+def joinFullOrderBy (context : JoinContext)
+    (columns : List (CoreJoin.Operand × Option String)) (names : List (Option String))
+    (terms : List OrderTerm) : Except String (List CoreJoin.OrderTerm) := do
+  let terms ← terms.mapM fun term => do
+    let selected := (joinOrderOutputPosition? columns term.expr).bind (fun position => names[position]?.getD none)
+    let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.ofName
+      ((SQLite.ExprCollation.name term.expr).orElse (fun _ => selected)))
+    let value ← joinFullOrderValue context columns term.expr
+    match value with
+    | none | some (.literal _) => pure none
+    | some operand =>
+        let reference ← match operand with
+          | .column reference => pure reference
+          | .mergedColumn none left _ => pure ⟨.left, left⟩
+          | _ => unsupported "FULL JOIN coerced output ordering"
+        pure (some ({
+          reference
+          descending := term.descending
+          nullsFirst := some (term.nullsFirst.getD (!term.descending))
+          collation := kind
+          valueOperand := some operand } : CoreJoin.OrderTerm))
+  return terms.filterMap id
+
 def joinRightQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
     Except String CoreJoin.Query := do
@@ -1982,10 +2050,10 @@ def joinRightQuery (select : Select) (leftTable rightTable : String)
   unless canonical leftSource.name = canonical leftTable && canonical rightSource.name = canonical rightTable do
     throw "join source/schema mismatch"
   let context ← joinContext leftSource rightSource leftTable rightTable leftSchema rightSchema
-  if rightSource.leftJoin && !context.shared.isEmpty then unsupported "FULL shared-name binding"
   let (columns, names) ← joinWrappedColumns context select.columns.toList
   let orderColumns ← joinOrderColumns context columns
-  let orderBy ← joinWrappedOrderBy context orderColumns names select.orderBy.toList
+  let orderBy ← if context.coalesceShared then joinFullOrderBy context orderColumns names select.orderBy.toList
+    else joinWrappedOrderBy context orderColumns names select.orderBy.toList
   let kinds ← if select.distinct then names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
     else pure []
   let query ← joinRightBoundForRows { select with columns := columns.toArray, orderBy := #[] }

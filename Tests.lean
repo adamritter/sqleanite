@@ -7195,6 +7195,51 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteFullUsing : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,Key TEXT,lo);CREATE TABLE r(id INTEGER PRIMARY KEY,kEY NUMERIC,ro);INSERT INTO l VALUES(1,'01','left'),(2,'x','left2');INSERT INTO r VALUES(10,1,'right'),(11,2,'right2');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT key,l.key,r.key FROM l FULL JOIN r USING(key) ORDER BY l.id,r.id;",
+      [[.integer 2,.null,.integer 2],[.text "01",.text "01",.integer 1],[.text "x",.text "x",.null]]),
+    ("SELECT * FROM l FULL JOIN r USING(key) ORDER BY l.id,r.id;",
+      [[.null,.integer 2,.null,.integer 11,.text "right2"],
+       [.integer 1,.text "01",.text "left",.integer 10,.text "right"],
+       [.integer 2,.text "x",.text "left2",.null,.null]]),
+    ("SELECT l.*,r.* FROM l FULL JOIN r USING(key) ORDER BY l.id,r.id;",
+      [[.null,.integer 2,.null,.integer 11,.integer 2,.text "right2"],
+       [.integer 1,.text "01",.text "left",.integer 10,.integer 1,.text "right"],
+       [.integer 2,.text "x",.text "left2",.null,.null,.null]]),
+    ("SELECT key,r.id FROM l FULL JOIN r USING(key) WHERE key=2 ORDER BY key;",
+      [[.integer 2,.integer 11]]),
+    ("SELECT key,r.id FROM l FULL JOIN r USING(key) WHERE key='2' ORDER BY key;",
+      [[.integer 2,.integer 11]]),
+    ("SELECT key,r.id FROM l FULL JOIN r USING(key) WHERE +key='2';", []),
+    ("SELECT key,r.id FROM l FULL JOIN r USING(key) WHERE key IN (2,NULL);",
+      [[.integer 2,.integer 11]]),
+    ("SELECT key FROM l FULL JOIN r USING(key) ORDER BY key;",
+      [[.integer 2],[.text "01"],[.text "x"]]),
+    ("SELECT key AS selected FROM l FULL JOIN r USING(key) ORDER BY selected DESC LIMIT 2;",
+      [[.text "x"],[.text "01"]]),
+    ("SELECT id,key,l.id,r.id FROM l NATURAL FULL JOIN r ORDER BY id;",
+      [[.integer 1,.text "01",.integer 1,.null],[.integer 2,.text "x",.integer 2,.null],
+       [.integer 10,.integer 1,.null,.integer 10],[.integer 11,.integer 2,.null,.integer 11]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"FULL USING: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"FULL USING merged values, comparison affinity or ordering: {sql}"
+  let (created, _) ← match CoreSQL.execute Core.State.empty (setup ++
+      "CREATE TABLE named AS SELECT key,(key),+key,key COLLATE binary,likely(key) FROM l FULL JOIN r USING(key);") with
+    | .ok result => pure result
+    | .error message => fail message
+  let some table := created.database.findTable? "named" | fail "FULL USING CTAS missing"
+  unless table.schema.visibleColumns.map (·.name) == ["key","(key)","+key","key COLLATE binary","likely(key)"] &&
+      table.schema.visibleColumns.map (·.affinity) == [.text,.text,.blob,.text,.blob] do
+    fail "FULL USING CTAS lost original expression spelling or inherited affinity"
+
 private def expectSQLiteRightUsing : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,Key TEXT,lo);CREATE TABLE r(id INTEGER PRIMARY KEY,kEY NUMERIC,ro);INSERT INTO l VALUES(1,'01','left'),(2,'x','left2');INSERT INTO r VALUES(10,1,'right'),(11,2,'right2');"
   let cases : List (String × List (List Value)) := [
@@ -8271,6 +8316,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite joined projection wrappers and result collations", expectSQLiteJoinProjectionWrappers),
   ("SQLite RIGHT/FULL join null extension and match accounting", expectSQLiteRightFullJoins),
   ("SQLite RIGHT USING merged values, qualification and CTAS metadata", expectSQLiteRightUsing),
+  ("SQLite FULL USING coalesced values, affinity, ordering and CTAS names", expectSQLiteFullUsing),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

@@ -40,12 +40,19 @@ inductive Operand where
   | column (path : ColumnPath)
   | coercedColumn (affinity : SQLite.Affinity) (path : ColumnPath)
   | literal (value : Core.Value)
+  | mergedColumn (affinity : Option SQLite.Affinity) (left right : ColumnPath)
 
 def Operand.value : Operand → Row → Core.Value
   | .column path, row => row.lookup path
   | .coercedColumn affinity path, row =>
       SQLite.PhysicalAffinity.comparison affinity (row.lookup path)
   | .literal value, _ => value
+  | .mergedColumn affinity left right, row =>
+      let first := row.lookup left
+      let value := if first = .null then row.lookup right else first
+      match affinity with
+      | none => value
+      | some aff => SQLite.PhysicalAffinity.comparison aff value
 
 inductive Predicate where
   | constant (truth : Truth)

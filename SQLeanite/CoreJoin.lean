@@ -28,6 +28,7 @@ inductive Operand where
   | column (reference : ColumnRef)
   | coercedColumn (affinity : SQLite.Affinity) (reference : ColumnRef)
   | literal (value : Core.Value)
+  | mergedColumn (affinity : Option SQLite.Affinity) (left right : Nat)
   deriving DecidableEq
 
 def Operand.value : Operand → JoinedRow → Core.Value
@@ -35,15 +36,32 @@ def Operand.value : Operand → JoinedRow → Core.Value
   | .coercedColumn affinity reference, row =>
       SQLite.PhysicalAffinity.comparison affinity (reference.value row)
   | .literal value, _ => value
+  | .mergedColumn affinity left right, row =>
+      let first := (ColumnRef.mk .left left).value row
+      let value := if first = .null then (ColumnRef.mk .right right).value row else first
+      match affinity with
+      | none => value
+      | some aff => SQLite.PhysicalAffinity.comparison aff value
 
 def Operand.leftOnly : Operand → Bool
   | .column reference | .coercedColumn _ reference => reference.side == .left
   | .literal _ => true
+  | .mergedColumn .. => false
 
 theorem Operand.coercedColumn_null (affinity : SQLite.Affinity) (reference : ColumnRef)
     (row : JoinedRow) (missing : reference.value row = .null) :
     (Operand.coercedColumn affinity reference).value row = .null := by
   simp [Operand.value, missing, SQLite.PhysicalAffinity.comparison_null]
+
+theorem Operand.mergedColumn_missing (left right : Nat) (row : JoinedRow)
+    (missing : (ColumnRef.mk .left left).value row = .null) :
+    (Operand.mergedColumn none left right).value row = (ColumnRef.mk .right right).value row := by
+  simp [Operand.value, missing]
+
+theorem Operand.mergedColumn_present (left right : Nat) (row : JoinedRow)
+    (present : (ColumnRef.mk .left left).value row ≠ .null) :
+    (Operand.mergedColumn none left right).value row = (ColumnRef.mk .left left).value row := by
+  simp [Operand.value, present]
 
 inductive Predicate where
   | truthy (operand : Operand)
@@ -164,6 +182,7 @@ private theorem Operand.value_leftOnly {operand : Operand}
     (firstRight secondRight : Core.Row) :
     operand.value (left, firstRight) = operand.value (left, secondRight) := by
   cases operand with
+  | mergedColumn => simp [Operand.leftOnly] at only
   | literal => rfl
   | column reference =>
       cases reference with
@@ -784,6 +803,10 @@ structure OrderTerm where
   descending : Bool := false
   nullsFirst : Option Bool := none
   collation : SQLite.Collation.Kind := .binary
+  valueOperand : Option Operand := none
+
+def OrderTerm.value (term : OrderTerm) (row : JoinedRow) : Core.Value :=
+  (term.valueOperand.getD (.column term.reference)).value row
 
 def OrderTerm.compareValues (term : OrderTerm) (left right : Core.Value) : Ordering :=
   match left, right with
@@ -807,7 +830,7 @@ theorem OrderTerm.compareValues_null_right (term : OrderTerm) (left : Core.Value
 def orderedRowLess : List OrderTerm → JoinedRow → JoinedRow → Bool
   | [], _, _ => false
   | term :: terms, left, right =>
-      let order := term.compareValues (term.reference.value left) (term.reference.value right)
+      let order := term.compareValues (term.value left) (term.value right)
       if order == .eq then orderedRowLess terms left right else order == .lt
 
 def orderedRowLe (terms : List OrderTerm) (left right : JoinedRow) : Bool :=

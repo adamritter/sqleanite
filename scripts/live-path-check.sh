@@ -2228,13 +2228,27 @@ else
 fi
 
 if rg -F -q 'preferRightShared := rightSource.rightJoin && !rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'CoreJoin.Operand.column (joinMergedStar context reference)' SQLeanite/CoreSQL.lean &&
+   rg -F -q '.column (joinMergedStar context reference)' SQLeanite/CoreSQL.lean &&
    rg -F -q 'starMetadata context qualifier sourceIndex index derived' SQLeanite/CoreCreateTableAs.lean &&
    rg -q 'theorem joinMergedStar_right' SQLeanite/CoreSQL.lean &&
    rg -q 'theorem starMetadata_name' SQLeanite/CoreCreateTableAs.lean; then
   echo 'ok - RIGHT shared-name binding selects right values and preserves star names'
 else
   echo 'FAIL - RIGHT shared-name live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'coalesceShared := rightSource.rightJoin && rightSource.leftJoin' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'def joinNamedOperand' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'def joinStarOperand' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinFullOrderBy context orderColumns names select.orderBy.toList' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'term.compareValues (term.value left) (term.value right)' SQLeanite/CoreJoin.lean &&
+   rg -F -q 'mergedExpression context named' SQLeanite/CoreCreateTableAs.lean &&
+   rg -F -q 'CoreJoin.Operand.mergedColumn_missing' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreJoin.Operand.mergedColumn_present' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - FULL shared names coalesce values and retain source affinity and ordering\n'
+else
+  printf 'live-path check FAILED: FULL shared-column interpretation\n' >&2
   status=1
 fi
 

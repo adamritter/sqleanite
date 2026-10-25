@@ -17,6 +17,7 @@ structure Context where
   sources : List CoreExpr.Context
   shared : List CoreJoinUsing.Column := []
   preferRightShared : Bool := false
+  coalesceShared : Bool := false
 
 def contexts (database : Core.Database) (query : Select) : Except String Context := do
   let sources ← query.sources.toList.mapM fun source => do
@@ -27,7 +28,8 @@ def contexts (database : Core.Database) (query : Select) : Except String Context
     | _, _ => pure []
   return {
     sources, shared
-    preferRightShared := query.sources[1]?.any (fun source => source.rightJoin && !source.leftJoin) }
+    preferRightShared := query.sources[1]?.any (fun source => source.rightJoin && !source.leftJoin)
+    coalesceShared := query.sources[1]?.any (fun source => source.rightJoin && source.leftJoin) }
 
 def column? (context : Context) (qualifier : Option String) (name : String) :
     Option (String × SQLite.Affinity) :=
@@ -44,6 +46,10 @@ def column? (context : Context) (qualifier : Option String) (name : String) :
       some (name, column.affinity)) with
   | [column] => some column
   | _ => none
+
+def mergedExpression (context : Context) : Expr → Bool
+  | .column none name => context.coalesceShared && context.shared.any (fun shared => shared.name == name.toLower)
+  | _ => false
 
 def bindNames (context : Context) (expression : Expr) : Expr :=
   SQLite.Scalar.bindNames (fun name => (column? context none name).isSome) expression
@@ -81,7 +87,7 @@ def dataTypes : Nat → Context → Expr → Nat
       | .literal (.text _) _ | .literal (.textBytes _) _ => 2
       | .literal (.blob _) _ => 4
       | .binary .concat _ _ => 6
-      | .column .. => affinityMask (affinity context expression)
+      | .column .. => if mergedExpression context expression then 7 else affinityMask (affinity context expression)
       | .call name _ _ =>
           if name.toLower.startsWith "cast_" then affinityMask (affinity context expression)
           else if (SQLite.Scalar.booleanKeyword? expression).isSome then 1 else 7
@@ -94,7 +100,7 @@ def dataTypes : Nat → Context → Expr → Nat
 def resultColumn (context : Context) (position : Nat) (column : ResultColumn) : ColumnInfo :=
   let expression := bindNames context column.expr
   let named := nameExpression expression.height expression
-  let inherited := match named with
+  let inherited := if mergedExpression context named then none else match named with
     | .column qualifier name => (column? context qualifier name).map Prod.fst
     | _ => none
   let name := column.alias.getD (inherited.getD (column.sourceSql.getD column.expr.sql))
@@ -117,6 +123,8 @@ def starMetadata (context : Context) (qualifier : Option String) (sourceIndex in
         affinity := some column.affinity
         dataTypes := affinityMask (some column.affinity) }
     | none => derived
+  else if context.coalesceShared && sourceIndex == 0 && context.shared.any (fun shared => shared.left == index) then
+    { derived with dataTypes := 7 }
   else derived
 
 theorem starMetadata_name (context : Context) (qualifier : Option String) (sourceIndex index : Nat)
@@ -124,7 +132,7 @@ theorem starMetadata_name (context : Context) (qualifier : Option String) (sourc
   unfold starMetadata
   split
   · split <;> rfl
-  · rfl
+  · split <;> rfl
 
 def baseColumns (database : Core.Database) (query : Select) : Except String (List ColumnInfo) := do
   let context ← contexts database query

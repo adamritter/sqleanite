@@ -1468,3 +1468,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.joinMergedStar_right
 #print axioms SQLeanite.CoreCreateTableAs.starMetadata_name
+
+#print axioms SQLeanite.CoreJoin.Operand.mergedColumn_missing
+#print axioms SQLeanite.CoreJoin.Operand.mergedColumn_present

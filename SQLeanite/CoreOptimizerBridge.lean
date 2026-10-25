@@ -143,11 +143,16 @@ def joinOperand : CoreJoin.Operand → QuerySemantics.Operand
   | .column reference => .column (joinColumnPath reference)
   | .coercedColumn affinity reference => .coercedColumn affinity (joinColumnPath reference)
   | .literal value => .literal value
+  | .mergedColumn affinity left right =>
+      .mergedColumn affinity (.left (.cell left)) (.right (.cell right))
 
 theorem joinOperand_value (operand : CoreJoin.Operand)
     (row : CoreJoin.JoinedRow) :
     (joinOperand operand).value (joinedRow row) = operand.value row := by
   cases operand with
+  | mergedColumn affinity left right =>
+      cases row
+      cases affinity <;> rfl
   | literal => rfl
   | column reference =>
       cases reference with
@@ -189,6 +194,8 @@ def fromJoinOperand? : QuerySemantics.Operand → Option CoreJoin.Operand
   | .coercedColumn affinity (.right (.cell column)) =>
       some (.coercedColumn affinity ⟨.right, column⟩)
   | .literal value => some (.literal value)
+  | .mergedColumn affinity (.left (.cell left)) (.right (.cell right)) =>
+      some (.mergedColumn affinity left right)
   | _ => none
 
 def fromJoinPredicate? : QuerySemantics.Predicate → Option CoreJoin.Predicate
@@ -214,6 +221,7 @@ def fromJoinPredicate? : QuerySemantics.Predicate → Option CoreJoin.Predicate
 theorem fromJoinOperand_joinOperand (operand : CoreJoin.Operand) :
     fromJoinOperand? (joinOperand operand) = some operand := by
   cases operand with
+  | mergedColumn => rfl
   | literal => rfl
   | column reference =>
       cases reference with

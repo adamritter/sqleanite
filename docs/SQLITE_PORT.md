@@ -5124,3 +5124,49 @@ equivalence. Native bindings remain unchanged. Implementation SHA-256:
 `30ba9c0ab63a87da883f0622f091b81899d2d9d0b27a1b1eecc28bf9df584771`. Reports:
 `sqlite-join-right-using-*20261025.json`; combined harness:
 `scripts/run-join-right-using-differential.py`.
+
+
+## FULL USING/NATURAL coalesced values (2026-10-25)
+
+The public FULL join path now supports shared USING/NATURAL columns. Bare shared
+names and expanded left-star slots choose the left value when non-NULL and the
+right value otherwise; explicit qualified columns and qualified right stars
+retain their original source values. The merged operand inherits the left
+column's comparison affinity. Comparison conversion is applied to the selected
+value even when it came from a differently typed right column. Unary plus and
+probability wrappers still remove affinity. ORDER BY uses the actual merged
+operand, including output aliases/ordinals and explicit collations; DISTINCT
+uses the same projected value and result collation.
+
+The operand is represented in both the live Core and denotational join language,
+with an extended value-preserving optimizer bridge and round trip. New component
+proofs characterize the missing-left and present-left cases. A merged operand
+is not classified as left-only. Existing outer-join match accounting remains
+independent of WHERE. CTAS preserves star names, uses original expression spans
+for explicit merged expressions, inherits left affinity, and accounts for the
+coalesce expression's broader possible types in compound affinity selection.
+
+Baseline seed **354550** records **2,676 cases / 1,476 differences**, all rejected
+successful FULL shared-name statements. The expanded development corpus adds
+DISTINCT, output aliases, invalid ordinal/collation controls and compounds;
+seed **354551** passes **3,960 / 0**. Final-checkpoint fresh seed **354552** passes
+**8,560 / 0**, with eight fixtures covering all six declared affinity classes,
+empty inputs, mixed NULL/numeric/text/blob values, quoted/repeated USING names,
+NATURAL, qualified and unqualified stars, windows, CTAS/INSERT SELECT and compound
+metadata. The corpus mixes fixed controls with seeded data/query combinations;
+it is not entirely unseen. Successful stdout, error status, C catalog/typed-row
+and integrity observations, subsequent C writes, Lean reopening and conditional
+main/WAL byte immutability are compared in both file modes and three page sizes.
+
+Outer-ON regression seed **354553** passes **6,016 / 0**; wrapper regression seed
+**354554** passes **11,232 / 0**. Each also passes eight immutable-image/integrity
+checks. Final checks pass **354 build jobs, 278 executable tests, 1,259 headline
+component proofs**, both audits, and 61 accepted reverse-file cells with two
+declared unsupported. Implementation SHA-256:
+`717ef68972ed18de8e92abe220f2dc72e3e2d5ee1151d34a5afaae1a1fe16415`.
+Native bindings are unchanged. These results close the measured shared-column
+join gap; they do not establish full SQLite SQL/file/WAL equivalence. General
+joined expressions, predicate output aliases and previously recorded planner
+ordering/other feature gaps remain. Reports:
+`sqlite-join-full-using-*20261025.json`; combined harness:
+`scripts/run-join-full-using-differential.py`.
