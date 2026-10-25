@@ -1,3 +1,4 @@
+import SQLeanite.CoreAutoIncrement
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
 import SQLeanite.CoreCreateTableAs
@@ -50,7 +51,7 @@ def columnAllowed (column : ColumnDef) : Bool :=
   SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
   column.generated.isNone && !column.unique &&
-  column.references.isNone && column.check.isNone && !column.autoIncrement &&
+  column.references.isNone && column.check.isNone && (!column.autoIncrement || column.primaryKey) &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
   (column.primaryKey || column.conflict == .abort) &&
@@ -84,17 +85,20 @@ def columnWithConflicts (definition : ColumnDef) (column : Core.Column) : Except
 
 /-- Mark a table-level key without changing column order, names or other
 column constraints. The caller validates that its target exists uniquely. -/
-def markPrimaryColumn (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort) : Array ColumnDef :=
+def markPrimaryColumn (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort)
+    (autoIncrement : Bool := false) : Array ColumnDef :=
   definitions.map fun column =>
-    if canonical column.name == canonical name then { column with primaryKey := true, conflict }
+    if canonical column.name == canonical name then { column with primaryKey := true, conflict, autoIncrement }
     else column
 
-theorem markPrimaryColumn_size (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort) :
-    (markPrimaryColumn name definitions conflict).size = definitions.size := by
+theorem markPrimaryColumn_size (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort)
+    (autoIncrement : Bool := false) :
+    (markPrimaryColumn name definitions conflict autoIncrement).size = definitions.size := by
   simp [markPrimaryColumn]
 
-theorem markPrimaryColumn_names (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort) :
-    (markPrimaryColumn name definitions conflict).toList.map (·.name) = definitions.toList.map (·.name) := by
+theorem markPrimaryColumn_names (name : String) (definitions : Array ColumnDef) (conflict : ConflictAction := .abort)
+    (autoIncrement : Bool := false) :
+    (markPrimaryColumn name definitions conflict autoIncrement).toList.map (·.name) = definitions.toList.map (·.name) := by
   simp only [markPrimaryColumn, Array.toList_map, List.map_map]
   apply List.map_congr_left
   intro column _
@@ -111,7 +115,7 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
   | [] => .ok definitions
   | [constraint] => do
       unless constraint.primaryKey && constraint.columns.size == 1 &&
-          !constraint.autoIncrement && constraint.check.isNone &&
+          constraint.check.isNone &&
           (constraint.conflict == .abort || constraint.conflict == .ignore || constraint.conflict == .replace) do
         unsupported "table constraint"
       unless constraint.collations.size == 1 && constraint.descending.size == 1 do
@@ -125,7 +129,7 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
       unless integerAlias || (!constraint.descending[0]! &&
           constraint.collations[0]!.all (fun name => canonical name == "binary")) do
         unsupported "table key index collation or direction"
-      return markPrimaryColumn name definitions constraint.conflict
+      return markPrimaryColumn name definitions constraint.conflict constraint.autoIncrement
   | _ => unsupported "multiple table constraints"
 
 theorem tablePrimaryColumns_empty (definitions : Array ColumnDef) :
@@ -159,6 +163,8 @@ def schema (name : String) (definitions : Array ColumnDef)
     | some column => .ok column
     | none => .error "verified MVP primary-key index is out of bounds"
   let integerAlias := SQLite.ColumnType.standard primaryDefinition.declaredType == some "INTEGER"
+  unless !primaryDefinition.autoIncrement || integerAlias do
+    throw "AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY"
   let ordinary := ordinaryColumn primaryDefinition
   let indexedType : Core.IndexedType := {
     declaredType := ordinary.declaredType, explicitEmptyType := ordinary.explicitEmptyType,
@@ -169,6 +175,8 @@ def schema (name : String) (definitions : Array ColumnDef)
       notNull := integerAlias || column.notNull
       integerPrimaryKey := integerAlias
       integerPrimaryNotNull := integerAlias && column.notNull
+      autoIncrement := integerAlias && column.autoIncrement
+      autoIncrementOnly := fun present => (Bool.and_eq_true_iff.mp present).1
       textPrimaryKey := !integerAlias
       indexedType := if integerAlias || indexedType.declaredType == "TEXT" then none else some indexedType
       indexedTypeOnly := by
@@ -2340,6 +2348,63 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
   let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs evaluateAll
   return (next, [{ rows := outputs, changes := outputs.length }])
 
+/-- AUTOINCREMENT candidates use the existing checked conflict/RETURNING
+executor after an explicit rowid has been allocated. The private counter is
+threaded through ignored rows, without exposing it to the statement's SELECT. -/
+def autoInsertRows (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (counter : CoreAutoIncrement.Context)
+    (inputs : List (Array Expr)) (evaluateAll : Bool) :
+    Except String (Core.State × CoreAutoIncrement.Context × List (Option (List Core.Value))) :=
+  match inputs with
+  | [] => .ok (state, counter, [])
+  | input :: inputs => do
+      let values ← inputRowValues schema columns evaluateAll input
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {tableName}"
+      let (counter, values) ← CoreAutoIncrement.prepare stored counter values
+      let literals ← selectedRowExpressions values
+      let (next, output) ← insertReturningRow state tableName schema none conflict ctx projection literals
+      let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict
+        ctx projection counter inputs evaluateAll
+      return (finalState, finalCounter, output :: outputs)
+
+def executeAutoInsert (state : Core.State) (table : String) (columns : Option (Array String))
+    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn) :
+    Except String (Core.State × List Core.Result) := do
+  unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
+    throw "unsupported general verified-MVP SQL: INSERT conflict policy"
+  let tableName := resolveTableName state table
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {table}"
+  let counter ← CoreAutoIncrement.beginContext state tableName
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let projection ← CoreReturning.prepare ctx returning.toList
+  let inputs ← match source with
+    | .inl rows => pure rows.toList
+    | .inr query => do
+        let selection ← executeSelect state query
+        checkInsertSelectColumns stored.schema columns selection.width
+        prepareInsertSelectionDefaults stored.schema columns conflict
+        selection.result.rows.mapM selectedRowExpressions
+  let evaluateAll := match source with
+    | .inl rows => 1 < rows.size
+    | .inr _ => false
+  let (next, counter, outputs) ← autoInsertRows state tableName stored.schema columns conflict ctx projection
+    counter inputs evaluateAll
+  let next ← CoreAutoIncrement.finish next counter
+  if returning.isEmpty then
+    let results : List Core.Result := outputs.map fun output => { changes := if output.isSome then 1 else 0 }
+    return (next, results)
+  else
+    let rows := outputs.flatMap Option.toList
+    return (next, [{ rows, changes := rows.length }])
+
+def automaticTable (state : Core.State) (name : String) : Bool :=
+  (state.database.findTable? (resolveTableName state name)).any (fun stored => stored.schema.autoIncrement)
+
 def indexNameExists (state : Core.State) (name : String) : Bool :=
   state.database.tables.any fun table => table.indexes.any fun index => canonical index.name == canonical name
 
@@ -2381,8 +2446,9 @@ theorem executeCreateTableAs_trace (state : Core.State) (name : String)
 
 /-- The target table must already have been resolved before checking the
 index name. Existing indexes skip expression binding under IF NOT EXISTS. -/
-def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool) :
-    Except String Bool := do
+def prepareCreateIndex (state : Core.State) (name : String) (ifNotExists : Bool)
+    (table : String := "") : Except String Bool := do
+  if (canonical table).startsWith "sqlite_" then throw s!"table {table} may not be indexed"
   if (canonical name).startsWith "sqlite_" then throw s!"object name reserved for internal use: {name}"
   if (CoreNames.table? state.database name).isSome then
     throw s!"there is already a table named {name}"
@@ -2394,7 +2460,9 @@ def prepareDropTable (state : Core.State) (name : String) (ifExists : Bool) :
     Except String Bool := do
   if ["sqlite_schema", "sqlite_master", "sqlite_temp_schema", "sqlite_temp_master"].contains (canonical name) then
     throw s!"table {name} may not be dropped"
-  if (CoreNames.table? state.database name).isSome then return true
+  if (CoreNames.table? state.database name).isSome then
+    if canonical name == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be dropped"
+    return true
   if ifExists then return false
   throw s!"no such table: {name}"
 
@@ -2422,7 +2490,7 @@ def schemaNoop (state : Core.State) : Statement → Bool
       (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
       (state.database.findTable? (resolveTableName state table)).isSome &&
-        (prepareCreateIndex state name ifNotExists).toOption == some false
+        (prepareCreateIndex state name ifNotExists (resolveTableName state table)).toOption == some false
   | _ => false
 
 def executeStatement (state : Core.State) :
@@ -2433,6 +2501,7 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => pure stored
         | none => throw s!"no such table: {table}"
+      if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
       let position ← indexColumn stored.schema name
       let updated ← CoreSchemaDropColumn.table stored position
       let database ← state.database.updateTable updated
@@ -2442,6 +2511,7 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => pure stored
         | none => throw s!"no such table: {table}"
+      if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
       if stored.schema.catalogColumns.any (fun column => canonical column.name == canonical definition.name) then
         throw s!"duplicate column name: {definition.name}"
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
@@ -2460,15 +2530,19 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => pure stored
         | none => throw s!"no such table: {table}"
+      if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
       let _ ← prepareCreateTable state name false
       let renamed ← CoreSchemaRename.table stored name
       let database ← CoreSchemaRename.replace state.database tableName renamed
-      return ({ state with database }, [{}])
+      let next := { state with database }
+      let next ← CoreAutoIncrement.rename next tableName name
+      return (next, [{}])
   | .alterRenameColumn table oldName newName => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => pure stored
         | none => throw s!"no such table: {table}"
+      if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
       let target ← indexColumn stored.schema oldName
       if stored.schema.catalogColumns.zipIdx.any (fun (column, index) =>
           index != target && canonical column.name == canonical newName) then
@@ -2477,12 +2551,17 @@ def executeStatement (state : Core.State) :
       let database ← state.database.updateTable renamed
       return ({ state with database }, [{}])
   | .insertSelect table columns query conflict returning =>
-      if returning.isEmpty then executeInsertSelect state table columns query conflict
+      if automaticTable state table then executeAutoInsert state table columns (.inr query) conflict returning
+      else if returning.isEmpty then executeInsertSelect state table columns query conflict
       else executeInsertReturning state table columns (.inr query) conflict returning
   | .dropTable name ifExists => do
       unless ← prepareDropTable state name ifExists do return (state, [{}])
-      let database ← CoreSchemaDrop.table state.database (resolveTableName state name)
-      return ({ state with database }, [{}])
+      let tableName := resolveTableName state name
+      let automatic := automaticTable state tableName
+      let database ← CoreSchemaDrop.table state.database tableName
+      let next := { state with database }
+      let next ← if automatic then CoreAutoIncrement.remove next tableName else pure next
+      return (next, [{}])
   | .dropIndex name ifExists => do
       unless ← prepareDropIndex state name ifExists do return (state, [{}])
       let stored ← match indexOwner? state name with
@@ -2493,13 +2572,18 @@ def executeStatement (state : Core.State) :
       return ({ state with database }, [{}])
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
-      executeCommand state (.createTable (← schema name columns constraints))
+      let admitted ← schema name columns constraints
+      if admitted.autoIncrement then
+        let (next, results) ← executeCommand state (.createTable admitted)
+        let next ← CoreAutoIncrement.ensure next
+        return (next, results)
+      else executeCommand state (.createTable admitted)
   | .createIndex name table expressions unique where_ ifNotExists => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      unless ← prepareCreateIndex state name ifNotExists do return (state, [{}])
+      unless ← prepareCreateIndex state name ifNotExists tableName do return (state, [{}])
       if where_.isSome then unsupported "partial index"
       else
         let columnName ← match expressions.toList with
@@ -2511,6 +2595,7 @@ def executeStatement (state : Core.State) :
         executeCommand state (.createIndex tableName {
           name := name, column := columnIndex, unique })
   | .insert table columns rows conflict returning => do
+      if automaticTable state table then return ← executeAutoInsert state table columns (.inl rows) conflict returning
       if !returning.isEmpty then
         return ← executeInsertReturning state table columns (.inl rows) conflict returning
       unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
@@ -2591,7 +2676,7 @@ theorem executeStatement_createTable_noop (state : Core.State) (name : String)
 theorem executeStatement_createIndex_noop (state : Core.State) (name table : String)
     (expressions : Array Expr) (unique : Bool) (where_ : Option Expr) (ifNotExists : Bool)
     (stored : Core.Table) (found : state.database.findTable? (resolveTableName state table) = some stored)
-    (skipped : prepareCreateIndex state name ifNotExists = .ok false) :
+    (skipped : prepareCreateIndex state name ifNotExists (resolveTableName state table) = .ok false) :
     executeStatement state (.createIndex name table expressions unique where_ ifNotExists) = .ok (state, [{}]) := by
   simp [executeStatement, found, skipped, bind, Except.bind, pure, Except.pure]
 

@@ -62,6 +62,8 @@ The displayed type is empty in both cases. -/
       declaredType = "" ∧ integerPrimaryKey = false ∧ textPrimaryKey = false := by simp_all
   indexedType : Option IndexedType := none
   indexedTypeOnly : indexedType.isSome = true → textPrimaryKey = true := by simp_all
+  autoIncrement : Bool := false
+  autoIncrementOnly : autoIncrement = true → integerPrimaryKey = true := by simp_all
   deriving DecidableEq, Repr
 
 def Column.typed (name typeName : String) (notNull : Bool) : Column :=
@@ -148,6 +150,10 @@ def hiddenRowidColumn : Column := {
 
 def Schema.hasHiddenRowid (schema : Schema) : Bool :=
   schema.primaryKey != schema.declaredPrimaryKey
+
+/-- AUTOINCREMENT belongs only to the actual INTEGER rowid alias. -/
+def Schema.autoIncrement (schema : Schema) : Bool :=
+  (schema.columns[schema.primaryKey]?).any (·.autoIncrement)
 
 /-- Columns described by the public `CREATE TABLE` declaration. The internal
 rowid-alias column is deliberately absent from this view. -/

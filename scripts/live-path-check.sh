@@ -1902,4 +1902,17 @@ else
   echo 'FAIL - indexed primary type or lookup wiring is incomplete'
   exit 1
 fi
+if grep -q 'CoreAutoIncrement.prepare stored counter values' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreAutoIncrement.finish next counter' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreAutoIncrement.ensure next' SQLeanite/CoreSQL.lean &&
+   grep -q 'sawAutoIncrement == column.autoIncrement' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'parseAutoBody rest' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'stored.schema.autoIncrement then return none' SQLeanite/CoreFileEngine.lean &&
+   grep -q 'schema.hasHiddenRowid || schema.autoIncrement' SQLeanite/CoreLazyWrite.lean &&
+   grep -q 'CoreAutoIncrement.allocate_greater_maximum' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication'
+else
+  echo 'FAIL - AUTOINCREMENT SQL, sequence or file wiring is incomplete'
+  exit 1
+fi
 exit $status

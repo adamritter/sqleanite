@@ -547,13 +547,12 @@ private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
       columns := columns.push (← expectIdent)
       if isSymbol (← peek) "(" then
         throw "expressions prohibited in PRIMARY KEY and UNIQUE constraints"
-      if primary && columns.size == 1 then
-        autoIncrement := ← acceptKeyword "autoincrement"
       let collation ← if ← acceptKeyword "collate" then some <$> expectIdent else pure none
       collations := collations.push collation
       let desc ← if ← acceptKeyword "asc" then pure false else acceptKeyword "desc"
       descending := descending.push desc
       done := !(← acceptSymbol ",")
+    if primary then autoIncrement := ← acceptKeyword "autoincrement"
     expectSymbol ")"
     let conflict ← if ← acceptKeyword "on" then
         expectKeyword "conflict" *> parseConflictAction
@@ -675,7 +674,6 @@ private def parseColumnDef : ParserM ColumnDef := do
       expectKeyword "key"
       primaryKey := true
       discard <| acceptKeyword "asc"
-      autoIncrement := ← acceptKeyword "autoincrement"
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         conflict := ← parseConflictAction

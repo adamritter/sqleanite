@@ -133,10 +133,20 @@ def indexedBodyChars (column : Core.Column) (typ : Core.IndexedType) : List Char
     (if column.notNull then " NOT NULL".toList else " NULL".toList) ++
     notNullConflictChars column.notNullConflict ++ explicitPrimaryChars column.primaryConflict
 
-def keyColumnChars (column : Core.Column) : List Char :=
+def typedKeyColumnChars (column : Core.Column) : List Char :=
   match column.indexedType with
   | none => legacyKeyColumnChars column
   | some typ => "/*sqleanite-key*/".toList ++ indexedBodyChars column typ
+
+def autoBodyChars (column : Core.Column) : List Char :=
+  quoteChars column.name ++ " INTEGER".toList ++ explicitPrimaryChars column.primaryConflict ++
+    " AUTOINCREMENT".toList ++
+    (if column.integerPrimaryNotNull then " NOT NULL".toList ++ notNullConflictChars column.notNullConflict
+     else " NULL".toList)
+
+def keyColumnChars (column : Core.Column) : List Char :=
+  if column.autoIncrement then "/*sqleanite-autoinc*/".toList ++ autoBodyChars column
+  else typedKeyColumnChars column
 
 /-- Lengths only frame ordinary SQL; the actual DEFAULT follows its column.
 Both pieces are independently checked when the certificate is read. -/
@@ -315,10 +325,43 @@ def parseIndexedBody (input : List Char) : Option (Core.Column × List Char) := 
   let column ← fromIndexed (String.ofList name) typ notNull nullPolicy primaryPolicy
   return (column, input)
 
-def parseKeyColumn (input : List Char) : Option (Core.Column × List Char) :=
+def parseTypedKeyColumn (input : List Char) : Option (Core.Column × List Char) :=
   match stripPrefix "/*sqleanite-key*/".toList input with
   | some rest => parseIndexedBody rest
   | none => parseLegacyKeyColumn input
+
+def fromAuto (name : String) (explicitNotNull : Bool)
+    (nullPolicy primaryPolicy : Core.NotNullConflict) : Option Core.Column :=
+  ({
+    name := name
+    notNull := true
+    integerPrimaryKey := true
+    integerPrimaryNotNull := explicitNotNull
+    primaryConflict := primaryPolicy
+    primaryConflictOnly := by simp
+    autoIncrement := true
+    autoIncrementOnly := by simp } : Core.Column).withNotNullConflict nullPolicy
+
+def parseAutoBody (input : List Char) : Option (Core.Column × List Char) := do
+  let '"' :: input := input | none
+  let (name, input) ← takeIdent input
+  let input ← stripPrefix " INTEGER".toList input
+  let (primaryPolicy, input) ← parseExplicitPrimary input
+  let input ← stripPrefix " AUTOINCREMENT".toList input
+  match stripPrefix " NOT NULL".toList input with
+  | some rest =>
+      let (nullPolicy, rest) := parseNullPolicy rest
+      let column ← fromAuto (String.ofList name) true nullPolicy primaryPolicy
+      return (column, rest)
+  | none =>
+      let rest ← stripPrefix " NULL".toList input
+      let column ← fromAuto (String.ofList name) false .abort primaryPolicy
+      return (column, rest)
+
+def parseKeyColumn (input : List Char) : Option (Core.Column × List Char) :=
+  match stripPrefix "/*sqleanite-autoinc*/".toList input with
+  | some rest => parseAutoBody rest
+  | none => parseTypedKeyColumn input
 
 def takeQuotedNat (input : List Char) : Option (Nat × List Char) := do
   let '"' :: input := input | none
@@ -596,6 +639,7 @@ theorem parseBaseColumn_any_append (column : Core.Column) (rest : List Char)
     (primaryPolicy : column.primaryConflict = .abort)
     (noDefault : column.defaultValue = none)
     (noIndexed : column.indexedType = none)
+    (noAuto : column.autoIncrement = false)
     (separator : endsBaseColumn rest = true ∨ (column.notNull = true ∧
       (column.integerPrimaryKey = false ∨ column.integerPrimaryNotNull = true))) :
     parseBaseColumn (baseColumnChars column ++ rest) = some (column, rest) := by
@@ -644,6 +688,7 @@ theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
     (primaryPolicy : column.primaryConflict = .abort)
     (noDefault : column.defaultValue = none)
     (noIndexed : column.indexedType = none)
+    (noAuto : column.autoIncrement = false)
     (separator : endsBaseColumn rest = true) :
     parsePlainColumn (plainColumnChars column ++ rest) = some (column, rest) := by
   let base := column.withoutNotNullConflict
@@ -658,7 +703,7 @@ theorem parsePlainColumn_any_append (column : Core.Column) (rest : List Char)
       | false => exact Or.inl key
       | true => exact Or.inr (required.2 key)
   have parsed := parseBaseColumn_any_append base
-    (notNullConflictChars column.notNullConflict ++ rest) consistent exclusive rfl primaryPolicy noDefault noIndexed allowed
+    (notNullConflictChars column.notNullConflict ++ rest) consistent exclusive rfl primaryPolicy noDefault noIndexed noAuto allowed
   have restored := Core.Column.restoreNotNullConflict column
   change parsePlainColumn (baseColumnChars base ++ notNullConflictChars column.notNullConflict ++ rest) = _
   rw [List.append_assoc]
@@ -693,7 +738,8 @@ theorem primaryFromBase_inverse (column : Core.Column)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (noDefault : column.defaultValue = none)
-    (noIndexed : column.indexedType = none) :
+    (noIndexed : column.indexedType = none)
+    (noAuto : column.autoIncrement = false) :
     primaryFromBase (primaryBase column) column.primaryConflict = some column := by
   have notExplicitType : column.explicitEmptyType = false := by
     cases declared : column.explicitEmptyType
@@ -710,10 +756,11 @@ theorem parseLegacyKeyColumn_any_append (column : Core.Column) (rest : List Char
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (noDefault : column.defaultValue = none)
     (noIndexed : column.indexedType = none)
+    (noAuto : column.autoIncrement = false)
     (separator : endsColumn rest = true) :
     parseLegacyKeyColumn (legacyKeyColumnChars column ++ rest) = some (column, rest) := by
   by_cases plain : column.primaryConflict = .abort
-  · have parsed := parsePlainColumn_any_append column rest consistent exclusive plain noDefault noIndexed
+  · have parsed := parsePlainColumn_any_append column rest consistent exclusive plain noDefault noIndexed noAuto
       (by simp [endsBaseColumn, separator])
     simp only [legacyKeyColumnChars, plain, if_pos, parseLegacyKeyColumn, parsed, Option.bind_eq_bind, Option.bind]
     cases rest with
@@ -725,7 +772,7 @@ theorem parseLegacyKeyColumn_any_append (column : Core.Column) (rest : List Char
           simp [endsColumn] at separator
         simp [stripPrefix, Ne.symm notSpace]
   · have primary := column.primaryConflictOnly plain
-    have restored := primaryFromBase_inverse column primary consistent exclusive noDefault noIndexed
+    have restored := primaryFromBase_inverse column primary consistent exclusive noDefault noIndexed noAuto
     have baseConsistent : (primaryBase column).integerPrimaryKey = true → (primaryBase column).notNull = true := by
       simp [primaryBase]; split <;> simp
     have baseExclusive : (primaryBase column).integerPrimaryKey = true → (primaryBase column).textPrimaryKey = false := by
@@ -735,7 +782,7 @@ theorem parseLegacyKeyColumn_any_append (column : Core.Column) (rest : List Char
     have tail : endsBaseColumn (primaryConflictChars column.primaryConflict ++ rest) = true := by
       cases policy : column.primaryConflict <;> simp_all [primaryConflictChars, endsBaseColumn]
     have parsed := parsePlainColumn_any_append (primaryBase column)
-      (primaryConflictChars column.primaryConflict ++ rest) baseConsistent baseExclusive basePolicy (by simp [primaryBase]; split <;> rfl) (by simp [primaryBase]; split <;> rfl) tail
+      (primaryConflictChars column.primaryConflict ++ rest) baseConsistent baseExclusive basePolicy (by simp [primaryBase]; split <;> rfl) (by simp [primaryBase]; split <;> rfl) (by simp [primaryBase]; split <;> rfl) tail
     simp only [legacyKeyColumnChars, if_neg plain, List.append_assoc]
     unfold parseLegacyKeyColumn
     rw [parsed]
@@ -791,6 +838,11 @@ theorem fromIndexed_inverse (column : Core.Column) (typ : Core.IndexedType)
     · rfl
     · have notText := exclusive key
       simp_all
+  have noAuto : column.autoIncrement = false := by
+    cases h : column.autoIncrement
+    · rfl
+    · have key := column.autoIncrementOnly h
+      simp_all
   have noIntegerNull : column.integerPrimaryNotNull = false := by
     cases h : column.integerPrimaryNotNull
     · rfl
@@ -836,33 +888,148 @@ theorem parseIndexedBody_append (column : Core.Column) (typ : Core.IndexedType) 
     simp_all [parseNullPolicy, parseExplicitPrimary, notNullConflictChars, explicitPrimaryChars,
       stripPrefix, Option.bind_eq_bind, Option.bind]
 
+theorem parseTypedKeyColumn_any_append (column : Core.Column) (rest : List Char)
+    (consistent : column.integerPrimaryKey = true → column.notNull = true)
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (noDefault : column.defaultValue = none)
+    (noAuto : column.autoIncrement = false)
+    (separator : endsColumn rest = true) :
+    parseTypedKeyColumn (typedKeyColumnChars column ++ rest) = some (column, rest) := by
+  cases declared : column.indexedType with
+  | none =>
+      have parsed := parseLegacyKeyColumn_any_append column rest consistent exclusive noDefault declared noAuto separator
+      have noTag : stripPrefix "/*sqleanite-key*/".toList (legacyKeyColumnChars column ++ rest) = none := by
+        unfold legacyKeyColumnChars
+        split <;> simp [plainColumnChars, baseColumnChars, quoteChars, stripPrefix]
+      simp only [typedKeyColumnChars, declared, parseTypedKeyColumn]
+      rw [noTag]
+      exact parsed
+  | some typ =>
+      simp only [typedKeyColumnChars, declared, List.append_assoc, parseTypedKeyColumn]
+      rw [stripPrefix_append]
+      exact parseIndexedBody_append column typ rest declared exclusive noDefault
+
+theorem typedKeyColumnChars_noDefaultTag (column : Core.Column) (rest : List Char) :
+    stripPrefix "/*sqleanite-default ".toList (typedKeyColumnChars column ++ rest) = none := by
+  cases declared : column.indexedType with
+  | none =>
+      simp only [typedKeyColumnChars, declared, legacyKeyColumnChars]
+      split <;> simp [plainColumnChars, baseColumnChars, quoteChars, stripPrefix]
+  | some typ => simp [typedKeyColumnChars, declared, stripPrefix]
+
+theorem fromAuto_inverse (column : Core.Column)
+    (automatic : column.autoIncrement = true)
+    (consistent : column.integerPrimaryKey = true → column.notNull = true)
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (noDefault : column.defaultValue = none) :
+    fromAuto column.name column.integerPrimaryNotNull column.notNullConflict column.primaryConflict = some column := by
+  have aliasKey := column.autoIncrementOnly automatic
+  have required := consistent aliasKey
+  have noText := exclusive aliasKey
+  have empty := column.primaryType (by simp [aliasKey])
+  have noIndexed : column.indexedType = none := by
+    cases h : column.indexedType
+    · rfl
+    · have textKey := column.indexedTypeOnly (by simp [h])
+      simp_all
+  have noEmptyType : column.explicitEmptyType = false := by
+    cases h : column.explicitEmptyType
+    · rfl
+    · have flags := column.explicitEmptyTypeOnly h
+      simp_all
+  unfold fromAuto
+  have equal : ({
+      name := column.name
+      notNull := true
+      integerPrimaryKey := true
+      integerPrimaryNotNull := column.integerPrimaryNotNull
+      primaryConflict := column.primaryConflict
+      primaryConflictOnly := by simp
+      autoIncrement := true
+      autoIncrementOnly := by simp } : Core.Column) = column.withoutNotNullConflict := by
+    cases column
+    simp_all [Core.Column.withoutNotNullConflict]
+  rw [equal]
+  exact Core.Column.restoreNotNullConflict column
+
+theorem parseExplicitPrimary_append (policy : Core.NotNullConflict) (rest : List Char) :
+    parseExplicitPrimary (explicitPrimaryChars policy ++ rest) = some (policy, rest) := by
+  cases policy <;> simp [explicitPrimaryChars, parseExplicitPrimary, stripPrefix]
+
+theorem parseNullPolicy_append (policy : Core.NotNullConflict) (rest : List Char)
+    (separator : endsColumn rest = true) :
+    parseNullPolicy (notNullConflictChars policy ++ rest) = (policy, rest) := by
+  cases policy
+  · cases rest with
+    | nil => rfl
+    | cons character tail =>
+        have notSpace : character ≠ ' ' := by
+          intro equal
+          subst character
+          simp [endsColumn] at separator
+        simp [notNullConflictChars, parseNullPolicy, stripPrefix, Ne.symm notSpace]
+  · simp [notNullConflictChars, parseNullPolicy, stripPrefix]
+  · simp [notNullConflictChars, parseNullPolicy, stripPrefix]
+
+theorem parseAutoBody_append (column : Core.Column) (rest : List Char)
+    (automatic : column.autoIncrement = true)
+    (consistent : column.integerPrimaryKey = true → column.notNull = true)
+    (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
+    (noDefault : column.defaultValue = none)
+    (separator : endsColumn rest = true) :
+    parseAutoBody (autoBodyChars column ++ rest) = some (column, rest) := by
+  have restored := fromAuto_inverse column automatic consistent exclusive noDefault
+  simp only [autoBodyChars, quoteChars, List.cons_append, List.append_assoc, List.nil_append, parseAutoBody]
+  rw [takeIdent_escape _ _ (by simp)]
+  simp only [Option.bind_eq_bind, Option.bind, String.ofList_toList]
+  rw [stripPrefix_append]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [parseExplicitPrimary_append]
+  simp only [Option.bind_eq_bind, Option.bind]
+  rw [stripPrefix_append]
+  simp only [Option.bind_eq_bind, Option.bind]
+  cases hn : column.integerPrimaryNotNull
+  · have plain : column.notNullConflict = .abort := by
+      by_cases same : column.notNullConflict = .abort
+      · exact same
+      · have declared := (column.notNullConflictOnly same).2 (column.autoIncrementOnly automatic)
+        simp_all
+    simp only [hn, Bool.false_eq_true, ↓reduceIte]
+    simp [hn, plain] at restored
+    simp [stripPrefix, restored]
+  · simp only [hn, ↓reduceIte, List.append_assoc]
+    rw [stripPrefix_append]
+    dsimp only
+    rw [parseNullPolicy_append _ _ separator]
+    simp [hn] at restored
+    simp [restored]
+
 theorem parseKeyColumn_any_append (column : Core.Column) (rest : List Char)
     (consistent : column.integerPrimaryKey = true → column.notNull = true)
     (exclusive : column.integerPrimaryKey = true → column.textPrimaryKey = false)
     (noDefault : column.defaultValue = none)
     (separator : endsColumn rest = true) :
     parseKeyColumn (keyColumnChars column ++ rest) = some (column, rest) := by
-  cases declared : column.indexedType with
-  | none =>
-      have parsed := parseLegacyKeyColumn_any_append column rest consistent exclusive noDefault declared separator
-      have noTag : stripPrefix "/*sqleanite-key*/".toList (legacyKeyColumnChars column ++ rest) = none := by
-        unfold legacyKeyColumnChars
-        split <;> simp [plainColumnChars, baseColumnChars, quoteChars, stripPrefix]
-      simp only [keyColumnChars, declared, parseKeyColumn]
-      rw [noTag]
-      exact parsed
-  | some typ =>
-      simp only [keyColumnChars, declared, List.append_assoc, parseKeyColumn]
-      rw [stripPrefix_append]
-      exact parseIndexedBody_append column typ rest declared exclusive noDefault
+  cases automatic : column.autoIncrement
+  · have noTag : stripPrefix "/*sqleanite-autoinc*/".toList
+        (typedKeyColumnChars column ++ rest) = none := by
+      cases declared : column.indexedType with
+      | none =>
+          simp only [typedKeyColumnChars, declared, legacyKeyColumnChars]
+          split <;> simp [plainColumnChars, baseColumnChars, quoteChars, stripPrefix]
+      | some typ => simp [typedKeyColumnChars, declared, stripPrefix]
+    simp only [keyColumnChars, automatic, Bool.false_eq_true, ↓reduceIte, parseKeyColumn]
+    rw [noTag]
+    exact parseTypedKeyColumn_any_append column rest consistent exclusive noDefault automatic separator
+  · simp only [keyColumnChars, automatic, ↓reduceIte, List.append_assoc, parseKeyColumn]
+    rw [stripPrefix_append]
+    exact parseAutoBody_append column rest automatic consistent exclusive noDefault separator
 
 theorem keyColumnChars_noDefaultTag (column : Core.Column) (rest : List Char) :
     stripPrefix "/*sqleanite-default ".toList (keyColumnChars column ++ rest) = none := by
-  cases declared : column.indexedType with
-  | none =>
-      simp only [keyColumnChars, declared, legacyKeyColumnChars]
-      split <;> simp [plainColumnChars, baseColumnChars, quoteChars, stripPrefix]
-  | some typ => simp [keyColumnChars, declared, stripPrefix]
+  cases automatic : column.autoIncrement
+  · simpa [keyColumnChars, automatic] using typedKeyColumnChars_noDefaultTag column rest
+  · simp [keyColumnChars, automatic, stripPrefix]
 
 theorem takeQuotedNat_quote (number : Nat) (rest : List Char)
     (boundary : rest.head? ≠ some '"') :
@@ -954,10 +1121,16 @@ theorem legacyKeyColumnChars_length_ge (column : Core.Column) : 1 ≤ (legacyKey
     simp only [List.length_append]
     omega
 
-theorem keyColumnChars_length_ge (column : Core.Column) : 1 ≤ (keyColumnChars column).length := by
+theorem typedKeyColumnChars_length_ge (column : Core.Column) : 1 ≤ (typedKeyColumnChars column).length := by
   cases h : column.indexedType with
-  | none => simpa [keyColumnChars, h] using legacyKeyColumnChars_length_ge column
-  | some typ => simp [keyColumnChars, h]
+  | none => simpa [typedKeyColumnChars, h] using legacyKeyColumnChars_length_ge column
+  | some typ => simp [typedKeyColumnChars, h]
+
+theorem keyColumnChars_length_ge (column : Core.Column) : 1 ≤ (keyColumnChars column).length := by
+  unfold keyColumnChars
+  split
+  · simp
+  · exact typedKeyColumnChars_length_ge column
 
 theorem columnChars_length_ge (column : Core.Column) : 1 ≤ (columnChars column).length := by
   cases hd : column.defaultValue with

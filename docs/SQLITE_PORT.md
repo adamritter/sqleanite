@@ -3862,3 +3862,54 @@ declared unsupported. Reports: `sqlite-indexed-primary-*20261025.json`; harness:
 unchanged. Exact diagnostics, original complete catalog SQL, concurrent WAL
 coordination and the remaining unimplemented SQL features are outside these
 scoped SQL/file/component metrics.
+
+## AUTOINCREMENT and sqlite_sequence (2026-10-25)
+
+INTEGER PRIMARY KEY AUTOINCREMENT now retains a statement-local high-water mark
+and the ordinary sqlite_sequence table. Allocation uses the larger of the current
+table end and the saved counter; INT64_MAX fails instead of reusing an identifier.
+Candidates skipped by IGNORE still advance the counter. Failed statements discard
+it, and transaction rollback restores both rows and sequence history. UPDATE does
+not advance the history. Empty successful INSERT SELECT creates a zero entry.
+Sequence publication happens after source selection and RETURNING evaluation.
+
+Existing sequence rows retain their storage class unless their integerized value
+increases. Lookup uses the first exact TEXT name, including duplicate entries and
+case distinctions. Explicit negative rowids, manually edited numeric/text/blob/
+NULL counters, rename and drop follow the pinned C implementation. Rename also
+updates manually inserted sequence entries belonging to ordinary tables; ordinary
+table drop leaves those entries. Public DDL cannot alter/drop sqlite_sequence or
+index an internal sqlite_ table.
+
+Column and table AUTOINCREMENT syntax is independently replayed against tokens.
+The canonical recognizer validates the complete ordinary SQL declaration, with
+AUTOINCREMENT, default and conflict policies visible to C. Its general column and
+schema inverse proofs include the new metadata. Counter allocation and monotonic
+advancement have component proofs. The older one-command write-translation
+relations now explicitly require non-AUTOINCREMENT schemas, since this feature
+also writes the sequence table. Optimized one-table insert paths fall back to
+complete publication for AUTOINCREMENT tables, preserving both modified tables.
+
+Baseline seed 354250 records **252 comparisons / 228 differences**. The expanded
+development corpus, seed 354251, records **498 / 18**: prohibited sequence indexes
+were accepted, and ordinary-table rename missed manual sequence entries. Both
+counterexamples remain in the reports and subsequent evaluation.
+
+Final-checkpoint fresh seed **354252** passes **3,912 / 0**, including **432**
+expected error cases. Twelve C-created fixtures cover 512/4096/65536-byte pages,
+both file modes, imported AUTOINCREMENT history, ignored rows, RETURNING,
+transaction rollback, schema changes, malformed TEXT and overflow in neighboring
+tables. Complete successful output, error status, C catalog/pragma/typed-row/
+integrity observations, subsequent C writes and Lean reopens are compared.
+Indexed-primary regression seed **354253** passes **1,020 / 0**; DEFAULT regression
+seed **354254** passes **882 / 0**, on the same final production source.
+
+Implementation SHA-256: `4ba487488aaf236e07103795d6532937028e97634af23c8852f0dbe46892ca73`.
+Final checks pass **336 build jobs, 247 executable tests, 1,178 headline component
+proofs**, both audits and 61 accepted reverse-file cells; two reverse cells remain
+declared unsupported. Reports: `sqlite-autoincrement-*20261025.json`; harness:
+`scripts/run-autoincrement-differential.py`. Native code and the nine-binding audit
+boundary are unchanged. These scoped results do not establish full SQLite
+compatibility: concurrent WAL coordination, ordinary random rowid allocation at
+INT64_MAX (including sqlite_sequence's own rowids), exact diagnostics and other
+unimplemented SQL remain separate work.

@@ -248,7 +248,7 @@ def executeInsert? (syncOps : CoreFileAdapter.SyncOps)
       other.kind == "index" && other.table == tableName) then return none
   let some sql := entry.sql | return none
   let some schema := CoreDecode.parseTableSchema sql | return none
-  if schema.hasHiddenRowid then return none
+  if schema.hasHiddenRowid || schema.autoIncrement then return none
   let some values := (CoreSQL.rowValues schema columns expressions).toOption |
     return none
   let some row := (Core.Row.create schema values).toOption | return none

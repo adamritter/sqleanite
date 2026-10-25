@@ -1351,3 +1351,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Row.declaredKey_null_ne_nonnull
 #print axioms SQLeanite.CanonicalSchemaSQL.fromIndexed_inverse
 #print axioms SQLeanite.CanonicalSchemaSQL.parseIndexedBody_append
+
+#print axioms SQLeanite.CoreAutoIncrement.allocate_greater_maximum
+#print axioms SQLeanite.CoreAutoIncrement.advance_monotone
+#print axioms SQLeanite.CoreAutoIncrement.finish_unchanged
+#print axioms SQLeanite.CanonicalSchemaSQL.fromAuto_inverse
+#print axioms SQLeanite.CanonicalSchemaSQL.parseAutoBody_append

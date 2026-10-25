@@ -590,8 +590,7 @@ private def matchConstraintName : MatchM Unit := do
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
-      !column.unique && column.references.isNone && column.check.isNone &&
-      !column.autoIncrement do
+      !column.unique && column.references.isNone && column.check.isNone do
     mismatch "a verified-Core column definition"
   let finalDefault ← match column.defaultValue, column.defaultSql with
     | none, none => pure []
@@ -602,6 +601,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawNotNull := false
   let mut notNullConflict := ConflictAction.abort
   let mut sawPrimary := false
+  let mut sawAutoIncrement := false
   let mut primaryConflict := ConflictAction.abort
   let mut sawCollation := false
   let mut scanning := true
@@ -630,13 +630,14 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         primaryConflict := ← matchConflictAction
+      sawAutoIncrement := ← acceptKeyword "autoincrement"
     else if isKeyword (← peek) "collate" then
       expectKeyword "collate"
       expectName column.collation
       sawCollation := true
     else
       scanning := false
-  unless defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && primaryConflict == column.conflict &&
+  unless defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 
@@ -665,7 +666,7 @@ private def matchColumns : List ColumnDef → MatchM Unit
 private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit := do
   unless constraint.primaryKey && constraint.columns.size == 1 &&
       constraint.collations.size == 1 && constraint.descending.size == 1 &&
-      constraint.check.isNone && !constraint.autoIncrement do
+      constraint.check.isNone do
     mismatch "a single-column table PRIMARY KEY"
   expectKeyword "primary"
   expectKeyword "key"
@@ -676,6 +677,7 @@ private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit :=
     expectName collation
   if constraint.descending[0]! then expectKeyword "desc"
   else discard <| acceptKeyword "asc"
+  if constraint.autoIncrement then expectKeyword "autoincrement"
   expectSymbol ")"
   if ← acceptKeyword "on" then
     expectKeyword "conflict"

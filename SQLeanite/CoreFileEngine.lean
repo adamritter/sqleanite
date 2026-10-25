@@ -163,6 +163,7 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
       let [expressions] := rows.toList | return none
       let tableName := CoreNames.tableName wide.state.database table
       let some stored := wide.state.database.findTable? tableName | return none
+      if stored.schema.autoIncrement then return none
       let .ok values := CoreSQL.rowValues stored.schema columns expressions |
         return none
       let some textState := wide.textState | return none

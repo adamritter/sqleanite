@@ -4597,6 +4597,53 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteAutoIncrement : IO Unit := do
+  let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v TEXT NOT NULL);" ++
+    "INSERT OR IGNORE INTO t(v) VALUES(NULL);INSERT INTO t(v) VALUES('first');DELETE FROM t;" ++
+    "BEGIN;INSERT INTO t(v) VALUES('rolled back');ROLLBACK;INSERT INTO t(v) VALUES('committed');" ++
+    "SELECT id,v FROM t;"
+  let (state, output) ← match CoreSQL.execute Core.State.empty sql with
+    | .ok result => pure result
+    | .error message => fail s!"AUTOINCREMENT ignored/deleted/rolled-back rows: {message}"
+  let expected ← match [Value.integer 3, .text "committed"].mapM SQLSurface.value with
+    | .ok row => pure row
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [expected] do fail "AUTOINCREMENT reused a committed or ignored rowid"
+  let (_, sequenceOutput) ← match CoreSQL.execute state "SELECT seq FROM sqlite_sequence WHERE name='t';" with
+    | .ok result => pure result
+    | .error message => fail message
+  let sequence ← match SQLSurface.value (.integer 3) with
+    | .ok value => pure value
+    | .error message => fail message
+  unless (sequenceOutput.getLast?).map (·.rows) == some [[sequence]] do fail "AUTOINCREMENT sequence did not roll back"
+  let some image := CoreFile.encode state.database | fail "AUTOINCREMENT encode failed"
+  let some decoded := CoreDecode.decode image.fileBytes | fail "AUTOINCREMENT decode failed"
+  unless decoded.Equiv state.database do fail "AUTOINCREMENT metadata or sequence changed during persistence"
+  let (state, output) ← match CoreSQL.execute state
+      "CREATE TABLE e(id INTEGER PRIMARY KEY AUTOINCREMENT,v);INSERT INTO e(v) SELECT seq FROM sqlite_sequence WHERE name='e';SELECT count(*) FROM e;" with
+    | .ok result => pure result
+    | .error message => fail s!"empty AUTOINCREMENT SELECT: {message}"
+  let zero ← match SQLSurface.value (.integer 0) with
+    | .ok value => pure value
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [[zero]] do fail "sequence write leaked into the INSERT source"
+  let (state, _) ← match CoreSQL.execute state
+      "INSERT INTO e(id,v) VALUES(9223372036854775807,'maximum');DELETE FROM e;" with
+    | .ok result => pure result
+    | .error message => fail message
+  if (CoreSQL.execute state "INSERT INTO e(v) VALUES('overflow');").isOk then
+    fail "AUTOINCREMENT reused a rowid after INT64_MAX"
+  for sql in ["DROP TABLE sqlite_sequence;", "CREATE INDEX s ON sqlite_sequence(name);", "ALTER TABLE sqlite_sequence ADD extra;",
+      "ALTER TABLE sqlite_sequence RENAME TO seq;"] do
+    if (CoreSQL.execute state sql).isOk then fail "sqlite_sequence schema was modified"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE good(id INTEGER PRIMARY KEY AUTOINCREMENT);" with
+    | .ok result => pure result
+    | .error message => fail message
+  let tokens ← match lex "CREATE TABLE good(id INTEGER PRIMARY KEY);" with
+    | .ok result => pure result
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens parsed.statements).isOk then fail "token replay forged AUTOINCREMENT"
+
 private def expectSQLiteIndexedPrimaryTypes : IO Unit := do
   for typ in ["INT", "REAL", "NUMERIC", "BLOB", "", "\"\"", "\"INTEGER\" extra"] do
     let sql := s!"CREATE TABLE t(a {typ} PRIMARY KEY,b);" ++
@@ -7085,6 +7132,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite AUTOINCREMENT history, ignored rows, rollback and persistence", expectSQLiteAutoIncrement),
   ("SQLite indexed primary types, NULL namespaces and exact numeric equality", expectSQLiteIndexedPrimaryTypes),
   ("SQLite column types, exact spans, empty affinity and canonical persistence", expectSQLiteColumnTypes),
   ("SQLite named column and table constraints, grammar and persistence", expectSQLiteNamedConstraints),
