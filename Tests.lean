@@ -7195,6 +7195,51 @@ private def expectSQLiteJoinInList : IO Unit := do
         s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
       fail s!"joined IN omitted required validation: {condition}"
 
+private def expectSQLiteJoinCompoundBinding : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'a'),(2,'z');INSERT INTO r VALUES(1,'b'),(3,'c');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT * FROM l a JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY k;",
+      [[.integer 9,.integer 8,.integer 7],[.integer 1,.text "a",.text "b"]]),
+    ("SELECT * FROM l a LEFT JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY b.k;",
+      [[.integer 2,.text "z",.null],[.integer 9,.integer 8,.integer 7],[.integer 1,.text "a",.text "b"]]),
+    ("SELECT * FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY b.k;",
+      [[.integer 2,.text "z",.null],[.integer 9,.integer 8,.integer 7],
+       [.integer 1,.text "a",.text "b"],[.integer 3,.null,.text "c"]]),
+    ("SELECT a.* FROM l a RIGHT JOIN r b USING(id) UNION ALL SELECT 9,8 ORDER BY b.id;",
+      [[.integer 1,.text "a"],[.integer 3,.null],[.integer 9,.integer 8]]),
+    ("SELECT id FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 9 ORDER BY id;",
+      [[.integer 1],[.integer 2],[.integer 3],[.integer 9]]),
+    ("SELECT a.k AS chosen,b.k AS chosen FROM l a JOIN r b USING(id) UNION ALL SELECT 9,8 ORDER BY chosen;",
+      [[.integer 9,.integer 8],[.text "a",.text "b"]]),
+    ("SELECT * FROM l a FULL JOIN r b USING(id) INTERSECT SELECT * FROM l a FULL JOIN r b USING(id) ORDER BY b.k;",
+      [[.integer 2,.text "z",.null],[.integer 1,.text "a",.text "b"],[.integer 3,.null,.text "c"]]),
+    ("SELECT * FROM l a NATURAL FULL JOIN r b UNION ALL SELECT 9,8 ORDER BY k;",
+      [[.integer 9,.integer 8],[.integer 1,.text "a"],[.integer 1,.text "b"],
+       [.integer 3,.text "c"],[.integer 2,.text "z"]]),
+    ("CREATE TABLE Extra AS SELECT * FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY b.k;SELECT rowid,* FROM Extra ORDER BY rowid;",
+      [[.integer 1,.integer 2,.text "z",.null],[.integer 2,.integer 9,.integer 8,.integer 7],
+       [.integer 3,.integer 1,.text "a",.text "b"],[.integer 4,.integer 3,.null,.text "c"]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"joined compound result binding: {sql}: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do
+      fail s!"joined compound result slots, names or source identity: {sql}"
+  for sql in [
+      "SELECT a.* FROM l a RIGHT JOIN r b USING(id) UNION ALL SELECT 1,2 ORDER BY a.id;",
+      "SELECT a.* FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 1,2 ORDER BY a.id;",
+      "SELECT a.* FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 1,2 ORDER BY b.id;",
+      "SELECT a.* FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 1,2 ORDER BY coalesce(a.id,b.id);",
+      "SELECT a.id FROM l a RIGHT JOIN r b USING(id) UNION ALL SELECT 1 ORDER BY id;",
+      "SELECT * FROM l a JOIN r b USING(id) UNION ALL SELECT 1,2,3 ORDER BY 4;",
+      "SELECT a.k FROM l a JOIN r b ON a.id=b.id UNION ALL SELECT 1 ORDER BY k;",
+      "SELECT a.* FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 1,2 ORDER BY id COLLATE missing LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"compound ordering lost source identity, width, ambiguity or collation validation: {sql}"
+
 private def expectSQLiteJoinAliases : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'01'),(2,'A'),(3,NULL);INSERT INTO r VALUES(1,1),(2,'a'),(4,2);"
   let cases : List (String × List (List Value)) := [
@@ -8368,6 +8413,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite RIGHT USING merged values, qualification and CTAS metadata", expectSQLiteRightUsing),
   ("SQLite FULL USING coalesced values, affinity, ordering and CTAS names", expectSQLiteFullUsing),
   ("SQLite joined predicate aliases and source-name priority", expectSQLiteJoinAliases),
+  ("SQLite joined compound result slots and expression binding", expectSQLiteJoinCompoundBinding),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),
   ("SQLite join rowid lookup traversal", expectSQLiteJoinLookupScan),

@@ -1,0 +1,16 @@
+{
+  "evaluation": "Unit expectation correction, not a production implementation change",
+  "initial_test_exit_code": 1,
+  "initial_test_log_sha256": "c286851cd90b92244a90177ad1fa412e9a99d80ab19a29c375f26b4ae64bee4e",
+  "failure_lines": [
+    "not ok - SQLite joined compound result slots and expression binding: joined compound result slots, names or source identity: CREATE TABLE Extra AS SELECT * FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY b.k;SELECT rowid,* FROM Extra ORDER BY rowid;"
+  ],
+  "correction": "The initial unit expected TEXT for integer 8 in the k output column. Pinned C CTAS compound affinity leaves that column untyped, so the correct value is INTEGER 8. Production code already produced INTEGER 8. Corrected complete unit suite passes 280 tests.",
+  "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,'a'),(2,'z');INSERT INTO r VALUES(1,'b'),(3,'c');",
+  "query": "CREATE TABLE Extra AS SELECT * FROM l a FULL JOIN r b USING(id) UNION ALL SELECT 9,8,7 ORDER BY b.k;PRAGMA table_info(Extra);SELECT rowid,typeof(k),hex(k),typeof(\"k:1\"),hex(\"k:1\") FROM Extra ORDER BY rowid;",
+  "sqlite": {
+    "code": 0,
+    "stdout": "0|id|INT|0||0\n1|k||0||0\n2|k:1|NUM|0||0\n1|text|7A|null|\n2|integer|38|integer|37\n3|text|61|text|62\n4|null||text|63\n",
+    "stderr": ""
+  }
+}

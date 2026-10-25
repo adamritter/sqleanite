@@ -66,6 +66,9 @@ def window (offset : Nat) (limit : Option Nat) (rows : List α) : List α :=
 structure Arm where
   columns : List ResultColumn
   context : Option CoreExpr.Context
+  /-- Joined arms store source-bound result expressions and supply the same
+  source binding for ORDER terms. Aliases are still checked before binding. -/
+  bindExpression : Option (Expr → Option Expr) := none
 
 /-- Resolve stored columns to their input positions before AST comparison.
 Identifier and function spelling is case insensitive; string values are not. -/
@@ -139,6 +142,9 @@ def armPosition? (arm : Arm) (expression : Expr) : Option Nat := do
   if let some name := CoreOrder.bareName? expression then
     if let some index := arm.columns.findIdx? (fun c => c.alias.any (fun a => a.toLower == name.toLower)) then
       return index
+  if let some bind := arm.bindExpression then
+    let resolved ← bind expression
+    return ← arm.columns.findIdx? (fun column => sameExpression none column.expr resolved)
   let resolved := match arm.context with
     | some ctx => CoreOrder.resolveNamesFuel ctx arm.columns expression.height expression
     | none => expression

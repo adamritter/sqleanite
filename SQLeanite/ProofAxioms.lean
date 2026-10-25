@@ -1477,3 +1477,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinAliasQuery_existing
 
 #print axioms SQLeanite.CoreOrder.resolveJoinOnTerm_alias
+
+#print axioms SQLeanite.CoreSQL.joinCompoundOperand_sides
+#print axioms SQLeanite.CoreSQL.joinCompoundOperand_merged
+#print axioms SQLeanite.CoreSQL.joinCompoundStarColumns_projection

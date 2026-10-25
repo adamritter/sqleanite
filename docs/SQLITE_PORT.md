@@ -5223,3 +5223,45 @@ Native bindings remain unchanged. General joined expressions, compound joined
 star ordering and previously recorded planner/file/WAL gaps remain. Reports:
 `sqlite-join-alias-*20261025.json`; harness:
 `scripts/run-join-alias-differential.py`.
+
+
+## Joined compound result binding: development checkpoint (2026-10-25)
+
+Compound ORDER BY now binds joined source references to explicit internal
+identities and expands stars in the same order as the live join projection.
+USING/NATURAL suppress duplicate right slots. Star output labels bind before
+source names, while qualified references retain their own source identity.
+RIGHT merged stars address right values; FULL merged slots are distinct from
+either qualified source and from an explicit coalesce() call. Ordinary scalar
+wrappers, aliases, collation selection and result positions remain separate.
+The default single-source/constant compound binding path is unchanged.
+
+Baseline seed **354570** records **7,232 cases / 1,984 differences**: 1,788
+rejected successful statements, 148 accepted C errors and 48 wrong successful
+outputs. Expanded development seed **354571** passes **15,552 / 0**, including
+empty inputs, stars mixed with expressions, later-arm aliases, quoted source
+names, all four compound operations, CTAS/INSERT SELECT and invalid widths,
+positions and collations. This is a development checkpoint; the larger fresh
+final-checkpoint comparison is still running and is not yet reported as passed.
+
+A separate strict replay of all **1,600 baseline read-only failures passes
+1,600 / 0**, rerunning both engines and comparing stdout even on errors, main/WAL
+immutability and C integrity checks. The labelled selection keeps its input hash
+and the unfiltered baseline. Write failures are covered by the complete combined
+harness. Compound-tail regression seed **354573** passes **1,812 / 0**, and
+compound-collation regression seed **354574** passes **1,636 / 0**. Those older
+regression harnesses compare successful stdout and error status, with immutable
+main/WAL images; their both-error branch does not compare partial stdout.
+
+Checks pass **354 build jobs, 280 executable tests, 1,266 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. The new component proofs separate source/merged identities and
+establish that star binding preserves the live projection's operand identities
+and positions. One initial unit incorrectly expected TEXT for a compound CTAS
+value; pinned C established INTEGER was correct. Only that test expectation
+changed, and its evidence is retained separately. Native bindings are unchanged.
+Implementation SHA-256:
+`e41adcbc93954901cca1934f0fb2ffbbdc4b5bd83770a25775a5b806ef01eeba`.
+Reports: `sqlite-join-compound-*20261025.json`; combined harness:
+`scripts/run-join-compound-differential.py`. This checkpoint does not establish
+full SQLite SQL/file/WAL equivalence.

@@ -2619,6 +2619,112 @@ def resultCollationsFuel : Nat → Core.State → Select → Except String (List
           throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
         return current.zipWith (fun left right => left.orElse fun _ => right) next) first
 
+/-- These expression identities are internal bound slots, not SQL names.
+FULL's merged column is distinct from either source and from an explicit
+coalesce() call, as in SQLite's expression comparison. -/
+def joinCompoundOperand : CoreJoin.Operand → Expr
+  | .column reference | .coercedColumn _ reference =>
+      .column (some (if reference.side == .left then "left" else "right")) (toString reference.column)
+  | .mergedColumn _ left right => .column (some "merged") s!"{left}:{right}"
+  | .literal value => .literal (match value with
+      | .null => .null
+      | .integer i => .integer i.value
+      | .realBits bits => .real (Float.ofBits (UInt64.ofNat bits.val))
+      | .blob payload => .blob payload.bytes.toArray
+      | .text payload => match String.fromUTF8? (ByteArray.mk payload.bytes.toArray) with
+          | some text => .text text
+          | none => .textBytes payload.bytes.toArray)
+
+theorem joinCompoundOperand_sides (left right : Nat) :
+    joinCompoundOperand (.column ⟨.left, left⟩) ≠
+      joinCompoundOperand (.column ⟨.right, right⟩) := by
+  simp [joinCompoundOperand]
+
+theorem joinCompoundOperand_merged (left right index : Nat) :
+    joinCompoundOperand (.mergedColumn none left right) ≠
+      joinCompoundOperand (.column ⟨.left, index⟩) := by
+  simp [joinCompoundOperand]
+
+/-- Bind every reference before comparing ASTs. Unknown and ambiguous source
+names fail; qualifiers cannot accidentally name an internal result slot. -/
+def joinCompoundBindFuel (context : JoinContext) : Nat → Expr → Option Expr
+  | 0, _ => none
+  | fuel + 1, expression => do
+      let bind := joinCompoundBindFuel context fuel
+      match expression with
+      | .column qualifier name =>
+          match joinNamedOperand context qualifier name with
+          | .ok operand => some (joinCompoundOperand operand)
+          | .error _ => none
+      | .literal .. => some expression
+      | .unary op arg => return .unary op (← bind arg)
+      | .binary op left right => return .binary op (← bind left) (← bind right)
+      | .call name args star => return .call name (← args.mapM bind) star
+      | .isNull arg negated => return .isNull (← bind arg) negated
+      | .inList arg values negated affinity =>
+          return .inList (← bind arg) (← values.mapM bind) negated affinity
+      | .collate arg name => return .collate (← bind arg) name
+      | .case_ base branches otherwise =>
+          return .case_ (← base.mapM bind)
+            (← branches.mapM fun (condition, result) => do return (← bind condition, ← bind result))
+            (← otherwise.mapM bind)
+      | _ => none
+
+def joinCompoundBind (context : JoinContext) (expression : Expr) : Option Expr :=
+  let expression := SQLite.Scalar.prepare (joinBindNames context expression)
+  joinCompoundBindFuel context expression.height expression
+
+def joinCompoundStarReferences (context : JoinContext) (qualifier : Option String) :
+    Except String (List CoreJoin.ColumnRef) :=
+  match qualifier with
+  | none => .ok (joinVisibleColumns .left context.leftSchema ++
+      (joinVisibleColumns .right context.rightSchema).filter
+        (fun reference => !CoreJoinUsing.suppressesRight context.shared reference.column))
+  | some qualifier =>
+      if canonical qualifier == context.leftName then
+        .ok (joinVisibleColumns .left context.leftSchema)
+      else if canonical qualifier == context.rightName then
+        .ok (joinVisibleColumns .right context.rightSchema)
+      else .error s!"no such table or alias: {qualifier}"
+
+def joinCompoundStarColumns (context : JoinContext) (qualifier : Option String) :
+    Except String (List ResultColumn) := do
+  let references ← joinCompoundStarReferences context qualifier
+  return references.map fun reference =>
+    let schema := if reference.side == .left then context.leftSchema else context.rightSchema
+    { expr := joinCompoundOperand (joinStarOperand context reference)
+      alias := (schema.columns[reference.column]?).map (·.name) }
+
+/-- Every expanded star has exactly the live join projection's bound values,
+in the same positions; output labels do not change these identities. -/
+theorem joinCompoundStarColumns_projection (context : JoinContext) (qualifier : Option String) :
+    (joinCompoundStarColumns context qualifier).map (List.map (·.expr)) =
+      (joinResultExpr context (.star qualifier)).map (List.map joinCompoundOperand) := by
+  cases qualifier with
+  | none => simp [joinCompoundStarColumns, joinCompoundStarReferences, joinResultExpr,
+      bind, Except.bind, Except.map, pure, Except.pure, List.map_map, Function.comp_def]
+  | some qualifier =>
+      by_cases left : canonical qualifier == context.leftName
+      · simp [joinCompoundStarColumns, joinCompoundStarReferences, joinResultExpr, left,
+          bind, Except.bind, Except.map, pure, Except.pure, List.map_map, Function.comp_def]
+      · by_cases right : canonical qualifier == context.rightName
+        · simp [joinCompoundStarColumns, joinCompoundStarReferences, joinResultExpr, left, right,
+            bind, Except.bind, Except.map, pure, Except.pure, List.map_map, Function.comp_def,
+            joinVisibleColumns, joinStarOperand, joinMergedStar]
+        · simp [joinCompoundStarColumns, joinCompoundStarReferences, joinResultExpr, left, right,
+            bind, Except.bind, Except.map]
+
+def joinCompoundColumns (context : JoinContext) : List ResultColumn → Except String (List ResultColumn)
+  | [] => .ok []
+  | column :: columns => do
+      let head ← match column.expr with
+        | .star qualifier => joinCompoundStarColumns context qualifier
+        | expression => do
+            let some bound := joinCompoundBind context expression
+              | throw "unbound joined result expression"
+            pure [{ column with expr := bound }]
+      return head ++ (← joinCompoundColumns context columns)
+
 /-- Expand source columns for compound ORDER BY alias/expression matching. -/
 def compoundTailArm (state : Core.State) (select : Select) : Except String CoreCompoundTail.Arm := do
   match select.sources.toList with
@@ -2629,18 +2735,18 @@ def compoundTailArm (state : Core.State) (select : Select) : Except String CoreC
       let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
       let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
       return { columns := ← CoreOrder.expandResults ctx select.columns.toList, context := some ctx }
-  | sources =>
-      let mut columns := []
-      for column in select.columns do
-        match column.expr with
-        | .star qualifier =>
-            for source in sources do
-              if qualifier.all (fun q => q.toLower == (source.alias.getD source.name).toLower) then
-                let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-                columns := columns ++ stored.schema.catalogColumns.map (fun c =>
-                  { expr := .column (some (source.alias.getD source.name)) c.name })
-        | _ => columns := columns ++ [column]
-      return { columns, context := none }
+  | [leftSource, rightSource] =>
+      let leftName := resolveTableName state leftSource.name
+      let rightName := resolveTableName state rightSource.name
+      let some left := state.database.findTable? leftName | throw s!"no such table: {leftSource.name}"
+      let some right := state.database.findTable? rightName | throw s!"no such table: {rightSource.name}"
+      let context ← joinContext leftSource rightSource leftName rightName left.schema right.schema
+      return {
+        columns := ← joinCompoundColumns context select.columns.toList
+        context := none
+        bindExpression := some (fun expression => joinCompoundBind context
+          (CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList expression)) }
+  | _ => unsupported "compound source shape"
 
 def compoundValuesArms (rows : Array (Array Expr)) (wrapped : Bool) : List CoreCompoundTail.Arm :=
   (SQLite.Values.projections rows.toList wrapped).map fun (row, source) =>

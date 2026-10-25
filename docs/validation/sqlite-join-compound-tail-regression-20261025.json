@@ -1,0 +1,22 @@
+{
+  "seed": 354573,
+  "random_cases": 250,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 906,
+      "matching_errors": 67
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 906,
+      "matching_errors": 67
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "e41adcbc93954901cca1934f0fb2ffbbdc4b5bd83770a25775a5b806ef01eeba",
+  "executable_sha256": "3b16a0da1be9c77ad7c0085c7d8237002072621c3ec260221ee0968b2e03a03d",
+  "harness_sha256": "3eaada3b8a266ad001a8f22f3fcf5ef509bab51e8ed3548923ffc07403049181",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare compound ORDER BY/LIMIT through both production file modes.\n\nCompare exact CLI bytes and ordinary positive error status against pinned SQLite.\nKeep every mismatch, including unsupported syntax and evaluation-order differences.\nVerify that read queries preserve all main/WAL bytes. NUL suffixes are not visible\nthrough CLI output; complete byte representatives are separate Core examples."
+}

@@ -2265,4 +2265,16 @@ else
   status=1
 fi
 
+if rg -F -q 'columns := ← joinCompoundColumns context select.columns.toList' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'bindExpression := some (fun expression => joinCompoundBind context' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'if let some bind := arm.bindExpression then' SQLeanite/CoreCompoundTail.lean &&
+   rg -F -q 'CoreSQL.joinCompoundStarColumns_projection' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinCompoundOperand_sides' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinCompoundOperand_merged' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined compound ORDER BY uses expanded result slots and bound source identities\n'
+else
+  printf 'live-path check FAILED: joined compound result binding\n' >&2
+  status=1
+fi
+
 exit $status
