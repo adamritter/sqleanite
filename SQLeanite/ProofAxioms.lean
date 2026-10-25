@@ -1441,3 +1441,9 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.prepareNullTest_token
 #print axioms SQLeanite.SQLite.Scalar.parserNonNullLiteral_collate
+
+#print axioms SQLeanite.SQLite.StaticCondition.testTerm_static
+#print axioms SQLeanite.SQLite.StaticCondition.staticTerms_correct
+#print axioms SQLeanite.CoreJoin.Predicate.constant_eval
+
+#print axioms SQLeanite.SQLite.StaticCondition.Decision.result_correct

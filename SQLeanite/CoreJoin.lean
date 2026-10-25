@@ -72,6 +72,13 @@ def Predicate.eval : Predicate → JoinedRow → Truth
   | .and left right, row => Truth.and (left.eval row) (right.eval row)
   | .or left right, row => Truth.or (left.eval row) (right.eval row)
 
+def Predicate.constant (truth : Bool) : Predicate :=
+  if truth then .isNull (.literal .null) else .not (.isNull (.literal .null))
+
+theorem Predicate.constant_eval (truth : Bool) (row : JoinedRow) :
+    (Predicate.constant truth).eval row = (if truth then .true else .false) := by
+  cases truth <;> rfl
+
 def Predicate.setCollation (kind : SQLite.Collation.Kind) : Predicate → Predicate
   | .equal left right | .equalCollated _ left right => .equalCollated kind left right
   | .notEqual left right => .not (.equalCollated kind left right)

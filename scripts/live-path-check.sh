@@ -2029,7 +2029,7 @@ fi
 if rg -F -q 'SQLite.JoinType.classify words.toList' SQLeanite/Parser.lean &&
    rg -F -q 'SQLite.JoinType.classify words' SQLeanite/CoreTokenGrammar.lean &&
    rg -F -q 'source.crossJoin == kind.cross' SQLeanite/CoreTokenGrammar.lean &&
-   rg -F -q 'rightSource.joinOn.mapM (joinPredicate context)' SQLeanite/CoreSQL.lean; then
+   rg -F -q 'rightSource.joinOn.mapM (fun expression => joinPredicate context expression rightSource.leftJoin)' SQLeanite/CoreSQL.lean; then
   echo 'ok - join keywords and optional ON reach the existing Core join semantics'
 else
   echo 'FAIL - join-type replay or optional predicate lowering is disconnected'
@@ -2125,7 +2125,7 @@ else
   status=1
 fi
 
-if rg -F -q 'joinPredicateRaw context (SQLite.Scalar.prepare (joinBindNames context expression))' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'let prepared := SQLite.Scalar.prepare (joinBindNames context expression)' SQLeanite/CoreSQL.lean &&
    rg -F -q 'SQLite.PhysicalAffinity.truth (operand.value row)' SQLeanite/CoreJoin.lean &&
    rg -F -q 'Numeric.truth (.textBytes value.bytes.toArray)' SQLeanite/SQLite/PhysicalAffinity.lean &&
    rg -F -q '.operandTruthy (joinOperand operand)' SQLeanite/CoreOptimizerBridge.lean &&
@@ -2168,6 +2168,17 @@ if rg -F -q '| .isNull arg negated => prepareNullTest (prepare arg) negated' SQL
   echo 'ok - literal NULL tests use parser token classification before scalar admission'
 else
   echo 'FAIL - literal NULL preparation live-path audit failed' >&2
+  status=1
+fi
+
+if rg -F -q 'SQLite.StaticCondition.classify outer prepared' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'unless joinStaticAdmitted context prepared outer' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem staticTerms_correct' SQLeanite/SQLite/StaticCondition.lean &&
+   rg -F -q 'abbrev ignoredForbidden := SQLite.StaticCondition.resolutionForbidden' SQLeanite/CoreAggregateOrdering.lean &&
+   rg -q 'theorem Predicate.constant_eval' SQLeanite/CoreJoin.lean; then
+  echo 'ok - static joined conditions retain resolution and code-generation checks'
+else
+  echo 'FAIL - static joined condition live-path audit failed' >&2
   status=1
 fi
 

@@ -29,6 +29,7 @@ import SQLeanite.CoreUpdateIgnore
 import SQLeanite.CoreUpdateReplace
 import SQLeanite.CoreUpdateScan
 import SQLeanite.SQLite.Values
+import SQLeanite.SQLite.StaticCondition
 
 namespace SQLeanite
 namespace CoreSQL
@@ -1428,10 +1429,23 @@ def joinPredicateRaw (context : JoinContext) : Expr →
       .or <$> joinPredicateRaw context left <*> joinPredicateRaw context right
   | expression => .truthy <$> joinOperand context expression
 
-/-- Name binding precedes SQLite's parser-level zero-AND preparation, so a
-source TRUE/FALSE column cannot be folded into its keyword's literal value. -/
-def joinPredicate (context : JoinContext) (expression : Expr) : Except String CoreJoin.Predicate :=
-  joinPredicateRaw context (SQLite.Scalar.prepare (joinBindNames context expression))
+/-- All names/functions resolve before code generation. Each top-level AND
+term is generated separately, even when an earlier false term skips its value. -/
+def joinStaticAdmitted (context : JoinContext) (prepared : Expr) (outer : Bool := false) : Bool :=
+  !(prepared.any (fun expression => match expression with
+      | .column qualifier name => !(joinColumn context qualifier name).isOk
+      | _ => SQLite.StaticCondition.resolutionForbidden expression)) &&
+    (SQLite.Scalar.conditionTerms prepared).all (fun term => SQLite.StaticCondition.codegenAdmitted term outer)
+
+/-- Name binding precedes parser preparation. A statically decided condition
+still validates every resolved name and every required generated operation. -/
+def joinPredicate (context : JoinContext) (expression : Expr) (outer : Bool := false) : Except String CoreJoin.Predicate := do
+  let prepared := SQLite.Scalar.prepare (joinBindNames context expression)
+  match SQLite.StaticCondition.classify outer prepared with
+  | none => joinPredicateRaw context prepared
+  | some truth =>
+      unless joinStaticAdmitted context prepared outer do unsupported "unbound or invalid static join condition"
+      return CoreJoin.Predicate.constant truth
 
 def joinSideColumns (side : CoreJoin.Side) (count : Nat) :
     List CoreJoin.ColumnRef :=
@@ -1688,7 +1702,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     shared := ← CoreJoinUsing.columns leftSchema rightSchema rightSource }
   if context.leftName == context.rightName then
     throw "join sources require distinct names or aliases"
-  let explicitOn ← rightSource.joinOn.mapM (joinPredicate context)
+  let explicitOn ← rightSource.joinOn.mapM (fun expression => joinPredicate context expression rightSource.leftJoin)
   let sharedOn ← joinUsingPredicate context
   let on := match explicitOn, sharedOn with
     | none, predicate | predicate, none => predicate

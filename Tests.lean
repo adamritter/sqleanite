@@ -7041,6 +7041,43 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinStaticConditions : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'bad'),(2,NULL);INSERT INTO r VALUES(1,1);"
+  for (predicate, selected) in [("0 AND abs(-9223372036854775808)",false),
+      ("1 OR abs(-9223372036854775808)",true),("abs(a.k) IN ()",false),
+      ("abs(-9223372036854775808) NOT IN ()",true),
+      ("0 AND json_extract(a.k,'$')",false),("1 OR random()",true),
+      ("1 AND 0 AND abs(b.k)",false)] do
+    let sql := s!"SELECT a.id,b.id FROM l a JOIN r b ON {predicate} ORDER BY a.id,b.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"static joined condition: {message}"
+    let expected ← match (if selected then [[Value.integer 1,.integer 1],[.integer 2,.integer 1]] else []).mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"static joined rows: {sql}"
+  for sql in ["SELECT a.id FROM l a,r b WHERE abs(-9223372036854775808) OR 1 ORDER BY a.id;",
+      "SELECT a.id FROM l a,r b WHERE 1 OR min(a.k COLLATE missing,'x') ORDER BY a.id;",
+      "SELECT a.id FROM l a LEFT JOIN r b ON 1 OR abs(-9223372036854775808) ORDER BY a.id;"] do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match ([[Value.integer 1],[.integer 2]]).mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail "static join context changed rows"
+  for sql in ["SELECT a.id FROM l a,r b WHERE 0 AND not_a_function(a.k);",
+      "SELECT a.id FROM l a,r b WHERE 0 AND coalesce(missing,1);",
+      "SELECT a.id FROM l a,r b WHERE 1 OR sum(a.k);",
+      "SELECT a.id FROM l a,r b WHERE 0 AND abs(a.k,a.k);",
+      "SELECT a.id FROM l a,r b WHERE 1 OR likelihood(a.k,2.0);",
+      "SELECT a.id FROM l a,r b WHERE 0 AND min(a.k COLLATE missing,'x');",
+      "SELECT a.id FROM l a,r b WHERE abs(-9223372036854775808) AND 0;",
+      "SELECT a.id FROM l a LEFT JOIN r b ON abs(-9223372036854775808) OR 1;",
+      "SELECT a.id FROM l a LEFT JOIN r b ON 1 OR min(a.k COLLATE missing,'x') LIMIT 0;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"static joined condition suppressed a required error: {sql}"
+
 private def expectSQLiteLiteralNullPreparation : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k,true);CREATE TABLE r(id INTEGER PRIMARY KEY,k,true);INSERT INTO l VALUES(1,'a',1),(2,NULL,0);INSERT INTO r VALUES(1,'b',1);"
   for predicate in ["'x' IS NULL AND missing", "1 ISNULL AND missing",
@@ -8075,6 +8112,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite static joined conditions and outer-ON error ordering", expectSQLiteJoinStaticConditions),
   ("SQLite parser-time literal NULL-test preparation", expectSQLiteLiteralNullPreparation),
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),

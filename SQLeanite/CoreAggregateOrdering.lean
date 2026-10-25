@@ -1,5 +1,5 @@
 import SQLeanite.CoreCompoundTail
-import SQLeanite.SQLite.FunctionSignatures
+import SQLeanite.SQLite.StaticCondition
 
 /-! The ordinary aggregate ORDER BY sorter. DISTINCT normally admits the
 first input before sorting. SQLite's single identical argument/order-key
@@ -10,17 +10,7 @@ namespace SQLeanite.CoreAggregateOrdering
 /-- SQLite resolves ignored MIN/MAX ordering expressions but emits no value
 or collation operations for them. Function names/arity still bind, including
 builtins not otherwise executable by this Core subset. -/
-def ignoredForbidden (expression : Expr) : Bool :=
-  match expression with
-  | .call name arguments star =>
-      let name := SQLite.Scalar.scalarFunctionName name
-      star || arguments.size > SQLite.Limits.maxFunctionArgs ||
-        !(if (SQLite.Scalar.booleanKeyword? expression).isSome then true
-          else if name.startsWith "cast_" then arguments.size == 1
-          else if SQLite.Probability.recognizesName name then (SQLite.Probability.input? name arguments).isSome
-          else SQLite.FunctionSignatures.scalar name arguments.size)
-  | .literal .. | .column .. | .unary .. | .binary .. | .collate .. | .isNull .. | .inList .. | .case_ .. => false
-  | _ => true
+abbrev ignoredForbidden := SQLite.StaticCondition.resolutionForbidden
 
 def validateIgnored (ctx : CoreExpr.Context) (expression : Expr) : Except String Unit := do
   let expression := SQLite.Scalar.prepare (ctx.bindNames expression)

@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "cd5c5108be3f954236ed9dd34d41ca0c9e0c7fb2ddfd7eb94ae7b658bb0684ab",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "43a9e4cfd874985003d6b9bb9215eb6c331546c45dfd4727f4e382e1896e670c",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [351/352] Built Tests:c.o (17s)",
+        "\u2714 [352/352] Built sqleanite_tests:exe (356ms)",
+        "Build completed successfully (352 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "61d4992326ab8ae23f02e94c7e4ff9546b1d7af2524968efbec0e30932339beb",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "272 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "5c13d66ef6aa9876d15d879fc4f37c839494d80f2b25bd7f26624e919bc3202e",
+      "tail": [
+        "ok - joined literal/name atoms preserve column values, grammar and projection collation",
+        "ok - SQL column binding shares visible names and explicit rowid aliases",
+        "ok - joined declared-name priority is shared with CTAS metadata",
+        "ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding",
+        "ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests",
+        "ok - joined IN lists preserve left affinity, nullable equality and positive grammar",
+        "ok - literal NULL tests use parser token classification before scalar admission",
+        "ok - static joined conditions retain resolution and code-generation checks"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "6f14592c9646ee089a086fefd772fff8b1e62cc05b34e1f9364c9f3f3dc6d5d1"
+}

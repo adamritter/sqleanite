@@ -407,6 +407,10 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
       | ok value => exact .literal (literalSyntax_of_success decoded)
 
 inductive JoinPredicateSyntax : Expr → Prop where
+  | static (context : JoinContext) (outer : Bool) {expression : Expr} (truth : Bool) :
+      joinStaticAdmitted context expression outer = true →
+      SQLite.StaticCondition.classify outer expression = some truth →
+      JoinPredicateSyntax expression
   | membership {argument : Expr} {values : Array Expr} (negated affinity : Bool) :
       JoinOperandSyntax argument → (∀ value ∈ values.toList, JoinOperandSyntax value) →
       JoinPredicateSyntax (.inList argument values negated affinity)
@@ -604,10 +608,18 @@ termination_by expression.height
 decreasing_by all_goals simp_all [Expr.height] <;> omega
 
 theorem joinPredicateSyntax_of_success {context : JoinContext} {expression : Expr}
-    {predicate : CoreJoin.Predicate}
-    (success : joinPredicate context expression = .ok predicate) :
-    JoinPredicateSyntax expression :=
-  .prepared context expression (joinPredicateRawSyntax_of_success success)
+    {predicate : CoreJoin.Predicate} {outer : Bool}
+    (success : joinPredicate context expression outer = .ok predicate) :
+    JoinPredicateSyntax expression := by
+  apply JoinPredicateSyntax.prepared context expression
+  cases classified : SQLite.StaticCondition.classify outer
+      (SQLite.Scalar.prepare (joinBindNames context expression)) with
+  | none =>
+      exact joinPredicateRawSyntax_of_success (by simpa [joinPredicate, classified] using success)
+  | some truth =>
+      cases checked : joinStaticAdmitted context (SQLite.Scalar.prepare (joinBindNames context expression)) outer with
+      | false => simp [joinPredicate, classified, checked, unsupported, bind, Except.bind] at success
+      | true => exact .static context outer truth checked classified
 
 end CoreSQL
 end SQLeanite

@@ -4830,3 +4830,70 @@ diagnostic and automatic-index traversal gaps remain open. Native bindings are
 unchanged. Reports: `sqlite-null-prepare-*20261025.json`; harnesses:
 `scripts/run-null-prepare-differential.py` and
 `scripts/run-null-prepare-write-differential.py`.
+
+
+## Statically decided join conditions and outer-ON ordering (2026-10-25)
+
+Joined conditions can now return a proved constant without evaluating skipped
+functions. Name/arity resolution still traverses the original prepared syntax,
+using the pinned builtin registry already used for ignored aggregate ordering.
+Required numeric-token and collation errors are validated separately against
+the operations SQLite generates. Top-level AND terms retain separate generation
+checks even when an earlier false term stops runtime evaluation.
+
+Ordinary conditions use SQLite's static truth flags. LEFT JOIN ON carries a
+separate mode: upstream `ExprAlwaysTrue`/`ExprAlwaysFalse` disable those flags
+under `EP_OuterON`. Its constant decision therefore proceeds left to right and
+its code-generation validation retains both branches. For example,
+`1 OR abs(-9223372036854775808)` skips the function at runtime, whereas the
+reversed outer-ON form must evaluate that function first. Unknown function/column names and invalid
+arities still fail. This also allows registered but otherwise unimplemented
+functions in branches that provably never execute; no external evaluator is
+called. General dynamic function execution is not added by this change.
+
+Baseline seed **354490** records **7,680 comparisons / 3,506 differences**.
+Initial development seed **354491** records **10,432 / 242**, all invalid C
+statements incorrectly accepted by the first draft. That negative result exposed
+the outer-ON distinction and is retained. Corrected development seed **354495**
+records **10,432 / 98**: 96 rejected successful C statements and two partial-output
+differences. Strict replay of the 242 original failures records **242 / 2**, with
+the two remaining cases disagreeing on rows delivered before malformed-JSON
+errors. The replay tool now has an explicit `--compare-error-output` option;
+its historical default comparison remains available.
+
+Final-checkpoint fresh seed **354492** records **21,504 / 204**: 200 rejected valid
+statements and four partial-output differences. There are no accepted-invalid
+cases in this evaluation. The remaining cases require actual function evaluation,
+correct deferral on empty inputs/zero LIMIT, or partial-row delivery. Eight
+C-created fixtures combine fixed controls and newly seeded inputs/combinations,
+with both file modes, three page sizes, outer padding, Boolean shadowing, function
+signatures, required collations and deferred numeric errors. Full stdout is
+compared on success and failure, together with error status, immutable main/WAL
+images and independent C typed/integrity observations. The full case count does
+not mean every input was previously unseen.
+
+Persisted CTAS/INSERT SELECT seed **354493** records **1,632 / 18**. Twelve cases
+reject successful C statements; six fail in both engines but leave different
+catalogs because C first completes a zero-LIMIT CTAS before the later INSERT
+fails. These are retained execution-timing negatives. Independent C metadata,
+typed rows, integrity, follow-up writes and Lean reopening remain part of the
+comparison. IS regression seed **354494** passes **15,360 / 0**, plus eight image
+checks. Broader short-circuit regression seed **354496** records **5,568 / 1,156**:
+1,132 rejected successful statements, 16 partial-output differences, and eight
+exact-order differences on successful queries. In those eight cases SQLite scans
+the right source first despite the condition's constant result. These planner
+negatives are not normalized away. All negative reports remain committed.
+
+Implementation SHA-256: `cd5c5108be3f954236ed9dd34d41ca0c9e0c7fb2ddfd7eb94ae7b658bb0684ab`.
+Final structural checks pass **352 build jobs, 272 executable tests, 1,241 headline
+component proofs**, both audits and 61 accepted reverse-file cells, with two
+declared unsupported. The initial live-path audit failed because its textual
+check expected the old ON callback; its report is retained and the updated check
+requires the actual outer-ON argument. Four new component propositions cover
+ordinary static term/list evaluation, constant predicate evaluation and an
+ordered decision model with arbitrary pending-atom errors. The last model is not
+a complete SQLite outer-ON or query-planner equivalence proof. Dynamic joined
+expressions and the recorded execution/planner negatives remain open work.
+Native bindings are unchanged. Reports: `sqlite-join-static-*20261025.json`;
+harnesses: `scripts/run-join-static-differential.py` and
+`scripts/run-join-static-write-differential.py`.
