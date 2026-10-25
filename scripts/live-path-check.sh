@@ -2069,4 +2069,14 @@ else
   status=1
 fi
 
+if rg -q 'let orderColumns ← joinOrderColumns context' SQLeanite/CoreSQL.lean &&
+   rg -q 'CoreOrder.ordinal' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem joinOrderColumns_projection' SQLeanite/CoreSQL.lean &&
+   rg -q 'a result star without an alias' SQLeanite/CoreTokenGrammar.lean; then
+  echo 'ok - join ORDER BY aliases and positions use the exact expanded projection'
+else
+  echo 'FAIL - join ORDER BY name/position live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

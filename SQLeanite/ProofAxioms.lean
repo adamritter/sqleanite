@@ -1411,3 +1411,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreJoin.Query.finishRows_limit_zero
 
 #print axioms SQLeanite.CoreJoin.Query.distinctInputRows_perm
+
+#print axioms SQLeanite.CoreSQL.joinOrderColumns_projection

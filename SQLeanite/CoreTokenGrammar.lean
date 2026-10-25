@@ -717,6 +717,9 @@ private def skipSpaceTokens (tokens : List Token) : List Token :=
   tokens.dropWhile fun token => match token with | .space _ => true | _ => false
 
 private def matchResultColumn (column : ResultColumn) : MatchM Unit := do
+  match column.expr, column.alias with
+  | .star _, some _ => mismatch "a result star without an alias"
+  | _, _ => pure ()
   let before := skipSpaceTokens (← get).remaining
   matchExpr column.expr
   let after := skipSpaceTokens (← get).remaining

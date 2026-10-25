@@ -857,7 +857,9 @@ private def parseResultColumn : ParserM ResultColumn := do
   let alias ←
     if ← acceptKeyword "as" then some <$> expectAlias
     else parseImplicitAlias
-  pure { expr, alias, sourceSql }
+  match expr, alias with
+  | .star _, some _ => throw "a result star cannot have an alias"
+  | _, _ => pure { expr, alias, sourceSql }
 
 private def parseSelectAfterSelectFuel : Nat → Bool → ParserM Select
   | 0, _ => throw "too many nested SELECT terms"

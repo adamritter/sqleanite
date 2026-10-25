@@ -7041,6 +7041,51 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinOrder : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,'b'),(2,'a');INSERT INTO r VALUES(1,'c'),(2,'d');"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT b.id AS id,a.id FROM l a CROSS JOIN r b ORDER BY id,a.id;",
+      [[.integer 1,.integer 1],[.integer 1,.integer 2],[.integer 2,.integer 1],[.integer 2,.integer 2]]),
+    ("SELECT b.id,a.id FROM l a CROSS JOIN r b ORDER BY 1 DESC,+2;",
+      [[.integer 2,.integer 1],[.integer 2,.integer 2],[.integer 1,.integer 1],[.integer 1,.integer 2]]),
+    ("SELECT a.*,b.* FROM l a CROSS JOIN r b ORDER BY id DESC,b.id;",
+      [[.integer 2,.text "a",.integer 1,.text "c"],[.integer 2,.text "a",.integer 2,.text "d"],
+       [.integer 1,.text "b",.integer 1,.text "c"],[.integer 1,.text "b",.integer 2,.text "d"]]),
+    ("SELECT * FROM l a JOIN r b USING(id) ORDER BY 3 DESC;",
+      [[.integer 2,.text "a",.text "d"],[.integer 1,.text "b",.text "c"]]),
+    ("SELECT a.id AS z,b.id AS z FROM l a CROSS JOIN r b ORDER BY \"z\" DESC,b.id;",
+      [[.integer 2,.integer 1],[.integer 2,.integer 2],[.integer 1,.integer 1],[.integer 1,.integer 2]]),
+    ("SELECT a.id AS \"true\",b.id FROM l a JOIN r b USING(id) ORDER BY true DESC;",
+      [[.integer 2,.integer 2],[.integer 1,.integer 1]]),
+    ("SELECT a.id,b.id FROM l a JOIN r b USING(id) ORDER BY 2147483648,1.0,NULL,'x',true,a.id;",
+      [[.integer 1,.integer 1],[.integer 2,.integer 2]])]
+  for (sql, values) in cases do
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"join ORDER BY: {message}"
+    let expected ← match values.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"join ORDER BY rows: {sql}"
+  for sql in ["SELECT a.id,b.id FROM l a,r b ORDER BY id;",
+      "SELECT a.id FROM l a,r b ORDER BY 0 LIMIT 0;",
+      "SELECT a.id FROM l a,r b ORDER BY -1;",
+      "SELECT a.* AS z FROM l a,r b;", "SELECT * z FROM l a,r b;",
+      "CREATE TABLE IF NOT EXISTS l AS SELECT * AS z FROM l a,r b;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then
+      fail s!"invalid join ORDER BY/star alias accepted: {sql}"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT a.* FROM l a,r b;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "star AST missing"
+  let some column := query.columns[0]? | fail "star result missing"
+  let tokens ← match lex "SELECT a.* AS z FROM l a,r b;" with
+    | .ok result => pure result
+    | .error message => fail message
+  if (CoreTokenGrammar.check tokens #[.select { query with
+      columns := query.columns.set! 0 { column with alias := some "z" } }]).isOk then
+    fail "independent replay admitted an aliased result star"
+
 private def expectSQLiteJoinWindow : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k);CREATE TABLE r(id INTEGER PRIMARY KEY,k);INSERT INTO l VALUES(1,1),(2,1.0),(3,'1'),(4,NULL),(5,NULL);INSERT INTO r VALUES(1,1),(2,1.0),(3,NULL);"
   let cases : List (String × List (List Value)) := [
@@ -7686,6 +7731,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite join ORDER BY names and positions", expectSQLiteJoinOrder),
   ("SQLite join DISTINCT and LIMIT/OFFSET", expectSQLiteJoinWindow),
   ("SQLite USING/NATURAL merged columns and CTAS", expectSQLiteJoinUsing),
   ("SQLite stored-column join comparison affinity", expectSQLiteJoinAffinity),

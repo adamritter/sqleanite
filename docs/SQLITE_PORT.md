@@ -4429,3 +4429,45 @@ joins remain outside this checkpoint. Native bindings are unchanged. Reports:
 `scripts/run-join-window-differential.py`,
 `scripts/run-join-window-write-differential.py`, and
 `scripts/run-saved-join-failures.py`.
+
+
+## Joined ORDER BY names and positions (2026-10-25)
+
+Join ORDER BY now resolves explicit result aliases, names introduced by star
+expansion, and signed integer result positions. Names resolve before ordinal
+positions, and a repeated alias chooses its first output. A plain selected
+source column does not manufacture an alias that suppresses an ambiguous source
+name. Positions count the expanded projection, including USING/NATURAL merged
+columns. Large integer literals outside SQLite's ordinal payload, other literal
+sort constants and unbound TRUE/FALSE remain constants. Declared TRUE/FALSE
+columns and output aliases retain their name-binding behavior.
+
+The result-name table is built from the same join projection used by execution.
+A new component theorem proves that discarding its names recovers that projection
+exactly. The parser and independent replay now both reject aliases on a result
+star, including inside an existing-table CTAS no-op; `SELECT * AS name` is invalid
+SQLite syntax. Ordinary column aliases continue to work.
+
+Baseline seed **354390** records **4,620 comparisons / 2,252 differences**, all
+valid C statements rejected by the old join order translator. Its original
+checkpoint hash is retained. Development seed **354391** passes **7,050 / 0**
+after expanding the corpus with Boolean column names and invalid star aliases.
+Final-checkpoint fresh seed **354392** passes **19,568 / 0**, plus 16 immutable-
+image/integrity checks, across eight C-created fixtures, empty sides, three page
+sizes and both production file modes. It covers aliases shadowing source names,
+quoted/duplicate aliases, reordered stars, missing/ambiguous names, position
+boundaries, constant terms, and randomized LIMIT/OFFSET. Typed C observations
+and main/WAL immutability are checked. Persisted CTAS seed **354393** passes
+**420 / 0**, including independent C metadata/typed-row/integrity observations,
+follow-up C writes and Lean reopening. Join-window regression seed **354394**
+passes **6,912 / 0**, plus eight immutable-image checks, on the same checkpoint.
+
+Implementation SHA-256: `c62d24a7127306d3a817c1fda6f5b182f25595cfcb4e2a16a1e7ea134e8edee4`.
+Final checks pass **350 build jobs, 261 executable tests, 1,219 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The new theorem relates result-name metadata to projection; it is
+not a cross-language name-resolution proof. Non-default NULL placement, explicit
+join ordering collations and general scalar sort expressions remain separate
+work. Native bindings are unchanged. Reports: `sqlite-join-order-*20261025.json`;
+harnesses: `scripts/run-join-order-differential.py` and
+`scripts/run-join-order-write-differential.py`.

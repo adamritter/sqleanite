@@ -1394,14 +1394,85 @@ def joinProjection (context : JoinContext) : List ResultColumn →
   | result :: results =>
       return (← joinResultColumn context result) ++ (← joinProjection context results)
 
-def joinOrderBy (context : JoinContext) : List OrderTerm →
+/-- Only explicit aliases and expanded stars provide ORDER BY result names.
+A plain selected source column retains ordinary ambiguity checks. -/
+def joinOrderName (context : JoinContext) (column : ResultColumn)
+    (reference : CoreJoin.ColumnRef) : Option String :=
+  match column.expr with
+  | .star _ =>
+      let schema := if reference.side == .left then context.leftSchema else context.rightSchema
+      (schema.columns[reference.column]?).map (·.name)
+  | _ => column.alias
+
+def joinOrderColumns (context : JoinContext) : List ResultColumn →
+    Except String (List (CoreJoin.ColumnRef × Option String))
+  | [] => .ok []
+  | column :: columns => do
+      let references ← joinResultColumn context column
+      return references.map (fun reference => (reference, joinOrderName context column reference)) ++
+        (← joinOrderColumns context columns)
+
+theorem joinOrderColumns_projection (context : JoinContext) (columns : List ResultColumn) :
+    (joinOrderColumns context columns).map (List.map Prod.fst) = joinProjection context columns := by
+  induction columns with
+  | nil => rfl
+  | cons column columns ih =>
+      cases head : joinResultColumn context column with
+      | error message => simp [joinOrderColumns, joinProjection, head, bind, Except.bind, Except.map]
+      | ok references =>
+          cases tail : joinOrderColumns context columns with
+          | error message =>
+              simp [tail, Except.map] at ih
+              simp [joinOrderColumns, joinProjection, head, tail, ← ih, bind, Except.bind, Except.map]
+          | ok named =>
+              simp [tail, Except.map] at ih
+              simp [joinOrderColumns, joinProjection, head, tail, ← ih, bind, Except.bind,
+                pure, Except.pure, Except.map, List.map_append, List.map_map, Function.comp_def]
+
+/-- Unary operations on literals stay constant and cannot fail during sorting.
+Integer ordinal recognition runs before this test. -/
+def joinOrderConstant : Expr → Bool
+  | .literal .. => true
+  | .unary _ expression => joinOrderConstant expression
+  | _ => false
+
+def joinOrderReference (context : JoinContext)
+    (columns : List (CoreJoin.ColumnRef × Option String)) (expression : Expr) :
+    Except String (Option CoreJoin.ColumnRef) := do
+  let expression := SQLite.Scalar.prepare expression
+  if let some name := CoreOrder.bareName? expression then
+    if let some output := columns.find? (fun output => output.2.any (fun alias => canonical alias == canonical name)) then
+      return some output.1
+  if let some position := CoreOrder.ordinal? expression then
+    unless 1 ≤ position && position.toNat ≤ columns.length do
+      throw "ORDER BY position is outside the result columns"
+    let some output := columns[position.toNat - 1]? | throw "ORDER BY position is out of range"
+    return some output.1
+  if joinOrderConstant expression then return none
+  if let some name := SQLite.Scalar.quotedIdentifier? expression then
+    return some (← joinColumn context none name)
+  if let some truth := SQLite.Scalar.booleanKeyword? expression then
+    let name := SQLite.Scalar.booleanName truth
+    if (findColumn? context.leftSchema name).isSome || (findColumn? context.rightSchema name).isSome then
+      return some (← joinColumn context none name)
+    return none
+  match expression with
+  | .column qualifier name => return some (← joinColumn context qualifier name)
+  | _ => unsupported "join ORDER BY expression"
+
+def joinOrderBy (context : JoinContext)
+    (columns : List (CoreJoin.ColumnRef × Option String)) : List OrderTerm →
     Except String (List (CoreJoin.ColumnRef × Bool))
   | [] => .ok []
-  | { expr := .column qualifier name, descending, nullsFirst } :: terms => do
-      unless nullsFirst.all (· == !descending) do unsupported "non-default join NULL ordering"
-      return (← joinColumn context qualifier name, descending) ::
-        (← joinOrderBy context terms)
-  | _ => unsupported "join ORDER BY expression"
+  | term :: terms => do
+      let reference ← joinOrderReference context columns term.expr
+      let rest ← joinOrderBy context columns terms
+      match reference with
+      | none => return rest
+      | some reference =>
+          unless term.nullsFirst.all (· == !term.descending) do
+            unsupported "non-default join NULL ordering"
+          return (reference, term.descending) :: rest
 
 /-- A rowid equality conjunct makes each surviving pair unique on either
 side. It can satisfy later ORDER terms without an inner table sort. -/
@@ -1511,7 +1582,8 @@ def joinQuery (select : Select) (leftTable rightTable : String)
     | none, predicate | predicate, none => predicate
     | some left, some right => some (CoreJoin.Predicate.and left right)
   let where_ ← select.where_.mapM (joinPredicate context)
-  let orderBy ← joinOrderBy context select.orderBy.toList
+  let orderColumns ← joinOrderColumns context select.columns.toList
+  let orderBy ← joinOrderBy context orderColumns select.orderBy.toList
   return {
     columns := ← joinProjection context select.columns.toList
     on
