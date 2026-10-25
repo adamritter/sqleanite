@@ -124,6 +124,7 @@ def schema (name : String) (definitions : Array ColumnDef)
       name := canonical column.name
       notNull := integerAlias || column.notNull
       integerPrimaryKey := integerAlias
+      integerPrimaryNotNull := integerAlias && column.notNull
       textPrimaryKey := !integerAlias }
     else {
       name := canonical column.name

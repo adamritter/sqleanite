@@ -1289,3 +1289,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.evaluateInsertExpressions_evaluated
 #print axioms SQLeanite.CoreSQL.inputRowValues_single
+
+#print axioms SQLeanite.CanonicalSchemaSQL.parseColumn_integerNotNull_append

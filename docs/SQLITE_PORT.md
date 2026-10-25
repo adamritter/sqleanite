@@ -2992,3 +2992,44 @@ boundary are unchanged. Reports use `sqlite-insert-input-*20261025.json`;
 harness: `scripts/run-insert-input-differential.py`. Schema defaults, stateful
 functions, FAIL/ROLLBACK conflicts and full SQL/database/WAL compatibility remain
 unfinished.
+
+
+## Explicit INTEGER PRIMARY KEY NOT NULL metadata (2026-10-25)
+
+`Core.Column.integerPrimaryNotNull` now records the explicit SQL declaration
+separately from the existing internal `notNull` rowid invariant. A proof field
+restricts the new marker to INTEGER rowid aliases. SQL schema admission sets it
+from the original column declaration, including table-level primary keys. The
+canonical printer emits the optional NOT NULL suffix and its recognizer restores
+it; the inverse proof now covers both representations. The generic column
+inverse retains its structural premises, while ranging over the richer column
+representation. A registered component theorem covers the explicit suffix.
+Older files whose declarations already lost this information cannot recover it.
+
+NULL insertion still allocates a rowid with or without explicit NOT NULL, and
+UPDATE to a NULL rowid still fails. Tests check both properties, different key
+positions, column/table declarations and exact schema recovery after reopening.
+The metadata distinction is visible to an independent C `PRAGMA table_info`;
+it is not inferred from stored non-NULL data.
+
+Retained baseline seed 354090: **70 differences / 180 executions**.
+Development seed 354091: **540 executions, zero differences**. Final seed 354092
+uses 18 newly populated fixtures and 60 new SQL statements: **2,520 executions,
+zero differences**, including 576 positive-error outcomes. Both public file
+modes, 512/4096/65536-byte pages, explicit/implicit NOT NULL, key-column positions,
+all admitted conflict policies, RETURNING and transactions are covered. Output,
+catalog/column/index metadata, persisted types/hex values and integrity are
+compared, followed by independent C insertion and Lean reopen. Failed individual
+statements retain main/WAL bytes. Diagnostic text/codes and partial output from
+preceding statements are not compared. Two multiline record literals in the new
+proof needed formatting corrections before final validation.
+
+Implementation SHA-256: `1b287ddd367e18c54c526f21de6948ed454ae499e7da7b0da3213167d7e9da43`.
+The matching report records a successful **306-job build, 230 executable tests,
+1,128 headline component proofs**, both required audits, and 61 accepted
+reverse-file cells with two declared unsupported cells. Native code and its
+nine-binding boundary are unchanged. Reports use
+`sqlite-integer-not-null-*20261025.json`; harness:
+`scripts/run-integer-not-null-differential.py`. Other schema constraints,
+case-preserving identifiers and full SQL/database/WAL compatibility remain
+unfinished.

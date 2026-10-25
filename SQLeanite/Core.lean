@@ -17,6 +17,11 @@ structure Column where
   name : String
   notNull : Bool := false
   integerPrimaryKey : Bool := false
+  /-- Explicit SQL NOT NULL on an INTEGER rowid alias. `notNull` separately
+  records the internal invariant that an allocated rowid is never NULL. -/
+  integerPrimaryNotNull : Bool := false
+  integerPrimaryNotNullOnly : integerPrimaryNotNull = true → integerPrimaryKey = true := by
+    simp_all
   /-- A non-aliasing SQLite primary key. Unlike `INTEGER PRIMARY KEY`, this
   column remains in the record payload and is backed by an automatic index. -/
   textPrimaryKey : Bool := false

@@ -474,6 +474,15 @@ else
   fail "multi-VALUES evaluation mode detached from insertion or its proof boundary"
 fi
 
+if grep -q 'integerPrimaryNotNull := integerAlias && column.notNull' SQLeanite/CoreSQL.lean &&
+   grep -q 'if column.integerPrimaryNotNull then " INTEGER PRIMARY KEY NOT NULL"' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'integerPrimaryKey := true, integerPrimaryNotNull := true' SQLeanite/CanonicalSchemaSQL.lean &&
+   grep -q 'CanonicalSchemaSQL.parseColumn_integerNotNull_append' SQLeanite/ProofAxioms.lean; then
+  ok "declared INTEGER key NOT NULL metadata survives canonical print and parse"
+else
+  fail "declared INTEGER key nullability detached from the schema codec"
+fi
+
 # Text/blob helpers must be called from the production scalar evaluator.
 if grep -q 'import SQLeanite.SQLite.Text' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'SQLite.Text.substr v start count' SQLeanite/SQLite/Scalar.lean &&

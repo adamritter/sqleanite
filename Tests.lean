@@ -4597,6 +4597,38 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteIntegerNotNullMetadata : IO Unit := do
+  for declared in [false,true] do
+    for tableKey in [false,true] do
+      for position in [0,1,2] do
+        let keyColumn := "k INTEGER" ++ (if declared then " NOT NULL" else "") ++
+          (if tableKey then "" else " PRIMARY KEY")
+        let columns := match position with
+          | 0 => [keyColumn,"v TEXT NOT NULL","w"]
+          | 1 => ["v TEXT NOT NULL",keyColumn,"w"]
+          | _ => ["v TEXT NOT NULL","w",keyColumn]
+        let sql := "CREATE TABLE t(" ++ String.intercalate "," columns ++
+          (if tableKey then ",PRIMARY KEY(k DESC)" else "") ++ ");" ++
+          "INSERT INTO t(k,v,w) VALUES(NULL,'a',1),(NULL,'b',2);SELECT rowid,k FROM t ORDER BY rowid;"
+        let (state, results) ← match CoreSQL.execute Core.State.empty sql with
+          | .ok result => pure result
+          | .error message => fail s!"INTEGER NOT NULL metadata: {message}"
+        let some table := state.database.findTable? "t" | fail "INTEGER key table missing"
+        let some key := table.schema.columns[table.schema.primaryKey]? | fail "INTEGER key column missing"
+        unless key.notNull && key.integerPrimaryNotNull == declared do
+          fail "INTEGER key confused internal non-NULL with declared NOT NULL"
+        let some image := CoreFile.encode state.database | fail "INTEGER NOT NULL encode failed"
+        let some reopened := CoreDecode.decode image.fileBytes | fail "INTEGER NOT NULL reopen failed"
+        let some restored := reopened.findTable? "t" | fail "INTEGER NOT NULL table lost"
+        unless decide (restored.schema = table.schema) do fail "INTEGER NOT NULL schema round-trip mismatch"
+        let expected : List (List Value) := [[.integer 1,.integer 1],[.integer 2,.integer 2]]
+        let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+          | .ok rows => pure rows
+          | .error message => fail message
+        unless (results.getLast?).map (·.rows) == some rows do fail "explicit INTEGER NOT NULL changed rowid allocation"
+        if (CoreSQL.execute { database := reopened } "UPDATE t SET k=NULL;").isOk then
+          fail "INTEGER key accepted a NULL rowid update"
+
 private def expectSQLiteInsertInputEvaluation : IO Unit := do
   let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL);INSERT INTO t VALUES(1,'one'),(2,'two');"
   let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
@@ -6261,6 +6293,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite explicit INTEGER PRIMARY KEY NOT NULL metadata survives reopen", expectSQLiteIntegerNotNullMetadata),
   ("SQLite multi-VALUES evaluates discarded inputs before constraints", expectSQLiteInsertInputEvaluation),
   ("SQLite checked single-column table PRIMARY KEY", expectSQLiteTablePrimary),
   ("SQLite nullable TEXT primary keys and persisted NOT NULL", expectSQLiteNullableTextPrimary),
