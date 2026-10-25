@@ -383,6 +383,27 @@ def constantExpression (expression : Expr) : Bool :=
     | .column .. | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
     | _ => false)
 
+/-- parse.y folds ISNULL/NOTNULL on non-NULL literal tokens, skipping only
+unary plus and minus. NULL, Boolean names, COLLATE and computed expressions do
+not acquire this parser-time constant flag. No value evaluation occurs here. -/
+def parserNonNullLiteral : Expr → Bool
+  | .literal (.integer _) _ | .literal (.real _) _ | .literal (.text _) _ |
+      .literal (.textBytes _) _ | .literal (.blob _) _ => true
+  | .unary .plus argument | .unary .neg argument => parserNonNullLiteral argument
+  | _ => false
+
+def prepareNullTest (argument : Expr) (negated : Bool) : Expr :=
+  if parserNonNullLiteral argument then .literal (.integer (if negated then 1 else 0))
+  else .isNull argument negated
+
+theorem prepareNullTest_token (argument : Expr) (negated : Bool)
+    (known : parserNonNullLiteral argument = true) :
+    prepareNullTest argument negated = .literal (.integer (if negated then 1 else 0)) := by
+  simp [prepareNullTest, known]
+
+theorem parserNonNullLiteral_collate (argument : Expr) (name : String) :
+    parserNonNullLiteral (.collate argument name) = false := rfl
+
 def prepareFuel : Nat → Expr → Expr
   | 0, e => e
   | fuel + 1, e =>
@@ -392,9 +413,13 @@ def prepareFuel : Nat → Expr → Expr
     | .binary op left right =>
         let a := prepare left
         let b := prepare right
-        if op == .and && (parserFalse a || parserFalse b) &&
-            !(hasFunction a || hasFunction b) then .literal (.integer 0)
-        else .binary op a b
+        match op, b with
+        | .is, .literal .null _ => prepareNullTest a false
+        | .isNot, .literal .null _ => prepareNullTest a true
+        | _, _ =>
+          if op == .and && (parserFalse a || parserFalse b) &&
+              !(hasFunction a || hasFunction b) then .literal (.integer 0)
+          else .binary op a b
     | .call name args star =>
         let ignoredOrder := if name == "__sqlean_aggregate_order" && !star then
             match args.toList with
@@ -404,7 +429,7 @@ def prepareFuel : Nat → Expr → Expr
         match ignoredOrder with
         | some aggregate => prepare aggregate
         | none => .call name (args.map prepare) star
-    | .isNull arg negated => .isNull (prepare arg) negated
+    | .isNull arg negated => prepareNullTest (prepare arg) negated
     | .inList arg values negated affinity =>
         let argument := prepare arg
         if values.isEmpty then

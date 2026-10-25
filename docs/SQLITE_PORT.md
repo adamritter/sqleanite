@@ -4788,3 +4788,45 @@ are unchanged. Reports: `sqlite-join-in-*20261025.json` and
 `sqlite-join-shortcircuit-baseline-20261025.json`; harnesses:
 `scripts/run-join-in-differential.py`, `scripts/run-join-in-write-differential.py`
 and `scripts/run-join-shortcircuit-differential.py`.
+
+
+## Parser-time literal NULL tests (2026-10-25)
+
+Scalar preparation now follows parse.y's literal-token ISNULL/NOTNULL rewrite.
+INTEGER/REAL/TEXT/BLOB tokens, optionally wrapped in unary plus or minus, become
+integer false/true without evaluating the token. NULL, Boolean names, COLLATE,
+bitwise NOT and computed expressions retain their ordinary NULL test. Both
+compact IS forms and DISTINCT FROM spellings with a bare NULL right operand use
+the same preparation. A resulting zero can participate in the existing parser
+AND simplification before source-name checking. This also preserves deferred
+numeric-token errors when SQLite discards the literal before generating code.
+The implementation rule is taken from `sqlite3PExprIsNull` and `sqlite3PExprIs`
+in the pinned upstream `src/parse.y`.
+
+Baseline seed **354480** records **7,938 comparisons / 1,506 differences**, all
+valid C statements rejected by the previous preparation. Development seed
+**354481** passes **10,776 / 0**. Final-checkpoint fresh seed **354482** passes
+**22,192 / 0**, plus 16 immutable-image/integrity checks. The eight C-created
+fixtures combine fixed literal controls and newly seeded inputs/logical
+combinations; the count does not imply every input was previously unseen.
+The corpus covers seven NULL-test spellings, unary token wrappers, NULL/Boolean/
+column distinctions, invalid numeric tokens, discarded/unresolved/ambiguous
+names, single-table and joined predicates, no-source expressions, outer padding,
+three page sizes and both file modes. Successful output and error status are
+compared, with independent C typed observations and immutable main/WAL images.
+Persisted CTAS/INSERT SELECT seed **354483** passes **1,248 / 0**, including C
+metadata, typed rows, integrity, follow-up writes and Lean reopening. IS
+regression seed **354484** passes **15,552 / 0**, plus eight image checks. Exact
+regression replay of the two earlier IS failures passes **2 / 0**; the original
+negative report remains unchanged, and replay is not counted as fresh testing.
+
+Implementation SHA-256: `4ce2ea9fbe87cbdf9e3448132db31daa4406533fc1cfa475926b287bd23a1f31`.
+Final checks pass **350 build jobs, 271 executable tests, 1,237 headline component
+proofs**, both audits and 61 accepted reverse-file cells, with two declared
+unsupported. The new component propositions specify the recognized-token
+rewrite and exclude COLLATE from token recognition. They are not a complete
+SQLite preparation/equivalence proof. The separate joined-function error-timing
+diagnostic and automatic-index traversal gaps remain open. Native bindings are
+unchanged. Reports: `sqlite-null-prepare-*20261025.json`; harnesses:
+`scripts/run-null-prepare-differential.py` and
+`scripts/run-null-prepare-write-differential.py`.

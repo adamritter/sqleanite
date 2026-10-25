@@ -1438,3 +1438,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreJoin.Predicate.membership_eval
 #print axioms SQLeanite.CoreJoin.Predicate.membership_null
+
+#print axioms SQLeanite.SQLite.Scalar.prepareNullTest_token
+#print axioms SQLeanite.SQLite.Scalar.parserNonNullLiteral_collate

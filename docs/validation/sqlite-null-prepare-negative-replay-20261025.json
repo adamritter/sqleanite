@@ -1,0 +1,68 @@
+{
+  "evaluation": "regression replay of saved failures",
+  "input_file": "docs/validation/sqlite-join-in-is-regression-20261025.json",
+  "input_sha256": "7cbfd6dde374ce2c44aec90c8c90f06178bed03a2f2d36cb62ef5a5a52ec2b62",
+  "cases": [
+    {
+      "fixture": 2,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k,\"true\");INSERT INTO l VALUES(1,-1e999,2);INSERT INTO l VALUES(2,'a ',1);INSERT INTO l VALUES(3,'1x',0);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON ('1tail' IS NOT DISTINCT FROM NULL) AND (true IS a.k) ORDER BY a.id,b.id LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n3|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "fixture": 2,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k,\"true\");INSERT INTO l VALUES(1,-1e999,2);INSERT INTO l VALUES(2,'a ',1);INSERT INTO l VALUES(3,'1x',0);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON ('1tail' IS NOT DISTINCT FROM NULL) AND (true IS a.k) ORDER BY a.id,b.id LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 0,
+        "stdout": "2|\n3|\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2|\n3|\n",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "integrity_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "integrity_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "4ce2ea9fbe87cbdf9e3448132db31daa4406533fc1cfa475926b287bd23a1f31",
+  "executable_sha256": "0ed2daf7f54d5c4c376a742667406a1f7e047067a76d25bfcc0e2ac051e1e789",
+  "harness_sha256": "1b3a5b2a46dd0cd190fd2a075c38f26ee263e6bf09213db6f29ac48ad8094634",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

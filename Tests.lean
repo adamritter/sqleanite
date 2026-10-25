@@ -7041,6 +7041,36 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteLiteralNullPreparation : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k,true);CREATE TABLE r(id INTEGER PRIMARY KEY,k,true);INSERT INTO l VALUES(1,'a',1),(2,NULL,0);INSERT INTO r VALUES(1,'b',1);"
+  for predicate in ["'x' IS NULL AND missing", "1 ISNULL AND missing",
+      "-1 IS NULL AND missing", "- -1 ISNULL AND missing", "1e999 IS NULL AND missing",
+      "X'00' IS NULL AND missing", "'x' IS NOT DISTINCT FROM NULL AND true",
+      "-0x8000000000000000 IS NULL AND missing", "0x10000000000000000 ISNULL AND missing",
+      "(1 NOTNULL) ISNULL AND missing"] do
+    let sql := s!"SELECT a.id,b.id FROM l a LEFT JOIN r b ON {predicate} ORDER BY a.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"literal NULL preparation: {sql}: {message}"
+    let expected ← match ([[Value.integer 1,.null],[.integer 2,.null]]).mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"literal NULL rows: {sql}"
+  for predicate in ["1 COLLATE binary IS NULL AND missing", "NULL IS NULL AND missing",
+      "~1 ISNULL AND missing", "(1+0) ISNULL AND missing", "true ISNULL AND missing",
+      "1 NOTNULL AND missing", "1 ISNULL AND not_a_function()"] do
+    if (CoreSQL.execute Core.State.empty (setup ++
+        s!"SELECT a.id FROM l a,r b WHERE {predicate} LIMIT 0;")).isOk then
+      fail s!"NULL preparation incorrectly hid required validation: {predicate}"
+  let (_, output) ← match CoreSQL.execute Core.State.empty
+      "SELECT 1 ISNULL, -1 NOTNULL, 'x' IS NOT DISTINCT FROM NULL, X'00' IS DISTINCT FROM NULL, -0x8000000000000000 ISNULL, 0x10000000000000000 ISNULL;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected ← match ([0,1,0,1,0,0] : List Int).mapM (fun number => SQLSurface.value (.integer number)) with
+    | .ok values => pure values
+    | .error message => fail message
+  unless (output.getLast?).map (·.rows) == some [expected] do fail "literal NULL constant results"
+
 private def expectSQLiteJoinInList : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL),(2,'1'),(3,'01'),(4,'a'),(5,'a ');INSERT INTO r VALUES(1,NULL),(2,1),(3,'A'),(4,'a ');"
   for (condition, values) in [
@@ -8045,6 +8075,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite parser-time literal NULL-test preparation", expectSQLiteLiteralNullPreparation),
   ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),

@@ -2161,4 +2161,14 @@ else
   status=1
 fi
 
+if rg -F -q '| .isNull arg negated => prepareNullTest (prepare arg) negated' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| .is, .literal .null _ => prepareNullTest a false' SQLeanite/SQLite/Scalar.lean &&
+   rg -q 'theorem prepareNullTest_token' SQLeanite/SQLite/Scalar.lean &&
+   rg -q 'theorem parserNonNullLiteral_collate' SQLeanite/SQLite/Scalar.lean; then
+  echo 'ok - literal NULL tests use parser token classification before scalar admission'
+else
+  echo 'FAIL - literal NULL preparation live-path audit failed' >&2
+  status=1
+fi
+
 exit $status
