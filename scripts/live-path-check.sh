@@ -2150,4 +2150,15 @@ else
   status=1
 fi
 
+if rg -F -q 'joinInList context argument values negated affinity' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreJoin.Predicate.membership kind left right' SQLeanite/CoreSQL.lean &&
+   rg -q 'theorem Predicate.membership_eval' SQLeanite/CoreJoin.lean &&
+   rg -q 'theorem Predicate.membership_null' SQLeanite/CoreJoin.lean &&
+   rg -q 'joinInListSyntax_of_success' SQLeanite/CoreSQLGrammar.lean; then
+  echo 'ok - joined IN lists preserve left affinity, nullable equality and positive grammar'
+else
+  echo 'FAIL - joined IN-list live-path audit failed' >&2
+  status=1
+fi
+
 exit $status

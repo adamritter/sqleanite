@@ -117,6 +117,33 @@ theorem Predicate.isTruth_null (operand : Operand) (expected : Bool) (row : Join
   cases expected <;>
     simp [Predicate.isTruth, Predicate.eval, missing, Truth.and, Truth.not]
 
+/-- Membership is a disjunction of ordinary, nullable equalities. Empty
+lists are false even for a NULL left operand. -/
+def Predicate.membership (kind : SQLite.Collation.Kind) (left : Operand) : List Operand → Predicate
+  | [] => .not (.isNull (.literal .null))
+  | right :: rest => .or (.equalCollated kind left right) (Predicate.membership kind left rest)
+
+theorem Predicate.membership_eval (kind : SQLite.Collation.Kind) (left : Operand)
+    (choices : List Operand) (row : JoinedRow) :
+    (Predicate.membership kind left choices).eval row =
+      choices.foldr (fun right result => Truth.or
+        (SQLite.Collation.sqlEquals kind (left.value row) (right.value row)) result) .false := by
+  induction choices with
+  | nil => rfl
+  | cons right rest ih => simp only [Predicate.membership, Predicate.eval, List.foldr_cons, ih]
+
+theorem Predicate.membership_null (kind : SQLite.Collation.Kind) (left : Operand)
+    (choices : List Operand) (row : JoinedRow) (missing : left.value row = .null) :
+    (Predicate.membership kind left choices).eval row =
+      (if choices.isEmpty then .false else .unknown) := by
+  rw [Predicate.membership_eval]
+  induction choices with
+  | nil => rfl
+  | cons right rest ih =>
+      rw [List.foldr_cons, ih]
+      simp only [missing, SQLite.Collation.sqlEquals]
+      cases rest <;> rfl
+
 def Predicate.leftOnly : Predicate → Bool
   | .equal left right | .notEqual left right | .compare _ left right |
       .equalCollated _ left right | .compareCollated _ _ left right =>

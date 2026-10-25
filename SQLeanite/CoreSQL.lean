@@ -1383,8 +1383,28 @@ def joinIsComparison (context : JoinContext) (negated : Bool) (left right : Expr
     | none => joinComparison context CoreJoin.Predicate.isEqual left right
   return if negated then .not predicate else predicate
 
+def joinOperandList (context : JoinContext) : List Expr → Except String (List CoreJoin.Operand)
+  | [] => .ok []
+  | expression :: rest => List.cons <$> joinOperand context expression <*> joinOperandList context rest
+
+/-- IN-list comparison ignores right-operand affinity and collation. Parser
+preparation separately handles empty lists and a single constant choice. -/
+def joinInList (context : JoinContext) (argument : Expr) (values : Array Expr)
+    (negated applyLeftAffinity : Bool) : Except String CoreJoin.Predicate := do
+  let left ← joinOperand context argument
+  let right ← joinOperandList context values.toList
+  let kind ← SQLite.ExprCollation.require (SQLite.ExprCollation.kind? argument)
+  let affinity ← if applyLeftAffinity then
+      (fun found => found.getD .blob) <$> joinOperandAffinity context argument left
+    else pure .blob
+  let left ← joinOperandCoerce context affinity left
+  let right ← right.mapM (joinOperandCoerce context affinity)
+  let predicate := CoreJoin.Predicate.membership kind left right
+  return if negated then .not predicate else predicate
+
 def joinPredicateRaw (context : JoinContext) : Expr →
     Except String CoreJoin.Predicate
+  | .inList argument values negated affinity => joinInList context argument values negated affinity
   | .binary .is left right => joinIsComparison context false left right
   | .binary .isNot left right => joinIsComparison context true left right
   | .binary .eq left right =>

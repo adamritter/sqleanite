@@ -7041,6 +7041,42 @@ private def expectSQLiteNumericAggregates : IO Unit := do
     | .error message => fail message
   unless (grouped.getLast?).map (·.rows) == some expected do fail "grouped aggregate values"
 
+private def expectSQLiteJoinInList : IO Unit := do
+  let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL),(2,'1'),(3,'01'),(4,'a'),(5,'a ');INSERT INTO r VALUES(1,NULL),(2,1),(3,'A'),(4,'a ');"
+  for (condition, values) in [
+      ("a.k IN (b.k,NULL)", [[2,2],[5,4]]),
+      ("a.k NOT IN (b.k,NULL)", []),
+      ("a.k IN (b.k)", [[2,2],[5,4]]),
+      ("a.k COLLATE nocase IN (b.k,NULL)", [[2,2],[4,3],[5,4]]),
+      ("a.k COLLATE rtrim IN (b.k)", [[2,2],[4,4],[5,4]]),
+      ("a.k IN (b.k COLLATE nocase)", [[2,2],[5,4]]),
+      ("a.k IN (b.k COLLATE missing)", [[2,2],[5,4]])] do
+    let sql := s!"SELECT a.id,b.id FROM l a JOIN r b ON {condition} ORDER BY a.id,b.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match values.mapM (List.mapM (fun number : Int => SQLSurface.value (.integer number))) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined IN rows: {sql}"
+  for (condition, values) in [("a.k NOT IN (0,1)",[3,4,5]),("a.k IN (1,2)",[2]),
+      ("+a.k IN (1,2)",[]),("missing NOT IN ()",[1,2,3,4,5]),("missing IN ()",[]),
+      ("a.k IN ('A' COLLATE nocase)",[4]),("a.k IN ('A' COLLATE nocase,'z')",[]),
+      ("a.k IN ('A' COLLATE missing,'z')",[])] do
+    let sql := s!"SELECT a.id FROM l a LEFT JOIN r b ON a.id=b.id WHERE {condition} ORDER BY a.id;"
+    let (_, output) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail message
+    let expected ← match values.mapM (fun number : Int => do return [← SQLSurface.value (.integer number)]) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (output.getLast?).map (·.rows) == some expected do fail s!"joined IN affinity or preparation: {sql}"
+  for condition in ["a.k IN (missing,NULL)","a.k COLLATE missing IN (b.k,NULL)",
+      "a.k IN ('A' COLLATE missing)"] do
+    if (CoreSQL.execute Core.State.empty (setup ++
+        s!"SELECT a.id FROM l a,r b WHERE {condition} LIMIT 0;")).isOk then
+      fail s!"joined IN omitted required validation: {condition}"
+
 private def expectSQLiteJoinComparisonWrappers : IO Unit := do
   let setup := "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,'A'),(2,'a '),(3,NULL);INSERT INTO r VALUES(1,'a'),(2,'A '),(3,NULL);"
   for (condition, values) in [
@@ -8009,6 +8045,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite boolean keywords and column shadowing", expectSQLiteBooleanKeywords),
   ("SQLite byte-preserving TEXT functions", expectSQLiteRawText),
   ("SQLite SUM/AVG/TOTAL numeric accumulators", expectSQLiteNumericAggregates),
+  ("SQLite joined IN lists, NULL and left-operand affinity", expectSQLiteJoinInList),
   ("SQLite joined comparison collations and value-preserving wrappers", expectSQLiteJoinComparisonWrappers),
   ("SQLite joined NULL-safe and Boolean IS comparisons", expectSQLiteJoinIs),
   ("SQLite truth conversion in joined ON/WHERE", expectSQLiteJoinTruth),

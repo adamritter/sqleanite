@@ -4734,3 +4734,57 @@ remain separate work. Native bindings are unchanged. Reports:
 `sqlite-join-is-*20261025.json`; harnesses:
 `scripts/run-join-is-differential.py` and
 `scripts/run-join-is-write-differential.py`.
+
+
+## Joined IN and NOT IN list predicates (2026-10-25)
+
+Joined IN lists now compile to a disjunction of nullable equalities, with NOT
+applied after membership. The comparison uses the left expression's affinity
+and collation; right-side affinity and COLLATE metadata do not select them.
+Existing parser preparation retains SQLite's distinct handling of empty lists
+and a single constant choice. NULL padding from LEFT JOIN participates through
+the same three-valued logic. See SQLite's [IN rules](https://www.sqlite.org/lang_expr.html#in_op)
+and [comparison affinity rules](https://www.sqlite.org/datatype3.html#type_conversions_prior_to_comparison).
+
+Baseline seed **354460** records **7,824 comparisons / 3,970 differences**, all
+valid statements rejected by the prior translator. Development seed **354461**
+passes **15,936 / 0**. Final-checkpoint fresh seed **354462** passes **32,832 / 0**,
+plus 24 immutable-image/integrity checks. Twelve C-created fixtures cover six
+column-affinity arrangements, three page sizes, both file modes, empty/nonempty
+sides, mixed storage classes, zero/one/many choices, NULL, unary plus, probability
+wrappers, left and ignored right collations, Boolean shadowing and windows.
+The corpus combines fixed controls with newly seeded data/logical combinations;
+its full case count is not a count of previously unseen inputs. Successful CLI
+bytes and error status are compared without filtering mismatches. Persisted
+CTAS/INSERT SELECT seed **354463** passes **1,824 / 0**, including independent C
+metadata, typed rows, integrity, follow-up writes and Lean reopening.
+
+IS regression seed **354464** records **15,360 / 2**, retained as negative results.
+Both failures are the same case in the two file modes: SQLite simplifies a
+literal IS NULL test before resolving an ambiguous TRUE column in an AND branch;
+Lean still attempts that lookup. This is a newly exposed parser-preparation gap,
+and the IS regression is not reported as passing.
+
+A separate error-timing diagnostic, seed **354470**, records **4,032 / 2,078**.
+Of those differences, 2,062 reject successful C statements and 16 disagree on
+rows returned before a statement error. This diagnostic compares stdout even
+when both statements fail, in addition to error status and immutable images.
+It exposes eager evaluation of functions in eliminated conditions/empty lists,
+runtime errors on empty input or zero LIMIT, and partial-row delivery. The
+passing IN corpus above does not establish compatibility for those expression
+error paths. The diagnostic and its original captures are retained for the next
+work, rather than excluded from the compatibility record.
+
+Implementation SHA-256: `952793d1149949dd21ced4ff7b41b35bae138bb7ec3e26e14136c9b8916264ff`.
+Final structural checks pass **350 build jobs, 270 executable tests, 1,235 headline
+component proofs**, both audits and 61 accepted reverse-file cells, with two
+declared unsupported. Two new component theorems equate membership with the
+ordered three-valued equality fold and specify NULL membership for empty and
+nonempty choices. The positive grammar covers every admitted list operand.
+These are component claims, not complete SQLite SQL or planner equivalence.
+IN subqueries, general joined scalar expressions, the error-timing negatives,
+and previously recorded automatic-index tie order remain open. Native bindings
+are unchanged. Reports: `sqlite-join-in-*20261025.json` and
+`sqlite-join-shortcircuit-baseline-20261025.json`; harnesses:
+`scripts/run-join-in-differential.py`, `scripts/run-join-in-write-differential.py`
+and `scripts/run-join-shortcircuit-differential.py`.

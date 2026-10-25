@@ -1435,3 +1435,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Scalar.isTruthKeyword_collate
 #print axioms SQLeanite.CoreSQL.joinOperandAffinity_plus
 #print axioms SQLeanite.CoreJoin.Predicate.withCollation_binary
+
+#print axioms SQLeanite.CoreJoin.Predicate.membership_eval
+#print axioms SQLeanite.CoreJoin.Predicate.membership_null

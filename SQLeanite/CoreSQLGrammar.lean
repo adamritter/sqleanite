@@ -407,6 +407,9 @@ theorem joinOperandSyntax_of_success {context : JoinContext} {expression : Expr}
       | ok value => exact .literal (literalSyntax_of_success decoded)
 
 inductive JoinPredicateSyntax : Expr → Prop where
+  | membership {argument : Expr} {values : Array Expr} (negated affinity : Bool) :
+      JoinOperandSyntax argument → (∀ value ∈ values.toList, JoinOperandSyntax value) →
+      JoinPredicateSyntax (.inList argument values negated affinity)
   | isTruth (negated expected : Bool) {left right : Expr} :
       JoinOperandSyntax left → SQLite.Scalar.isTruthKeyword? right = some expected →
       JoinPredicateSyntax (.binary (if negated then .isNot else .is) left right)
@@ -427,6 +430,37 @@ inductive JoinPredicateSyntax : Expr → Prop where
       JoinPredicateSyntax right → JoinPredicateSyntax (.binary .and left right)
   | or {left right : Expr} : JoinPredicateSyntax left →
       JoinPredicateSyntax right → JoinPredicateSyntax (.binary .or left right)
+
+private theorem joinOperandListSyntax_of_success {context : JoinContext} {expressions : List Expr}
+    {operands : List CoreJoin.Operand}
+    (success : joinOperandList context expressions = .ok operands) :
+    ∀ expression ∈ expressions, JoinOperandSyntax expression := by
+  induction expressions generalizing operands with
+  | nil => simp
+  | cons expression rest ih =>
+      cases first : joinOperand context expression with
+      | error message => simp [joinOperandList, first, Seq.seq, Functor.map, Except.map, Except.bind] at success
+      | ok operand =>
+          cases remaining : joinOperandList context rest with
+          | error message => simp [joinOperandList, first, remaining, Seq.seq, Functor.map, Except.map, Except.bind] at success
+          | ok operands =>
+              intro item member
+              rcases List.mem_cons.mp member with equal | member
+              · subst item; exact joinOperandSyntax_of_success first
+              · exact ih remaining item member
+
+private theorem joinInListSyntax_of_success {context : JoinContext} {argument : Expr}
+    {values : Array Expr} {negated affinity : Bool} {predicate : CoreJoin.Predicate}
+    (success : joinInList context argument values negated affinity = .ok predicate) :
+    JoinPredicateSyntax (.inList argument values negated affinity) := by
+  cases first : joinOperand context argument with
+  | error message => simp [joinInList, first, bind, Except.bind] at success
+  | ok operand =>
+      cases remaining : joinOperandList context values.toList with
+      | error message => simp [joinInList, first, remaining, bind, Except.bind] at success
+      | ok operands =>
+          exact .membership negated affinity
+            (joinOperandSyntax_of_success first) (joinOperandListSyntax_of_success remaining)
 
 private theorem joinComparisonOperands_of_success {context : JoinContext}
     {operation : BinaryOp}
@@ -482,6 +516,7 @@ theorem joinPredicateRawSyntax_of_success {context : JoinContext} {expression : 
     (success : joinPredicateRaw context expression = .ok predicate) :
     JoinPredicateSyntax expression := by
   cases expression with
+  | inList argument values negated affinity => exact joinInListSyntax_of_success success
   | binary operation left right =>
       cases operation with
       | is => exact joinIsComparisonSyntax_of_success success
@@ -563,7 +598,7 @@ theorem joinPredicateRawSyntax_of_success {context : JoinContext} {expression : 
               contradiction
           | ok nested => exact .not (joinPredicateRawSyntax_of_success translated)
       | plus | neg | bitNot => exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
-  | literal | column | star | call | inList | collate | case_ | scalarSubquery |
+  | literal | column | star | call | collate | case_ | scalarSubquery |
       inSubquery | existsSubquery => exact joinTruthSyntax_of_success (by simpa only [joinPredicateRaw] using success)
 termination_by expression.height
 decreasing_by all_goals simp_all [Expr.height] <;> omega
