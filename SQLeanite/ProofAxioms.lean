@@ -1508,3 +1508,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinSearchCandidates_point_error
 #print axioms SQLeanite.CoreSQL.joinSearchCandidates_scan_empty
 #print axioms SQLeanite.CoreSQL.joinSearchCandidates_automatic_empty
+
+#print axioms SQLeanite.CoreSQL.JoinSearchKey.retarget_value
+#print axioms SQLeanite.CoreSQL.joinRightBoundForRows_where_failure
+
+#print axioms SQLeanite.CoreSQL.joinEmptyOnQuery_where_failure
+
+#print axioms SQLeanite.CoreSQL.joinScalarNullRejectsVisit_unpeeled_notNull

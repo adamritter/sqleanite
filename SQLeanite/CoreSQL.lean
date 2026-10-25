@@ -1881,6 +1881,7 @@ WHERE and every other query component retain ordinary translation. -/
 def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
     Except String CoreJoin.Query := do
+  if select.where_.isSome then return ← unsupported "empty outer ON with WHERE requires cursor planning"
   if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
@@ -1896,6 +1897,13 @@ def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
       unsupported "unbound or invalid empty-input outer ON"
   joinQueryWithZero { select with sources := #[leftSource, { rightSource with joinOn := none }] }
     leftTable rightTable leftSchema rightSchema
+
+theorem joinEmptyOnQuery_where_failure (select : Select) (leftTable rightTable : String)
+    (leftSchema rightSchema : Core.Schema) (left right : List Core.Row)
+    (present : select.where_.isSome = true) :
+    (joinEmptyOnQuery select leftTable rightTable leftSchema rightSchema left right).isOk = false := by
+  simp [joinEmptyOnQuery, present, unsupported, bind, Except.bind, Except.isOk]
+  rfl
 
 def joinQueryForRows (select : Select) (leftTable rightTable : String)
     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
@@ -2028,6 +2036,7 @@ def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinC
   | .ok query => .ok query
   | .error message => do
       let zero := select.limit == some 0
+      if !zero && select.where_.isSome then return ← throw message
       unless zero || leftRows.isEmpty || rightRows.isEmpty do throw message
       if !zero && source.joinOn.any (joinComputedCursorKey context) then throw message
       for expression in source.joinOn.toList do
@@ -2041,6 +2050,17 @@ def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinC
           { source with joinOn := none } context with
       | .ok query => .ok query
       | .error _ => .error message
+
+/-- WHERE may remove the outer side and expose early ON evaluation. A failed
+translation with WHERE must reach the general planner, not erase ON merely
+because a source is empty. LIMIT zero retains its independent admission path. -/
+theorem joinRightBoundForRows_where_failure (select : Select) (source : TableRef)
+    (context : JoinContext) (left right : List Core.Row) (message : String)
+    (failed : joinQueryBound select source context = .error message)
+    (nonzero : (select.limit == some 0) = false) (present : select.where_.isSome = true) :
+    joinRightBoundForRows select source context left right = .error message := by
+  simp [joinRightBoundForRows, failed, nonzero, present]
+  rfl
 
 /-- FULL merged output operands need their actual coalesced value for sorting.
 The original source reference remains available for ordinary column terms. -/
@@ -2805,6 +2825,8 @@ structure JoinScalarPrepared where
   select : Select
   on : Option CoreJoin.Predicate
   onExpression : Option Expr := none
+  nullableRight : Bool := false
+  nullableLeft : Bool := false
 
 def joinScalarPrepare (context : JoinContext) (select : Select) (rightSource : TableRef) :
     Except String JoinScalarPrepared := do
@@ -2835,10 +2857,16 @@ def joinScalarPrepare (context : JoinContext) (select : Select) (rightSource : T
     return { term with expr := ← joinScalarOrderExpression context select.columns.toList columns term.expr }
   let groups ← select.groupBy.mapM (fun expression => joinScalarBind context (resolve expression))
   let having ← select.having.mapM (fun expression => joinScalarBind context (resolve expression))
-  return { context := ctx, on, onExpression, select := { select with
-    columns := (columns.map (fun column => { column with alias := none })).toArray
-    sources := #[]
-    where_, orderBy := order, groupBy := groups, having } }
+  return {
+    context := ctx
+    on := on
+    onExpression := onExpression
+    nullableRight := rightSource.leftJoin
+    nullableLeft := rightSource.rightJoin
+    select := { select with
+      columns := (columns.map (fun column => { column with alias := none })).toArray
+      sources := #[]
+      where_, orderBy := order, groupBy := groups, having } }
 
 def joinScalarRows (context : JoinContext) (source : TableRef) (on : Option CoreJoin.Predicate)
     (left right : List Core.Row) : List CoreJoin.JoinedRow :=
@@ -2949,20 +2977,32 @@ def joinScalarNullWalk (context : JoinContext) (prepared : JoinScalarPrepared)
             args.toList.any walk
       | _ => false
 
-def joinScalarNullRejects (context : JoinContext) (prepared : JoinScalarPrepared)
-    (side : CoreJoin.Side) : Nat → Expr → Bool
-  | 0, _ => false
-  | fuel + 1, expression =>
-      let inspect := joinScalarNullRejects context prepared side fuel
+/-- expr.c:sqlite3ExprImpliesNonNullRow peels a root NOT NULL test, then
+recursively visits the left arms of an AND chain. Its final right arm uses the
+ordinary walker, which prunes nested null tests. Preserve that preparation order. -/
+def joinScalarNullRejectsVisit (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Nat → Bool → Expr → Bool
+  | 0, _, _ => false
+  | fuel + 1, peel, expression =>
+      let inspect := joinScalarNullRejectsVisit context prepared side fuel
       match expression with
-      | .collate arg _ => inspect arg
+      | .collate arg _ => if peel then inspect true arg else
+          joinScalarNullWalk context prepared side (fuel + 1) expression
       | .call name args false =>
-          match SQLite.Probability.input? name args with
-          | some arg => inspect arg
+          match if peel then SQLite.Probability.input? name args else none with
+          | some arg => inspect true arg
           | none => joinScalarNullWalk context prepared side (fuel + 1) expression
-      | .binary .and left right => inspect left || inspect right
-      | .isNull arg true => joinScalarNullWalk context prepared side fuel arg
+      | .binary .and left right => inspect true left || inspect false right
+      | .isNull arg true => peel && joinScalarNullWalk context prepared side fuel arg
       | _ => joinScalarNullWalk context prepared side (fuel + 1) expression
+
+def joinScalarNullRejects (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (fuel : Nat) (expression : Expr) : Bool :=
+  joinScalarNullRejectsVisit context prepared side fuel true expression
+
+theorem joinScalarNullRejectsVisit_unpeeled_notNull (context : JoinContext)
+    (prepared : JoinScalarPrepared) (side : CoreJoin.Side) (fuel : Nat) (arg : Expr) :
+    joinScalarNullRejectsVisit context prepared side (fuel + 1) false (.isNull arg true) = false := rfl
 
 /-- Both alternatives must reject a missing source before an OR expression
 can establish a non-null source. This is a syntactic optimizer property. -/
@@ -2972,13 +3012,13 @@ theorem joinScalarNullWalk_or (context : JoinContext) (prepared : JoinScalarPrep
       (joinScalarNullWalk context prepared side fuel left &&
         joinScalarNullWalk context prepared side fuel right) := rfl
 
-/-- Top-level WHERE conjuncts each suffice for the conservative non-null test;
-ON terms are never included by this function's caller. -/
+/-- An AND's left branch gets the root null-test rule; its final right branch
+uses the unpeeled walk. ON terms are excluded by the caller. -/
 theorem joinScalarNullRejects_and (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) (fuel : Nat) (left right : Expr) :
     joinScalarNullRejects context prepared side (fuel + 1) (.binary .and left right) =
       (joinScalarNullRejects context prepared side fuel left ||
-        joinScalarNullRejects context prepared side fuel right) := rfl
+        joinScalarNullRejectsVisit context prepared side fuel false right) := rfl
 
 def joinScalarProbesRowid (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) : Nat → Expr → Bool
@@ -3030,6 +3070,19 @@ theorem joinScalarReducedSource_no_new_outer (context : JoinContext)
     ((joinScalarReducedSource context prepared source).rightJoin = true → source.rightJoin = true) := by
   constructor <;> intro kept <;>
     simp only [joinScalarReducedSource, Bool.and_eq_true] at kept <;> exact kept.1
+
+/-- A present source row has a non-NULL rowid. SQLite can eliminate a
+WHERE conjunct asking that rowid to be NULL before opening either cursor.
+An outer side that may be absent does not provide this fact. -/
+def joinScalarKnownEmpty (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) : Bool :=
+  (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).any fun term =>
+    match SQLite.ExprCollation.strip term with
+    | .isNull argument false => (joinScalarReference context prepared argument).any fun ref =>
+        let schema := if ref.side == .left then context.leftSchema else context.rightSchema
+        ref.column == schema.primaryKey &&
+          (if ref.side == .left then !source.rightJoin else !source.leftJoin)
+    | _ => false
 
 /-- A selected cursor constraint retains the original comparison operands so
 lookup filtering uses the same affinity and collation as its SQL condition. -/
@@ -3097,6 +3150,89 @@ def joinSearchConstantRoot (context : JoinContext) (prepared : JoinScalarPrepare
     unless ref.side == side && ref.column == schema.primaryKey && values.all prepared.context.constantExpression do none
     return .membership column values.toList
 
+/-- Keep a constraint's operation and key expression while propagating its
+rowid column across a direct rowid equality. -/
+def JoinSearchKey.retarget (key : JoinSearchKey) (column : Expr) : JoinSearchKey :=
+  { key with column }
+
+theorem JoinSearchKey.retarget_value (key : JoinSearchKey) (column : Expr) :
+    (key.retarget column).value = key.value ∧
+      (key.retarget column).operation = key.operation := ⟨rfl, rfl⟩
+
+def joinSearchRowidEquality (context : JoinContext) (prepared : JoinScalarPrepared)
+    (on : Option Expr) : Bool :=
+  (on.map SQLite.Scalar.conditionTerms |>.getD []).any fun term =>
+    match SQLite.ExprCollation.strip term with
+    | .binary .eq left right =>
+        match joinScalarReference context prepared left, joinScalarReference context prepared right with
+        | some l, some r => l.side != r.side &&
+            l.column == (if l.side == .left then context.leftSchema else context.rightSchema).primaryKey &&
+            r.column == (if r.side == .left then context.leftSchema else context.rightSchema).primaryKey
+        | _, _ => false
+    | _ => false
+
+def joinSearchRangeBound (context : JoinContext) (prepared : JoinScalarPrepared)
+    (term : Expr) : Option (CoreJoin.Side × JoinSearchKey) := do
+  let key ← joinSearchKey? context prepared .left term <|> joinSearchKey? context prepared .right term
+  unless [.lt, .le, .gt, .ge].contains key.operation && prepared.context.constantExpression key.value do none
+  let ref ← joinScalarReference context prepared key.column
+  unless ref.column == (if ref.side == .left then context.leftSchema else context.rightSchema).primaryKey do none
+  return (ref.side, key)
+
+/-- A direct rowid equality carries constant bounds from either source to the
+outer cursor. The key value and comparison operator are retained unchanged. -/
+def joinSearchRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
+  let equal := joinSearchRowidEquality context prepared on
+  let keys := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
+    let (origin, key) ← joinSearchRangeBound context prepared term
+    unless origin == side || equal do none
+    return key
+  let lower := joinSearchChoose prepared (keys.filter (fun key => [.gt, .ge].contains key.operation))
+  let upper := joinSearchChoose prepared (keys.filter (fun key => [.lt, .le].contains key.operation))
+  unless lower.isSome || upper.isSome do none
+  let schema := if side == .left then context.leftSchema else context.rightSchema
+  let column ← joinScalarOperand context (.column ⟨side, schema.primaryKey⟩)
+  return .range (lower.map (·.retarget column)) (upper.map (·.retarget column))
+
+/-- For the unordered two-source range/point shape, the derived right range
+drives the left point lookup. Extra left filters retain the left-driven plan. -/
+def joinSearchTransitiveRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+    (on : Option Expr) : Option JoinSearchAccess := do
+  unless joinSearchRowidEquality context prepared on do none
+  let onTerms := on.map SQLite.Scalar.conditionTerms |>.getD []
+  if onTerms.any (fun term => joinScalarOnlySide context prepared .left term &&
+      !prepared.context.constantExpression term) then none
+  let whereTerms := prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
+  let compatibleNullTest := fun term => match SQLite.ExprCollation.strip term with
+    | .isNull arg true => (joinScalarReference context prepared arg).any (fun ref =>
+        ref.side == .right || (ref.column == context.leftSchema.primaryKey && !prepared.nullableLeft))
+    | _ => false
+  unless whereTerms.all (fun term => prepared.context.constantExpression term ||
+      compatibleNullTest term ||
+      (joinSearchRangeBound context prepared term).any (fun bound => bound.1 == .left)) do none
+  joinSearchRangeRoot context prepared .right on
+
+/-- In an unordered rowid-equality join, a retained right-side NOT NULL
+filter gives that scan a lower row estimate. A rowid null test originating on
+the nullable side survives early expression preparation, even after reduction.
+This covers this two-source plan shape, not the general statistics solver. -/
+def joinSearchNotNullRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+    (on : Option Expr) : Option JoinSearchAccess := do
+  unless joinSearchRowidEquality context prepared on do none
+  let onTerms := on.map SQLite.Scalar.conditionTerms |>.getD []
+  if onTerms.any (fun term => joinScalarOnlySide context prepared .left term &&
+      !prepared.context.constantExpression term) then none
+  let terms := prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
+  let test := fun term => match SQLite.ExprCollation.strip term with
+    | .isNull arg true => joinScalarReference context prepared arg
+    | _ => none
+  unless terms.all (fun term => prepared.context.constantExpression term ||
+      (test term).any (fun ref => ref.side == .right || ref.column == context.leftSchema.primaryKey)) do none
+  unless terms.any (fun term => (test term).any (fun ref => ref.side == .right &&
+      (ref.column != context.rightSchema.primaryKey || prepared.nullableRight))) do none
+  return .scan
+
 /-- One source traversal plan serves both streaming and materialized results.
 A right-driven rowid lookup also determines the order in which a bounded sorter
 sees candidates; it must not be changed to a left-driven cross product. -/
@@ -3115,7 +3251,12 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
   let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
   let leftRoot := if mayExchange then joinSearchConstantRoot context prepared .left on else none
-  let rightRoot := if mayExchange then joinSearchConstantRoot context prepared .right on else none
+  let rightRoot := if mayExchange then
+      (joinSearchConstantRoot context prepared .right on).orElse
+        (fun _ => if terms.isEmpty then
+          (joinSearchTransitiveRoot context prepared on).orElse
+            (fun _ => joinSearchNotNullRoot context prepared on) else none)
+    else none
   let leadingLeft := terms.head?.any (fun term =>
     (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
   let rightRoot := match rightRoot with
@@ -3134,6 +3275,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
     (joinScalarReference context prepared term.expr).any
       (fun ref => ref.side != outerSide && ref.column == innerSchema.primaryKey))
   let outerReverse := leadingOuter && terms.head?.any (·.descending)
+  let root := root.orElse (fun _ => if !source.leftJoin && !source.rightJoin then
+      joinSearchRangeRoot context prepared outerSide on else none)
+  let root := match root with
+    | some (.range start finish) => if outerReverse then some (.range finish start) else root
+    | _ => root
   let automatic := !exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
   let innerPoint := if exchanged then probesLeft else probesRight
   let outerTermsOnly := terms.all (fun term => (joinScalarReference context prepared term.expr).any
@@ -3155,7 +3301,12 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
   let schema := if side == .left then context.leftSchema else context.rightSchema
   let outer := joinSearchOpposite side
   let terms := on.map SQLite.Scalar.conditionTerms |>.getD []
-  let keys := terms.filterMap (joinSearchKey? context prepared side)
+  let whereRanges := if source.leftJoin || source.rightJoin then [] else
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
+      let key ← joinSearchKey? context prepared side term
+      unless [.lt, .le, .gt, .ge].contains key.operation do none
+      return key
+  let keys := terms.filterMap (joinSearchKey? context prepared side) ++ whereRanges
   let rowid := fun key => (joinScalarReference context prepared key.column).any (fun ref => ref.column == schema.primaryKey)
   let equals := keys.filter (fun key => rowid key && [.eq, .is].contains key.operation)
   let early := if source.leftJoin || source.rightJoin then [] else
@@ -3326,7 +3477,8 @@ def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except
     | none => (none, none)
     | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
   let on ← on.mapM (joinScalarBind context)
-  let enabled ← if select.limit == some 0 then pure false else prepared.context.constantMatches where_
+  let enabled ← if select.limit == some 0 || joinScalarKnownEmpty context prepared source then pure false
+    else prepared.context.constantMatches where_
   let enabled ← if enabled && !source.leftJoin && !source.rightJoin then prepared.context.constantMatches on else pure enabled
   let (rows, ordered) ← if enabled then do
       let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
@@ -3465,7 +3617,7 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
   let _ ← prepared.select.where_.mapM ctx.validate
   let _ ← terms.mapM (CoreOrder.validateTerm ctx)
   let width := expressions.length
-  if select.limit == some 0 then return { width }
+  if select.limit == some 0 || joinScalarKnownEmpty context prepared source then return { width }
   unless ← ctx.constantMatches prepared.select.where_ do return { width }
   let right := if traversal.reverseRight then right.rows.reverse else right.rows
   let left := if traversal.reverseLeft then left.rows.reverse else left.rows

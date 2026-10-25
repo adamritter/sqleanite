@@ -5570,3 +5570,88 @@ Reports: `sqlite-join-empty-search-*20261025.*`,
 read/order/write and strict saved-failure harnesses. Focused diagnostic harness
 sources and intermediate production patches are retained as labelled text
 artifacts outside the production source tree.
+
+## Reduced outer cursors and rowid filter preparation (2026-10-25)
+
+Empty-side outer-join adapters now retain WHERE planning. A WHERE condition that
+removes an outer side reaches the ordinary cursor planner, where source-local ON
+conditions can run before an empty inner lookup. Direct rowid equalities carry
+constant range bounds to the chosen outer source, and inner WHERE ranges retain
+the difference between an empty Rewind and an empty range seek. A present source
+row's physical rowid cannot be NULL, so an impossible rowid IS NULL filter ends
+the scan before evaluating dynamic ON expressions.
+
+The planner also retains which columns originated on a nullable outer side.
+This affects which rowid NOT NULL tests survive preparation and which cursor
+is chosen. The null-rejection walk now follows pinned `expr.c`'s asymmetric AND
+walk: root NOT NULL tests are peeled, left conjuncts recurse, and the final
+right conjunct uses the ordinary expression walker. The earlier symmetric
+component theorem has been replaced by the corrected statement; its earlier
+symmetric optimizer claim is withdrawn. C-backed controls preserve the
+negative examples with the two conjunction orders.
+
+Development evidence is retained in full:
+
+- The initial reduced-cursor implementation passes the previous **50 / 0**
+  saved-case replay and records **12,992 / 300** differences at seed **354645**.
+- Adding impossible-rowid filtering and inner ranges passes **300 / 6** in
+  saved-case replay. Fresh seed **354646** records **27,136 / 12** plus 16 passing
+  immutable-fixture checks. Every failure is the same reduced LEFT JOIN plan
+  shape on different fixtures/file modes; the executable regression rejects it.
+- Preserving nullable-source preparation and the NOT NULL walk passes the saved
+  lists of **300 / 0**, **12 / 0**, and **50 / 0**. Expanded fresh seed **354647**
+  passes **39,936 / 0** plus 16 immutable-fixture checks, but a separately expanded
+  fixed control set records **170 / 12** and the executable suite still fails.
+  Those twelve expose rowid ranges combined with retained or trivial NOT NULL
+  tests. Both the passing fresh corpus and the negative controls are retained;
+  the fresh pass alone did not close this work.
+
+Fresh evaluation on frozen production source
+`fd06ae52c1258ace0ccbb8480d5c3d19103228e47338f83cd75f5859703cac62`:
+
+- Expanded reduced-cursor seed **354648**: **52,736 / 28**, plus 16 passing
+  immutable-fixture checks.
+- Joined evaluation-order seed **354649**: **16,128 / 0**, plus 24 passing
+  immutable-fixture checks.
+- General scalar-read seed **354650**: **24,640 / 0**, plus 16 passing
+  immutable-fixture checks.
+- Joined writer seed **354651**: **5,184 / 0**.
+
+All four saved-failure lists pass strict final-source replay: **50 / 0**,
+**300 / 0**, **12 / 0**, and **12 / 0**. These are regression replays, with some
+overlapping inputs, not additional fresh examples.
+
+The final expanded corpus still exposes **28 differences**: 26 C successes
+are rejected and two C errors are accepted. Twenty-four involve an unordered
+reduced LEFT/FULL join with a retained right NOT NULL filter, a left rowid range
+and source-local ON conditions. Two involve a WHERE rowid equality and two a
+reduced FULL join's empty automatic lookup. Every mismatch remains in the full
+report and in an explicitly labelled saved-case replay input. This checkpoint
+does not establish complete reduced-join compatibility.
+
+The fresh corpora mix fixed templates and newly seeded values, overflowing-row
+positions and scan windows. Reads compare exact stdout, including rows before
+errors, success/error status, unchanged main/WAL bytes and pinned-C integrity
+and typed observations. Writers compare C catalog and typed contents, follow-up
+C writes and Lean reopening, with unchanged bytes whenever C leaves its files
+unchanged. The writer's both-error branch does not compare partial stdout.
+Ordinary-file and WAL-file modes and three C-created page sizes are included.
+
+Checks pass **354 build jobs, 289 executable tests and 1,290 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. The three new executable regressions contain **188 C-backed
+controls**. Component proofs cover empty-adapter guards, unchanged range-key
+values and the null-walk rule; they are not proofs of full SQLite equivalence.
+All nine native bindings remain unchanged, with native source SHA-256
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+
+This remains a bounded two-source planning implementation, not the complete
+SQLite cost/statistics planner. General constant propagation, inner-source WHERE
+ordering and the previously recorded SQL/file/WAL gaps remain open. The prior
+constant-search baseline retains **7,328 / 252** differences at its earlier
+checkpoint. No compatibility percentage is inferred from these counts.
+
+Reports and intermediate patches: `sqlite-join-reduced-cursor-*20261025.*`.
+Public harness: `scripts/run-join-reduced-cursor-differential.py`, supplemented
+by the existing joined read/order/write and strict saved-failure harnesses.
+The exact earlier harness revisions are retained beside their results.

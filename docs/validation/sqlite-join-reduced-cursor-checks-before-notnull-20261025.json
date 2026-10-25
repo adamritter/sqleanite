@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "4596531583f765ece5b65d6df7b89b1fd012b3874fcaa0b21a8b0d75cc5b1ad7",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "4ff705471b28b549ca7ea7ace97b25a41ed56aed7ae7da2745745a529d69dbd0",
+      "tail": [
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 1,
+      "sha256": "f49ee8feac5d8fe15d93f2ac71e4bc5fbb72bb05afa97fd04759e08878316567",
+      "tail": [
+        "ok - SQLite RIGHT USING merged values, qualification and CTAS metadata",
+        "ok - SQLite FULL USING coalesced values, affinity, ordering and CTAS names",
+        "ok - SQLite joined predicate aliases and source-name priority",
+        "ok - SQLite joined compound result slots and expression binding",
+        "ok - SQLite joined scalar expressions, aggregates and dynamic ON",
+        "ok - SQLite joined evaluation order and early WHERE filtering",
+        "ok - SQLite joined cursor initialization and empty-input search keys",
+        "ok - SQLite reduced outer cursors and transitive rowid ranges"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "c33c9cb85b752cbaed0166a2eb9e26e453e867ea335914173495d69915326ac3",
+      "tail": [
+        "ok - FULL shared names coalesce values and retain source affinity and ordering",
+        "ok - joined ON/WHERE aliases preserve source priority and original result expressions",
+        "ok - joined compound ORDER BY uses expanded result slots and bound source identities",
+        "ok - joined expression fallback binds original sources and preserves existing Core reads",
+        "ok - joined expression scans preserve source direction and conservative outer reduction",
+        "ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution",
+        "ok - joined cursor initialization preserves computed key errors and empty scan termination",
+        "ok - empty join adapters retain WHERE planning and propagate rowid bounds"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "67a78b42158446c4ef5e54e20af567d0167ac8b4fa26e809571fd7fe4add7cec"
+}

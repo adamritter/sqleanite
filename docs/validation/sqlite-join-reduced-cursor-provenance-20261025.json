@@ -1,0 +1,32 @@
+{
+  "evaluation": "Provenance of development negatives and their exact source/harness snapshots. Production patches apply to the prior published feature-branch checkpoint; draft components are separately labelled.",
+  "base_published_commit": "9661645dbc6045d8957b9d09b7517c2799a37be9",
+  "patches": [
+    {
+      "path": "sqlite-join-reduced-cursor-before-notnull-ranges-source-20261025.patch.txt",
+      "sha256": "5f45314859d5c4d0222f7f4ad85f86f165117cfe2fa264026f4476200eee2c9b"
+    },
+    {
+      "path": "sqlite-join-reduced-cursor-before-notnull-source-20261025.patch.txt",
+      "sha256": "ecae433184917b50d8b95b6509ef0541b9f69a8df24670534262faba522831fb"
+    },
+    {
+      "path": "sqlite-join-reduced-cursor-development-source-20261025.patch.txt",
+      "sha256": "a25136d3ab9afc4962960254e86789b74c65261235fc3672fe9819a15f8e6644"
+    }
+  ],
+  "harnesses": [
+    {
+      "path": "sqlite-join-reduced-cursor-before-conjuncts-harness-20261025.py.txt",
+      "sha256": "d57680b9d60d1150d220903a571f2d81d5ce50c4470ef691803f717dc29c4509"
+    },
+    {
+      "path": "sqlite-join-reduced-cursor-before-null-ranges-harness-20261025.py.txt",
+      "sha256": "c251474ca079002167c9827dc16888fb6364d5f03f364d32c0a7a8887bc88c77"
+    },
+    {
+      "path": "sqlite-join-reduced-cursor-notnull-diagnostic-harness-20261025.py.txt",
+      "sha256": "5583d204016942ef8cf52dd1e7cd2d84b3e18848f44589efe516b0a42c03e80a"
+    }
+  ]
+}

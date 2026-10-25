@@ -1,0 +1,149 @@
+{
+  "evaluation": "Pinned C development controls for both outer sides, including non-reduction; not fresh production evaluation",
+  "cases": [
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE a.id IS NOT NULL;",
+      "code": 0,
+      "stdout": "1|\n2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE b.id IS NOT NULL;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SEARCH a USING INTEGER PRIMARY KEY (rowid>?)\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE b.id>1;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SEARCH b USING INTEGER PRIMARY KEY (rowid>?)\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE a.id IS NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) WHERE b.id IS NULL;",
+      "code": 0,
+      "stdout": "1|\n2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE a.id IS NOT NULL;",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.id IS NOT NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE a.id>1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SEARCH a USING INTEGER PRIMARY KEY (rowid>?)\n`--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.id>1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SEARCH b USING INTEGER PRIMARY KEY (rowid>?)\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE a.id IS NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON abs(a.k) WHERE b.id IS NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE a.id IS NOT NULL;",
+      "code": 0,
+      "stdout": "1|\n2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE b.id IS NOT NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE a.id>1;",
+      "code": 0,
+      "stdout": "2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SEARCH a USING INTEGER PRIMARY KEY (rowid>?)\n`--SCAN b LEFT-JOIN\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE b.id>1;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b\n`--RIGHT-JOIN r\n   `--SEARCH b USING INTEGER PRIMARY KEY (rowid>?)\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE a.id IS NULL;",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b LEFT-JOIN\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON abs(a.k) WHERE b.id IS NULL;",
+      "code": 0,
+      "stdout": "1|\n2|\n",
+      "stderr": "",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b LEFT-JOIN\n`--RIGHT-JOIN r\n   `--SCAN b\n"
+    }
+  ]
+}

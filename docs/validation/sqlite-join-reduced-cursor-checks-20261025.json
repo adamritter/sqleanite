@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "fd06ae52c1258ace0ccbb8480d5c3d19103228e47338f83cd75f5859703cac62",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "05f8136f376e7abfe8b320e386b0affb5cb4f6f80214b63c26071460365a9878",
+      "tail": [
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "\u2714 [353/354] Built Tests:c.o (19s)",
+        "\u2714 [354/354] Built sqleanite_tests:exe (354ms)",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "16bd530848dc5852af5d871d1b9768399abef008162f4869c74fe977deab638e",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "289 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "fd27b7ae3676772b08e5fb0b6a1105f068bbc19eee172c6cdaa2de93ac61b3e8",
+      "tail": [
+        "ok - joined ON/WHERE aliases preserve source priority and original result expressions",
+        "ok - joined compound ORDER BY uses expanded result slots and bound source identities",
+        "ok - joined expression fallback binds original sources and preserves existing Core reads",
+        "ok - joined expression scans preserve source direction and conservative outer reduction",
+        "ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution",
+        "ok - joined cursor initialization preserves computed key errors and empty scan termination",
+        "ok - empty join adapters retain WHERE planning and propagate rowid bounds",
+        "ok - joined nonnull-rowid filters and ordered null-test preparation remain live"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "929c68a05cbc69f7540db49469f73008a181a887c3e8e32f0b44515f494da258"
+}

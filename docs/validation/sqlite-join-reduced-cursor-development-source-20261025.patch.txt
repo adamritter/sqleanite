@@ -1,0 +1,154 @@
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 3530006..0876192 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -1881,6 +1881,7 @@ WHERE and every other query component retain ordinary translation. -/
+ def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
+     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+     Except String CoreJoin.Query := do
++  if select.where_.isSome then return ← unsupported "empty outer ON with WHERE requires cursor planning"
+   if joinAliasesNeeded select leftSchema rightSchema then unsupported "unresolved joined result alias"
+   let (leftSource, rightSource) ← match select.sources.toList with
+     | [left, right] => .ok (left, right)
+@@ -1897,6 +1898,13 @@ def joinEmptyOnQuery (select : Select) (leftTable rightTable : String)
+   joinQueryWithZero { select with sources := #[leftSource, { rightSource with joinOn := none }] }
+     leftTable rightTable leftSchema rightSchema
+ 
++theorem joinEmptyOnQuery_where_failure (select : Select) (leftTable rightTable : String)
++    (leftSchema rightSchema : Core.Schema) (left right : List Core.Row)
++    (present : select.where_.isSome = true) :
++    (joinEmptyOnQuery select leftTable rightTable leftSchema rightSchema left right).isOk = false := by
++  simp [joinEmptyOnQuery, present, unsupported, bind, Except.bind, Except.isOk]
++  rfl
++
+ def joinQueryForRows (select : Select) (leftTable rightTable : String)
+     (leftSchema rightSchema : Core.Schema) (leftRows rightRows : List Core.Row) :
+     Except String CoreJoin.Query :=
+@@ -2028,6 +2036,7 @@ def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinC
+   | .ok query => .ok query
+   | .error message => do
+       let zero := select.limit == some 0
++      if !zero && select.where_.isSome then return ← throw message
+       unless zero || leftRows.isEmpty || rightRows.isEmpty do throw message
+       if !zero && source.joinOn.any (joinComputedCursorKey context) then throw message
+       for expression in source.joinOn.toList do
+@@ -2042,6 +2051,17 @@ def joinRightBoundForRows (select : Select) (source : TableRef) (context : JoinC
+       | .ok query => .ok query
+       | .error _ => .error message
+ 
++/-- WHERE may remove the outer side and expose early ON evaluation. A failed
++translation with WHERE must reach the general planner, not erase ON merely
++because a source is empty. LIMIT zero retains its independent admission path. -/
++theorem joinRightBoundForRows_where_failure (select : Select) (source : TableRef)
++    (context : JoinContext) (left right : List Core.Row) (message : String)
++    (failed : joinQueryBound select source context = .error message)
++    (nonzero : (select.limit == some 0) = false) (present : select.where_.isSome = true) :
++    joinRightBoundForRows select source context left right = .error message := by
++  simp [joinRightBoundForRows, failed, nonzero, present]
++  rfl
++
+ /-- FULL merged output operands need their actual coalesced value for sorting.
+ The original source reference remains available for ordinary column terms. -/
+ def joinFullOrderValue (context : JoinContext)
+@@ -3097,6 +3117,64 @@ def joinSearchConstantRoot (context : JoinContext) (prepared : JoinScalarPrepare
+     unless ref.side == side && ref.column == schema.primaryKey && values.all prepared.context.constantExpression do none
+     return .membership column values.toList
+ 
++/-- Keep a constraint's operation and key expression while propagating its
++rowid column across a direct rowid equality. -/
++def JoinSearchKey.retarget (key : JoinSearchKey) (column : Expr) : JoinSearchKey :=
++  { key with column }
++
++theorem JoinSearchKey.retarget_value (key : JoinSearchKey) (column : Expr) :
++    (key.retarget column).value = key.value ∧
++      (key.retarget column).operation = key.operation := ⟨rfl, rfl⟩
++
++def joinSearchRowidEquality (context : JoinContext) (prepared : JoinScalarPrepared)
++    (on : Option Expr) : Bool :=
++  (on.map SQLite.Scalar.conditionTerms |>.getD []).any fun term =>
++    match SQLite.ExprCollation.strip term with
++    | .binary .eq left right =>
++        match joinScalarReference context prepared left, joinScalarReference context prepared right with
++        | some l, some r => l.side != r.side &&
++            l.column == (if l.side == .left then context.leftSchema else context.rightSchema).primaryKey &&
++            r.column == (if r.side == .left then context.leftSchema else context.rightSchema).primaryKey
++        | _, _ => false
++    | _ => false
++
++def joinSearchRangeBound (context : JoinContext) (prepared : JoinScalarPrepared)
++    (term : Expr) : Option (CoreJoin.Side × JoinSearchKey) := do
++  let key ← joinSearchKey? context prepared .left term <|> joinSearchKey? context prepared .right term
++  unless [.lt, .le, .gt, .ge].contains key.operation && prepared.context.constantExpression key.value do none
++  let ref ← joinScalarReference context prepared key.column
++  unless ref.column == (if ref.side == .left then context.leftSchema else context.rightSchema).primaryKey do none
++  return (ref.side, key)
++
++/-- A direct rowid equality carries constant bounds from either source to the
++outer cursor. The key value and comparison operator are retained unchanged. -/
++def joinSearchRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
++    (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
++  let equal := joinSearchRowidEquality context prepared on
++  let keys := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
++    let (origin, key) ← joinSearchRangeBound context prepared term
++    unless origin == side || equal do none
++    return key
++  let lower := joinSearchChoose prepared (keys.filter (fun key => [.gt, .ge].contains key.operation))
++  let upper := joinSearchChoose prepared (keys.filter (fun key => [.lt, .le].contains key.operation))
++  unless lower.isSome || upper.isSome do none
++  let schema := if side == .left then context.leftSchema else context.rightSchema
++  let column ← joinScalarOperand context (.column ⟨side, schema.primaryKey⟩)
++  return .range (lower.map (·.retarget column)) (upper.map (·.retarget column))
++
++/-- For the unordered two-source range/point shape, the derived right range
++drives the left point lookup. Extra left filters retain the left-driven plan. -/
++def joinSearchTransitiveRoot (context : JoinContext) (prepared : JoinScalarPrepared)
++    (on : Option Expr) : Option JoinSearchAccess := do
++  unless joinSearchRowidEquality context prepared on do none
++  let onTerms := on.map SQLite.Scalar.conditionTerms |>.getD []
++  if onTerms.any (fun term => joinScalarOnlySide context prepared .left term &&
++      !prepared.context.constantExpression term) then none
++  let whereTerms := prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
++  unless whereTerms.all (fun term => prepared.context.constantExpression term ||
++      (joinSearchRangeBound context prepared term).any (fun bound => bound.1 == .left)) do none
++  joinSearchRangeRoot context prepared .right on
++
+ /-- One source traversal plan serves both streaming and materialized results.
+ A right-driven rowid lookup also determines the order in which a bounded sorter
+ sees candidates; it must not be changed to a left-driven cross product. -/
+@@ -3115,7 +3193,10 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+   let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
+   let leftRoot := if mayExchange then joinSearchConstantRoot context prepared .left on else none
+-  let rightRoot := if mayExchange then joinSearchConstantRoot context prepared .right on else none
++  let rightRoot := if mayExchange then
++      (joinSearchConstantRoot context prepared .right on).orElse
++        (fun _ => if terms.isEmpty then joinSearchTransitiveRoot context prepared on else none)
++    else none
+   let leadingLeft := terms.head?.any (fun term =>
+     (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+   let rightRoot := match rightRoot with
+@@ -3134,6 +3215,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+     (joinScalarReference context prepared term.expr).any
+       (fun ref => ref.side != outerSide && ref.column == innerSchema.primaryKey))
+   let outerReverse := leadingOuter && terms.head?.any (·.descending)
++  let root := root.orElse (fun _ => if !source.leftJoin && !source.rightJoin then
++      joinSearchRangeRoot context prepared outerSide on else none)
++  let root := match root with
++    | some (.range start finish) => if outerReverse then some (.range finish start) else root
++    | _ => root
+   let automatic := !exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
+   let innerPoint := if exchanged then probesLeft else probesRight
+   let outerTermsOnly := terms.all (fun term => (joinScalarReference context prepared term.expr).any
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index a9d1af3..e9db3d5 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1508,3 +1508,8 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreSQL.joinSearchCandidates_point_error
+ #print axioms SQLeanite.CoreSQL.joinSearchCandidates_scan_empty
+ #print axioms SQLeanite.CoreSQL.joinSearchCandidates_automatic_empty
++
++#print axioms SQLeanite.CoreSQL.JoinSearchKey.retarget_value
++#print axioms SQLeanite.CoreSQL.joinRightBoundForRows_where_failure
++
++#print axioms SQLeanite.CoreSQL.joinEmptyOnQuery_where_failure
