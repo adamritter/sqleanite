@@ -2446,3 +2446,47 @@ do not establish complete INSERT or SELECT equivalence. A development compile
 failure in the new width theorem was corrected before evaluation. Native code
 and the nine-binding audit boundary are unchanged. Reports use
 `sqlite-insert-select-*20261025.json` under `docs/validation/`.
+
+## VALUES queries and compound lowering (2026-10-25)
+
+Production `VALUES` now executes through the checked Core grammar, including
+multiple rows and compound SELECTs. First-row projection metadata is replayed
+against the same source tokens as the actual first VALUES row; a forged AST
+cannot replace the output expression behind an unchanged SQL spelling.
+Single-row VALUES uses the ordinary scalar/aggregate constant SELECT path.
+Multi-row VALUES validates each scalar row and keeps the 2,000-column bound;
+unequal widths and ORDER BY/LIMIT after a final VALUES core are rejected.
+
+`SQLite.Values` follows the constant-expression lowering in pinned
+`insert.c:sqlite3MultiValues`: initial affinity-bearing rows remain separate
+SELECTs, while a row without affinity starts a coroutine if another row follows.
+This determines collation precedence, synthetic `columnN` binding, and which
+OFFSET-skipped expressions are evaluated. Multi-row VALUES on the right of a
+compound has the separate subquery-column metadata used by `parse.y`.
+Compound binding uses the actual lowered projections; a coroutine does not
+expose its defining expression as an outer ORDER BY expression. No query result
+or reference output controls this decision. The direct-prefix length bound and
+VALUES state preservation have kernel-checked component proofs; existing
+translated-read claims retain their premises and conclusions.
+
+Negative evidence is retained in `sqlite-values-query-negative-20261025.json`
+(92 differences / 128 cases), `sqlite-values-query-development-20261025.json`
+(4 / 168), and `sqlite-values-query-collation-negative-20261025.json` (2 / 520).
+The last report exposed the CAST/collation lowering difference. The expanded
+development run has 310 cases without differences. Final-checkpoint evaluation
+uses fresh seed 353984 with 400 new generated queries: **1,030 public-file
+executions, zero differences**, including 80 positive-error outcomes.
+Both file modes are exercised. Successful reads compare exact output bytes and
+retain main/WAL bytes; INSERT-from-VALUES compounds are reopened independently
+with pinned SQLite for stored type/hex values and integrity. Error comparison
+checks rejection, not exact error codes/messages or partial-output equivalence.
+The fixed regressions include 1,001 rows and the 2,000/2,001-column boundary.
+
+Implementation SHA-256: `9170396059a49e57e93cfd7884212ca70d246d65f5f4edaa7bd355425638c5c2`. The matching checks
+report records a successful 292-job build, **219 executable tests**, the
+verification and live-path audits, and 61 accepted reverse-file cells with two
+explicitly unsupported cells. The nine native bindings are unchanged.
+Reports: `docs/validation/sqlite-values-query-20261025.json` and
+`docs/validation/sqlite-values-query-checks-20261025.json`; reproducible harness:
+`scripts/run-values-query-differential.py`. This evidence covers the stated
+VALUES forms, not CTEs, correlated subqueries, windows, or full SQLite equality.

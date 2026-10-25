@@ -4597,6 +4597,45 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteValuesQuery : IO Unit := do
+  let cases : List (String × List (List Value)) := [
+    ("VALUES(1),(2),(NULL);", [[.integer 1], [.integer 2], [.null]]),
+    ("VALUES(sum(1),count(*));", [[.integer 1, .integer 1]]),
+    ("VALUES(1),(2) UNION ALL SELECT 3 ORDER BY column1 DESC LIMIT 2;", [[.integer 3], [.integer 2]]),
+    ("SELECT 1 UNION ALL VALUES(2),(3);", [[.integer 1], [.integer 2], [.integer 3]]),
+    ("VALUES('a' COLLATE nocase),('b') UNION SELECT 'A';", [[.text "A"], [.text "b"]]),
+    ("VALUES('a'),('b' COLLATE nocase) UNION SELECT 'A';", [[.text "A"], [.text "a"], [.text "b"]]),
+    ("VALUES(CAST('a' AS TEXT)),('b' COLLATE nocase) UNION SELECT 'A';", [[.text "A"], [.text "b"]]),
+    ("SELECT 'A' UNION VALUES(CAST('a' AS TEXT)),('b' COLLATE nocase);", [[.text "A"], [.text "a"], [.text "b"]]),
+    ("VALUES(CAST(abs(-9223372036854775808) AS TEXT)),(2) UNION ALL SELECT 3 LIMIT 1 OFFSET 1;", [[.integer 2]]),
+    ("VALUES(abs(-9223372036854775808)) UNION ALL SELECT 3 LIMIT 1 OFFSET 1;", [[.integer 3]]),
+    ("VALUES(abs(-9223372036854775808)),(2) UNION ALL SELECT 3 LIMIT 0;", []),
+    ("VALUES(1),(abs(-9223372036854775808)) UNION ALL SELECT 3 LIMIT 1;", [[.integer 1]])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"VALUES query: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail s!"VALUES query mismatch: {sql}"
+  for sql in ["VALUES();", "VALUES(1),(2,3);", "VALUES(1) LIMIT -1;", "VALUES(1) ORDER BY 1;",
+      "VALUES(sum(1)),(2);", "VALUES(1),(sum(2));", "VALUES(1) UNION ALL SELECT 2 ORDER BY column1;",
+      "SELECT 1 UNION ALL VALUES(2) LIMIT 0;",
+      "VALUES(CAST('a' AS TEXT)),('b' COLLATE nocase) UNION ALL SELECT 'A' ORDER BY column1;",
+      "VALUES(1+2),(4) UNION ALL SELECT 5 ORDER BY 1+2;",
+      "VALUES(abs(-9223372036854775808)),(2) UNION ALL SELECT 3 LIMIT 1 OFFSET 1;",
+      "VALUES(1),(abs(-9223372036854775808)) UNION ALL SELECT 3 ORDER BY 1 LIMIT 1;"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail s!"VALUES error omitted: {sql}"
+  let sql := "VALUES(1),(2);"
+  let parsed : CoreTokenGrammar.CertifiedParse sql ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "VALUES AST missing"
+  let forged := { query with columns := #[{ expr := .literal (.integer 99), alias := some "column1", sourceSql := some "1" }] }
+  if (CoreTokenGrammar.check parsed.tokens #[.select forged]).isOk then
+    fail "VALUES checker trusted a forged first-row projection"
+
 private def expectSQLiteInsertSelect : IO Unit := do
   let setup := "CREATE TABLE src(id INTEGER PRIMARY KEY,v);INSERT INTO src VALUES(1,'3'),(2,'4');" ++
     "CREATE TABLE dst(id INTEGER PRIMARY KEY,v INTEGER);CREATE TABLE empty(id INTEGER PRIMARY KEY,v);"
@@ -5798,6 +5837,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite VALUES queries, compound windows and metadata checking", expectSQLiteValuesQuery),
   ("SQLite INSERT SELECT snapshots, affinity and empty sources", expectSQLiteInsertSelect),
   ("SQLite DROP tables and indexes with transaction rollback", expectSQLiteDrop),
   ("SQLite file read/write versions and schema-format admission", expectSQLiteHeaderVersions),

@@ -744,6 +744,21 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# VALUES result metadata is replayed against the source, and its multi-row
+# coroutine keeps a separate OFFSET evaluation rule from scalar SELECT.
+if grep -q 'matchValuesBase query rows' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'the same first VALUES row' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'select.valueRows.isSome then executeValues state select' SQLeanite/CoreSQL.lean &&
+   grep -q 'let row ← constantRow { select with valueRows := none }' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.Values.directCount rows.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.Values.collations rows.toList wrappedValues' SQLeanite/CoreSQL.lean &&
+   grep -q 'SQLite.Values.directCount_le_length' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.executeValues_preserves_state' SQLeanite/ProofAxioms.lean; then
+  ok "VALUES queries use checked metadata and their own row-evaluation discipline"
+else
+  fail "VALUES parsing or row execution is disconnected from its checks"
+fi
+
 # INSERT SELECT evaluates a source snapshot, validates even empty projections,
 # and routes evaluated values through the existing checked INSERT machinery.
 if grep -q 'let selection ← executeSelect state query' SQLeanite/CoreSQL.lean &&

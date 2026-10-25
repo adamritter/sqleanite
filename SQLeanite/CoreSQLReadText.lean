@@ -201,13 +201,18 @@ theorem translatedRead_noCompounds {state : Core.State} {select : Select} {comma
     (translated : TranslatedRead state (.select select) command) : select.compounds = #[] := by
   cases translated <;> assumption
 
+theorem translatedRead_sources_nonempty {state : Core.State} {select : Select}
+    {command : Core.Command} (translated : TranslatedRead state (.select select) command) :
+    select.sources.isEmpty = false := by
+  cases translated <;> simp_all
+
 theorem translatedRead_resultCollation_false {state : Core.State} {select : Select}
     {command : Core.Command} (translated : TranslatedRead state (.select select) command) (fuel : Nat) :
     CoreSQL.resultCollationFuel fuel select = false := by
   cases fuel with
   | zero => rfl
   | succ fuel => simp [CoreSQL.resultCollationFuel, translatedRead_noCompounds translated,
-      translatedRead_columnsCollation_false translated]
+      translatedRead_columnsCollation_false translated, translatedRead_sources_nonempty translated]
 
 /-- The number of values produced by a translated read command.  Unsupported
 write commands are assigned zero; `TranslatedRead` ensures they cannot occur
@@ -460,9 +465,11 @@ theorem executeStatement_binary_eq_core
         armNoCompounds
       have leftColumns := translatedRead_columnsCollation_false leftTranslated
       have rightColumns := translatedRead_columnsCollation_false rightTranslated
+      have leftSource := translatedRead_sources_nonempty leftTranslated
+      have rightSource := translatedRead_sources_nonempty rightTranslated
       have noCollation : CoreSQL.requiresCompoundCollation select = false := by
         simp [CoreSQL.requiresCompoundCollation, height, CoreSQL.resultCollationFuel,
-          compounds, leftColumns, rightColumns, armNoCompounds]
+          compounds, leftColumns, rightColumns, leftSource, rightSource, armNoCompounds]
       have leftBase := executeSelectBase_eq_core leftTranslated
       have rightBase := executeSelectBase_eq_core rightTranslated
       have armBase : { arm with compounds := #[] } = arm := by
@@ -559,6 +566,7 @@ theorem translatedCompound_resultCollation_false (fuel : Nat) {state : Core.Stat
       cases translated with
       | node select base syntaxArms planArms shape syntaxEq baseTranslated armsTranslated =>
           have head := translatedRead_columnsCollation_false baseTranslated
+          have source := translatedRead_sources_nonempty baseTranslated
           let rec armsDefault {syntaxTail : List (CompoundOp × Select)}
               {planTail : List (CompoundOp × CompoundReadPlan)}
               (valid : TranslatedCompoundReadArms state syntaxTail planTail) :
@@ -570,7 +578,7 @@ theorem translatedCompound_resultCollation_false (fuel : Nat) {state : Core.Stat
                 rcases List.mem_cons.mp member with rfl | member
                 · exact ihFuel head
                 · exact armsDefault tail entry member
-          simp only [CoreSQL.resultCollationFuel, head, Bool.false_or, ← Array.any_toList,
+          simp only [CoreSQL.resultCollationFuel, head, source, Bool.false_and, Bool.false_or, ← Array.any_toList,
             syntaxEq, List.any_eq_false]
           intro entry member
           rw [armsDefault armsTranslated entry member]

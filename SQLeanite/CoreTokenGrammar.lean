@@ -608,7 +608,45 @@ private def matchSources : List TableRef → MatchM Unit
       matchTableFactor source
       for next in sources do matchJoinSource next
 
+private def matchRows : List (Array Expr) → MatchM Unit
+  | [] => mismatch "at least one VALUES row"
+  | row :: rows => do
+      expectSymbol "("
+      matchExprList row.toList
+      expectSymbol ")"
+      for next in rows do
+        expectSymbol ","
+        expectSymbol "("
+        matchExprList next.toList
+        expectSymbol ")"
+
+
+/-- Replay the first VALUES row twice: once as result metadata and once as
+its actual value row. Neither AST copy may hide a different expression. -/
+private def matchValuesBase (query : Select) (rows : Array (Array Expr)) : MatchM Unit := do
+  unless query.sources.isEmpty && query.where_.isNone && query.groupBy.isEmpty &&
+      query.having.isNone && !query.distinct && rows.all (fun row => !row.isEmpty) do
+    mismatch "a nonempty VALUES row list without SELECT clauses"
+  let some first := rows[0]? | mismatch "at least one VALUES row"
+  unless first.size == query.columns.size do mismatch "VALUES result column count"
+  for i in [:first.size] do
+    let some value := first[i]? | mismatch "VALUES first row"
+    let some column := query.columns[i]? | mismatch "VALUES result column"
+    unless column.alias == some s!"column{i + 1}" && column.sourceSql == some value.sql do
+      mismatch "VALUES result-column metadata"
+  expectKeyword "values"
+  let start ← get
+  matchRows [query.columns.map (·.expr)]
+  let afterColumns ← get
+  set start
+  matchRows [first]
+  unless (← get).remaining == afterColumns.remaining do mismatch "the same first VALUES row"
+  for row in rows.toList.drop 1 do
+    expectSymbol ","
+    matchRows [row]
+
 private def matchSelectBase (query : Select) : MatchM Unit := do
+  if let some rows := query.valueRows then return ← matchValuesBase query rows
   expectKeyword "select"
   if query.distinct then expectKeyword "distinct"
   else discard <| acceptKeyword "all"
@@ -642,28 +680,20 @@ private def matchSelectArm (query : Select) : MatchM Unit := do
   matchSelectBase query
 
 private def matchSelect (query : Select) : MatchM Unit := do
-  unless query.valueRows.isNone do mismatch "SELECT rather than top-level VALUES"
   matchSelectBase query
   for arm in query.compounds do
     matchCompoundOp arm.1
     matchSelectArm arm.2
+  let lastValues := (query.compounds.toList.getLast?).map
+    (fun arm => arm.2.valueRows.isSome) |>.getD query.valueRows.isSome
+  if lastValues && (isKeyword (← peek) "order" || isKeyword (← peek) "limit") then
+    mismatch "a final SELECT arm before ORDER BY or LIMIT"
   unless query.orderBy.isEmpty do
     expectKeyword "order"
     expectKeyword "by"
     matchOrderTerms query.orderBy.toList
   matchLimit query
 
-private def matchRows : List (Array Expr) → MatchM Unit
-  | [] => mismatch "at least one VALUES row"
-  | row :: rows => do
-      expectSymbol "("
-      matchExprList row.toList
-      expectSymbol ")"
-      for next in rows do
-        expectSymbol ","
-        expectSymbol "("
-        matchExprList next.toList
-        expectSymbol ")"
 
 private def matchAssignments : List (String × Expr) → MatchM Unit
   | [] => mismatch "at least one assignment"

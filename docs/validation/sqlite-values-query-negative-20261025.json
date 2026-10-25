@@ -1,0 +1,2332 @@
+{
+  "seed": 353980,
+  "random_cases": 20,
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1,'a'),(NULL,'b'),(2.0,X'00FF');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\n|b\n2.0|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \")\": syntax error\n  VALUES();\n         ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2,3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1,2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1) ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"ORDER\": syntax error\n  VALUES(1) ORDER BY 1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  VALUES(1) LIMIT 0;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1) LIMIT -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  VALUES(1) LIMIT -1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1) OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"OFFSET\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"OFFSET\": syntax error\n  VALUES(1) OFFSET 1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(missing);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  VALUES(missing);\n         ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(sum(1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(abs(-9223372036854775808)),(missing);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  VALUES(abs(-9223372036854775808)),(missing);\n                       error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(0),(1),(1.0),(TRUE),(FALSE);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n0\n1\n1.0\n1\n0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1) UNION ALL SELECT 2 ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "SELECT 1 UNION ALL VALUES(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "SELECT 1 UNION ALL VALUES(2),(3) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  SELECT 1 UNION ALL VALUES(2),(3) LIMIT 1;\n                     error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION VALUES(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) INTERSECT SELECT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(1),(2) EXCEPT VALUES(1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION SELECT 3 ORDER BY 1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION SELECT 3 ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a'),('b' COLLATE nocase) UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\na\nb\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE nocase),('b') UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE nocase),('A' COLLATE missing) UNION SELECT 'a';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE missing),('b') UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT id FROM src ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n2\n1\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT id FROM src ORDER BY column1 DESC LIMIT 3 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n  VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 2;\n                              error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 0 OFFSET NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "SELECT 1,2 UNION ALL VALUES(3,4),(5,6);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|4\n5|6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1,unistr('a\\u00e9'),printf('%g',1.25),1),(1.0,unistr('a\\u00e9'),1,'a'),(1e999,CAST(X'610062' AS TEXT),'A' COLLATE nocase,1e999),(CAST(X'610062' AS TEXT),X'00FF',-1,'a'),(1.0,1.0,printf('%g',1.25),CAST(X'80FF' AS TEXT)),(0,printf('%g',1.25),'a',1.0),(-1,CAST(X'610062' AS TEXT),1e999,0),(1e999,CAST(X'80FF' AS TEXT),-0.0,NULL),(CAST(X'610062' AS TEXT),X'00FF',CAST(X'610062' AS TEXT),unistr('a\\u00e9')),(CAST(X'80FF' AS TEXT),printf('%g',1.25),1e999,-1) INTERSECT SELECT printf('%g',1.25),1.0,CAST(X'610062' AS TEXT),'a' ORDER BY 1 ASC LIMIT 9 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(printf('%g',1.25),-0.0,NULL) UNION SELECT X'00FF',CAST(X'80FF' AS TEXT),1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.25|0.0|\n|\u0080\u00ff|1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(CAST(X'80FF' AS TEXT)),(CAST(X'610062' AS TEXT)),(unistr('a\\u00e9')),(1e999),(1.0),(-0.0),('A' COLLATE nocase),('A' COLLATE nocase),(1e999) INTERSECT SELECT -1 ORDER BY 1 ASC LIMIT 7 OFFSET 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a'),(-1),(0),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n-1\n0\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1),(X'00FF'),(CAST(X'80FF' AS TEXT)),('a'),(-0.0),(1e999),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n\n\u0080\u00ff\na\n0.0\nInf\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(CAST(X'80FF' AS TEXT)),(NULL) UNION ALL SELECT -0.0 ORDER BY 1 ASC LIMIT 7 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0.0\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(unistr('a\\u00e9'),1e999,-0.0),(CAST(X'80FF' AS TEXT),CAST(X'610062' AS TEXT),1),(1.0,unistr('a\\u00e9'),NULL),(1e999,-1,X'00FF'),(-1,NULL,NULL),(NULL,printf('%g',1.25),printf('%g',1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00c3\u00a9|Inf|0.0\n\u0080\u00ff|a|1\n1.0|a\u00c3\u00a9|\nInf|-1|\n-1||\n|1.25|1.25\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a',1.0,printf('%g',1.25)),(-1,-0.0,CAST(X'80FF' AS TEXT)),(NULL,1e999,unistr('a\\u00e9')),('a',X'00FF',1e999);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|1.0|1.25\n-1|0.0|\u0080\u00ff\n|Inf|a\u00c3\u00a9\na||Inf\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(-1,-1,printf('%g',1.25)),(-0.0,-0.0,-0.0),('a',CAST(X'80FF' AS TEXT),printf('%g',1.25)),(X'00FF',1e999,CAST(X'610062' AS TEXT)),(-0.0,1.0,CAST(X'80FF' AS TEXT)),(1,CAST(X'80FF' AS TEXT),printf('%g',1.25)),('A' COLLATE nocase,printf('%g',1.25),printf('%g',1.25)),(NULL,CAST(X'80FF' AS TEXT),unistr('a\\u00e9')),(0,1e999,CAST(X'610062' AS TEXT)),('A' COLLATE nocase,-1,1e999),(CAST(X'80FF' AS TEXT),1.0,1.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1|-1|1.25\n0.0|0.0|0.0\na|\u0080\u00ff|1.25\n|Inf|a\n0.0|1.0|\u0080\u00ff\n1|\u0080\u00ff|1.25\nA|1.25|1.25\n|\u0080\u00ff|a\u00c3\u00a9\n0|Inf|a\nA|-1|Inf\n\u0080\u00ff|1.0|1.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(X'00FF'),(1.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(NULL,-1,1,-1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|-1|1|-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1,CAST(X'610062' AS TEXT)) EXCEPT SELECT 'a',-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(CAST(X'80FF' AS TEXT)),(CAST(X'80FF' AS TEXT)),(unistr('a\\u00e9')),(CAST(X'80FF' AS TEXT)),(CAST(X'610062' AS TEXT)),(NULL),(1.0),(0),(X'00FF'),(1e999);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\u0080\u00ff\n\u0080\u00ff\na\u00c3\u00a9\n\u0080\u00ff\na\n\n1.0\n0\n\nInf\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(-1,unistr('a\\u00e9'),NULL,'a'),('A' COLLATE nocase,NULL,1,unistr('a\\u00e9')),(-0.0,1.0,'A' COLLATE nocase,0),(1e999,1e999,1.0,1e999) UNION ALL SELECT 1.0,CAST(X'610062' AS TEXT),-1,X'00FF';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1|a\u00c3\u00a9||a\nA||1|a\u00c3\u00a9\n0.0|1.0|A|0\nInf|Inf|1.0|Inf\n1.0|a|-1|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(CAST(X'80FF' AS TEXT),printf('%g',1.25),-0.0),(0,unistr('a\\u00e9'),printf('%g',1.25)),(printf('%g',1.25),-1,-0.0),('A' COLLATE nocase,CAST(X'610062' AS TEXT),-0.0),(CAST(X'80FF' AS TEXT),NULL,-0.0),(1.0,0,X'00FF'),(1.0,unistr('a\\u00e9'),CAST(X'80FF' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff|1.25|0.0\n0|a\u00c3\u00a9|1.25\n1.25|-1|0.0\nA|a|0.0\n\u0080\u00ff||0.0\n1.0|0|\n1.0|a\u00c3\u00a9|\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1.0),(printf('%g',1.25)),(0),(1.0),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1.25\n0\n1.0\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1.0,'a'),(1.0,'a'),(printf('%g',1.25),-1),(1.0,-1),('A' COLLATE nocase,'a'),('A' COLLATE nocase,printf('%g',1.25)),(1.0,unistr('a\\u00e9')),(NULL,X'00FF') UNION SELECT 1,CAST(X'610062' AS TEXT) ORDER BY 2 ASC LIMIT 2 OFFSET 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A|a\n1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('a',1.0),(X'00FF',1e999),(1e999,X'00FF'),(0,CAST(X'80FF' AS TEXT)),(1.0,1.0),(1e999,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|1.0\n|Inf\nInf|\n0|\u0080\u00ff\n1.0|1.0\nInf|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES(1,'a'),('A' COLLATE nocase,-0.0),(-0.0,1),(0,-1),(unistr('a\\u00e9'),unistr('a\\u00e9')),('a',-1),('a','a'),(printf('%g',1.25),-0.0),(CAST(X'610062' AS TEXT),-1),(1,'a'),(unistr('a\\u00e9'),'A' COLLATE nocase);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\nA|0.0\n0.0|1\n0|-1\na\u00c3\u00a9|a\u00c3\u00a9\na|-1\na|a\n1.25|0.0\na|-1\n1|a\na\u00c3\u00a9|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "read",
+      "sql": "VALUES('A' COLLATE nocase,CAST(X'80FF' AS TEXT)),(0,NULL),(unistr('a\\u00e9'),'a'),(CAST(X'80FF' AS TEXT),printf('%g',1.25)),(CAST(X'80FF' AS TEXT),NULL),(CAST(X'610062' AS TEXT),NULL),(printf('%g',1.25),X'00FF'),(CAST(X'610062' AS TEXT),1e999),(CAST(X'610062' AS TEXT),1e999),(printf('%g',1.25),-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A|\u0080\u00ff\n0|\na\u00c3\u00a9|a\n\u0080\u00ff|1.25\n\u0080\u00ff|\na|\n1.25|\na|Inf\na|Inf\n1.25|0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,'a'),(2,'b') UNION ALL SELECT 3,'c';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n3|integer|33|text|63\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,'a'),(2,'b') UNION SELECT 2,'b';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) SELECT 1,'a' UNION ALL VALUES(2,'b'),(3,'c');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n3|integer|33|text|63\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(1),(2) EXCEPT SELECT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(1),(2) UNION ALL SELECT 3 ORDER BY column1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33|null|\n2|integer|32|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(CAST(X'80FF' AS TEXT)),(NULL) UNION ALL SELECT 1.5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|80FF|null|\n2|null||null|\n3|real|312E35|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1),(2) UNION ALL SELECT 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,2),(3) UNION ALL SELECT 4,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1,'a'),(NULL,'b'),(2.0,X'00FF');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\n|b\n2.0|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \")\": syntax error\n  VALUES();\n         ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2,3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1,2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1) ORDER BY 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"ORDER\": syntax error\n  VALUES(1) ORDER BY 1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  VALUES(1) LIMIT 0;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1) LIMIT -1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  VALUES(1) LIMIT -1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1) OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"OFFSET\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"OFFSET\": syntax error\n  VALUES(1) OFFSET 1;\n            ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(missing);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  VALUES(missing);\n         ^--- error here\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(sum(1));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(abs(-9223372036854775808));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(abs(-9223372036854775808)),(missing);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  VALUES(abs(-9223372036854775808)),(missing);\n                       error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(0),(1),(1.0),(TRUE),(FALSE);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n0\n1\n1.0\n1\n0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1) UNION ALL SELECT 2 ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "SELECT 1 UNION ALL VALUES(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "SELECT 1 UNION ALL VALUES(2),(3) LIMIT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"LIMIT\": syntax error\n  SELECT 1 UNION ALL VALUES(2),(3) LIMIT 1;\n                     error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION VALUES(2),(3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) INTERSECT SELECT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(1),(2) EXCEPT VALUES(1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION SELECT 3 ORDER BY 1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION SELECT 3 ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a'),('b' COLLATE nocase) UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\na\nb\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE nocase),('b') UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A\nb\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE nocase),('A' COLLATE missing) UNION SELECT 'a';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a' COLLATE missing),('b') UNION SELECT 'A';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such collation sequence: missing\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT id FROM src ORDER BY column1 DESC;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n2\n1\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT id FROM src ORDER BY column1 DESC LIMIT 3 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n1\n1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term out of range - should be between 1 and 1\n  VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 2;\n                              error here ---^\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 ORDER BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1st ORDER BY term does not match any column in the result set\n"
+      },
+      "matched": true,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 0 OFFSET NULL;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(2) UNION ALL SELECT 3 LIMIT 2 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n3\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "SELECT 1,2 UNION ALL VALUES(3,4),(5,6);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n3|4\n5|6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1,unistr('a\\u00e9'),printf('%g',1.25),1),(1.0,unistr('a\\u00e9'),1,'a'),(1e999,CAST(X'610062' AS TEXT),'A' COLLATE nocase,1e999),(CAST(X'610062' AS TEXT),X'00FF',-1,'a'),(1.0,1.0,printf('%g',1.25),CAST(X'80FF' AS TEXT)),(0,printf('%g',1.25),'a',1.0),(-1,CAST(X'610062' AS TEXT),1e999,0),(1e999,CAST(X'80FF' AS TEXT),-0.0,NULL),(CAST(X'610062' AS TEXT),X'00FF',CAST(X'610062' AS TEXT),unistr('a\\u00e9')),(CAST(X'80FF' AS TEXT),printf('%g',1.25),1e999,-1) INTERSECT SELECT printf('%g',1.25),1.0,CAST(X'610062' AS TEXT),'a' ORDER BY 1 ASC LIMIT 9 OFFSET 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(printf('%g',1.25),-0.0,NULL) UNION SELECT X'00FF',CAST(X'80FF' AS TEXT),1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.25|0.0|\n|\u0080\u00ff|1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(CAST(X'80FF' AS TEXT)),(CAST(X'610062' AS TEXT)),(unistr('a\\u00e9')),(1e999),(1.0),(-0.0),('A' COLLATE nocase),('A' COLLATE nocase),(1e999) INTERSECT SELECT -1 ORDER BY 1 ASC LIMIT 7 OFFSET 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a'),(-1),(0),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\n-1\n0\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1),(X'00FF'),(CAST(X'80FF' AS TEXT)),('a'),(-0.0),(1e999),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n\n\u0080\u00ff\na\n0.0\nInf\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(CAST(X'80FF' AS TEXT)),(NULL) UNION ALL SELECT -0.0 ORDER BY 1 ASC LIMIT 7 OFFSET 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0.0\n\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(unistr('a\\u00e9'),1e999,-0.0),(CAST(X'80FF' AS TEXT),CAST(X'610062' AS TEXT),1),(1.0,unistr('a\\u00e9'),NULL),(1e999,-1,X'00FF'),(-1,NULL,NULL),(NULL,printf('%g',1.25),printf('%g',1.25));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a\u00c3\u00a9|Inf|0.0\n\u0080\u00ff|a|1\n1.0|a\u00c3\u00a9|\nInf|-1|\n-1||\n|1.25|1.25\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a',1.0,printf('%g',1.25)),(-1,-0.0,CAST(X'80FF' AS TEXT)),(NULL,1e999,unistr('a\\u00e9')),('a',X'00FF',1e999);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|1.0|1.25\n-1|0.0|\u0080\u00ff\n|Inf|a\u00c3\u00a9\na||Inf\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(-1,-1,printf('%g',1.25)),(-0.0,-0.0,-0.0),('a',CAST(X'80FF' AS TEXT),printf('%g',1.25)),(X'00FF',1e999,CAST(X'610062' AS TEXT)),(-0.0,1.0,CAST(X'80FF' AS TEXT)),(1,CAST(X'80FF' AS TEXT),printf('%g',1.25)),('A' COLLATE nocase,printf('%g',1.25),printf('%g',1.25)),(NULL,CAST(X'80FF' AS TEXT),unistr('a\\u00e9')),(0,1e999,CAST(X'610062' AS TEXT)),('A' COLLATE nocase,-1,1e999),(CAST(X'80FF' AS TEXT),1.0,1.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1|-1|1.25\n0.0|0.0|0.0\na|\u0080\u00ff|1.25\n|Inf|a\n0.0|1.0|\u0080\u00ff\n1|\u0080\u00ff|1.25\nA|1.25|1.25\n|\u0080\u00ff|a\u00c3\u00a9\n0|Inf|a\nA|-1|Inf\n\u0080\u00ff|1.0|1.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(X'00FF'),(1.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n1.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(NULL,-1,1,-1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|-1|1|-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1,CAST(X'610062' AS TEXT)) EXCEPT SELECT 'a',-1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(NULL),(CAST(X'80FF' AS TEXT)),(CAST(X'80FF' AS TEXT)),(unistr('a\\u00e9')),(CAST(X'80FF' AS TEXT)),(CAST(X'610062' AS TEXT)),(NULL),(1.0),(0),(X'00FF'),(1e999);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\n\u0080\u00ff\n\u0080\u00ff\na\u00c3\u00a9\n\u0080\u00ff\na\n\n1.0\n0\n\nInf\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(-1,unistr('a\\u00e9'),NULL,'a'),('A' COLLATE nocase,NULL,1,unistr('a\\u00e9')),(-0.0,1.0,'A' COLLATE nocase,0),(1e999,1e999,1.0,1e999) UNION ALL SELECT 1.0,CAST(X'610062' AS TEXT),-1,X'00FF';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-1|a\u00c3\u00a9||a\nA||1|a\u00c3\u00a9\n0.0|1.0|A|0\nInf|Inf|1.0|Inf\n1.0|a|-1|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(CAST(X'80FF' AS TEXT),printf('%g',1.25),-0.0),(0,unistr('a\\u00e9'),printf('%g',1.25)),(printf('%g',1.25),-1,-0.0),('A' COLLATE nocase,CAST(X'610062' AS TEXT),-0.0),(CAST(X'80FF' AS TEXT),NULL,-0.0),(1.0,0,X'00FF'),(1.0,unistr('a\\u00e9'),CAST(X'80FF' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff|1.25|0.0\n0|a\u00c3\u00a9|1.25\n1.25|-1|0.0\nA|a|0.0\n\u0080\u00ff||0.0\n1.0|0|\n1.0|a\u00c3\u00a9|\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1.0),(printf('%g',1.25)),(0),(1.0),(-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.0\n1.25\n0\n1.0\n0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1.0,'a'),(1.0,'a'),(printf('%g',1.25),-1),(1.0,-1),('A' COLLATE nocase,'a'),('A' COLLATE nocase,printf('%g',1.25)),(1.0,unistr('a\\u00e9')),(NULL,X'00FF') UNION SELECT 1,CAST(X'610062' AS TEXT) ORDER BY 2 ASC LIMIT 2 OFFSET 4;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A|a\n1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('a',1.0),(X'00FF',1e999),(1e999,X'00FF'),(0,CAST(X'80FF' AS TEXT)),(1.0,1.0),(1e999,NULL);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|1.0\n|Inf\nInf|\n0|\u0080\u00ff\n1.0|1.0\nInf|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES(1,'a'),('A' COLLATE nocase,-0.0),(-0.0,1),(0,-1),(unistr('a\\u00e9'),unistr('a\\u00e9')),('a',-1),('a','a'),(printf('%g',1.25),-0.0),(CAST(X'610062' AS TEXT),-1),(1,'a'),(unistr('a\\u00e9'),'A' COLLATE nocase);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|a\nA|0.0\n0.0|1\n0|-1\na\u00c3\u00a9|a\u00c3\u00a9\na|-1\na|a\n1.25|0.0\na|-1\n1|a\na\u00c3\u00a9|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "read",
+      "sql": "VALUES('A' COLLATE nocase,CAST(X'80FF' AS TEXT)),(0,NULL),(unistr('a\\u00e9'),'a'),(CAST(X'80FF' AS TEXT),printf('%g',1.25)),(CAST(X'80FF' AS TEXT),NULL),(CAST(X'610062' AS TEXT),NULL),(printf('%g',1.25),X'00FF'),(CAST(X'610062' AS TEXT),1e999),(CAST(X'610062' AS TEXT),1e999),(printf('%g',1.25),-0.0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "A|\u0080\u00ff\n0|\na\u00c3\u00a9|a\n\u0080\u00ff|1.25\n\u0080\u00ff|\na|\n1.25|\na|Inf\na|Inf\n1.25|0.0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "bytes_unchanged": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,'a'),(2,'b') UNION ALL SELECT 3,'c';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n3|integer|33|text|63\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,'a'),(2,'b') UNION SELECT 2,'b';",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) SELECT 1,'a' UNION ALL VALUES(2,'b'),(3,'c');",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31|text|61\n2|integer|32|text|62\n3|integer|33|text|63\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(1),(2) EXCEPT SELECT 1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(1),(2) UNION ALL SELECT 3 ORDER BY column1 DESC LIMIT 2;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33|null|\n2|integer|32|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v) VALUES(CAST(X'80FF' AS TEXT)),(NULL) UNION ALL SELECT 1.5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|80FF|null|\n2|null||null|\n3|real|312E35|null|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1),(2) UNION ALL SELECT 3;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: 1 values for 2 columns\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "--verified-wal-file",
+      "operation": "write",
+      "sql": "INSERT INTO out(v,w) VALUES(1,2),(3) UNION ALL SELECT 4,5;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected SELECT rather than top-level VALUES, found VALUES\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: all VALUES must have the same number of terms\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "failures": 92,
+  "implementation_sha256": "bdeaa889a933571d38664fd877a787e27e4963ad42bf45016144ebf48c5bb484",
+  "executable_sha256": "870150a75a73e751d5717b5b6f9918384c1bccb0865b21260c342b052ff447a6",
+  "harness_sha256": "c694374c37ccde4f0d74eb70330d778aaf6469b0411de9e40a3eb3b4c293c19d",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Standalone/compound VALUES and INSERT from VALUES compounds.\n\nSuccessful reads compare exact bytes; errors compare positive exit status.\nAll successful or failed writes are independently observed with pinned SQLite.\nRead-only calls must retain the main/WAL byte images. No global coverage claim."
+}

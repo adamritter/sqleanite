@@ -1242,3 +1242,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSQL.insertSelection_empty
 #print axioms SQLeanite.CoreSQL.checkInsertSelectColumns_all
+
+#print axioms SQLeanite.CoreSQL.executeValues_preserves_state
+
+#print axioms SQLeanite.SQLite.Values.directCount_le_length
