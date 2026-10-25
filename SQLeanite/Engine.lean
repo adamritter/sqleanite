@@ -4047,6 +4047,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     if db.triggers.any (fun trigger => nameEq trigger.name name) then
       pure ({ db with triggers := db.triggers.filter fun trigger => !nameEq trigger.name name }, {})
     else if ifExists then pure (db, {}) else throw s!"no such trigger: {name}"
+  | .alterDropColumn .. => throw "ALTER TABLE DROP COLUMN is implemented by the production Core engine"
   | .alterAddColumn tableName definition => do
     let table ← optionOr (findTable? db tableName) s!"no such table: {tableName}"
     if table.columns.any (fun column => nameEq column.name definition.name) then
@@ -4431,7 +4432,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
 private def Statement.writes : Statement → Bool
   | .createTable .. | .createTableAs .. | .createView ..
   | .dropTable .. | .dropView .. | .createIndex .. | .dropIndex ..
-  | .createTrigger .. | .dropTrigger .. | .alterAddColumn .. | .alterRenameTable .. | .alterRenameColumn ..
+  | .createTrigger .. | .dropTrigger .. | .alterAddColumn .. | .alterDropColumn .. | .alterRenameTable .. | .alterRenameColumn ..
   | .insert .. | .insertSelect .. | .delete .. | .update .. | .reindex => true
   | .withRecursive .. | .withCte .. => true
   | _ => false

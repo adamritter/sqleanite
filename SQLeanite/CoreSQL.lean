@@ -3,6 +3,7 @@ import SQLeanite.CoreNames
 import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreSchemaRename
 import SQLeanite.CoreSchemaAdd
+import SQLeanite.CoreSchemaDropColumn
 import SQLeanite.CoreOptimizerBridge
 import SQLeanite.CoreTokenGrammar
 import SQLeanite.SQLSurface
@@ -2231,6 +2232,15 @@ def schemaNoop (state : Core.State) : Statement → Bool
 
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
+  | .alterDropColumn table name => do
+      let tableName := resolveTableName state table
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {table}"
+      let position ← indexColumn stored.schema name
+      let updated ← CoreSchemaDropColumn.table stored position
+      let database ← state.database.updateTable updated
+      return ({ state with database }, [{}])
   | .alterAddColumn table definition => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with

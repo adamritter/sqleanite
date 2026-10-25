@@ -4597,6 +4597,61 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteSchemaDropColumn : IO Unit := do
+  for definition in ["A INTEGER,B TEXT,C INTEGER PRIMARY KEY",
+      "A INTEGER,B TEXT PRIMARY KEY,C INTEGER", "A INTEGER,B TEXT,C INTEGER"] do
+    let sql := s!"CREATE TABLE t({definition});CREATE INDEX Ci ON t(C);" ++
+      "INSERT INTO t(A,B,C,rowid) VALUES(101,'one',10,17),(202,'two',20,91);"
+    let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail message
+    let some before := state.database.findTable? "t" | fail "DROP COLUMN source missing"
+    let (next, results) ← match CoreSQL.execute state
+        "ALTER TABLE T DROP COLUMN a;SELECT B,oid FROM t WHERE C IN (10,17) ORDER BY oid;" with
+      | .ok result => pure result
+      | .error message => fail s!"DROP COLUMN: {message}"
+    let some after := next.database.findTable? "t" | fail "DROP COLUMN table missing"
+    unless after.schema.catalogColumns.map (·.name) == ["B","C"] do fail "DROP COLUMN removed wrong metadata"
+    unless after.rows.map (·.rowid) == before.rows.map (·.rowid) do fail "DROP COLUMN changed rowids"
+    unless (after.indexes.find? (fun index => index.name == "Ci")).map (·.column) == some 1 do
+      fail "DROP COLUMN did not shift the existing index to C's new position"
+    let expected : List (List Value) := [[.text "one",.integer 17]]
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows do fail "DROP COLUMN changed indexed query results"
+    let some image := CoreFile.encode next.database | fail "DROP COLUMN encode failed"
+    let some reopened := CoreDecode.decode image.fileBytes | fail "DROP COLUMN reopen failed"
+    let some restored := reopened.findTable? "t" | fail "DROP COLUMN table lost on reopen"
+    unless decide (restored.schema = after.schema) && decide (restored.rows = after.rows) do
+      fail "DROP COLUMN metadata/data changed on reopen"
+    for sql in ["ALTER TABLE t DROP C;", "ALTER TABLE t DROP missing;", "ALTER TABLE t DROP rowid;"] do
+      if (CoreSQL.execute next sql).isOk then fail s!"DROP COLUMN constraint omitted: {sql}"
+    if definition == "A INTEGER,B TEXT PRIMARY KEY,C INTEGER" then
+      if (CoreSQL.execute next "ALTER TABLE t DROP B;").isOk then fail "DROP removed the TEXT primary key"
+    let (rolled, _) ← match CoreSQL.execute state "BEGIN;ALTER TABLE t DROP A;ROLLBACK;" with
+      | .ok result => pure result
+      | .error message => fail message
+    let some rolledTable := rolled.database.findTable? "t" | fail "DROP COLUMN rollback lost table"
+    unless decide (rolledTable.schema = before.schema) do fail "DROP COLUMN rollback kept changed schema"
+  for sql in ["CREATE TABLE one(v);ALTER TABLE one DROP v;",
+      "CREATE TABLE one(k INTEGER PRIMARY KEY,v);ALTER TABLE one DROP k;"] do
+    if (CoreSQL.execute Core.State.empty sql).isOk then fail "DROP removed last or primary-key column"
+  let (_, results) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE shadow(rowid TEXT,v);INSERT INTO shadow(rowid,v,oid) VALUES('r',5,27);ALTER TABLE shadow DROP rowid;SELECT rowid,v FROM shadow;" with
+    | .ok result => pure result
+    | .error message => fail message
+  let expected : List (List Value) := [[.integer 27,.integer 5]]
+  let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+    | .ok rows => pure rows
+    | .error message => fail message
+  unless (results.getLast?).map (·.rows) == some rows do fail "DROP did not restore the implicit rowid alias"
+  let parsed ← match CoreTokenGrammar.parseCertified "ALTER TABLE t DROP COLUMN B;" with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  if (CoreTokenGrammar.check parsed.tokens #[.alterDropColumn "t" "A"]).isOk then
+    fail "DROP checker accepted a different target column"
+
 private def expectSQLiteSchemaAdd : IO Unit := do
   for key in ["INTEGER PRIMARY KEY","INTEGER","TEXT PRIMARY KEY"] do
     let sql := s!"CREATE TABLE t(Id {key},V TEXT);CREATE INDEX Vi ON t(V);" ++
@@ -6485,6 +6540,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
   ("SQLite ADD COLUMN and omitted trailing record fields", expectSQLiteSchemaAdd),
   ("SQLite empty index identifiers survive reopen and schema changes", expectSQLiteEmptyIndex),
   ("SQLite table and column renames preserve rows and index metadata", expectSQLiteSchemaRename),

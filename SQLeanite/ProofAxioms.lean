@@ -1308,3 +1308,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaAdd.table_exact
 #print axioms SQLeanite.CoreRecord.completeFields_full
 #print axioms SQLeanite.CoreRecord.completeFields_record
+
+#print axioms SQLeanite.CoreSchemaDropColumn.removeAt_length
+#print axioms SQLeanite.CoreSchemaDropColumn.row_rowid
+#print axioms SQLeanite.CoreSchemaDropColumn.table_allowed
+#print axioms SQLeanite.CoreSchemaDropColumn.table_exact

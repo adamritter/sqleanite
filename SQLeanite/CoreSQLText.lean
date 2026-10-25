@@ -14,6 +14,7 @@ correctness theorem.
 -/
 
 inductive CoreStatementForm : Statement → Prop where
+  | alterDropColumn (table column) : CoreStatementForm (.alterDropColumn table column)
   | alterAddColumn (table column) : CoreStatementForm (.alterAddColumn table column)
   | alterRenameTable (table name) : CoreStatementForm (.alterRenameTable table name)
   | alterRenameColumn (table oldName newName) : CoreStatementForm (.alterRenameColumn table oldName newName)
@@ -44,6 +45,7 @@ theorem statementForm_of_execute_success {state next : Core.State}
     (success : executeStatement state statement = .ok (next, results)) :
     CoreStatementForm statement := by
   cases statement with
+  | alterDropColumn table column => exact .alterDropColumn ..
   | alterAddColumn table column => exact .alterAddColumn ..
   | alterRenameTable table name => exact .alterRenameTable ..
   | alterRenameColumn table oldName newName => exact .alterRenameColumn ..

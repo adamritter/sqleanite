@@ -3212,3 +3212,39 @@ unchanged. Reports: `sqlite-schema-add-*20261025.json`; harness:
 `scripts/run-schema-add-differential.py`. Declared defaults (including explicit
 DEFAULT NULL), CHECK/generated/foreign-key additions, non-ABORT schema conflict
 policies, DROP COLUMN and full SQL/database/WAL compatibility remain unfinished.
+
+## DROP COLUMN (2026-10-25)
+
+The production Core now executes `ALTER TABLE ... DROP [COLUMN]` for columns
+in its admitted schemas. The checked operation refuses missing, last-visible,
+rowid-alias, declared-primary-key and indexed columns. It removes only the
+selected field from each schema/row, shifts later key/sentinel/index positions,
+and retains rowids. Other columns retain their definitions and values. Registered
+component theorems cover the size change, rowid retention, the required admission
+guard and the exact successful schema/index/row transformation. The syntax,
+checked grammar, text statement form and file-engine write classification all
+include the new statement; the legacy engine remains outside production.
+
+Retained baseline seed 354140: **417 differences / 648 scenarios**. Development
+seed 354141: **918 scenarios, zero differences**. Fresh seed 354142 regenerates
+100 statements and fixture values: **2,178 scenarios, zero differences**,
+including 588 positive-error outcomes. Both public modes, 512/4096/65536-byte
+pages, rotated column/key positions, integer aliases and hidden rowids with or
+without TEXT keys, empty/populated tables, overflowing values, older records
+with omitted trailing fields, rowid shadowing, quoted/empty/dotted names,
+transaction rollback/commit and index removal before a column drop are checked.
+Multi-statement cases also retain preceding successful schema changes when a
+later statement fails. Each case includes a subsequent C ADD COLUMN and Lean
+reopen. Successful output bytes, C-observed metadata, stored types/hex values
+and integrity are compared; failed individual statements retain main/WAL bytes.
+Large passing captures are hashed only after full comparisons.
+
+Implementation SHA-256: `47972298ee143f6c39dce54485b13cf7558e6a7247af4eb8f052dcd3b5acc1ed`.
+The final checks record **314 build jobs, 235 executable tests, 1,145 headline
+component proofs**, both audits and 61 accepted reverse-file cells with two
+declared unsupported cells. Native code and its nine-binding boundary are
+unchanged. Reports: `sqlite-schema-drop-column-*20261025.json`; harness:
+`scripts/run-schema-drop-column-differential.py`. CHECK/generated/foreign-key,
+view/trigger dependencies and partial/expression indexes are not represented by
+this Core schema, so this checkpoint does not cover their DROP restrictions.
+Full SQL/database/WAL compatibility remains unfinished.
