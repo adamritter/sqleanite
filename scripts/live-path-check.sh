@@ -744,6 +744,18 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# REPLACE freezes the selection but re-seeks current values before each row.
+if grep -q 'executeReplacedUpdate state tableName alias stored assignments.toList where_' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateReplace.pending tableName stored.schema.primaryKey trace' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateReplace.plan stored rowid' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreUpdateReplace.plan_validated' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreUpdateReplace.pending_length' SQLeanite/ProofAxioms.lean &&
+   grep -q 'CoreSQL.replacedUpdateRows_missing' SQLeanite/ProofAxioms.lean; then
+  ok "UPDATE OR REPLACE validates candidates and re-seeks pending rows"
+else
+  fail "UPDATE OR REPLACE is disconnected from its validated mutation trace"
+fi
+
 # A conflicting UPDATE retains the original row, including when a key changes.
 if grep -q 'executeIgnoredUpdate state tableName alias stored assignments.toList where_' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreUpdateIgnore.row state tableName ctx.schema row.rowid values' SQLeanite/CoreSQL.lean &&

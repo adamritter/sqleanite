@@ -4597,6 +4597,38 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteUpdateReplace : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL,u INTEGER);CREATE UNIQUE INDEX tu ON t(u);" ++
+    "INSERT INTO t VALUES(1,'a',1),(2,'b',2),(3,'c',3);" ++
+    "CREATE TABLE k(k TEXT PRIMARY KEY NOT NULL,v);INSERT INTO k VALUES('a',1),('b',2);"
+  let (initial, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result
+    | .error message => fail message
+  let cases : List (String × Nat × List (List Value)) := [
+    ("UPDATE OR REPLACE t SET id=id+1,v=v||'x';SELECT id,v,u FROM t ORDER BY id;", 3,
+      [[.integer 4, .text "axxx", .integer 1]]),
+    ("UPDATE OR REPLACE t SET id=id+1,v=v||'x' WHERE id<3;SELECT id,v,u FROM t ORDER BY id;", 2,
+      [[.integer 3, .text "axx", .integer 1]]),
+    ("UPDATE OR REPLACE t SET u=3,v=CASE WHEN id=3 THEN NULL ELSE v END;SELECT id,v,u FROM t ORDER BY id;", 2,
+      [[.integer 2, .text "b", .integer 3]]),
+    ("UPDATE OR REPLACE t SET u=3,v=CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END;SELECT id,v,u FROM t ORDER BY id;", 2,
+      [[.integer 2, .text "b", .integer 3]]),
+    ("UPDATE OR REPLACE k SET k='a',v=v+1;SELECT k,v FROM k ORDER BY k;", 2,
+      [[.text "a", .integer 3]])]
+  for (sql, changes, expected) in cases do
+    let (_, results) ← match CoreSQL.execute initial sql with
+      | .ok result => pure result
+      | .error message => fail s!"UPDATE OR REPLACE: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    unless (results.getLast?).map (·.rows) == some rows && (results.map (·.changes)).sum == changes do
+      fail s!"UPDATE OR REPLACE mismatch: {sql}"
+  for sql in ["UPDATE OR REPLACE t SET id=NULL;", "UPDATE OR REPLACE t SET v=NULL;",
+      "UPDATE OR REPLACE t SET v=no_function(),v='ok' WHERE 0;",
+      "UPDATE OR REPLACE t SET u=1 WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;"] do
+    if (CoreSQL.execute initial sql).isOk then fail s!"UPDATE OR REPLACE swallowed error: {sql}"
+
 private def expectSQLiteUpdateIgnore : IO Unit := do
   for (input, expected) in [(1,0),(2,10),(3,16),(8,30),(10,33),(100,66),(200,76),(125829120,269)] do
     unless SQLite.PlannerCost.logEst input == expected do fail "SQLite planner LogEst mismatch"
@@ -5951,6 +5983,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite UPDATE OR REPLACE re-seeks surviving pending rows", expectSQLiteUpdateReplace),
   ("SQLite UPDATE OR IGNORE and sequential key changes", expectSQLiteUpdateIgnore),
   ("SQLite INSERT OR IGNORE constraints and row allocation", expectSQLiteInsertIgnore),
   ("SQLite DELETE RETURNING old values and atomic errors", expectSQLiteDeleteReturning),

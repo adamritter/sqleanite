@@ -15,6 +15,7 @@ import SQLeanite.CoreGrouped
 import SQLeanite.CoreReturning
 import SQLeanite.CoreInsertIgnore
 import SQLeanite.CoreUpdateIgnore
+import SQLeanite.CoreUpdateReplace
 import SQLeanite.CoreUpdateScan
 import SQLeanite.SQLite.Values
 
@@ -832,6 +833,45 @@ def expressionDeletePlan (tableName : String) (alias : Option String) (stored : 
   let ctx := expressionSearchContext ctx search
   unless ← expressionSearchReady ctx search condition do return []
   rowDeleteCommands tableName ctx condition (stored.rows.filter (Core.selects search))
+
+/-- SQLite disables multi-row one-pass UPDATE when REPLACE can delete other
+rows. Selected rowids are frozen first, but their values are re-read immediately
+before each update. A missing row skips RHS evaluation. -/
+def replacedUpdateRows (state : Core.State) (tableName : String) (ctx : CoreExpr.Context)
+    (assignments : List (Nat × Expr)) :
+    List Core.Integer → Except String (Core.State × List Core.Result)
+  | [] => .ok (state, [])
+  | rowid :: rowids => do
+      let stored ← match state.database.findTable? tableName with
+        | some stored => pure stored
+        | none => throw s!"no such table: {tableName}"
+      match stored.findRowid? rowid with
+      | none => replacedUpdateRows state tableName ctx assignments rowids
+      | some row => do
+          let updates ← evaluateAssignments ctx row assignments
+          let trace ← CoreUpdateReplace.plan stored rowid (Core.applyAssignments row.values updates)
+          let (next, _) ← runCoreCommands state trace
+          let (finalState, results) ← replacedUpdateRows next tableName ctx assignments rowids
+          return (finalState, { changes := 1 } :: results)
+
+theorem replacedUpdateRows_missing (state : Core.State) (tableName : String)
+    (ctx : CoreExpr.Context) (assignments : List (Nat × Expr)) (stored : Core.Table)
+    (rowid : Core.Integer) (rowids : List Core.Integer)
+    (found : state.database.findTable? tableName = some stored)
+    (missing : stored.findRowid? rowid = none) :
+    replacedUpdateRows state tableName ctx assignments (rowid :: rowids) =
+      replacedUpdateRows state tableName ctx assignments rowids := by
+  simp [replacedUpdateRows, found, missing, bind, Except.bind, pure, Except.pure]
+
+def executeReplacedUpdate (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
+    Except String (Core.State × List Core.Result) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let bound ← expressionAssignmentsWith true ctx assignments
+  let trace ← expressionDeletePlan tableName alias stored condition
+  let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
+  let (next, results) ← replacedUpdateRows state tableName ctx bound rowids
+  return (next, [{ changes := (results.map (·.changes)).sum }])
 
 def executeExpressionDelete (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (condition : Option Expr) :
@@ -1960,7 +2000,7 @@ def executeStatement (state : Core.State) :
       | .ok condition => executeCommand state (.deleteWhere tableName condition)
       | .error _ => executeExpressionDelete state tableName alias stored where_
   | .update table alias assignments where_ conflict => do
-      unless conflict == .default || conflict == .abort || conflict == .ignore do
+      unless conflict == .default || conflict == .abort || conflict == .ignore || conflict == .replace do
         throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
@@ -1969,6 +2009,8 @@ def executeStatement (state : Core.State) :
       unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
       if conflict == .ignore then
         return ← executeIgnoredUpdate state tableName alias stored assignments.toList where_
+      if conflict == .replace then
+        return ← executeReplacedUpdate state tableName alias stored assignments.toList where_
       match updateAssignments stored.schema assignments.toList,
           where_.mapM (predicate stored.schema) with
       | .ok updates, .ok condition =>

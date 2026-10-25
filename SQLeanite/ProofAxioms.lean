@@ -1258,3 +1258,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreUpdateScan.byColumn_perm
 
 #print axioms SQLeanite.SQLite.PlannerCost.add_comm
+
+#print axioms SQLeanite.CoreUpdateReplace.plan_validated
+#print axioms SQLeanite.CoreUpdateReplace.pending_length
+#print axioms SQLeanite.CoreSQL.replacedUpdateRows_missing

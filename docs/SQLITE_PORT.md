@@ -2646,3 +2646,49 @@ nine-binding audit boundary are unchanged. Reports:
 `scripts/probe-update-access-differential.py`, and
 `scripts/probe-update-index-order-differential.py`. This evidence does not
 establish full SQL, planner, database-format or WAL compatibility.
+
+
+## UPDATE OR REPLACE with pending-row re-seeks (2026-10-25)
+
+UPDATE OR REPLACE now freezes matching rowids before mutation, then re-seeks
+each row in the state left by earlier replacements. A row removed by an earlier
+unique-key replacement is skipped without evaluating its RHS. A row moved into
+a later pending rowid is read again with its current values; for example, with
+rowids 1/2/3, `SET id=id+1,v=v||'x'` can update the original first row three
+times and leave rowid 4 with three appended characters. WHERE selection is not
+re-evaluated against these changed values. This follows the non-one-pass path
+in pinned `update.c`.
+
+`CoreUpdateReplace.plan` validates the complete row using `Core.Row.create`,
+then compiles deletion of the old row and all conflicting rowid/declared-key/
+explicit-UNIQUE rows followed by one checked insertion. It never uses INSERT's
+NULL-rowid allocation for UPDATE. NOT NULL violations without defaults and
+ordinary evaluator/type errors abort the pure statement. Logical changes count
+accepted updates, excluding replacement deletions. Three component proofs
+cover candidate validation, exact pending-trace length, and unchanged-state
+skipping of missing pending rows. They do not prove full SQLite equivalence.
+
+Retained baseline seed 354020: **112 differences / 168 executions**.
+Development seed 354021: **536 executions, zero differences**.
+Final-checkpoint seed 354022 uses 160 new generated statements and three new
+C-created fixtures: **1,284 executions, zero differences**, including 316
+positive-error outcomes. Both file modes and 512/4096/65536-byte pages are
+covered, with interacting unique keys, moved/deleted pending rows, text primary
+keys, NULLs, malformed TEXT, repeated assignments, aliases, transactions and
+signed rowid endpoints. Pinned SQLite independently checks every stored table's
+type/hex values and integrity after each script. Rejected individual statements
+retain main/WAL bytes. Error comparison checks rejection, not exact diagnostic
+codes/messages or partial output from earlier statements.
+
+Implementation SHA-256: `72373c344962205f573cd24f8994b5e4a770f790829ee70351ba4e482047348d`.
+The matching checks report records a successful **304-job build, 223 executable
+tests, 1,108 headline component proofs**, both audits and 61 accepted reverse-file
+cells with two declared unsupported cells. A development proof-tactic failure
+was corrected before evaluation. Native code and the nine host bindings are
+unchanged. Reports: `sqlite-replace-update-negative-20261025.json`,
+`sqlite-replace-update-development-20261025.json`,
+`sqlite-replace-update-20261025.json`, and
+`sqlite-replace-update-checks-20261025.json`; harness:
+`scripts/run-replace-update-differential.py`. Schema defaults, triggers,
+foreign keys, nullable non-integer primary keys and FAIL/ROLLBACK policies
+remain separate work. These results are not a whole-SQLite percentage.
