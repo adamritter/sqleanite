@@ -1,0 +1,2907 @@
+{
+  "seed": 353990,
+  "fixtures": 1,
+  "random_cases": 20,
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x|-7.0\n-4|1.25|\n-3|a|a\n-2||\u0080\u00ff\n-1|a|A\n0|\u0080\u00ff|\u0080\u00ff\n1|A|A\n2|a|0.0\n3|1.25|a\n4|12x|0.0\n5|a|-7.0\n6|A|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id=0 RETURNING id,v,w;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\u0080\u00ff|\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING rowid,typeof(v),hex(v),typeof(w),hex(w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id IN (-4,0,3) RETURNING *,id+1 AS next;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-4|1.25||-3\n0|\u0080\u00ff|\u0080\u00ff|1\n3|1.25|a|4\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  DELETE FROM t WHERE 0 RETURNING missing;\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING no_function();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such function: no_function\n  DELETE FROM t WHERE 0 RETURNING no_function();\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function count()\n  DELETE FROM t RETURNING count(*);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING 0 AND count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function count()\n  DELETE FROM t RETURNING 0 AND count(*);\n                  error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING max(id);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function max()\n  DELETE FROM t RETURNING max(id);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING max(id,2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2\n2\n2\n2\n2\n2\n2\n3\n4\n5\n6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING t.*;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: RETURNING may not use \"TABLE.*\" wildcards\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t AS x RETURNING x.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: x.id\n  DELETE FROM t AS x RETURNING x.id;\n                 error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t AS x WHERE x.id<0 RETURNING t.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5\n-4\n-3\n-2\n-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t AS x WHERE t.id<0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: t.id\n  DELETE FROM t AS x WHERE t.id<0 RETURNING id;\n             error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING id AS n,n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: n\n  DELETE FROM t RETURNING id AS n,n;\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING id AS v,v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n0|\u0080\u00ff\n1|A\n2|a\n3|1.25\n4|12x\n5|a\n6|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING CASE WHEN id=-1 THEN abs(-9223372036854775808) ELSE id END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING CAST(X'80FF' AS TEXT),hex(CAST(X'610062' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id=id AND abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING id+100,id COLLATE nocase,printf('%04d',id);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "95|-5|-005\n96|-4|-004\n97|-3|-003\n98|-2|-002\n99|-1|-001\n100|0|0000\n101|1|0001\n102|2|0002\n103|3|0003\n104|4|0004\n105|5|0005\n106|6|0006\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM empty RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM empty RETURNING abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM empty WHERE abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM empty RETURNING missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  DELETE FROM empty RETURNING missing;\n                error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nDELETE FROM t WHERE id<0 RETURNING id,v;\nROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nDELETE FROM t WHERE id<0 RETURNING id,v;\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "BEGIN;\nINSERT INTO t(id,v) VALUES(999,7);\nDELETE FROM t RETURNING abs(-9223372036854775808);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id=0 RETURNING id;\nDELETE FROM t WHERE id=0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING sum(id) FILTER (WHERE 0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function sum()\n  DELETE FROM t RETURNING sum(id) FILTER (WHERE 0);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING 0 AND no_function();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such function: no_function\n  DELETE FROM t RETURNING 0 AND no_function();\n                  error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t RETURNING 0 AND missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING hex(CAST(X'80FF' AS TEXT)),id,hex(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|-2|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2||\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE typeof(v)='blob' RETURNING CASE WHEN id%2=0 THEN v ELSE w END,printf('%g',w),CASE WHEN id%2=0 THEN v ELSE w END,*;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING coalesce(v,id),hex(CAST(X'80FF' AS TEXT)),v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|80FF|12x\n1.25|80FF|1.25\n\u0080\u00ff|80FF|\u0080\u00ff\n1.25|80FF|1.25\n12x|80FF|12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE 1 RETURNING *,coalesce(v,id),hex(CAST(X'80FF' AS TEXT)),*,printf('%g',w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x|-7.0|12x|80FF|-5|12x|-7.0|-7\n-4|1.25||1.25|80FF|-4|1.25||0\n-3|a|a|a|80FF|-3|a|a|0\n-2||\u0080\u00ff|-2|80FF|-2||\u0080\u00ff|0\n-1|a|A|a|80FF|-1|a|A|0\n0|\u0080\u00ff|\u0080\u00ff|\u0080\u00ff|80FF|0|\u0080\u00ff|\u0080\u00ff|0\n1|A|A|A|80FF|1|A|A|0\n2|a|0.0|a|80FF|2|a|0.0|0\n3|1.25|a|1.25|80FF|3|1.25|a|0\n4|12x|0.0|12x|80FF|4|12x|0.0|0\n5|a|-7.0|a|80FF|5|a|-7.0|-7\n6|A|a|A|80FF|6|A|a|0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id=-4 AND id IN (-4,id,abs(-9223372034775808)) RETURNING typeof(v),typeof(v),hex(CAST(X'80FF' AS TEXT)),CAST(v AS INTEGER),quote(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "real|real|80FF|1|1.25\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING typeof(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text\nreal\ntext\nreal\ntext\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id%2=0 RETURNING quote(v),w,typeof(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.25||real\nNULL|\u0080\u00ff|null\n'\u0080\u00ff'|\u0080\u00ff|text\n'a'|0.0|text\n'12x'|0.0|text\n'A'|a|text\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-1|text|610062|text|41\n1|text|41|text|41\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING coalesce(v,id),quote(v),CAST(v AS INTEGER);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2|NULL|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING hex(CAST(X'80FF' AS TEXT)),id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|-5\n80FF|-4\n80FF|-3\n80FF|-2\n80FF|-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING v,hex(CAST(X'80FF' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|80FF\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE w+1>0 RETURNING hex(v),coalesce(v,id),CAST(v AS INTEGER),v,CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E3235|1.25|1|1.25|1.25\n61|a|0|a|a\n|-2|||\n610062|a|0|a|A\n80FF|\u0080\u00ff|0|\u0080\u00ff|\u0080\u00ff\n41|A|0|A|A\n610062|a|0|a|a\n312E3235|1.25|1|1.25|a\n313278|12x|12|12x|12x\n41|A|0|A|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING coalesce(v,id),printf('%g',w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|-7\n1.25|0\n\u0080\u00ff|0\n1.25|0\n12x|0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id IN (-5,-2,1,4) RETURNING CAST(v AS INTEGER),*,id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12|-5|12x|-7.0|-5\n|-2||\u0080\u00ff|-2\n0|1|A|A|1\n12|4|12x|0.0|4\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE 1 RETURNING coalesce(v,id),id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|-5\n1.25|-4\na|-3\n-2|-2\na|-1\n\u0080\u00ff|0\nA|1\na|2\n1.25|3\n12x|4\na|5\nA|6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id>=0 RETURNING hex(v),CASE WHEN id%2=0 THEN v ELSE w END,quote(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|\u0080\u00ff|'\u0080\u00ff'\n41|A|'A'\n610062|a|'a'\n312E3235|a|1.25\n313278|12x|'12x'\n61|-7.0|'a'\n41|A|'A'\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-7.0\n1.25\n\u0080\u00ff\na\n12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id IN (-5,-2,1,4) RETURNING CASE WHEN id%2=0 THEN v ELSE w END,CASE WHEN id%2=0 THEN v ELSE w END,typeof(v),id COLLATE nocase,CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-7.0|-7.0|text|-5|-7.0\n||null|-2|\nA|A|text|1|A\n12x|12x|text|4|12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE typeof(v)='blob' RETURNING id+1,id COLLATE nocase,v,id+1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "DELETE FROM t WHERE id%2=0 RETURNING hex(v),printf('%g',w),id+1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E3235|0|-3\n|0|-1\n80FF|0|1\n610062|0|3\n313278|0|5\n41|0|7\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-1|text|610062|text|41\n1|text|41|text|41\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x|-7.0\n-4|1.25|\n-3|a|a\n-2||\u0080\u00ff\n-1|a|A\n0|\u0080\u00ff|\u0080\u00ff\n1|A|A\n2|a|0.0\n3|1.25|a\n4|12x|0.0\n5|a|-7.0\n6|A|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id=0 RETURNING id,v,w;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|\u0080\u00ff|\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING rowid,typeof(v),hex(v),typeof(w),hex(w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id IN (-4,0,3) RETURNING *,id+1 AS next;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-4|1.25||-3\n0|\u0080\u00ff|\u0080\u00ff|1\n3|1.25|a|4\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  DELETE FROM t WHERE 0 RETURNING missing;\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE 0 RETURNING no_function();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such function: no_function\n  DELETE FROM t WHERE 0 RETURNING no_function();\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function count()\n  DELETE FROM t RETURNING count(*);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING 0 AND count(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function count()\n  DELETE FROM t RETURNING 0 AND count(*);\n                  error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING max(id);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function max()\n  DELETE FROM t RETURNING max(id);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING max(id,2);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n2\n2\n2\n2\n2\n2\n2\n3\n4\n5\n6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING t.*;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: RETURNING may not use \"TABLE.*\" wildcards\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t AS x RETURNING x.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: x.id\n  DELETE FROM t AS x RETURNING x.id;\n                 error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t AS x WHERE x.id<0 RETURNING t.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5\n-4\n-3\n-2\n-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t AS x WHERE t.id<0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: t.id\n  DELETE FROM t AS x WHERE t.id<0 RETURNING id;\n             error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING id AS n,n;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: n\n  DELETE FROM t RETURNING id AS n,n;\n                    error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING id AS v,v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n0|\u0080\u00ff\n1|A\n2|a\n3|1.25\n4|12x\n5|a\n6|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING CASE WHEN id=-1 THEN abs(-9223372036854775808) ELSE id END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING CAST(X'80FF' AS TEXT),hex(CAST(X'610062' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n\u0080\u00ff|610062\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id=id AND abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING id+100,id COLLATE nocase,printf('%04d',id);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "95|-5|-005\n96|-4|-004\n97|-3|-003\n98|-2|-002\n99|-1|-001\n100|0|0000\n101|1|0001\n102|2|0002\n103|3|0003\n104|4|0004\n105|5|0005\n106|6|0006\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM empty RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM empty RETURNING abs(-9223372036854775808);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM empty WHERE abs(-9223372036854775808)>0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM empty RETURNING missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  DELETE FROM empty RETURNING missing;\n                error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nDELETE FROM t WHERE id<0 RETURNING id,v;\nROLLBACK;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nDELETE FROM t WHERE id<0 RETURNING id,v;\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x\n-4|1.25\n-3|a\n-2|\n-1|a\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "BEGIN;\nINSERT INTO t(id,v) VALUES(999,7);\nDELETE FROM t RETURNING abs(-9223372036854775808);\nCOMMIT;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id=0 RETURNING id;\nDELETE FROM t WHERE id=0 RETURNING id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING sum(id) FILTER (WHERE 0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: misuse of aggregate function sum()\n  DELETE FROM t RETURNING sum(id) FILTER (WHERE 0);\n                          ^--- error here\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING 0 AND no_function();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such function: no_function\n  DELETE FROM t RETURNING 0 AND no_function();\n                  error here ---^\n"
+      },
+      "matched": true,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "failed_statement_bytes_unchanged": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t RETURNING 0 AND missing;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING hex(CAST(X'80FF' AS TEXT)),id,hex(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|-2|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING *;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2||\u0080\u00ff\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE typeof(v)='blob' RETURNING CASE WHEN id%2=0 THEN v ELSE w END,printf('%g',w),CASE WHEN id%2=0 THEN v ELSE w END,*;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING coalesce(v,id),hex(CAST(X'80FF' AS TEXT)),v;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|80FF|12x\n1.25|80FF|1.25\n\u0080\u00ff|80FF|\u0080\u00ff\n1.25|80FF|1.25\n12x|80FF|12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE 1 RETURNING *,coalesce(v,id),hex(CAST(X'80FF' AS TEXT)),*,printf('%g',w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-5|12x|-7.0|12x|80FF|-5|12x|-7.0|-7\n-4|1.25||1.25|80FF|-4|1.25||0\n-3|a|a|a|80FF|-3|a|a|0\n-2||\u0080\u00ff|-2|80FF|-2||\u0080\u00ff|0\n-1|a|A|a|80FF|-1|a|A|0\n0|\u0080\u00ff|\u0080\u00ff|\u0080\u00ff|80FF|0|\u0080\u00ff|\u0080\u00ff|0\n1|A|A|A|80FF|1|A|A|0\n2|a|0.0|a|80FF|2|a|0.0|0\n3|1.25|a|1.25|80FF|3|1.25|a|0\n4|12x|0.0|12x|80FF|4|12x|0.0|0\n5|a|-7.0|a|80FF|5|a|-7.0|-7\n6|A|a|A|80FF|6|A|a|0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id=-4 AND id IN (-4,id,abs(-9223372034775808)) RETURNING typeof(v),typeof(v),hex(CAST(X'80FF' AS TEXT)),CAST(v AS INTEGER),quote(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "real|real|80FF|1|1.25\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING typeof(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text\nreal\ntext\nreal\ntext\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id%2=0 RETURNING quote(v),w,typeof(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1.25||real\nNULL|\u0080\u00ff|null\n'\u0080\u00ff'|\u0080\u00ff|text\n'a'|0.0|text\n'12x'|0.0|text\n'A'|a|text\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-1|text|610062|text|41\n1|text|41|text|41\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING coalesce(v,id),quote(v),CAST(v AS INTEGER);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-2|NULL|\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id<0 RETURNING hex(CAST(X'80FF' AS TEXT)),id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|-5\n80FF|-4\n80FF|-3\n80FF|-2\n80FF|-1\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE v IS NULL RETURNING v,hex(CAST(X'80FF' AS TEXT));",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "|80FF\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE w+1>0 RETURNING hex(v),coalesce(v,id),CAST(v AS INTEGER),v,CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E3235|1.25|1|1.25|1.25\n61|a|0|a|a\n|-2|||\n610062|a|0|a|A\n80FF|\u0080\u00ff|0|\u0080\u00ff|\u0080\u00ff\n41|A|0|A|A\n610062|a|0|a|a\n312E3235|1.25|1|1.25|a\n313278|12x|12|12x|12x\n41|A|0|A|A\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING coalesce(v,id),printf('%g',w);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|-7\n1.25|0\n\u0080\u00ff|0\n1.25|0\n12x|0\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id IN (-5,-2,1,4) RETURNING CAST(v AS INTEGER),*,id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12|-5|12x|-7.0|-5\n|-2||\u0080\u00ff|-2\n0|1|A|A|1\n12|4|12x|0.0|4\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE 1 RETURNING coalesce(v,id),id COLLATE nocase;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "12x|-5\n1.25|-4\na|-3\n-2|-2\na|-1\n\u0080\u00ff|0\nA|1\na|2\n1.25|3\n12x|4\na|5\nA|6\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id>=0 RETURNING hex(v),CASE WHEN id%2=0 THEN v ELSE w END,quote(v);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "80FF|\u0080\u00ff|'\u0080\u00ff'\n41|A|'A'\n610062|a|'a'\n312E3235|a|1.25\n313278|12x|'12x'\n61|-7.0|'a'\n41|A|'A'\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE length(v)>1 RETURNING CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-7.0\n1.25\n\u0080\u00ff\na\n12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n1|text|41|text|41\n2|text|610062|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id IN (-5,-2,1,4) RETURNING CASE WHEN id%2=0 THEN v ELSE w END,CASE WHEN id%2=0 THEN v ELSE w END,typeof(v),id COLLATE nocase,CASE WHEN id%2=0 THEN v ELSE w END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "-7.0|-7.0|text|-5|-7.0\n||null|-2|\nA|A|text|1|A\n12x|12x|text|4|12x\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE typeof(v)='blob' RETURNING id+1,id COLLATE nocase,v,id+1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      }
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "DELETE FROM t WHERE id%2=0 RETURNING hex(v),printf('%g',w),id+1;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: DELETE RETURNING\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "312E3235|0|-3\n|0|-1\n80FF|0|1\n610062|0|3\n313278|0|5\n41|0|7\n",
+        "stderr": ""
+      },
+      "matched": false,
+      "observed_lean": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-4|real|312E3235|blob|00FF\n-3|text|61|text|61\n-2|null||text|80FF\n-1|text|610062|text|41\n0|text|80FF|text|80FF\n1|text|41|text|41\n2|text|610062|real|302E30\n3|real|312E3235|text|610062\n4|text|313278|real|302E30\n5|text|61|real|2D372E30\n6|text|41|text|610062\n",
+        "stderr": ""
+      },
+      "observed_sqlite": {
+        "code": 0,
+        "stdout": "ok\n-5|text|313278|real|2D372E30\n-3|text|61|text|61\n-1|text|610062|text|41\n1|text|41|text|41\n3|real|312E3235|text|610062\n5|text|61|real|2D372E30\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "failures": 72,
+  "implementation_sha256": "9170396059a49e57e93cfd7884212ca70d246d65f5f4edaa7bd355425638c5c2",
+  "executable_sha256": "cdd6bf2dcb4c32f592fd0021b4ffe9b33cbadfaf3e18eb1c161da216b0a7dc0a",
+  "harness_sha256": "d468244a338940f37bc519aeaea9cbb51f93075f1644ff8b83b56744351c13b5",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "DELETE RETURNING public-file differential against pinned SQLite.\n\nCompare successful output bytes, positive errors, and independently observed\nstored rows, storage classes, and integrity after every script. Failed single\nstatements must retain main/WAL bytes. This is not full SQLite equivalence."
+}

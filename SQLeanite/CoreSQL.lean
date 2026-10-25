@@ -12,6 +12,7 @@ import SQLeanite.CoreCompound
 import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
 import SQLeanite.CoreGrouped
+import SQLeanite.CoreReturning
 import SQLeanite.SQLite.Values
 
 namespace SQLeanite
@@ -779,6 +780,19 @@ def executeExpressionDelete (state : Core.State) (tableName : String) (alias : O
   let commands ← expressionDeletePlan tableName alias stored condition
   let (next, results) ← runCoreCommands state commands
   return (next, [{ changes := (results.map (·.changes)).sum }])
+
+/-- Preserve the original selected rows for DELETE RETURNING. All output is
+computed before Core mutation/publication; an expression error cannot commit a
+prefix of the deletions or emit a partial RETURNING result. -/
+def executeDeleteReturning (state : Core.State) (tableName : String) (alias : Option String)
+    (stored : Core.Table) (condition : Option Expr) (columns : Array ResultColumn) :
+    Except String (Core.State × List Core.Result) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let expressions ← CoreReturning.prepare ctx columns.toList
+  let commands ← expressionDeletePlan tableName alias stored condition
+  let rows ← CoreReturning.deletionOutput stored ctx expressions commands
+  let (next, results) ← runCoreCommands state commands
+  return (next, [{ rows, changes := (results.map (·.changes)).sum }])
 
 theorem executeExpressionDelete_eq_runCoreCommands
     (state : Core.State) (tableName : String) (alias : Option String) (stored : Core.Table)
@@ -1874,13 +1888,12 @@ def executeStatement (state : Core.State) :
       else
         insertRows state tableName stored.schema columns (conflict == .replace) rows.toList
   | .delete table alias where_ returning => do
-      unless returning.isEmpty do
-        throw "unsupported general verified-MVP SQL: DELETE RETURNING"
       let tableName := canonical table
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       unless writeNamesBound stored.schema table alias #[] where_ do unsupported "unbound DELETE name"
+      if !returning.isEmpty then return ← executeDeleteReturning state tableName alias stored where_ returning
       match where_.mapM (predicate stored.schema) with
       | .ok condition => executeCommand state (.deleteWhere tableName condition)
       | .error _ => executeExpressionDelete state tableName alias stored where_

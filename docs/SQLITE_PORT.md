@@ -2490,3 +2490,46 @@ Reports: `docs/validation/sqlite-values-query-20261025.json` and
 `docs/validation/sqlite-values-query-checks-20261025.json`; reproducible harness:
 `scripts/run-values-query-differential.py`. This evidence covers the stated
 VALUES forms, not CTEs, correlated subqueries, windows, or full SQLite equality.
+
+## DELETE RETURNING old-row materialization (2026-10-25)
+
+The production DELETE path now supports scalar `RETURNING` expressions and
+unqualified `*` on admitted Core tables. `CoreReturning.prepare` binds the
+original table name, expands visible columns, rejects qualified stars and
+aggregates, and validates function calls before constant simplification, as
+pinned `trigger.c:codeReturningTrigger` and `sqlite3ExpandReturning` do.
+The DELETE alias remains available to WHERE but is not a RETURNING qualifier.
+A result alias does not introduce a new input column. Ordinary rowid aliases,
+implicit rowids, declared text primary keys and a visible column shadowing
+`rowid` use the existing checked Core binding rules.
+
+The ordinary expression DELETE planner selects rowid commands from the original
+statement snapshot. RETURNING reads those old rows and computes the complete
+output before running the Core commands. An expression failure therefore emits
+no partial RETURNING output and cannot publish a prefix of the deletions. The
+component theorem `CoreReturning.deletionOutput_length` proves one output row
+per planned deletion on successful materialization. Existing DELETE statements
+without RETURNING keep their existing execution and refinement proofs.
+
+The retained baseline has **72 differences / 106 executions**. Development
+seed 353991 has **360 executions / zero differences**. Final-checkpoint seed
+353992 uses 100 new generated statements and three independently C-created
+fixtures: **840 public-file executions, zero differences**, including
+108 positive-error outcomes. Both file modes and page sizes 512, 4096 and
+65536 are exercised, with transactions, explicit/implicit keys, an index,
+NULLs, raw invalid-UTF-8 TEXT, embedded NULs and overflowing TEXT/BLOB payloads.
+The pinned SQLite observer checks all remaining table rows with `typeof`/`hex`
+and `integrity_check` after successes and errors. Failed individual statements
+also retain the exact main/WAL bytes. Successful output comparison uses all
+bytes; large passing captures are stored as lengths, SHA-256 and previews only
+after comparison. Failures retain full captures. Error messages/codes and
+partial output from preceding statements are not an equivalence claim here.
+
+Implementation SHA-256: `14b4f2a548a59acc951a24946239c4b02cb55e21b4f6690aff75eaae5ef04b0a`. The matching check report
+records a successful **294-job build, 220 executable tests**, both required
+audits, and 61 accepted reverse-file cases with two declared unsupported cases.
+Reports are `docs/validation/sqlite-delete-returning-20261025.json`,
+`sqlite-delete-returning-checks-20261025.json`, and the retained negative and
+development reports. Harness: `scripts/run-delete-returning-differential.py`.
+INSERT/UPDATE RETURNING, RETURNING subqueries, triggers and virtual tables
+remain separate work. These results do not establish whole-SQLite equivalence.

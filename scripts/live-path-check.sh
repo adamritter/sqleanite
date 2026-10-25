@@ -744,6 +744,17 @@ else
   fail "general opens detached from dynamic page-size validation"
 fi
 
+# RETURNING binds the actual table name and materializes old row outputs
+# before Core commands can be published by either public file engine.
+if grep -q 'executeDeleteReturning state tableName alias stored where_ returning' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.prepare ctx columns.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.deletionOutput stored ctx expressions commands' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.deletionOutput_length' SQLeanite/ProofAxioms.lean; then
+  ok "DELETE RETURNING materializes validated old values before mutation"
+else
+  fail "DELETE RETURNING is detached from its validated materialization"
+fi
+
 # VALUES result metadata is replayed against the source, and its multi-row
 # coroutine keeps a separate OFFSET evaluation rule from scalar SELECT.
 if grep -q 'matchValuesBase query rows' SQLeanite/CoreTokenGrammar.lean &&

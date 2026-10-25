@@ -4597,6 +4597,30 @@ private def expectSQLiteProbability : IO Unit := do
       "SELECT 1 OR likelihood(1,0);", "SELECT likely();", "SELECT unlikely(1,2);"] do
     if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"probability hint error omitted: {sql}"
 
+private def expectSQLiteDeleteReturning : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(3,'c'),(1,'a'),(2,'b');"
+  let cases : List (String × List (List Value)) := [
+    ("DELETE FROM t WHERE id<3 RETURNING id,v;", [[.integer 1, .text "a"], [.integer 2, .text "b"]]),
+    ("DELETE FROM t AS x WHERE x.id=2 RETURNING *,t.id+1;", [[.integer 2, .text "b", .integer 3]]),
+    ("DELETE FROM t WHERE 0 RETURNING abs(-9223372036854775808);", []),
+    ("DELETE FROM t WHERE id=3 RETURNING 0 AND missing;", [[.integer 0]])]
+  for (sql, expected) in cases do
+    let (state, results) ← match CoreSQL.execute Core.State.empty (setup ++ sql) with
+      | .ok result => pure result
+      | .error message => fail s!"DELETE RETURNING: {message}"
+    let rows ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok rows => pure rows
+      | .error message => fail message
+    let some result := results.getLast? | fail "DELETE RETURNING result missing"
+    unless result.rows == rows && result.changes == expected.length do fail s!"DELETE RETURNING mismatch: {sql}"
+    let some table := state.database.findTable? "t" | fail "DELETE RETURNING removed the table"
+    unless table.rows.length + expected.length == 3 do fail "DELETE RETURNING row count mismatch"
+  for sql in ["DELETE FROM t RETURNING t.*;", "DELETE FROM t AS x RETURNING x.id;",
+      "DELETE FROM t RETURNING count(*);", "DELETE FROM t RETURNING 0 AND count(*);",
+      "DELETE FROM t RETURNING 0 AND no_function();", "DELETE FROM t WHERE 0 RETURNING missing;",
+      "DELETE FROM t RETURNING CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE id END;"] do
+    if (CoreSQL.execute Core.State.empty (setup ++ sql)).isOk then fail s!"DELETE RETURNING error omitted: {sql}"
+
 private def expectSQLiteValuesQuery : IO Unit := do
   let cases : List (String × List (List Value)) := [
     ("VALUES(1),(2),(NULL);", [[.integer 1], [.integer 2], [.null]]),
@@ -5837,6 +5861,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite aggregate internal ORDER BY", expectSQLiteAggregateInternalOrder),
   ("SQLite aggregate FILTER", expectSQLiteAggregateFilter),
   ("SQLite probability hints", expectSQLiteProbability),
+  ("SQLite DELETE RETURNING old values and atomic errors", expectSQLiteDeleteReturning),
   ("SQLite VALUES queries, compound windows and metadata checking", expectSQLiteValuesQuery),
   ("SQLite INSERT SELECT snapshots, affinity and empty sources", expectSQLiteInsertSelect),
   ("SQLite DROP tables and indexes with transaction rollback", expectSQLiteDrop),
