@@ -1,0 +1,151 @@
+{
+  "cases": [
+    {
+      "depth": 100,
+      "field": "length",
+      "sql_sha256": "11d1d945250222867ad6ccb5d827a915dac494ab271e7f99aa450c0eebd0bc52",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 0.02120851492509246,
+          "stdout_bytes": 6,
+          "stdout_sha256": "bbbd9907b2ad18ddab4f849399e9d9b70b5831864346d10ab1bb15e8d2d93351",
+          "stdout_prefix": "40401\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.0013049409026280046,
+          "stdout_bytes": 6,
+          "stdout_sha256": "bbbd9907b2ad18ddab4f849399e9d9b70b5831864346d10ab1bb15e8d2d93351",
+          "stdout_prefix": "40401\n",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    },
+    {
+      "depth": 100,
+      "field": "hex",
+      "sql_sha256": "7b2464a0acb2aadd83bfe39393f44f7d80a56698ee4a81a53ec13cfd269d59d2",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 0.02454003901220858,
+          "stdout_bytes": 80803,
+          "stdout_sha256": "8616f8a9d635bd8faa5456b789270188e13274d28c8258919001e4211532fa02",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.0013915019808337092,
+          "stdout_bytes": 80803,
+          "stdout_sha256": "8616f8a9d635bd8faa5456b789270188e13274d28c8258919001e4211532fa02",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    },
+    {
+      "depth": 500,
+      "field": "length",
+      "sql_sha256": "9798a9a30f23261f3aa756a5c5091a10106cc30d3dbe15141c359be4d95242d8",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 1.812563105020672,
+          "stdout_bytes": 8,
+          "stdout_sha256": "517a4ff222d3f582d034dfcbc36e4562f634dd6d9abd36f8c11efe631f307869",
+          "stdout_prefix": "1002001\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.0025985559914261103,
+          "stdout_bytes": 8,
+          "stdout_sha256": "517a4ff222d3f582d034dfcbc36e4562f634dd6d9abd36f8c11efe631f307869",
+          "stdout_prefix": "1002001\n",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    },
+    {
+      "depth": 500,
+      "field": "hex",
+      "sql_sha256": "e2b14a8f6613989f9aae9ccd810fc6d055100d7a7670f5eeaa85a186d97938bc",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 1.899871937930584,
+          "stdout_bytes": 2004003,
+          "stdout_sha256": "502f0508b83f735e6075d9a58871d976ae47363b87728a5b8d2ce435b258bcf8",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.004872115910984576,
+          "stdout_bytes": 2004003,
+          "stdout_sha256": "502f0508b83f735e6075d9a58871d976ae47363b87728a5b8d2ce435b258bcf8",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    },
+    {
+      "depth": 999,
+      "field": "length",
+      "sql_sha256": "063b7a29ccc7f153950327f2d20ed5536841d50660a259e6b8e6bf0ae8b7650e",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 15.287849616026506,
+          "stdout_bytes": 8,
+          "stdout_sha256": "4902818206ea624ed1a5b5f537d1ee0d8572c87bacef23e8b2fcc0fc6e3f2f0c",
+          "stdout_prefix": "3996001\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.005478075006976724,
+          "stdout_bytes": 8,
+          "stdout_sha256": "4902818206ea624ed1a5b5f537d1ee0d8572c87bacef23e8b2fcc0fc6e3f2f0c",
+          "stdout_prefix": "3996001\n",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    },
+    {
+      "depth": 999,
+      "field": "hex",
+      "sql_sha256": "960b6db50cd837546be8c3203e7841dc78ebbab6db33b10f75d38143bab5cf4f",
+      "results": {
+        "lean": {
+          "code": 0,
+          "seconds": 15.52275939390529,
+          "stdout_bytes": 7992003,
+          "stdout_sha256": "a5ef257683b2b8ffc43f7ff8f757c97c9d7327da3d1a2a4aaad30f9cf5e50d62",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "seconds": 0.01482076698448509,
+          "stdout_bytes": 7992003,
+          "stdout_sha256": "a5ef257683b2b8ffc43f7ff8f757c97c9d7327da3d1a2a4aaad30f9cf5e50d62",
+          "stdout_prefix": "5B0A202020205B0A20202020202020205B0A2020202020202020202020205B0A2020202020202020",
+          "stderr": ""
+        }
+      },
+      "matched": true
+    }
+  ],
+  "implementation_sha256": "3ab34576bc45d2b1bb726176f1a6fca51c829c784a70ac00401c0ae16e5e0d93",
+  "executable_sha256": "3ceaf2c7a315a66ee931089782527690759464b10a5e946913417cac12831f46",
+  "scope": "Diagnostic single-process wall times on fixed depths, one pass; not a statistically controlled performance benchmark or fresh compatibility corpus."
+}

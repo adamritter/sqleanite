@@ -1,0 +1,154 @@
+import SQLeanite.SQLite.JsonBinary
+
+namespace SQLeanite.SQLite.JsonPretty
+open JsonValid
+
+def control (c : Nat) : Array UInt8 :=
+  match [(8,98),(9,116),(10,110),(12,102),(13,114)].find? (fun p => p.1 == c) with
+  | some pair => #[92, UInt8.ofNat pair.2]
+  | none => #[92,117,48,48, "0123456789abcdef".toUTF8.data[c/16]!,
+      "0123456789abcdef".toUTF8.data[c%16]!]
+
+def quoted (input : Array UInt8) : Array UInt8 :=
+  #[34] ++ input.foldl (fun out b => out ++
+    if b.toNat ≤ 31 then control b.toNat
+    else if b == 34 || b == 92 then #[92,b] else #[b]) #[] ++ #[34]
+
+def text5 (input : Array UInt8) : Nat → Nat → Array UInt8 → Except String (Array UInt8)
+  | 0, _, _ => .error "malformed JSON"
+  | fuel+1, pos, out => do
+      if pos ≥ input.size then return out
+      let c := byte input pos
+      if c ≤ 31 then return ← text5 input fuel (pos+1) (out ++ control c)
+      if c == 34 then return ← text5 input fuel (pos+1) (out ++ #[92,34])
+      if c != 92 then return ← text5 input fuel (pos+1) (out.push (UInt8.ofNat c))
+      if pos+1 ≥ input.size then throw "malformed JSON"
+      let e := byte input (pos+1)
+      if e == 39 then return ← text5 input fuel (pos+2) (out.push 39)
+      if e == 118 then return ← text5 input fuel (pos+2) (out ++ "\\u000b".toUTF8.data)
+      if e == 48 then return ← text5 input fuel (pos+2) (out ++ "\\u0000".toUTF8.data)
+      if e == 120 then
+        if pos+4 > input.size then throw "malformed JSON"
+        return ← text5 input fuel (pos+4) (out ++ "\\u00".toUTF8.data ++ input.extract (pos+2) (pos+4))
+      if e == 10 then return ← text5 input fuel (pos+2) out
+      if e == 13 then return ← text5 input fuel (pos + if pos+2 < input.size && byte input (pos+2) == 10 then 3 else 2) out
+      if e == 226 then
+        unless pos+4 ≤ input.size && JsonEscape.lineSeparator input (pos+1) do throw "malformed JSON"
+        return ← text5 input fuel (pos+4) out
+      text5 input fuel (pos+2) (out ++ input.extract pos (pos+2))
+
+def hexNumber (input : Array UInt8) : Except String (Array UInt8) := do
+  if input.isEmpty then throw "malformed JSON"
+  let negative := byte input 0 == 45
+  let start := if negative || byte input 0 == 43 then 3 else 2
+  let mut value := 0
+  let mut overflow := false
+  for i in [start:input.size] do
+    let c := byte input i
+    unless hex c do throw "malformed JSON"
+    if value ≥ 2^60 then overflow := true
+    else value := value*16 + JsonEscape.hexInt c
+  return (if negative then #[45] else #[]) ++
+    (if overflow then "9.0e999" else toString value).toUTF8.data
+
+def float5 (input : Array UInt8) : Except String (Array UInt8) := do
+  if input.isEmpty then throw "malformed JSON"
+  let negative := byte input 0 == 45
+  let start := if negative then 1 else 0
+  if start ≥ input.size then throw "malformed JSON"
+  let mut out := if negative then #[45] else #[]
+  if byte input start == 46 then out := out.push 48
+  for i in [start:input.size] do
+    out := out.push (UInt8.ofNat (byte input i))
+    if byte input i == 46 && (i+1 == input.size || !digit (byte input (i+1))) then
+      out := out.push 48
+  return out
+
+structure Rendered where
+  next : Nat
+  data : Array UInt8
+  parseDepth : Nat
+
+def indentation (indent : Array UInt8) (level : Nat) : Array UInt8 :=
+  (List.range level).foldl (fun out _ => out ++ indent) #[]
+
+mutual
+  def render (input indent : Array UInt8) : Nat → Bool → Nat → Nat → Nat → Except String Rendered
+    | 0, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, pretty, level, depth, pos => do
+        let (header, size) ← JsonAccess.require "malformed JSON" (payload input pos)
+        let kind := byte input pos % 16
+        let start := pos+header
+        let finish := start+size
+        let data := input.extract start finish
+        if kind ≤ 2 then
+          return ⟨pos+1, (["null","true","false"].getD kind "").toUTF8.data, depth⟩
+        if kind == 3 || kind == 5 then
+          if size == 0 then throw "malformed JSON"
+          return ⟨finish, data, depth⟩
+        if kind == 4 then return ⟨finish, ← hexNumber data, depth⟩
+        if kind == 6 then return ⟨finish, ← float5 data, depth⟩
+        if kind == 7 || kind == 8 then return ⟨finish, #[34] ++ data ++ #[34], depth⟩
+        if kind == 9 then return ⟨finish, #[34] ++ (← text5 data (data.size+1) 0 #[]) ++ #[34], depth⟩
+        if kind == 10 then return ⟨finish, quoted data, depth⟩
+        unless kind == 11 || kind == 12 do throw "malformed JSON"
+        let object := kind == 12
+        let opening : UInt8 := if object then 123 else 91
+        let closing : UInt8 := if object then 125 else 93
+        if pretty then
+          if size == 0 then return ⟨finish, #[opening,closing], depth⟩
+          if level+1 ≥ 1000 then throw "JSON nested too deep"
+          let children ← prettyMembers input indent fuel object (level+1)
+            (if object then level+1 else depth) start finish #[]
+          return ⟨finish, #[opening,10] ++ children.data ++ #[10] ++ indentation indent level ++ #[closing], children.parseDepth⟩
+        else
+          if depth+1 > 1000 then throw "JSON nested too deep"
+          let children ← compactMembers input indent fuel object (depth+1) start finish 0 #[]
+          return ⟨finish, #[opening] ++ children.data ++ #[closing], depth⟩
+  def compactMembers (input indent : Array UInt8) : Nat → Bool → Nat → Nat → Nat → Nat → Array UInt8 → Except String Rendered
+    | 0, _, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, object, depth, pos, finish, count, out => do
+        if pos ≥ finish then
+          unless pos == finish && (!object || count%2 == 0) do throw "malformed JSON"
+          return ⟨pos, out, depth⟩
+        let child ← render input indent fuel false 0 depth pos
+        let sep := if count == 0 then #[] else if object && count%2 == 1 then #[58] else #[44]
+        compactMembers input indent fuel object depth child.next finish (count+1) (out ++ sep ++ child.data)
+  def prettyMembers (input indent : Array UInt8) : Nat → Bool → Nat → Nat → Nat → Nat → Array UInt8 → Except String Rendered
+    | 0, _, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, object, level, depth, pos, finish, out => do
+        let out := out ++ indentation indent level
+        let (pos, out) ← if object then do
+            let key ← render input indent fuel false 0 depth pos
+            if key.next > finish then throw "malformed JSON"
+            pure (key.next, out ++ key.data ++ #[58,32])
+          else pure (pos, out)
+        let child ← render input indent fuel true level depth pos
+        let out := out ++ child.data
+        if child.next ≥ finish then return ⟨child.next, out, child.parseDepth⟩
+        prettyMembers input indent fuel object level child.parseDepth child.next finish (out ++ #[44,10])
+end
+
+def evaluate (value : Value) (indent : Option Value := none) : Except String Value := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return .null
+  let indent := match indent with
+    | none | some .null => "    ".toUTF8.data
+    | some value => ((Text.bytes value).toList.takeWhile (fun c => c != 0)).toArray
+  let rendered ← render input indent (4*input.size+4) true 0 0 0
+  return Text.fromBytes rendered.data
+
+
+theorem evaluate_null (indent : Option Value) : evaluate .null indent = .ok .null := by
+  simp only [evaluate, JsonBinary.evaluate_null] <;> rfl
+
+theorem quoted_empty : quoted #[] = #[34,34] := rfl
+
+theorem hexNumber_empty : hexNumber #[] = .error "malformed JSON" := rfl
+
+theorem render_truncated (input indent : Array UInt8) (fuel level depth pos : Nat)
+    (pretty : Bool) (truncated : payload input pos = none) :
+    render input indent (fuel+1) pretty level depth pos = .error "malformed JSON" := by
+  simp only [render, truncated, JsonAccess.require] <;> rfl
+
+end SQLeanite.SQLite.JsonPretty

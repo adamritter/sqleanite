@@ -1,0 +1,13 @@
+/tmp/JsonPrettyPrototype.lean:34:31: error: Type mismatch
+  text5 input fuel
+has type
+  Nat → Array UInt8 → Except String (Array UInt8)
+but is expected to have type
+  Except String ?m.274
+/tmp/JsonPrettyPrototype.lean:35:8: error: Function expected at
+  pos + if (decide (pos + 2 < input.size) && byte input (pos + 2) == 10) = true then 3 else 2
+but this term has type
+  Nat
+
+Note: Expected a function because this term is being applied to the argument
+  out

@@ -1,0 +1,26 @@
+{
+  "reason": "Intentionally interrupt first read development corpus after a fixed-depth probe measured ~15 seconds per depth-999 rendering; replace repeated nested byte copies and rerun complete corpora. No complete read report or pass count is claimed.",
+  "jobs": [
+    [
+      1425915,
+      900,
+      "python3 scripts/run-json-pretty-differential.py --seed 354992 --fixtures 1 --random-cases 16 --output docs/validation/sqlite-json-pretty-development1-read-20261026.json"
+    ]
+  ],
+  "writer_cases": 268,
+  "writer_failures": 0,
+  "source_sha256": "3ab34576bc45d2b1bb726176f1a6fca51c829c784a70ac00401c0ae16e5e0d93",
+  "executable_sha256": "3ceaf2c7a315a66ee931089782527690759464b10a5e946913417cac12831f46",
+  "interrupted": [
+    {
+      "pid": 1425915,
+      "elapsed_seconds": 920,
+      "signal": "SIGINT",
+      "child_signal": "SIGTERM",
+      "children": [
+        1438736
+      ]
+    }
+  ],
+  "first_interrupt_script": "Initial attempt failed before signaling because the ps header was parsed as a PID; retried with header excluded."
+}

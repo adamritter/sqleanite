@@ -1,0 +1,18 @@
+from pathlib import Path
+import argparse,hashlib,json,os,subprocess,tempfile,time
+p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args();r=Path.cwd();binary=r/'.lake/build/bin/sqleanite';sqlite=os.environ['SQLITE3_BIN'];cases=[]
+h=hashlib.sha256()
+for f in sorted((r/'SQLeanite').rglob('*.lean'))+[r/'Main.lean']:h.update(str(f.relative_to(r)).encode()+b'\0'+f.read_bytes())
+source=h.hexdigest();exe=hashlib.sha256(binary.read_bytes()).hexdigest()
+with tempfile.TemporaryDirectory(prefix='sqleanite-jsonpretty-depth-') as tmp:
+ db=Path(tmp)/'probe.db';subprocess.run([sqlite,str(db)],input=b'CREATE TABLE t(id INTEGER PRIMARY KEY);',capture_output=True,check=True)
+ for depth in [100,500,999]:
+  value='['*depth+'0'+']'*depth
+  for field in ['length','hex']:
+   sql=f"SELECT {field}(json_pretty('{value}'));";results={};outputs={}
+   for name,cmd in [('lean',[str(binary),'--verified-file',str(db)]),('sqlite',[sqlite,'-batch','-bail',str(db)])]:
+    start=time.monotonic();x=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=180);elapsed=time.monotonic()-start;outputs[name]=(x.returncode,x.stdout,x.stderr)
+    results[name]=dict(code=x.returncode,seconds=elapsed,stdout_bytes=len(x.stdout),stdout_sha256=hashlib.sha256(x.stdout).hexdigest(),stdout_prefix=x.stdout[:80].decode('latin1'),stderr=x.stderr.decode('latin1'))
+   cases.append(dict(depth=depth,field=field,sql_sha256=hashlib.sha256(sql.encode()).hexdigest(),results=results,matched=outputs['lean']==outputs['sqlite']))
+   print(json.dumps(cases[-1]),flush=True)
+a.output.write_text(json.dumps(dict(cases=cases,implementation_sha256=source,executable_sha256=exe,scope='Diagnostic single-process wall times on fixed depths, one pass; not a statistically controlled performance benchmark or fresh compatibility corpus.'),indent=2)+'\n')

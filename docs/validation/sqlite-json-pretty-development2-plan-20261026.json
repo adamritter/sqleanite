@@ -1,0 +1,70 @@
+{
+  "prefix": "json-pretty-development2",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-pretty-differential.py",
+        "--seed",
+        "354992",
+        "--fixtures",
+        "1",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-pretty-development2-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-pretty-write-differential.py",
+        "--seed",
+        "354993",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-pretty-development2-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-pretty-development2-receipts-20261026.json",
+  "evaluation": "Complete development replay after replacing nested output-byte copies with chunks; unchanged development inputs, strict output/error/file comparison."
+}

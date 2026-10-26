@@ -2554,4 +2554,12 @@ else
   status=1
 fi
 
+if rg -F -q '| "json_pretty", [value] => JsonPretty.evaluate value' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let encoded ← JsonBinary.evaluate value' SQLeanite/SQLite/JsonPretty.lean &&
+   rg -F -q 'JsonPretty.render_truncated' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON pretty rendering uses pure binary translation and local validation'
+else
+  echo 'error - JSON pretty renderer is disconnected from public SQL' >&2
+  status=1
+fi
 exit $status

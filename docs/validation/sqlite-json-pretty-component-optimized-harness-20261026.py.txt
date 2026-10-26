@@ -1,0 +1,75 @@
+from pathlib import Path
+import hashlib,json,random,re,struct,subprocess
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(354991);cases=[]
+indents=[None,('NULL','.null'),("''",'.text ""'),("'  '",'.text "  "'),("'--'",'.text "--"'),('1','.integer 1'),("X'ff00ab'",'.blob (componentBytes "ff00ab")'),("CAST(X'090a' AS TEXT)",'.textBytes (componentBytes "090a")')]
+def add(group,sql,lean,indent=None,hexvalue=None,storage=None):
+ args=sql;leanargs=lean
+ if indent is not None:args+=','+indent[0];leanargs+=' (some ('+indent[1]+'))'
+ cases.append(dict(group=group,sql=args,lean=leanargs,input_hex=hexvalue,storage=storage))
+def addbytes(group,data,blob=False,indent=None):
+ h=data.hex();add(group,"X'"+h+"'" if blob else "CAST(X'"+h+"' AS TEXT)",('.blob' if blob else '.textBytes')+' (componentBytes '+json.dumps(h)+')',indent,h,'blob' if blob else 'text')
+d=json.loads(Path('/tmp/sqleanite-json-binary-component-initial.json').read_text())
+for i,x in enumerate(d['cases']):
+ if x.get('hex') and len(x['hex'])>8192:continue
+ add('jsonb-corpus-'+x['group'],x['sql'],x['lean'],rng.choice(indents),x.get('hex'),x.get('storage'))
+def node(kind,data,width=None):
+ if width is None:width=0 if len(data)<12 else 1 if len(data)<256 else 2 if len(data)<65536 else 4
+ return bytes([(len(data) if width==0 else {1:12,2:13,4:14,8:15}[width])*16+kind])+(len(data).to_bytes(width,'big') if width else b'')+data
+payloads=[b'',b'0',b'1',b'-',b'+',b'.',b'-.',b'1.',b'1.e2',b'NaN',b'0x0',b'-0xFF',b'0xFFFFFFFFFFFFFFFF',b'0x10000000000000000',b'0x1000000000000000g',b'\x00',b'\xff',b'abc',b'"a',b'a\x01b',b'\\',b'\\x',b'\\x4',b'\\x4G',b'\\u1234',b'\\uXXXX',b'\\q',b'\\v',b'\\0',b'\\\r\n',b'\\\xe2\x80\xa8',b'\\\xe2\x80\xaa',b'\\\xe2',b'\\\xe2\x80',b'\\\n',b'\x00\x00',b'\xc0\x00',b'\x13\x31',b'\x17a\x00']
+for kind in range(16):
+ for data in payloads:
+  for width in [None,2,8]:
+   if width==None or width>0:
+    value=node(kind,data,width);addbytes('binary-node',value,True,rng.choice(indents));addbytes('nested-binary-node',node(11,value),True,rng.choice(indents))
+for kind in range(13):
+ for data in [b'',b'\x00',b'\x17a',b'\x13\x31',b'\xc0\x00',b'\x00\x00',b'\x17a\x17b']:
+  key=node(kind,data)
+  for tail in [b'',b'\x00',b'\x13\x31',b'\x1b\x00']:
+   addbytes('binary-object-key',node(12,key+tail),True,rng.choice(indents))
+for depth in [998,999,1000,1001]:
+ data=b'\x00'
+ for _ in range(depth):data=node(11,data)
+ for indent in [None,("''",'.text ""')]:
+  addbytes('depth-text',('['*depth+'0'+']'*depth).encode(),False,indent);addbytes('depth-binary',data,True,indent)
+for indent in indents:
+ for text in ['null','[]','{}','[1,{},[2],{"a":[3]}]','{a:1,b:2}','"a\\nb"',"'a\\xb0'",'0xFFFFFFFFFFFFFFFF','0x10000000000000000']:
+  addbytes('indent-control',text.encode(),False,indent)
+sql='.bail off\n'+''.join(f"SELECT {i},typeof(json_pretty({x['sql']})),hex(json_pretty({x['sql']}));\n" for i,x in enumerate(cases))
+r=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180);expected={}
+for line in r.stdout.decode().splitlines():
+ i,value=line.split('|',1);expected[int(i)]=value
+for line in r.stderr.decode().splitlines():
+ m=re.fullmatch(r'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2]
+assert len(expected)==len(cases),(len(expected),len(cases))
+head='''\nopen SQLeanite
+private def componentNibble (c : Char) : Nat := if c.toNat ≤ 57 then c.toNat-48 else c.toNat-87
+private def componentBytes (hex : String) : Array UInt8 :=
+  let data := hex.toList.toArray
+  (List.range (data.size/2)).toArray.map fun i => UInt8.ofNat (componentNibble data[2*i]! * 16 + componentNibble data[2*i+1]!)
+private def componentHex (bytes : Array UInt8) : String :=
+  String.ofList (bytes.toList.flatMap fun b => ["0123456789ABCDEF".toList[b.toNat/16]!,"0123456789ABCDEF".toList[b.toNat%16]!])
+'''
+chunks=[]
+for start in range(0,len(cases),250):
+ chunks.append('private def componentCases'+str(start)+' : Array (Nat × Except String Value) := #[\n'+',\n'.join('  ('+str(i)+', SQLite.JsonPretty.evaluate ('+x['lean'].split(' (some ')[0]+')'+(' (some '+x['lean'].split(' (some ',1)[1] if ' (some ' in x['lean'] else '')+')' for i,x in enumerate(cases[start:start+250],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for group in [CHUNKS] do
+    for (i, value) in group do
+      let rendered := match value with
+        | .error message => "error:" ++ message
+        | .ok .null => "null|"
+        | .ok value => "text|" ++ componentHex (SQLite.Text.bytes value)
+      IO.println s!"{i}|{rendered}"
+'''.replace('CHUNKS',','.join('componentCases'+str(i) for i in range(0,len(cases),250)))
+f=Path('/tmp/JsonPrettyOptimizedComponent.lean');proto=Path('/tmp/JsonPrettyOptimized.lean').read_text();f.write_text(proto+head+'\n'.join(chunks)+main)
+l=subprocess.run(['lake','env','lean','--run',str(f)],cwd=root,capture_output=True,timeout=600)
+Path('/tmp/sqleanite-json-pretty-component-optimized.stdout').write_bytes(l.stdout);Path('/tmp/sqleanite-json-pretty-component-optimized.stderr').write_bytes(l.stderr)
+actual={}
+for line in l.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=expected[i]==actual.get(i))
+report=dict(seed=354991,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=l.returncode,oracle_batch_exit=r.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),evaluation='Standalone Lean interpreter prototype, not public production coverage; fixed and seeded text/storage/binary-node/indent/depth controls, including unfiltered malformed JSONB.')
+Path('/tmp/sqleanite-json-pretty-component-optimized.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=l.returncode)),flush=True)
+if l.returncode:print((l.stdout.decode()+l.stderr.decode())[-3500:])
+for x in [x for x in cases if not x['matched']][:10]:print(json.dumps(x)[:1400])
+raise SystemExit(bool(report['failures']) or bool(l.returncode))

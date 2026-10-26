@@ -1597,3 +1597,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonBinary.evaluate_admitted_blob
 #print axioms SQLeanite.SQLite.JsonBinary.evaluate_invalid_text
 #print axioms SQLeanite.SQLite.JsonBinary.stringKind_empty
+
+#print axioms SQLeanite.SQLite.JsonPretty.evaluate_null
+#print axioms SQLeanite.SQLite.JsonPretty.quoted_empty
+#print axioms SQLeanite.SQLite.JsonPretty.hexNumber_empty
+#print axioms SQLeanite.SQLite.JsonPretty.render_truncated

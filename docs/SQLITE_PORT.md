@@ -6700,3 +6700,84 @@ uncompressed bytes. The byte layout and semantics follow the pinned 3.53.4
 `src/json.c`, with the [JSONB format](https://sqlite.org/jsonb.html) and
 [function documentation](https://sqlite.org/json1.html#the_jsonb_function)
 used as supplementary references.
+
+## JSON pretty rendering with bounded traversal (2026-10-26)
+
+`json_pretty()` now renders JSON/JSON5 text and admitted JSONB through pure
+Lean. It handles default and custom indentation, SQL coercions and embedded-NUL
+indent termination, escaped strings, JSON5 number normalization, nonminimal
+binary headers, operation-local malformed-binary checks and depth diagnostics.
+The renderer preserves raw result bytes. It collects output chunks and joins
+them once, so a deep container does not repeatedly copy all descendant bytes.
+The public function is available with one or two arguments, including the same
+admission/error ordering used by the other implemented JSON functions.
+
+Final frozen source: **ec3eabd77cd94afa61e550dbd9a103303fc5a6a5d29fe9dedb300ff7aac31b2c**.
+
+| Final fresh JSON pretty corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 23648 | 0 |
+| writer | 1840 | 0 |
+| upstream | 16384 | 0 |
+| Total | **41872** | **0** |
+
+Read and writer seeds **355001 and 355002** use fresh values and unfiltered
+mutations with maintained templates, across all eight page sizes and both
+public file modes. Default and custom rendering run independently per input;
+separate composition queries exercise JSONB input and error-position output.
+Controls include indentation storage classes, invalid UTF-8, JSON5 escapes,
+11/12, 255/256 and 65535/65536 payload boundaries, and depths 998 through 1001.
+Full bytes, outcome and normalized first diagnostics must match. Read files
+must remain unchanged. Writer checks include typed rows, schema shape, C
+integrity, Lean reopen and a subsequent C write. Existing page-size conversion
+is recorded separately.
+
+Pinned SQLite `randomjson.c` supplies an independent corpus at fresh seeds
+**3590000 through 3591023**: JSON/JSON5 text, binary versions and an unfiltered
+mutation of every representation. Every input is separately executed with a
+recorded indentation argument. The generator is loaded only by C; the public
+Lean executable has no oracle dependency. Separate related JSONB regressions
+pass **10736 cases** at seeds **355003 and 355004**.
+
+The exact-schema large-storage corpus remains **64 differences in 80 cases**
+at fresh seed **355005**. Full-image writes regenerate table SQL with canonical
+quoting, and CTAS declaration spelling differs. These are the retained gaps
+identified in the JSONB checkpoint; byte/row integrity observations still agree.
+They are not counted as successes, and the overall final runner exits **1**.
+No acceptance criterion was relaxed. Large read observations are compared in
+full before being stored as SHA-256, length and a diagnostic prefix.
+
+The first renderer and its chunk-based replacement each passed the same
+**10,227 standalone interpreter controls**. These component/replay counts are
+separate from fresh public coverage. **1,491 selected controls** remain in the
+executable regression suite; input groups and fixed indices determined selection,
+not passing outcomes. Initial prototype elaboration failed on a line continuation
+before any runtime comparison; that draft and log remain available.
+
+The first public candidate passed **268 writer cases**, but its read run was
+intentionally interrupted after **920 seconds** because of repeated nested
+copies. The read child exited **-2** and no complete read pass/failure count is
+claimed. All checks after that interrupted job passed. After the chunk change,
+the complete development replay passes **1,228 read cases** and **268 writer
+cases**. Original source, interruption record and logs are retained.
+
+A six-case fixed-depth diagnostic compares the same output before and after:
+at depth 999, the length query took **15.29 -> 0.20 seconds**, and the complete
+hex-output query **15.52 -> 0.53 seconds**, with identical outputs. These are
+single diagnostic wall-time observations during development, not a statistical
+benchmark or an overall database speed claim. The final fresh corpora run on
+the optimized build.
+
+The full build passes **374 jobs**, all **317 executable tests**, **1,352
+headline component proofs**, both audits and the reverse-file matrix. Four new
+component theorems cover NULL, empty quoting, empty hexadecimal payload rejection
+and truncated binary headers; they do not prove total SQLite equivalence.
+The native source and nine host bindings are unchanged. Other JSON functions,
+JSON text subtype propagation, exact schema SQL, requested write page geometry,
+cold-savepoint behavior and concurrent WAL locking remain open.
+
+Harnesses are `scripts/run-json-pretty-*.py`; plans, negative records and logs
+are retained under `docs/validation/sqlite-json-pretty-*`. Large reports are
+losslessly compressed, with original and stored hashes. The pinned 3.53.4
+`src/json.c` is the implementation reference; see also the
+[SQLite JSON documentation](https://sqlite.org/json1.html#the_json_pretty_function).

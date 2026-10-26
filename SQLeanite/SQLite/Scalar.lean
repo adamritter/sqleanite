@@ -1,6 +1,7 @@
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
 import SQLeanite.SQLite.JsonBinary
+import SQLeanite.SQLite.JsonPretty
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -293,6 +294,8 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "json_pretty", [value] => JsonPretty.evaluate value
+  | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
   | "jsonb", [value] => JsonBinary.evaluate value
   | "json_type", [value] => JsonAccess.evaluateType value
   | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
@@ -516,7 +519,7 @@ def forbidden : Expr → Bool
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
-        else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length"].contains n then
+        else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length", "json_pretty"].contains n then
           args.size == 1 || args.size == 2
         else if n == "like" then args.size == 2 || args.size == 3
         else if n == "instr" || n == "glob" then args.size == 2
@@ -545,7 +548,7 @@ def admissionErrorFuel : Nat → Expr → Option String
           let function := scalarFunctionName name
           let wrongArity := if ["json_error_position", "jsonb"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb"].contains function &&
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty"].contains function &&
               (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name

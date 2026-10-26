@@ -1,0 +1,9 @@
+{
+  "session_id": 25147,
+  "exit_code": 0,
+  "cases": 10227,
+  "failures": 0,
+  "unit_controls": 1491,
+  "scope": "Standalone interpreter component before public SQL integration; not final public compatibility coverage.",
+  "first_compile_failure": "Lean continuation indentation parsed a partially applied text5 call; corrected without runtime-semantic change."
+}
