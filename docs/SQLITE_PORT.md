@@ -5879,3 +5879,65 @@ Reports, diagnostic plans, exact focused harnesses and the initial source patch:
 `scripts/run-join-fixed-where-differential.py` and the existing reduced-cursor,
 scalar, order and writer harnesses, with new seeds and no source changes during
 the runs.
+
+## BETWEEN operands and conditional branches (2026-10-26)
+
+BETWEEN now retains one internal expression node through parsing, independent
+source-token certification, scalar evaluation and SQL rendering. Its tested
+operand is evaluated once; the two comparisons retain their own original
+operand affinities and collations. Cursor planning can inspect virtual range
+bounds without turning the source predicate into duplicated expressions.
+Ordinary SQL function syntax cannot invoke the internal marker, including
+quoted, uppercase and DISTINCT spellings.
+
+Searched CASE and if/iif conditions now use branch evaluation, including the
+separate true, false and NULL paths of AND, OR, NOT and BETWEEN. Simple CASE
+continues to compare its saved base value. Scalar BETWEEN still evaluates both
+bounds; branch BETWEEN can stop after its first comparison. Explicit collation
+and probability wrappers retain the existing scalar-versus-branch distinction.
+Two new component proofs preserve tested-operand failure through these helpers;
+the existing static-condition equivalence claim is unchanged.
+
+Development regressions on the final production source report **322 / 164**
+for the saved baseline and **8 / 0** for the BLOB operand-orientation list.
+The baseline had 322 differences before this change. The executable suite adds
+259 pinned-C constant controls covering all no-FROM baseline queries, CASE/iif,
+wrappers and marker-forgery attempts. These are maintained regressions, not
+fresh examples. Diagnostic C plans preserve the remaining range-constraint,
+join-order and original outer-operand marking differences.
+
+Fresh evaluation froze production source
+`df5a3b266c644e26d723deb54e3a8a638def9c13acc4f97778c6f49dbeb0550e`:
+
+- BETWEEN, seed **354700**: **28,992 / 338**, plus 16 passing immutable-fixture checks.
+- Fixed WHERE and NULL data, seed **354701**: **63,936 / 0**, plus 16 passing immutable-fixture checks.
+- Reduced outer cursors, seed **354702**: **52,736 / 0**, plus 16 passing immutable-fixture checks.
+- General scalar reads, seed **354703**: **25,152 / 0**, plus 16 passing immutable-fixture checks.
+- Evaluation order, seed **354704**: **30,120 / 0**, plus 24 passing immutable-fixture checks.
+- Joined writers, seed **354705**: **5,696 / 0**.
+
+The 338 BETWEEN differences comprise 134 C successes rejected, 120 C errors
+accepted, 16 successful output-order differences and 68 error-prefix
+differences. Sixty of the error-prefix differences are single-source reads;
+eight are joins. No no-FROM constant query differs in this fresh corpus.
+All failures and original fixtures remain in the report and a standalone
+regression input. This is a bounded improvement, not complete BETWEEN or
+SQLite compatibility. Join planning and scalar error-prefix publication remain
+open, along with the previously recorded SQL, file-header, encoding and
+concurrent-WAL gaps.
+
+Read corpora compare exact stdout even on failure, status, immutable main/WAL
+bytes and pinned-C integrity/typed observations. Writers compare typed contents,
+catalogs, follow-up C writes and Lean reopening; their both-error branch does
+not compare partial stdout. Corpora combine fixed SQL templates with new seeded
+data and windows in both public file modes and C-created 512/4096/65536-byte
+pages. They do not measure an overall compatibility percentage.
+
+Checks pass **354 build jobs, 296 executable tests, 1,298 headline component
+proofs**, both audits, and 61 accepted reverse-file cells with two declared
+unsupported. The same nine native bindings remain; native source SHA-256 is
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+Reports, exact source patches, diagnostic C plans and the checks runner are
+`sqlite-between-*20261026.*` in `docs/validation`. The next single-source
+prefix change is developed in an isolated worktree while this source remains
+unchanged throughout its final evaluation.

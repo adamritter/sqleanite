@@ -1,0 +1,15 @@
+import hashlib,json,subprocess
+from pathlib import Path
+root=Path.cwd();logs=Path('/dev/shm/sqleanite-tools-20261024/logs')
+def record(path,code):
+    content=path.read_bytes();return dict(exit_code=code,sha256=hashlib.sha256(content).hexdigest(),tail=content.decode(errors='replace').splitlines()[-8:])
+checks={}
+for name,cmd in [('build',['lake','build']),('tests',['lake','exe','sqleanite_tests']),('verification_audit',['scripts/lean-verification-audit.sh']),('live_path',['scripts/live-path-check.sh']),('reverse_files',['scripts/run-reverse-differential.sh','--full'])]:
+    path=logs/f'between-{name}-final.log'
+    with path.open('wb') as output:result=subprocess.run(cmd,stdout=output,stderr=subprocess.STDOUT)
+    checks[name]=record(path,result.returncode);print(name,result.returncode,checks[name]['tail'][-2:],flush=True)
+d=hashlib.sha256()
+for path in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:d.update(str(path.relative_to(root)).encode()+b'\0'+path.read_bytes())
+report=dict(implementation_sha256=d.hexdigest(),checks=checks,comparison='Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.',runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+(root/'docs/validation/sqlite-between-checks-20261026.json').write_text(json.dumps(report,indent=2)+'\n')
+raise SystemExit(any(c['exit_code']!=0 for c in checks.values()))

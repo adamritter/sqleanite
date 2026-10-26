@@ -2391,4 +2391,17 @@ else
   status=1
 fi
 
+if rg -F -q '.call "__sqlean_between" #[lhs, lower, upper] false' SQLeanite/Parser.lean &&
+   rg -F -q 'BETWEEN syntax, not an internal function call' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'evalBetween eval operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'testBetween evaluate operandAffinity argument lower upper wanted' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'testEvaluatedFuel eval operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'SQLite.Scalar.evalBetween_argument_error' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'SQLite.Scalar.testBetween_argument_error' SQLeanite/ProofAxioms.lean; then
+  echo "ok - BETWEEN retains its source boundary and shared tested operand"
+else
+  echo "not ok - BETWEEN expression semantics are not wired into execution"
+  status=1
+fi
+
 exit $status

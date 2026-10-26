@@ -1,0 +1,742 @@
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 1be23c2..533c434 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -2971,6 +2971,10 @@ def joinScalarNullWalk (context : JoinContext) (prepared : JoinScalarPrepared)
+       | .binary op left right =>
+           ![.is, .isNot, .like, .glob, .match, .arrow, .arrowText].contains op && (walk left || walk right)
+       | .inList arg values _ _ => !values.isEmpty && walk arg
++      | .call "__sqlean_between" arguments false =>
++          match arguments.toList with
++          | [argument, lower, upper] => walk argument || (walk lower && walk upper)
++          | _ => false
+       | .call name args _ =>
+           (SQLite.Scalar.scalarFunctionName name).startsWith "cast_" && args.size == 1 &&
+             args.toList.any walk
+@@ -3169,9 +3173,19 @@ theorem joinSearchKeyOrder_perm (keys : List (Bool × JoinSearchKey)) :
+   exact ((List.reverse_perm (keys.filter Prod.fst)).append_left
+     (keys.filter (fun item => !item.1)) |>.trans partition).map Prod.snd
+ 
++/-- BETWEEN remains one predicate during fixed-column preparation. Its
++virtual range bounds are exposed only to cursor-constraint selection. -/
++def joinSearchRangeTerms (terms : List Expr) : List Expr :=
++  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
++    | .call "__sqlean_between" arguments false =>
++        match arguments.toList with
++        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
++        | _ => [term]
++    | _ => [term]
++
+ def joinSearchKeys (context : JoinContext) (prepared : JoinScalarPrepared)
+     (side : CoreJoin.Side) (terms : List Expr) : List JoinSearchKey :=
+-  joinSearchKeyOrder (terms.filterMap fun term => do
++  joinSearchKeyOrder ((joinSearchRangeTerms terms).filterMap fun term => do
+     let key ← joinSearchKey? context prepared side term
+     let virtual := match SQLite.ExprCollation.strip term with
+       | .binary _ left right => (joinScalarReference context prepared left).isSome &&
+@@ -3261,7 +3275,7 @@ outer cursor. The key value and comparison operator are retained unchanged. -/
+ def joinSearchRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+     (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
+   let equal := joinSearchRowidEquality context prepared on
+-  let keys := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
++  let keys := (joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])).filterMap fun term => do
+     let (origin, key) ← joinSearchRangeBound context prepared term
+     unless origin == side || equal do none
+     return key
+@@ -3295,7 +3309,7 @@ def joinSearchTransitiveRoot (context : JoinContext) (prepared : JoinScalarPrepa
+   if onTerms.any (fun term => joinScalarOnlySide context prepared .left term &&
+       !prepared.context.constantExpression term) &&
+       !joinSearchRetainedRightNullFilter context prepared then none
+-  let whereTerms := prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
++  let whereTerms := joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])
+   let compatibleNullTest := fun term => match SQLite.ExprCollation.strip term with
+     | .isNull arg true => (joinScalarReference context prepared arg).any (fun ref =>
+         ref.side == .right || !joinScalarOriginallyNullable context prepared ref)
+@@ -3547,7 +3561,7 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
+   let outer := joinSearchOpposite side
+   let terms := on.map SQLite.Scalar.conditionTerms |>.getD []
+   let whereRanges := if source.leftJoin || source.rightJoin then [] else
+-    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
++    (joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])).filterMap fun term => do
+       let key ← joinSearchKey? context prepared side term
+       unless [.lt, .le, .gt, .ge].contains key.operation do none
+       return key
+diff --git a/SQLeanite/CoreTokenGrammar.lean b/SQLeanite/CoreTokenGrammar.lean
+index 024bf86..b435c2b 100644
+--- a/SQLeanite/CoreTokenGrammar.lean
++++ b/SQLeanite/CoreTokenGrammar.lean
+@@ -280,21 +280,16 @@ mutual
+           | .unary .not body => (body, true)
+           | body => (body, false)
+         match body with
+-        | .binary .and (.binary .ge left lower) (.binary .le repeated upper) =>
+-            let start ← get
+-            matchExprFuel fuel left
+-            let afterLeft ← get
+-            -- BETWEEN duplicates the left operand in the proposed AST.
+-            -- Replay both occurrences against exactly the same source span.
+-            set start
+-            matchExprFuel fuel repeated
+-            unless (← get).remaining == afterLeft.remaining do
+-              mismatch "the same BETWEEN operand"
+-            if negated then expectKeyword "not"
+-            expectKeyword "between"
+-            matchExprFuel fuel lower
+-            expectKeyword "and"
+-            matchExprFuel fuel upper
++        | .call "__sqlean_between" arguments false =>
++            match arguments.toList with
++            | [left, lower, upper] =>
++                matchExprFuel fuel left
++                if negated then expectKeyword "not"
++                expectKeyword "between"
++                matchExprFuel fuel lower
++                expectKeyword "and"
++                matchExprFuel fuel upper
++            | _ => mismatch "three BETWEEN operands"
+         | _ => mismatch "a BETWEEN expression"
+       let pattern : MatchM Unit := do
+         let (body, negated) := match expression with
+@@ -396,6 +391,9 @@ mutual
+               matchExprFuel fuel condition
+               expectSymbol ")"
+           | _, _ => mismatch "aggregate FILTER (WHERE expression)"
++        else if aggregateFunctionName name == "__sqlean_between" then
++          -- The alternative above is the only source syntax for this marker.
++          mismatch "BETWEEN syntax, not an internal function call"
+         else if name == "__sqlean_boolean_true" || name == "__sqlean_boolean_false" then
+           unless arguments.isEmpty && !star do mismatch "a boolean keyword"
+           expectKeyword (if name == "__sqlean_boolean_true" then "true" else "false")
+diff --git a/SQLeanite/Engine.lean b/SQLeanite/Engine.lean
+index 057930f..846e7ee 100644
+--- a/SQLeanite/Engine.lean
++++ b/SQLeanite/Engine.lean
+@@ -1290,6 +1290,14 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
+               pure (jsonToSqlValue value)
+             else
+               pure (.text value.compress)
++  | fuel + 1, env, .call "__sqlean_between" arguments false =>
++      match arguments.toList with
++      | [argument, lower, upper] =>
++          SQLite.Scalar.evalBetween (evalExprFuel fuel env)
++            (fun expression => match expression with
++              | .column .. => some (SQLite.typeAffinity (expression.declaredTypeIn env))
++              | _ => SQLite.Scalar.expressionAffinity expression) argument lower upper
++      | _ => .error "invalid BETWEEN operands"
+   | fuel + 1, env, .call name args star => do
+     if let some truth := SQLite.Scalar.booleanKeyword? (.call name args star) then
+       let keyword := SQLite.Scalar.booleanName truth
+diff --git a/SQLeanite/Parser.lean b/SQLeanite/Parser.lean
+index b476f63..2e0d1d9 100644
+--- a/SQLeanite/Parser.lean
++++ b/SQLeanite/Parser.lean
+@@ -227,14 +227,14 @@ mutual
+           let lower ← parseExprFuel fuel 3
+           expectKeyword "and"
+           let upper ← parseExprFuel fuel 4
+-          lhs := .binary .and (.binary .ge lhs lower) (.binary .le lhs upper)
++          lhs := .call "__sqlean_between" #[lhs, lower, upper] false
+         else if minPrec <= 3 && isKeyword (← peek) "not" then
+           discard <| advance
+           if ← acceptKeyword "between" then
+             let lower ← parseExprFuel fuel 3
+             expectKeyword "and"
+             let upper ← parseExprFuel fuel 4
+-            lhs := .unary .not (.binary .and (.binary .ge lhs lower) (.binary .le lhs upper))
++            lhs := .unary .not (.call "__sqlean_between" #[lhs, lower, upper] false)
+           else if ← acceptKeyword "like" then
+             let pattern ← parseExprFuel fuel 4
+             let comparison ← if ← acceptKeyword "escape" then
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index cf81ad6..1192103 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1526,3 +1526,6 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreSQL.joinFixedConstantMatches_outer
+ 
+ #print axioms SQLeanite.SQLite.StaticCondition.Decision.test_and_stops
++
++#print axioms SQLeanite.SQLite.Scalar.evalBetween_argument_error
++#print axioms SQLeanite.SQLite.Scalar.testBetween_argument_error
+diff --git a/SQLeanite/SQLite/Scalar.lean b/SQLeanite/SQLite/Scalar.lean
+index febb9ca..a4ab059 100644
+--- a/SQLeanite/SQLite/Scalar.lean
++++ b/SQLeanite/SQLite/Scalar.lean
+@@ -356,7 +356,7 @@ def hasFunctionFuel : Nat → Expr → Bool
+       match expression with
+       | .collate .. => false
+       | .call name args _ =>
+-          (!name.toLower.startsWith "cast_" && (booleanKeyword? expression).isNone &&
++          (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
+             (quotedIdentifier? expression).isNone) || args.any has
+       | .unary _ arg | .isNull arg _ => has arg
+       | .binary _ left right => has left || has right
+@@ -488,6 +488,11 @@ def forbidden : Expr → Bool
+       let n := scalarFunctionName name
+       star || args.size > Limits.maxFunctionArgs ||
+         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
++        else if n == "__sqlean_between" then
++          match args.toList with
++          | [argument, lower, upper] => (ExprCollation.binaryKind? argument lower).isSome &&
++              (ExprCollation.binaryKind? argument upper).isSome
++          | _ => false
+         else if Probability.recognizesName n then (Probability.input? n args).isSome
+         else if n == "format" || n == "printf" then true
+         else if Math.accepts n args.size then true
+@@ -540,23 +545,22 @@ def firstNonNull (eval : Expr → Except String Value) : List Expr → Except St
+       let v ← eval x
+       if isNull v then firstNonNull eval xs else return v
+ 
+-def conditional (eval : Expr → Except String Value) : List Expr → Except String Value
++def conditional (eval : Expr → Except String Value) (test : Expr → Except String Bool) : List Expr → Except String Value
+   | [] => .ok .null
+   | [last] => eval last
+   | condition :: result :: rest => do
+-      if Numeric.truth (← eval condition) == .true then eval result else conditional eval rest
++      if ← test condition then eval result else conditional eval test rest
+ 
+-def branches (eval : Expr → Except String Value)
++def branches (eval : Expr → Except String Value) (test : Expr → Except String Bool)
+     (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
+     (otherwise : Option Expr) : List (Expr × Expr) → Except String Value
+   | [] => match otherwise with | none => .ok .null | some e => eval e
+   | (condition, result) :: rest => do
+-      let v ← eval condition
+-      let selected : Bool := match base with
+-        | none => Numeric.truth v == .true
+-        | some (expression, b) =>
+-            equal expression condition b v == .integer 1
+-      if selected then eval result else branches eval equal base otherwise rest
++      let selected ← match base with
++        | none => test condition
++        | some (expression, b) => do
++            pure (equal expression condition b (← eval condition) == .integer 1)
++      if selected then eval result else branches eval test equal base otherwise rest
+ 
+ def membership (collation : Collation.Kind) (affinity : Affinity) (left : Value) : List Value → Bool → Truth
+   | [], sawNull => if sawNull then .unknown else .false
+@@ -617,6 +621,81 @@ def negatedLiteral? : Expr → Option Value
+   | .unary .plus expression => negatedLiteral? expression
+   | _ => none
+ 
++/-- BETWEEN evaluates its tested value once, then uses the original operands'
++affinity and collation independently for the lower and upper comparisons. -/
++def evalBetween (evaluate : Expr → Except String Value)
++    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr) : Except String Value := do
++  let value ← evaluate argument
++  let minimum ← evaluate lower
++  let maximum ← evaluate upper
++  binary .and (expressionComparisonWith operandAffinity .ge argument lower value minimum)
++    (expressionComparisonWith operandAffinity .le argument upper value maximum)
++
++/-- Branch emission shares the tested value while retaining SQL's distinct
++true/false/NULL outcomes and the short-circuit order of the two comparisons. -/
++def testBetween (evaluate : Expr → Except String Value)
++    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr)
++    (wanted : Bool) : Except String Bool := do
++  let value ← evaluate argument
++  let minimum ← evaluate lower
++  let first := Numeric.truth (expressionComparisonWith operandAffinity .ge argument lower value minimum)
++  if wanted && first != .true then return false
++  if !wanted && first == .false then return true
++  let maximum ← evaluate upper
++  return Numeric.truth (expressionComparisonWith operandAffinity .le argument upper value maximum) ==
++    (if wanted then .true else .false)
++
++theorem evalBetween_argument_error (evaluate : Expr → Except String Value)
++    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (message : String)
++    (failed : evaluate argument = .error message) :
++    evalBetween evaluate affinity argument lower upper = .error message := by
++  simp [evalBetween, failed, bind, Except.bind]
++
++theorem testBetween_argument_error (evaluate : Expr → Except String Value)
++    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (wanted : Bool) (message : String)
++    (failed : evaluate argument = .error message) :
++    testBetween evaluate affinity argument lower upper wanted = .error message := by
++  simp [testBetween, failed, bind, Except.bind]
++
++/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
++Testing false is distinct from testing not-true: NULL matches neither. This
++preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
++def testEvaluatedFuel (evaluate : Expr → Except String Value)
++    (operandAffinity : Expr → Option Affinity) (transparentWrappers : Bool) :
++    Nat → Bool → Expr → Except String Bool
++  | 0, _, _ => .error "row predicate depth exhausted"
++  | fuel + 1, wanted, expression => do
++      if let some truth := staticTruth expression then
++        return truth == wanted
++      if transparentWrappers then
++        if let .collate argument _ := expression then
++          return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
++        if let .call name arguments false := expression then
++          if let some argument := Probability.input? name arguments then
++            return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
++      match expression with
++      | .call "__sqlean_between" arguments false =>
++          match arguments.toList with
++          | [argument, lower, upper] => testBetween evaluate operandAffinity argument lower upper wanted
++          | _ => .error "invalid BETWEEN operands"
++      | .unary .not arg => testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel (!wanted) arg
++      | .binary .and left right =>
++          if wanted then
++            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
++            else return false
++          else
++            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then return true
++            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
++      | .binary .or left right =>
++          if wanted then
++            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then return true
++            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
++          else
++            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
++            else return false
++      | _ => return Numeric.truth (← evaluate expression) ==
++          (if wanted then .true else .false)
++
+ /-- Fuel is supplied by the existing structural expression height. Recursing
+ through CASE/function arrays is total, with no unbounded interpreter binding. -/
+ def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+@@ -624,6 +703,8 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
+   | 0, _ => .error "scalar expression depth exhausted"
+   | fuel + 1, e =>
+     let eval := evalFuelWithConstants lookup operandAffinity constant fuel
++    let test := fun condition =>
++      testEvaluatedFuel eval operandAffinity false condition.height true condition
+     match e with
+     | .literal v _ => .ok v
+     | .column qualifier name => lookup qualifier name
+@@ -651,9 +732,13 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
+     | .call name args false =>
+         let n := scalarFunctionName name
+         if let some truth := booleanKeyword? e then .ok (boolValue truth)
++        else if n == "__sqlean_between" then
++          match args.toList with
++          | [argument, lower, upper] => evalBetween eval operandAffinity argument lower upper
++          | _ => .error "invalid BETWEEN operands"
+         else if let some argument := Probability.input? name args then eval argument
+         else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
+-        else if n == "iif" || n == "if" then conditional eval args.toList
++        else if n == "iif" || n == "if" then conditional eval test args.toList
+         else if ["min", "max", "nullif"].contains n then do
+           let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+           let values ← args.mapM eval
+@@ -665,7 +750,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
+         else do builtin n (← args.mapM eval)
+     | .case_ base cases otherwise => do
+         let b ← base.mapM (fun e => do return (e, ← eval e))
+-        branches eval (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
++        branches eval test (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
+     | _ => .error "unsupported constant expression"
+ 
+ def evalFuelWith (lookup : Option String → String → Except String Value)
+@@ -691,40 +776,12 @@ def evalWith (lookup : Option String → String → Except String Value)
+     (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
+   evalWithConstants lookup operandAffinity constantExpression e
+ 
+-/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
+-Testing false is distinct from testing not-true: NULL matches neither. This
+-preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
++/-- Public WHERE/HAVING predicate evaluation shares the same branch rules
++used by searched CASE and iif conditions. -/
+ def branchFuelWithConstants (lookup : Option String → String → Except String Value)
+     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (transparentWrappers : Bool) :
+-    Nat → Bool → Expr → Except String Bool
+-  | 0, _, _ => .error "row predicate depth exhausted"
+-  | fuel + 1, wanted, expression => do
+-      if let some truth := staticTruth expression then
+-        return truth == wanted
+-      if transparentWrappers then
+-        if let .collate argument _ := expression then
+-          return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
+-        if let .call name arguments false := expression then
+-          if let some argument := Probability.input? name arguments then
+-            return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
+-      match expression with
+-      | .unary .not arg => branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel (!wanted) arg
+-      | .binary .and left right =>
+-          if wanted then
+-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
+-            else return false
+-          else
+-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then return true
+-            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
+-      | .binary .or left right =>
+-          if wanted then
+-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then return true
+-            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
+-          else
+-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
+-            else return false
+-      | _ => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
+-          (if wanted then .true else .false)
++    Nat → Bool → Expr → Except String Bool :=
++  testEvaluatedFuel (evalWithConstants lookup operandAffinity constant) operandAffinity transparentWrappers
+ 
+ /-- WHERE planning exposes the underlying hinted/collated condition. -/
+ def testFuelWithConstants (lookup : Option String → String → Except String Value)
+diff --git a/SQLeanite/SQLite/StaticCondition.lean b/SQLeanite/SQLite/StaticCondition.lean
+index 2c03157..942b5b7 100644
+--- a/SQLeanite/SQLite/StaticCondition.lean
++++ b/SQLeanite/SQLite/StaticCondition.lean
+@@ -11,6 +11,7 @@ def resolutionForbidden (expression : Expr) : Bool :=
+       let name := SQLite.Scalar.scalarFunctionName name
+       star || arguments.size > SQLite.Limits.maxFunctionArgs ||
+         !(if (SQLite.Scalar.booleanKeyword? expression).isSome then true
++          else if name == "__sqlean_between" then arguments.size == 3
+           else if name.startsWith "cast_" then arguments.size == 1
+           else if SQLite.Probability.recognizesName name then (SQLite.Probability.input? name arguments).isSome
+           else SQLite.FunctionSignatures.scalar name arguments.size)
+@@ -29,6 +30,11 @@ def codegenForbidden : Expr → Bool
+       [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains operation &&
+         !([.is, .isNot].contains operation && (Scalar.isTruthKeyword? right).isSome) &&
+         (ExprCollation.binaryKind? left right).isNone
++  | .call "__sqlean_between" arguments false =>
++      match arguments.toList with
++      | [argument, lower, upper] =>
++          (ExprCollation.binaryKind? argument lower).isNone || (ExprCollation.binaryKind? argument upper).isNone
++      | _ => true
+   | .call name arguments _ =>
+       ["min", "max", "nullif"].contains (Scalar.scalarFunctionName name) &&
+         (ExprCollation.argumentsKind? arguments).isNone
+@@ -81,7 +87,7 @@ theorem testTerm_static (lookup : Option String → String → Except String Val
+   | zero => omega
+   | succ fuel =>
+       cases truth <;>
+-        simp [Scalar.testFuelWithConstants, Scalar.branchFuelWithConstants, known, pure, Except.pure]
++        simp [Scalar.testFuelWithConstants, Scalar.branchFuelWithConstants, Scalar.testEvaluatedFuel, known, pure, Except.pure]
+ 
+ theorem staticTerms_correct (lookup : Option String → String → Except String Value)
+     (affinity : Expr → Option Affinity) (constant : Expr → Bool)
+diff --git a/SQLeanite/Syntax.lean b/SQLeanite/Syntax.lean
+index 2c24b07..226e34b 100644
+--- a/SQLeanite/Syntax.lean
++++ b/SQLeanite/Syntax.lean
+@@ -258,6 +258,11 @@ private def exprSqlFuel : Nat → Expr → String
+   | _fuel + 1, .star (some q) => q ++ ".*"
+   | fuel + 1, .unary op e => op.sql ++ exprSqlFuel fuel e
+   | fuel + 1, .binary op a b => exprSqlFuel fuel a ++ op.sql ++ exprSqlFuel fuel b
++  | fuel + 1, .call "__sqlean_between" arguments false =>
++      match arguments.toList with
++      | [argument, lower, upper] =>
++          exprSqlFuel fuel argument ++ " BETWEEN " ++ exprSqlFuel fuel lower ++ " AND " ++ exprSqlFuel fuel upper
++      | _ => "..."
+   | _fuel + 1, .call "__sqlean_boolean_true" #[] false => "TRUE"
+   | _fuel + 1, .call "__sqlean_boolean_false" #[] false => "FALSE"
+   | fuel + 1, .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
+diff --git a/Tests.lean b/Tests.lean
+index e011469..beba826 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -7634,6 +7634,281 @@ private def expectSQLiteJoinedSearchTermOrder : IO Unit := do
+     unless report.execution.result.rows == expected && report.error.isSome == expectedError do
+       fail s!"joined original or commuted term search differs: {sql}"
+ 
++private def expectSQLiteBetweenConstants : IO Unit := do
++  let cases : List (String × Bool × List (List Value)) := [
++    ("SELECT NULL BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL BETWEEN NULL AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT NULL BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN 1 AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN 1 AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN 1 AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN 1 AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL BETWEEN 1 AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT NULL BETWEEN '1' AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN '1' AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN '1' AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL BETWEEN '1' AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN '1' AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN '1' AND 3;",false,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL BETWEEN '1' AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN NULL BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT NULL NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE NULL NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN NULL NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 0 BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 0 BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE 0 BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 BETWEEN NULL AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 0 BETWEEN 1 AND NULL;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 0 BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN 1 AND NULL;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN 1 AND NULL;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 0 BETWEEN 1 AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 0 BETWEEN 1 AND 3;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 0 BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 BETWEEN 1 AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN 1 AND abs(-9223372036854775808);",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 0 BETWEEN '1' AND NULL;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 0 BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN '1' AND NULL;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN '1' AND NULL;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 0 BETWEEN '1' AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 0 BETWEEN '1' AND 3;",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 0 BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 BETWEEN '1' AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN 0 BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 0 NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 0 NOT BETWEEN '1' AND abs(-9223372036854775808);",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 0 NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 2 BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN NULL AND 3;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 BETWEEN NULL AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 2 BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 2 BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 2 BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 2 NOT BETWEEN 1 AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN 1 AND 3;",false,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN 2 BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 2 NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 2 BETWEEN '1' AND NULL;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 2 BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN '1' AND NULL;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN '1' AND NULL;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 2 BETWEEN '1' AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE 2 BETWEEN '1' AND 3;",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT 2 BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 BETWEEN '1' AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN 2 BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT 2 NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE 2 NOT BETWEEN '1' AND abs(-9223372036854775808);",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN 2 NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT '2' BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN NULL AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN NULL AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN NULL AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' BETWEEN NULL AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE '2' BETWEEN NULL AND 3;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN NULL AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN NULL AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN NULL AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT '2' BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' BETWEEN NULL AND abs(-9223372036854775808);",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN NULL AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT '2' BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN 1 AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN 1 AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN 1 AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' BETWEEN 1 AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE '2' BETWEEN 1 AND 3;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN 1 AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN 1 AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT '2' BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN '2' BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT '2' NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT '2' BETWEEN '1' AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN '1' AND NULL;",false,[[.null]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN '1' AND NULL;",false,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN '1' AND NULL THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' BETWEEN '1' AND 3;",false,[[.integer (0)]]),
++    ("SELECT 1 WHERE '2' BETWEEN '1' AND 3;",false,[]),
++    ("SELECT CASE WHEN '2' BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT '2' NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN '1' AND 3;",false,[[.integer (1)]]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN '1' AND 3 THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT '2' BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN '2' BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT '2' NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT 1 WHERE '2' NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[]),
++    ("SELECT CASE WHEN '2' NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT 2 NOT BETWEEN 1 AND 3=-3;",false,[[.integer (0)]]),
++    ("SELECT '2' BETWEEN 2 AND 1 IS NOT -3;",false,[[.integer (1)]]),
++    ("SELECT 0 AND missing BETWEEN 1 AND 2;",false,[[.integer (0)]]),
++    ("SELECT 2 BETWEEN 1 COLLATE missing AND 3;",true,[]),
++    ("SELECT __sqlean_between(2,1,3);",true,[]),
++    ("SELECT __SQLEAN_BETWEEN(2,1,3);",true,[]),
++    ("SELECT iif(NULL BETWEEN NULL AND abs(-9223372036854775808),7,9);",false,[[.integer (9)]]),
++    ("SELECT CASE WHEN (NULL BETWEEN NULL AND abs(-9223372036854775808)) COLLATE binary THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif((NULL BETWEEN NULL AND abs(-9223372036854775808)) COLLATE binary,7,9);",true,[]),
++    ("SELECT CASE WHEN likely(NULL BETWEEN NULL AND abs(-9223372036854775808)) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif(likely(NULL BETWEEN NULL AND abs(-9223372036854775808)),7,9);",true,[]),
++    ("SELECT iif(0 NOT BETWEEN 1 AND abs(-9223372036854775808),7,9);",false,[[.integer (7)]]),
++    ("SELECT CASE WHEN (0 NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif((0 NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary,7,9);",true,[]),
++    ("SELECT CASE WHEN likely(0 NOT BETWEEN 1 AND abs(-9223372036854775808)) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif(likely(0 NOT BETWEEN 1 AND abs(-9223372036854775808)),7,9);",true,[]),
++    ("SELECT CASE WHEN NULL AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT iif(NULL AND abs(-9223372036854775808),7,9);",false,[[.integer (9)]]),
++    ("SELECT CASE WHEN (NULL AND abs(-9223372036854775808)) COLLATE binary THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif((NULL AND abs(-9223372036854775808)) COLLATE binary,7,9);",true,[]),
++    ("SELECT CASE WHEN likely(NULL AND abs(-9223372036854775808)) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif(likely(NULL AND abs(-9223372036854775808)),7,9);",true,[]),
++    ("SELECT CASE WHEN NOT (NULL AND abs(-9223372036854775808)) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif(NOT (NULL AND abs(-9223372036854775808)),7,9);",true,[]),
++    ("SELECT CASE WHEN (NOT (NULL AND abs(-9223372036854775808))) COLLATE binary THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif((NOT (NULL AND abs(-9223372036854775808))) COLLATE binary,7,9);",true,[]),
++    ("SELECT CASE WHEN likely(NOT (NULL AND abs(-9223372036854775808))) THEN 7 ELSE 9 END;",true,[]),
++    ("SELECT iif(likely(NOT (NULL AND abs(-9223372036854775808))),7,9);",true,[]),
++    ("SELECT CASE WHEN 0 AND abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT iif(0 AND abs(-9223372036854775808),7,9);",false,[[.integer (9)]]),
++    ("SELECT CASE WHEN (0 AND abs(-9223372036854775808)) COLLATE binary THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT iif((0 AND abs(-9223372036854775808)) COLLATE binary,7,9);",false,[[.integer (9)]]),
++    ("SELECT CASE WHEN likely(0 AND abs(-9223372036854775808)) THEN 7 ELSE 9 END;",false,[[.integer (9)]]),
++    ("SELECT iif(likely(0 AND abs(-9223372036854775808)),7,9);",false,[[.integer (9)]]),
++    ("SELECT CASE WHEN 1 OR abs(-9223372036854775808) THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT iif(1 OR abs(-9223372036854775808),7,9);",false,[[.integer (7)]]),
++    ("SELECT CASE WHEN (1 OR abs(-9223372036854775808)) COLLATE binary THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT iif((1 OR abs(-9223372036854775808)) COLLATE binary,7,9);",false,[[.integer (7)]]),
++    ("SELECT CASE WHEN likely(1 OR abs(-9223372036854775808)) THEN 7 ELSE 9 END;",false,[[.integer (7)]]),
++    ("SELECT iif(likely(1 OR abs(-9223372036854775808)),7,9);",false,[[.integer (7)]]),
++    ("SELECT __sqlean_between(DISTINCT 2,1,3);",true,[]),
++    ("SELECT \"__sqlean_between\"(2,1,3);",true,[]),
++    ("SELECT \"__SQLEAN_BETWEEN\"(2,1,3);",true,[])]
++  for (sql, expectedError, values) in cases do
++    let result := CoreSQL.execute Core.State.empty sql
++    if expectedError then
++      if result.isOk then fail s!"BETWEEN/CASE expected an error: {sql}"
++    else
++      let (_, output) ← match result with
++        | .ok value => pure value
++        | .error message => fail s!"BETWEEN/CASE: {sql}: {message}"
++      let expected ← match values.mapM (List.mapM SQLSurface.value) with
++        | .ok rows => pure rows
++        | .error message => fail message
++      unless (output.getLast?).map (·.rows) == some expected do
++        fail s!"BETWEEN/CASE constant result differs: {sql}"
++
+ private def expectSQLiteJoinedNullableData : IO Unit := do
+   let cases : List (String × String × Bool × List (List Value)) := [
+     ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC NOT NULL);INSERT INTO r VALUES(1,2);INSERT INTO r VALUES(2,1);INSERT INTO r VALUES(3,'01');","SELECT a.id,b.id FROM l a JOIN r b ON b.id=abs(-9223372036854775808) AND a.id=2 WHERE b.id IS NOT NULL AND a.id>1;",false,[]),
+@@ -10556,6 +10831,7 @@ private def unitTests : Array (String × IO Unit) := #[
+   ("SQLite joined original and commuted search constraints", expectSQLiteJoinedSearchTermOrder),
+   ("SQLite joined declared nullability and singleton IN", expectSQLiteJoinedDeclaredNullability),
+   ("SQLite joined fixed WHERE and null-filter cursor ordering", expectSQLiteJoinedFixedWhere),
++  ("SQLite BETWEEN, CASE and conditional constants", expectSQLiteBetweenConstants),
+   ("SQLite joined nullable data and dependent point searches", expectSQLiteJoinedNullableData),
+   ("SQLite joined null-filter preparation and source selection", expectSQLiteJoinedNullFilterOrder),
+   ("SQLite nonnull rowid filters and empty inner ranges", expectSQLiteJoinedEmptyFilters),
+diff --git a/scripts/live-path-check.sh b/scripts/live-path-check.sh
+index 531d096..256f80e 100755
+--- a/scripts/live-path-check.sh
++++ b/scripts/live-path-check.sh
+@@ -2391,4 +2391,17 @@ else
+   status=1
+ fi
+ 
++if rg -F -q '.call "__sqlean_between" #[lhs, lower, upper] false' SQLeanite/Parser.lean &&
++   rg -F -q 'BETWEEN syntax, not an internal function call' SQLeanite/CoreTokenGrammar.lean &&
++   rg -F -q 'evalBetween eval operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
++   rg -F -q 'testBetween evaluate operandAffinity argument lower upper wanted' SQLeanite/SQLite/Scalar.lean &&
++   rg -F -q 'testEvaluatedFuel eval operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
++   rg -F -q 'SQLite.Scalar.evalBetween_argument_error' SQLeanite/ProofAxioms.lean &&
++   rg -F -q 'SQLite.Scalar.testBetween_argument_error' SQLeanite/ProofAxioms.lean; then
++  echo "ok - BETWEEN retains its source boundary and shared tested operand"
++else
++  echo "not ok - BETWEEN expression semantics are not wired into execution"
++  status=1
++fi
++
+ exit $status

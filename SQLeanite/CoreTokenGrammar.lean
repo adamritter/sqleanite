@@ -280,21 +280,16 @@ mutual
           | .unary .not body => (body, true)
           | body => (body, false)
         match body with
-        | .binary .and (.binary .ge left lower) (.binary .le repeated upper) =>
-            let start ← get
-            matchExprFuel fuel left
-            let afterLeft ← get
-            -- BETWEEN duplicates the left operand in the proposed AST.
-            -- Replay both occurrences against exactly the same source span.
-            set start
-            matchExprFuel fuel repeated
-            unless (← get).remaining == afterLeft.remaining do
-              mismatch "the same BETWEEN operand"
-            if negated then expectKeyword "not"
-            expectKeyword "between"
-            matchExprFuel fuel lower
-            expectKeyword "and"
-            matchExprFuel fuel upper
+        | .call "__sqlean_between" arguments false =>
+            match arguments.toList with
+            | [left, lower, upper] =>
+                matchExprFuel fuel left
+                if negated then expectKeyword "not"
+                expectKeyword "between"
+                matchExprFuel fuel lower
+                expectKeyword "and"
+                matchExprFuel fuel upper
+            | _ => mismatch "three BETWEEN operands"
         | _ => mismatch "a BETWEEN expression"
       let pattern : MatchM Unit := do
         let (body, negated) := match expression with
@@ -396,6 +391,9 @@ mutual
               matchExprFuel fuel condition
               expectSymbol ")"
           | _, _ => mismatch "aggregate FILTER (WHERE expression)"
+        else if aggregateFunctionName name == "__sqlean_between" then
+          -- The alternative above is the only source syntax for this marker.
+          mismatch "BETWEEN syntax, not an internal function call"
         else if name == "__sqlean_boolean_true" || name == "__sqlean_boolean_false" then
           unless arguments.isEmpty && !star do mismatch "a boolean keyword"
           expectKeyword (if name == "__sqlean_boolean_true" then "true" else "false")

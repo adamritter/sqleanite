@@ -1,0 +1,61 @@
+{
+  "evaluation": "Completed tool session exit receipts for the frozen-source final evaluation",
+  "checks_session": 53592,
+  "checks_exit_code": 0,
+  "reports": [
+    {
+      "name": "between",
+      "session_id": 67877,
+      "exit_code": 1,
+      "cases": 28992,
+      "failures": 338,
+      "report": "sqlite-between-final-fresh-20261026.json",
+      "sha256": "974ccffd758a3bf7692ab710382cab0204492fea499f61a0565c79b6b4bd63e6"
+    },
+    {
+      "name": "fixed_where",
+      "session_id": 99250,
+      "exit_code": 0,
+      "cases": 63936,
+      "failures": 0,
+      "report": "sqlite-between-fixed-where-fresh-20261026.json",
+      "sha256": "96b61a7204814ed83f7b10d1c6c50883a5044986fcf6f17dc2fadd3ee0c0c737"
+    },
+    {
+      "name": "reduced",
+      "session_id": 8487,
+      "exit_code": 0,
+      "cases": 52736,
+      "failures": 0,
+      "report": "sqlite-between-reduced-fresh-20261026.json",
+      "sha256": "3778c117a7085c93d5a73c35a3a2620510b3a52fb221eae70b2806fb2cc3edcc"
+    },
+    {
+      "name": "scalar",
+      "session_id": 7287,
+      "exit_code": 0,
+      "cases": 25152,
+      "failures": 0,
+      "report": "sqlite-between-scalar-fresh-20261026.json",
+      "sha256": "69e23a11fb867c6f47098d11a5ae591cf4ab0d22a5b5358d60e1016a26a1f1f3"
+    },
+    {
+      "name": "order",
+      "session_id": 94394,
+      "exit_code": 0,
+      "cases": 30120,
+      "failures": 0,
+      "report": "sqlite-between-order-fresh-20261026.json",
+      "sha256": "e7dc5ef530564524f1317e0866f46e5c203ef267c9d33cedba4ca8beb17f2ce3"
+    },
+    {
+      "name": "writer",
+      "session_id": 50902,
+      "exit_code": 0,
+      "cases": 5696,
+      "failures": 0,
+      "report": "sqlite-between-writer-fresh-20261026.json",
+      "sha256": "a3596e8de8de400d5ba935bf41f89c446ff9825eb90556cd16c13490ba9fc55d"
+    }
+  ]
+}

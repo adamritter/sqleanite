@@ -2971,6 +2971,10 @@ def joinScalarNullWalk (context : JoinContext) (prepared : JoinScalarPrepared)
       | .binary op left right =>
           ![.is, .isNot, .like, .glob, .match, .arrow, .arrowText].contains op && (walk left || walk right)
       | .inList arg values _ _ => !values.isEmpty && walk arg
+      | .call "__sqlean_between" arguments false =>
+          match arguments.toList with
+          | [argument, lower, upper] => walk argument || (walk lower && walk upper)
+          | _ => false
       | .call name args _ =>
           (SQLite.Scalar.scalarFunctionName name).startsWith "cast_" && args.size == 1 &&
             args.toList.any walk
@@ -3169,9 +3173,19 @@ theorem joinSearchKeyOrder_perm (keys : List (Bool × JoinSearchKey)) :
   exact ((List.reverse_perm (keys.filter Prod.fst)).append_left
     (keys.filter (fun item => !item.1)) |>.trans partition).map Prod.snd
 
+/-- BETWEEN remains one predicate during fixed-column preparation. Its
+virtual range bounds are exposed only to cursor-constraint selection. -/
+def joinSearchRangeTerms (terms : List Expr) : List Expr :=
+  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
+    | .call "__sqlean_between" arguments false =>
+        match arguments.toList with
+        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
+        | _ => [term]
+    | _ => [term]
+
 def joinSearchKeys (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) (terms : List Expr) : List JoinSearchKey :=
-  joinSearchKeyOrder (terms.filterMap fun term => do
+  joinSearchKeyOrder ((joinSearchRangeTerms terms).filterMap fun term => do
     let key ← joinSearchKey? context prepared side term
     let virtual := match SQLite.ExprCollation.strip term with
       | .binary _ left right => (joinScalarReference context prepared left).isSome &&
@@ -3261,7 +3275,7 @@ outer cursor. The key value and comparison operator are retained unchanged. -/
 def joinSearchRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
   let equal := joinSearchRowidEquality context prepared on
-  let keys := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
+  let keys := (joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])).filterMap fun term => do
     let (origin, key) ← joinSearchRangeBound context prepared term
     unless origin == side || equal do none
     return key
@@ -3295,7 +3309,7 @@ def joinSearchTransitiveRoot (context : JoinContext) (prepared : JoinScalarPrepa
   if onTerms.any (fun term => joinScalarOnlySide context prepared .left term &&
       !prepared.context.constantExpression term) &&
       !joinSearchRetainedRightNullFilter context prepared then none
-  let whereTerms := prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
+  let whereTerms := joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])
   let compatibleNullTest := fun term => match SQLite.ExprCollation.strip term with
     | .isNull arg true => (joinScalarReference context prepared arg).any (fun ref =>
         ref.side == .right || !joinScalarOriginallyNullable context prepared ref)
@@ -3547,7 +3561,7 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
   let outer := joinSearchOpposite side
   let terms := on.map SQLite.Scalar.conditionTerms |>.getD []
   let whereRanges := if source.leftJoin || source.rightJoin then [] else
-    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filterMap fun term => do
+    (joinSearchRangeTerms (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])).filterMap fun term => do
       let key ← joinSearchKey? context prepared side term
       unless [.lt, .le, .gt, .ge].contains key.operation do none
       return key

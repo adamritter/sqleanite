@@ -1290,6 +1290,14 @@ private def evalExprFuel : Nat → Env → Expr → Except String Value
               pure (jsonToSqlValue value)
             else
               pure (.text value.compress)
+  | fuel + 1, env, .call "__sqlean_between" arguments false =>
+      match arguments.toList with
+      | [argument, lower, upper] =>
+          SQLite.Scalar.evalBetween (evalExprFuel fuel env)
+            (fun expression => match expression with
+              | .column .. => some (SQLite.typeAffinity (expression.declaredTypeIn env))
+              | _ => SQLite.Scalar.expressionAffinity expression) argument lower upper
+      | _ => .error "invalid BETWEEN operands"
   | fuel + 1, env, .call name args star => do
     if let some truth := SQLite.Scalar.booleanKeyword? (.call name args star) then
       let keyword := SQLite.Scalar.booleanName truth

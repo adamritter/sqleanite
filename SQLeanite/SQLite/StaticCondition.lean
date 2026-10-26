@@ -11,6 +11,7 @@ def resolutionForbidden (expression : Expr) : Bool :=
       let name := SQLite.Scalar.scalarFunctionName name
       star || arguments.size > SQLite.Limits.maxFunctionArgs ||
         !(if (SQLite.Scalar.booleanKeyword? expression).isSome then true
+          else if name == "__sqlean_between" then arguments.size == 3
           else if name.startsWith "cast_" then arguments.size == 1
           else if SQLite.Probability.recognizesName name then (SQLite.Probability.input? name arguments).isSome
           else SQLite.FunctionSignatures.scalar name arguments.size)
@@ -29,6 +30,11 @@ def codegenForbidden : Expr → Bool
       [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains operation &&
         !([.is, .isNot].contains operation && (Scalar.isTruthKeyword? right).isSome) &&
         (ExprCollation.binaryKind? left right).isNone
+  | .call "__sqlean_between" arguments false =>
+      match arguments.toList with
+      | [argument, lower, upper] =>
+          (ExprCollation.binaryKind? argument lower).isNone || (ExprCollation.binaryKind? argument upper).isNone
+      | _ => true
   | .call name arguments _ =>
       ["min", "max", "nullif"].contains (Scalar.scalarFunctionName name) &&
         (ExprCollation.argumentsKind? arguments).isNone
@@ -81,7 +87,7 @@ theorem testTerm_static (lookup : Option String → String → Except String Val
   | zero => omega
   | succ fuel =>
       cases truth <;>
-        simp [Scalar.testFuelWithConstants, Scalar.branchFuelWithConstants, known, pure, Except.pure]
+        simp [Scalar.testFuelWithConstants, Scalar.branchFuelWithConstants, Scalar.testEvaluatedFuel, known, pure, Except.pure]
 
 theorem staticTerms_correct (lookup : Option String → String → Except String Value)
     (affinity : Expr → Option Affinity) (constant : Expr → Bool)

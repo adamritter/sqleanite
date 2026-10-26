@@ -356,7 +356,7 @@ def hasFunctionFuel : Nat → Expr → Bool
       match expression with
       | .collate .. => false
       | .call name args _ =>
-          (!name.toLower.startsWith "cast_" && (booleanKeyword? expression).isNone &&
+          (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
             (quotedIdentifier? expression).isNone) || args.any has
       | .unary _ arg | .isNull arg _ => has arg
       | .binary _ left right => has left || has right
@@ -488,6 +488,11 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       star || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument, lower, upper] => (ExprCollation.binaryKind? argument lower).isSome &&
+              (ExprCollation.binaryKind? argument upper).isSome
+          | _ => false
         else if Probability.recognizesName n then (Probability.input? n args).isSome
         else if n == "format" || n == "printf" then true
         else if Math.accepts n args.size then true
@@ -540,23 +545,22 @@ def firstNonNull (eval : Expr → Except String Value) : List Expr → Except St
       let v ← eval x
       if isNull v then firstNonNull eval xs else return v
 
-def conditional (eval : Expr → Except String Value) : List Expr → Except String Value
+def conditional (eval : Expr → Except String Value) (test : Expr → Except String Bool) : List Expr → Except String Value
   | [] => .ok .null
   | [last] => eval last
   | condition :: result :: rest => do
-      if Numeric.truth (← eval condition) == .true then eval result else conditional eval rest
+      if ← test condition then eval result else conditional eval test rest
 
-def branches (eval : Expr → Except String Value)
+def branches (eval : Expr → Except String Value) (test : Expr → Except String Bool)
     (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
     (otherwise : Option Expr) : List (Expr × Expr) → Except String Value
   | [] => match otherwise with | none => .ok .null | some e => eval e
   | (condition, result) :: rest => do
-      let v ← eval condition
-      let selected : Bool := match base with
-        | none => Numeric.truth v == .true
-        | some (expression, b) =>
-            equal expression condition b v == .integer 1
-      if selected then eval result else branches eval equal base otherwise rest
+      let selected ← match base with
+        | none => test condition
+        | some (expression, b) => do
+            pure (equal expression condition b (← eval condition) == .integer 1)
+      if selected then eval result else branches eval test equal base otherwise rest
 
 def membership (collation : Collation.Kind) (affinity : Affinity) (left : Value) : List Value → Bool → Truth
   | [], sawNull => if sawNull then .unknown else .false
@@ -617,6 +621,81 @@ def negatedLiteral? : Expr → Option Value
   | .unary .plus expression => negatedLiteral? expression
   | _ => none
 
+/-- BETWEEN evaluates its tested value once, then uses the original operands'
+affinity and collation independently for the lower and upper comparisons. -/
+def evalBetween (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr) : Except String Value := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let maximum ← evaluate upper
+  binary .and (expressionComparisonWith operandAffinity .ge argument lower value minimum)
+    (expressionComparisonWith operandAffinity .le argument upper value maximum)
+
+/-- Branch emission shares the tested value while retaining SQL's distinct
+true/false/NULL outcomes and the short-circuit order of the two comparisons. -/
+def testBetween (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr)
+    (wanted : Bool) : Except String Bool := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let first := Numeric.truth (expressionComparisonWith operandAffinity .ge argument lower value minimum)
+  if wanted && first != .true then return false
+  if !wanted && first == .false then return true
+  let maximum ← evaluate upper
+  return Numeric.truth (expressionComparisonWith operandAffinity .le argument upper value maximum) ==
+    (if wanted then .true else .false)
+
+theorem evalBetween_argument_error (evaluate : Expr → Except String Value)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (message : String)
+    (failed : evaluate argument = .error message) :
+    evalBetween evaluate affinity argument lower upper = .error message := by
+  simp [evalBetween, failed, bind, Except.bind]
+
+theorem testBetween_argument_error (evaluate : Expr → Except String Value)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (wanted : Bool) (message : String)
+    (failed : evaluate argument = .error message) :
+    testBetween evaluate affinity argument lower upper wanted = .error message := by
+  simp [testBetween, failed, bind, Except.bind]
+
+/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
+Testing false is distinct from testing not-true: NULL matches neither. This
+preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
+def testEvaluatedFuel (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (transparentWrappers : Bool) :
+    Nat → Bool → Expr → Except String Bool
+  | 0, _, _ => .error "row predicate depth exhausted"
+  | fuel + 1, wanted, expression => do
+      if let some truth := staticTruth expression then
+        return truth == wanted
+      if transparentWrappers then
+        if let .collate argument _ := expression then
+          return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+        if let .call name arguments false := expression then
+          if let some argument := Probability.input? name arguments then
+            return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+      match expression with
+      | .call "__sqlean_between" arguments false =>
+          match arguments.toList with
+          | [argument, lower, upper] => testBetween evaluate operandAffinity argument lower upper wanted
+          | _ => .error "invalid BETWEEN operands"
+      | .unary .not arg => testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel (!wanted) arg
+      | .binary .and left right =>
+          if wanted then
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
+            else return false
+          else
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then return true
+            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
+      | .binary .or left right =>
+          if wanted then
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then return true
+            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
+          else
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
+            else return false
+      | _ => return Numeric.truth (← evaluate expression) ==
+          (if wanted then .true else .false)
+
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
 def evalFuelWithConstants (lookup : Option String → String → Except String Value)
@@ -624,6 +703,8 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
   | 0, _ => .error "scalar expression depth exhausted"
   | fuel + 1, e =>
     let eval := evalFuelWithConstants lookup operandAffinity constant fuel
+    let test := fun condition =>
+      testEvaluatedFuel eval operandAffinity false condition.height true condition
     match e with
     | .literal v _ => .ok v
     | .column qualifier name => lookup qualifier name
@@ -651,9 +732,13 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
     | .call name args false =>
         let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (boolValue truth)
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument, lower, upper] => evalBetween eval operandAffinity argument lower upper
+          | _ => .error "invalid BETWEEN operands"
         else if let some argument := Probability.input? name args then eval argument
         else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
-        else if n == "iif" || n == "if" then conditional eval args.toList
+        else if n == "iif" || n == "if" then conditional eval test args.toList
         else if ["min", "max", "nullif"].contains n then do
           let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
           let values ← args.mapM eval
@@ -665,7 +750,7 @@ def evalFuelWithConstants (lookup : Option String → String → Except String V
         else do builtin n (← args.mapM eval)
     | .case_ base cases otherwise => do
         let b ← base.mapM (fun e => do return (e, ← eval e))
-        branches eval (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
+        branches eval test (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
     | _ => .error "unsupported constant expression"
 
 def evalFuelWith (lookup : Option String → String → Except String Value)
@@ -691,40 +776,12 @@ def evalWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
   evalWithConstants lookup operandAffinity constantExpression e
 
-/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
-Testing false is distinct from testing not-true: NULL matches neither. This
-preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
+/-- Public WHERE/HAVING predicate evaluation shares the same branch rules
+used by searched CASE and iif conditions. -/
 def branchFuelWithConstants (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (transparentWrappers : Bool) :
-    Nat → Bool → Expr → Except String Bool
-  | 0, _, _ => .error "row predicate depth exhausted"
-  | fuel + 1, wanted, expression => do
-      if let some truth := staticTruth expression then
-        return truth == wanted
-      if transparentWrappers then
-        if let .collate argument _ := expression then
-          return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
-        if let .call name arguments false := expression then
-          if let some argument := Probability.input? name arguments then
-            return ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel wanted argument
-      match expression with
-      | .unary .not arg => branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel (!wanted) arg
-      | .binary .and left right =>
-          if wanted then
-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
-            else return false
-          else
-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then return true
-            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
-      | .binary .or left right =>
-          if wanted then
-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true left then return true
-            else branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel true right
-          else
-            if ← branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false left then branchFuelWithConstants lookup operandAffinity constant transparentWrappers fuel false right
-            else return false
-      | _ => return Numeric.truth (← evalWithConstants lookup operandAffinity constant expression) ==
-          (if wanted then .true else .false)
+    Nat → Bool → Expr → Except String Bool :=
+  testEvaluatedFuel (evalWithConstants lookup operandAffinity constant) operandAffinity transparentWrappers
 
 /-- WHERE planning exposes the underlying hinted/collated condition. -/
 def testFuelWithConstants (lookup : Option String → String → Except String Value)

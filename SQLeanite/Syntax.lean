@@ -258,6 +258,11 @@ private def exprSqlFuel : Nat → Expr → String
   | _fuel + 1, .star (some q) => q ++ ".*"
   | fuel + 1, .unary op e => op.sql ++ exprSqlFuel fuel e
   | fuel + 1, .binary op a b => exprSqlFuel fuel a ++ op.sql ++ exprSqlFuel fuel b
+  | fuel + 1, .call "__sqlean_between" arguments false =>
+      match arguments.toList with
+      | [argument, lower, upper] =>
+          exprSqlFuel fuel argument ++ " BETWEEN " ++ exprSqlFuel fuel lower ++ " AND " ++ exprSqlFuel fuel upper
+      | _ => "..."
   | _fuel + 1, .call "__sqlean_boolean_true" #[] false => "TRUE"
   | _fuel + 1, .call "__sqlean_boolean_false" #[] false => "FALSE"
   | fuel + 1, .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>

@@ -227,14 +227,14 @@ mutual
           let lower ← parseExprFuel fuel 3
           expectKeyword "and"
           let upper ← parseExprFuel fuel 4
-          lhs := .binary .and (.binary .ge lhs lower) (.binary .le lhs upper)
+          lhs := .call "__sqlean_between" #[lhs, lower, upper] false
         else if minPrec <= 3 && isKeyword (← peek) "not" then
           discard <| advance
           if ← acceptKeyword "between" then
             let lower ← parseExprFuel fuel 3
             expectKeyword "and"
             let upper ← parseExprFuel fuel 4
-            lhs := .unary .not (.binary .and (.binary .ge lhs lower) (.binary .le lhs upper))
+            lhs := .unary .not (.call "__sqlean_between" #[lhs, lower, upper] false)
           else if ← acceptKeyword "like" then
             let pattern ← parseExprFuel fuel 4
             let comparison ← if ← acceptKeyword "escape" then

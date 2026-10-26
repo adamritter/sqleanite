@@ -1526,3 +1526,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinFixedConstantMatches_outer
 
 #print axioms SQLeanite.SQLite.StaticCondition.Decision.test_and_stops
+
+#print axioms SQLeanite.SQLite.Scalar.evalBetween_argument_error
+#print axioms SQLeanite.SQLite.Scalar.testBetween_argument_error
