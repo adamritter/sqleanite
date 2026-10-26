@@ -1,0 +1,10 @@
+[
+  {
+    "original": "sqlite-alter-catalog-final-insert-writer-20261026.json",
+    "stored": "sqlite-alter-catalog-final-insert-writer-20261026.json.gz",
+    "original_bytes": 40384563,
+    "stored_bytes": 403458,
+    "original_sha256": "9ecc68765fbf5fae7662ec4572186dbd83fdce884e5ab7cadf298c3a00cd1049",
+    "stored_sha256": "19cc25a724613fea5f8e9e21716991c0e042286b94006ffb84b2df60a5aa5efc"
+  }
+]

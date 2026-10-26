@@ -1304,7 +1304,9 @@ private def parseTrigger (temporary : Bool := false) (statementStart : Option Na
     else if ← acceptKeyword "delete" then body := body.push (← parseDelete true)
     else if ← acceptKeyword "select" then body := body.push (.select (← parseSelectAfterSelect))
     else
-      while !(isSymbol (← peek) ";") && !isKeyword (← peek) "end" do discard advance
+      -- An unknown body token is a syntax error. At EOF this also prevents
+      -- repeatedly advancing past the token array while waiting for END.
+      throw (syntaxError (← peek))
     discard <| acceptSymbol ";"
   expectKeyword "end"
   let stop ← currentTokenPos

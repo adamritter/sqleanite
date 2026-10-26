@@ -1,0 +1,20 @@
+{
+  "prefix": "alter-catalog-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355463",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development2-gap-survey-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-alter-catalog-development2-receipts-20261026.json",
+  "evaluation": "Complete baseline gap survey replay after harness correction: timeout recorded per probe (10 seconds), all probes retained with partial progress checkpoints. Production unchanged from first ALTER checkpoint."
+}

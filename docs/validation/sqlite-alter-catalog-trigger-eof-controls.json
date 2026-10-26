@@ -1,0 +1,86 @@
+[
+  {
+    "sql": "CREATE TRIGGER truncated_0 AFTER UPDATE ON t BEGIN ",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_1 AFTER UPDATE ON t BEGIN SELECT 1;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_2 AFTER UPDATE ON t BEGIN UPDATE t SET n=1;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_3 AFTER UPDATE ON t BEGIN unexpected token",
+    "error": "near \"unexpected\": syntax error",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: near \"unexpected\": syntax error\n  REATE TRIGGER truncated_3 AFTER UPDATE ON t BEGIN unexpected token\n                                      error here ---^\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_4 AFTER UPDATE ON t BEGIN SELECT 1; unexpected token",
+    "error": "near \"unexpected\": syntax error",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: near \"unexpected\": syntax error\n  GER truncated_4 AFTER UPDATE ON t BEGIN SELECT 1; unexpected token\n                                      error here ---^\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_5 AFTER UPDATE ON t BEGIN DELETE FROM t;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_6 AFTER UPDATE ON t BEGIN ",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_7 AFTER UPDATE ON t BEGIN SELECT 1;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_8 AFTER UPDATE ON t BEGIN UPDATE t SET n=1;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_9 AFTER UPDATE ON t BEGIN unexpected token",
+    "error": "near \"unexpected\": syntax error",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: near \"unexpected\": syntax error\n  REATE TRIGGER truncated_9 AFTER UPDATE ON t BEGIN unexpected token\n                                      error here ---^\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_10 AFTER UPDATE ON t BEGIN SELECT 1; unexpected token",
+    "error": "near \"unexpected\": syntax error",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: near \"unexpected\": syntax error\n  ER truncated_10 AFTER UPDATE ON t BEGIN SELECT 1; unexpected token\n                                      error here ---^\n"
+  },
+  {
+    "sql": "CREATE TRIGGER truncated_11 AFTER UPDATE ON t BEGIN DELETE FROM t;",
+    "error": "incomplete input",
+    "sqlite_code": 1,
+    "sqlite_stdout": "",
+    "sqlite_stderr": "Parse error near line 2: incomplete input\n"
+  }
+]

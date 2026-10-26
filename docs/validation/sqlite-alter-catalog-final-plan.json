@@ -1,0 +1,120 @@
+{
+  "prefix": "alter-catalog-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "alter",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355481",
+        "--count",
+        "1024",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-alter-20261026.json"
+      ]
+    },
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355482",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-create-20261026.json"
+      ]
+    },
+    {
+      "name": "trigger-eof",
+      "argv": [
+        "python3",
+        "scripts/run-trigger-eof-differential.py",
+        "--seed",
+        "355483",
+        "--count",
+        "128",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-trigger-eof-20261026.json"
+      ]
+    },
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355484",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-gap-survey-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355485",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-insert-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355486",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-insert-read-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-alter-catalog-final-receipts-20261026.json",
+  "evaluation": "Final frozen implementation/executable on new seeded data/names within reused templates. Scope: ALTER ADD source rewriting and malformed-trigger EOF/token errors; CREATE and JSON regressions separate. Complete small 44-feature gap survey remains negative and forces overall nonzero status; not a global compatibility percentage."
+}

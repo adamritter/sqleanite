@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/dev/shm/sqleanite-catalog-20261026/scripts/run-compatibility-gap-survey.py", line 86, in <module>
+    if __name__=='__main__':raise SystemExit(main())
+                                             ^^^^^^
+  File "/dev/shm/sqleanite-catalog-20261026/scripts/run-compatibility-gap-survey.py", line 81, in main
+    left=folder/(str(i)+mode+'-lean.db');right=folder/(str(i)+mode+'-sqlite.db');shutil.copyfile(base,left);shutil.copyfile(base,right);l,c=run([str(binary),mode,str(left)],sql),csql(right,sql);lo,co=observe(left),observe(right)
+                                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/dev/shm/sqleanite-catalog-20261026/scripts/run-compatibility-gap-survey.py", line 17, in run
+    q=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=120);return dict(code=q.returncode,stdout=q.stdout.decode('latin1'),stderr=q.stderr.decode('latin1'))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/dev/shm/sqleanite-catalog-20261026/.lake/build/bin/sqleanite', '--verified-file', '/dev/shm/sqleanite-tools-20261024/tmp/sqleanite-gap-survey-obekjm9j/6--verified-file-lean.db']' timed out after 120 seconds

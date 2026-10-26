@@ -1,0 +1,138 @@
+{
+  "evaluation": "Development ALTER replay, malformed trigger probes and the same complete gap survey after the trigger-parser error fix. Gap-survey failures are retained independently of the scoped fixes.",
+  "source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+  "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+  "receipts": [
+    {
+      "name": "alter",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355461",
+        "--count",
+        "96",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-alter-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 4.01428484916687,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-alter.log",
+      "log_sha256": "6b7f4279b068cf389fdf9552a22c5c2706098f26211caa660b6e348d1a12732b",
+      "cases": 192,
+      "failures": 0,
+      "report_sha256": "a6841bbd50ad4d66e14fe2e6a7ab168d0b81acf4de6642d35fb16926e8854613",
+      "harness_sha256": "237f2853c166b75a7cf3e892c16c60b9990b7495699b94117e29950e37243888"
+    },
+    {
+      "name": "trigger-eof",
+      "argv": [
+        "python3",
+        "scripts/run-trigger-eof-differential.py",
+        "--seed",
+        "355471",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-trigger-eof-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 1.2211589813232422,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-trigger-eof.log",
+      "log_sha256": "378ca794c78d55f445bb3a4ab8e50594b6df351bebb46dc16865e94237696b65",
+      "cases": 128,
+      "failures": 0,
+      "report_sha256": "1754dc3bf3d516940d49499f60e07ae24b0426bfe73f0f73b7e54d859bbdd6ca",
+      "harness_sha256": "21eaf3f132e7d3bbf3b76d4c885161b7e83a658083e71f785560b35a389584ec"
+    },
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355463",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-gap-survey-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.432077407836914,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-gap-survey.log",
+      "log_sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8",
+      "cases": 88,
+      "failures": 72,
+      "report_sha256": "a5c560c8e0ccf669344d651b8a363a921a0f0de7b891f545794995dfef372f89",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.167381763458252,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-tests.log",
+      "log_sha256": "95d0290fb75942b52ae1ac907707810e075800807112a7ae636fa0ac4ee4729a"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0746145248413086,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.8892982006072998,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-live-path.log",
+      "log_sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "harness_sha256": "23150c8716031356d43f1d80fac96c936295037ecf3fc9b3c9b7edb3787126d8"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6667845249176025,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development3-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

@@ -31,6 +31,9 @@ if rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/Co
    rg -F -q 'CoreSQL.executeStatement state statement' SQLeanite/CoreSourceSQL.lean &&
    rg -F -q 'SQLite.CreateCatalog.table source' SQLeanite/CoreSourceSQL.lean &&
    rg -F -q 'table.withCatalogSQL sql' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'SQLite.AlterCatalog.addColumn before.catalogSQL source' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement_add_trace' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement_add_incomplete' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSourceSQL.retain_effect' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSourceSQL.executeStatement_create_noop' SQLeanite/ProofAxioms.lean; then
   ok "source-aware creation retains checked schema spelling before file publication"

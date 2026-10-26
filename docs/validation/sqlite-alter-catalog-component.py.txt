@@ -1,0 +1,18 @@
+from pathlib import Path
+import hashlib,json,random,subprocess,time
+r=Path('/dev/shm/sqleanite-catalog-20261026');rng=random.Random(355451);prototype=Path('/tmp/AlterCatalogPrototype.lean').read_text();cases=[]
+bodies=['(id INTEGER PRIMARY KEY,v TEXT)', '(id INTEGER, v TEXT, PRIMARY KEY (id))', '(id INTEGER, v TEXT /* before constraint */ , CONSTRAINT pk PRIMARY KEY (id))', "(id INTEGER PRIMARY KEY,v TEXT DEFAULT ('a;''b') /* closing */ )",'(id INTEGER PRIMARY KEY,v TEXT) STRICT', '(id INTEGER PRIMARY KEY,v TEXT) WITHOUT ROWID']
+for i in range(2048):
+ original='CREATE TABLE '+rng.choice(['t','[t]','"t"','`t`',"'t'"])+rng.choice([' ',' /* old */ ',''])+rng.choice(bodies)
+ source=rng.choice(['ALTER TABLE t ADD ','alter /**/ table [t] add column ','ALTER TABLE main.t ADD COLUMN '])+rng.choice(['added','[added]','"added"','`added`',"'added'"])+rng.choice([' TEXT'," TEXT DEFAULT ('a;''b')",' INTEGER DEFAULT (-1)',' BLOB', ' REAL /* mid */ DEFAULT 1.25'])+rng.choice(['',';',' /* tail */',' /* tail */;',' -- tail;\n',' -- tail;\n;',' \t\n;'])
+ observe="SELECT hex(sql) FROM sqlite_schema WHERE type='table';"
+ q=subprocess.run(['/dev/shm/sqleanite-tools-20261024/bin/sqlite3','-batch','-bail',':memory:',original,observe,source,observe],capture_output=True,text=True)
+ lines=q.stdout.splitlines();before=lines[0];after=lines[1] if q.returncode==0 else 'none';cases.append(dict(original=original,catalog=bytes.fromhex(before).decode(),source=source,sqlite=after,sqlite_exit_code=q.returncode,sqlite_stdout=q.stdout,sqlite_stderr=q.stderr))
+blocks=[]
+for i in range(0,len(cases),160):blocks.append('def inputs'+str(i)+' : List (String × String) := ['+',\n'.join('('+json.dumps(c['catalog'])+', '+json.dumps(c['source'])+')' for c in cases[i:i+160])+']\n')
+src='import SQLeanite.SQLite.Text\n'+prototype+'\n'+'\n'.join(blocks)+'\n#eval do\n  for batch in ['+', '.join('inputs'+str(i) for i in range(0,len(cases),160))+'] do\n    for (catalog, source) in batch do\n      match SQLeanite.SQLite.AlterCatalog.addColumn catalog source with\n      | none => IO.println "none"\n      | some result => IO.println (SQLeanite.SQLite.Text.hexBytes result.toUTF8.data)\n';p=Path('/tmp/AlterCatalogCases.lean');p.write_text(src);start=time.time();q=subprocess.run(['lake','env','lean',str(p)],cwd=r,capture_output=True,text=True);lines=q.stdout.splitlines()
+if q.returncode or len(lines)!=len(cases):print(q.stdout);print(q.stderr)
+else:
+ for c,line in zip(cases,lines):c.update(lean=line,matched=line==c['sqlite'])
+report=dict(seed=355451,cases=cases,failures=sum(not c.get('matched',False) for c in cases),lean_exit_code=q.returncode,stdout=q.stdout if q.returncode else None,stderr=q.stderr,seconds=time.time()-start,prototype_sha256=hashlib.sha256(prototype.encode()).hexdigest(),scope='Development ALTER ADD COLUMN text-rewrite component only, including STRICT/WITHOUT ROWID/qualified-source syntax beyond Core admission. Original catalog and new source supplied exactly, not inferred from target result. Component compares rewritten text or rejection, not full diagnostic wording; all reference errors and original observations are retained.')
+Path('/tmp/sqleanite-alter-catalog-component-corrected.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit_code=q.returncode)));raise SystemExit(bool(report['failures']))

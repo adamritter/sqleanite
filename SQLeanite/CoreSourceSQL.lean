@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.AlterCatalog
 import SQLeanite.CoreSQL
 import SQLeanite.SQLite.CreateCatalog
 import SQLeanite.SQLite.Script
@@ -69,6 +70,13 @@ def executeStatement (state : Core.State) (statement : Statement) (source : Stri
         throw "cannot retain CREATE TABLE source"
       let retained ← retain next name sql
       return (retained, results)
+  | .alterAddColumn name _ =>
+      let tableName := CoreSQL.resolveTableName state name
+      let some before := state.database.findTable? tableName | throw "altered table is missing"
+      let some sql := SQLite.AlterCatalog.addColumn before.catalogSQL source |
+        throw s!"error in table {before.schema.name} after add column: incomplete input"
+      let retained ← retain next tableName sql
+      return (retained, results)
   | _ => return (next, results)
 
 theorem executeStatement_create_noop (state : Core.State) (name source : String)
@@ -93,6 +101,26 @@ theorem executeStatement_error (state : Core.State) (statement : Statement) (sou
     (failed : CoreSQL.executeStatement state statement = .error message) :
     executeStatement state statement source = .error (errorMessage statement source message) := by
   simp [executeStatement, failed, bind, Except.bind]
+
+/-- The column-data operation completes first; the retained SQL must independently
+parse to its resulting schema before the source-aware result is published. -/
+theorem executeStatement_add_trace (state next : Core.State) (name source sql : String)
+    (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (rewritten : SQLite.AlterCatalog.addColumn before.catalogSQL source = some sql) :
+    executeStatement state (.alterAddColumn name definition) source =
+      (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
+  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+
+theorem executeStatement_add_incomplete (state next : Core.State) (name source : String)
+    (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (incomplete : SQLite.AlterCatalog.addColumn before.catalogSQL source = none) :
+    executeStatement state (.alterAddColumn name definition) source =
+      .error s!"error in table {before.schema.name} after add column: incomplete input" := by
+  simp [executeStatement, executed, found, incomplete, bind, Except.bind] <;> rfl
 
 def runStatements (source : String) : Core.State → List Statement →
     Except String (Core.State × List Core.Result)

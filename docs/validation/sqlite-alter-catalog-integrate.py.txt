@@ -1,0 +1,69 @@
+from pathlib import Path
+import json
+r=Path('/dev/shm/sqleanite-catalog-20261026');p=r/'SQLeanite/SQLite/AlterCatalog.lean';assert not p.exists();p.write_text(Path('/tmp/AlterCatalogPrototype.lean').read_text())
+p=r/'SQLeanite/CoreSourceSQL.lean';s=p.read_text();s='import SQLeanite.SQLite.AlterCatalog\n'+s;needle='''  | _ => return (next, results)
+
+theorem executeStatement_create_noop''';replacement='''  | .alterAddColumn name _ =>
+      let tableName := CoreSQL.resolveTableName state name
+      let some before := state.database.findTable? tableName | throw "altered table is missing"
+      let some sql := SQLite.AlterCatalog.addColumn before.catalogSQL source |
+        throw s!"error in table {before.schema.name} after add column: incomplete input"
+      let retained ← retain next tableName sql
+      return (retained, results)
+  | _ => return (next, results)
+
+theorem executeStatement_create_noop''';assert s.count(needle)==1;s=s.replace(needle,replacement)
+needle='def runStatements (source : String)';pos=s.index(needle);s=s[:pos]+'''/-- The column-data operation completes first; the retained SQL must independently
+parse to its resulting schema before the source-aware result is published. -/
+theorem executeStatement_add_trace (state next : Core.State) (name source sql : String)
+    (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (rewritten : SQLite.AlterCatalog.addColumn before.catalogSQL source = some sql) :
+    executeStatement state (.alterAddColumn name definition) source =
+      (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
+  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+
+theorem executeStatement_add_incomplete (state next : Core.State) (name source : String)
+    (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (incomplete : SQLite.AlterCatalog.addColumn before.catalogSQL source = none) :
+    executeStatement state (.alterAddColumn name definition) source =
+      .error s!"error in table {before.schema.name} after add column: incomplete input" := by
+  simp [executeStatement, executed, found, incomplete, bind, Except.bind]
+
+'''+s[pos:];p.write_text(s)
+p=r/'SQLeanite/ProofAxioms.lean';s=p.read_text();s+='\n#print axioms SQLeanite.CoreSourceSQL.executeStatement_add_trace\n#print axioms SQLeanite.CoreSourceSQL.executeStatement_add_incomplete\n';p.write_text(s)
+d=json.loads(Path('/tmp/sqleanite-alter-catalog-component-corrected.json').read_text());assert d['failures']==0;cases=d['cases'];blocks=[]
+for i in range(0,len(cases),160):blocks.append('private def sqliteAlterCatalogCases'+str(i)+' : List (String × String × String) := [\n'+',\n'.join('  ('+json.dumps(c['catalog'])+', '+json.dumps(c['source'])+', '+json.dumps(c['sqlite'])+')' for c in cases[i:i+160])+']\n')
+blocks.append('''private def expectSQLiteAlterCatalog : IO Unit := do
+  for batch in ['''+', '.join('sqliteAlterCatalogCases'+str(i) for i in range(0,len(cases),160))+'''] do
+    for (catalog, source, expected) in batch do
+      let actual := match SQLite.AlterCatalog.addColumn catalog source with
+        | none => "none"
+        | some rewritten => SQLite.Text.hexBytes rewritten.toUTF8.data
+      unless actual == expected do fail s!"ALTER ADD catalog rewrite differs: {source}"
+''')
+controls=[c for c in cases if ' STRICT' not in c['catalog'] and ' WITHOUT ROWID' not in c['catalog'] and 'main.t' not in c['source']][:96]
+Path('/tmp/sqleanite-alter-catalog-source-controls.json').write_text(json.dumps(controls,indent=2)+'\n')
+blocks.append('private def sqliteAlterSourceCases : List (String × String × String) := [\n'+',\n'.join('  ('+json.dumps(c['catalog'])+', '+json.dumps(c['source'])+', '+json.dumps(c['sqlite'])+')' for c in controls)+']\n')
+blocks.append('''private def expectSQLiteAlterSource : IO Unit := do
+  for (catalog, source, expected) in sqliteAlterSourceCases do
+    let (before, _) ← match CoreSourceSQL.execute Core.State.empty catalog with
+      | .ok result => pure result | .error message => fail message
+    match CoreSourceSQL.execute before source with
+    | .error message =>
+        unless expected == "none" && message == "error in table t after add column: incomplete input" do
+          fail s!"ALTER ADD source error differs: {source}: {message}"
+    | .ok (after, _) =>
+        let some table := after.database.findTable? "t" | fail "altered table is missing"
+        unless SQLite.Text.hexBytes table.catalogSQL.toUTF8.data == expected do
+          fail s!"ALTER ADD source catalog differs: {source}"
+        let some image := CoreFile.encode after.database | fail "altered catalog encode failed"
+        let some reopened := CoreDecode.decode image.fileBytes | fail "altered catalog reopen failed"
+        unless reopened.Equiv after.database do fail "altered catalog round trip differs"
+''')
+p=r/'Tests.lean';s=p.read_text();needle='private def expectSQLiteRetainedCatalog :';assert s.count(needle)==1;s=s.replace(needle,'\n'.join(blocks)+'\n'+needle);needle='  ("SQLite CREATE source execution", expectSQLiteCreateSource),';assert needle in s;s=s.replace(needle,needle+'\n  ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),\n  ("SQLite ALTER ADD source execution", expectSQLiteAlterSource),');p.write_text(s)
+p=r/'scripts/live-path-check.sh';s=p.read_text();needle='   rg -F -q \'table.withCatalogSQL sql\' SQLeanite/CoreSourceSQL.lean &&';assert s.count(needle)==1;s=s.replace(needle,needle+'\n   rg -F -q \'SQLite.AlterCatalog.addColumn before.catalogSQL source\' SQLeanite/CoreSourceSQL.lean &&\n   rg -F -q \'CoreSourceSQL.executeStatement_add_trace\' SQLeanite/ProofAxioms.lean &&\n   rg -F -q \'CoreSourceSQL.executeStatement_add_incomplete\' SQLeanite/ProofAxioms.lean &&');p.write_text(s)
+print(json.dumps(dict(component_controls=len(cases),source_controls=len(controls))))

@@ -1,0 +1,417 @@
+[
+  {
+    "path": "sqlite-alter-catalog-checkpoint-20261026.json",
+    "bytes": 24492,
+    "sha256": "49253bd673daa64837709ecadf34a8b083c8bd344a950665eb4b9281191d3896"
+  },
+  {
+    "path": "sqlite-alter-catalog-checkpoint-runner.py.txt",
+    "bytes": 2085,
+    "sha256": "83c6304cae012123f4bfa23c3806f12e86efcc5c49ca82b3430caed8fd22aa02"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-complete-process.json",
+    "bytes": 91,
+    "sha256": "998471ad03a04bf359dbedf4e0797bc29af65bb4f745edee539f5fa15c8a72ce"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-corrected-process.json",
+    "bytes": 91,
+    "sha256": "44e52425b2c5a8fdf26c15a7b9d9ca79a6dffdb924dd41741779c7bec4dbce38"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-corrected.json",
+    "bytes": 2060043,
+    "sha256": "fa76541460330e9adedcbdbcf47478077562d72992a16782da0c0b7a29db0b5a"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-initial-prototype.lean.txt",
+    "bytes": 1937,
+    "sha256": "19e208246bf5cf4327fce110a8733be808d2ae60c576daa2198eb1b9bf4d7ae2"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-initial.json",
+    "bytes": 2172617,
+    "sha256": "3073995f95e01b444c8daf8ee8d3253a49fdff07c6e8199743ac2c213abb932a"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-initial.py.txt",
+    "bytes": 3391,
+    "sha256": "f9cb478a4f6a2346415305b0f9de4be24b6c0b0041ff04a68ec372bbf24b76d4"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-process.json",
+    "bytes": 94,
+    "sha256": "176dc9d27c195d2f15711aa7b79cf1af22c9bc42aea0bbdddfc697ddc364a3d4"
+  },
+  {
+    "path": "sqlite-alter-catalog-component-prototype.lean.txt",
+    "bytes": 2469,
+    "sha256": "1c914ac884d6288f17de6866c63d338527bbac96018d6880675df8c02fa8151e"
+  },
+  {
+    "path": "sqlite-alter-catalog-component.py.txt",
+    "bytes": 3393,
+    "sha256": "3431cf6bf4a858c634450a88c008f3c49827e641cf0359cdba8e490d38c01fa2"
+  },
+  {
+    "path": "sqlite-alter-catalog-compression-20261026.json",
+    "bytes": 400,
+    "sha256": "b493d2d9928f5444ef926e32185ffd042cc6bafd7e861c8e040ca2d180d81eb4"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-alter-20261026.json",
+    "bytes": 571914,
+    "sha256": "7e76ef75df3c3ea12d031c83cec75d3c4cb084728469192b82d5c1ad2118023c"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-alter-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "6b7f4279b068cf389fdf9552a22c5c2706098f26211caa660b6e348d1a12732b"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-create-20261026.json",
+    "bytes": 379744,
+    "sha256": "ff08a43e8078f01236b14463a8fef48a5410ffe28f15eaae19044bf8eb5094f3"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-create-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "378ca794c78d55f445bb3a4ab8e50594b6df351bebb46dc16865e94237696b65"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-gap-survey-20261026.log.txt",
+    "bytes": 1978,
+    "sha256": "83b8473e9705c9e06e7b01f661b79e60c9c4031be2d25488043e994f5efebe93"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-live-path-20261026.log.txt",
+    "bytes": 16330,
+    "sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-plan.json",
+    "bytes": 1748,
+    "sha256": "b0b9ca4296b5be72253312aa3808298b2718126a06aeabc5a6133a6363fe165e"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-process.json",
+    "bytes": 272,
+    "sha256": "c47799b9941a5405d81ce33687c64d27548aaa7222fd26f058dc26ce052583f1"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-receipts-20261026.json",
+    "bytes": 6295,
+    "sha256": "6abeda2937cf2c997df8f51891425f353078895465dfcdb7ac3687d82155e767"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-alter-catalog-development1-tests-20261026.log.txt",
+    "bytes": 708177,
+    "sha256": "0a6e6deb08631156afc531b98483b2abfc449c800fe3ee842e721d2369de7d48"
+  },
+  {
+    "path": "sqlite-alter-catalog-development2-gap-survey-20261026.json",
+    "bytes": 170273,
+    "sha256": "75feac390004a4b0f89020defaecf494ab12b9fe251f7f322169ae4ec97c09c5"
+  },
+  {
+    "path": "sqlite-alter-catalog-development2-gap-survey-20261026.log.txt",
+    "bytes": 46,
+    "sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8"
+  },
+  {
+    "path": "sqlite-alter-catalog-development2-plan.json",
+    "bytes": 684,
+    "sha256": "05acf897406ed5d6583e057494ed28092d27e40918428e16fafc11bca2d6491e"
+  },
+  {
+    "path": "sqlite-alter-catalog-development2-process.json",
+    "bytes": 272,
+    "sha256": "8cdc82658323970439e6800f4817cd34a42ec08ec832ed8e3f0450744ea76613"
+  },
+  {
+    "path": "sqlite-alter-catalog-development2-receipts-20261026.json",
+    "bytes": 1460,
+    "sha256": "0781da627ac8e20315cfa44722756420799f25abf452ee741e0239f641265f54"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-alter-20261026.json",
+    "bytes": 571914,
+    "sha256": "a6841bbd50ad4d66e14fe2e6a7ab168d0b81acf4de6642d35fb16926e8854613"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-alter-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "6b7f4279b068cf389fdf9552a22c5c2706098f26211caa660b6e348d1a12732b"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-gap-survey-20261026.json",
+    "bytes": 170235,
+    "sha256": "a5c560c8e0ccf669344d651b8a363a921a0f0de7b891f545794995dfef372f89"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-gap-survey-20261026.log.txt",
+    "bytes": 46,
+    "sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-live-path-20261026.log.txt",
+    "bytes": 16330,
+    "sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-plan.json",
+    "bytes": 1771,
+    "sha256": "de2ca97b958f29502e3a4faa677c43fd88075ef4bc8a3be252810bf1d18bd5a8"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-process.json",
+    "bytes": 272,
+    "sha256": "f8a287b1e73e5826fa585531581b8b96126206b247ea8ce44c9a22adea09f44f"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-receipts-20261026.json",
+    "bytes": 6454,
+    "sha256": "51155c2460900300a739b8e19113ba6365bd4d8314db78b974926676ce3ca475"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-tests-20261026.log.txt",
+    "bytes": 708213,
+    "sha256": "95d0290fb75942b52ae1ac907707810e075800807112a7ae636fa0ac4ee4729a"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-trigger-eof-20261026.json",
+    "bytes": 103319,
+    "sha256": "1754dc3bf3d516940d49499f60e07ae24b0426bfe73f0f73b7e54d859bbdd6ca"
+  },
+  {
+    "path": "sqlite-alter-catalog-development3-trigger-eof-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "378ca794c78d55f445bb3a4ab8e50594b6df351bebb46dc16865e94237696b65"
+  },
+  {
+    "path": "sqlite-alter-catalog-differential.py.txt",
+    "bytes": 5712,
+    "sha256": "237f2853c166b75a7cf3e892c16c60b9990b7495699b94117e29950e37243888"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-alter-20261026.json",
+    "bytes": 6067292,
+    "sha256": "7eb1031dadb135e443e74274eb2cba1069cb7a1695e857febec9ad2943b745dd"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-alter-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "ec0d12f0d2a4b8794112e7307f29f05ac23d19108f0f2df82f15ae934d4b4e52"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-create-20261026.json",
+    "bytes": 2990453,
+    "sha256": "2eb3e04d2e02b1a45e100d29c36e5f8187d3cf75b8fed7f05b55ee8dc75b51ca"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-create-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "99a0601491e6359051c7f5ed6f6abb5a07e1f22ec1a566595c0646784f6e732b"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-gap-survey-20261026.json",
+    "bytes": 170038,
+    "sha256": "a663dfd25559f81a9562c40878ea330bfa3f75567e393f0f6a17dbc0198811af"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-gap-survey-20261026.log.txt",
+    "bytes": 46,
+    "sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-insert-read-20261026.json",
+    "bytes": 8689176,
+    "sha256": "b5202448bf4c3843aee7d895abe2a23fb4f159d930e466cedc36c8f491072ff1"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-insert-read-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "94ac6c44535aba290d85234bfb23462a4a68c23ef7097a004ba041589e1257b7"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-insert-writer-20261026.json.gz",
+    "bytes": 403458,
+    "sha256": "19cc25a724613fea5f8e9e21716991c0e042286b94006ffb84b2df60a5aa5efc"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-insert-writer-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "f23b627b9c596fde7c743637dbce7e2aebab183b3b28c90f973edd5da1e16d09"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-live-path-20261026.log.txt",
+    "bytes": 16330,
+    "sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-plan.json",
+    "bytes": 2878,
+    "sha256": "ea0f53801f6bfcbffe8472b63409d67f74b7a0c6fbeb143eb7f9ec49220dc803"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-process.json",
+    "bytes": 271,
+    "sha256": "596db9673414873871d9f380059ad470477f96c1938b12ef80eeff23ffe32486"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-receipts-20261026.json",
+    "bytes": 9785,
+    "sha256": "56ca279f09382bf0c28abb28e0e59b85ab70f1f42f988238f812bf3fb0577874"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-source-20261026.patch.txt",
+    "bytes": 649417,
+    "sha256": "e593b49c6840c55be81d41ac8ebd63f87dd1fe1d2fa055305c1b65a6edb1d680"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-tests-20261026.log.txt",
+    "bytes": 708213,
+    "sha256": "95d0290fb75942b52ae1ac907707810e075800807112a7ae636fa0ac4ee4729a"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-trigger-eof-20261026.json",
+    "bytes": 203461,
+    "sha256": "a2c85e16c7efd2e0ab68ab6e510142286397566f84776732f80ef6a3fbfbacb2"
+  },
+  {
+    "path": "sqlite-alter-catalog-final-trigger-eof-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "d652bed876ab0954aa5cbb65ed96ab59bdff1d6553f8ded3b1c4fa4c6ed4be29"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build1-20261026.log.txt",
+    "bytes": 481631,
+    "sha256": "fbd1e6684bb5c3c295ff86c3f1acb9d403a1ec9bc136459d917ce25d9ef2f816"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build1-CoreSourceSQL.lean.txt",
+    "bytes": 8324,
+    "sha256": "379d96a75aff8a90a4735b63c82c485d2c74c8bbdaaac169b9bd48b549eb2393"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build1-process.json",
+    "bytes": 436,
+    "sha256": "d853ff8003836e4503d76ba4b03555a097fe8039552a3eb9f830926fff5f87d5"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build2-20261026.log.txt",
+    "bytes": 693973,
+    "sha256": "95f5454a0e3e4a67493d309a512463d550c05ba94a25bb449961632477c28b15"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build2-process.json",
+    "bytes": 437,
+    "sha256": "20eacdfd5b8001ca499da6e6e762e8c20b9348db93873489750bf2179465e993"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build3-20261026.log.txt",
+    "bytes": 696944,
+    "sha256": "51bb9e143ea447ab01e2126b667808f331f270f8469555e45aceaf1039fa52ef"
+  },
+  {
+    "path": "sqlite-alter-catalog-full-build3-process.json",
+    "bytes": 437,
+    "sha256": "ac93684c95b2a619dc14eb99eff56782862d0ac2c1589649627d8c5723aee737"
+  },
+  {
+    "path": "sqlite-alter-catalog-gap-summary-20261026.json",
+    "bytes": 12671,
+    "sha256": "ee64722a04e0a47b7fc459ec3e94e1ce6c35428a749f080c50c8f797812a0308"
+  },
+  {
+    "path": "sqlite-alter-catalog-gap-survey-initial.py.txt",
+    "bytes": 8333,
+    "sha256": "12af4742591ef5f52a4055027fa71463435556ece6fd6a56c3ba483f80af9ece"
+  },
+  {
+    "path": "sqlite-alter-catalog-generator-initial-error.json",
+    "bytes": 522,
+    "sha256": "22ddaf0c45719e55d90c26157297a7fe53f42e3d7a92c2fe9866d6f856768b4e"
+  },
+  {
+    "path": "sqlite-alter-catalog-generator-initial.py.txt",
+    "bytes": 3163,
+    "sha256": "72d970e36f6bd5be5c03a7bde378eba3340f6189f89e6d8e744ff97155a72a74"
+  },
+  {
+    "path": "sqlite-alter-catalog-integrate.py.txt",
+    "bytes": 6324,
+    "sha256": "5ceff8b46c118f979b4bcd679ecf0b09d92648abe2f05909e7e1714ccfcc7ece"
+  },
+  {
+    "path": "sqlite-alter-catalog-process-capture.py.txt",
+    "bytes": 1558,
+    "sha256": "e559c7f7340465c59a27fb39f929ad20cc3739c885a32b15208b9815d61209f0"
+  },
+  {
+    "path": "sqlite-alter-catalog-publish.py.txt",
+    "bytes": 11874,
+    "sha256": "08f8b08ecdba19359f48473860e6088676d04e13591ace5f0aad3f0b5d1be88a"
+  },
+  {
+    "path": "sqlite-alter-catalog-run-compatibility-gap-survey.py.txt",
+    "bytes": 8815,
+    "sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+  },
+  {
+    "path": "sqlite-alter-catalog-run-trigger-eof-differential.py.txt",
+    "bytes": 3990,
+    "sha256": "21eaf3f132e7d3bbf3b76d4c885161b7e83a658083e71f785560b35a389584ec"
+  },
+  {
+    "path": "sqlite-alter-catalog-source-controls.json",
+    "bytes": 99409,
+    "sha256": "345d1cd837fb7f28de2ed8e4511653529c935999f78e4dc5a5a54bf84c0d04b3"
+  },
+  {
+    "path": "sqlite-alter-catalog-trigger-control-generator-note.json",
+    "bytes": 377,
+    "sha256": "147d1a0fb787e2bdad3bdc236ba2160ab5c90763830b80f44d98cf6dc6ba077d"
+  },
+  {
+    "path": "sqlite-alter-catalog-trigger-eof-controls.json",
+    "bytes": 3469,
+    "sha256": "c05281663e54d1572a7eefbaafa511688a11d60e0c8403115ee11caff6973cec"
+  },
+  {
+    "path": "sqlite-alter-catalog-trigger-parser-before.lean.txt",
+    "bytes": 66128,
+    "sha256": "fa3449355851aae78f8b34f73bb126c85ad5c8f5356101104e8642008d77680f"
+  }
+]

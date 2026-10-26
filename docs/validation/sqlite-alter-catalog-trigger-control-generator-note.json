@@ -1,0 +1,5 @@
+{
+  "initial_generator": "Asserted incomplete input for every truncated trigger.",
+  "initial_result": "Generator assertion failed before producing controls: SQLite instead reports near \"unexpected\": syntax error at an unknown trigger-body token.",
+  "correction": "Retain and test actual reference diagnostic for every source, including syntax errors; no probes dropped."
+}

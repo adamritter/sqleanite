@@ -1,0 +1,573 @@
+{
+  "implementation_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+  "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+  "final_runner": {
+    "exit_code": 1,
+    "seconds": 162.5089783668518,
+    "source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+    "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+    "capture": "subprocess returncode"
+  },
+  "build": {
+    "exit_code": 0,
+    "seconds": 231.47178983688354,
+    "source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+    "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+    "capture": "subprocess returncode",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-full-build3.log",
+    "log_sha256": "51bb9e143ea447ab01e2126b667808f331f270f8469555e45aceaf1039fa52ef"
+  },
+  "executable_tests": 339,
+  "headline_component_proofs": 1436,
+  "native_bindings": 9,
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "fresh_scoped_cases": 2304,
+  "fresh_scoped_failures": 0,
+  "fresh_related_cases": 14680,
+  "fresh_related_failures": 0,
+  "gap_survey": {
+    "scope": "One concrete probe per feature on seeded data, both modes. No global compatibility percentage or completeness claim. Full original observations remain in the survey report.",
+    "features": 44,
+    "programs": 88,
+    "failures": 72,
+    "timeouts": 0,
+    "agreeing_features": 8,
+    "details": [
+      {
+        "feature": "cte",
+        "sql": "WITH c AS (SELECT n FROM t) SELECT sum(n) FROM c;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a statement in the verified Core grammar, found WITH"
+      },
+      {
+        "feature": "recursive-cte",
+        "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a statement in the verified Core grammar, found WITH"
+      },
+      {
+        "feature": "scalar-subquery",
+        "sql": "SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a Core expression (subquery is outside the subset), found ("
+      },
+      {
+        "feature": "correlated-subquery",
+        "sql": "SELECT a.id,(SELECT sum(b.n) FROM t b WHERE b.id<=a.id) FROM t a ORDER BY a.id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a Core expression (subquery is outside the subset), found ("
+      },
+      {
+        "feature": "from-subquery",
+        "sql": "SELECT sum(n) FROM (SELECT n FROM t WHERE id>1);",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a named Core table source, found ("
+      },
+      {
+        "feature": "view",
+        "sql": "CREATE VIEW visible AS SELECT id,n FROM t;\nSELECT * FROM visible ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a statement in the verified Core grammar, found CREATE"
+      },
+      {
+        "feature": "trigger",
+        "sql": "CREATE TRIGGER update_note AFTER UPDATE ON t BEGIN UPDATE t SET v='triggered' WHERE id=new.id; END;\nUPDATE t SET n=n+1 WHERE id=1;\nSELECT v FROM t WHERE id=1;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Parser returns incomplete input; valid trigger execution is still unsupported. No timeout."
+      },
+      {
+        "feature": "window-row-number",
+        "sql": "SELECT id,row_number() OVER (ORDER BY n,id) FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected name lean_window_row_number, found ("
+      },
+      {
+        "feature": "window-aggregate",
+        "sql": "SELECT id,sum(n) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected name lean_window_sum, found ("
+      },
+      {
+        "feature": "strict-table",
+        "sql": "CREATE TABLE strict_tab(id INTEGER PRIMARY KEY,v TEXT) STRICT;\nINSERT INTO strict_tab VALUES(1,23);\nSELECT typeof(v),v FROM strict_tab;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "near \"STRICT\": syntax error"
+      },
+      {
+        "feature": "without-rowid",
+        "sql": "CREATE TABLE no_rowid(id TEXT PRIMARY KEY,v INTEGER) WITHOUT ROWID;\nINSERT INTO no_rowid VALUES('a',2);\nSELECT * FROM no_rowid;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected end of input, found WITHOUT"
+      },
+      {
+        "feature": "composite-primary-key",
+        "sql": "CREATE TABLE composite(a INTEGER,b INTEGER,PRIMARY KEY(a,b));\nINSERT INTO composite VALUES(1,2);\nSELECT * FROM composite;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a single-column table PRIMARY KEY, found PRIMARY"
+      },
+      {
+        "feature": "unique-constraint",
+        "sql": "CREATE TABLE uq(id INTEGER PRIMARY KEY,v TEXT UNIQUE);\nINSERT INTO uq VALUES(1,'same');\nINSERT INTO uq VALUES(2,'same');",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a verified-Core column definition, found UNIQUE"
+      },
+      {
+        "feature": "check-constraint",
+        "sql": "CREATE TABLE ck(v INTEGER CHECK(v>0));\nINSERT INTO ck VALUES(-1);",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a verified-Core column definition, found CHECK"
+      },
+      {
+        "feature": "foreign-key",
+        "sql": "PRAGMA foreign_keys=ON;\nCREATE TABLE fk(id INTEGER PRIMARY KEY,parent INTEGER REFERENCES t(id));\nINSERT INTO fk VALUES(1,999);",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported verified-Core PRAGMA"
+      },
+      {
+        "feature": "generated-column",
+        "sql": "CREATE TABLE gen(a INTEGER,b INTEGER GENERATED ALWAYS AS (a+1) STORED);\nINSERT INTO gen(a) VALUES(3);\nSELECT * FROM gen;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a verified-Core column definition, found AS"
+      },
+      {
+        "feature": "declared-nocase",
+        "sql": "CREATE TABLE coll(v TEXT COLLATE NOCASE);\nINSERT INTO coll VALUES('a'),('A');\nSELECT count(*) FROM coll WHERE v='a';",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: column constraint"
+      },
+      {
+        "feature": "named-index-catalog",
+        "sql": "CREATE INDEX ix ON t(v);\nSELECT id FROM t ORDER BY v,id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Catalog SQL differs after successful execution."
+      },
+      {
+        "feature": "unique-index-catalog",
+        "sql": "CREATE UNIQUE INDEX ui ON t(n);\nSELECT n FROM t ORDER BY n;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Catalog SQL differs after successful execution."
+      },
+      {
+        "feature": "partial-index",
+        "sql": "CREATE INDEX pi ON t(n) WHERE n>0;\nSELECT n FROM t WHERE n>0 ORDER BY n;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: partial index"
+      },
+      {
+        "feature": "expression-index",
+        "sql": "CREATE INDEX ei ON t(lower(v));\nSELECT id FROM t WHERE lower(v)='missing';",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: index expression"
+      },
+      {
+        "feature": "alter-add",
+        "sql": "ALTER TABLE t ADD added TEXT DEFAULT 'new';\nSELECT added FROM t ORDER BY id;",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "alter-add-line-comment",
+        "sql": "ALTER TABLE t ADD added TEXT -- retained line comment\n;",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "alter-rename-table",
+        "sql": "ALTER TABLE t RENAME TO renamed;\nSELECT * FROM renamed ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Catalog SQL differs after successful execution."
+      },
+      {
+        "feature": "alter-rename-column",
+        "sql": "ALTER TABLE t RENAME COLUMN n TO renamed;\nSELECT renamed FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Catalog SQL differs after successful execution."
+      },
+      {
+        "feature": "alter-drop-column",
+        "sql": "ALTER TABLE t DROP COLUMN n;\nSELECT * FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "Catalog SQL differs after successful execution."
+      },
+      {
+        "feature": "upsert",
+        "sql": "INSERT INTO t(id,v,n) VALUES(1,'changed',4) ON CONFLICT(id) DO UPDATE SET n=excluded.n;\nSELECT n FROM t WHERE id=1;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "near \"ON\": syntax error"
+      },
+      {
+        "feature": "returning",
+        "sql": "UPDATE t SET n=n+1 WHERE id=1 RETURNING id,n;",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "json-type",
+        "sql": "SELECT json_type('{\"a\":[1]}','$.a');",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "json-array-length",
+        "sql": "SELECT json_array_length('[1,2,3]');",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "json-each",
+        "sql": "SELECT key,type,value FROM json_each('[1,2,3]') ORDER BY key;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a named Core table source, found json_each"
+      },
+      {
+        "feature": "json-tree",
+        "sql": "SELECT fullkey,type FROM json_tree('{\"a\":[1]}') ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a named Core table source, found json_tree"
+      },
+      {
+        "feature": "json-insert",
+        "sql": "SELECT json_insert('{\"a\":1}','$.b',2);",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "date-function",
+        "sql": "SELECT date('2001-02-03','+1 day');",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "strftime",
+        "sql": "SELECT strftime('%Y-%m-%d %H:%M:%S','2001-02-03 04:05:06');",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "changes",
+        "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT changes();",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "total-changes",
+        "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT total_changes();",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "last-insert-rowid",
+        "sql": "INSERT INTO t(v,n) VALUES('extra',4);\nSELECT last_insert_rowid();",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "sqlite-version",
+        "sql": "SELECT sqlite_version();",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "sqlite-source-id",
+        "sql": "SELECT sqlite_source_id();",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+      },
+      {
+        "feature": "pragma-table-valued",
+        "sql": "SELECT name,type FROM pragma_table_info('t') ORDER BY cid;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "verified grammar expected a named Core table source, found pragma_table_info"
+      },
+      {
+        "feature": "pragma-user-version",
+        "sql": "PRAGMA user_version=17;\nPRAGMA user_version;",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      },
+      {
+        "feature": "utf16-reading",
+        "sql": "SELECT id,v,n FROM t ORDER BY id;",
+        "rollback_journal_matched": false,
+        "wal_matched": false,
+        "detail": "UTF-16 database rejected by the general file decoder."
+      },
+      {
+        "feature": "savepoint-after-read",
+        "sql": "SELECT count(*) FROM t;\nSAVEPOINT s;\nUPDATE t SET n=n+1;\nROLLBACK TO s;\nRELEASE s;\nSELECT n FROM t ORDER BY id;",
+        "rollback_journal_matched": true,
+        "wal_matched": true,
+        "detail": "This concrete probe agrees."
+      }
+    ]
+  },
+  "component": {
+    "seed": 355451,
+    "cases": 2048,
+    "initial_failures": 566,
+    "corrected_failures": 0,
+    "rejections_in_reference": 566
+  },
+  "maintained_component_controls": 2048,
+  "maintained_source_controls": 96,
+  "maintained_trigger_parser_controls": 12,
+  "initial_gap_probe_timeout_seconds": 120,
+  "baseline_complete_gap": {
+    "cases": 88,
+    "failures": 72,
+    "timeouts": 2,
+    "timeout_seconds": 10
+  },
+  "receipts": [
+    {
+      "name": "alter",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355481",
+        "--count",
+        "1024",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-alter-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 42.46605730056763,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-alter.log",
+      "log_sha256": "ec0d12f0d2a4b8794112e7307f29f05ac23d19108f0f2df82f15ae934d4b4e52",
+      "cases": 2048,
+      "failures": 0,
+      "report_sha256": "7eb1031dadb135e443e74274eb2cba1069cb7a1695e857febec9ad2943b745dd",
+      "harness_sha256": "237f2853c166b75a7cf3e892c16c60b9990b7495699b94117e29950e37243888"
+    },
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355482",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-create-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 23.745839595794678,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-create.log",
+      "log_sha256": "99a0601491e6359051c7f5ed6f6abb5a07e1f22ec1a566595c0646784f6e732b",
+      "cases": 1024,
+      "failures": 0,
+      "report_sha256": "2eb3e04d2e02b1a45e100d29c36e5f8187d3cf75b8fed7f05b55ee8dc75b51ca",
+      "harness_sha256": "6ba25b93b23b0f0ed2149077dfcdf2abe9df29a62278225b2a1d89abc5db3059"
+    },
+    {
+      "name": "trigger-eof",
+      "argv": [
+        "python3",
+        "scripts/run-trigger-eof-differential.py",
+        "--seed",
+        "355483",
+        "--count",
+        "128",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-trigger-eof-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 2.2191991806030273,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-trigger-eof.log",
+      "log_sha256": "d652bed876ab0954aa5cbb65ed96ab59bdff1d6553f8ded3b1c4fa4c6ed4be29",
+      "cases": 256,
+      "failures": 0,
+      "report_sha256": "a2c85e16c7efd2e0ab68ab6e510142286397566f84776732f80ef6a3fbfbacb2",
+      "harness_sha256": "21eaf3f132e7d3bbf3b76d4c885161b7e83a658083e71f785560b35a389584ec"
+    },
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355484",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-gap-survey-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.384650707244873,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-gap-survey.log",
+      "log_sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8",
+      "cases": 88,
+      "failures": 72,
+      "report_sha256": "a663dfd25559f81a9562c40878ea330bfa3f75567e393f0f6a17dbc0198811af",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    },
+    {
+      "name": "insert-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355485",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-insert-writer-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 61.98533868789673,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-insert-writer.log",
+      "log_sha256": "f23b627b9c596fde7c743637dbce7e2aebab183b3b28c90f973edd5da1e16d09",
+      "cases": 2472,
+      "failures": 0,
+      "report_sha256": "9ecc68765fbf5fae7662ec4572186dbd83fdce884e5ab7cadf298c3a00cd1049",
+      "harness_sha256": "bf7cf8875d9b4833e2a458405e26394dd66957b22690006002a1390e02f459a3"
+    },
+    {
+      "name": "insert-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355486",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-final-insert-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 107.33816576004028,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-insert-read.log",
+      "log_sha256": "94ac6c44535aba290d85234bfb23462a4a68c23ef7097a004ba041589e1257b7",
+      "cases": 11184,
+      "failures": 0,
+      "report_sha256": "b5202448bf4c3843aee7d895abe2a23fb4f159d930e466cedc36c8f491072ff1",
+      "harness_sha256": "044f62a5014f68f771ff08e41435e369e02cf22207d1afaf65252b9b7c1e6558"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.082777738571167,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-tests.log",
+      "log_sha256": "95d0290fb75942b52ae1ac907707810e075800807112a7ae636fa0ac4ee4729a"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07338094711303711,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.9735305309295654,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-live-path.log",
+      "log_sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "harness_sha256": "23150c8716031356d43f1d80fac96c936295037ecf3fc9b3c9b7edb3787126d8"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6964819431304932,
+      "before_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+      "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ],
+  "scope": "ALTER ADD COLUMN catalog rewriting and malformed-trigger parser termination/errors. Valid trigger execution and the failed features in the gap survey remain open; no global SQL/database/WAL compatibility claim."
+}

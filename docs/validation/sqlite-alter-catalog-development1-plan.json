@@ -1,0 +1,77 @@
+{
+  "prefix": "alter-catalog-development1",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "alter",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355461",
+        "--count",
+        "96",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development1-alter-20261026.json"
+      ]
+    },
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355462",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development1-create-20261026.json"
+      ]
+    },
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355463",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development1-gap-survey-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-alter-catalog-development1-receipts-20261026.json",
+  "evaluation": "Development ALTER ADD and ordinary CREATE source comparisons. Separately labelled small gap survey retains failures and returns nonzero; does not estimate global coverage."
+}

@@ -1,0 +1,58 @@
+import SQLeanite.SQLite.CreateCatalog
+
+namespace SQLeanite.SQLite.AlterCatalog
+open CreateCatalog
+
+def tableConstraint (span : Span) : Bool :=
+  ["CONSTRAINT", "PRIMARY", "UNIQUE", "CHECK", "FOREIGN"].any (keyword · span)
+
+def addOffset : Nat → List Span → Option Nat
+  | _, [] => none
+  | depth, first :: rest =>
+      if first.token == .symbol "(" then addOffset (depth+1) rest
+      else if first.token == .symbol ")" then
+        if depth == 1 then some first.start else addOffset (depth-1) rest
+      else if depth == 1 && first.token == .symbol "," && (rest.head?.any tableConstraint) then
+        some first.start
+      else addOffset depth rest
+
+/-- A rewritten trailing line comment may consume the original ')' token. -/
+def outerEnd : Nat → List Span → Option Nat
+  | _, [] => none
+  | depth, first :: rest =>
+      if first.token == .symbol "(" then outerEnd (depth+1) rest
+      else if first.token == .symbol ")" then
+        if depth == 1 then some first.finish else outerEnd (depth-1) rest
+      else outerEnd depth rest
+
+def columnStart (tokens : List Span) : Option Span := do
+  let rest ← afterKeyword "ALTER" tokens >>= afterKeyword "TABLE"
+  let rest ← match rest with
+    | _ :: dot :: _ :: tail => if dot.token == .symbol "." then some tail else some rest.tail
+    | _ :: tail => some tail
+    | [] => none
+  let rest ← afterKeyword "ADD" rest
+  let rest := (afterKeyword "COLUMN" rest).getD rest
+  rest.head?
+
+def trimEndChar (char : Char) : Bool :=
+  char == ';' || char == ' ' || (char.toNat >= 9 && char.toNat <= 13)
+
+def addColumn (catalog source : String) : Option String := do
+  let chars := catalog.toList
+  let catalogTokens ← (spans (chars.length+1) 0 chars []).toOption
+  let offset ← addOffset 0 catalogTokens
+  let input := source.toList
+  let tokens ← (spans (input.length+1) 0 input []).toOption
+  let start ← columnStart tokens
+  let terminator := tokens.find? (fun span => span.token == .symbol ";")
+  let finish := (terminator.map (·.finish)).getD input.length
+  let definition := input.drop start.start |>.take (finish-start.start)
+  let definition := definition.reverse.dropWhile trimEndChar |>.reverse
+  let rewritten := String.ofList (chars.take offset) ++ ", " ++ String.ofList definition ++
+    String.ofList (chars.drop offset)
+  let tokens ← (spans (rewritten.toList.length+1) 0 rewritten.toList []).toOption
+  discard <| outerEnd 0 tokens
+  return rewritten
+
+end SQLeanite.SQLite.AlterCatalog

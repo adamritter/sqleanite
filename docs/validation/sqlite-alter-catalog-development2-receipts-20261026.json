@@ -1,0 +1,29 @@
+{
+  "evaluation": "Complete baseline gap survey replay after harness correction: timeout recorded per probe (10 seconds), all probes retained with partial progress checkpoints. Production unchanged from first ALTER checkpoint.",
+  "source_sha256": "343ff1ffe735e63546012296254ebb8c6874e0226c6d442ef0c62aab4d20e7b4",
+  "executable_sha256": "94efc228b3c51818d63e51e43865a784b3f06ace78379a6e382d4bae9fa6006f",
+  "receipts": [
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355463",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development2-gap-survey-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 21.4996440410614,
+      "before_source_sha256": "343ff1ffe735e63546012296254ebb8c6874e0226c6d442ef0c62aab4d20e7b4",
+      "after_source_sha256": "343ff1ffe735e63546012296254ebb8c6874e0226c6d442ef0c62aab4d20e7b4",
+      "executable_sha256": "94efc228b3c51818d63e51e43865a784b3f06ace78379a6e382d4bae9fa6006f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-development2-gap-survey.log",
+      "log_sha256": "46d697e2522310f67e3e75929e6a048d67a4791b82b0d16991402795781d9cb8",
+      "cases": 88,
+      "failures": 72,
+      "report_sha256": "75feac390004a4b0f89020defaecf494ab12b9fe251f7f322169ae4ec97c09c5",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "prefix": "alter-catalog-development3",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "alter",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355461",
+        "--count",
+        "96",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-alter-20261026.json"
+      ]
+    },
+    {
+      "name": "trigger-eof",
+      "argv": [
+        "python3",
+        "scripts/run-trigger-eof-differential.py",
+        "--seed",
+        "355471",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-trigger-eof-20261026.json"
+      ]
+    },
+    {
+      "name": "gap-survey",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355463",
+        "--output",
+        "docs/validation/sqlite-alter-catalog-development3-gap-survey-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-alter-catalog-development3-receipts-20261026.json",
+  "evaluation": "Development ALTER replay, malformed trigger probes and the same complete gap survey after the trigger-parser error fix. Gap-survey failures are retained independently of the scoped fixes."
+}

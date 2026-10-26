@@ -1,0 +1,3470 @@
+{
+  "seed": 355471,
+  "inputs": [
+    {
+      "sql": "CREATE TRIGGER truncated_96783524 AFTER UPDATE ON t BEGIN /* body 5920342 */ DELETE FROM t;",
+      "value": 5920342
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_1858105 BEFORE INSERT ON t BEGIN /* body 7117655 */ INSERT INTO t VALUES(7117655);",
+      "value": 7117655
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_65321493 BEFORE INSERT ON t BEGIN /* body 8017800 */ INSERT INTO t VALUES(8017800);",
+      "value": 8017800
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_6109864 AFTER DELETE ON t BEGIN /* body 5415807 */ INSERT INTO t VALUES(5415807);",
+      "value": 5415807
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_97556748 AFTER UPDATE ON t BEGIN /* body 5096409 */ UPDATE t SET n=5096409;",
+      "value": 5096409
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_23118350 BEFORE INSERT ON t BEGIN /* body 2170974 */ DELETE FROM t;",
+      "value": 2170974
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_32725894 AFTER DELETE ON t BEGIN /* body 4378952 */ DELETE FROM t;",
+      "value": 4378952
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_55889604 AFTER UPDATE ON t BEGIN /* body 1515764 */ INSERT INTO t VALUES(1515764);",
+      "value": 1515764
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_45650576 BEFORE INSERT ON t BEGIN /* body 8420791 */ unexpected_52257461 token",
+      "value": 8420791
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_60655582 BEFORE INSERT ON t BEGIN /* body 8780724 */ SELECT 8780724;",
+      "value": 8780724
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_38391325 BEFORE INSERT ON t BEGIN /* body 354387 */ SELECT 354387;",
+      "value": 354387
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_79298041 AFTER DELETE ON t BEGIN /* body 5619411 */ SELECT 5619411;",
+      "value": 5619411
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_87519668 AFTER DELETE ON t BEGIN /* body 7918385 */ ",
+      "value": 7918385
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_24455767 BEFORE INSERT ON t BEGIN /* body 5446059 */ unexpected_96679661 token",
+      "value": 5446059
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_98847458 AFTER DELETE ON t BEGIN /* body 4494323 */ UPDATE t SET n=4494323;",
+      "value": 4494323
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_19311577 AFTER UPDATE ON t BEGIN /* body 2907038 */ ",
+      "value": 2907038
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_7918284 BEFORE INSERT ON t BEGIN /* body 2761150 */ SELECT 2761150;",
+      "value": 2761150
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_98077941 BEFORE INSERT ON t BEGIN /* body 6109488 */ DELETE FROM t;",
+      "value": 6109488
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_67179998 AFTER UPDATE ON t BEGIN /* body 4298441 */ unexpected_90290881 token",
+      "value": 4298441
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_54375498 AFTER UPDATE ON t BEGIN /* body 8760604 */ SELECT 8760604;",
+      "value": 8760604
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_82896939 AFTER DELETE ON t BEGIN /* body 9407031 */ DELETE FROM t;",
+      "value": 9407031
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_19689544 AFTER UPDATE ON t BEGIN /* body 8364793 */ SELECT 8364793;",
+      "value": 8364793
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_6190040 BEFORE INSERT ON t BEGIN /* body 1924781 */ unexpected_70426022 token",
+      "value": 1924781
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_86683777 AFTER UPDATE ON t BEGIN /* body 2105971 */ SELECT 2105971;",
+      "value": 2105971
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_52415856 AFTER DELETE ON t BEGIN /* body 8825233 */ SELECT 8825233;",
+      "value": 8825233
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_32856822 AFTER DELETE ON t BEGIN /* body 7252765 */ unexpected_81500549 token",
+      "value": 7252765
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_68122925 BEFORE INSERT ON t BEGIN /* body 8861897 */ UPDATE t SET n=8861897;",
+      "value": 8861897
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_90910876 AFTER DELETE ON t BEGIN /* body 2088230 */ SELECT 2088230;",
+      "value": 2088230
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_83025105 BEFORE INSERT ON t BEGIN /* body 8809828 */ DELETE FROM t;",
+      "value": 8809828
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_56789187 AFTER DELETE ON t BEGIN /* body 3208135 */ UPDATE t SET n=3208135;",
+      "value": 3208135
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_91635905 AFTER DELETE ON t BEGIN /* body 9529041 */ unexpected_68138298 token",
+      "value": 9529041
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_50493787 BEFORE INSERT ON t BEGIN /* body 840685 */ INSERT INTO t VALUES(840685);",
+      "value": 840685
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_1943511 AFTER UPDATE ON t BEGIN /* body 4870552 */ SELECT 4870552;",
+      "value": 4870552
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_29905590 AFTER DELETE ON t BEGIN /* body 6729950 */ UPDATE t SET n=6729950;",
+      "value": 6729950
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_67340900 AFTER UPDATE ON t BEGIN /* body 9408009 */ INSERT INTO t VALUES(9408009);",
+      "value": 9408009
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_44384041 BEFORE INSERT ON t BEGIN /* body 416141 */ INSERT INTO t VALUES(416141);",
+      "value": 416141
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_57835927 BEFORE INSERT ON t BEGIN /* body 6829934 */ ",
+      "value": 6829934
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_43767877 AFTER UPDATE ON t BEGIN /* body 6912420 */ INSERT INTO t VALUES(6912420);",
+      "value": 6912420
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_2568738 AFTER UPDATE ON t BEGIN /* body 1479232 */ unexpected_75170049 token",
+      "value": 1479232
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_22659056 AFTER DELETE ON t BEGIN /* body 9701301 */ unexpected_74175406 token",
+      "value": 9701301
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_92067940 AFTER UPDATE ON t BEGIN /* body 1897520 */ ",
+      "value": 1897520
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_24763462 AFTER DELETE ON t BEGIN /* body 1707258 */ DELETE FROM t;",
+      "value": 1707258
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_68425338 BEFORE INSERT ON t BEGIN /* body 4619982 */ INSERT INTO t VALUES(4619982);",
+      "value": 4619982
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_53099571 BEFORE INSERT ON t BEGIN /* body 2684674 */ ",
+      "value": 2684674
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_72327161 BEFORE INSERT ON t BEGIN /* body 9944479 */ SELECT 9944479;",
+      "value": 9944479
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_16630522 BEFORE INSERT ON t BEGIN /* body 3841426 */ INSERT INTO t VALUES(3841426);",
+      "value": 3841426
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_82050684 AFTER UPDATE ON t BEGIN /* body 6916209 */ ",
+      "value": 6916209
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_74713064 BEFORE INSERT ON t BEGIN /* body 9095657 */ INSERT INTO t VALUES(9095657);",
+      "value": 9095657
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_32934876 AFTER DELETE ON t BEGIN /* body 6243692 */ ",
+      "value": 6243692
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_61507183 AFTER UPDATE ON t BEGIN /* body 5987005 */ unexpected_21719715 token",
+      "value": 5987005
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_15321505 AFTER UPDATE ON t BEGIN /* body 2162384 */ unexpected_81949964 token",
+      "value": 2162384
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_32280060 BEFORE INSERT ON t BEGIN /* body 8120863 */ SELECT 8120863;",
+      "value": 8120863
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_46090417 AFTER DELETE ON t BEGIN /* body 8298822 */ DELETE FROM t;",
+      "value": 8298822
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_59328127 BEFORE INSERT ON t BEGIN /* body 8215986 */ DELETE FROM t;",
+      "value": 8215986
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_23378323 AFTER UPDATE ON t BEGIN /* body 9587560 */ INSERT INTO t VALUES(9587560);",
+      "value": 9587560
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_68504997 AFTER DELETE ON t BEGIN /* body 9974579 */ unexpected_36649850 token",
+      "value": 9974579
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_92550065 AFTER DELETE ON t BEGIN /* body 5498929 */ SELECT 5498929;",
+      "value": 5498929
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_48681084 AFTER UPDATE ON t BEGIN /* body 7794125 */ DELETE FROM t;",
+      "value": 7794125
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_89946407 BEFORE INSERT ON t BEGIN /* body 4546928 */ UPDATE t SET n=4546928;",
+      "value": 4546928
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_99785777 AFTER UPDATE ON t BEGIN /* body 9991703 */ unexpected_69389069 token",
+      "value": 9991703
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_12930018 AFTER UPDATE ON t BEGIN /* body 109445 */ ",
+      "value": 109445
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_70929166 AFTER DELETE ON t BEGIN /* body 5351081 */ UPDATE t SET n=5351081;",
+      "value": 5351081
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_68860250 AFTER DELETE ON t BEGIN /* body 211986 */ unexpected_74857740 token",
+      "value": 211986
+    },
+    {
+      "sql": "CREATE TRIGGER truncated_64094235 BEFORE INSERT ON t BEGIN /* body 9446240 */ INSERT INTO t VALUES(9446240);",
+      "value": 9446240
+    }
+  ],
+  "cases": [
+    {
+      "input": 0,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5920342\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5920342\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 0,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5920342\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5920342\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7117655\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7117655\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7117655\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7117655\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8017800\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8017800\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8017800\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8017800\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5415807\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5415807\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5415807\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5415807\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5096409\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5096409\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5096409\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5096409\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2170974\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2170974\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2170974\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2170974\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 6,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4378952\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4378952\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 6,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4378952\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4378952\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 7,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1515764\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1515764\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 7,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1515764\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1515764\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_52257461\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_52257461\": syntax error\n  50576 BEFORE INSERT ON t BEGIN /* body 8420791 */ unexpected_52257461 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8420791\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8420791\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_52257461\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_52257461\": syntax error\n  50576 BEFORE INSERT ON t BEGIN /* body 8420791 */ unexpected_52257461 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8420791\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8420791\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8780724\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8780724\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8780724\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8780724\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n354387\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n354387\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n354387\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n354387\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5619411\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5619411\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5619411\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5619411\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7918385\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7918385\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7918385\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7918385\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 13,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_96679661\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_96679661\": syntax error\n  55767 BEFORE INSERT ON t BEGIN /* body 5446059 */ unexpected_96679661 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5446059\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5446059\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 13,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_96679661\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_96679661\": syntax error\n  55767 BEFORE INSERT ON t BEGIN /* body 5446059 */ unexpected_96679661 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5446059\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5446059\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 14,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4494323\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4494323\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 14,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4494323\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4494323\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2907038\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2907038\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2907038\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2907038\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2761150\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2761150\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2761150\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2761150\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6109488\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6109488\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6109488\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6109488\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_90290881\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_90290881\": syntax error\n  179998 AFTER UPDATE ON t BEGIN /* body 4298441 */ unexpected_90290881 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4298441\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4298441\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_90290881\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_90290881\": syntax error\n  179998 AFTER UPDATE ON t BEGIN /* body 4298441 */ unexpected_90290881 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4298441\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4298441\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8760604\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8760604\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8760604\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8760604\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9407031\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9407031\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9407031\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9407031\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 21,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8364793\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8364793\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 21,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8364793\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8364793\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 22,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_70426022\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_70426022\": syntax error\n  90040 BEFORE INSERT ON t BEGIN /* body 1924781 */ unexpected_70426022 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1924781\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1924781\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 22,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_70426022\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_70426022\": syntax error\n  90040 BEFORE INSERT ON t BEGIN /* body 1924781 */ unexpected_70426022 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1924781\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1924781\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 23,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2105971\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2105971\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 23,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2105971\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2105971\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 24,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8825233\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8825233\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 24,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8825233\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8825233\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 25,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_81500549\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_81500549\": syntax error\n  856822 AFTER DELETE ON t BEGIN /* body 7252765 */ unexpected_81500549 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7252765\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7252765\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 25,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_81500549\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_81500549\": syntax error\n  856822 AFTER DELETE ON t BEGIN /* body 7252765 */ unexpected_81500549 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7252765\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7252765\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 26,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8861897\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8861897\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 26,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8861897\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8861897\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 27,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2088230\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2088230\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 27,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2088230\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2088230\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 28,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8809828\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8809828\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 28,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8809828\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8809828\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 29,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3208135\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3208135\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 29,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3208135\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3208135\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 30,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_68138298\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_68138298\": syntax error\n  635905 AFTER DELETE ON t BEGIN /* body 9529041 */ unexpected_68138298 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9529041\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9529041\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 30,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_68138298\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_68138298\": syntax error\n  635905 AFTER DELETE ON t BEGIN /* body 9529041 */ unexpected_68138298 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9529041\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9529041\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 31,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n840685\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n840685\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 31,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n840685\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n840685\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 32,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4870552\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4870552\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 32,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4870552\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4870552\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 33,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6729950\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6729950\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 33,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6729950\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6729950\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 34,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9408009\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9408009\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 34,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9408009\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9408009\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 35,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n416141\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n416141\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 35,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n416141\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n416141\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 36,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6829934\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6829934\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 36,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6829934\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6829934\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 37,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6912420\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6912420\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 37,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6912420\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6912420\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 38,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_75170049\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_75170049\": syntax error\n  568738 AFTER UPDATE ON t BEGIN /* body 1479232 */ unexpected_75170049 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1479232\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1479232\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 38,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_75170049\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_75170049\": syntax error\n  568738 AFTER UPDATE ON t BEGIN /* body 1479232 */ unexpected_75170049 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1479232\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1479232\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 39,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_74175406\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_74175406\": syntax error\n  659056 AFTER DELETE ON t BEGIN /* body 9701301 */ unexpected_74175406 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9701301\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9701301\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 39,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_74175406\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_74175406\": syntax error\n  659056 AFTER DELETE ON t BEGIN /* body 9701301 */ unexpected_74175406 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9701301\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9701301\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 40,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1897520\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1897520\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 40,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1897520\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1897520\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 41,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1707258\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1707258\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 41,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1707258\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n1707258\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 42,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4619982\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4619982\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 42,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4619982\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4619982\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 43,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2684674\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2684674\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 43,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2684674\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2684674\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 44,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9944479\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9944479\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 44,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9944479\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9944479\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 45,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3841426\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3841426\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 45,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3841426\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n3841426\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 46,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6916209\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6916209\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 46,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6916209\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6916209\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 47,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9095657\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9095657\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 47,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9095657\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9095657\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 48,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6243692\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6243692\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 48,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6243692\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n6243692\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 49,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_21719715\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_21719715\": syntax error\n  507183 AFTER UPDATE ON t BEGIN /* body 5987005 */ unexpected_21719715 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5987005\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5987005\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 49,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_21719715\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_21719715\": syntax error\n  507183 AFTER UPDATE ON t BEGIN /* body 5987005 */ unexpected_21719715 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5987005\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5987005\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 50,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_81949964\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_81949964\": syntax error\n  321505 AFTER UPDATE ON t BEGIN /* body 2162384 */ unexpected_81949964 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2162384\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2162384\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 50,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_81949964\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_81949964\": syntax error\n  321505 AFTER UPDATE ON t BEGIN /* body 2162384 */ unexpected_81949964 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2162384\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n2162384\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 51,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8120863\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8120863\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 51,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8120863\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8120863\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 52,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8298822\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8298822\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 52,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8298822\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8298822\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 53,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8215986\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8215986\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 53,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8215986\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n8215986\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 54,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9587560\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9587560\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 54,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9587560\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9587560\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 55,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_36649850\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_36649850\": syntax error\n  504997 AFTER DELETE ON t BEGIN /* body 9974579 */ unexpected_36649850 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9974579\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9974579\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 55,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_36649850\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_36649850\": syntax error\n  504997 AFTER DELETE ON t BEGIN /* body 9974579 */ unexpected_36649850 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9974579\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9974579\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 56,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5498929\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5498929\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 56,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5498929\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5498929\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 57,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7794125\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7794125\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 57,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7794125\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n7794125\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 58,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4546928\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4546928\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 58,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4546928\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n4546928\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 59,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_69389069\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_69389069\": syntax error\n  785777 AFTER UPDATE ON t BEGIN /* body 9991703 */ unexpected_69389069 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9991703\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9991703\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 59,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_69389069\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_69389069\": syntax error\n  785777 AFTER UPDATE ON t BEGIN /* body 9991703 */ unexpected_69389069 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9991703\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9991703\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 60,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n109445\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n109445\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 60,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n109445\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n109445\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 61,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5351081\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5351081\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 61,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5351081\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n5351081\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 62,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_74857740\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_74857740\": syntax error\n  8860250 AFTER DELETE ON t BEGIN /* body 211986 */ unexpected_74857740 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n211986\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n211986\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 62,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"unexpected_74857740\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: near \"unexpected_74857740\": syntax error\n  8860250 AFTER DELETE ON t BEGIN /* body 211986 */ unexpected_74857740 token\n                                      error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n211986\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n211986\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 63,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9446240\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9446240\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 63,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: incomplete input\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9446240\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074286E20494E544547455229\n9446240\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "comparison": "Fresh malformed-trigger EOF/token probes in both public file modes.\n\nNames, values and comments vary under preselected malformed templates. Compare\nexact SQL diagnostics after CLI framing removal, result prefixes and unchanged\nC-observed catalog/data/integrity. A timeout is a failure. These malformed-input\nchecks do not claim execution of valid triggers, covered negatively by the gap\nsurvey. The full parser has separate internal unknown-token-after-body controls.",
+  "implementation_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+  "executable_sha256": "c8ee35a15d17c8a02cbd0b861f6a60b485c648633a1c38eb0de1f72c8fc05849",
+  "harness_sha256": "21eaf3f132e7d3bbf3b76d4c885161b7e83a658083e71f785560b35a389584ec",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

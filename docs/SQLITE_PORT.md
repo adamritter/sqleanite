@@ -7628,3 +7628,131 @@ replay. The initial proof build's two errors and both successful full builds
 are retained as well. New seeds were used only after these corrections for
 the final results above. Schema-altering source rewrites, named-index source
 retention, unsupported SQL forms and shared-process WAL locking remain open.
+
+
+## ALTER ADD source rewriting and explicit gap survey (2026-10-26)
+
+The public file paths now insert the original ADD COLUMN definition at SQLite's
+catalog insertion point: before table-level constraints or the final closing
+parenthesis. Existing spelling, comments and surrounding text are retained.
+The resulting text must independently decode to the schema produced by the
+existing Core column-addition operation. Registered source-aware contracts
+cover the successful trace and the incomplete-input rejection; retain_effect
+continues to connect checked text attachment with unchanged data and metadata.
+
+A trailing line comment exposes an important SQLite behavior: trimming the
+ALTER definition's final whitespace can let that comment consume the existing
+closing parenthesis. The source-aware operation now rejects that rewritten
+catalog with the reference incomplete-input diagnostic and leaves the live
+state unchanged. The metadata checker remains the authoritative admission
+boundary, beyond the component's explicit closing-token check.
+
+A gap-survey trigger probe also exposed a parser loop at EOF. An unknown trigger
+body token was skipped until a semicolon or END, even when neither remained.
+The parser now returns a syntax error (incomplete input at EOF) immediately.
+This fixes the hang, not valid trigger execution. The public source splitter
+and Core grammar still do not provide complete trigger support.
+
+Final source SHA-256: `347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa`. The build completed 410 jobs; all 339 executable
+test groups, proof audit, live-path check and reverse check passed. There are
+1,436 registered headline component contracts. The nine host bindings and their
+native implementation are unchanged.
+
+| Final-checkpoint public comparison | Cases | Differences |
+| --- | ---: | ---: |
+| ALTER ADD source, errors and cross-engine file use | 2048 | 0 |
+| Malformed-trigger EOF / leading-token errors | 256 | 0 |
+| Related ordinary CREATE source regression | 1024 | 0 |
+| Related JSON INSERT/SET read/write regression | 13656 | 0 |
+
+These are new seeded names, data and comments within reused templates. Primary
+scoped results total 2,304; related regressions total 14,680. They are not a
+measure of complete SQLite compatibility. The complete final runner returns 1
+because the separately reported gap survey still has 72 failures in 88 probes.
+
+Development evidence is retained: the initial ALTER component generator
+aborted on a C-rejected trailing line comment; the corrected harness retained
+all C errors. Its first complete component run had 566 mismatches in 2,048,
+all such rejections, while the corrected component matched all 2,048 including
+566 reference rejections. That is component rewrite/rejection behavior, not
+full public error-message equivalence. All 2,048 controls are maintained,
+alongside 96 admitted-source/round-trip controls and 12 full-parser EOF/token
+controls. The latter retain C syntax errors for unexpected tokens instead of
+assuming every malformed trigger has the same error.
+
+The initial public gap survey aborted at a 120-second trigger timeout. Its
+harness was corrected to record individual 10-second timeouts, retain partial
+progress, and continue every probe. The complete baseline had 72 differences
+in 88 cases, including two trigger timeouts. After the parser fix the same
+survey still had 72 differences, but no timeouts: valid triggers are promptly
+rejected instead. The final survey below uses new fixture values. Both the
+unfixed and fixed observations are preserved; no negative case was removed.
+The initial ADD-error proof build also failed before a reducible Except.throw
+goal was closed; its source and log are retained.
+
+### Current concrete gap survey
+
+The user also requested identification of what remains wrong. This survey has
+one SQL program for each of 44 selected features and runs each program in both
+file modes. Eight concrete programs agree and 36 differ in both modes. This
+selection intentionally targets suspected gaps, so it must not be converted
+into a general compatibility percentage. A passing row supports only that
+specific program. Full SQL, results, errors, C-observed catalogs, data and
+integrity observations are in
+`docs/validation/sqlite-alter-catalog-final-gap-survey-20261026.json`;
+`sqlite-alter-catalog-gap-summary-20261026.json` indexes the programs.
+
+| Concrete probe | Both file modes | Observation |
+| --- | --- | --- |
+| cte | differ | verified grammar expected a statement in the verified Core grammar, found WITH |
+| recursive-cte | differ | verified grammar expected a statement in the verified Core grammar, found WITH |
+| scalar-subquery | differ | verified grammar expected a Core expression (subquery is outside the subset), found ( |
+| correlated-subquery | differ | verified grammar expected a Core expression (subquery is outside the subset), found ( |
+| from-subquery | differ | verified grammar expected a named Core table source, found ( |
+| view | differ | verified grammar expected a statement in the verified Core grammar, found CREATE |
+| trigger | differ | Parser returns incomplete input; valid trigger execution is still unsupported. No timeout. |
+| window-row-number | differ | verified grammar expected name lean_window_row_number, found ( |
+| window-aggregate | differ | verified grammar expected name lean_window_sum, found ( |
+| strict-table | differ | near "STRICT": syntax error |
+| without-rowid | differ | verified grammar expected end of input, found WITHOUT |
+| composite-primary-key | differ | verified grammar expected a single-column table PRIMARY KEY, found PRIMARY |
+| unique-constraint | differ | verified grammar expected a verified-Core column definition, found UNIQUE |
+| check-constraint | differ | verified grammar expected a verified-Core column definition, found CHECK |
+| foreign-key | differ | unsupported verified-Core PRAGMA |
+| generated-column | differ | verified grammar expected a verified-Core column definition, found AS |
+| declared-nocase | differ | unsupported general verified-MVP SQL: column constraint |
+| named-index-catalog | differ | Catalog SQL differs after successful execution. |
+| unique-index-catalog | differ | Catalog SQL differs after successful execution. |
+| partial-index | differ | unsupported general verified-MVP SQL: partial index |
+| expression-index | differ | unsupported general verified-MVP SQL: index expression |
+| alter-add | agree | This concrete probe agrees. |
+| alter-add-line-comment | agree | This concrete probe agrees. |
+| alter-rename-table | differ | Catalog SQL differs after successful execution. |
+| alter-rename-column | differ | Catalog SQL differs after successful execution. |
+| alter-drop-column | differ | Catalog SQL differs after successful execution. |
+| upsert | differ | near "ON": syntax error |
+| returning | agree | This concrete probe agrees. |
+| json-type | agree | This concrete probe agrees. |
+| json-array-length | agree | This concrete probe agrees. |
+| json-each | differ | verified grammar expected a named Core table source, found json_each |
+| json-tree | differ | verified grammar expected a named Core table source, found json_tree |
+| json-insert | agree | This concrete probe agrees. |
+| date-function | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| strftime | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| changes | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| total-changes | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| last-insert-rowid | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| sqlite-version | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| sqlite-source-id | differ | unsupported general verified-MVP SQL: constant SELECT expression |
+| pragma-table-valued | differ | verified grammar expected a named Core table source, found pragma_table_info |
+| pragma-user-version | agree | This concrete probe agrees. |
+| utf16-reading | differ | UTF-16 database rejected by the general file decoder. |
+| savepoint-after-read | agree | This concrete probe agrees. |
+
+This survey does not exercise shared-process WAL locking. That remains an
+independently known gap; the proposed additional native lock bindings were
+rejected by automatic approval review and have not been introduced. The
+existing separate named-index catalog corpus (144 differences in 176 cases)
+is also retained in the preceding checkpoint. Index source retention, other
+ALTER catalog rewrites, unsupported SQL features and UTF-16 file admission
+remain open.

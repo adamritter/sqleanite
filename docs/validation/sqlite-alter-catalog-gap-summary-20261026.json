@@ -1,0 +1,318 @@
+{
+  "scope": "One concrete probe per feature on seeded data, both modes. No global compatibility percentage or completeness claim. Full original observations remain in the survey report.",
+  "features": 44,
+  "programs": 88,
+  "failures": 72,
+  "timeouts": 0,
+  "agreeing_features": 8,
+  "details": [
+    {
+      "feature": "cte",
+      "sql": "WITH c AS (SELECT n FROM t) SELECT sum(n) FROM c;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a statement in the verified Core grammar, found WITH"
+    },
+    {
+      "feature": "recursive-cte",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a statement in the verified Core grammar, found WITH"
+    },
+    {
+      "feature": "scalar-subquery",
+      "sql": "SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a Core expression (subquery is outside the subset), found ("
+    },
+    {
+      "feature": "correlated-subquery",
+      "sql": "SELECT a.id,(SELECT sum(b.n) FROM t b WHERE b.id<=a.id) FROM t a ORDER BY a.id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a Core expression (subquery is outside the subset), found ("
+    },
+    {
+      "feature": "from-subquery",
+      "sql": "SELECT sum(n) FROM (SELECT n FROM t WHERE id>1);",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a named Core table source, found ("
+    },
+    {
+      "feature": "view",
+      "sql": "CREATE VIEW visible AS SELECT id,n FROM t;\nSELECT * FROM visible ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a statement in the verified Core grammar, found CREATE"
+    },
+    {
+      "feature": "trigger",
+      "sql": "CREATE TRIGGER update_note AFTER UPDATE ON t BEGIN UPDATE t SET v='triggered' WHERE id=new.id; END;\nUPDATE t SET n=n+1 WHERE id=1;\nSELECT v FROM t WHERE id=1;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Parser returns incomplete input; valid trigger execution is still unsupported. No timeout."
+    },
+    {
+      "feature": "window-row-number",
+      "sql": "SELECT id,row_number() OVER (ORDER BY n,id) FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected name lean_window_row_number, found ("
+    },
+    {
+      "feature": "window-aggregate",
+      "sql": "SELECT id,sum(n) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected name lean_window_sum, found ("
+    },
+    {
+      "feature": "strict-table",
+      "sql": "CREATE TABLE strict_tab(id INTEGER PRIMARY KEY,v TEXT) STRICT;\nINSERT INTO strict_tab VALUES(1,23);\nSELECT typeof(v),v FROM strict_tab;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "near \"STRICT\": syntax error"
+    },
+    {
+      "feature": "without-rowid",
+      "sql": "CREATE TABLE no_rowid(id TEXT PRIMARY KEY,v INTEGER) WITHOUT ROWID;\nINSERT INTO no_rowid VALUES('a',2);\nSELECT * FROM no_rowid;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected end of input, found WITHOUT"
+    },
+    {
+      "feature": "composite-primary-key",
+      "sql": "CREATE TABLE composite(a INTEGER,b INTEGER,PRIMARY KEY(a,b));\nINSERT INTO composite VALUES(1,2);\nSELECT * FROM composite;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a single-column table PRIMARY KEY, found PRIMARY"
+    },
+    {
+      "feature": "unique-constraint",
+      "sql": "CREATE TABLE uq(id INTEGER PRIMARY KEY,v TEXT UNIQUE);\nINSERT INTO uq VALUES(1,'same');\nINSERT INTO uq VALUES(2,'same');",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a verified-Core column definition, found UNIQUE"
+    },
+    {
+      "feature": "check-constraint",
+      "sql": "CREATE TABLE ck(v INTEGER CHECK(v>0));\nINSERT INTO ck VALUES(-1);",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a verified-Core column definition, found CHECK"
+    },
+    {
+      "feature": "foreign-key",
+      "sql": "PRAGMA foreign_keys=ON;\nCREATE TABLE fk(id INTEGER PRIMARY KEY,parent INTEGER REFERENCES t(id));\nINSERT INTO fk VALUES(1,999);",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported verified-Core PRAGMA"
+    },
+    {
+      "feature": "generated-column",
+      "sql": "CREATE TABLE gen(a INTEGER,b INTEGER GENERATED ALWAYS AS (a+1) STORED);\nINSERT INTO gen(a) VALUES(3);\nSELECT * FROM gen;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a verified-Core column definition, found AS"
+    },
+    {
+      "feature": "declared-nocase",
+      "sql": "CREATE TABLE coll(v TEXT COLLATE NOCASE);\nINSERT INTO coll VALUES('a'),('A');\nSELECT count(*) FROM coll WHERE v='a';",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: column constraint"
+    },
+    {
+      "feature": "named-index-catalog",
+      "sql": "CREATE INDEX ix ON t(v);\nSELECT id FROM t ORDER BY v,id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Catalog SQL differs after successful execution."
+    },
+    {
+      "feature": "unique-index-catalog",
+      "sql": "CREATE UNIQUE INDEX ui ON t(n);\nSELECT n FROM t ORDER BY n;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Catalog SQL differs after successful execution."
+    },
+    {
+      "feature": "partial-index",
+      "sql": "CREATE INDEX pi ON t(n) WHERE n>0;\nSELECT n FROM t WHERE n>0 ORDER BY n;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: partial index"
+    },
+    {
+      "feature": "expression-index",
+      "sql": "CREATE INDEX ei ON t(lower(v));\nSELECT id FROM t WHERE lower(v)='missing';",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: index expression"
+    },
+    {
+      "feature": "alter-add",
+      "sql": "ALTER TABLE t ADD added TEXT DEFAULT 'new';\nSELECT added FROM t ORDER BY id;",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "alter-add-line-comment",
+      "sql": "ALTER TABLE t ADD added TEXT -- retained line comment\n;",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "alter-rename-table",
+      "sql": "ALTER TABLE t RENAME TO renamed;\nSELECT * FROM renamed ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Catalog SQL differs after successful execution."
+    },
+    {
+      "feature": "alter-rename-column",
+      "sql": "ALTER TABLE t RENAME COLUMN n TO renamed;\nSELECT renamed FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Catalog SQL differs after successful execution."
+    },
+    {
+      "feature": "alter-drop-column",
+      "sql": "ALTER TABLE t DROP COLUMN n;\nSELECT * FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "Catalog SQL differs after successful execution."
+    },
+    {
+      "feature": "upsert",
+      "sql": "INSERT INTO t(id,v,n) VALUES(1,'changed',4) ON CONFLICT(id) DO UPDATE SET n=excluded.n;\nSELECT n FROM t WHERE id=1;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "near \"ON\": syntax error"
+    },
+    {
+      "feature": "returning",
+      "sql": "UPDATE t SET n=n+1 WHERE id=1 RETURNING id,n;",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "json-type",
+      "sql": "SELECT json_type('{\"a\":[1]}','$.a');",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "json-array-length",
+      "sql": "SELECT json_array_length('[1,2,3]');",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "json-each",
+      "sql": "SELECT key,type,value FROM json_each('[1,2,3]') ORDER BY key;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a named Core table source, found json_each"
+    },
+    {
+      "feature": "json-tree",
+      "sql": "SELECT fullkey,type FROM json_tree('{\"a\":[1]}') ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a named Core table source, found json_tree"
+    },
+    {
+      "feature": "json-insert",
+      "sql": "SELECT json_insert('{\"a\":1}','$.b',2);",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "date-function",
+      "sql": "SELECT date('2001-02-03','+1 day');",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "strftime",
+      "sql": "SELECT strftime('%Y-%m-%d %H:%M:%S','2001-02-03 04:05:06');",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT changes();",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "total-changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT total_changes();",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "last-insert-rowid",
+      "sql": "INSERT INTO t(v,n) VALUES('extra',4);\nSELECT last_insert_rowid();",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "sqlite-version",
+      "sql": "SELECT sqlite_version();",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "sqlite-source-id",
+      "sql": "SELECT sqlite_source_id();",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "unsupported general verified-MVP SQL: constant SELECT expression"
+    },
+    {
+      "feature": "pragma-table-valued",
+      "sql": "SELECT name,type FROM pragma_table_info('t') ORDER BY cid;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "verified grammar expected a named Core table source, found pragma_table_info"
+    },
+    {
+      "feature": "pragma-user-version",
+      "sql": "PRAGMA user_version=17;\nPRAGMA user_version;",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    },
+    {
+      "feature": "utf16-reading",
+      "sql": "SELECT id,v,n FROM t ORDER BY id;",
+      "rollback_journal_matched": false,
+      "wal_matched": false,
+      "detail": "UTF-16 database rejected by the general file decoder."
+    },
+    {
+      "feature": "savepoint-after-read",
+      "sql": "SELECT count(*) FROM t;\nSAVEPOINT s;\nUPDATE t SET n=n+1;\nROLLBACK TO s;\nRELEASE s;\nSELECT n FROM t ORDER BY id;",
+      "rollback_journal_matched": true,
+      "wal_matched": true,
+      "detail": "This concrete probe agrees."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 231.47178983688354,
+  "source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+  "after_source_sha256": "347b6f8088de1dda54bb52ea583536cb2b05136306adb163dd01beda6ecb45fa",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-catalog-full-build3.log",
+  "log_sha256": "51bb9e143ea447ab01e2126b667808f331f270f8469555e45aceaf1039fa52ef"
+}

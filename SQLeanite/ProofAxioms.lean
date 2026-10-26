@@ -1699,3 +1699,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_create_noop
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_create_trace
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_error
+
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_add_trace
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_add_incomplete

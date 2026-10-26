@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "reason": "Initial generator assumed every C-admitted ALTER source produces valid rewritten catalog SQL. C rejected a trailing line comment because trimming the newline causes it to swallow the old closing parenthesis.",
+  "source": "ALTER TABLE main.t ADD COLUMN added BLOB -- tail;\n;",
+  "stderr": "Error in 6th command line argument: error in table t after add column: incomplete input\n",
+  "evaluation": "Generator aborted before any Lean component evaluation; not a candidate test failure."
+}
