@@ -1,0 +1,3472 @@
+{
+  "evaluation": "Pinned-C development controls: all distinct saved BETWEEN failures plus systematic range-order and reduced-outer controls; not fresh evaluation.",
+  "saved_unique_cases": 169,
+  "cases": [
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n9\n9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n9\n9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 0;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 2 OFFSET 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,2\n2,2\n3,2\n4,2\n1,3\n2,3\n3,3\n4,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,2\n2,2\n3,2\n4,2\n1,3\n2,3\n3,3\n4,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.k BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "3,1\n4,1\n3,2\n4,2\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n2,1\n4,1\n1,3\n2,3\n3,3\n4,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "3,1\n4,1\n3,2\n4,2\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n2,1\n4,1\n1,3\n2,3\n3,3\n4,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n3,1\n4,1\n1,3\n3,3\n4,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 0;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n3,1\n4,1\n1,2\n3,2\n4,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "9\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);",
+      "sql": "SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "7\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n2,1\n2,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n2,1\n2,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n2,1\n2,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n2,1\n2,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n2,1\n2,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n2,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n1,3\n2,2\n2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "2,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "2,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,1\n2,2\n2,3\n3,1\n3,2\n3,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,1\n2,2\n3,1\n3,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,1\n2,2\n2,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,3\n2,1\n2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "2,1\n2,3\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "2,1\n2,3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n1,2\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,NULL);INSERT INTO r VALUES(1,0),(2,2);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\nNULL,1\nNULL,2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,1\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\nNULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\nNULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "NULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\nNULL,1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 1,
+        "stdout_quote": "1,NULL\n2,NULL\n",
+        "stderr": "Error near line 3: integer overflow\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (a.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(a.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON NULL NOT BETWEEN NULL AND abs(a.k);",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON (NULL NOT BETWEEN NULL AND abs(a.k)) COLLATE binary;",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);",
+      "sql": "SELECT a.id,b.id FROM l a FULL JOIN r b ON likely(NULL NOT BETWEEN NULL AND abs(a.k));",
+      "sqlite": {
+        "code": 0,
+        "stdout_quote": "1,NULL\n2,NULL\n3,NULL\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

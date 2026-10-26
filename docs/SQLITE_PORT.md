@@ -6007,3 +6007,84 @@ compatibility. The wider SQL, planner, format and concurrent-WAL gaps remain.
 Harness: `scripts/run-single-read-prefix-differential.py`. Reports, exact source
 patches, quoted C controls, session receipts and checks runner:
 `sqlite-single-read-prefix-*20261026.*` in `docs/validation`.
+
+## BETWEEN cursor bounds and outer predicate branches (2026-10-26)
+
+BETWEEN virtual range bounds now retain their shared parent when selecting a
+rowid cursor. WHERE bounds precede competing ON terms; usable automatic
+indexes precede range scans. Cursor initialization recognizes computed BETWEEN
+bounds even for an empty opposite source. The traversal estimate distinguishes
+one-sided and two-sided rowid ranges and counts local unindexed scan filters.
+Outer-join constant substitution preserves the markings on BETWEEN's bound
+list, matching `select.c:unsetJoinExpr`. Outer ON decisions now invoke the
+scalar branch evaluator for each atomic predicate, retaining NULL and
+short-circuit behavior for BETWEEN beneath logical operators.
+
+These rules follow the pinned C source (`whereexpr.c`, `where.c`, `select.c`,
+`expr.c`). They do not implement SQLite's complete cost planner. Three new
+component theorems record exact virtual operand preservation, marked-bound
+substitution, and the atom-callback refinement of `Decision.testWith`.
+`Tests.lean` retains 385 independent quoted C controls as one executable test:
+169 distinct saved failures, 54 range/reduction controls and 162 outer ON
+branch, NULL and wrapper controls. Both public file modes are tested separately.
+
+Development evidence is kept separate from final fresh evaluation:
+
+- Published prefix baseline, production `36ae3e81…`: **770 fixed public controls / 394 differences**.
+- Candidate `aa62d34b…`: **338 saved BETWEEN failures / 188 differences**.
+- Candidate `5d42a579…`: **338 / 64**: 36 empty-adapter errors, 16 ordering differences and 12 automatic-index selection errors.
+- Candidate `6e6e298e…`: **338 / 0**. The enlarged executable control test still failed on competing WHERE/ON bounds.
+- Final candidate: **338 saved failures / 0** and **770 fixed public controls / 0**. These are regression and component-control results, not fresh examples.
+
+An intermediate build failed while proving `Decision.testWith_scalar`.
+Two comparisons were mistakenly launched before confirming that build's exit
+status, so they ran the prior executable beside uncompiled source. Both
+`controls-fourth` and `replay-fourth` reports explicitly record
+`valid_production_evaluation: false`, the reason and the verified prior binary's
+source digest. Their outputs and failed build/test logs are preserved; neither
+run is counted as production evidence. The fifth build succeeded before the
+final controls and fresh evaluations began.
+
+Final source **`c28d1b547ab38d90225b4dc354b83e6e9f918a5fee4af950a9303e4a566f03fe`**
+and executable **`12130e04ec6406c7da3f1ce76c83af6fe3fb40dd5707e03fb8b58d461286c8b8`**
+were frozen across these fresh seeded runs (cases / differences):
+
+| Corpus | Seed | Cases | Differences |
+| --- | ---: | ---: | ---: |
+| Expanded BETWEEN branches and cursors | 354720 | 63,552 | 50 |
+| Fixed WHERE preparation | 354721 | 63,936 | 0 |
+| Reduced outer cursors | 354722 | 52,736 | 0 |
+| General joined scalar reads | 354723 | 25,152 | 4 |
+| Joined ordering | 354724 | 30,120 | 0 |
+| Joined writers | 354725 | 5,696 | 0 |
+| Single-source error prefixes | 354726 | 11,072 | 0 |
+
+The expanded BETWEEN corpus adds upper-bound errors under positive/negative
+BETWEEN, NULL arguments, COLLATE and probability wrappers. All read corpora
+compare exact stdout on success and error, status, immutable main/WAL files,
+and independent C integrity/typed observations. Writer checks compare typed
+persisted data, catalog/PRAGMA observations and follow-up C writes; their
+both-error branch still does not compare partial stdout. New seeds supply
+fresh data and randomized cases among reused fixed templates. The final
+receipt records source hashes before/after each run, harness hashes and actual
+exit codes; all 104 read-fixture checks pass.
+
+The 50 new BETWEEN differences expose additional source-traversal choices and
+row-local expression timing, including empty-source cases. Four scalar
+mismatches are rows incorrectly streamed before an error for LEFT JOIN USING
+with a two-source ORDER BY; C uses an automatic covering index and a complete
+sorter. Every negative remains in the full reports and in the standalone
+54-case final regression input. The checkpoint closes the previously saved
+338 failures but does not close these new examples or establish full SQLite
+compatibility.
+
+Checks pass **354 build jobs, 299 executable tests, 1,306 headline component
+proofs**, both audits, and **61 accepted reverse-file cells with two declared
+unsupported**. All nine native bindings remain unchanged; native SHA-256 is
+`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+The concurrent-WAL host-lock approval and broader SQL/file-format gaps remain.
+
+Harnesses: `scripts/run-between-differential.py` and
+`scripts/run-read-controls.py`. Exact source patches, all intermediate
+negatives, invalid-run annotations, C controls/plans, final reports and logs
+are retained as `sqlite-between-planner-*20261026.*` under `docs/validation`.

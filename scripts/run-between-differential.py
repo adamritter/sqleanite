@@ -32,6 +32,14 @@ def main():
   'b.id BETWEEN 1 AND 2 AND abs(a.k)',
   'b.id NOT BETWEEN 1 AND 2 AND abs(a.k)',
   'a.k BETWEEN b.k AND 3','b.k BETWEEN a.k AND 3']
+ # Include branch-sensitive upper bounds and NULL-tested values on actual
+ # candidate pairs, with scalar wrappers as separate syntax controls.
+ for branch in ['a.k BETWEEN 1 AND abs(-9223372036854775808)',
+  'a.k NOT BETWEEN 1 AND abs(-9223372036854775808)',
+  'b.k BETWEEN 1 AND abs(-9223372036854775808)',
+  'b.k NOT BETWEEN 1 AND abs(-9223372036854775808)',
+  'NULL BETWEEN NULL AND abs(a.k)', 'NULL NOT BETWEEN NULL AND abs(a.k)']:
+  conditions.extend([branch, f'({branch}) COLLATE binary', f'likely({branch})'])
  wheres=['', ' WHERE a.id=2',' WHERE b.k IS NULL',' WHERE b.k IS NOT NULL',
   ' WHERE a.k BETWEEN 1 AND 3',' WHERE b.id BETWEEN 1 AND 2',
   ' WHERE a.id NOT BETWEEN 1 AND 3',' WHERE 0']

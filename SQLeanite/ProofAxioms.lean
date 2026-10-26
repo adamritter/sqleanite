@@ -1536,3 +1536,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.observeReadSelect_refines
 
 #print axioms SQLeanite.CoreSQL.observeSingleSelect_direct
+
+#print axioms SQLeanite.CoreSQL.joinSearchRangeTerms_between
+#print axioms SQLeanite.CoreSQL.joinFixedReady_between_marked
+
+#print axioms SQLeanite.SQLite.StaticCondition.Decision.testWith_scalar

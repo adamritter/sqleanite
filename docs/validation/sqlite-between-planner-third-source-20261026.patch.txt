@@ -1,0 +1,553 @@
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 502ef41..02f494d 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -1729,6 +1729,20 @@ def joinContext (leftSource rightSource : TableRef) (leftTable rightTable : Stri
+     preferRightShared := rightSource.rightJoin && !rightSource.leftJoin
+     coalesceShared := rightSource.rightJoin && rightSource.leftJoin }
+ 
++/-- BETWEEN remains one predicate during fixed-column preparation. Its
++virtual range bounds are exposed only to cursor-constraint selection. -/
++def joinSearchRangeTerms (terms : List Expr) : List Expr :=
++  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
++    | .call "__sqlean_between" arguments false =>
++        match arguments.toList with
++        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
++        | _ => [term]
++    | _ => [term]
++
++theorem joinSearchRangeTerms_between (argument lower upper : Expr) :
++    joinSearchRangeTerms [.call "__sqlean_between" #[argument, lower, upper] false] =
++      [.binary .ge argument lower, .binary .le argument upper] := rfl
++
+ /-- Computed cursor keys cannot be erased by an empty-pair adapter. A bare
+ column is required on the inner side; unary plus disqualifies it as in SQLite. -/
+ def joinComputedCursorKey (context : JoinContext) (expression : Expr) : Bool :=
+@@ -1740,7 +1754,7 @@ def joinComputedCursorKey (context : JoinContext) (expression : Expr) : Bool :=
+     !expression.any (fun node => match node with
+       | .column qualifier name => !(joinColumn context qualifier name).toOption.any (fun ref => ref.side == .left)
+       | _ => false)
+-  (SQLite.Scalar.conditionTerms expression).any fun term => match SQLite.ExprCollation.strip term with
++  (joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).any fun term => match SQLite.ExprCollation.strip term with
+     | .binary operation left right =>
+         [.eq, .is, .lt, .le, .gt, .ge].contains operation &&
+           ((target left && value right) || (target right && value left))
+@@ -3202,16 +3216,6 @@ theorem joinSearchKeyOrder_perm (keys : List (Bool × JoinSearchKey)) :
+   exact ((List.reverse_perm (keys.filter Prod.fst)).append_left
+     (keys.filter (fun item => !item.1)) |>.trans partition).map Prod.snd
+ 
+-/-- BETWEEN remains one predicate during fixed-column preparation. Its
+-virtual range bounds are exposed only to cursor-constraint selection. -/
+-def joinSearchRangeTerms (terms : List Expr) : List Expr :=
+-  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
+-    | .call "__sqlean_between" arguments false =>
+-        match arguments.toList with
+-        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
+-        | _ => [term]
+-    | _ => [term]
+-
+ def joinSearchKeys (context : JoinContext) (prepared : JoinScalarPrepared)
+     (side : CoreJoin.Side) (terms : List Expr) : List JoinSearchKey :=
+   joinSearchKeyOrder ((joinSearchRangeTerms terms).filterMap fun term => do
+@@ -3394,6 +3398,43 @@ def joinSearchDerivedRightRoot (context : JoinContext) (prepared : JoinScalarPre
+   let column ← joinScalarOperand context (.column ⟨.right, context.rightSchema.primaryKey⟩)
+   return .point (key.retarget column)
+ 
++/-- Default rowid range estimates reduce LogEst by 20 for one bound and
++60 for both bounds (where.c:whereRangeScanEst). Only available opposite-source
++bounds participate; this estimate never inspects stored row values. -/
++def joinSearchRowidRangeReduction (context : JoinContext) (prepared : JoinScalarPrepared)
++    (side : CoreJoin.Side) (on : Option Expr) : Nat :=
++  let schema := if side == .left then context.leftSchema else context.rightSchema
++  let keys := joinSearchKeys context prepared side (on.map SQLite.Scalar.conditionTerms |>.getD [])
++  let rowid := fun key => (joinScalarReference context prepared key.column).any (fun ref => ref.column == schema.primaryKey)
++  let lower := keys.any (fun key => rowid key && [.gt, .ge].contains key.operation)
++  let upper := keys.any (fun key => rowid key && [.lt, .le].contains key.operation)
++  if lower && upper then 60 else if lower || upper then 20 else 0
++
++/-- In an unordered pair of unindexed scans, source-local residual predicates
++lower the source's default row estimate by one LogEst unit each. Keep existing
++point/range/automatic choices and probability-hinted plans outside this rule. -/
++def joinSearchScanFilterRoot (context : JoinContext) (prepared : JoinScalarPrepared)
++    (on : Option Expr) : Option JoinSearchAccess := do
++  let terms := (on.map SQLite.Scalar.conditionTerms |>.getD []) ++
++    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])
++  unless terms.all (fun term => !term.any (fun node => match node with
++    | .call name _ _ => SQLite.Probability.recognizesName (SQLite.Scalar.scalarFunctionName name)
++    | _ => false)) do none
++  for side in [CoreJoin.Side.left, .right] do
++    let keys := joinSearchKeys context prepared side terms
++    let schema := if side == .left then context.leftSchema else context.rightSchema
++    unless !keys.any (fun key =>
++      (joinScalarReference context prepared key.column).any (fun ref => ref.column == schema.primaryKey) ||
++        ([.eq, .is].contains key.operation && joinSearchIndexAffinity prepared key)) do none
++  let count := fun side => (terms.filter fun term =>
++    !prepared.context.constantExpression term && joinScalarOnlySide context prepared side term &&
++      (match SQLite.ExprCollation.strip term with
++        | .isNull argument true => !(joinScalarReference context prepared argument).any
++            (fun ref => !joinScalarOriginallyNullable context prepared ref)
++        | _ => true)).length
++  unless count .right > count .left do none
++  return .scan
++
+ /-- One source traversal plan serves both streaming and materialized results.
+ A right-driven rowid lookup also determines the order in which a bounded sorter
+ sees candidates; it must not be changed to a left-driven cross product. -/
+@@ -3411,6 +3452,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+   let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
+   let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
++  let leftRange := joinSearchRowidRangeReduction context prepared .left on
++  let rightRange := joinSearchRowidRangeReduction context prepared .right on
++  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange
++  let leadingLeft := terms.head?.any (fun term =>
++    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+   let leftRoot := (if mayExchange then joinSearchConstantRoot context prepared .left on else none).orElse
+     (fun _ => if !source.rightJoin then
+       joinSearchConstantRoot context prepared .left prepared.select.where_ else none)
+@@ -3419,10 +3465,13 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+         (fun _ => joinSearchConstantRoot context prepared .right prepared.select.where_)).orElse
+         (fun _ => if terms.isEmpty then
+           (joinSearchTransitiveRoot context prepared on).orElse
+-            (fun _ => joinSearchNullFilterRoot context prepared on) else none)
++            (fun _ => (joinSearchNullFilterRoot context prepared on).orElse
++              (fun _ => joinSearchScanFilterRoot context prepared on)) else none)
+     else none
+-  let leadingLeft := terms.head?.any (fun term =>
+-    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
++  let rightRoot := rightRoot.orElse (fun _ =>
++    if mayExchange && !probesLeft && !probesRight && leftRange > 0 &&
++        (rangeExchange || !leadingLeft || prepared.select.limit.isSome) then
++      joinSearchRangeRoot context prepared .right on else none)
+   let rightRoot := match rightRoot with
+     | some (.membership ..) => if leadingLeft && prepared.select.limit.isNone then none else rightRoot
+     | _ => rightRoot
+@@ -3436,7 +3485,7 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+     rightRoot.any JoinSearchAccess.singleton &&
+     joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left
+   let exchanged := mayExchange && (leftRoot.isNone || derivedRight.isSome || filteredRightPoint) &&
+-    (rightRoot.isSome || (probesLeft && !probesRight))
++    (rightRoot.isSome || (probesLeft && !probesRight) || rangeExchange)
+   let root := if exchanged then rightRoot else leftRoot
+   let singleton := root.any JoinSearchAccess.singleton
+   let outerSide := if exchanged then CoreJoin.Side.right else .left
+@@ -3495,10 +3544,10 @@ def joinFixedColumns (context : JoinContext) (prepared : JoinScalarPrepared)
+ /-- BLOB-affinity fixed columns are substituted only as immediate comparison
+ operands; the right operand is protected when the left carries TEXT affinity. -/
+ def joinFixedReady (context : JoinContext) (prepared : JoinScalarPrepared)
+-    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) : Nat → Bool → Expr → Bool
++    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) (markedBounds : Bool) : Nat → Bool → Expr → Bool
+   | 0, _, _ => false
+   | fuel + 1, blobAllowed, expression =>
+-      let ready := joinFixedReady context prepared outer fixed fuel false
++      let ready := joinFixedReady context prepared outer fixed markedBounds fuel false
+       match expression with
+       | .literal .. => true
+       | .column qualifier name =>
+@@ -3508,20 +3557,41 @@ def joinFixedReady (context : JoinContext) (prepared : JoinScalarPrepared)
+       | .unary _ argument | .collate argument _ | .isNull argument _ => ready argument
+       | .binary operation left right =>
+           if [.eq, .lt, .le, .gt, .ge, .is].contains operation then
+-            joinFixedReady context prepared outer fixed fuel true left &&
+-              joinFixedReady context prepared outer fixed fuel (prepared.context.affinity left != some .text) right
++            joinFixedReady context prepared outer fixed markedBounds fuel true left &&
++              joinFixedReady context prepared outer fixed markedBounds fuel (prepared.context.affinity left != some .text) right
+           else ready left && ready right
++      | .call "__sqlean_between" arguments false =>
++          match arguments.toList with
++          | [argument, lower, upper] =>
++              -- select.c:unsetJoinExpr clears pLeft and function arguments,
++              -- but retains original outer markings on a BETWEEN bound list.
++              let bound := joinFixedReady context prepared outer
++                (if markedBounds then [] else fixed) markedBounds fuel false
++              ready argument && bound lower && bound upper
++          | _ => false
+       | .call _ arguments false => arguments.all ready
+       | .inList argument values _ _ => ready argument && values.all ready
+       | .case_ base branches otherwise => base.all ready && otherwise.all ready &&
+           branches.all (fun (condition, value) => ready condition && ready value)
+       | _ => false
+ 
++/-- Original outer markings prevent constant substitution in the BETWEEN
++bound list, while its tested pLeft operand uses the ordinary fixed-column walk. -/
++theorem joinFixedReady_between_marked (context : JoinContext) (prepared : JoinScalarPrepared)
++    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) (fuel : Nat)
++    (argument lower upper : Expr) :
++    joinFixedReady context prepared outer fixed true (fuel + 1) false
++      (.call "__sqlean_between" #[argument, lower, upper] false) =
++      (joinFixedReady context prepared outer fixed true fuel false argument &&
++        joinFixedReady context prepared outer [] true fuel false lower &&
++        joinFixedReady context prepared outer [] true fuel false upper) := rfl
++
+ def joinFixedEarly (context : JoinContext) (prepared : JoinScalarPrepared)
+     (outer : CoreJoin.Side) (fixed : List JoinFixedColumn) (on : Option Expr) : List Expr :=
+   (on.map SQLite.Scalar.conditionTerms |>.getD []).zipIdx.filterMap fun (term, index) =>
+     if fixed.any (fun item => item.origin == index) then none
+-    else if joinFixedReady context prepared (some outer) fixed term.height false term then some term
++    else if joinFixedReady context prepared (some outer) fixed
++        (prepared.nullableLeft || prepared.nullableRight) term.height false term then some term
+     else none
+ 
+ /-- EP_FixedCol keeps the column's affinity and applies that affinity when
+@@ -3564,7 +3634,7 @@ def joinFixedConstantMatches (context : JoinContext) (prepared : JoinScalarPrepa
+     let ctx : CoreExpr.Context := { prepared.context with fixedColumns := fixed.map (fun item => item.index) }
+     let terms := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+       (fun term => !joinScalarTrivialNotNull context prepared term && ctx.constantExpression term &&
+-        joinFixedReady context prepared none fixed term.height false term)
++        joinFixedReady context prepared none fixed false term.height false term)
+     joinFixedMatches prepared [] fixed terms
+ 
+ theorem joinFixedConstantMatches_outer (context : JoinContext) (prepared : JoinScalarPrepared)
+@@ -3583,6 +3653,23 @@ theorem joinFixedLookup_unfixed (prepared : JoinScalarPrepared) (input : List Co
+     joinFixedLookup prepared input fixed qualifier name = prepared.context.lookup input qualifier name := by
+   simp [joinFixedLookup, absent]
+ 
++/-- A BETWEEN pair consumes one parent predicate in whereLoopOutputAdjust,
++whereas independently selected lower/upper terms consume two. Keep the pair
++when both bounds can drive the same rowid cursor. Virtual children are appended
++while original terms are analyzed right-to-left, including ON after WHERE. -/
++def joinSearchBetweenPair (context : JoinContext) (prepared : JoinScalarPrepared)
++    (side : CoreJoin.Side) (terms : List Expr) : Option (JoinSearchKey × JoinSearchKey) :=
++  terms.reverse.findSome? fun term => do
++    let .call "__sqlean_between" arguments false := SQLite.ExprCollation.strip term | none
++    let [argument, lower, upper] := arguments.toList | none
++    let ref ← joinScalarReference context prepared argument
++    let schema := if side == .left then context.leftSchema else context.rightSchema
++    unless ref.side == side && ref.column == schema.primaryKey &&
++        joinScalarOnlySide context prepared (joinSearchOpposite side) lower &&
++        joinScalarOnlySide context prepared (joinSearchOpposite side) upper do none
++    return ({ column := argument, value := lower, operation := .ge },
++      { column := argument, value := upper, operation := .le })
++
+ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
+     (source : TableRef) (traversal : JoinScalarTraversal) (on : Option Expr) : JoinSearchPlan := Id.run do
+   let side := if traversal.exchanged then CoreJoin.Side.left else .right
+@@ -3633,11 +3720,8 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
+     return (column, values.toList)
+   if let some (column, values) := membership then
+     return { access := .membership column values, early, fixed, innerWhere }
+-  let lower := joinSearchChoose prepared (keys.filter (fun key => rowid key && [.gt, .ge].contains key.operation))
+-  let upper := joinSearchChoose prepared (keys.filter (fun key => rowid key && [.lt, .le].contains key.operation))
+-  if lower.isSome || upper.isSome then
+-    let reverse := if traversal.exchanged then traversal.reverseLeft else traversal.reverseRight
+-    return { access := .range (if reverse then upper else lower) (if reverse then lower else upper), early, fixed, innerWhere }
++  -- With a non-singleton outer cursor, a usable automatic equality index
++  -- has the default 20-row estimate, below the default rowid range estimate.
+   if !source.rightJoin && !traversal.root.any JoinSearchAccess.singleton then
+     let candidates := keys.filter (fun key => !rowid key && [.eq, .is].contains key.operation && joinSearchIndexAffinity prepared key)
+     let mut chosen := []
+@@ -3646,6 +3730,16 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
+       unless chosen.any (fun old => joinScalarReference context prepared old.column == ref) do
+         chosen := chosen ++ [key]
+     unless chosen.isEmpty do return { access := .automatic chosen, early, fixed, innerWhere }
++  let whereTerms := if source.leftJoin || source.rightJoin then [] else
++    prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
++  let pair := joinSearchBetweenPair context prepared side (whereTerms ++ terms)
++  let lower := (pair.map Prod.fst).orElse (fun _ =>
++    joinSearchChoose prepared (keys.filter (fun key => rowid key && [.gt, .ge].contains key.operation)))
++  let upper := (pair.map Prod.snd).orElse (fun _ =>
++    joinSearchChoose prepared (keys.filter (fun key => rowid key && [.lt, .le].contains key.operation)))
++  if lower.isSome || upper.isSome then
++    let reverse := if traversal.exchanged then traversal.reverseLeft else traversal.reverseRight
++    return { access := .range (if reverse then upper else lower) (if reverse then lower else upper), early, fixed, innerWhere }
+   return { early, fixed, innerWhere }
+ 
+ def joinSearchPair (context : JoinContext) (exchanged : Bool) (outer : Core.Row)
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index f4c1e0d..1c4f925 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1536,3 +1536,6 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreSQL.observeReadSelect_refines
+ 
+ #print axioms SQLeanite.CoreSQL.observeSingleSelect_direct
++
++#print axioms SQLeanite.CoreSQL.joinSearchRangeTerms_between
++#print axioms SQLeanite.CoreSQL.joinFixedReady_between_marked
+diff --git a/Tests.lean b/Tests.lean
+index 0dd7e1b..3750705 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -7634,6 +7634,253 @@ private def expectSQLiteJoinedSearchTermOrder : IO Unit := do
+     unless report.execution.result.rows == expected && report.error.isSome == expectedError do
+       fail s!"joined original or commuted term search differs: {sql}"
+ 
++private def expectSQLiteBetweenCursorPlans : IO Unit := do
++  let cases : List (String × String × Bool × List (List Value)) := [
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k);",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)],[.integer (9)],[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)],[.integer (9)],[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 0;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a JOIN r b ON b.k=1 AND b.k NOT BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 2 OFFSET 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (2)],[.integer (2),.integer (2)],[.integer (3),.integer (2)],[.integer (4),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (3)],[.integer (3),.integer (3)],[.integer (4),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'A');INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1.0);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,-2);INSERT INTO l VALUES(4,-1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (2)],[.integer (2),.integer (2)],[.integer (3),.integer (2)],[.integer (4),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (3)],[.integer (3),.integer (3)],[.integer (4),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON a.k BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (3),.integer (1)],[.integer (4),.integer (1)],[.integer (3),.integer (2)],[.integer (4),.integer (2)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (1)],[.integer (2),.integer (1)],[.integer (4),.integer (1)],[.integer (1),.integer (3)],[.integer (2),.integer (3)],[.integer (3),.integer (3)],[.integer (4),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (3),.integer (1)],[.integer (4),.integer (1)],[.integer (3),.integer (2)],[.integer (4),.integer (2)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (1)],[.integer (2),.integer (1)],[.integer (4),.integer (1)],[.integer (1),.integer (3)],[.integer (2),.integer (3)],[.integer (3),.integer (3)],[.integer (4),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)],[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[[.integer (1)],[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)],[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)],[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[[.integer (1)],[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,2);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,-3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,1);","SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)],[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (1)],[.integer (3),.integer (1)],[.integer (4),.integer (1)],[.integer (1),.integer (3)],[.integer (3),.integer (3)],[.integer (4),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'01');INSERT INTO l VALUES(1,-4);INSERT INTO l VALUES(2,2);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[[.integer (1),.null],[.integer (2),.null]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[[.integer (1),.null],[.integer (2),.null]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a RIGHT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3;",true,[[.integer (1),.null],[.integer (2),.null]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a FULL JOIN r b ON b.id BETWEEN abs(a.k) AND 3 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 3 OFFSET 0;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-5);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id ASC,b.id LIMIT 3 OFFSET 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) NOT BETWEEN b.k AND 3 WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id DESC,b.id LIMIT 1;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id,b.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id BETWEEN a.id AND a.id+1 AND abs(a.k) WHERE b.id BETWEEN 1 AND 2 ORDER BY a.id DESC,b.id LIMIT 1;",false,[[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN a.k AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (1),.integer (1)],[.integer (3),.integer (1)],[.integer (4),.integer (1)],[.integer (1),.integer (2)],[.integer (3),.integer (2)],[.integer (4),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT CASE WHEN a.k BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN 1 AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT CASE WHEN a.k NOT BETWEEN 1 AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT CASE WHEN a.k BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (9)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT 1 FROM l a WHERE a.k NOT BETWEEN '1' AND abs(-9223372036854775808);",true,[[.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,3);INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,-5);INSERT INTO l VALUES(2,4);INSERT INTO l VALUES(3,-9223372036854775808);INSERT INTO l VALUES(4,-4);","SELECT CASE WHEN a.k NOT BETWEEN '1' AND abs(-9223372036854775808) THEN 7 ELSE 9 END FROM l a;",true,[[.integer (7)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id BETWEEN 1 AND 2;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (1)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id>=1 AND b.id<=2;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (1)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) AND b.id<=3 WHERE b.id BETWEEN 1 AND 2;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (1)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN abs(a.k) AND 3 WHERE b.id>=1 AND b.id<=2;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (1)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN 1 AND 2 WHERE b.id BETWEEN abs(a.k) AND 3;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (1)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id BETWEEN a.id AND 3 WHERE b.id BETWEEN a.k AND 2;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (2),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=a.k;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.k WHERE b.id>=a.id;",false,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=abs(a.k) WHERE b.id>=a.id;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id>=a.id WHERE b.id>=abs(a.k);",true,[[.integer (1),.integer (1)],[.integer (1),.integer (2)],[.integer (1),.integer (3)],[.integer (2),.integer (2)],[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=abs(a.k) WHERE b.id<=a.id;",true,[[.integer (2),.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a CROSS JOIN r b ON b.id<=a.id WHERE b.id<=abs(a.k);",true,[[.integer (2),.integer (1)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (2),.integer (1)],[.integer (2),.integer (2)],[.integer (2),.integer (3)],[.integer (3),.integer (1)],[.integer (3),.integer (2)],[.integer (3),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",true,[]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808),(2,1),(3,2);INSERT INTO r VALUES(1,1),(2,1),(3,2);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (2),.integer (1)],[.integer (2),.integer (2)],[.integer (3),.integer (1)],[.integer (3),.integer (2)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (2),.integer (1)],[.integer (2),.integer (2)],[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON abs(a.k) AND b.id NOT BETWEEN 1 AND 2 WHERE b.k IS NOT NULL;",true,[[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.id NOT BETWEEN 1 AND 2 AND abs(a.k) WHERE b.k IS NOT NULL;",true,[[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND b.k BETWEEN abs(a.k) AND 3 WHERE b.k IS NOT NULL;",true,[[.integer (1),.integer (1)],[.integer (1),.integer (3)],[.integer (2),.integer (1)],[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND abs(a.k) BETWEEN b.k AND 3 WHERE b.k IS NOT NULL;",true,[[.integer (2),.integer (1)],[.integer (2),.integer (3)]]),
++    ("CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,0),(2,1),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2),(3,1);","SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k=1 AND a.k BETWEEN 1 AND 3 WHERE b.k IS NOT NULL;",false,[[.integer (2),.integer (1)],[.integer (2),.integer (3)]])]
++  for (setup, sql, expectedError, values) in cases do
++    let (state, _) ← match CoreSQL.execute Core.State.empty setup with
++      | .ok result => pure result
++      | .error message => fail message
++    let statements ← match CoreTokenGrammar.parseStatements sql with
++      | .ok result => pure result
++      | .error message => fail message
++    let [.select query] := statements.toList | fail "BETWEEN cursor fixture was not a SELECT"
++    let ordinary := CoreSQL.executeSelect state query
++    let (rows, failed) := match CoreSQL.observeReadSelect? state query with
++      | some report => (report.execution.result.rows, report.error.isSome)
++      | none => match ordinary with
++        | .ok execution => (execution.result.rows, false)
++        | .error _ => ([], true)
++    let expected ← match values.mapM (List.mapM SQLSurface.value) with
++      | .ok rows => pure rows
++      | .error message => fail message
++    unless rows == expected && failed == expectedError do
++      fail s!"BETWEEN cursor prefix or status differs: {sql}"
++    unless ordinary.isOk == !failed do
++      fail "BETWEEN cursor observation changed the ordinary execution result"
++
+ private def expectSQLiteBetweenConstants : IO Unit := do
+   let cases : List (String × Bool × List (List Value)) := [
+     ("SELECT NULL BETWEEN NULL AND NULL;",false,[[.null]]),
+@@ -11328,6 +11575,7 @@ private def unitTests : Array (String × IO Unit) := #[
+   ("SQLite joined original and commuted search constraints", expectSQLiteJoinedSearchTermOrder),
+   ("SQLite joined declared nullability and singleton IN", expectSQLiteJoinedDeclaredNullability),
+   ("SQLite joined fixed WHERE and null-filter cursor ordering", expectSQLiteJoinedFixedWhere),
++  ("SQLite BETWEEN cursor plans and original outer markings", expectSQLiteBetweenCursorPlans),
+   ("SQLite BETWEEN, CASE and conditional constants", expectSQLiteBetweenConstants),
+   ("SQLite joined nullable data and dependent point searches", expectSQLiteJoinedNullableData),
+   ("SQLite joined null-filter preparation and source selection", expectSQLiteJoinedNullFilterOrder),
+diff --git a/scripts/live-path-check.sh b/scripts/live-path-check.sh
+index 1665dd5..58b274c 100755
+--- a/scripts/live-path-check.sh
++++ b/scripts/live-path-check.sh
+@@ -2417,4 +2417,16 @@ else
+   status=1
+ fi
+ 
++if rg -F -q '(joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).any' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'joinSearchBetweenPair context prepared side (whereTerms ++ terms)' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'let leftRange := joinSearchRowidRangeReduction context prepared .left on' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'joinSearchScanFilterRoot context prepared on' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreSQL.joinSearchRangeTerms_between' SQLeanite/ProofAxioms.lean &&
++   rg -F -q 'CoreSQL.joinFixedReady_between_marked' SQLeanite/ProofAxioms.lean; then
++  printf 'ok - BETWEEN bounds drive cursor initialization and preserve outer markings\n'
++else
++  printf 'live-path check FAILED: BETWEEN cursor planning\n' >&2
++  status=1
++fi
++
+ exit $status

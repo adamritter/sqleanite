@@ -2382,7 +2382,7 @@ else
   status=1
 fi
 
-if rg -F -q 'decision.test (fun atom => do' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'decision.testWith (fun atom wanted =>' SQLeanite/CoreSQL.lean &&
    rg -F -q '!joinScalarTrivialNotNull context prepared term' SQLeanite/CoreSQL.lean &&
    rg -F -q 'StaticCondition.Decision.test_and_stops' SQLeanite/ProofAxioms.lean; then
   echo "ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution"
@@ -2414,6 +2414,19 @@ if rg -F -q 'ctx.scanWindowObserved select.where_ expressions' SQLeanite/CoreSQL
   printf 'ok - single-source scalar reads retain prefixes with unchanged success/error execution\n'
 else
   printf 'live-path check FAILED: single-source read observation\n' >&2
+  status=1
+fi
+
+if rg -F -q '(joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).any' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchBetweenPair context prepared side (whereTerms ++ terms)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let leftRange := joinSearchRowidRangeReduction context prepared .left on' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchScanFilterRoot context prepared on' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinSearchRangeTerms_between' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.joinFixedReady_between_marked' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'StaticCondition.Decision.testWith_scalar' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - BETWEEN bounds drive cursor initialization and preserve outer markings\n'
+else
+  printf 'live-path check FAILED: BETWEEN cursor planning\n' >&2
   status=1
 fi
 

@@ -158,6 +158,36 @@ def Decision.test (atom : Expr → Except String Truth) : Bool → Decision → 
   | false, .or left right => do
       if ← left.test atom false then right.test atom false else return false
 
+/-- Atomic predicates can provide their own true/false branch emission.
+BETWEEN uses this to share its tested value and skip an unnecessary bound. -/
+def Decision.testWith (atom : Expr → Bool → Except String Bool) : Bool → Decision → Except String Bool
+  | wanted, .known value => .ok (value == wanted)
+  | wanted, .pending expression => atom expression wanted
+  | wanted, .not argument => argument.testWith atom (!wanted)
+  | true, .and left right => do
+      if ← left.testWith atom true then right.testWith atom true else return false
+  | false, .and left right => do
+      if ← left.testWith atom false then return true else right.testWith atom false
+  | true, .or left right => do
+      if ← left.testWith atom true then return true else right.testWith atom true
+  | false, .or left right => do
+      if ← left.testWith atom false then right.testWith atom false else return false
+
+/-- Supplying scalar atoms recovers the previous decision test exactly. -/
+theorem Decision.testWith_scalar (decision : Decision) (atom : Expr → Except String Truth)
+    (wanted : Bool) :
+    decision.testWith (fun expression requested => do
+      return (← atom expression) == (if requested then .true else .false)) wanted =
+      decision.test atom wanted := by
+  induction decision generalizing wanted with
+  | known value => rfl
+  | pending expression => rfl
+  | not argument ih => exact ih (!wanted)
+  | and left right leftIH rightIH =>
+      cases wanted <;> simp only [Decision.testWith, Decision.test, leftIH, rightIH]
+  | or left right leftIH rightIH =>
+      cases wanted <;> simp only [Decision.testWith, Decision.test, leftIH, rightIH]
+
 theorem Decision.test_and_stops (atom : Expr → Except String Truth) (left right : Decision)
     (stopped : left.test atom true = .ok false) :
     (Decision.and left right).test atom true = .ok false := by

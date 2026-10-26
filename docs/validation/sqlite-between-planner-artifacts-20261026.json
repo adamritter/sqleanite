@@ -1,0 +1,274 @@
+{
+  "artifacts": [
+    {
+      "file": "sqlite-between-planner-between-fresh-20261026.json",
+      "bytes": 28289857,
+      "sha256": "06a108fb81270790f15216091e9b8b4fbc331899dfd65ab32b5e7d77d4142189"
+    },
+    {
+      "file": "sqlite-between-planner-between-fresh-20261026.log.txt",
+      "bytes": 49,
+      "sha256": "9b35b1500c903e9d0afdd683a0fbfba83a21a428846a39981fa59b13aec2373c"
+    },
+    {
+      "file": "sqlite-between-planner-build1-20261026.log.txt",
+      "bytes": 671795,
+      "sha256": "1acb55a96297dbcf0716f9dfae8986a33e62839de2e9089661de329de66acdeb"
+    },
+    {
+      "file": "sqlite-between-planner-build2-20261026.log.txt",
+      "bytes": 671795,
+      "sha256": "7ddce299d447987964a23321d72e826e54bc53c5bb1d9fbdfcae6ed76e2dd6b8"
+    },
+    {
+      "file": "sqlite-between-planner-build3-20261026.log.txt",
+      "bytes": 672064,
+      "sha256": "da586c7942ba27fd14ebb491b914e5595d723c93dccd677cf50a2436ea4b4c93"
+    },
+    {
+      "file": "sqlite-between-planner-build4-20261026.log.txt",
+      "bytes": 192646,
+      "sha256": "34470e23616473f1b678ef3b2bfd684564361e98399cbefccb27d81730136902"
+    },
+    {
+      "file": "sqlite-between-planner-build5-20261026.log.txt",
+      "bytes": 672696,
+      "sha256": "eb0b188c7bffd1209546e5a16449267080262bb4289f478d3afb3d0472a7bae4"
+    },
+    {
+      "file": "sqlite-between-planner-controls-baseline-20261026.json",
+      "bytes": 688729,
+      "sha256": "1b7cbd7ec718f9ab7bb0c5ddc2c1a91be9d7e6808910373e81b1dc5122b19d81"
+    },
+    {
+      "file": "sqlite-between-planner-controls-baseline-20261026.log.txt",
+      "bytes": 32,
+      "sha256": "5eecde6b3a818dacd914a65d56691f2fcc6fd196d344e3677384d1bb9de99e0e"
+    },
+    {
+      "file": "sqlite-between-planner-controls-fifth-20261026.json",
+      "bytes": 687193,
+      "sha256": "69831ff838ffab8c97c7a3700e5749deabb7457a758d6e6584253c3615dc35c5"
+    },
+    {
+      "file": "sqlite-between-planner-controls-fifth-20261026.log.txt",
+      "bytes": 30,
+      "sha256": "21237585796e95e6189161b478a88803deba5aa79e5012ee92494573cc6eac13"
+    },
+    {
+      "file": "sqlite-between-planner-controls-fourth-20261026.json",
+      "bytes": 687859,
+      "sha256": "5889c22bf931c3e49e7e7d2fedb5770960413e99c6541f8970f1af72ac15bc3d"
+    },
+    {
+      "file": "sqlite-between-planner-controls-fourth-20261026.log.txt",
+      "bytes": 32,
+      "sha256": "abce9e5dcf37cc996c6d2d7657ee472372b11d2c732480893c624f05a908b09c"
+    },
+    {
+      "file": "sqlite-between-planner-final-checks-20261026.json",
+      "bytes": 1697,
+      "sha256": "b893965c7b29bb011cec03ab578c9bb45cb937132cbbe7775c584c7a9a7b372d"
+    },
+    {
+      "file": "sqlite-between-planner-final-lean-verification-audit-20261026.log.txt",
+      "bytes": 98,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+    },
+    {
+      "file": "sqlite-between-planner-final-live-path-check-20261026.log.txt",
+      "bytes": 14294,
+      "sha256": "1cf35f3dad8f0cd71352b92b3e74eaf1ceb1fa4532ffda317f7b734f3a6b0bc4"
+    },
+    {
+      "file": "sqlite-between-planner-final-regression-input-20261026.json",
+      "bytes": 59051,
+      "sha256": "607484b294c4073122cb8e91fd46665910d75c599a8139a33eb904ff080fcd38"
+    },
+    {
+      "file": "sqlite-between-planner-final-reverse-differential-20261026.log.txt",
+      "bytes": 3424,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+    },
+    {
+      "file": "sqlite-between-planner-final-source-20261026.patch.txt",
+      "bytes": 171314,
+      "sha256": "47e774570650b5364a3d776982841533373411c9cbe2850aaada1eb02daa674a"
+    },
+    {
+      "file": "sqlite-between-planner-fixed-where-fresh-20261026.json",
+      "bytes": 28309283,
+      "sha256": "27ed623267f4e0e6bf3d0f23619893d5251015c3882990eebe91cea5da0daa9c"
+    },
+    {
+      "file": "sqlite-between-planner-fixed-where-fresh-20261026.log.txt",
+      "bytes": 48,
+      "sha256": "c1d434469600725313928242d61875e168e006f43466062f406b6dcbfda18af2"
+    },
+    {
+      "file": "sqlite-between-planner-fresh-receipts-20261026.json",
+      "bytes": 6956,
+      "sha256": "8b28103f283715ecbf429c0432a887a39898008374a09791ef3046d97a07dfed"
+    },
+    {
+      "file": "sqlite-between-planner-initial-source-20261026.patch.txt",
+      "bytes": 6938,
+      "sha256": "489a349017c45c06e3dc506b665b73a8037c19b045cee80cabebc386c8143142"
+    },
+    {
+      "file": "sqlite-between-planner-order-fresh-20261026.json",
+      "bytes": 17334566,
+      "sha256": "4b4e5dd569d8b23181d5325a270c82ea88bf9f5baf1e461783f8b320ed795860"
+    },
+    {
+      "file": "sqlite-between-planner-order-fresh-20261026.log.txt",
+      "bytes": 48,
+      "sha256": "397b5b7d197df20d9d65b3b13b0cf4cf08bf49bb0463f4bc2c683df9a7b3da9c"
+    },
+    {
+      "file": "sqlite-between-planner-prefix-fresh-20261026.json",
+      "bytes": 4800139,
+      "sha256": "5bf905d6afa1384b63672f11f4f9122a77e253fa4b51352f08b765be2b991ded"
+    },
+    {
+      "file": "sqlite-between-planner-prefix-fresh-20261026.log.txt",
+      "bytes": 48,
+      "sha256": "434c522030707ef8ae541ced4624c01af5c33ddd94e1e64a4d89b2addc1acc27"
+    },
+    {
+      "file": "sqlite-between-planner-reduced-fresh-20261026.json",
+      "bytes": 22383601,
+      "sha256": "8f31c83894e2988390e4349b5918c10e910d447ad5c4ed055dd915a95dc7decd"
+    },
+    {
+      "file": "sqlite-between-planner-reduced-fresh-20261026.log.txt",
+      "bytes": 48,
+      "sha256": "9e88f6db81113416312e6e8838b65a38f60c7ccc4daf84701d5deed9fe130a29"
+    },
+    {
+      "file": "sqlite-between-planner-remaining-plans-20261026.json",
+      "bytes": 123804,
+      "sha256": "bafc18e6b288d6a54430fb641fbd164e3b15cbdf76c3a12d38b0319408200f46"
+    },
+    {
+      "file": "sqlite-between-planner-replay-fifth-20261026.json",
+      "bytes": 328747,
+      "sha256": "e698cf5d1db21bc169a40746e26bb5dac1ca431f6d442fedb6b988469a9b0a33"
+    },
+    {
+      "file": "sqlite-between-planner-replay-fifth-20261026.log.txt",
+      "bytes": 30,
+      "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+    },
+    {
+      "file": "sqlite-between-planner-replay-fourth-20261026.json",
+      "bytes": 329101,
+      "sha256": "75c2e97b5a7586f13690bfa408636431921abbb3fbd00c9014ef4d6b8e864db8"
+    },
+    {
+      "file": "sqlite-between-planner-replay-fourth-20261026.log.txt",
+      "bytes": 30,
+      "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+    },
+    {
+      "file": "sqlite-between-planner-replay-initial-20261026.json",
+      "bytes": 329773,
+      "sha256": "2d1d8d325227e9bb8c315bdb6bf85c42fb01ed8bce27b9245bbd0a15b0ca4e7f"
+    },
+    {
+      "file": "sqlite-between-planner-replay-initial-20261026.log.txt",
+      "bytes": 32,
+      "sha256": "f421dd4a79b27894bf1aa0fb4ff699e9b04c0d5d9389f9873b6bcaf30be20204"
+    },
+    {
+      "file": "sqlite-between-planner-replay-second-20261026.json",
+      "bytes": 328468,
+      "sha256": "8641955b4befaaaf238bf13b44b22e3054631daecf80b13c9cf9ec5abeb64458"
+    },
+    {
+      "file": "sqlite-between-planner-replay-second-20261026.log.txt",
+      "bytes": 31,
+      "sha256": "68b2cb8f2f4672ef92d841641883d091a09640f480d8205b38a5fe32bde33df9"
+    },
+    {
+      "file": "sqlite-between-planner-replay-third-20261026.json",
+      "bytes": 328747,
+      "sha256": "901c9fb656f8351d0712367de5a65ab908c6b7deb9a9114c3599006448e16e61"
+    },
+    {
+      "file": "sqlite-between-planner-replay-third-20261026.log.txt",
+      "bytes": 30,
+      "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+    },
+    {
+      "file": "sqlite-between-planner-scalar-fresh-20261026.json",
+      "bytes": 11881215,
+      "sha256": "f859625e3b2843c1545ca4da67d039da9d5a01acadfb7bc7a7fc441b6976656f"
+    },
+    {
+      "file": "sqlite-between-planner-scalar-fresh-20261026.log.txt",
+      "bytes": 48,
+      "sha256": "720c9c2f082035a0028e06805cab480b91148b6f1641661277b0d9526c50116d"
+    },
+    {
+      "file": "sqlite-between-planner-scalar-plans-20261026.json",
+      "bytes": 9958,
+      "sha256": "23b7b6e4c0c749551f2c3218e84ccdea5de4c26ae1a802b2a1791c8b3998aadf"
+    },
+    {
+      "file": "sqlite-between-planner-second-source-20261026.patch.txt",
+      "bytes": 12545,
+      "sha256": "57efc8c582f67e1f6a78030710d2f550d1eb8a6c4f7b07252408e3429be4f2b1"
+    },
+    {
+      "file": "sqlite-between-planner-tests-fifth-20261026.log.txt",
+      "bytes": 684128,
+      "sha256": "6ed4bd03fe78b9a0167b5c0974093a29fa49610d56b44e88cf05ccf3ef435db3"
+    },
+    {
+      "file": "sqlite-between-planner-tests-fourth-20261026.log.txt",
+      "bytes": 192646,
+      "sha256": "30507de92ec0f49e27bf117f49e6ec04df1e1951d8db40d3154ded85b153a48e"
+    },
+    {
+      "file": "sqlite-between-planner-tests-initial-20261026.log.txt",
+      "bytes": 683656,
+      "sha256": "7f377548defbc24d597b8e58e956ef7992ff3c555d424e7a006b1c95a77f2743"
+    },
+    {
+      "file": "sqlite-between-planner-tests-second-20261026.log.txt",
+      "bytes": 683656,
+      "sha256": "29a848bcd34a8a044719c2e9bdf1fd2e4614b36ffa1a6be43c52b4f30d7b9ec5"
+    },
+    {
+      "file": "sqlite-between-planner-tests-third-20261026.log.txt",
+      "bytes": 677346,
+      "sha256": "6b0b532ffad5c9836f3eea78d5485117aca1ed87b98a830241ecc6ea36078363"
+    },
+    {
+      "file": "sqlite-between-planner-third-source-20261026.patch.txt",
+      "bytes": 110220,
+      "sha256": "955f101fbd8dbf69f781b66c15f10da2d389390d3a3435ce6bed9758b776614f"
+    },
+    {
+      "file": "sqlite-between-planner-unit-oracle-20261026.json",
+      "bytes": 186267,
+      "sha256": "990f23cdbfda6476e31b2a91984c44a17b5ccf3101b355df0c3ca39d46475467"
+    },
+    {
+      "file": "sqlite-between-planner-unit-oracle-initial-20261026.json",
+      "bytes": 116307,
+      "sha256": "6a57c2fd6e7156f38c1d1286478be776d8805914366618f9e30c45d319ee72db"
+    },
+    {
+      "file": "sqlite-between-planner-writer-fresh-20261026.json",
+      "bytes": 30171397,
+      "sha256": "66f4094d1f5dd66a4282aed5a70ea91502cead2a9434930ae236d23379a78f09"
+    },
+    {
+      "file": "sqlite-between-planner-writer-fresh-20261026.log.txt",
+      "bytes": 31,
+      "sha256": "c7c7fc7890cc2e74fc3b979e9e6c4bfee4bc0ec85d0cbffe16dbf53c190d2adf"
+    }
+  ]
+}

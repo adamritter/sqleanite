@@ -1,0 +1,1620 @@
+{
+  "evaluation": "Saved final fresh failures for future regression replay; not a passing result",
+  "fixtures": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,-1);INSERT INTO l VALUES(4,3);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|null|\n3|integer|2D31\n4|integer|33\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|null|\n3|integer|2D31\n4|integer|33\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,NULL);INSERT INTO l VALUES(3,-1);INSERT INTO l VALUES(4,3);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|null|\n3|integer|2D31\n4|integer|33\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|null|\n3|integer|2D31\n4|integer|33\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'1.0');INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'1.0');INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,5);INSERT INTO l VALUES(4,-4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|35\n4|integer|2D34\n1|integer|31\n2|text|41\n3|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|35\n4|integer|2D34\n1|integer|31\n2|text|41\n3|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO r VALUES(1,'1.0');INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'1.0');INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,5);INSERT INTO l VALUES(4,-4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|35\n4|integer|2D34\n1|integer|31\n2|text|41\n3|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|integer|35\n4|integer|2D34\n1|integer|31\n2|text|41\n3|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,'1.0');INSERT INTO r VALUES(3,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33\n2|integer|31\n3|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33\n2|integer|31\n3|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,'1.0');INSERT INTO r VALUES(3,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33\n2|integer|31\n3|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|33\n2|integer|31\n3|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'1.0');INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,-5);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|null|\n4|integer|2D35\n1|integer|33\n2|text|41\n3|text|312E30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|null|\n4|integer|2D35\n1|integer|33\n2|text|41\n3|text|312E30\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,'1.0');INSERT INTO l VALUES(1,-9223372036854775808);INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,NULL);INSERT INTO l VALUES(4,-5);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|null|\n4|integer|2D35\n1|integer|33\n2|text|41\n3|text|312E30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|2D39323233333732303336383534373735383038\n2|integer|31\n3|null|\n4|integer|2D35\n1|integer|33\n2|text|41\n3|text|312E30\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,5);INSERT INTO l VALUES(2,-4);INSERT INTO l VALUES(3,0);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|2D34\n3|integer|30\n4|integer|2D39323233333732303336383534373735383038\n1|real|312E30\n2|real|312E30\n3|text|41\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|2D34\n3|integer|30\n4|integer|2D39323233333732303336383534373735383038\n1|real|312E30\n2|real|312E30\n3|text|41\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL NOT NULL);INSERT INTO r VALUES(1,1.0);INSERT INTO r VALUES(2,'01');INSERT INTO r VALUES(3,'A');INSERT INTO l VALUES(1,5);INSERT INTO l VALUES(2,-4);INSERT INTO l VALUES(3,0);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|2D34\n3|integer|30\n4|integer|2D39323233333732303336383534373735383038\n1|real|312E30\n2|real|312E30\n3|text|41\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|2D34\n3|integer|30\n4|integer|2D39323233333732303336383534373735383038\n1|real|312E30\n2|real|312E30\n3|text|41\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|30\n2|integer|33\n3|integer|32\n4|integer|2D39323233333732303336383534373735383038\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|30\n2|integer|33\n3|integer|32\n4|integer|2D39323233333732303336383534373735383038\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,0);INSERT INTO l VALUES(2,3);INSERT INTO l VALUES(3,2);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|30\n2|integer|33\n3|integer|32\n4|integer|2D39323233333732303336383534373735383038\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|30\n2|integer|33\n3|integer|32\n4|integer|2D39323233333732303336383534373735383038\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1);INSERT INTO l VALUES(1,5);INSERT INTO l VALUES(2,5);INSERT INTO l VALUES(3,-5);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|35\n3|integer|2D35\n4|integer|2D39323233333732303336383534373735383038\n1|text|33\n2|text|312E30\n3|text|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|35\n3|integer|2D35\n4|integer|2D39323233333732303336383534373735383038\n1|text|33\n2|text|312E30\n3|text|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT NOT NULL);INSERT INTO r VALUES(1,3);INSERT INTO r VALUES(2,1.0);INSERT INTO r VALUES(3,1);INSERT INTO l VALUES(1,5);INSERT INTO l VALUES(2,5);INSERT INTO l VALUES(3,-5);INSERT INTO l VALUES(4,-9223372036854775808);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|35\n3|integer|2D35\n4|integer|2D39323233333732303336383534373735383038\n1|text|33\n2|text|312E30\n3|text|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|35\n2|integer|35\n3|integer|2D35\n4|integer|2D39323233333732303336383534373735383038\n1|text|33\n2|text|312E30\n3|text|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 7,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER NOT NULL);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "between"
+    },
+    {
+      "fixture": 1000,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL);INSERT INTO l VALUES(2,0);INSERT INTO l VALUES(3,0.0);INSERT INTO l VALUES(4,1);INSERT INTO l VALUES(5,1.0);INSERT INTO l VALUES(6,'1');INSERT INTO l VALUES(7,'01');INSERT INTO l VALUES(8,X'31');INSERT INTO l VALUES(9,2);INSERT INTO l VALUES(10,2.5);INSERT INTO l VALUES(11,'a');INSERT INTO l VALUES(12,'A');INSERT INTO l VALUES(13,'a ');INSERT INTO l VALUES(14,'A  ');INSERT INTO r VALUES(1,NULL);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,0.0);INSERT INTO r VALUES(4,1);INSERT INTO r VALUES(5,1.0);INSERT INTO r VALUES(6,'1');INSERT INTO r VALUES(7,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1000,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,NULL);INSERT INTO l VALUES(2,0);INSERT INTO l VALUES(3,0.0);INSERT INTO l VALUES(4,1);INSERT INTO l VALUES(5,1.0);INSERT INTO l VALUES(6,'1');INSERT INTO l VALUES(7,'01');INSERT INTO l VALUES(8,X'31');INSERT INTO l VALUES(9,2);INSERT INTO l VALUES(10,2.5);INSERT INTO l VALUES(11,'a');INSERT INTO l VALUES(12,'A');INSERT INTO l VALUES(13,'a ');INSERT INTO l VALUES(14,'A  ');INSERT INTO r VALUES(1,NULL);INSERT INTO r VALUES(2,0);INSERT INTO r VALUES(3,0.0);INSERT INTO r VALUES(4,1);INSERT INTO r VALUES(5,1.0);INSERT INTO r VALUES(6,'1');INSERT INTO r VALUES(7,'01');",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|null|\n2|text|30\n3|text|302E30\n4|text|31\n5|text|312E30\n6|text|31\n7|text|3031\n8|blob|31\n9|text|32\n10|text|322E35\n11|text|61\n12|text|41\n13|text|6120\n14|text|412020\n1|null|\n2|integer|30\n3|integer|30\n4|integer|31\n5|integer|31\n6|integer|31\n7|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1001,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO r VALUES(1,'A  ',1);INSERT INTO r VALUES(2,1e999,2);INSERT INTO r VALUES(3,2.5,3);INSERT INTO r VALUES(4,'01',4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|text|496E66\n3|text|322E35\n4|text|3031\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|text|496E66\n3|text|322E35\n4|text|3031\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1001,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO r VALUES(1,'A  ',1);INSERT INTO r VALUES(2,1e999,2);INSERT INTO r VALUES(3,2.5,3);INSERT INTO r VALUES(4,'01',4);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|text|496E66\n3|text|322E35\n4|text|3031\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|text|496E66\n3|text|322E35\n4|text|3031\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1002,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB,\"true\");INSERT INTO l VALUES(1,1,2);INSERT INTO l VALUES(2,NULL,1);INSERT INTO l VALUES(3,0.0,0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|null|\n3|integer|30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|null|\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1002,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB,\"true\");INSERT INTO l VALUES(1,1,2);INSERT INTO l VALUES(2,NULL,1);INSERT INTO l VALUES(3,0.0,0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|null|\n3|integer|30\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|31\n2|null|\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1003,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1003,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1004,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k REAL,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k ,\"false\");INSERT INTO l VALUES(1,1.0,1);INSERT INTO l VALUES(2,0.0,0);INSERT INTO r VALUES(1,'1x',1);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|real|312E30\n2|real|302E30\n1|text|3178\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|real|312E30\n2|real|302E30\n1|text|3178\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1004,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k REAL,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k ,\"false\");INSERT INTO l VALUES(1,1.0,1);INSERT INTO l VALUES(2,0.0,0);INSERT INTO r VALUES(1,'1x',1);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|real|312E30\n2|real|302E30\n1|text|3178\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|real|312E30\n2|real|302E30\n1|text|3178\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k ,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL,\"true\");INSERT INTO l VALUES(1,'A  ',10);INSERT INTO l VALUES(2,-9223372036854775808,9);INSERT INTO l VALUES(3,9223372036854775807,8);INSERT INTO l VALUES(4,'a ',7);INSERT INTO l VALUES(5,'A',6);INSERT INTO l VALUES(6,'01',5);INSERT INTO l VALUES(7,'  -2tail',4);INSERT INTO l VALUES(8,1e999,3);INSERT INTO l VALUES(9,1e999,2);INSERT INTO l VALUES(10,1.0,1);INSERT INTO l VALUES(11,'01',0);INSERT INTO r VALUES(1,X'31',1);INSERT INTO r VALUES(2,'1x',2);INSERT INTO r VALUES(3,CAST(X'3100FF' AS TEXT),3);INSERT INTO r VALUES(4,X'31FF',4);INSERT INTO r VALUES(5,-1e999,5);INSERT INTO r VALUES(6,'A  ',6);INSERT INTO r VALUES(7,'A  ',7);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|integer|2D39323233333732303336383534373735383038\n3|integer|39323233333732303336383534373735383037\n4|text|6120\n5|text|41\n6|text|3031\n7|text|20202D327461696C\n8|real|496E66\n9|real|496E66\n10|real|312E30\n11|text|3031\n1|blob|31\n2|text|3178\n3|real|312E30\n4|blob|31FF\n5|real|2D496E66\n6|text|412020\n7|text|412020\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|integer|2D39323233333732303336383534373735383038\n3|integer|39323233333732303336383534373735383037\n4|text|6120\n5|text|41\n6|text|3031\n7|text|20202D327461696C\n8|real|496E66\n9|real|496E66\n10|real|312E30\n11|text|3031\n1|blob|31\n2|text|3178\n3|real|312E30\n4|blob|31FF\n5|real|2D496E66\n6|text|412020\n7|text|412020\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=65536;CREATE TABLE l(id INTEGER PRIMARY KEY,k ,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k REAL,\"true\");INSERT INTO l VALUES(1,'A  ',10);INSERT INTO l VALUES(2,-9223372036854775808,9);INSERT INTO l VALUES(3,9223372036854775807,8);INSERT INTO l VALUES(4,'a ',7);INSERT INTO l VALUES(5,'A',6);INSERT INTO l VALUES(6,'01',5);INSERT INTO l VALUES(7,'  -2tail',4);INSERT INTO l VALUES(8,1e999,3);INSERT INTO l VALUES(9,1e999,2);INSERT INTO l VALUES(10,1.0,1);INSERT INTO l VALUES(11,'01',0);INSERT INTO r VALUES(1,X'31',1);INSERT INTO r VALUES(2,'1x',2);INSERT INTO r VALUES(3,CAST(X'3100FF' AS TEXT),3);INSERT INTO r VALUES(4,X'31FF',4);INSERT INTO r VALUES(5,-1e999,5);INSERT INTO r VALUES(6,'A  ',6);INSERT INTO r VALUES(7,'A  ',7);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|integer|2D39323233333732303336383534373735383038\n3|integer|39323233333732303336383534373735383037\n4|text|6120\n5|text|41\n6|text|3031\n7|text|20202D327461696C\n8|real|496E66\n9|real|496E66\n10|real|312E30\n11|text|3031\n1|blob|31\n2|text|3178\n3|real|312E30\n4|blob|31FF\n5|real|2D496E66\n6|text|412020\n7|text|412020\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|412020\n2|integer|2D39323233333732303336383534373735383038\n3|integer|39323233333732303336383534373735383037\n4|text|6120\n5|text|41\n6|text|3031\n7|text|20202D327461696C\n8|real|496E66\n9|real|496E66\n10|real|312E30\n11|text|3031\n1|blob|31\n2|text|3178\n3|real|312E30\n4|blob|31FF\n5|real|2D496E66\n6|text|412020\n7|text|412020\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1006,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,CAST(X'3100FF' AS TEXT));INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,'a ');INSERT INTO l VALUES(4,NULL);INSERT INTO r VALUES(1,X'302E35FF');INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,X'00');INSERT INTO r VALUES(4,1.0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|3100FF\n2|text|31\n3|text|6120\n4|null|\n1|blob|302E35FF\n2|text|41\n3|blob|00\n4|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|3100FF\n2|text|31\n3|text|6120\n4|null|\n1|blob|302E35FF\n2|text|41\n3|blob|00\n4|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1006,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,CAST(X'3100FF' AS TEXT));INSERT INTO l VALUES(2,1);INSERT INTO l VALUES(3,'a ');INSERT INTO l VALUES(4,NULL);INSERT INTO r VALUES(1,X'302E35FF');INSERT INTO r VALUES(2,'A');INSERT INTO r VALUES(3,X'00');INSERT INTO r VALUES(4,1.0);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|text|3100FF\n2|text|31\n3|text|6120\n4|null|\n1|blob|302E35FF\n2|text|41\n3|blob|00\n4|integer|31\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|text|3100FF\n2|text|31\n3|text|6120\n4|null|\n1|blob|302E35FF\n2|text|41\n3|blob|00\n4|integer|31\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1007,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,2,3);INSERT INTO l VALUES(2,'01',2);INSERT INTO l VALUES(3,'01',1);INSERT INTO l VALUES(4,CAST(X'3100FF' AS TEXT),0);INSERT INTO r VALUES(1,'  -2tail',1);INSERT INTO r VALUES(2,'01',2);INSERT INTO r VALUES(3,X'31FF',3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,NULL,5);INSERT INTO r VALUES(6,1e-310,6);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|integer|31\n3|integer|31\n4|integer|31\n1|text|20202D327461696C\n2|text|3031\n3|blob|31FF\n4|blob|302E35FF\n5|null|\n6|text|392E39393939393939393939393939363935652D333131\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|integer|31\n3|integer|31\n4|integer|31\n1|text|20202D327461696C\n2|text|3031\n3|blob|31FF\n4|blob|302E35FF\n5|null|\n6|text|392E39393939393939393939393939363935652D333131\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1007,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER,\"true\");CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT,\"false\");INSERT INTO l VALUES(1,2,3);INSERT INTO l VALUES(2,'01',2);INSERT INTO l VALUES(3,'01',1);INSERT INTO l VALUES(4,CAST(X'3100FF' AS TEXT),0);INSERT INTO r VALUES(1,'  -2tail',1);INSERT INTO r VALUES(2,'01',2);INSERT INTO r VALUES(3,X'31FF',3);INSERT INTO r VALUES(4,X'302E35FF',4);INSERT INTO r VALUES(5,NULL,5);INSERT INTO r VALUES(6,1e-310,6);",
+      "lean_unchanged": true,
+      "sqlite_unchanged": true,
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|integer|31\n3|integer|31\n4|integer|31\n1|text|20202D327461696C\n2|text|3031\n3|blob|31FF\n4|blob|302E35FF\n5|null|\n6|text|392E39393939393939393939393939363935652D333131\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\n1|integer|32\n2|integer|31\n3|integer|31\n4|integer|31\n1|text|20202D327461696C\n2|text|3031\n3|blob|31FF\n4|blob|302E35FF\n5|null|\n6|text|392E39393939393939393939393939363935652D333131\n",
+        "stderr": ""
+      },
+      "matched": true,
+      "suite": "scalar"
+    }
+  ],
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 1,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON b.k NOT BETWEEN 1 AND abs(-9223372036854775808) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON (b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) COLLATE binary WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 2,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON likely(b.k NOT BETWEEN 1 AND abs(-9223372036854775808)) WHERE b.id BETWEEN 1 AND 2;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 3,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 4,
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE a.id NOT BETWEEN 1 AND 3 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE a.id NOT BETWEEN 1 AND 3 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE a.id NOT BETWEEN 1 AND 3 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 5,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a RIGHT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE a.id NOT BETWEEN 1 AND 3 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 6,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT a.id,b.id FROM l a LEFT JOIN r b ON a.id BETWEEN b.id AND b.id+1 AND abs(a.k) WHERE b.k IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|1\n2|1\n2|2\n3|2\n3|3\n",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "between"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k) AS chosen,a.id,b.id FROM l a LEFT JOIN r b USING(k) WHERE 1 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "0.0|1|6\n0.0|1|7\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-file",
+      "sql": "SELECT abs(a.k) AS chosen,a.id,b.id FROM l a LEFT JOIN r b USING(k) WHERE coalesce(a.k,b.k) IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "0.0|1|6\n0.0|1|7\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k) AS chosen,a.id,b.id FROM l a LEFT JOIN r b USING(k) WHERE 1 ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "0.0|1|6\n0.0|1|7\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "scalar"
+    },
+    {
+      "fixture": 1005,
+      "page_size": 65536,
+      "mode": "--verified-wal-file",
+      "sql": "SELECT abs(a.k) AS chosen,a.id,b.id FROM l a LEFT JOIN r b USING(k) WHERE coalesce(a.k,b.k) IS NOT NULL ORDER BY a.id,b.id;",
+      "lean": {
+        "code": 1,
+        "stdout": "0.0|1|6\n0.0|1|7\n",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": false,
+      "suite": "scalar"
+    }
+  ],
+  "failures": 54
+}

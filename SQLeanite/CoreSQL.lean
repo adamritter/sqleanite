@@ -1729,6 +1729,20 @@ def joinContext (leftSource rightSource : TableRef) (leftTable rightTable : Stri
     preferRightShared := rightSource.rightJoin && !rightSource.leftJoin
     coalesceShared := rightSource.rightJoin && rightSource.leftJoin }
 
+/-- BETWEEN remains one predicate during fixed-column preparation. Its
+virtual range bounds are exposed only to cursor-constraint selection. -/
+def joinSearchRangeTerms (terms : List Expr) : List Expr :=
+  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
+    | .call "__sqlean_between" arguments false =>
+        match arguments.toList with
+        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
+        | _ => [term]
+    | _ => [term]
+
+theorem joinSearchRangeTerms_between (argument lower upper : Expr) :
+    joinSearchRangeTerms [.call "__sqlean_between" #[argument, lower, upper] false] =
+      [.binary .ge argument lower, .binary .le argument upper] := rfl
+
 /-- Computed cursor keys cannot be erased by an empty-pair adapter. A bare
 column is required on the inner side; unary plus disqualifies it as in SQLite. -/
 def joinComputedCursorKey (context : JoinContext) (expression : Expr) : Bool :=
@@ -1740,7 +1754,7 @@ def joinComputedCursorKey (context : JoinContext) (expression : Expr) : Bool :=
     !expression.any (fun node => match node with
       | .column qualifier name => !(joinColumn context qualifier name).toOption.any (fun ref => ref.side == .left)
       | _ => false)
-  (SQLite.Scalar.conditionTerms expression).any fun term => match SQLite.ExprCollation.strip term with
+  (joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).any fun term => match SQLite.ExprCollation.strip term with
     | .binary operation left right =>
         [.eq, .is, .lt, .le, .gt, .ge].contains operation &&
           ((target left && value right) || (target right && value left))
@@ -2911,8 +2925,9 @@ def joinScalarMatches (context : JoinContext) (prepared : JoinScalarPrepared) (o
   let input := CoreJoin.projectRow (joinScalarInputs context) row
   if !outer then return ← prepared.context.matches input (some expression)
   let decision := SQLite.StaticCondition.conditionDecision (SQLite.Scalar.conditionTerms expression)
-  decision.test (fun atom => do
-    return SQLite.Numeric.truth (← prepared.context.eval input atom)) true
+  decision.testWith (fun atom wanted =>
+    SQLite.Scalar.testEvaluatedFuel (prepared.context.eval input)
+      prepared.context.affinity false atom.height wanted atom) true
 
 /-- Match bookkeeping is completed before WHERE filtering. Dynamic ON values
 are evaluated once for each visited pair and can return an expression error. -/
@@ -3202,16 +3217,6 @@ theorem joinSearchKeyOrder_perm (keys : List (Bool × JoinSearchKey)) :
   exact ((List.reverse_perm (keys.filter Prod.fst)).append_left
     (keys.filter (fun item => !item.1)) |>.trans partition).map Prod.snd
 
-/-- BETWEEN remains one predicate during fixed-column preparation. Its
-virtual range bounds are exposed only to cursor-constraint selection. -/
-def joinSearchRangeTerms (terms : List Expr) : List Expr :=
-  terms.flatMap fun term => match SQLite.ExprCollation.strip term with
-    | .call "__sqlean_between" arguments false =>
-        match arguments.toList with
-        | [argument, lower, upper] => [.binary .ge argument lower, .binary .le argument upper]
-        | _ => [term]
-    | _ => [term]
-
 def joinSearchKeys (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) (terms : List Expr) : List JoinSearchKey :=
   joinSearchKeyOrder ((joinSearchRangeTerms terms).filterMap fun term => do
@@ -3394,6 +3399,43 @@ def joinSearchDerivedRightRoot (context : JoinContext) (prepared : JoinScalarPre
   let column ← joinScalarOperand context (.column ⟨.right, context.rightSchema.primaryKey⟩)
   return .point (key.retarget column)
 
+/-- Default rowid range estimates reduce LogEst by 20 for one bound and
+60 for both bounds (where.c:whereRangeScanEst). Only available opposite-source
+bounds participate; this estimate never inspects stored row values. -/
+def joinSearchRowidRangeReduction (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (on : Option Expr) : Nat :=
+  let schema := if side == .left then context.leftSchema else context.rightSchema
+  let keys := joinSearchKeys context prepared side (on.map SQLite.Scalar.conditionTerms |>.getD [])
+  let rowid := fun key => (joinScalarReference context prepared key.column).any (fun ref => ref.column == schema.primaryKey)
+  let lower := keys.any (fun key => rowid key && [.gt, .ge].contains key.operation)
+  let upper := keys.any (fun key => rowid key && [.lt, .le].contains key.operation)
+  if lower && upper then 60 else if lower || upper then 20 else 0
+
+/-- In an unordered pair of unindexed scans, source-local residual predicates
+lower the source's default row estimate by one LogEst unit each. Keep existing
+point/range/automatic choices and probability-hinted plans outside this rule. -/
+def joinSearchScanFilterRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+    (on : Option Expr) : Option JoinSearchAccess := do
+  let terms := (on.map SQLite.Scalar.conditionTerms |>.getD []) ++
+    (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD [])
+  unless terms.all (fun term => !term.any (fun node => match node with
+    | .call name _ _ => SQLite.Probability.recognizesName (SQLite.Scalar.scalarFunctionName name)
+    | _ => false)) do none
+  for side in [CoreJoin.Side.left, .right] do
+    let keys := joinSearchKeys context prepared side terms
+    let schema := if side == .left then context.leftSchema else context.rightSchema
+    unless !keys.any (fun key =>
+      (joinScalarReference context prepared key.column).any (fun ref => ref.column == schema.primaryKey) ||
+        ([.eq, .is].contains key.operation && joinSearchIndexAffinity prepared key)) do none
+  let count := fun side => (terms.filter fun term =>
+    !prepared.context.constantExpression term && joinScalarOnlySide context prepared side term &&
+      (match SQLite.ExprCollation.strip term with
+        | .isNull argument true => !(joinScalarReference context prepared argument).any
+            (fun ref => !joinScalarOriginallyNullable context prepared ref)
+        | _ => true)).length
+  unless count .right > count .left do none
+  return .scan
+
 /-- One source traversal plan serves both streaming and materialized results.
 A right-driven rowid lookup also determines the order in which a bounded sorter
 sees candidates; it must not be changed to a left-driven cross product. -/
@@ -3411,6 +3453,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
   let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
   let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
+  let leftRange := joinSearchRowidRangeReduction context prepared .left on
+  let rightRange := joinSearchRowidRangeReduction context prepared .right on
+  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange
+  let leadingLeft := terms.head?.any (fun term =>
+    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
   let leftRoot := (if mayExchange then joinSearchConstantRoot context prepared .left on else none).orElse
     (fun _ => if !source.rightJoin then
       joinSearchConstantRoot context prepared .left prepared.select.where_ else none)
@@ -3419,10 +3466,13 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
         (fun _ => joinSearchConstantRoot context prepared .right prepared.select.where_)).orElse
         (fun _ => if terms.isEmpty then
           (joinSearchTransitiveRoot context prepared on).orElse
-            (fun _ => joinSearchNullFilterRoot context prepared on) else none)
+            (fun _ => (joinSearchNullFilterRoot context prepared on).orElse
+              (fun _ => joinSearchScanFilterRoot context prepared on)) else none)
     else none
-  let leadingLeft := terms.head?.any (fun term =>
-    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+  let rightRoot := rightRoot.orElse (fun _ =>
+    if mayExchange && !probesLeft && !probesRight && leftRange > 0 &&
+        (rangeExchange || !leadingLeft || prepared.select.limit.isSome) then
+      joinSearchRangeRoot context prepared .right on else none)
   let rightRoot := match rightRoot with
     | some (.membership ..) => if leadingLeft && prepared.select.limit.isNone then none else rightRoot
     | _ => rightRoot
@@ -3436,7 +3486,7 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
     rightRoot.any JoinSearchAccess.singleton &&
     joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left
   let exchanged := mayExchange && (leftRoot.isNone || derivedRight.isSome || filteredRightPoint) &&
-    (rightRoot.isSome || (probesLeft && !probesRight))
+    (rightRoot.isSome || (probesLeft && !probesRight) || rangeExchange)
   let root := if exchanged then rightRoot else leftRoot
   let singleton := root.any JoinSearchAccess.singleton
   let outerSide := if exchanged then CoreJoin.Side.right else .left
@@ -3495,10 +3545,10 @@ def joinFixedColumns (context : JoinContext) (prepared : JoinScalarPrepared)
 /-- BLOB-affinity fixed columns are substituted only as immediate comparison
 operands; the right operand is protected when the left carries TEXT affinity. -/
 def joinFixedReady (context : JoinContext) (prepared : JoinScalarPrepared)
-    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) : Nat → Bool → Expr → Bool
+    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) (markedBounds : Bool) : Nat → Bool → Expr → Bool
   | 0, _, _ => false
   | fuel + 1, blobAllowed, expression =>
-      let ready := joinFixedReady context prepared outer fixed fuel false
+      let ready := joinFixedReady context prepared outer fixed markedBounds fuel false
       match expression with
       | .literal .. => true
       | .column qualifier name =>
@@ -3508,20 +3558,41 @@ def joinFixedReady (context : JoinContext) (prepared : JoinScalarPrepared)
       | .unary _ argument | .collate argument _ | .isNull argument _ => ready argument
       | .binary operation left right =>
           if [.eq, .lt, .le, .gt, .ge, .is].contains operation then
-            joinFixedReady context prepared outer fixed fuel true left &&
-              joinFixedReady context prepared outer fixed fuel (prepared.context.affinity left != some .text) right
+            joinFixedReady context prepared outer fixed markedBounds fuel true left &&
+              joinFixedReady context prepared outer fixed markedBounds fuel (prepared.context.affinity left != some .text) right
           else ready left && ready right
+      | .call "__sqlean_between" arguments false =>
+          match arguments.toList with
+          | [argument, lower, upper] =>
+              -- select.c:unsetJoinExpr clears pLeft and function arguments,
+              -- but retains original outer markings on a BETWEEN bound list.
+              let bound := joinFixedReady context prepared outer
+                (if markedBounds then [] else fixed) markedBounds fuel false
+              ready argument && bound lower && bound upper
+          | _ => false
       | .call _ arguments false => arguments.all ready
       | .inList argument values _ _ => ready argument && values.all ready
       | .case_ base branches otherwise => base.all ready && otherwise.all ready &&
           branches.all (fun (condition, value) => ready condition && ready value)
       | _ => false
 
+/-- Original outer markings prevent constant substitution in the BETWEEN
+bound list, while its tested pLeft operand uses the ordinary fixed-column walk. -/
+theorem joinFixedReady_between_marked (context : JoinContext) (prepared : JoinScalarPrepared)
+    (outer : Option CoreJoin.Side) (fixed : List JoinFixedColumn) (fuel : Nat)
+    (argument lower upper : Expr) :
+    joinFixedReady context prepared outer fixed true (fuel + 1) false
+      (.call "__sqlean_between" #[argument, lower, upper] false) =
+      (joinFixedReady context prepared outer fixed true fuel false argument &&
+        joinFixedReady context prepared outer [] true fuel false lower &&
+        joinFixedReady context prepared outer [] true fuel false upper) := rfl
+
 def joinFixedEarly (context : JoinContext) (prepared : JoinScalarPrepared)
     (outer : CoreJoin.Side) (fixed : List JoinFixedColumn) (on : Option Expr) : List Expr :=
   (on.map SQLite.Scalar.conditionTerms |>.getD []).zipIdx.filterMap fun (term, index) =>
     if fixed.any (fun item => item.origin == index) then none
-    else if joinFixedReady context prepared (some outer) fixed term.height false term then some term
+    else if joinFixedReady context prepared (some outer) fixed
+        (prepared.nullableLeft || prepared.nullableRight) term.height false term then some term
     else none
 
 /-- EP_FixedCol keeps the column's affinity and applies that affinity when
@@ -3564,7 +3635,7 @@ def joinFixedConstantMatches (context : JoinContext) (prepared : JoinScalarPrepa
     let ctx : CoreExpr.Context := { prepared.context with fixedColumns := fixed.map (fun item => item.index) }
     let terms := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
       (fun term => !joinScalarTrivialNotNull context prepared term && ctx.constantExpression term &&
-        joinFixedReady context prepared none fixed term.height false term)
+        joinFixedReady context prepared none fixed false term.height false term)
     joinFixedMatches prepared [] fixed terms
 
 theorem joinFixedConstantMatches_outer (context : JoinContext) (prepared : JoinScalarPrepared)
@@ -3583,6 +3654,23 @@ theorem joinFixedLookup_unfixed (prepared : JoinScalarPrepared) (input : List Co
     joinFixedLookup prepared input fixed qualifier name = prepared.context.lookup input qualifier name := by
   simp [joinFixedLookup, absent]
 
+/-- A BETWEEN pair consumes one parent predicate in whereLoopOutputAdjust,
+whereas independently selected lower/upper terms consume two. Keep the pair
+when both bounds can drive the same rowid cursor. Virtual children are appended
+while original terms are analyzed right-to-left, including ON after WHERE. -/
+def joinSearchBetweenPair (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (terms : List Expr) : Option (JoinSearchKey × JoinSearchKey) :=
+  terms.reverse.findSome? fun term => do
+    let .call "__sqlean_between" arguments false := SQLite.ExprCollation.strip term | none
+    let [argument, lower, upper] := arguments.toList | none
+    let ref ← joinScalarReference context prepared argument
+    let schema := if side == .left then context.leftSchema else context.rightSchema
+    unless ref.side == side && ref.column == schema.primaryKey &&
+        joinScalarOnlySide context prepared (joinSearchOpposite side) lower &&
+        joinScalarOnlySide context prepared (joinSearchOpposite side) upper do none
+    return ({ column := argument, value := lower, operation := .ge },
+      { column := argument, value := upper, operation := .le })
+
 def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
     (source : TableRef) (traversal : JoinScalarTraversal) (on : Option Expr) : JoinSearchPlan := Id.run do
   let side := if traversal.exchanged then CoreJoin.Side.left else .right
@@ -3594,7 +3682,7 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
       let key ← joinSearchKey? context prepared side term
       unless [.lt, .le, .gt, .ge].contains key.operation do none
       return key
-  let keys := joinSearchKeys context prepared side terms ++ whereRanges
+  let keys := whereRanges ++ joinSearchKeys context prepared side terms
   let rootFixed := joinSearchRootFixed context prepared traversal.root on
   let inherited := if source.leftJoin || source.rightJoin || rootFixed ||
       !joinSearchRowidEquality context prepared on then none else do
@@ -3633,11 +3721,8 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
     return (column, values.toList)
   if let some (column, values) := membership then
     return { access := .membership column values, early, fixed, innerWhere }
-  let lower := joinSearchChoose prepared (keys.filter (fun key => rowid key && [.gt, .ge].contains key.operation))
-  let upper := joinSearchChoose prepared (keys.filter (fun key => rowid key && [.lt, .le].contains key.operation))
-  if lower.isSome || upper.isSome then
-    let reverse := if traversal.exchanged then traversal.reverseLeft else traversal.reverseRight
-    return { access := .range (if reverse then upper else lower) (if reverse then lower else upper), early, fixed, innerWhere }
+  -- With a non-singleton outer cursor, a usable automatic equality index
+  -- has the default 20-row estimate, below the default rowid range estimate.
   if !source.rightJoin && !traversal.root.any JoinSearchAccess.singleton then
     let candidates := keys.filter (fun key => !rowid key && [.eq, .is].contains key.operation && joinSearchIndexAffinity prepared key)
     let mut chosen := []
@@ -3646,6 +3731,16 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
       unless chosen.any (fun old => joinScalarReference context prepared old.column == ref) do
         chosen := chosen ++ [key]
     unless chosen.isEmpty do return { access := .automatic chosen, early, fixed, innerWhere }
+  let whereTerms := if source.leftJoin || source.rightJoin then [] else
+    prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []
+  let pair := joinSearchBetweenPair context prepared side (whereTerms ++ terms)
+  let lower := (pair.map Prod.fst).orElse (fun _ =>
+    joinSearchChoose prepared (keys.filter (fun key => rowid key && [.gt, .ge].contains key.operation)))
+  let upper := (pair.map Prod.snd).orElse (fun _ =>
+    joinSearchChoose prepared (keys.filter (fun key => rowid key && [.lt, .le].contains key.operation)))
+  if lower.isSome || upper.isSome then
+    let reverse := if traversal.exchanged then traversal.reverseLeft else traversal.reverseRight
+    return { access := .range (if reverse then upper else lower) (if reverse then lower else upper), early, fixed, innerWhere }
   return { early, fixed, innerWhere }
 
 def joinSearchPair (context : JoinContext) (exchanged : Bool) (outer : Core.Row)
