@@ -40,6 +40,11 @@ private def printCoreResults (results : List Core.Result) : IO Unit := do
     let bytes := renderCoreResult result
     unless bytes.isEmpty do stream.write bytes
 
+/-- Byte diagnostics retain malformed UTF-8 instead of passing through String decoding. -/
+private def printCoreError (message : String) : IO Unit := do
+  let stream ← IO.getStderr
+  stream.write ("Error: ".toUTF8 ++ ⟨SQLite.Diagnostic.bytes message⟩ ++ "\n".toUTF8)
+
 private def prepareScript (sql : String) : Array String :=
   (SQLite.Script.split sql).toArray
 
@@ -103,7 +108,7 @@ private def coreBatch (databasePath : String) (args : List String) : IO UInt32 :
       executePreparedStatements connection prepared
     match outcome with
     | .error message =>
-        IO.eprintln s!"Error: {message}"
+        printCoreError message
         pure 1
     | .ok () => pure 0
 
@@ -129,7 +134,7 @@ private def coreWALBatch (databasePath : String) (args : List String) : IO UInt3
     else run
   match outcome with
   | .error message =>
-      IO.eprintln s!"Error: {message}"
+      printCoreError message
       pure 1
   | .ok _ => pure 0
 
@@ -180,7 +185,7 @@ private def coreBatchTimed (databasePath : String) (args : List String) :
       IO.eprintln s!"time\t{(ended - started) / 1000}"
       match outcome with
       | .error message =>
-          IO.eprintln s!"Error: {message}"
+          printCoreError message
           status := 1
       | .ok results =>
           printCoreResults results

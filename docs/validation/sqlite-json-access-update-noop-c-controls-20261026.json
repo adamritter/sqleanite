@@ -1,0 +1,242 @@
+[
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET v=v;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET v=NULL WHERE id=1;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET w=w;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET id=id;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "9cb3be3bbfb6e52727fb8ebf54013f5f1c65000893bef7ea9bbf6632210632e8"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET v=v RETURNING id;",
+    "unchanged": true,
+    "stdout": "1\n2\n",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);",
+    "sql": "UPDATE t SET v=v WHERE 0;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645",
+    "after_sha256": "3ff9b31b24233e11f51e16ade90fa4d907f9274b72aad93ffe27630b84b98645"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "a75f02d8592662c07f09a419426391c5436104abaa2476be94c1144e76014e9e"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=NULL WHERE id=1;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "a75f02d8592662c07f09a419426391c5436104abaa2476be94c1144e76014e9e"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET w=w;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET id=id;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "a75f02d8592662c07f09a419426391c5436104abaa2476be94c1144e76014e9e"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v RETURNING id;",
+    "unchanged": false,
+    "stdout": "1\n2\n",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "a75f02d8592662c07f09a419426391c5436104abaa2476be94c1144e76014e9e"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v WHERE 0;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c",
+    "after_sha256": "66f8940942ed1735e5bb9307e34c6da66930a4adac1681396d124288ae8a7e6c"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "c168888806494206beb16fa870aea9e1a0405df47c6e7f898e4fd630ff9fe0ef"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=NULL WHERE id=1;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "c168888806494206beb16fa870aea9e1a0405df47c6e7f898e4fd630ff9fe0ef"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET w=w;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET id=id;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "c168888806494206beb16fa870aea9e1a0405df47c6e7f898e4fd630ff9fe0ef"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v RETURNING id;",
+    "unchanged": false,
+    "stdout": "1\n2\n",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "c168888806494206beb16fa870aea9e1a0405df47c6e7f898e4fd630ff9fe0ef"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE UNIQUE INDEX ix ON t(v);",
+    "sql": "UPDATE t SET v=v WHERE 0;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5",
+    "after_sha256": "b27afce0b1e054d4a9c7a35f61bc9b07ba97a1521584ec45d5031f65faf39ed5"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET v=v;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET v=NULL WHERE id=1;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET w=w;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "61468770595999e72a568373a7856c969331f71679ab2316fa22ef1d00b7c751"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET id=id;",
+    "unchanged": false,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "61468770595999e72a568373a7856c969331f71679ab2316fa22ef1d00b7c751"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET v=v RETURNING id;",
+    "unchanged": true,
+    "stdout": "1\n2\n",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481"
+  },
+  {
+    "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,w);INSERT INTO t VALUES(1,NULL,1),(2,2,2);CREATE INDEX ix ON t(w);",
+    "sql": "UPDATE t SET v=v WHERE 0;",
+    "unchanged": true,
+    "stdout": "",
+    "stderr": "",
+    "code": 0,
+    "before_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481",
+    "after_sha256": "f8ff7a77fd4db35d28993e539bcff50a564213ebbd35da2034bd61d4964d6481"
+  }
+]

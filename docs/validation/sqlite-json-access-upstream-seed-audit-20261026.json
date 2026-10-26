@@ -1,0 +1,18 @@
+{
+  "original_final_seeds": [
+    3548200,
+    3552295
+  ],
+  "development_seeds": [
+    3548060,
+    3549083
+  ],
+  "development_overlap_seeds": 884,
+  "replacement_seeds": [
+    3555000,
+    3559095
+  ],
+  "original_report": "sqlite-json-access-final-upstream-fresh-20261026.json",
+  "replacement_report": "docs/validation/sqlite-json-access-final-upstream-new-seeds-20261026.json",
+  "rule": "Retain original report as overlapping development/regression evidence; exclude all its cases from final fresh totals and use the disjoint replacement only. Production and harness unchanged."
+}

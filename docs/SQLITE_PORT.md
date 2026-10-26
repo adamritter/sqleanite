@@ -6305,3 +6305,113 @@ runner logs use the sqlite-json-valid prefix under docs/validation. Large JSON
 reports are losslessly gzip-compressed; the compression manifest records both
 original and stored sizes/hashes. Receipt report hashes refer to decompressed
 payloads. The four run-json-valid-* scripts reproduce the respective corpora.
+
+## JSON type, array length and path lookup (2026-10-26)
+
+The public Core scalar evaluator now implements json_type(X[,PATH]) and
+json_array_length(X[,PATH]) in Lean. JSON/JSON5 text is converted to an internal
+node representation for navigation; external JSONB retains SQLite's superficial
+admission and operation-local validation. The implementation supports quoted and
+unquoted property labels, escaped label comparison, duplicate labels, array
+indices, reverse indices, NUL termination, missing-path NULL, and depth errors.
+Malformed binary children follow the selected operation's behavior rather than
+being rejected by a stronger global check. The internal text representation is
+not an exported JSONB encoder and no JSON construction/subtype support is claimed.
+
+Paths can contain malformed UTF-8. Byte diagnostics now travel losslessly through
+the existing Except String boundary in a reserved NUL-led hex envelope when
+necessary; Main writes the original bytes to stderr. Ordinary UTF-8 errors stay
+plain strings. This is a generic message transport, with no SQL/result rewriting
+or oracle access. Internal callers needing raw diagnostics use Diagnostic.bytes.
+Quoted missing-column diagnostics preserve the quoted-token spelling, and name
+validation follows the existing parser folding rules.
+
+Identical UPDATE payloads now skip publication when assignments affect neither
+rowid nor an indexed column and logical database contents are unchanged.
+Indexed-column and rowid assignments retain structural writes. SQL result rows
+and reported change counts are unaffected. This is shared by both file engines.
+
+The maintained component regressions include **5,343 pinned C JSON/path controls**,
+**39 additional binary-escape regressions**,
+**65,536 two-byte diagnostic roundtrips**, and **24 C identical-UPDATE controls**.
+Five JSON access lemmas, three diagnostic branch lemmas, one publication lemma,
+one preparation-order lemma and one shared-escape lemma are component proofs. They do not establish the
+complete SQLite parser, encoding or persistence specification.
+
+Development evidence is retained:
+
+- An initial interpreter component comparison appeared to differ in 2,595 of 5,343 cases because its C command-line error prefix was not normalized. Correcting only that normalization on the saved raw responses left zero differences; both reports and the initial harness remain. This was not production execution.
+- The first successfully built production candidate passed 306 tests, but **2,236 read cases had 28 differences** (24 malformed-UTF-8 diagnostics and four missing-column diagnostics), and **424 writer cases had 16 differences** from unnecessary publication of identical payloads. Its separate 3,712-case json_valid regression passed.
+- The second production candidate repaired all those differences and passed 768 no-op and 8,192 upstream-generator cases. A maintained quoted-name test then exposed validation before constant folding: SELECT 0 AND "missing" must remain zero. Its failed test log and source snapshot are retained.
+- Correcting the preparation order passes the expanded 2,256 read replay, 424 writer replay, 768 no-op controls, and the complete project tests. These replays are development/regression evidence, not fresh holdout results.
+- Failed builds remain in the logs: a missing explicit Except bind simplification, a compiler recursion limit from one 5,343-element test literal (split into nine declarations without dropping cases), and a test indexing a Statement array with an unavailable Inhabited instance. No measurements are attributed to those failed complete builds.
+
+Reference inspection after the earlier candidate's 119,280 fresh comparisons
+had passed still found missing JSONB escape behavior. An 18-case diagnostic
+found six differences; a full byte/continuation/header/container expansion found
+**156 differing rows among 103,008 comparisons**, plus four failed run-level
+comparisons. These represent 39 distinct input blobs, all added to unit tests.
+SQLite accepts a NUL byte immediately after backslash in its binary string
+validation, while its JSON5 decoder treats decoded U+99999 as the reserved invalid
+character after line continuation. A shared bounded decoder now serves validation
+and label lookup, and the strict binary standard-escape list includes NUL. Text
+JSON string admission is unchanged. The expanded corpus passes after repair.
+Those earlier fresh and negative reports remain; only the new final source below
+supports this checkpoint's final claims.
+
+Final frozen production source:
+**12a69f4738a4aae576951656f038b4c27df0e68eff69bf4946fc002677ef0b06**.
+
+| Final fresh corpus | Complete cases | Differences |
+|---|---:|---:|
+| read-fresh | 27264 | 0 |
+| writer-fresh | 2976 | 0 |
+| noop-fresh | 768 | 0 |
+| upstream-fresh | 32768 | 0 |
+| valid-fresh | 9344 | 0 |
+| joined-range-fresh | 15312 | 0 |
+| joined-scalar-fresh | 25152 | 0 |
+| joined-writer-fresh | 5696 | 0 |
+| Seeded binary escape payloads | 3072 | 0 |
+| Total fresh | **122352** | **0** |
+
+New read/write seeds are 354841/354842; no-op seed 354843; JSON-validity regression
+seed 354844; joined regression seeds 354845 through 354847. Fresh corpora mix
+new seeded data/variants with maintained templates and fixed controls. The final
+upstream corpus uses **3560000 through 3564095**, four representations per seed,
+both modes and seven root/property/array paths per function. An earlier intended
+final run reused 884 development seeds; it was retained and replaced with disjoint
+3555000..3559095 seeds at that earlier source. Both earlier runs are development
+evidence for this checkpoint, and neither enters the current final total. The
+seed-audit receipt records the earlier overlap and replacement. The pinned C
+extension generates oracle fixture data only; production performs no C JSON calls.
+This is not a run of the complete upstream Tcl suite.
+
+The final expanded escape corpus (seed 354848) separately passes **101,472 fixed
+input-row comparisons** and **3,072 newly seeded input-row comparisons**, with
+all four run-level observations also matching. Each row checks all masks/default;
+root type/length are explicitly conditional SQL expressions guarded by each
+implementation's own superficial check. There is no oracle-outcome filtering.
+The fixed portion is excluded from the fresh total.
+
+JSON read comparisons include full stdout, status and normalized first diagnostic
+lines, immutable main/WAL bytes, and C typed-row/integrity observations. Writer
+comparisons include those outputs, typed state/catalog, C and Lean reopening,
+subsequent C writes, and unchanged-byte checks when C leaves its input unchanged.
+The no-op corpus separately compares changed/unchanged physical publication for
+both modes, all eight page sizes, five declared affinities and varied indexes.
+The older joined-writer both-error comparison limitation remains. Page-size
+conversion on actual writes is recorded separately and remains unresolved.
+
+Final checks pass **366 build jobs, 309 executable tests, 1,330 headline component
+proofs**, both audits, and **61 accepted reverse-file cells plus two declared
+unsupported**. The native source and all nine host bindings are unchanged.
+Other JSON functions, the earlier 936 cold-header-savepoint differences,
+concurrent WAL locking approval blocker and other SQL/file-format gaps remain.
+This checkpoint does not establish 100% compatibility.
+
+Artifacts, full negatives, source/harness snapshots and runner/build logs use
+the sqlite-json-access prefix under docs/validation. Large reports are losslessly
+gzip-compressed, with original and stored hashes in the compression manifest;
+runner report hashes name the decompressed payloads. The run-json-access-* harnesses,
+run-json-escape-differential.py and run-update-noop-differential.py harnesses reproduce the relevant comparisons.

@@ -1,0 +1,260 @@
+{
+  "evaluation": "Additional fixed production diagnostics after reference-source inspection; not part of frozen fresh corpus",
+  "implementation_sha256": "360171ca37938bd7617fc4a9083c90b81d0bb41ada9d34d7c429aec4523265fe",
+  "executable_sha256": "838ac1814696fc98f219cb797c8fc5f166b8e567840c707aadca250390ee0be5",
+  "cases": [
+    {
+      "sql": "SELECT json_valid(X'285c00',8),json_valid(X'285c00',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'295c00',8),json_valid(X'295c00',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'385c0061',8),json_valid(X'385c0061',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|0\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'395c0061',8),json_valid(X'395c0061',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|0\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'285c61',8),json_valid(X'285c61',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'295c61',8),json_valid(X'295c61',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'685c0af299a699',8),json_valid(X'685c0af299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'695c0af299a699',8),json_valid(X'695c0af299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'685c0df299a699',8),json_valid(X'685c0df299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'695c0df299a699',8),json_valid(X'695c0df299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT json_valid(X'48f299a699',8),json_valid(X'48f299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'49f299a699',8),json_valid(X'49f299a699',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'385c0a00',8),json_valid(X'385c0a00',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|0\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|0\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'395c0a00',8),json_valid(X'395c0a00',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'485c0ac080',8),json_valid(X'485c0ac080',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'495c0ac080',8),json_valid(X'495c0ac080',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'885c0a5c7558585858',8),json_valid(X'885c0a5c7558585858',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "0|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT json_valid(X'895c0a5c7558585858',8),json_valid(X'895c0a5c7558585858',4);",
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "lean": {
+        "code": 0,
+        "stdout": "1|1\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 6
+}

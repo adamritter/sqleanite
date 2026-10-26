@@ -1557,3 +1557,18 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonValid.textValid_standard_implies_json5
 #print axioms SQLeanite.SQLite.JsonValid.blobLooks_requires_header
 #print axioms SQLeanite.SQLite.Scalar.admissionErrorFuel_binary_left
+
+#print axioms SQLeanite.SQLite.JsonAccess.load_null
+#print axioms SQLeanite.SQLite.JsonAccess.evaluateType_null
+#print axioms SQLeanite.SQLite.JsonAccess.evaluateLength_null
+#print axioms SQLeanite.SQLite.JsonAccess.evaluateType_missing
+#print axioms SQLeanite.SQLite.JsonAccess.arrayCountLoop_truncated
+
+#print axioms SQLeanite.SQLite.Diagnostic.ofBytes_utf8
+#print axioms SQLeanite.SQLite.Diagnostic.bytes_ordinary
+#print axioms SQLeanite.SQLite.Diagnostic.ofBytes_nonutf8
+#print axioms SQLeanite.CoreFileEngine.dataWriteNoop_update_payload
+
+#print axioms SQLeanite.SQLite.Scalar.nameError_collapsed
+
+#print axioms SQLeanite.SQLite.JsonEscape.unescape_short

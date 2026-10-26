@@ -1,0 +1,66 @@
+[
+  {
+    "original": "sqlite-json-access-development4-escapes-20261026.json",
+    "original_bytes": 49361928,
+    "original_sha256": "d31037adba8a1bde684d03a9f11015fe5df30a0a7731e5e3fa984a44b3910ed9",
+    "stored": "sqlite-json-access-development4-escapes-20261026.json.gz",
+    "stored_bytes": 2706540,
+    "stored_sha256": "ffaf7bb134da5c5f370a0b80b4a2ef2e2e70489945985d81e83e5fd72d92f34e"
+  },
+  {
+    "original": "sqlite-json-access-escape-baseline-20261026.json",
+    "original_bytes": 49361978,
+    "original_sha256": "65c3ad18fb8ddd4fc0b7084e44efc059ee215250e17b390effa2b8da5e3180b3",
+    "stored": "sqlite-json-access-escape-baseline-20261026.json.gz",
+    "stored_bytes": 2706511,
+    "stored_sha256": "81173d0b1ea659fd8e98abddafd6bb73a73219f07928663d063546431ec7414a"
+  },
+  {
+    "original": "sqlite-json-access-final-upstream-fresh-20261026.json",
+    "original_bytes": 60770265,
+    "original_sha256": "3b042666569e9c0f9442bfd12f992fc39fd24136e41fc6ee4e201d575939bf8e",
+    "stored": "sqlite-json-access-final-upstream-fresh-20261026.json.gz",
+    "stored_bytes": 8962341,
+    "stored_sha256": "cf909b5dd73da5cbf64a31fdd25af50600c5e631e225cc815829ad0ff32bad6e"
+  },
+  {
+    "original": "sqlite-json-access-final-upstream-new-seeds-20261026.json",
+    "original_bytes": 60159969,
+    "original_sha256": "bdf73b737b314cab111c1b37765f6dd26a452fca0a4d8f0ad6b85814a4cd7901",
+    "stored": "sqlite-json-access-final-upstream-new-seeds-20261026.json.gz",
+    "stored_bytes": 8843353,
+    "stored_sha256": "a4e6e4256057359e39fd112613bc0465b9d08bec1b9cdce191298c7c8bcdf358"
+  },
+  {
+    "original": "sqlite-json-access-final-writer-fresh-20261026.json",
+    "original_bytes": 317875724,
+    "original_sha256": "2d9cb73d7ecdb9fc7f06a64d53cbffb006798a54b629dcb211d5cc5f690afec6",
+    "stored": "sqlite-json-access-final-writer-fresh-20261026.json.gz",
+    "stored_bytes": 9524033,
+    "stored_sha256": "1c49b59f66a1b02d7d793968a60b15c940f1a0bf1352b84e8684ce8040bffdcc"
+  },
+  {
+    "original": "sqlite-json-access-second-final-escapes-mixed-20261026.json",
+    "original_bytes": 50182056,
+    "original_sha256": "876350f6cd129f38bcdb052dc20b817e2e56befc3576bfc54af8722565e78905",
+    "stored": "sqlite-json-access-second-final-escapes-mixed-20261026.json.gz",
+    "stored_bytes": 2778244,
+    "stored_sha256": "00e9819c4f0c11bb2a7a7434b85cef2f9eb6b0a7d249ccba3180cb37d374fa20"
+  },
+  {
+    "original": "sqlite-json-access-second-final-upstream-fresh-20261026.json",
+    "original_bytes": 59883831,
+    "original_sha256": "03867d8c80acfc5ade0838889f7c3cf4a1819e411f3b996ff4016a229935abe3",
+    "stored": "sqlite-json-access-second-final-upstream-fresh-20261026.json.gz",
+    "stored_bytes": 8799528,
+    "stored_sha256": "516aab11eb83010199f493f8a3ac5bd52fb26882cc37ea55e7738ca0e82e7060"
+  },
+  {
+    "original": "sqlite-json-access-second-final-writer-fresh-20261026.json",
+    "original_bytes": 318163579,
+    "original_sha256": "ad78badd80963b072b0e73fa9cf2d92e25c2c2c3e975995823adc419df8739c4",
+    "stored": "sqlite-json-access-second-final-writer-fresh-20261026.json.gz",
+    "stored_bytes": 9606017,
+    "stored_sha256": "a3c868f72cdc9d96ad39e66b569f85c84ee6d64b13ed7910c8c88ab000d7a179"
+  }
+]

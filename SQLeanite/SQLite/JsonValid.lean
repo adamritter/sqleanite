@@ -1,4 +1,5 @@
 import SQLeanite.SQLite.Text
+import SQLeanite.SQLite.JsonEscape
 
 /-! Byte-oriented validation for SQLite 3.53.4 JSON text, its JSON5
 extensions, and JSONB. No C parser or external JSON implementation is called.
@@ -225,30 +226,11 @@ def validFloatPayload (input : Array UInt8) (json5 : Bool) (pos finish : Nat) : 
       floatPayload input json5 (input.size+1) (start+1) finish 0
   return floatPayload input json5 (input.size+1) start finish 0
 
-def escaped (input : Array UInt8) : Nat → Nat → Nat → Option Nat
-  | 0, _, _ => none
-  | fuel + 1, pos, finish => do
-      unless pos+1 < finish do none
-      let c := byte input (pos+1)
-      if [34,92,47,98,102,110,114,116,118,39].contains c then return pos+2
-      if c == 48 then
-        unless pos+2 ≥ finish || !digit (byte input (pos+2)) do none
-        return pos+2
-      if c == 120 then
-        unless pos+4 ≤ finish do none
-        return pos+4
-      if c == 117 then
-        unless pos+6 ≤ finish do none
-        return pos+6
-      let next ← if c == 10 then pure (pos+2)
-        else if c == 13 then pure (pos + if pos+2 < finish && byte input (pos+2) == 10 then 3 else 2)
-        else if pos+4 ≤ finish && lineSeparator input (pos+1) then pure (pos+4)
-        else none
-      if next ≥ finish then return next
-      if byte input next == 92 then return ← escaped input fuel next finish
-      if byte input next ≥ 192 then
-        return min finish (span input (fun c => 128 ≤ c && c ≤ 191) (input.size+1) (next+1))
-      return next+1
+/-- JSON5 binary validation uses the same bounded decoder as label lookup.
+The reserved invalid-character result matters even for a decoded UTF-8 scalar. -/
+def escaped (input : Array UInt8) (fuel pos finish : Nat) : Option Nat :=
+  let result := JsonEscape.unescape input finish fuel pos
+  if result.1 == 629145 then none else some result.2
 
 def stringPayload (input : Array UInt8) (kind : Nat) : Nat → Nat → Nat → Bool
   | 0, _, _ => false
@@ -262,7 +244,7 @@ def stringPayload (input : Array UInt8) (kind : Nat) : Nat → Nat → Nat → B
         else if pos+1 ≥ finish then false
         else
           let e := byte input (pos+1)
-          if [34,92,47,98,102,110,114,116].contains e then stringPayload input kind fuel (pos+2) finish
+          if [0,34,92,47,98,102,110,114,116].contains e then stringPayload input kind fuel (pos+2) finish
           else if e == 117 then pos+6 ≤ finish && hexes input (pos+2) 4 && stringPayload input kind fuel (pos+6) finish
           else if kind != 9 then false
           else match escaped input (input.size+1) pos finish with

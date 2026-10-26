@@ -2460,9 +2460,38 @@ if rg -F -q '| "json_valid", [value] => JsonValid.evaluate value' SQLeanite/SQLi
    rg -F -q 'JsonValid.textValid_standard_implies_json5' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'Scalar.admissionErrorFuel_binary_left' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'JsonValid.evaluate_invalidMask' SQLeanite/ProofAxioms.lean; then
-  printf 'ok - JSON validity uses the pure byte parser and pre-evaluation admission\\n'
+  printf 'ok - JSON validity uses the pure byte parser and pre-evaluation admission\n'
 else
-  printf 'live-path check FAILED: JSON validity admission\\n' >&2
+  printf 'live-path check FAILED: JSON validity admission\n' >&2
+  status=1
+fi
+
+if rg -F -q '| "json_type", [value, path] => JsonAccess.evaluateType value (some path)' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path)' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'JsonAccess.evaluateType_missing' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonAccess.arrayCountLoop_truncated' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - JSON type and array length use the pure path interpreter\n'
+else
+  printf 'live-path check FAILED: JSON access interpreter\n' >&2
+  status=1
+fi
+
+if rg -F -q 'SQLite.Diagnostic.bytes message' Main.lean &&
+   rg -F -q 'Diagnostic.ofBytes' SQLeanite/SQLite/JsonAccess.lean &&
+   rg -F -q 'updatePayloadOnly current table assignments' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreFileEngine.dataWriteNoop_update_payload' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - byte diagnostics and unchanged non-key UPDATE persistence\n'
+else
+  printf 'live-path check FAILED: byte diagnostics or unchanged UPDATE persistence\n' >&2
+  status=1
+fi
+
+if rg -F -q 'JsonEscape.unescape input finish fuel pos' SQLeanite/SQLite/JsonValid.lean &&
+   rg -F -q 'JsonEscape.unescape input finish (input.size+1) pos' SQLeanite/SQLite/JsonAccess.lean &&
+   rg -F -q 'JsonEscape.unescape_short' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - JSONB validation and label lookup share bounded escape decoding\n'
+else
+  printf 'live-path check FAILED: shared JSON escape decoding\n' >&2
   status=1
 fi
 

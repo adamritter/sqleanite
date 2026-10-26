@@ -1,0 +1,37 @@
+{
+  "evaluation": "Replacement final upstream corpus with disjoint seed range 3555000..3559095; original upstream final run overlapped development seeds and is retained but excluded from fresh totals",
+  "source_sha256": "360171ca37938bd7617fc4a9083c90b81d0bb41ada9d34d7c429aec4523265fe",
+  "executable_sha256": "838ac1814696fc98f219cb797c8fc5f166b8e567840c707aadca250390ee0be5",
+  "receipts": [
+    {
+      "name": "upstream-new-seeds",
+      "argv": [
+        "python3",
+        "scripts/run-json-access-upstream-generator.py",
+        "--start-seed",
+        "3555000",
+        "--count",
+        "4096",
+        "--page-size",
+        "65536",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-access-final-upstream-new-seeds-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 20.004513025283813,
+      "before_source_sha256": "360171ca37938bd7617fc4a9083c90b81d0bb41ada9d34d7c429aec4523265fe",
+      "after_source_sha256": "360171ca37938bd7617fc4a9083c90b81d0bb41ada9d34d7c429aec4523265fe",
+      "executable_sha256": "838ac1814696fc98f219cb797c8fc5f166b8e567840c707aadca250390ee0be5",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-access-final-upstream-new-seeds.log",
+      "log_sha256": "ea05b509971ed538e695bd4e3bf313178bf417107b4e9e8478cf58d00436ffc1",
+      "cases": 32768,
+      "failures": 0,
+      "report_sha256": "bdf73b737b314cab111c1b37765f6dd26a452fca0a4d8f0ad6b85814a4cd7901",
+      "harness_sha256": "e77591c5ccef0c655f848bf0bf317b238c6b4537bdd4a6e5a9cc7f6fe85274a7"
+    }
+  ]
+}

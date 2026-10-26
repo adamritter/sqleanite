@@ -1,0 +1,52 @@
+from pathlib import Path
+import subprocess,json,random,re,hashlib,sys,importlib.util
+r=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'
+spec=importlib.util.spec_from_file_location('j',r/'scripts/run-json-valid-differential.py');j=importlib.util.module_from_spec(spec);spec.loader.exec_module(j)
+cases=[]
+def enc(v):
+ if v is None:return 'N'
+ return v[0]+v[1].hex()
+def sql(v):
+ if v is None:return 'NULL'
+ return j.blob_expr(v[1]) if v[0]=='B' else j.text_expr(v[1])
+def add(v,p):cases.append(dict(value=enc(v),path='-' if p=='-' else enc(p),sql_value=sql(v),sql_path=None if p=='-' else sql(p)))
+paths=['-']+[('T',s.encode()) for s in ['$', '$.a', '$.b', '$.a[0]', '$.a[#-1]', '$[0]','$[1]','$[2]','$[#-1]','$[#-0]','$[#]','$[-1]','$[00]','$[#-9bad]','$[999999999999999999999999]','$.""','$."a"','$."a.b"','$."a\\"b"','$."\\u0061"','$.\\u0061','$.','$."','', 'x', '$x', '$.missing[bad]','$[bad]','$..a','$[0].a','$.a\0bad','$."a\\0b"',"$.'a'",'$["a"]']]+[None]
+texts=['null','true','false','0','1.0','1e1','NaN','Infinity','+0xabc','[]','{}','[1,null,{},[2,3]]','{"a":[1,2],"b":[],"a":0}',"{a:1,b:'x',}",'"abc"','{"":1,"a.b":null,"a\\"b":[],"\\u0061":0}','{"a\\u0000":1,"a\\u0000b":2}','{"\\ud83d\\ude00":1,"😀":2}','{"a\\\nb":1}', 'bad','[', '', '01']
+for s in texts:
+ for p in paths:add(('T',s.encode()),p)
+ out=subprocess.run([c,':memory:',f'SELECT hex(jsonb({j.text_expr(s)}));'],capture_output=True)
+ if out.returncode==0:
+  for p in paths:add(('B',bytes.fromhex(out.stdout.decode().strip())),p)
+for kind in range(16):
+ for b in [b'',b'\0',b'\x13\x30',b'\x17a\x00',b'\xff',b'\x1b',b'\x07\x00',b'\x13a\x00']:
+  for p in paths[:12]+paths[23:]:add(('B',j.node(kind,b)),p)
+for text in [b'1\0x',b'{"\xff":1}',b'{"\xc0\x80":1}',b'{"a\0b":1}',b'{"\\u0000":1}']:
+ for p in paths+[('T',b'$."\xff"'),('T',b'$."\xc0\x80"'),('T',b'$."\\u0000"')]:add(('T',text),p)
+for p in paths:add(None,p)
+rng=random.Random(354801)
+for _ in range(200):
+ b=bytes(rng.randrange(256) for _ in range(rng.randrange(1,30)))
+ add(('B',b),rng.choice(paths));add(('B',j.node(rng.randrange(16),b)),rng.choice(paths))
+inp=Path('/tmp/sqleanite-json-access-probe-input.txt');inp.write_text(''.join(x['value']+' '+x['path']+'\n' for x in cases))
+out=subprocess.run(['lake','env','lean','--run','/tmp/JsonAccessProbe.lean',str(inp)],cwd=r,capture_output=True,text=True)
+Path('/tmp/sqleanite-json-access-probe-lean.log').write_text(out.stdout+out.stderr)
+assert out.returncode==0,(out.returncode,out.stdout[-2000:],out.stderr[-2000:])
+lines=out.stdout.splitlines();assert len(lines)==len(cases),(len(lines),len(cases),out.stdout[:1000])
+for case,line in zip(cases,lines):
+ expected=[];responses=[]
+ for fn in ['json_type','json_array_length']:
+  args=case['sql_value']+('' if case['sql_path'] is None else ','+case['sql_path'])
+  expr=fn+'('+args+')'
+  q=f"SELECT CASE WHEN {expr} IS NULL THEN 'N' ELSE 'V'||hex({expr}) END;"
+  res=subprocess.run([c,'-batch','-bail',':memory:',q],capture_output=True)
+  responses.append(dict(sql=q,code=res.returncode,stdout=res.stdout.decode('latin1'),stderr=res.stderr.decode('latin1')))
+  if res.returncode:
+   err=re.sub(rb'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?',b'',res.stderr.splitlines()[0])
+   err=re.sub(rb'^stepping, ',b'',err)
+   expected.append('E'+err.hex().upper())
+  else:expected.append(res.stdout.decode().strip())
+ case.update(lean=line,expected='|'.join(expected),oracle=responses,matched=line=='|'.join(expected))
+report=dict(evaluation='Development component diagnostic only; /tmp draft and Lean interpreter, not production executable',seed=354801,draft_sha256=hashlib.sha256(Path('/tmp/JsonAccess.lean').read_bytes()).hexdigest(),cases=cases,failures=sum(not x['matched'] for x in cases))
+Path('/tmp/sqleanite-json-access-component-initial.json').write_text(json.dumps(report,indent=2)+'\n')
+print(len(cases),report['failures'])
+for x in [x for x in cases if not x['matched']][:25]:print(x['sql_value'],x['sql_path'],x['lean'],x['expected'],flush=True)

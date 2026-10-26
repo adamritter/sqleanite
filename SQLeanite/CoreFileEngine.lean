@@ -146,14 +146,31 @@ def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   | .release name => CoreSavepoint.releasesTransaction state name && transactionChanged state
   | _ => statementWrites statement && state.transactionSnapshot.isNone
 
-/-- A zero-row DML statement need not publish an unchanged database. The
+/-- Updating identical non-key payload bytes does not dirty a SQLite table
+page. Assigning a rowid or indexed column still performs structural writes. -/
+def updatePayloadOnly (state : Core.State) (table : String)
+    (assignments : Array (String × Expr)) : Bool :=
+  match state.database.findTable? (CoreSQL.canonical table) with
+  | none => false
+  | some stored => assignments.all fun assignment =>
+      match stored.schema.column? assignment.1 with
+      | none => false
+      | some column => column != stored.schema.primaryKey &&
+          !(stored.indexes.any fun index => index.column == column)
+
+/-- Zero-row DML and identical non-key payload UPDATEs need not publish an
+unchanged database. The
 content comparison is necessary even with zero reported changes: AUTOINCREMENT
 may still initialize or advance sqlite_sequence. Transaction controls are not
 DML and must retain their snapshot-based publication decision. -/
 def dataWriteNoop (current next : Core.State) (statement : Statement)
     (results : List Core.Result) : Bool :=
   match statement with
-  | .insert .. | .insertSelect .. | .update .. | .delete .. =>
+  | .update table _ assignments _ _ _ =>
+      (!(results.any (fun result => result.changes != 0)) ||
+        updatePayloadOnly current table assignments) &&
+        current.database.contents == next.database.contents
+  | .insert .. | .insertSelect .. | .delete .. =>
       !(results.any (fun result => result.changes != 0)) &&
         current.database.contents == next.database.contents
   | _ => false
@@ -165,6 +182,15 @@ theorem dataWriteNoop_insertSelect (current next : Core.State) (table : String)
     (same : current.database.Equiv next.database) :
     dataWriteNoop current next (.insertSelect table columns query conflict returning) results = true := by
   simp [dataWriteNoop, zeroChanges, Core.Database.Equiv] at *
+  exact same
+
+theorem dataWriteNoop_update_payload (current next : Core.State) (table : String)
+    (alias : Option String) (assignments : Array (String × Expr)) (condition : Option Expr)
+    (conflict : ConflictAction) (returning : Array ResultColumn) (results : List Core.Result)
+    (payloadOnly : updatePayloadOnly current table assignments = true)
+    (same : current.database.Equiv next.database) :
+    dataWriteNoop current next (.update table alias assignments condition conflict returning) results = true := by
+  simp [dataWriteNoop, payloadOnly, Core.Database.Equiv] at *
   exact same
 
 theorem dataWriteNoop_commit (current next : Core.State) (results : List Core.Result) :

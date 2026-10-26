@@ -1,0 +1,279 @@
+import SQLeanite.SQLite.JsonValid
+
+/-! Read-only JSON navigation. Text is parsed to an internal binary tree;
+external JSONB retains its shallow admission and operation-local checks. -/
+namespace SQLeanite.SQLite.JsonAccess
+open JsonValid
+
+def require (message : String) (value : Option α) : Except String α :=
+  match value with | some value => .ok value | none => .error message
+
+def slice (input : Array UInt8) (start finish : Nat) : Array UInt8 :=
+  input.extract start finish
+
+def node (kind : Nat) (data : Array UInt8) : Array UInt8 :=
+  let width := if data.size < 12 then 0 else if data.size < 256 then 1
+    else if data.size < 65536 then 2 else 4
+  let tag := if width == 0 then data.size else if width == 1 then 12 else if width == 2 then 13 else 14
+  #[UInt8.ofNat (tag*16+kind)] ++
+    (List.range width).toArray.map (fun i => UInt8.ofNat (data.size / 256^(width-i-1))) ++ data
+
+structure Encoded where
+  next : Nat
+  data : Array UInt8
+
+def encodedString (input : Array UInt8) (start finish : Nat) : Array UInt8 :=
+  let data := slice input start finish
+  node (if data.any (fun c => c.toNat == 92) then 9 else 10) data
+
+mutual
+  def encode (input : Array UInt8) : Nat → Nat → Option Encoded
+    | 0, _ => none
+    | fuel+1, pos => do
+        let pos := (skip input (input.size+1) pos false).1
+        let c := byte input pos
+        if c == 123 || c == 91 then
+          let children ← encodeMembers input fuel (c == 123) (pos+1) #[]
+          return { children with data := node (if c == 123 then 12 else 11) children.data }
+        if c == 34 || c == 39 then
+          let parsed ← string input c (input.size+1) (pos+1) (c == 39)
+          return ⟨parsed.next, encodedString input (pos+1) (parsed.next-1)⟩
+        let parsed ← if digit c || [43,45,46].contains c then number input pos else atom input pos
+        let data := slice input pos parsed.next
+        let name := data.toList.map (fun b => lower b.toNat)
+        let kind := if name == [116,114,117,101] then 1
+          else if name == [102,97,108,115,101] then 2
+          else if name == [110,117,108,108] || name.contains 110 && !name.contains 105 then 0
+          else if name.contains 105 then 5
+          else if name.contains 120 then 4
+          else if name.contains 46 || name.contains 101 then 5 else 3
+        return ⟨parsed.next, node kind (if kind ≤ 2 then #[] else data)⟩
+  def encodeMembers (input : Array UInt8) : Nat → Bool → Nat → Array UInt8 → Option Encoded
+    | 0, _, _, _ => none
+    | fuel+1, object, pos, collected => do
+        let pos := (skip input (input.size+1) pos false).1
+        let close := if object then 125 else 93
+        if byte input pos == close then return ⟨pos+1, collected⟩
+        let (pos, collected) ← if object then do
+            let c := byte input pos
+            let (finish, data) ← if c == 34 || c == 39 then do
+                let parsed ← string input c (input.size+1) (pos+1) (c == 39)
+                pure (parsed.next, encodedString input (pos+1) (parsed.next-1))
+              else do
+                let parsed ← identifier input pos
+                pure (parsed.next, encodedString input pos parsed.next)
+            let colon := (skip input (input.size+1) finish false).1
+            unless byte input colon == 58 do none
+            pure (colon+1, collected ++ data)
+          else pure (pos, collected)
+        let child ← encode input fuel pos
+        let after := (skip input (input.size+1) child.next false).1
+        let collected := collected ++ child.data
+        if byte input after == close then return ⟨after+1, collected⟩
+        unless byte input after == 44 do none
+        encodeMembers input fuel object (after+1) collected
+end
+
+def load (value : Value) : Except String (Option (Array UInt8)) := do
+  if Text.isNull value then return none
+  let input := Text.bytes value
+  if (match value with | .blob _ => blobLooks input | _ => false) then return some input
+  unless textValid input true do throw "malformed JSON"
+  match encode input (4*input.size+4) 0 with
+  | some parsed => return some parsed.data
+  | none => throw "malformed JSON"
+
+def arrayCountLoop (input : Array UInt8) (finish : Nat) : Nat → Nat → Nat → Nat
+  | 0, _, count => count
+  | fuel+1, pos, count =>
+      if pos ≥ finish then count else
+      match payload input pos with
+      | none => count+1
+      | some (header, size) => arrayCountLoop input finish fuel (pos+header+size) (count+1)
+
+def arrayCount (input : Array UInt8) (pos : Nat) : Nat :=
+  match payload input pos with
+  | none => 0
+  | some (header, size) => arrayCountLoop input (pos+header+size) (input.size+1) (pos+header) 0
+
+def hexInt (c : Nat) : Nat := (c + 9*((c/64)%2)) % 16
+def hex4 (input : Array UInt8) (pos : Nat) : Nat :=
+  (List.range 4).foldl (fun n i => n*16 + hexInt (byte input (pos+i))) 0
+
+/-- utf.c:sqlite3Utf8ReadLimited decodes at most four bytes without scalar
+validation. This differs intentionally from SQL unicode(). -/
+def utf8 (input : Array UInt8) (pos finish : Nat) : Nat × Nat := Id.run do
+  if pos ≥ finish then return (0, pos)
+  let c := byte input pos
+  if c < 192 then return (c, pos+1)
+  let mut value := if c < 224 then c%32 else if c < 240 then c%16
+    else if c < 248 then c%8 else if c < 252 then c%4 else if c < 254 then c%2 else 0
+  let mut next := pos+1
+  for _ in [0:3] do
+    if next < finish && byte input next / 64 == 2 then
+      value := value*64 + byte input next % 64
+      next := next+1
+    else break
+  return (value, next)
+
+def continuationEnd (input : Array UInt8) (finish : Nat) : Nat → Nat → Nat
+  | 0, pos => pos
+  | fuel+1, pos =>
+      if pos+1 ≥ finish || byte input pos != 92 then pos
+      else if byte input (pos+1) == 10 then continuationEnd input finish fuel (pos+2)
+      else if byte input (pos+1) == 13 then
+        continuationEnd input finish fuel (pos + if pos+2 < finish && byte input (pos+2) == 10 then 3 else 2)
+      else if pos+4 ≤ finish && lineSeparator input (pos+1) then continuationEnd input finish fuel (pos+4)
+      else pos
+
+def unescape (input : Array UInt8) (finish : Nat) : Nat → Nat → Nat × Nat
+  | 0, _ => (629145, finish)
+  | fuel+1, pos =>
+      if pos+1 ≥ finish then (629145, finish) else
+      let c := byte input (pos+1)
+      if c == 117 then
+        if pos+6 > finish then (629145, finish) else
+        let value := hex4 input (pos+2)
+        let low := hex4 input (pos+8)
+        if value / 1024 == 54 && pos+12 ≤ finish && byte input (pos+6) == 92 &&
+            byte input (pos+7) == 117 && low / 1024 == 55 then
+          ((value%1024)*1024 + low%1024 + 65536, pos+12)
+        else (value, pos+6)
+      else if c == 120 then
+        if pos+4 > finish then (629145, finish)
+        else (hexInt (byte input (pos+2))*16 + hexInt (byte input (pos+3)), pos+4)
+      else if c == 48 then
+        (if pos+2 < finish && digit (byte input (pos+2)) then 629145 else 0, pos+2)
+      else if [34,39,47,92].contains c then (c, pos+2)
+      else match [(98,8),(102,12),(110,10),(114,13),(116,9),(118,11)].find? (fun p => p.1 == c) with
+        | some p => (p.2, pos+2)
+        | none =>
+            let next := continuationEnd input finish (input.size+1) pos
+            if next == pos then (629145, pos+2)
+            else if next ≥ finish then (0, next)
+            else if byte input next == 92 then unescape input finish fuel next
+            else utf8 input next finish
+
+def labelChar (input : Array UInt8) (pos finish : Nat) (raw : Bool) : Nat × Nat :=
+  if pos ≥ finish then (0, pos)
+  else if !raw && byte input pos == 92 then unescape input finish (input.size+1) pos
+  else utf8 input pos finish
+
+def labelEqualLoop (left right : Array UInt8) (rawLeft rawRight : Bool) : Nat → Nat → Nat → Bool
+  | 0, _, _ => false
+  | fuel+1, lpos, rpos =>
+      let l := labelChar left lpos left.size rawLeft
+      let r := labelChar right rpos right.size rawRight
+      l.1 == r.1 && (l.1 == 0 || labelEqualLoop left right rawLeft rawRight fuel l.2 r.2)
+
+def labelEqual (left right : Array UInt8) (rawLeft rawRight : Bool) : Bool :=
+  if rawLeft && rawRight then left == right
+  else labelEqualLoop left right rawLeft rawRight (left.size+right.size+2) 0 0
+
+def quotedEnd (path : Array UInt8) : Nat → Nat → Option Nat
+  | 0, _ => none
+  | fuel+1, pos =>
+      if byte path pos == 0 then none
+      else if byte path pos == 34 then some pos
+      else quotedEnd path fuel (pos + if byte path pos == 92 && byte path (pos+1) != 0 then 2 else 1)
+
+def digits (path : Array UInt8) : Nat → Nat → Nat → Nat × Nat
+  | 0, pos, value => (pos, value)
+  | fuel+1, pos, value =>
+      if digit (byte path pos) then
+        digits path fuel (pos+1) (if value < 4294967295 then value*10 + byte path pos - 48 else value)
+      else (pos, value)
+
+def pathError (path : Array UInt8) : String :=
+  let text := String.fromUTF8! ⟨path.takeWhile (fun c => c.toNat != 0)⟩
+  "bad JSON path: '" ++ text.replace "'" "''" ++ "'"
+
+mutual
+  def lookup (input path : Array UInt8) : Nat → Nat → Nat → Nat → Except String (Option Nat)
+    | 0, _, _, _ => .error "JSON path too deep"
+    | fuel+1, depth, root, pos => do
+        let c := byte path pos
+        if c == 0 then return some root
+        if c == 46 then
+          let (key, after, raw) ← if byte path (pos+1) == 34 then do
+              let finish ← require (pathError path) (quotedEnd path (path.size+1) (pos+2))
+              let key := slice path (pos+2) finish
+              pure (key, finish+1, !key.any (fun c => c.toNat == 92))
+            else do
+              let finish := span path (fun c => c != 0 && c != 46 && c != 91) (path.size+1) (pos+1)
+              if finish == pos+1 then throw (pathError path)
+              pure (slice path (pos+1) finish, finish, true)
+          if byte input root % 16 != 12 then return none
+          let (header, size) := (payload input root).getD (0,0)
+          objectLookup input path fuel depth (root+header) (root+header+size) key raw after
+        else if c == 91 then
+          if byte input root % 16 != 11 then return none
+          let (header, size) := (payload input root).getD (0,0)
+          let (finish, index) := digits path (path.size+1) (pos+1) 0
+          let (finish, index) ← if finish > pos+1 && byte path finish == 93 then pure (finish, index)
+            else if byte path (pos+1) == 35 then do
+              let count := arrayCount input root
+              if byte path (pos+2) == 45 && digit (byte path (pos+3)) then
+                let (finish, back) := digits path (path.size+1) (pos+3) 0
+                if back > count then return none
+                if byte path finish != 93 then throw (pathError path)
+                pure (finish, count-back)
+              else
+                if byte path (pos+2) != 93 then throw (pathError path)
+                pure (pos+2, count)
+            else throw (pathError path)
+          arrayLookup input path fuel depth (root+header) (root+header+size) index (finish+1)
+        else throw (pathError path)
+  def objectLookup (input path : Array UInt8) : Nat → Nat → Nat → Nat → Array UInt8 → Bool → Nat → Except String (Option Nat)
+    | 0, _, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, depth, pos, finish, key, raw, after => do
+        if pos == finish then return none
+        if pos > finish then throw "malformed JSON"
+        let kind := byte input pos % 16
+        unless 7 ≤ kind && kind ≤ 10 do throw "malformed JSON"
+        let (header, size) ← require "malformed JSON" (payload input pos)
+        let value := pos+header+size
+        if value ≥ finish then throw "malformed JSON"
+        if byte input value % 16 > 12 then throw "malformed JSON"
+        let (vheader, vsize) ← require "malformed JSON" (payload input value)
+        if labelEqual key (slice input (pos+header) value) raw (kind == 7 || kind == 10) then
+          if value+vheader+vsize > finish then throw "malformed JSON"
+          if depth+1 ≥ 1000 then throw "JSON path too deep"
+          lookup input path fuel (depth+1) value after
+        else objectLookup input path fuel depth (value+vheader+vsize) finish key raw after
+  def arrayLookup (input path : Array UInt8) : Nat → Nat → Nat → Nat → Nat → Nat → Except String (Option Nat)
+    | 0, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, depth, pos, finish, index, after => do
+        if pos == finish then return none
+        if pos > finish then throw "malformed JSON"
+        if index == 0 then
+          if depth+1 ≥ 1000 then throw "JSON path too deep"
+          lookup input path fuel (depth+1) pos after
+        else
+          let (header, size) ← require "malformed JSON" (payload input pos)
+          arrayLookup input path fuel depth (pos+header+size) finish (index-1) after
+end
+
+def select (input : Array UInt8) (path : Option Value) : Except String (Option Nat) := do
+  match path with
+  | none => return some 0
+  | some .null => return none
+  | some value =>
+      let path := Text.bytes value
+      unless byte path 0 == 36 do throw (pathError path)
+      lookup input path (4*(input.size+path.size)+4) 0 0 1
+
+def typeName (kind : Nat) : String :=
+  ["null","true","false","integer","integer","real","real","text","text","text","text","array","object"].getD kind ""
+
+def evaluateType (value : Value) (path : Option Value := none) : Except String Value := do
+  let some input ← load value | return .null
+  let some pos ← select input path | return .null
+  return .text (typeName (byte input pos % 16))
+
+def evaluateLength (value : Value) (path : Option Value := none) : Except String Value := do
+  let some input ← load value | return .null
+  let some pos ← select input path | return .null
+  return .integer (if byte input pos % 16 == 11 then arrayCount input pos else 0)
+
+end SQLeanite.SQLite.JsonAccess
