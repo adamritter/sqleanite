@@ -2562,4 +2562,12 @@ else
   echo 'error - JSON pretty renderer is disconnected from public SQL' >&2
   status=1
 fi
+if rg -F -q '| "jsonb_extract", values => JsonExtract.evaluate values' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let encoded ← JsonBinary.evaluate value' SQLeanite/SQLite/JsonExtract.lean &&
+   rg -F -q 'JsonExtract.valueAt_truncated' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON binary extraction uses pure lookup and SQL value conversion'
+else
+  echo 'error - JSON binary extraction is disconnected from public SQL' >&2
+  status=1
+fi
 exit $status

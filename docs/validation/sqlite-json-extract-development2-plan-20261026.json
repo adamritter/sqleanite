@@ -1,0 +1,87 @@
+{
+  "prefix": "json-extract-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-differential.py",
+        "--seed",
+        "355022",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-extract-development2-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-write-differential.py",
+        "--seed",
+        "355023",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-extract-development2-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-upstream-generator.py",
+        "--start-seed",
+        "3600000",
+        "--count",
+        "64",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-extract-development2-upstream-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-extract-development2-receipts-20261026.json",
+  "evaluation": "Development public SQL JSON binary extraction corpus; fixed and seeded inputs plus upstream generator, not the fresh final checkpoint."
+}

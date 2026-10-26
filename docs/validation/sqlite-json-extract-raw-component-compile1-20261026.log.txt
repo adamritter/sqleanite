@@ -1,0 +1,17 @@
+/tmp/JsonExtractRawComponent.lean:7:4: error: `SQLeanite.SQLite.JsonExtract.nulPrefix` has already been declared
+/tmp/JsonExtractRawComponent.lean:10:4: error: `SQLeanite.SQLite.JsonExtract.asciiSpace` has already been declared
+/tmp/JsonExtractRawComponent.lean:12:4: error: `SQLeanite.SQLite.JsonExtract.integerToken` has already been declared
+/tmp/JsonExtractRawComponent.lean:36:4: error: `SQLeanite.SQLite.JsonExtract.floatToken` has already been declared
+/tmp/JsonExtractRawComponent.lean:41:4: error: `SQLeanite.SQLite.JsonExtract.integerValue` has already been declared
+/tmp/JsonExtractRawComponent.lean:56:4: error: `SQLeanite.SQLite.JsonExtract.codepoint` has already been declared
+/tmp/JsonExtractRawComponent.lean:63:4: error: `SQLeanite.SQLite.JsonExtract.unescape` has already been declared
+/tmp/JsonExtractRawComponent.lean:72:4: error: `SQLeanite.SQLite.JsonExtract.valueAt` has already been declared
+/tmp/JsonExtractRawComponent.lean:89:10: error: `SQLeanite.SQLite.JsonExtract.PartialEncoding` has already been declared
+/tmp/JsonExtractRawComponent.lean:94:4: error: `SQLeanite.SQLite.JsonExtract.reservedHeader` has already been declared
+/tmp/JsonExtractRawComponent.lean:100:4: error: `SQLeanite.SQLite.JsonExtract.uncheckedNumber` has already been declared
+/tmp/JsonExtractRawComponent.lean:107:6: error: `SQLeanite.SQLite.JsonExtract.unchecked` has already been declared
+/tmp/JsonExtractRawComponent.lean:169:4: error: `SQLeanite.SQLite.JsonExtract.evaluate` has already been declared
+/tmp/JsonExtractRawComponent.lean:202:8: error: `SQLeanite.SQLite.JsonExtract.evaluate_no_arguments` has already been declared
+/tmp/JsonExtractRawComponent.lean:204:8: error: `SQLeanite.SQLite.JsonExtract.evaluate_one_argument` has already been declared
+/tmp/JsonExtractRawComponent.lean:206:8: error: `SQLeanite.SQLite.JsonExtract.integerValue_empty` has already been declared
+/tmp/JsonExtractRawComponent.lean:208:8: error: `SQLeanite.SQLite.JsonExtract.valueAt_truncated` has already been declared

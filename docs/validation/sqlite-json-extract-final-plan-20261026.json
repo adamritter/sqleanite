@@ -1,0 +1,130 @@
+{
+  "prefix": "json-extract-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-differential.py",
+        "--seed",
+        "355031",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-write-differential.py",
+        "--seed",
+        "355032",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "jsonb-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-differential.py",
+        "--seed",
+        "355033",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-jsonb-read-20261026.json"
+      ]
+    },
+    {
+      "name": "pretty-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-pretty-write-differential.py",
+        "--seed",
+        "355034",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-pretty-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "storage",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-storage-controls.py",
+        "--seed",
+        "355035",
+        "--fixtures",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-storage-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-upstream-generator.py",
+        "--start-seed",
+        "3610000",
+        "--count",
+        "1024",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-extract-final-upstream-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-extract-final-receipts-20261026.json",
+  "evaluation": "Final frozen public JSON binary extraction checkpoint on fresh seeded documents and unfiltered mutations with maintained templates. Related JSONB/pretty and known exact-schema storage failures are separate."
+}

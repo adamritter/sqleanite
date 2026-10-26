@@ -6781,3 +6781,90 @@ are retained under `docs/validation/sqlite-json-pretty-*`. Large reports are
 losslessly compressed, with original and stored hashes. The pinned 3.53.4
 `src/json.c` is the implementation reference; see also the
 [SQLite JSON documentation](https://sqlite.org/json1.html#the_json_pretty_function).
+
+## JSON binary extraction and deferred diagnostics (2026-10-26)
+
+`jsonb_extract()` now traverses text/JSON5 and admitted JSONB through pure Lean.
+One path returns SQL scalars or the original binary container slice; multiple
+paths return a binary array. Numeric boundary conversion, noncanonical binary
+payloads, exact string bytes, invalid UTF-8, NULL paths, missing paths and zero
+or one argument follow pinned SQLite 3.53.4. The zero-argument star spelling is
+normalized before evaluation. No C JSON implementation is used by the runtime.
+
+Malformed descendants need two distinct behaviors. SQLite's internal text-to-blob
+wrapper can return a partial binary even when its parser fails, so the Lean
+translation retains that parser state. Rendering errors in multiple-path calls
+are deferred: a later path error supersedes them, while NULL can discard a
+pending malformed-JSON error. An already-reported nesting error survives NULL.
+These are implemented as parser/error state, with no outcome filters or oracle
+access. Assignment parsing now retries alternate row/group syntax only after a
+syntax error, preserving resource-limit errors from a recognized scalar call.
+
+Final frozen source: **8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7**.
+
+| Final fresh JSON extraction corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 31232 | 0 |
+| writer | 2272 | 0 |
+| upstream | 32768 | 0 |
+| Total | **66272** | **0** |
+
+Read and writer seeds **355031 and 355032** use new values and unfiltered byte
+mutations with maintained templates, all eight page sizes and both public file
+modes. Root, selected-path and multi-path calls execute separately. This first corpus
+compares quoted-value bytes; quote(TEXT) truncates at NUL. Exact SQL
+storage classes, quoted-value bytes, normalized first errors and status must
+match. Read files must remain byte-identical. Writers additionally check C
+integrity, typed rows, schema shape, Lean reopen and subsequent C writes. Page
+geometry is recorded separately from those result checks.
+
+The independent pinned `randomjson.c` corpus uses fresh seeds **3610000 through
+3611023**, all four JSON/JSON5 text/binary representations and an unfiltered
+mutation of each. Root and recorded path-list requests run independently for
+every input. Only the C oracle loads the generator. Related JSONB reads and
+JSON-pretty writes pass **7584 cases** at seeds **355033 and 355034**.
+
+An additional fresh final-checkpoint corpus compares `hex(value)` alongside
+`hex(quote(value))`, so TEXT bytes after embedded NUL are observable. Its writer
+also compares `hex(valid)` after persistence and includes NUL/invalid-UTF-8
+strings. It passes **35552 cases** using read/write seeds **355046 and 355047**
+and independent generator seeds **3620000 through 3620511**. These counts are
+separate from the earlier quoted-output corpus. Both run the identical frozen
+source and executable. A separate **11,443-case interpreter raw-byte replay**
+also passes. Its first harness attempt duplicated imported declarations and did
+not compile; that failure is retained and is not a semantic difference count.
+The sixty expanded error controls were replaced with deterministic construction
+before final evaluation; their exact ordered SQL lists were checked identical.
+
+The separate exact-schema storage controls remain **64 differences in 80 cases**
+at seed **355035**: full-image writes canonicalize table SQL and CTAS declaration
+spelling. Byte/row integrity observations agree, but these catalog differences
+remain failures and the combined final runner exits **1**. No acceptance rule
+was weakened and no total SQL/database/WAL compatibility is claimed.
+
+The standalone interpreter corpus contains **11,443 controls**. Its first test
+formatter did not compile, so that attempt has no semantic evaluation result.
+The corrected strict-parser prototype differed on **186 multiple-path cases**;
+the partial-parser version passes all 11,443 on replay. These are component and
+development results, separate from fresh public evaluation. **2,177 controls**
+selected by input groups and fixed indices remain in the executable tests.
+
+Initial public development recorded **4/3,536 read differences**, **4/264 writer
+differences** and **1/2,048 upstream differences**. Deferred rendering diagnostics
+and assignment-parser backtracking caused those failures. Their reports, source
+and harness snapshots remain available. Sixty error-order controls and twenty
+assignment-limit controls cover the fixes; the complete development replay
+passes. Final testing uses the corrected frozen implementation and fresh seeds.
+
+The full build passes **376 jobs**, all **319 executable tests**, **1,356 headline
+component proofs**, both audits and the reverse-file matrix. Four new component
+theorems cover no arguments, one argument, empty integer payloads and truncated
+headers; they do not establish total SQLite equivalence. The native source and
+nine host bindings are unchanged. JSON text subtype propagation, other SQL
+features, exact schema SQL, write page geometry, cold savepoints and concurrent
+WAL locking remain open.
+
+Harnesses are `scripts/run-json-extract-*.py`; source, plans, negative records and
+logs are under `docs/validation/sqlite-json-extract-*`. Large reports are losslessly
+compressed with original/stored hashes. Pinned `src/json.c` is the implementation
+reference; see the [SQLite extraction documentation](https://sqlite.org/json1.html#the_jsonb_extract_function).

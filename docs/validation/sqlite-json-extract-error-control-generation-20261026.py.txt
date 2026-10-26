@@ -1,0 +1,50 @@
+from pathlib import Path
+import json,subprocess,importlib.util
+r=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'
+spec=importlib.util.spec_from_file_location('h',r/'scripts/run-json-extract-differential.py');h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
+args=[]
+for value in ["X'1cff'","X'2b5c71'","X'1bff'","X'03'","X'095c'", "'{}'"]:
+ for paths in ["'$','$'","'$','bad'","'$',NULL","'$',NULL,'bad'","'$','bad',NULL","'$','$.a'","'$','$.a',NULL","'$[0]','$..a'","'$[0]',NULL"]:args.append(value+','+paths)
+depth=b'\x00'
+for _ in range(1001):depth=h.node(11,depth)
+for paths in ["'$','$'","'$','bad'","'$',NULL","'$',NULL,'bad'","'$','bad',NULL","'$.missing','$',NULL"]:args.append(h.blob(depth)+','+paths)
+records=[]
+for arg in args:
+ sql='SELECT typeof(jsonb_extract('+arg+')),hex(quote(jsonb_extract('+arg+')));'
+ ref=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True)
+ error=ref.stderr.splitlines()[0].split(b': ',1)[1] if ref.returncode else None
+ records.append(dict(sql=sql,expected='error:'+error.hex().upper() if error is not None else ref.stdout.decode().strip()))
+v=r/'docs/validation';(v/'sqlite-json-extract-error-controls-oracle-20261026.json').write_text(json.dumps(records,indent=2)+'\n')
+block='private def sqliteJsonExtractErrorCases : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(x['sql'])+', '+json.dumps(x['expected'])+')' for x in records)+']\n'
+block+='''
+private def expectSQLiteJsonExtractErrors : IO Unit := do
+  for (sql, expected) in sqliteJsonExtractErrorCases do
+    match CoreSQL.execute Core.State.empty sql with
+    | .error message => unless expected == "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message) do
+        fail s!"jsonb_extract error order differs: {message}"
+    | .ok (_, results) =>
+        let values ← (expected.splitOn "|").mapM fun field => match SQLSurface.value (.text field) with
+          | .ok value => pure value | .error message => fail message
+        unless results.getLast?.map (·.rows) == some [values] do
+          fail "jsonb_extract deferred error result differs"
+  let setup := "CREATE TABLE t(a,b); INSERT INTO t VALUES(1,2);"
+  for name in ["jsonb_extract", "JSONB_EXTRACT", "char", "coalesce"] do
+    let call := name ++ "(" ++ String.intercalate "," (List.replicate 1001 "1") ++ ")"
+    for value in [call, "(" ++ call ++ ")", "((" ++ call ++ "))", "(" ++ call ++ ",2)", "(2," ++ call ++ ")"] do
+      let names := if value.endsWith ",2)" || value.startsWith "(2," then "(a,b)" else "a"
+      let sql := setup ++ "UPDATE t SET " ++ names ++ "=" ++ value ++ " WHERE 0;"
+      match CoreSQL.execute Core.State.empty sql with
+      | .error message => unless message == "too many arguments on function " ++ name do
+          fail s!"assignment replaced function limit error: {message}"
+      | .ok _ => fail "assignment admitted excessive function arguments"
+
+'''
+f=r/'Tests.lean';s=f.read_text();anchor='private def expectSQLiteJoinedGroupPrefix';assert s.count(anchor)==1;s=s.replace(anchor,block+anchor);anchor='  ("SQLite JSON binary extraction",';assert s.count(anchor)==1;s=s.replace(anchor,'  ("SQLite JSON extraction error precedence", expectSQLiteJsonExtractErrors),\n'+anchor);f.write_text(s)
+f=r/'scripts/run-json-extract-differential.py';s=f.read_text();anchor=' cases=[];runs=[];fixtures=[]';assert s.count(anchor)==1;s=s.replace(anchor,' for sql in '+repr([x['sql'] for x in records])+":query('fixed-error-order',sql)\n"+anchor);f.write_text(s)
+f=r/'scripts/run-json-extract-write-differential.py';s=f.read_text();anchor=' observation=';idx=s.index(anchor);s=s[:idx]+''' for name in ['jsonb_extract','JSONB_EXTRACT','char','coalesce']:
+  call=name+'('+','.join(['1']*1001)+')'
+  for value in [call,'('+call+')','(('+call+'))','('+call+',2)','(2,'+call+')']:
+   names='(valid,flags)' if value.endswith(',2)') or value.startswith('(2,') else 'valid'
+   add('fixed-limit-diagnostic','UPDATE t SET '+names+'='+value+' WHERE 0;')
+'''+s[idx:];f.write_text(s)
+print('added',len(records),'deferred-error controls and 20 assignment-limit controls')

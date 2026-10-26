@@ -1,0 +1,87 @@
+{
+  "evaluation": "Additional fresh final-checkpoint raw TEXT-byte coverage: quote(value) truncates at NUL, so hex(value) is compared as well. Same frozen production implementation; maintained templates with new seeds.",
+  "source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+  "executable_sha256": "d219847c5168f6af97baee545be1b178c2934419ebc74f395e493fbef4c32c48",
+  "receipts": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-differential.py",
+        "--seed",
+        "355046",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 443.1560401916504,
+      "before_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "after_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "executable_sha256": "d219847c5168f6af97baee545be1b178c2934419ebc74f395e493fbef4c32c48",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-extract-raw-final-read.log",
+      "log_sha256": "6fb6c768f14a6b16cdda5426247c5b223af9e9620ebfbff1d1e3d7a8e3c4e843",
+      "cases": 17408,
+      "failures": 0,
+      "report_sha256": "905a88630fd4c0e940aa8de61c01bc816e30c2c66617c55e4522e61b2305a1dd",
+      "harness_sha256": "4f3a4b67e9150907a28e9b218c3abc9103578660c6c7cdda3f0f093ad764e408"
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-write-differential.py",
+        "--seed",
+        "355047",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-writer-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 54.629369497299194,
+      "before_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "after_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "executable_sha256": "d219847c5168f6af97baee545be1b178c2934419ebc74f395e493fbef4c32c48",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-extract-raw-final-writer.log",
+      "log_sha256": "221ed132986b3899d865a0a10a291a9a955cebd3dceeb2494f576699e3f23180",
+      "cases": 1760,
+      "failures": 0,
+      "report_sha256": "c282596c048478ed61232e2540ccad347822c6d2d366e68abaf77f778b2067e0",
+      "harness_sha256": "aeddc9caa9e3840b3eb6aefee182afab7b726a90aea539d15e1af114bc1b7e5c"
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-upstream-generator.py",
+        "--start-seed",
+        "3620000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-upstream-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 118.32408261299133,
+      "before_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "after_source_sha256": "8e1bab5fbd25bd98388571b4634cd58ff2e0e9ffd0019e75f87fcb89b5bf5ef7",
+      "executable_sha256": "d219847c5168f6af97baee545be1b178c2934419ebc74f395e493fbef4c32c48",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-extract-raw-final-upstream.log",
+      "log_sha256": "6952e8744eee4e3cdb70cc199b55ab7c2f58edd3a33a598baa64fab4d2ea7da1",
+      "cases": 16384,
+      "failures": 0,
+      "report_sha256": "d218c8e70af103e83ef5f1339398c954b7ffa398e42cb08cbc9319ecab7fdb0f",
+      "harness_sha256": "340eedee90978d82b0db7492b8d92ee0532d6b540a97df106869113f58ee1a17"
+    }
+  ]
+}

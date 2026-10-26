@@ -1602,3 +1602,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonPretty.quoted_empty
 #print axioms SQLeanite.SQLite.JsonPretty.hexNumber_empty
 #print axioms SQLeanite.SQLite.JsonPretty.render_truncated
+
+#print axioms SQLeanite.SQLite.JsonExtract.evaluate_no_arguments
+#print axioms SQLeanite.SQLite.JsonExtract.evaluate_one_argument
+#print axioms SQLeanite.SQLite.JsonExtract.integerValue_empty
+#print axioms SQLeanite.SQLite.JsonExtract.valueAt_truncated

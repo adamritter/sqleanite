@@ -1,0 +1,1 @@
+/tmp/JsonExtractComponent.lean:11703:14: error(lean.unknownIdentifier): Unknown identifier `SQLite.Text.render`

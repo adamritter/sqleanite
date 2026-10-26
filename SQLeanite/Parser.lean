@@ -1160,9 +1160,15 @@ private def parseAssignmentValuesFuel : Nat → ParserM (Array Expr)
         return expressions
       match scalar state with
       | .ok result => .ok result
-      | .error _ => match vector state with
-          | .ok result => .ok result
-          | .error _ => grouped state
+      | .error message =>
+          -- Row/group alternatives repair syntax ambiguity only. A scalar
+          -- expression's resource-limit diagnostic is already definitive.
+          if message != "incomplete input" && !(message.startsWith "near ") then .error message
+          else match vector state with
+            | .ok result => .ok result
+            | .error message =>
+                if message != "incomplete input" && !(message.startsWith "near ") then .error message
+                else grouped state
 
 private def parseUpdateAssignment : ParserM (Array (String × Expr)) := do
   let names : Array String ← match ← parseOptionalNameList with

@@ -1,0 +1,56 @@
+{
+  "prefix": "json-extract-raw-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-differential.py",
+        "--seed",
+        "355046",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-write-differential.py",
+        "--seed",
+        "355047",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-extract-raw-upstream-generator.py",
+        "--start-seed",
+        "3620000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-extract-raw-final-upstream-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-json-extract-raw-final-receipts-20261026.json",
+  "evaluation": "Additional fresh final-checkpoint raw TEXT-byte coverage: quote(value) truncates at NUL, so hex(value) is compared as well. Same frozen production implementation; maintained templates with new seeds."
+}

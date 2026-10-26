@@ -1,0 +1,7 @@
+{
+  "queries": 60,
+  "identical_queries": true,
+  "scope": "Replace literal expanded controls with deterministic construction before final evaluation; exact ordered query lists were compared.",
+  "before_sha256": "7341b9a833d9bbedbfd78240ea016d54af0237bfd2e692e0202184ee80da804a",
+  "after_sha256": "c7927c79f0d98c247b2ab5674857278d97214e4689df5495d3eb8c6a7d990839"
+}

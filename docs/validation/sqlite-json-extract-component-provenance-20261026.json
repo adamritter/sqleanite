@@ -1,0 +1,23 @@
+{
+  "seed": 355021,
+  "cases": 11443,
+  "failures": 0,
+  "unit_controls": 2177,
+  "initial_compile": {
+    "session_id": 55155,
+    "exit_code": 1,
+    "note": "Invalid test formatter name; no runtime comparisons"
+  },
+  "strict_parser": {
+    "session_id": 88543,
+    "exit_code": 1,
+    "lean_exit_code": 0,
+    "failures": 186
+  },
+  "unchecked_parser": {
+    "session_id": 77330,
+    "exit_code": 0,
+    "failures": 0
+  },
+  "scope": "Standalone interpreter component and replay, not fresh public SQL coverage; selection by input groups and fixed indices."
+}
