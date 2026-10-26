@@ -1522,3 +1522,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinSearchKeyOrder_perm
 
 #print axioms SQLeanite.CoreSQL.joinScalarOriginallyNullable_outer
+
+#print axioms SQLeanite.CoreSQL.joinFixedConstantMatches_outer

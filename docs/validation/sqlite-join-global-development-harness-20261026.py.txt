@@ -1,0 +1,19 @@
+import hashlib,json,shutil,subprocess,tempfile
+from pathlib import Path
+root=Path.cwd();c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';binary=root/'.lake/build/bin/sqleanite';src=root/'docs/validation/sqlite-join-global-unit-oracle-20261026.json';controls=json.loads(src.read_text());cases=[]
+def run(args,sql):
+ r=subprocess.run(args,input=sql.encode(),capture_output=True,timeout=30);return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
+with tempfile.TemporaryDirectory(prefix='join-notnull-controls-',dir='/dev/shm') as tmp:
+ for i,x in enumerate(controls['cases']):
+  base=Path(tmp)/'base.db'
+  if base.exists():base.unlink()
+  assert run([c,str(base)],x['setup'])['code']==0
+  for mode in ['--verified-file','--verified-wal-file']:
+   lpath=Path(tmp)/'lean.db';rpath=Path(tmp)/'c.db';shutil.copyfile(base,lpath);shutil.copyfile(base,rpath)
+   old=lpath.read_bytes();l=run([str(binary),mode,str(lpath)],x['sql']);r=run([c,'-batch','-bail',str(rpath)],x['sql']);unchanged=lpath.read_bytes()==rpath.read_bytes()==old and not Path(str(lpath)+'-wal').exists()
+   cases.append(dict(fixture=i,setup=x['setup'],sql=x['sql'],mode=mode,lean=l,sqlite=r,unchanged=unchanged,matched=bool(l['code'])==bool(r['code']) and l['stdout']==r['stdout'] and unchanged))
+h=hashlib.sha256()
+for p in sorted((root/'SQLeanite').rglob('*.lean'))+[root/'Main.lean']:h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+report=dict(evaluation='Focused development check of all pinned-C fixed WHERE and null-filter cursor controls through both public file modes; includes exact error stdout and unchanged file bytes.',cases=cases,failures=sum(not x['matched'] for x in cases),implementation_sha256=h.hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),input_sha256=hashlib.sha256(src.read_bytes()).hexdigest())
+(root/'docs/validation/sqlite-join-global-development-20261026.json').write_text(json.dumps(report,indent=2)+'\n');print(len(cases),report['failures']);print('\n'.join(sorted(set(x['sql'] for x in cases if not x['matched']))))
+raise SystemExit(bool(report['failures']))

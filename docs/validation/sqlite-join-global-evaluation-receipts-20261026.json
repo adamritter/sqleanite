@@ -1,0 +1,50 @@
+{
+  "implementation_sha256": "0219777efac8b6dd12fb44a6e98aff2f86774be43a30e62f4fe57a8f62924d91",
+  "actual_process_completions": [
+    {
+      "session": 65565,
+      "exit_code": 1,
+      "report": "sqlite-join-global-fresh-20261026.json"
+    },
+    {
+      "session": 14174,
+      "exit_code": 0,
+      "report": "sqlite-join-global-reduced-fresh-20261026.json"
+    },
+    {
+      "session": 76618,
+      "exit_code": 0,
+      "report": "sqlite-join-global-scalar-fresh-20261026.json"
+    },
+    {
+      "session": 48012,
+      "exit_code": 0,
+      "report": "sqlite-join-global-order-fresh-20261026.json"
+    },
+    {
+      "session": 34077,
+      "exit_code": 0,
+      "report": "sqlite-join-global-write-fresh-20261026.json"
+    },
+    {
+      "session": 8518,
+      "exit_code": 1,
+      "report": "sqlite-between-baseline-20261026.json"
+    },
+    {
+      "session": 60473,
+      "exit_code": 0,
+      "report": "sqlite-join-global-replay-initial-20261026.json"
+    },
+    {
+      "session": 57773,
+      "exit_code": 0,
+      "report": "sqlite-join-global-development-20261026.json"
+    },
+    {
+      "session": 36758,
+      "exit_code": 0,
+      "report": "sqlite-join-global-checks-20261026.json"
+    }
+  ]
+}

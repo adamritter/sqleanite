@@ -5743,3 +5743,75 @@ patches are retained under `sqlite-join-fixed-*`, `sqlite-join-singleton-*`,
 `sqlite-join-declared-null-*` and `sqlite-join-null-range-search-*` in
 `docs/validation`. The expanded public harness is
 `scripts/run-join-fixed-column-differential.py`.
+
+## Fixed WHERE constants and null-filter cursor estimates (2026-10-26)
+
+Eligible fixed ON columns now participate in constant WHERE preparation before
+either cursor starts. The same affinity restrictions used for ON substitution
+apply to this early WHERE evaluation. Outer joins retain their previous
+constant-WHERE path. A new component theorem proves this outer-join erasure;
+it does not claim that all constant propagation matches SQLite.
+
+Retained IS NULL and IS NOT NULL filters both affect the bounded two-source
+cursor model. The planner counts eligible source-local null tests using original
+source nullability. It uses their relative count to choose between singleton
+outer seeks, following the unindexed-filter LogEst adjustment in pinned
+`where.c:whereLoopOutputAdjust`. Row values do not influence this choice. The
+prior NOT-NULL-only scan selector now also admits IS NULL filters. General cost,
+statistics and transitive-constraint planning remain incomplete.
+
+The previous **168** failures pass strict final-source replay, including exact
+error stdout, unchanged main/WAL bytes and C integrity. A separate expanded set
+of **324** pinned-C controls passes **648 / 0** public-file comparisons across
+both modes, checking exact output/status and immutable bytes. These are saved
+regressions and fixed development controls, not fresh seeded evaluation. The
+324 controls are also executable regressions.
+
+Fresh evaluation on frozen production source
+`0219777efac8b6dd12fb44a6e98aff2f86774be43a30e62f4fe57a8f62924d91`:
+
+- Expanded fixed-WHERE/null-data, seed **354670**: **63,936 / 514**, plus 16 passing immutable-fixture checks.
+- Reduced outer cursors, seed **354671**: **52,736 / 0**, plus 16 passing immutable-fixture checks.
+- General scalar reads, seed **354672**: **24,640 / 0**, plus 16 passing immutable-fixture checks.
+- Evaluation order, seed **354673**: **16,128 / 0**, plus 24 passing immutable-fixture checks.
+- Joined writers, seed **354674**: **5,184 / 0**.
+
+The expanded corpus includes actual NULL values in nullable columns, additional
+left/right null-filter orders, mixed affinities, empty sources and newly seeded
+safe values and overflowing-row positions. Its **514** differences comprise
+**496 C successes rejected** and **18 C errors accepted**. They expose trivial
+non-null tests interacting with fixed-column substitution, outer-ON NULL
+short-circuiting and additional singleton-key choices. Every mismatch is
+retained in the full report and a labelled saved-case input. The earlier 168-case
+replay is closed at this checkpoint; the broader null-data corpus is not.
+
+An independent BETWEEN baseline on the same frozen source, seed **354680**,
+records **13,856 / 322** plus eight passing immutable-fixture checks. It includes
+constant and row expressions, searched CASE, joined range constraints,
+INTEGER/TEXT/BLOB affinities and exact error prefixes. The differences include
+240 C successes rejected, 50 C errors accepted and 32 output differences.
+The parser currently lowers BETWEEN to two comparisons too early; searched CASE
+also exposes eager Boolean conditions, and single-source reads can lose partial
+output on a later error. All 322 negatives and the exact baseline harness are
+retained. No BETWEEN implementation change is included in this checkpoint.
+
+Reads compare exact stdout even on errors, success/error status, immutable
+main/WAL bytes and C integrity/typed observations. Writers compare catalog and
+typed contents, follow-up C writes and Lean reopening; unchanged bytes are
+required whenever C leaves its files unchanged. The writer's both-error branch
+does not compare partial stdout. All seeded corpora contain fixed templates as
+well as newly generated values; these counts are not a compatibility percentage.
+
+Checks pass **354 build jobs, 294 executable tests, 1,295 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two explicitly
+unsupported. All nine native bindings and native source remain unchanged
+(SHA-256 `cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`).
+The wider SQL, file-header, encoding and concurrent-WAL gaps remain open.
+
+Reports: `sqlite-join-global-*20261026.*`,
+`sqlite-between-*20261026.*`, and the diagnostic
+`sqlite-join-fixed-followup-plan-oracle-20261025.json` in `docs/validation`.
+Public harnesses: `scripts/run-join-fixed-where-differential.py` and
+`scripts/run-between-differential.py`, alongside the existing read/order/write
+and saved-failure runners. Intermediate source and exact focused harnesses are
+retained outside the production source tree.

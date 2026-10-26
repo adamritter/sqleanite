@@ -2337,7 +2337,7 @@ else
   status=1
 fi
 
-if rg -F -q 'joinSearchNotNullRoot context prepared on' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'joinSearchNullFilterRoot context prepared on' SQLeanite/CoreSQL.lean &&
    rg -F -q 'if select.limit == some 0 || joinScalarKnownEmpty context prepared source' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreSQL.joinScalarNullRejectsVisit_unpeeled_notNull' SQLeanite/ProofAxioms.lean; then
   echo "ok - joined nonnull-rowid filters and ordered null-test preparation remain live"
@@ -2370,6 +2370,15 @@ if rg -F -q 'joinScalarColumnNotNull context ref' SQLeanite/CoreSQL.lean &&
   echo "ok - declared non-null columns retain outer-source preparation metadata"
 else
   echo "not ok - declared join nullability is not wired into execution"
+  status=1
+fi
+
+if rg -F -q 'joinFixedConstantMatches context prepared source on' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinFixedConstantMatches_outer' SQLeanite/ProofAxioms.lean; then
+  echo "ok - fixed WHERE constants and retained null filters drive joined cursor preparation"
+else
+  echo "not ok - fixed WHERE or retained null-filter preparation is missing"
   status=1
 fi
 
