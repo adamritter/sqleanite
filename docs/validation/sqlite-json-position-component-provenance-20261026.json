@@ -1,0 +1,10 @@
+{
+  "session_id": 86716,
+  "exit_code": 0,
+  "cases": 27427,
+  "failures": 0,
+  "maintained_unit_controls": 1675,
+  "evaluation": "Standalone Lean interpreter component diagnostic; production verification pending",
+  "interrupted_harness": "Earlier indentation error repeated corpus generation inside the fixed-text loop. Interrupted output retained for diagnosis and excluded from final metrics.",
+  "failed_rerun": "A rerun raced compression of the JSON access baseline artifact and exited before evaluation; the corrected harness reads its gzip payload."
+}

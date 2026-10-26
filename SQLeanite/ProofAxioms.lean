@@ -1572,3 +1572,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.Scalar.nameError_collapsed
 
 #print axioms SQLeanite.SQLite.JsonEscape.unescape_short
+
+#print axioms SQLeanite.SQLite.JsonPosition.evaluate_null
+#print axioms SQLeanite.SQLite.JsonPosition.binary_depth
+#print axioms SQLeanite.SQLite.JsonPosition.binary_missing_header
+#print axioms SQLeanite.SQLite.JsonPosition.binaryChildren_odd_finished
+#print axioms SQLeanite.SQLite.JsonPosition.textError_valid

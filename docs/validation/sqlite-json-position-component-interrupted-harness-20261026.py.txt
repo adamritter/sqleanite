@@ -1,0 +1,43 @@
+from pathlib import Path
+import json,random,subprocess,hashlib,re
+r=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';cases=[];rng=random.Random(354861)
+def add(group,data,blob=False):
+ enc=('B' if blob else 'T')+data.hex();sql="X'"+data.hex()+"'" if blob else "CAST(X'"+data.hex()+"' AS TEXT)";cases.append(dict(group=group,input=enc,sql='SELECT json_error_position('+sql+');'))
+old=json.loads((r/'docs/validation/sqlite-json-valid-development2-20261026.json').read_text())
+for v in old['values']:
+ s=v['expression'];m=re.fullmatch(r"CAST\(X'([0-9a-fA-F]*)' AS TEXT\)",s)
+ if m:add('maintained-text',bytes.fromhex(m[1]))
+ else:
+  m=re.fullmatch(r"X'([0-9a-fA-F]*)'",s)
+  if m:add('maintained-binary',bytes.fromhex(m[1]),True)
+  elif s=='NULL':cases.append(dict(group='null',input='N',sql='SELECT json_error_position(NULL);'))
+for s in ['', ' ', '  ', '\n', '//x', '/*x*/', '{} x','{a:1} x','[1,] x','[/*x*/]x','{} /*x', 'true x','[false x]','{false:1}','{a 1}','{a /*x*/ 1}','{a:/*x*/}','[   } ]','{ [1]:1 }', '-00','+00','00','1e','1e+','1e-','+.', '-.', '+.e1','-.e1','1e1.2','1.e1','1.e+','1.2.3','\u00a0[\u00a0}']:
+ add('text-position',s.encode())
+ bases=[b'{a:1}',b'[1,2]',b'{"a":[1,2]}',b'1.2e3',b'"\\u0000"',b'"\\x41"',b'null',b'[ /*x*/ ]']
+ for data in bases[:]:
+  for tail in [b' x',b' //x',b' /*',b'\xff',b'\0junk']:add('tail-position',data+tail)
+ for _ in range(512):
+  data=bytearray(rng.choice(bases))
+  for _ in range(rng.randrange(1,5)):
+   pos=rng.randrange(len(data)+1);op=rng.randrange(3)
+   if op==0:data[pos:pos]=bytes([rng.randrange(256)])
+   elif pos<len(data) and op==1:del data[pos]
+   elif pos<len(data):data[pos]=rng.randrange(256)
+  add('seeded-text-mutation',data)
+ for i in range(256):add('one-byte-blob',bytes([i]),True)
+ # Escape boundary payloads are component inputs, without expected-result filtering.
+ escapes=json.loads((r/'docs/validation/sqlite-json-access-escape-baseline-20261026.json').read_text())
+ for v in escapes['values']:add('binary-escape',bytes.fromhex(v['hex']),True)
+ p=Path('/tmp/sqleanite-json-position-component-input.txt');p.write_text(''.join(x['input']+'\n' for x in cases))
+ proc=subprocess.run(['lake','env','lean','--run','/tmp/JsonPositionProbe.lean',str(p)],cwd=r,capture_output=True,text=True,timeout=600)
+ Path('/tmp/sqleanite-json-position-component-lean.log').write_text(proc.stdout+proc.stderr);assert proc.returncode==0,(proc.returncode,proc.stderr[-2000:])
+ lines=proc.stdout.splitlines();assert len(lines)==len(cases),(len(lines),len(cases),proc.stdout[:500])
+ # This diagnostic API never raises for these already-formed one-argument SQL calls.
+ sql='\n'.join(x['sql'] for x in cases)+'\n';oracle=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True,timeout=120)
+ assert oracle.returncode==0,oracle.stderr;expected=oracle.stdout.decode().splitlines();assert len(expected)==len(cases)
+ for x,l,w in zip(cases,lines,expected):
+  if x['input']=='N':w='NULL'
+  x.update(lean=l,sqlite=w,matched=l==w)
+ report=dict(evaluation='Standalone /tmp component interpreter diagnostic; not production execution',seed=354861,draft_sha256=hashlib.sha256(Path('/tmp/JsonPosition.lean').read_bytes()).hexdigest(),cases=cases,failures=sum(not x['matched'] for x in cases))
+ Path('/tmp/sqleanite-json-position-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(len(cases),report['failures'])
+ for x in [x for x in cases if not x['matched']][:40]:print(x['sql'],x['lean'],x['sqlite'])

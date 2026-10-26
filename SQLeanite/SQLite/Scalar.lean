@@ -1,5 +1,6 @@
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
+import SQLeanite.SQLite.JsonPosition
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Math
@@ -294,6 +295,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
   | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
   | "json_array_length", [value] => JsonAccess.evaluateLength value
   | "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path)
+  | "json_error_position", [value] => pure (JsonPosition.evaluate value)
   | "json_valid", [value] => JsonValid.evaluate value
   | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
   | "format", values | "printf", values => Format.evaluate values
@@ -518,7 +520,7 @@ def forbidden : Expr → Bool
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
-           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign"].contains n
+           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position"].contains n
         then args.size == 1 else false)
   | _ => true
 
@@ -537,8 +539,11 @@ def admissionErrorFuel : Nat → Expr → Option String
       let check := admissionErrorFuel fuel
       match expression with
       | .call name arguments star =>
-          if ["json_valid", "json_type", "json_array_length"].contains (scalarFunctionName name) &&
-              (star || (arguments.size != 1 && arguments.size != 2)) then
+          let function := scalarFunctionName name
+          let wrongArity := if function == "json_error_position" then arguments.size != 1
+            else arguments.size != 1 && arguments.size != 2
+          if ["json_valid", "json_type", "json_array_length", "json_error_position"].contains function &&
+              (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name
             some s!"wrong number of arguments to function {spelling}()"

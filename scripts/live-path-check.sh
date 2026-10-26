@@ -2495,4 +2495,14 @@ else
   status=1
 fi
 
+if rg -F -q '| "json_error_position", [value] => pure (JsonPosition.evaluate value)' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'JsonPosition.binaryChildren_odd_finished' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonPosition.textError_valid' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonEscape.unescape input finish (input.size+1) pos' SQLeanite/SQLite/JsonPosition.lean; then
+  printf 'ok - JSON error positions use the pure text and binary diagnostic parsers\n'
+else
+  printf 'live-path check FAILED: JSON error position parser\n' >&2
+  status=1
+fi
+
 exit $status

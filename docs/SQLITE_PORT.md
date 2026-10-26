@@ -6415,3 +6415,68 @@ the sqlite-json-access prefix under docs/validation. Large reports are losslessl
 gzip-compressed, with original and stored hashes in the compression manifest;
 runner report hashes name the decompressed payloads. The run-json-access-* harnesses,
 run-json-escape-differential.py and run-update-noop-differential.py harnesses reproduce the relevant comparisons.
+
+## JSON error positions (2026-10-26)
+
+The public Core scalar evaluator now implements `json_error_position(X)` in
+Lean. JSON5 text reports a character position; admitted external JSONB reports
+a byte position. The text parser retains the reference parser's error register
+across successful subexpressions, including the state used for trailing-input
+errors. NULL, numeric coercion, malformed UTF-8, truncated headers, binary
+payloads, object key/value parity, and nesting limits use the pinned 3.53.4
+behavior. Function arity is validated before execution, preserving the original
+name spelling. Production never delegates JSON work to C or an external parser.
+
+Final frozen source: **1105732f53423719c9df52549c95dcb51664c08d5553d571f11d53eb7f537c02**.
+
+| Final fresh corpus | Complete cases | Differences |
+|---|---:|---:|
+| read-fresh | 26336 | 0 |
+| writer-fresh | 1952 | 0 |
+| upstream-fresh | 65536 | 0 |
+| access-read-fresh | 27264 | 0 |
+| access-writer-fresh | 2976 | 0 |
+| valid-fresh | 23808 | 0 |
+| joined-range-fresh | 15312 | 0 |
+| joined-scalar-fresh | 25152 | 0 |
+| joined-writer-fresh | 5696 | 0 |
+| Total | **194032** | **0** |
+
+Read/write seeds are 354871/354872, related JSON regression seeds 354873 through
+354875, and joined regression seeds 354876 through 354878. These corpora use
+new seeded documents/mutations and values with maintained SQL templates and
+fixed syntax controls. The upstream generator uses disjoint seeds **3570000
+through 3574095**, four original representations plus one unfiltered byte
+mutation per representation, in both public modes. Its C extension only creates
+oracle fixtures. This is not the complete upstream Tcl suite.
+
+Separate fixed-domain evidence passes **263,172 row comparisons**: all 65,793
+byte strings of length zero through two, tested as BLOB and TEXT in each row,
+in both modes at 512- and 65,536-byte page sizes. The maintained component replay
+and development data pass **56,610 read comparisons**, **232 writer comparisons**
+and **16,384 upstream/mutation comparisons**. None enters the fresh total.
+The standalone interpreter component passed **27,427 controls** before public
+integration; **1,675** text, storage, mutation and binary controls are maintained
+in the executable unit tests. Its accidentally repeated early harness run is
+retained and explicitly excluded from final metrics. A subsequent attempt to
+read a concurrently compressed input report failed before evaluation; the
+corrected component harness reads the lossless gzip artifact.
+
+Comparisons cover complete stdout, exit status, normalized first diagnostic,
+immutable read files, typed rows/catalog and independent C integrity checks.
+Writer checks also cover RETURNING, rollback/savepoints, atomic expression
+errors, C/Lean reopen, a subsequent C write and preservation of unchanged files.
+The existing page-size conversion on writes is still recorded separately.
+
+The complete build passes **368 jobs**, with **310 executable tests**, **1,335
+headline component proofs**, both audits, and **61 accepted reverse-file cells
+plus two declared unsupported**. Five new proofs cover diagnostic branches and
+complete-input success; they are not an equivalence proof for SQLite's parser.
+The native source and nine host bindings are unchanged. Other JSON functions,
+the earlier 936 cold-savepoint differences, the pending concurrent-WAL locking
+approval and other SQL/file-format gaps remain; this is not 100% compatibility.
+
+Artifacts, source/harness snapshots and logs use `sqlite-json-position-*` under
+`docs/validation`; four `scripts/run-json-position-*` harnesses reproduce the
+measurements. Large reports are losslessly compressed with both payload and
+stored hashes. Runner hashes refer to decompressed report contents.

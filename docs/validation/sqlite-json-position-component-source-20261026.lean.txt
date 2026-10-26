@@ -1,0 +1,250 @@
+import SQLeanite.SQLite.JsonValid
+
+/-! SQLite JSON error positions: byte offsets for admitted JSONB and character
+positions for text. This prototype is not connected to production yet. -/
+namespace SQLeanite.SQLite.JsonPosition
+open JsonValid
+
+def floatError (input : Array UInt8) (extended : Bool) (root finish : Nat) :
+    Nat → Nat → Nat → Nat
+  | 0, pos, _ => pos+1
+  | fuel+1, pos, seen =>
+      if pos ≥ finish then if seen == 0 then root+1 else 0
+      else
+        let c := byte input pos
+        if digit c then floatError input extended root finish fuel (pos+1) seen
+        else if c == 46 then
+          if seen > 0 || (!extended && (pos+1 == finish || !digit (byte input (pos+1)))) then pos+1
+          else floatError input extended root finish fuel (pos+1) 1
+        else if c == 101 || c == 69 then
+          if seen == 2 || pos+1 == finish then pos+1
+          else if [43,45].contains (byte input (pos+1)) then
+            if pos+2 == finish then pos+2
+            else floatError input extended root finish fuel (pos+2) 2
+          else floatError input extended root finish fuel (pos+1) 2
+        else pos+1
+
+def stringError (input : Array UInt8) (kind finish : Nat) : Nat → Nat → Nat
+  | 0, pos => pos+1
+  | fuel+1, pos =>
+      if pos ≥ finish then 0 else
+      let c := byte input pos
+      if c ≥ 32 && c != 34 && c != 92 then stringError input kind finish fuel (pos+1)
+      else if kind == 7 then pos+1
+      else if c == 34 || c < 32 then
+        if kind == 8 then pos+1 else stringError input kind finish fuel (pos+1)
+      else if pos+1 ≥ finish then pos+1
+      else
+        let e := byte input (pos+1)
+        if [0,34,92,47,98,102,110,114,116].contains e then stringError input kind finish fuel (pos+2)
+        else if e == 117 then
+          if pos+6 > finish || !hexes input (pos+2) 4 then pos+1
+          else stringError input kind finish fuel (pos+2)
+        else if kind != 9 then pos+1
+        else
+          let decoded := JsonEscape.unescape input finish (input.size+1) pos
+          if decoded.1 == 629145 then pos+1 else stringError input kind finish fuel decoded.2
+
+mutual
+  def binary (input : Array UInt8) : Nat → Nat → Nat → Nat → Nat
+    | 0, _, pos, _ => pos+1
+    | fuel+1, depth, pos, finish =>
+        if depth > 1000 then pos+1 else
+        match payload input pos with
+        | none => pos+1
+        | some (header, size) =>
+            if pos+header+size != finish then pos+1 else
+            let kind := byte input pos % 16
+            let start := pos+header
+            if kind ≤ 2 then if header+size == 1 then 0 else pos+1
+            else if kind == 3 then
+              let start := if byte input start == 45 then start+1 else start
+              if start ≥ finish then pos+1
+              else match (List.range (finish-start)).find? (fun i => !digit (byte input (start+i))) with
+                | none => 0 | some i => start+i+1
+            else if kind == 4 then
+              let start := if byte input start == 45 then start+1 else start
+              if start+3 > finish || byte input start != 48 then pos+1
+              else if ![88,120].contains (byte input (start+1)) then start+2
+              else match (List.range (finish-start-2)).find? (fun i => !hex (byte input (start+i+2))) with
+                | none => 0 | some i => start+i+3
+            else if kind == 5 || kind == 6 then
+              let start := if byte input start == 45 then start+1 else start
+              if start+2 > finish then pos+1
+              else if byte input start == 46 then
+                if kind == 5 || !digit (byte input (start+1)) then start+1
+                else floatError input true pos finish (input.size+1) (start+2) 1
+              else if kind == 5 && byte input start == 48 then
+                if start+3 > finish || ![46,101,69].contains (byte input (start+1)) then start+1
+                else floatError input false pos finish (input.size+1) (start+1) 0
+              else floatError input (kind == 6) pos finish (input.size+1) start 0
+            else if kind ≥ 7 && kind ≤ 9 then stringError input kind finish (input.size+1) start
+            else if kind == 10 then 0
+            else if kind == 11 || kind == 12 then binaryChildren input fuel (depth+1) (kind == 12) start finish 0
+            else pos+1
+  def binaryChildren (input : Array UInt8) : Nat → Nat → Bool → Nat → Nat → Nat → Nat
+    | 0, _, _, pos, _, _ => pos+1
+    | fuel+1, depth, object, pos, finish, count =>
+        if pos == finish then if object && count%2 != 0 then pos+1 else 0
+        else if pos > finish then pos+1
+        else match payload input pos with
+          | none => pos+1
+          | some (header, size) =>
+              let kind := byte input pos % 16
+              if pos+header+size > finish || (object && count%2 == 0 && (kind < 7 || kind > 10)) then pos+1
+              else
+                let error := binary input fuel depth pos (pos+header+size)
+                if error != 0 then error
+                else binaryChildren input fuel depth object (pos+header+size) finish (count+1)
+end
+
+structure TextStep where
+  code : Int
+  error : Nat
+  text : Bool := false
+
+def failure (pos : Nat) : TextStep := ⟨-1,pos,false⟩
+def success (next error : Nat) (text : Bool := false) : TextStep := ⟨Int.ofNat next,error,text⟩
+
+def textString (input : Array UInt8) (delimiter : Nat) : Nat → Nat → Except Nat Nat
+  | 0, pos => .error pos
+  | fuel+1, pos =>
+      let c := byte input pos
+      if c == 0 then .error pos
+      else if c == delimiter then .ok (pos+1)
+      else if c != 92 then textString input delimiter fuel (pos+1)
+      else
+        let e := byte input (pos+1)
+        if [34,92,47,98,102,110,114,116,39,118,10].contains e ||
+            (e == 48 && !digit (byte input (pos+2))) then textString input delimiter fuel (pos+2)
+        else if e == 117 && hexes input (pos+2) 4 then textString input delimiter fuel (pos+6)
+        else if e == 120 && hexes input (pos+2) 2 then textString input delimiter fuel (pos+4)
+        else if e == 13 then textString input delimiter fuel
+          (pos + if byte input (pos+2) == 10 then 3 else 2)
+        else if lineSeparator input (pos+1) then textString input delimiter fuel (pos+4)
+        else .error (pos+1)
+
+def numberLoop (input : Array UInt8) (start : Nat) : Nat → Nat → Bool → Bool → Except Nat Nat
+  | 0, pos, _, _ => .error pos
+  | fuel+1, pos, floating, exponent =>
+      let c := byte input pos
+      if digit c then numberLoop input start fuel (pos+1) floating exponent
+      else if c == 46 then
+        if floating then .error pos else numberLoop input start fuel (pos+1) true exponent
+      else if c == 101 || c == 69 then
+        if (byte input (pos-1) < 48 &&
+            !(byte input (pos-1) == 46 && pos ≥ start+2 && digit (byte input (pos-2)))) || exponent then
+          .error pos
+        else
+          let adjusted := pos + if [43,45].contains (byte input (pos+1)) then 1 else 0
+          if !digit (byte input (adjusted+1)) then .error adjusted
+          else numberLoop input start fuel (adjusted+1) true true
+      else if byte input (pos-1) < 48 &&
+          !(byte input (pos-1) == 46 && pos ≥ start+2 && digit (byte input (pos-2))) then .error pos
+      else .ok pos
+
+def textNumber (input : Array UInt8) (pos : Nat) : Except Nat Nat := do
+  let c := byte input pos
+  if c == 46 then
+    unless digit (byte input (pos+1)) do throw pos
+    return ← numberLoop input pos (input.size+1) (pos+1) true false
+  if c == 48 then
+    if [88,120].contains (byte input (pos+1)) && hex (byte input (pos+2)) then
+      return span input hex (input.size+1) (pos+3)
+    if digit (byte input (pos+1)) then throw (pos+1)
+  else if c == 43 || c == 45 then
+    if !digit (byte input (pos+1)) then
+      if startsWord input (pos+1) "inf" true then
+        return pos + if startsWord input (pos+4) "inity" true then 9 else 4
+      unless byte input (pos+1) == 46 do throw pos
+    if byte input (pos+1) == 48 then
+      if digit (byte input (pos+2)) then throw (pos+1)
+      if [88,120].contains (byte input (pos+2)) && hex (byte input (pos+3)) then
+        return span input hex (input.size+1) (pos+4)
+  numberLoop input pos (input.size+1) (pos+1) false false
+
+def standardSkip (input : Array UInt8) (pos : Nat) : Nat :=
+  span input (fun c => [9,10,13,32].contains c) (input.size+1) pos
+
+mutual
+  def textParse (input : Array UInt8) : Nat → Nat → Nat → Nat → TextStep
+    | 0, _, pos, _ => failure pos
+    | fuel+1, depth, pos, error =>
+        let pos := (skip input (input.size+1) pos false).1
+        let c := byte input pos
+        if c == 123 || c == 91 then
+          if depth ≥ 1000 then failure pos
+          else textMembers input fuel (depth+1) (c == 123) (pos+1) error
+        else if c == 34 || c == 39 then
+          match textString input c (input.size+1) (pos+1) with
+          | .error pos => failure pos | .ok next => success next error true
+        else if digit c || [43,45,46].contains c then
+          match textNumber input pos with
+          | .error pos => failure pos | .ok next => success next error
+        else if c == 125 then ⟨-2,pos,false⟩
+        else if c == 93 then ⟨-3,pos,false⟩
+        else if c == 44 then ⟨-4,pos,false⟩
+        else if c == 58 then ⟨-5,pos,false⟩
+        else if c == 0 then ⟨0,error,false⟩
+        else match atom input pos with
+          | some parsed => success parsed.next error
+          | none => failure pos
+  def textMembers (input : Array UInt8) : Nat → Nat → Bool → Nat → Nat → TextStep
+    | 0, _, _, pos, _ => failure pos
+    | fuel+1, depth, object, pos, error =>
+        let parsed := textParse input fuel depth pos error
+        let closeCode : Int := if object then -2 else -3
+        if parsed.code == closeCode then success (parsed.error+1) parsed.error
+        else if object then
+          let key := if parsed.code ≤ 0 then
+              let start := (skip input (input.size+1) pos false).1
+              match identifier input start with
+              | some ident => success ident.next parsed.error true
+              | none => if parsed.code == -1 then parsed else failure start
+            else parsed
+          if key.code ≤ 0 then key
+          else if !key.text then failure pos
+          else
+            let next := standardSkip input key.code.toNat
+            let colon := if byte input next == 58 then ⟨-5,next,false⟩
+              else textParse input fuel depth next key.error
+            if colon.code != -5 then
+              if colon.code == -1 then colon else failure next
+            else
+              let valuePos := colon.error+1
+              -- A directly consumed colon does not update the parser's error register.
+              let error := if byte input next == 58 then key.error else colon.error
+              let value := textParse input fuel depth valuePos error
+              if value.code ≤ 0 then if value.code == -1 then value else failure valuePos
+              else textAfter input fuel depth object value.code.toNat value.error
+        else if parsed.code ≤ 0 then if parsed.code == -1 then parsed else failure pos
+        else textAfter input fuel depth object parsed.code.toNat parsed.error
+  def textAfter (input : Array UInt8) : Nat → Nat → Bool → Nat → Nat → TextStep
+    | 0, _, _, pos, _ => failure pos
+    | fuel+1, depth, object, pos, error =>
+        let pos := standardSkip input pos
+        let close := if object then 125 else 93
+        if byte input pos == 44 then textMembers input fuel depth object (pos+1) error
+        else if byte input pos == close then success (pos+1) error
+        else
+          let separator := textParse input fuel depth pos error
+          if separator.code == -4 then textMembers input fuel depth object (separator.error+1) separator.error
+          else if separator.code == (if object then -2 else -3) then success (separator.error+1) separator.error
+          else failure pos
+end
+
+def textError (input : Array UInt8) : Nat :=
+  let parsed := textParse input (8*input.size+8) 0 0 0
+  let finish := (skip input (input.size+1) parsed.code.toNat false).1
+  if parsed.code > 0 && byte input finish == 0 then 0
+  else
+    ((input.toList.take parsed.error).takeWhile (fun c => c.toNat != 0)).countP
+      (fun c => c.toNat / 64 != 2) + 1
+
+def evaluate (value : Value) : Value :=
+  if Text.isNull value then .null else
+  let input := Text.bytes value
+  let isBinary := match value with | .blob _ => blobLooks input | _ => false
+  .integer (if isBinary then binary input (4*input.size+4) 1 0 input.size else textError input)
+
+end SQLeanite.SQLite.JsonPosition
