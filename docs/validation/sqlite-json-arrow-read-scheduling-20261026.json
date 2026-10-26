@@ -1,0 +1,6 @@
+{
+  "before_sha256": "a1769a93c209a203cd5b74f1235aeb785c043252d401b7d9ee51a17117f9e908",
+  "after_sha256": "597ea08683c05e30878d09647cd9d888e177af78db715b800e3425f6ffccd0f4",
+  "fixture_workers": 2,
+  "scope": "Same serial RNG generation and inputs; independent private fixtures run in two workers and are collected in original order. No evaluation acceptance changes."
+}

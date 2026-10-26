@@ -1607,3 +1607,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonExtract.evaluate_one_argument
 #print axioms SQLeanite.SQLite.JsonExtract.integerValue_empty
 #print axioms SQLeanite.SQLite.JsonExtract.valueAt_truncated
+
+#print axioms SQLeanite.SQLite.JsonArrow.evaluate_null
+#print axioms SQLeanite.SQLite.JsonArrow.abbreviated_root
+#print axioms SQLeanite.SQLite.JsonArrow.abbreviated_zero
+#print axioms SQLeanite.SQLite.JsonArrow.evaluate_null_path
+
+#print axioms SQLeanite.SQLite.JsonEscape.unescape_invalid_separator

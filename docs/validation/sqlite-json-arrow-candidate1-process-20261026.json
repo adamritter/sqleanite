@@ -1,0 +1,7 @@
+{
+  "session_id": 66610,
+  "exit_code": 1,
+  "read_cases": 39456,
+  "read_failures": 2,
+  "scope": "Fresh candidate found a shared escaped-TEXTJ decoding gap; both differences are the same input in the two public modes."
+}

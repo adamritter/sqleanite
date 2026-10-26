@@ -3,6 +3,7 @@ import SQLeanite.SQLite.JsonAccess
 import SQLeanite.SQLite.JsonBinary
 import SQLeanite.SQLite.JsonPretty
 import SQLeanite.SQLite.JsonExtract
+import SQLeanite.SQLite.JsonArrow
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -199,6 +200,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
   | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
   | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
   | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
+  | .arrowText => JsonArrow.evaluate a b
   | .like => Pattern.evaluate false b a
   | .glob => Pattern.evaluate true b a
   | .concat => do
@@ -295,6 +297,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "->>", [value, path] => JsonArrow.evaluate value path
   | "jsonb_extract", values => JsonExtract.evaluate values
   | "json_pretty", [value] => JsonPretty.evaluate value
   | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
@@ -377,6 +380,7 @@ def hasFunctionFuel : Nat → Expr → Bool
           (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
             (quotedIdentifier? expression).isNone) || args.any has
       | .unary _ arg | .isNull arg _ => has arg
+      | .binary .arrowText _ _ => true
       | .binary _ left right => has left || has right
       | .inList arg values _ _ => has arg || values.any has
       | .case_ base branches otherwise => base.any has ||
@@ -499,7 +503,7 @@ def forbidden : Expr → Bool
       branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
   | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
   | .binary op left right =>
-      [.match, .arrow, .arrowText].contains op ||
+      [.match, .arrow].contains op ||
         ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
           !(([.is, .isNot].contains op) && (isTruthKeyword? right).isSome) &&
           (ExprCollation.binaryKind? left right).isNone)
@@ -525,7 +529,7 @@ def forbidden : Expr → Bool
         else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length", "json_pretty"].contains n then
           args.size == 1 || args.size == 2
         else if n == "like" then args.size == 2 || args.size == 3
-        else if n == "instr" || n == "glob" then args.size == 2
+        else if n == "instr" || n == "glob" || n == "->>" then args.size == 2
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
@@ -549,9 +553,10 @@ def admissionErrorFuel : Nat → Expr → Option String
       match expression with
       | .call name arguments star =>
           let function := scalarFunctionName name
-          let wrongArity := if ["json_error_position", "jsonb"].contains function then arguments.size != 1
+          let wrongArity := if function == "->>" then arguments.size != 2
+            else if ["json_error_position", "jsonb"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty"].contains function &&
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>"].contains function &&
               (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name

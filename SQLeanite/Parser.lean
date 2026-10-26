@@ -328,7 +328,7 @@ mutual
       else if ← acceptKeyword "not" then pure (.unary .not (← parseExprFuel fuel 3))
       else parsePrimaryFuel fuel
 
-  private def parseCallFuel (fuel : Nat) (name : String) : ParserM Expr := do
+  private def parseCallFuel (fuel : Nat) (name spelling : String) : ParserM Expr := do
     let call ← if ← acceptSymbol "*" then
       expectSymbol ")"
       pure (.call name #[] true)
@@ -354,7 +354,7 @@ mutual
             more ← acceptSymbol ","
         expectSymbol ")"
       unless args.size ≤ SQLite.Limits.maxFunctionArgs do
-        throw s!"too many arguments on function {name}"
+        throw s!"too many arguments on function {spelling}"
       let call := Expr.call (if distinct then distinctAggregateName name else name) args false
       pure (if ordering.isEmpty then call else .call "__sqlean_aggregate_order" (#[call] ++ ordering) false)
     let filtered := isKeyword (← peek) "filter" && isSymbol (← peekAfter) "("
@@ -445,7 +445,7 @@ mutual
         else if (SQLite.Identifier.primaryToken false (.ident s)).isNone then
           throw (syntaxError (.ident s))
         else if ← acceptSymbol "(" then
-          parseCallFuel fuel s
+          parseCallFuel fuel s s
         else if ← acceptSymbol "." then
           if ← acceptSymbol "*" then pure (.star (some s))
           else
@@ -458,8 +458,8 @@ mutual
         else if keywordEq s "true" then pure (.call "__sqlean_boolean_true" #[] false)
         else if keywordEq s "false" then pure (.call "__sqlean_boolean_false" #[] false)
         else pure (.column none s)
-      | .quotedIdent s _ =>
-        if ← acceptSymbol "(" then parseCallFuel fuel s
+      | .quotedIdent s spelling =>
+        if ← acceptSymbol "(" then parseCallFuel fuel s spelling
         else if ← acceptSymbol "." then
           if ← acceptSymbol "*" then pure (.star (some s))
           else pure (.column (some s) (← expectIdent))

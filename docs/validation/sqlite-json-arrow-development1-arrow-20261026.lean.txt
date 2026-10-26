@@ -1,0 +1,48 @@
+import SQLeanite.SQLite.JsonExtract
+
+namespace SQLeanite.SQLite.JsonArrow
+open JsonValid
+
+def abbreviated (value : Value) (path : Array UInt8) : Array UInt8 :=
+  if byte path 0 == 36 then path
+  else if (match value with | .integer _ => true | _ => false) then
+    "$[".toUTF8.data ++ (if byte path 0 == 45 then #[35] else #[]) ++ path ++ #[93]
+  else if path.all (fun c => digit c.toNat || alpha c.toNat || c == 95) then
+    "$.".toUTF8.data ++ path
+  else if byte path 0 == 91 && path.size ≥ 3 && byte path (path.size-1) == 93 then
+    #[36] ++ path
+  else "$.\"".toUTF8.data ++ path ++ #[34]
+
+def evaluate (value pathValue : Value) : Except String Value := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return .null
+  if Text.isNull pathValue then return .null
+  let path := JsonExtract.nulPrefix (Text.bytes pathValue)
+  let expanded := abbreviated pathValue path
+  let selected := JsonAccess.select input (some (Text.fromBytes expanded))
+  let pos ← match selected with
+    | .ok pos => pure pos
+    | .error message => throw (if message == JsonAccess.pathError expanded then JsonAccess.pathError path else message)
+  let some pos := pos | return .null
+  let value ← JsonExtract.valueAt input pos
+  match value with
+  | .blob bytes =>
+      let rendered ← JsonPretty.render bytes #[] (4*bytes.size+4) false 0 0 0
+      return Text.fromBytes (rendered.chunks.foldl (fun out chunk => out ++ chunk) #[])
+  | _ => return value
+
+
+theorem evaluate_null (path : Value) : evaluate .null path = .ok .null := rfl
+
+theorem abbreviated_root (value : Value) (path : Array UInt8)
+    (root : byte path 0 = 36) : abbreviated value path = path := by
+  simp [abbreviated, root]
+
+theorem abbreviated_zero : abbreviated (.integer 0) #[48] = #[36,91,48,93] := rfl
+
+theorem evaluate_null_path (value : Value) (input : Array UInt8)
+    (loaded : JsonBinary.evaluate value = .ok (.blob input)) :
+    evaluate value .null = .ok .null := by
+  simp only [evaluate, loaded, Text.isNull] <;> rfl
+
+end SQLeanite.SQLite.JsonArrow

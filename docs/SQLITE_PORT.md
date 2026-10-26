@@ -6868,3 +6868,83 @@ Harnesses are `scripts/run-json-extract-*.py`; source, plans, negative records a
 logs are under `docs/validation/sqlite-json-extract-*`. Large reports are losslessly
 compressed with original/stored hashes. Pinned `src/json.c` is the implementation
 reference; see the [SQLite extraction documentation](https://sqlite.org/json1.html#the_jsonb_extract_function).
+
+## JSON SQL-value arrow, quoted calls and escape-tail consumption (2026-10-26)
+
+The `->>` operator and its quoted function spelling now use pure JSONB lookup
+and conversion. They accept full paths, abbreviated labels, integer indices
+including negative indices, bracket paths and SQL-coerced path values. Scalars
+retain SQL storage types; containers become compact JSON text. Raw TEXT bytes,
+embedded NUL and invalid UTF-8 remain observable. Path errors retain the original
+argument spelling. This function produces no JSON subtype.
+
+Scalar preparation retains the operator's function flag for name resolution in
+otherwise-dead AND branches. The SQL parser retains the original quoted function
+token in excessive-argument diagnostics, separately from the decoded lookup name,
+including brackets, backticks, escaped delimiters and assignment contexts.
+
+Final frozen implementation: **5e31d65d7d46c7165b056c28dce87eda543289a9d0cd2cc1c89030da780f8b25**.
+
+| Final fresh JSON arrow corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 39456 | 0 |
+| writer | 2624 | 0 |
+| upstream | 32768 | 0 |
+| Total | **74848** | **0** |
+
+Read/writer seeds **355101/355102** use fresh values and unfiltered mutations with
+maintained templates, all eight page sizes and both public file modes. Root,
+selected, quoted-function and chained requests run independently. Comparisons
+include storage type, full `hex(value)` and `hex(quote(value))`, status and first
+diagnostics. Fixed controls cover precedence, binding, dead branches, NULL,
+numeric paths, escaped keys, nonminimal headers, malformed descendants, large
+payloads and nesting boundaries. Read files must remain byte-for-byte unchanged.
+Private read fixtures run in two workers; generation and collection retain their
+original serial order. The original harness and scheduling transformation record
+are preserved. No input generation or acceptance condition was relaxed.
+
+Writer checks include C integrity, typed/raw persisted rows, schema shape, Lean
+reopen and a subsequent independent C write. Requested page geometry is recorded
+separately. Pinned `randomjson.c` supplies seeds **3670000–3671023**, four JSON/JSON5
+text/binary representations and an unfiltered mutation of each. Only the C oracle
+loads the generator. Related full-byte extraction regressions pass **18912**
+cases at seeds **355103/355104**.
+
+The first final candidate failed **2 of 39,456 arrow read cases**: a malformed
+`\xE2` escape retained trailing bytes that C consumes. Its writer/upstream and
+related extraction corpora passed, which did not establish decoder equivalence.
+The shared decoder now consumes the remaining span when a putative line-separator
+escape is invalid. Valid continuations and ordinary unknown escapes retain their
+distinct behavior. The negative source, harnesses, reports and actual failed
+process status are retained under `candidate1`.
+
+A new public escape-tail corpus at seed **355105** passes **21984** cases across
+both file modes and all page sizes. It covers raw and escaped text, continuations,
+arbitrary suffix bytes, embedded NUL, nonminimal headers, and object-key matching
+with different suffixes. Six operations run independently: arrow, binary extract,
+type, array length, strict validity and error position. **606 fixed controls**,
+including the discovered failure, are retained in executable tests. The development
+replay and final fresh evaluations use the same frozen corrected implementation.
+
+Earlier standalone quoted-output and raw-output component corpora each passed
+**11,520 cases** using repeated inputs and separately seeded paths. They predate
+the shared escape fix and are component/replay metrics, not final public coverage.
+**2,254 selected component controls** remain in tests. Initial public development
+had **4/4,416 read** and **24/324 writer** differences from lost quoted function
+spelling; **2,048 upstream cases** passed. Those negative records remain, alongside
+**45 direct spelling controls** and the subsequent passing development replay.
+
+The full build passes **378 jobs**, **322 executable tests**, **1,361 headline
+component proofs**, both audits and the reverse-file matrix. Four arrow theorems
+cover NULL input, full-path identity, index zero and NULL path after successful
+loading. A fifth theorem records malformed-separator span consumption. These are
+component propositions, not a proof of total SQLite equivalence. Native code and
+the nine host bindings remain unchanged.
+
+The prior exact-schema checkpoint's **64/80 catalog SQL differences** remain open;
+that separate corpus was not rerun here. Missing SQL features, JSON subtype
+propagation, write geometry, cold savepoints and concurrent WAL locking also remain
+open. No overall compatibility percentage is inferred. Reproducible plans,
+source snapshots and negative records are under `docs/validation/sqlite-json-arrow-*`.
+The pinned `src/json.c` is the implementation reference; see the
+[SQLite arrow documentation](https://sqlite.org/json1.html#the_and_operators).

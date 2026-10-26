@@ -1,0 +1,34 @@
+from pathlib import Path
+import json
+r=Path('/dev/shm/sqleanite-json-valid-20261026')
+f=r/'SQLeanite/Parser.lean';s=f.read_text().replace('''      | .quotedIdent s delimiter =>
+        if ← acceptSymbol "(" then parseCallFuel fuel s (Token.render (.quotedIdent s delimiter))''','''      | .quotedIdent s spelling =>
+        if ← acceptSymbol "(" then parseCallFuel fuel s spelling''');f.write_text(s)
+names=['"->>"','[->>]','`->>`','"char"','[char]','`char`','"a""b"','`a``b`','"CoAlEsCe"']
+block='''private def expectSQLiteQuotedFunctionLimits : IO Unit := do
+  for name in NAMES do
+    let call := name ++ "(" ++ String.intercalate "," (List.replicate 1001 "1") ++ ")"
+    let scripts := ["SELECT " ++ call ++ ";",
+      "SELECT CASE WHEN 0 THEN " ++ call ++ " ELSE 1 END;",
+      "CREATE TABLE t(a,b); UPDATE t SET a=" ++ call ++ " WHERE 0;",
+      "CREATE TABLE t(a,b); UPDATE t SET a=((" ++ call ++ ")) WHERE 0;",
+      "CREATE TABLE t(a,b); UPDATE t SET (a,b)=(1," ++ call ++ ") WHERE 0;"]
+    for sql in scripts do
+      match CoreSQL.execute Core.State.empty sql with
+      | .error message => unless message == "too many arguments on function " ++ name do
+          fail s!"quoted function limit spelling differs: {message}"
+      | .ok _ => fail "quoted function limit accepted excessive arguments"
+
+'''.replace('NAMES','['+', '.join(json.dumps(x) for x in names)+']')
+f=r/'Tests.lean';s=f.read_text();a='private def expectSQLiteJoinedGroupPrefix';assert s.count(a)==1;s=s.replace(a,block+a);a='  ("SQLite JSON SQL-value arrow",';assert s.count(a)==1;s=s.replace(a,'  ("SQLite quoted function limit diagnostics", expectSQLiteQuotedFunctionLimits),\n'+a);f.write_text(s)
+f=r/'scripts/run-json-arrow-differential.py';s=f.read_text();a=' cases=[];runs=[];fixtures=[]';assert s.count(a)==1;s=s.replace(a,' for name in '+repr(names)+''':
+  call=name+'('+','.join(['1']*1001)+')'
+  for expr in [call,'CASE WHEN 0 THEN '+call+' ELSE 1 END']:query('quoted-function-limit','SELECT '+expr+';')
+'''+a);f.write_text(s)
+f=r/'scripts/run-json-arrow-write-differential.py';s=f.read_text();a=' observation=';i=s.index(a);s=s[:i]+' for name in '+repr(names)+''':
+  call=name+'('+','.join(['1']*1001)+')'
+  for value in [call,'(('+call+'))','(1,'+call+')']:
+   columns='(valid,flags)' if value.startswith('(1,') else 'valid'
+   add('quoted-function-limit','UPDATE t SET '+columns+'='+value+' WHERE 0;')
+'''+s[i:];f.write_text(s)
+print('added',len(names)*5,'unit controls and public quoted-name diagnostics')

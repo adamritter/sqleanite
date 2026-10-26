@@ -1,0 +1,90 @@
+[
+  {
+    "original": "sqlite-json-arrow-candidate1-extract-read-20261026.json",
+    "stored": "sqlite-json-arrow-candidate1-extract-read-20261026.json.gz",
+    "original_bytes": 13976011,
+    "stored_bytes": 357906,
+    "original_sha256": "b5cd9c4055df89e171b2c45ab3fa3a55d464aa5cf69c6a8b04f273b03b2ccca4",
+    "stored_sha256": "09147e5484ee59d17daec0a1e198ad1943a8eb4045d8a15100d84fc6374526e2"
+  },
+  {
+    "original": "sqlite-json-arrow-candidate1-extract-writer-20261026.json",
+    "stored": "sqlite-json-arrow-candidate1-extract-writer-20261026.json.gz",
+    "original_bytes": 37465147,
+    "stored_bytes": 363959,
+    "original_sha256": "be4c602f40ce1b2201184d35dcfbe3d00dac684e0f49861eb731f01e3bc5533d",
+    "stored_sha256": "3aa38042168b3ef0293cfc3bafae0052b1fc19ca2d966ead7c3bc114e05f8973"
+  },
+  {
+    "original": "sqlite-json-arrow-candidate1-read-20261026.json",
+    "stored": "sqlite-json-arrow-candidate1-read-20261026.json.gz",
+    "original_bytes": 27742794,
+    "stored_bytes": 521750,
+    "original_sha256": "2a6dbec969b43135742b436e3e61862364c0df8160e797405ee310ef41e05b43",
+    "stored_sha256": "6ac645b3ecfe79a8c21fc1a6b57726637ee31ddecc5785f64b6f3a3f3c3542d0"
+  },
+  {
+    "original": "sqlite-json-arrow-candidate1-upstream-20261026.json",
+    "stored": "sqlite-json-arrow-candidate1-upstream-20261026.json.gz",
+    "original_bytes": 46863455,
+    "stored_bytes": 1763889,
+    "original_sha256": "998c41fec60dabc7990fde873c95f78d6abdb0ac6c793cefdddef97c222e8d58",
+    "stored_sha256": "dc2a370cf4d1f3c2f0a613b9ce220c9c9660da7f511edbd9afef44d0b0a3ee1b"
+  },
+  {
+    "original": "sqlite-json-arrow-candidate1-writer-20261026.json",
+    "stored": "sqlite-json-arrow-candidate1-writer-20261026.json.gz",
+    "original_bytes": 202278884,
+    "stored_bytes": 5278563,
+    "original_sha256": "d00111fc15267232fc3104d60ded3522e96c08fe67a104dd892c26b411e21123",
+    "stored_sha256": "ebfab4289a8ee5fa43cdcc6406d388046cf4e31cf26eba0ec6086941c2d14079"
+  },
+  {
+    "original": "sqlite-json-arrow-final-escape-tail-20261026.json",
+    "stored": "sqlite-json-arrow-final-escape-tail-20261026.json.gz",
+    "original_bytes": 12384063,
+    "stored_bytes": 296170,
+    "original_sha256": "77d3ff8de89dc9fdc2239a5fcb8bddb06241539e878b42499e00c3791d991361",
+    "stored_sha256": "ed9a3d9a5a2addc54526a7fc00bdcac29afb7eee438f5d915c4e55a4663849d9"
+  },
+  {
+    "original": "sqlite-json-arrow-final-extract-read-20261026.json",
+    "stored": "sqlite-json-arrow-final-extract-read-20261026.json.gz",
+    "original_bytes": 14081513,
+    "stored_bytes": 363198,
+    "original_sha256": "cffca7e4ca30e862b1a041b17c511ea737e6579368b1c0ce64d49885bcc7e405",
+    "stored_sha256": "99834f769733f37ed082abf0f3589e686bfa532348ca5a1f98290ad726d19b2d"
+  },
+  {
+    "original": "sqlite-json-arrow-final-extract-writer-20261026.json",
+    "stored": "sqlite-json-arrow-final-extract-writer-20261026.json.gz",
+    "original_bytes": 37093057,
+    "stored_bytes": 357147,
+    "original_sha256": "f1f49f7fa08baaa8b715bd6e7e781d8feccb6ffb3bc2d278122f703ff8af63de",
+    "stored_sha256": "41eda2b9fee8ba6c591dce7970e72939ccc152660692128c09214e476ed66bce"
+  },
+  {
+    "original": "sqlite-json-arrow-final-read-20261026.json",
+    "stored": "sqlite-json-arrow-final-read-20261026.json.gz",
+    "original_bytes": 27688977,
+    "stored_bytes": 524559,
+    "original_sha256": "02eab20862e24aaafd84c0a3676dabe620d4b8ca5ce9a73054d0e23a200ccbec",
+    "stored_sha256": "6e824965b022a7993b0e161d899c01ffd1efce3497569cd5f26fe67a27f4d652"
+  },
+  {
+    "original": "sqlite-json-arrow-final-upstream-20261026.json",
+    "stored": "sqlite-json-arrow-final-upstream-20261026.json.gz",
+    "original_bytes": 45793827,
+    "stored_bytes": 1716935,
+    "original_sha256": "b1a8be4dde0811968b3c77152eb8ad5d3c5c4267addfe567c5dc5de6ff6c8e52",
+    "stored_sha256": "21cbdf8c967c36cf88010086d77be47307d951d84efd2e19c746f7e1eb4c576e"
+  },
+  {
+    "original": "sqlite-json-arrow-final-writer-20261026.json",
+    "stored": "sqlite-json-arrow-final-writer-20261026.json.gz",
+    "original_bytes": 200999782,
+    "stored_bytes": 5274714,
+    "original_sha256": "379b9c0e0538c37bf737abea92c9d864c75ff955b3f83f399f219e5e0277f7d7",
+    "stored_sha256": "d04ebb995d4d5556e5341407cb18d0a7b506446633cdaa2bb2c9f096382cb9e2"
+  }
+]

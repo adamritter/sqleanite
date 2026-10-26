@@ -2570,4 +2570,12 @@ else
   echo 'error - JSON binary extraction is disconnected from public SQL' >&2
   status=1
 fi
+if rg -F -q '| .arrowText => JsonArrow.evaluate a b' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let value ← JsonExtract.valueAt input pos' SQLeanite/SQLite/JsonArrow.lean &&
+   rg -F -q 'JsonArrow.abbreviated_root' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON SQL-value arrow uses pure abbreviated lookup and byte conversion'
+else
+  echo 'error - JSON SQL-value arrow is disconnected from public SQL' >&2
+  status=1
+fi
 exit $status

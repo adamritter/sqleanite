@@ -62,7 +62,7 @@ def unescape (input : Array UInt8) (finish : Nat) : Nat → Nat → Nat × Nat
         | some p => (p.2, pos+2)
         | none =>
             let next := continuationEnd input finish (input.size+1) pos
-            if next == pos then (629145, pos+2)
+            if next == pos then (629145, if c == 226 then finish else pos+2)
             else if next ≥ finish then (0, next)
             else if byte input next == 92 then unescape input finish fuel next
             else utf8 input next finish
@@ -70,5 +70,13 @@ def unescape (input : Array UInt8) (finish : Nat) : Nat → Nat → Nat × Nat
 theorem unescape_short (input : Array UInt8) (finish fuel pos : Nat)
     (short : finish ≤ pos+1) : unescape input finish (fuel+1) pos = (629145, finish) := by
   simp [unescape, short]
+
+/-- A malformed U+2028/U+2029 escape prefix consumes its remaining byte span,
+as jsonUnescapeOneChar does when jsonBytesToBypass finds no continuation. -/
+theorem unescape_invalid_separator (input : Array UInt8) (finish fuel pos : Nat)
+    (long : pos+1 < finish) (marker : byte input (pos+1) = 226)
+    (invalid : continuationEnd input finish (input.size+1) pos = pos) :
+    unescape input finish (fuel+1) pos = (629145, finish) := by
+  simp [unescape, marker, invalid, Nat.not_le_of_gt long]
 
 end SQLeanite.SQLite.JsonEscape

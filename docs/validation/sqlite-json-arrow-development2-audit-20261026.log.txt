@@ -1,0 +1,3 @@
+allowlisted opaque host bindings: 9
+library partial definitions: 0
+process partial definitions: 0

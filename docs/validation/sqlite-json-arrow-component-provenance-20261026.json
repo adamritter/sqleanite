@@ -1,0 +1,18 @@
+{
+  "quoted": {
+    "session_id": 71164,
+    "exit_code": 0,
+    "seed": 355041,
+    "cases": 11520,
+    "failures": 0
+  },
+  "raw": {
+    "session_id": 4247,
+    "exit_code": 0,
+    "seed": 355048,
+    "cases": 11520,
+    "failures": 0
+  },
+  "unit_controls": 2254,
+  "scope": "Standalone component interpreter corpus and raw-byte replay using repeated input corpus plus seeded paths; not fresh public SQL compatibility."
+}
